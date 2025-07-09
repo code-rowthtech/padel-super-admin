@@ -26,7 +26,7 @@ function App() {
         <Route path="/veiw-match" element={<VeiwMatch/>} />
       
       </Routes>
-      <CustomButton/>
+      <CustomButton />
       {/* <Footer /> */}
     </Router>
   );
