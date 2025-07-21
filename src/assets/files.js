@@ -1,0 +1,22 @@
+import twoball from './images/twoball.png';
+import taness from './images/taness.png';
+import logo from './images/logo.png';
+import line from './images/line.png';
+import review from './images/reviewstar.png';
+import player from './images/player.png'
+import padal from './images/padalsports.png';
+import club from './images/club.png'
+import google from './images/googlelogo.png'
+import authImg from './images/auth.png'
+export {
+    twoball,
+    taness,
+    logo,
+    review,
+    player,
+    line,
+    padal,
+    club,
+    google,
+    authImg
+}

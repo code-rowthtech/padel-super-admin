@@ -1,6 +1,4 @@
-import React from 'react'
-import logo from '../../assets/logo.png'
-import { Button } from 'bootstrap/dist/js/bootstrap.bundle.min'
+import { logo } from '../../assets/files';
 import { Link, NavLink } from 'react-router-dom';
 
 
@@ -10,10 +8,9 @@ const Navbar = () => {
             <nav className="navbar navbar-expand-lg bg-white py-1 ">
                 <div className="container">
                     {/* Logo */}
-                    <a className="navbar-brand" href="#">
-                        <Link to="/" style={{ textDecoration: 'none' }} className="text-white">
-                            <img src={logo} alt="Logo" style={{ width: "120px" }} /></Link>
-                    </a>
+                    <Link to="/" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
+                        <img src={logo} alt="Logo" style={{ width: "120px" }} />
+                    </Link>
 
                     {/* Toggle button for mobile */}
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +47,7 @@ const Navbar = () => {
                             <li className="nav-item">
                                 <NavLink
                                     to="/open-matches"
-                                   className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
+                                    className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
                                     style={({ isActive }) => ({
                                         color: isActive ? "#1F41BB" : "#000",
                                         textDecoration: 'none',
@@ -74,12 +71,11 @@ const Navbar = () => {
                             </li>
                         </ul>
 
-
-                        {/* Book Now button */}
                         <div className="d-flex ">
-                            <button href="#" className="btn px-4 py-2 rounded-pill text-white" style={{ whiteSpace: "nowrap", backgroundColor: " #3DBE64", fontSize: "20", fontWeight: "600" }}>
-                                <Link to="/booking" style={{ textDecoration: 'none' }} className="text-white">
-                                    Book Now </Link>
+                            <button className="btn px-4 py-2 rounded-pill text-white" style={{ whiteSpace: "nowrap", backgroundColor: " #3DBE64", fontSize: "20", fontWeight: "600" }}>
+                                <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
+                                    Login
+                                </Link>
                             </button>
                         </div>
                     </div>

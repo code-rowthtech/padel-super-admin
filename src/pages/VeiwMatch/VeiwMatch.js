@@ -1,19 +1,11 @@
-import React, { useState } from "react";
-import padal from '../../assets/padalsports.png';
-import logo from '../../assets/logo.png'
-import { FaShoppingCart } from "react-icons/fa";
-import player from '../../assets/player.png'
-import club from '../../assets/club.png'
+import { useState } from "react";
 import DirectionsIcon from '@mui/icons-material/Directions';
 import { Link } from "react-router-dom";
-
-
-
-
+import { logo, player, padal, club } from "../../assets/files";
 
 
 const VeiwMatch = ({
-   
+
     className = ""
 }) => {
     const [selectedTime, setSelectedTime] = useState("09:00am");
@@ -50,57 +42,57 @@ const VeiwMatch = ({
 
 
 
- // Mock props for demonstration
-  const width = 370;
-  const height = 75;
-  const circleRadius = height * 0.3;
-  // Calculate the center of the curved end section more precisely
-  const curvedSectionStart = width * 0.76; // Where the curve starts
-  const curvedSectionEnd = width * 0.996; // Where the curve ends
-  const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1; // Added 1 pixel to the right
-  const circleY = height * 0.5;
-  const arrowSize = circleRadius * 0.6;
-  const arrowX = circleX;
-  const arrowY = circleY;
-  
-  const buttonStyle = {
-    position: 'relative',
-    width: `${width}px`,
-    height: `${height}px`,
-    border: 'none',
-    background: 'transparent',
-    cursor: 'pointer',
-    padding: 0,
-    overflow: 'visible',
-  };
+    // Mock props for demonstration
+    const width = 370;
+    const height = 75;
+    const circleRadius = height * 0.3;
+    // Calculate the center of the curved end section more precisely
+    const curvedSectionStart = width * 0.76; // Where the curve starts
+    const curvedSectionEnd = width * 0.996; // Where the curve ends
+    const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1; // Added 1 pixel to the right
+    const circleY = height * 0.5;
+    const arrowSize = circleRadius * 0.6;
+    const arrowX = circleX;
+    const arrowY = circleY;
 
-  const svgStyle = {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    zIndex: 1,
-  };
+    const buttonStyle = {
+        position: 'relative',
+        width: `${width}px`,
+        height: `${height}px`,
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        padding: 0,
+        overflow: 'visible',
+    };
 
-  const contentStyle = {
-    position: 'relative',
-    zIndex: 2,
-    color: 'white',
-    fontWeight: '600',
-    fontSize: `16px`,
-    textAlign: 'center',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-    paddingRight: `${circleRadius * 2}px`,
-  };
+    const svgStyle = {
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: 1,
+    };
 
-  const onClick = () => {
-    console.log('Button clicked!');
-    alert('Button clicked! (would navigate to /payment)');
-  };
+    const contentStyle = {
+        position: 'relative',
+        zIndex: 2,
+        color: 'white',
+        fontWeight: '600',
+        fontSize: `16px`,
+        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        paddingRight: `${circleRadius * 2}px`,
+    };
+
+    const onClick = () => {
+        console.log('Button clicked!');
+        alert('Button clicked! (would navigate to /payment)');
+    };
 
     return (
         <>
@@ -324,22 +316,22 @@ const VeiwMatch = ({
                                     className={className}
                                 >
                                     <Link to="/payment" style={{ textDecoration: 'none' }} className="">
-                                    <svg
-                                        style={svgStyle}
-                                        viewBox={`0 0 ${width} ${height}`}
-                                        preserveAspectRatio="none"
-                                    >
-                                        <defs>
-                                            <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                                <stop offset="0%" stopColor="#3DBE64" />
-                                                <stop offset="50%" stopColor="#1F41BB" />
-                                                <stop offset="100%" stopColor="#1F41BB" />
-                                            </linearGradient>
-                                        </defs>
+                                        <svg
+                                            style={svgStyle}
+                                            viewBox={`0 0 ${width} ${height}`}
+                                            preserveAspectRatio="none"
+                                        >
+                                            <defs>
+                                                <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                                    <stop offset="0%" stopColor="#3DBE64" />
+                                                    <stop offset="50%" stopColor="#1F41BB" />
+                                                    <stop offset="100%" stopColor="#1F41BB" />
+                                                </linearGradient>
+                                            </defs>
 
-                                        {/* Main button shape - responsive to dimensions */}
-                                        <path
-                                            d={`M ${width * 0.76} ${height * 0.15} 
+                                            {/* Main button shape - responsive to dimensions */}
+                                            <path
+                                                d={`M ${width * 0.76} ${height * 0.15} 
              C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
              C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
              C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
@@ -354,28 +346,28 @@ const VeiwMatch = ({
              C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
              C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
              L ${width * 0.76} ${height * 0.15} Z`}
-                                            fill={`url(#buttonGradient-${width}-${height})`}
-                                        />
+                                                fill={`url(#buttonGradient-${width}-${height})`}
+                                            />
 
-                                        {/* Green circle - properly positioned and sized */}
-                                        <circle
-                                            cx={circleX}
-                                            cy={circleY}
-                                            r={circleRadius}
-                                            fill="#3DBE64"
-                                        />
+                                            {/* Green circle - properly positioned and sized */}
+                                            <circle
+                                                cx={circleX}
+                                                cy={circleY}
+                                                r={circleRadius}
+                                                fill="#3DBE64"
+                                            />
 
-                                        {/* Arrow icon - scaled proportionally */}
-                                        <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
-                                            <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
-                                            <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
-                                        </g>
-                                    </svg>
+                                            {/* Arrow icon - scaled proportionally */}
+                                            <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
+                                                <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
+                                                <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
+                                            </g>
+                                        </svg>
 
-                                    <div style={contentStyle}>
-                                        Book Now
-                                    </div>
+                                        <div style={contentStyle}>
+                                            Book Now
+                                        </div>
                                     </Link>
                                 </button>
                             </div>

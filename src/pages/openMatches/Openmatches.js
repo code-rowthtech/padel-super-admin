@@ -1,9 +1,5 @@
 import React, { useState, useRef } from "react";
-import twoball from '../../assets/twoball.png';
-import logo from '../../assets/logo.png'
-import player from '../../assets/player.png'
-import { FaShoppingCart } from "react-icons/fa";
-import line from '../../assets/line.png';
+import { player } from "../../assets/files";
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { FaChevronDown } from "react-icons/fa";
@@ -11,13 +7,7 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
 
-const Openmatches = ({
-    width = 370,
-    height = 70,
-    children,
-    onClick,
-    className = ""
-}) => {
+const Openmatches = ({ width = 370, height = 70 }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
@@ -224,11 +214,6 @@ const Openmatches = ({
 
     return (
         <>
-
-
-
-
-
             {/* Booking UI */}
             <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
                 <div className="row">
@@ -236,7 +221,7 @@ const Openmatches = ({
                     <div className="col-7 py-5 rounded-3 px-4" style={{ backgroundColor: " #F5F5F566" }}>
                         {/* Date Selector */}
                         <div className="calendar-strip ">
-                            <p className="" style={{ fontSize: "20px", fontWeight: "600" }}>Select Date <div
+                            <div className="" style={{ fontSize: "20px", fontWeight: "600" }}>Select Date <div
                                 className="position-relative d-inline-block"
                                 ref={wrapperRef}
                             >
@@ -269,7 +254,7 @@ const Openmatches = ({
                                         />
                                     </div>
                                 )}
-                            </div></p>
+                            </div></div>
                             <div className="d-flex align-items-center gap-2 mb-3">
                                 <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                                     <i className="bi bi-chevron-left"></i>
@@ -508,7 +493,7 @@ const Openmatches = ({
                                         className="img-fluid"
                                         style={{
                                             maxHeight: "340px",
-                                            marginTop: "-50px", // shift image upward
+                                            marginTop: "-45px",
                                             zIndex: 1,
                                             position: "relative",
                                         }}

@@ -190,3 +190,9 @@ h1.display-5 {
   visibility: visible;
   opacity: 1;
 }
+
+@media (max-width: 768px) {
+  .auth-wrapper {
+    padding: 1rem;
+  }
+}

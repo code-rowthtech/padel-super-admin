@@ -1,13 +1,8 @@
 import React, { useState, useRef } from "react";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import twoball from '../../assets/twoball.png';
-import logo from '../../assets/logo.png'
+import { logo, twoball } from "../../assets/files";
 import { FaShoppingCart } from "react-icons/fa";
 import { Link } from "react-router-dom";
-
-
-
 
 const Booking = ({
 
@@ -199,7 +194,7 @@ const Booking = ({
                     <div className="col-7 py-5 rounded-3 px-4" style={{ backgroundColor: " #F5F5F566" }}>
                         {/* Date Selector */}
                         <div className="calendar-strip ">
-                            <p className="" style={{ fontSize: "20px", fontWeight: "600" }}>Select Date <div
+                            <div className="" style={{ fontSize: "20px", fontWeight: "600" }}>Select Date <div
                                 className="position-relative d-inline-block"
                                 ref={wrapperRef}
                             >
@@ -232,7 +227,7 @@ const Booking = ({
                                         />
                                     </div>
                                 )}
-                            </div></p>
+                            </div></div>
                             <div className="d-flex align-items-center gap-2 mb-3">
                                 <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                                     <i className="bi bi-chevron-left"></i>

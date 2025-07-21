@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-import twoball from '../../assets/twoball.png';
-import taness from '../../assets/taness.png';
-import logo from '../../assets/logo.png';
-import review from '../../assets/reviewstar.png';
+import { twoball, taness, logo, line } from '../../assets/files';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import PhotoSizeSelectActualIcon from '@mui/icons-material/PhotoSizeSelectActual';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import PhoneIcon from '@mui/icons-material/Phone';
-import line from '../../assets/line.png';
 import StarIcon from '@mui/icons-material/Star';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
@@ -71,7 +67,7 @@ const Home = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [photoIndex, setPhotoIndex] = useState(0);
 
-    const allImages = photos.map(photo => require(`../../assets/${photo}`));
+    const allImages = photos.map(photo => require(`../../assets/images/${photo}`));
     const [activeTab, setActiveTab] = useState('direction');
 
     const mapSrc =
@@ -136,7 +132,7 @@ const Home = () => {
                                         </div>
                                         <div className='text-end'>
                                             <Link
-                                               to="/open-matches"
+                                                to="/open-matches"
                                                 className="text-decoration-none fw-bold d-inline-flex align-items-center"
                                                 style={{ color: "#7CBA3D" }}
                                             >
@@ -193,29 +189,29 @@ const Home = () => {
                         </p>
 
                         <p className="mb-2" style={{ fontSize: "16px" }}>
-    Join the Padel community group on WhatsApp: <br />
-    <a
-      href="https://chat.whatsapp.com/DqKAR0MlIiS8dP2Wqe0srt"
-      target="_blank"
-      rel="noreferrer"
-      className="d-inline-block text-break"
-      style={{ wordBreak: "break-all" }}
-    >
-      https://chat.whatsapp.com/DqKAR0MlIiS8dP2Wqe0srt
-    </a>
-  </p>
+                            Join the Padel community group on WhatsApp: <br />
+                            <a
+                                href="https://chat.whatsapp.com/DqKAR0MlIiS8dP2Wqe0srt"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="d-inline-block text-break"
+                                style={{ wordBreak: "break-all" }}
+                            >
+                                https://chat.whatsapp.com/DqKAR0MlIiS8dP2Wqe0srt
+                            </a>
+                        </p>
 
-  <p className="mb-3">
-    <a
-      href="https://maps.app.goo.gl/hUmCundkX4qSjbaiB7g"
-      target="_blank"
-      rel="noreferrer"
-      className="d-inline-block text-break"
-      style={{ wordBreak: "break-all" }}
-    >
-      https://maps.app.goo.gl/hUmCundkX4qSjbaiB7g
-    </a>
-  </p>
+                        <p className="mb-3">
+                            <a
+                                href="https://maps.app.goo.gl/hUmCundkX4qSjbaiB7g"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="d-inline-block text-break"
+                                style={{ wordBreak: "break-all" }}
+                            >
+                                https://maps.app.goo.gl/hUmCundkX4qSjbaiB7g
+                            </a>
+                        </p>
 
 
                     </div>
@@ -242,9 +238,9 @@ const Home = () => {
 
                             <p className="mt-3 text-center fw-bold">Time zone (India Standard Time)</p>
                             <div className='text-center'>
-                               <Link to="/booking" className="court-book-link animate__animated animate__fadeInUp">
-  Court Book <i className="bi bi-arrow-right"></i>
-</Link>
+                                <Link to="/booking" className="court-book-link animate__animated animate__fadeInUp">
+                                    Court Book <i className="bi bi-arrow-right"></i>
+                                </Link>
 
                             </div>
                         </div>
@@ -464,7 +460,7 @@ const Home = () => {
                                                     setIsOpen(true);
                                                 }} style={{ cursor: "pointer" }}>
                                                     <img
-                                                        src={require(`../../assets/${photos[photoIndexLocal]}`)}
+                                                        src={require(`../../assets/images/${photos[photoIndexLocal]}`)}
                                                         alt={`Gallery ${photoIndexLocal + 1}`}
                                                         className="img-fluid w-100 object-fit-cover"
                                                         style={{ aspectRatio: "4/3", objectFit: "cover", maxHeight: "300px" }}
