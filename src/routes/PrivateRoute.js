@@ -6,30 +6,23 @@ import {
 } from "../helpers/api/apiCore";
 
 /**
- * PrivateRoute ensures only authenticated (and optionally authorized) users can access a route.
- *
- * @param {Object} props
- * @param {React.ComponentType} props.component - The component to render for this route
- * @param {string} [props.roles] - Optional role(s) required to access the route
+ * PrivateRoute ensures only authenticated users can access a route.
  */
-const PrivateRoute = ({ component: RouteComponent, roles }) => {
+const PrivateRoute = ({ children }) => {
   const location = useLocation();
   const isAuthenticated = isUserAuthenticated();
-  const user = getUserFromSession();
 
   if (!isAuthenticated) {
+    // Check if it's an admin route
+    if (location.pathname.startsWith('/admin')) {
+      return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    }
+
+    // For normal users
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
-  // Handle roles as string or array
-  if (roles) {
-    const allowedRoles = Array.isArray(roles) ? roles : [roles];
-    if (!user?.role || !allowedRoles.includes(user.role)) {
-      return <Navigate to="/unauthorized" replace />;
-    }
-  }
-
-  return <RouteComponent />;
+  return children;
 };
 
 export default PrivateRoute;

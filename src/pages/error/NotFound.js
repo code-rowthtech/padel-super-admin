@@ -15,8 +15,8 @@ const NotFound = () => {
                     <p className="text-muted mb-4">
                         The page you're looking for doesn't exist or was moved.
                     </p>
-                    <Button style={{ backgroundColor: '#3dbe64ff' }} size="lg" onClick={() => navigate('/')}>
-                        ⬅ Back to Home
+                    <Button style={{ backgroundColor: '#3dbe64ff' }} size="lg" onClick={() => navigate(-1)}>
+                        ⬅ Go Back
                     </Button>
                 </Col>
             </Row>

@@ -1,24 +1,41 @@
 import React, { Suspense } from "react";
 import { Navigate, useRoutes } from "react-router-dom";
 import { getUserFromSession } from "../helpers/api/apiCore";
-import DefaultLayout from "../helpers/DefaultLayout";
+import DefaultLayout from "../helpers/layout/DefaultLayout";
 import Root from "./Root";
 import PrivateRoute from "./PrivateRoute";
 import { Loading } from "../helpers/loading/Loaders";
 import NoInternet from "../helpers/network/NoInternet";
+import AdminLayout from "../helpers/layout/AdminLayout";
 
 // Lazy imports
-const Home = React.lazy(() => import('../pages/home/Home'));
-const Booking = React.lazy(() => import('../pages/booking/Booking'));
-const OpenMatches = React.lazy(() => import("../pages/openMatches/Openmatches"));
-const ViewMatch = React.lazy(() => import('../pages/VeiwMatch/VeiwMatch'));
-const Payment = React.lazy(() => import('../pages/payment/Payment'));
 
-const Login = React.lazy(() => import('../pages/auth/LoginPage'));
-const SignUpPage = React.lazy(() => import('../pages/auth/SignUpPage'));
-const ForgotPassword = React.lazy(() => import('../pages/auth/ForgotPassword'));
-const VerifyOtp = React.lazy(() => import('../pages/auth/VerifyOtp'));
-const ResetPassword = React.lazy(() => import('../pages/auth/ResetPassword'));
+//_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+
+const Home = React.lazy(() => import('../pages/user/home/Home'));
+const Booking = React.lazy(() => import('../pages/user/booking/Booking'));
+const OpenMatches = React.lazy(() => import("../pages/user/openMatches/Openmatches"));
+const ViewMatch = React.lazy(() => import('../pages/user/VeiwMatch/VeiwMatch'));
+const Payment = React.lazy(() => import('../pages/user/payment/Payment'));
+
+const Login = React.lazy(() => import('../pages/user/auth/LoginPage'));
+
+const VerifyOtpUser = React.lazy(() => import('../pages/user/auth/VerifyOtp'));
+
+
+//_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+const AdminLogin = React.lazy(() => import('../pages/admin/auth/Login'));
+const ResetPassword = React.lazy(() => import('../pages/admin/auth/ResetPassword'));
+const SignUpPage = React.lazy(() => import('../pages/admin/auth/SignUpPage'));
+const VerifyOtp = React.lazy(() => import('../pages/admin/auth/VerifyOtp'));
+const ForgotPassword = React.lazy(() => import('../pages/admin/auth/ForgotPassword'));
+
+const AdminDashboard = React.lazy(() => import('../pages/admin/dashboard/index'));
+const BookingPage = React.lazy(() => import('../pages/admin/booking/index'));
+const OpenMatchesPage = React.lazy(() => import('../pages/admin/open-matches/index'));
+const CompetitionPage = React.lazy(() => import('../pages/admin/competition/index'));
+
+
 
 // Errors
 const UnAuthorized = React.lazy(() => import('../pages/error/UnAuthorized'));
@@ -36,7 +53,10 @@ const AllRoutes = () => {
 
     return useRoutes([
         { path: "/", element: <Root /> },
+        { path: "/admin", element: <Navigate to="/admin/login" replace /> },
 
+        //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+        
         {
             path: "/",
             element: <DefaultLayout />,
@@ -45,22 +65,12 @@ const AllRoutes = () => {
                     path: "login",
                     element: LoadComponent(Login),
                 },
-                {
-                    path: "sign-up",
-                    element: LoadComponent(SignUpPage),
-                },
-                {
-                    path: "forgot-password",
-                    element: LoadComponent(ForgotPassword),
-                },
-                {
-                    path: "verify-otp",
-                    element: LoadComponent(VerifyOtp),
-                },
-                {
-                    path: "reset-password",
-                    element: LoadComponent(ResetPassword),
-                },
+
+                // {
+                //     path: "verify-otp",
+                //     element: LoadComponent(VerifyOtpUser),
+                // },
+
                 {
                     path: "home",
                     element: LoadComponent(Home),
@@ -74,7 +84,7 @@ const AllRoutes = () => {
                     element: LoadComponent(Payment),
                 },
                 {
-                    path: "/open-matches",
+                    path: "open-matches",
                     element: LoadComponent(OpenMatches),
                 },
                 {
@@ -91,22 +101,81 @@ const AllRoutes = () => {
                 },
                 {
                     path: "*",
+                    element: <Navigate to="/not-found" replace /> 
+                },
+                {
+                    path: "not-found",
                     element: LoadComponent(NotFound),
+                },
+                {
+                    element: <PrivateRoute />,
+                    children: [
+
+                        {
+                            path: "open-matches",
+                            element: LoadComponent(OpenMatches),
+                        },
+                    ],
                 },
             ],
         },
 
-        // Protected Routes
+
+        //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+
         {
-            path: "/",
-            element: <PrivateRoute role={Role} />,
+            path: "/admin",
+            element: <DefaultLayout />,
             children: [
                 {
-                    path: "/open-matches",
-                    element: LoadComponent(OpenMatches),
+                    path: "login",
+                    element: LoadComponent(AdminLogin),
+                },
+                {
+                    path: "sign-up",
+                    element: LoadComponent(SignUpPage),
+                },
+                {
+                    path: "forgot-password",
+                    element: LoadComponent(ForgotPassword),
+                },
+                {
+                    path: "reset-password",
+                    element: LoadComponent(ResetPassword),
+                },
+                {
+                    path: "verify-otp",
+                    element: LoadComponent(VerifyOtp),
+                },
+                {
+                    element: (
+                        <PrivateRoute>
+                            <AdminLayout />
+                        </PrivateRoute>
+                    ),
+                    children: [
+                        { index: true, element: <Navigate to="dashboard" replace /> }, // redirect
+                        {
+                            path: "dashboard",
+                            element: LoadComponent(AdminDashboard),
+                        },
+                        {
+                            path: "booking",
+                            element: LoadComponent(BookingPage),
+                        },
+                        {
+                            path: "open-matches",
+                            element: LoadComponent(OpenMatchesPage),
+                        },
+                        {
+                            path: "competition",
+                            element: LoadComponent(CompetitionPage),
+                        },
+                    ],
                 },
             ],
         },
+
     ]);
 };
 

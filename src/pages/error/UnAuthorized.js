@@ -19,8 +19,8 @@ const Unauthorized = () => {
           {/* <Button variant="primary" onClick={() => navigate('/login')}>
             🔐 Go to Login
           </Button> */}
-          <Button style={{ backgroundColor: '#3dbe64ff' }} size="lg" onClick={() => navigate('/')}>
-            ⬅ Back to Home
+          <Button style={{ backgroundColor: '#3dbe64ff' }} size="lg" onClick={() => navigate(-1)}>
+            ⬅ Go Back
           </Button>
         </Col>
       </Row>

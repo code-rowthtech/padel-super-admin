@@ -1,2 +1,2 @@
 
-export * from './match/matchThunk'
+export * from './admin/auth/authThunk'

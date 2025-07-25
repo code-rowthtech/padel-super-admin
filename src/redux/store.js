@@ -1,9 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
+//_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+import ownerAuthReducer from './admin/auth/authSlice'
 
-import matchReducer from './match/matchSlice';
+//_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+
 const store = configureStore({
     reducer: {
-        yourState: matchReducer,
+        //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+
+        ownerAuth: ownerAuthReducer,
+
+        //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+
     },
 });
 
