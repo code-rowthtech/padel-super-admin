@@ -9,9 +9,16 @@ const AUTH_SESSION_KEY = "padel_user";
 axios.defaults.baseURL = config.API_URL;
 
 // Global error interceptor
+// Global error interceptor
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
+    if (!navigator.onLine) {
+      // If offline, redirect to a fallback route
+      window.location.href = "/no-internet";
+      return Promise.reject("No internet connection");
+    }
+
     const { response } = err;
     const status = response?.status;
     const message =
@@ -31,7 +38,7 @@ axios.interceptors.response.use(
 // --- Authorization Helpers ---
 export const setAuthorization = (token) => {
   if (token) {
-    axios.defaults.headers.common["Authorization"] = token;
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   } else {
     delete axios.defaults.headers.common["Authorization"];
   }
@@ -82,7 +89,7 @@ export const isUserAuthenticated = () => {
       setLoggedInUser(null);
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = "/account/login";
+      window.location.href = "/";
       return false;
     }
     return true;

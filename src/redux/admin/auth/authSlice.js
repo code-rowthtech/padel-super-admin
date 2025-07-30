@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { forgotPassword, getOwner, loginOwner, sendOtp, signupOwner, updateOwner, verifyOtp} from "./authThunk";
+import { forgotPassword, getOwner, loginOwner, sendOtp, signupOwner, updateOwner, verifyOtp, resetPassword } from "./authThunk";
 import { setLoggedInUser, getUserFromSession, setAuthorization } from "../../../helpers/api/apiCore";
 
 const initialState = {
@@ -31,7 +31,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login
+      // -----------------------------------------------------//----Login 
       .addCase(loginOwner.pending, (state) => {
         state.authLoading = true;
         state.error = null;
@@ -52,7 +52,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Signup 
+      // -----------------------------------------------------//----Signup 
       .addCase(signupOwner.pending, (state) => {
         state.authLoading = true
         state.error = null;
@@ -67,7 +67,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Send Otp  ---  Forgot Password
+      // -----------------------------------------------------//---- Send Otp  ---  Forgot Password
       .addCase(sendOtp.pending, (state) => {
         state.authLoading = true;
         state.error = null;
@@ -81,7 +81,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Verify Otp
+      // -----------------------------------------------------//---- Verify Otp
       .addCase(verifyOtp.pending, (state) => {
         state.authLoading = true;
         state.error = null;
@@ -96,7 +96,7 @@ const authSlice = createSlice({
         state.error = action.payload?.message || "OTP verification failed";
       })
 
-      // //Get Owner
+      // -----------------------------------------------------//---- Get Owner
       .addCase(getOwner.pending, (state) => {
         state.authLoading = true;
         state.error = null;
@@ -110,7 +110,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // // Update Owner
+      // -----------------------------------------------------//----  Update Owner
       .addCase(updateOwner.pending, (state) => {
         state.authLoading = true;
         state.error = null;
@@ -120,6 +120,19 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(updateOwner.rejected, (state, action) => {
+        state.authLoading = false;
+        state.error = action.payload;
+      })
+      // -----------------------------------------------------//----  Reset Password
+      .addCase(resetPassword.pending, (state) => {
+        state.authLoading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state, action) => {
+        state.authLoading = false;
+        state.user = action.payload;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
         state.authLoading = false;
         state.error = action.payload;
       })

@@ -1,27 +1,60 @@
 import { useState } from 'react';
 import { Form, Button, InputGroup } from 'react-bootstrap';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { showError, showSuccess } from '../../../helpers/Toast';
+import { showError } from '../../../helpers/Toast';
 import Layout from './AuthLayout';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { resetPassword } from '../../../redux/thunks';
+import { ButtonLoading } from '../../../helpers/loading/Loaders';
+
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const { authLoading } = useSelector((state) => state.ownerAuth)
 
-  const handleSubmit = (e) => {
+  const [errors, setErrors] = useState({});
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const email = location.state?.email;
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!password || password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters.';
+    }
+
+    if (!confirm) {
+      newErrors.confirm = 'You need to confirm your new password.';
+    }
+
+    if (password && confirm && password !== confirm) {
+      newErrors.confirm = 'Passwords do not match.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password === confirm) {
-      showSuccess('Password changed successfully!');
-      // Navigate or call API here
-    } else {
-      showError('Passwords do not match');
+    if (!validate()) return;
+
+    try {
+      await dispatch(resetPassword({ email, password })).unwrap();
+      navigate('/admin/login');
+    } catch (err) {
+      showError('Something went wrong during password reset.');
     }
   };
 
   return (
     <Layout>
-      <div className='d-flex flex-column align-items-center justify-content-center'>
+      <div>
         <h2 className="fw-bold">RESET PASSWORD</h2>
         <p className="text-muted">Change Password! Please enter your details.</p>
 
@@ -34,8 +67,11 @@ const ResetPassword = () => {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="*********"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                disabled={authLoading}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({ ...prev, password: '' }));
+                }}
               />
               <Button
                 variant="outline-secondary"
@@ -44,6 +80,7 @@ const ResetPassword = () => {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </Button>
             </InputGroup>
+            {errors.password && <div className="text-danger mt-1">{errors.password}</div>}
           </Form.Group>
 
           {/* Confirm Password Field */}
@@ -54,8 +91,11 @@ const ResetPassword = () => {
                 type={showConfirm ? 'text' : 'password'}
                 placeholder="*********"
                 value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
+                disabled={authLoading}
+                onChange={(e) => {
+                  setConfirm(e.target.value);
+                  setErrors((prev) => ({ ...prev, confirm: '' }));
+                }}
               />
               <Button
                 variant="outline-secondary"
@@ -64,6 +104,7 @@ const ResetPassword = () => {
                 {showConfirm ? <FaEyeSlash /> : <FaEye />}
               </Button>
             </InputGroup>
+            {errors.confirm && <div className="text-danger mt-1">{errors.confirm}</div>}
           </Form.Group>
 
           {/* Submit Button */}
@@ -76,7 +117,7 @@ const ResetPassword = () => {
               borderRadius: '25px',
             }}
           >
-            Change Password
+            {authLoading ? <ButtonLoading /> : 'Change Password'}
           </Button>
         </Form>
       </div>

@@ -8,6 +8,7 @@ import padal from './images/padalsports.png';
 import club from './images/club.png'
 import google from './images/googlelogo.png'
 import authImg from './images/auth.png'
+import registerClubBG from './images/registerClubBg.png'
 export {
     twoball,
     taness,
@@ -18,5 +19,6 @@ export {
     padal,
     club,
     google,
-    authImg
+    authImg,
+    registerClubBG
 }

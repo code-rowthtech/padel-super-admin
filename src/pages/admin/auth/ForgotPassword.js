@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Button } from 'react-bootstrap';
+import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { sendOtp } from '../../../redux/thunks';
@@ -8,28 +8,45 @@ import Layout from './AuthLayout';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [apiError, setApiError] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { authLoading } = useSelector((state) => state.ownerAuth)
+  const { authLoading } = useSelector((state) => state.ownerAuth);
+
+  const validateEmail = (value) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError('');
+    setEmailError('');
+
+    if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    }
+
     try {
-      const result = await dispatch(sendOtp({ email, type: 'Forgot' }));
-      if (result?.meta?.requestStatus === 'fulfilled') {
-        navigate('/verify-otp', { state: { email } });
-      } else {
-        alert('Failed to send verification code. Please try again.');
-      }
+      await dispatch(sendOtp({ email, type: 'Forgot' })).unwrap();
+      navigate('/admin/verify-otp', { state: { email } });
     } catch (error) {
-      console.error('Forgot Password Error:', error);
+      setApiError(error || 'Failed to send verification code. Please try again.');
+      console.log('Forgot Password Error:', error);
     }
   };
 
   return (
     <Layout>
-      <div className='d-flex flex-column align-items-center justify-content-center'>
+      <div className=''>
         <h2 className="fw-bold">FORGOT PASSWORD</h2>
-        <p className="text-muted">Please enter your login detail to sign in</p>
+        <p className="text-muted">Please enter your email address</p>
+
+        {apiError && <Alert variant="danger" className="p-0 px-1">{apiError}</Alert>}
+        {emailError && <Alert variant="warning" className="p-0 px-1">{emailError}</Alert>}
+
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
@@ -38,6 +55,7 @@ const ForgotPassword = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              isInvalid={!!emailError}
               required
             />
           </Form.Group>
@@ -53,6 +71,7 @@ const ForgotPassword = () => {
           >
             {authLoading ? <ButtonLoading /> : 'Send Verification Code'}
           </Button>
+
           <div className="text-center mt-3">
             <small>Don’t have an account? </small>
             <Link to="/admin/sign-up" className="text-primary fw-semibold">Sign up for free!</Link>

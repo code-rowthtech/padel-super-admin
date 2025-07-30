@@ -15,7 +15,9 @@ const LoginPage = () => {
         setError('');
 
         // Validate phone
-        if (!phone.match(/^[6-9]\d{9}$/)) {
+        const cleanedPhone = phone.replace(/\D/g, '').slice(0, 10);
+
+        if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
             setError('Please enter a valid 10-digit Indian phone number');
             return;
         }
@@ -50,7 +52,7 @@ const LoginPage = () => {
     return (
         <div className="auth-wrapper">
             <Container fluid className="vh-100 p-0">
-                <Link to="/" style={{ textDecoration: 'none' }} className="text-white navbar-brand position-absolute">
+                <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand position-absolute">
                     <img src={logo} alt="Logo" style={{ width: "120px" }} />
                 </Link>
                 <Row className="g-0 h-100">

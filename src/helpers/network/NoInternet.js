@@ -85,8 +85,8 @@ const NoInternet = () => {
             width: '90%'
         },
         signalIcon: {
-            fontSize: '80px',
-            marginBottom: '20px',
+            // fontSize: '80px',
+            // marginBottom: '20px',
             color: '#dc3545'
         },
         onlineSignalIcon: {
@@ -188,9 +188,9 @@ const NoInternet = () => {
                         )}
                     </div>
 
-                    <Link to="/">
+                    {/* <Link to="/">
                         <img src={logo} alt="Logo" style={styles.logo} />
-                    </Link>
+                    </Link> */}
 
                     <h1 style={styles.title}>
                         {isOnline ? 'Connection Restored!' : 'No Internet Connection'}

@@ -8,7 +8,7 @@ const Navbar = () => {
             <nav className="navbar navbar-expand-lg bg-white py-1 ">
                 <div className="container">
                     {/* Logo */}
-                    <Link to="/" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
+                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
                         <img src={logo} alt="Logo" style={{ width: "120px" }} />
                     </Link>
 
@@ -22,7 +22,7 @@ const Navbar = () => {
                         <ul className="navbar-nav w-100 ps-md-5 ps-0 ms-md-5 ms-0 mb-2 mb-lg-0 gap-4">
                             <li className="nav-item">
                                 <NavLink
-                                    to="/"
+                                    to="/home"
                                     className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
                                     style={({ isActive }) => ({
                                         color: isActive ? "#1F41BB" : "#000",
@@ -72,11 +72,11 @@ const Navbar = () => {
                         </ul>
 
                         <div className="d-flex ">
-                            <button className="btn px-4 py-2 rounded-pill text-white" style={{ whiteSpace: "nowrap", backgroundColor: " #3DBE64", fontSize: "20", fontWeight: "600" }}>
-                                <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
+                            <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
+                                <button className="btn px-4 py-2 rounded-pill text-white" style={{ whiteSpace: "nowrap", backgroundColor: " #3DBE64", fontSize: "20", fontWeight: "600" }}>
                                     Login
-                                </Link>
-                            </button>
+                                </button>
+                            </Link>
                         </div>
                     </div>
                 </div>

@@ -1,44 +1,59 @@
 import { useState } from 'react';
-import { Form, Button, Spinner } from 'react-bootstrap';
+import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useDispatch, useSelector } from 'react-redux';
 import { loginOwner } from '../../../redux/thunks';
-import { useDispatch } from 'react-redux';
 import Layout from './AuthLayout';
+import { ButtonLoading } from '../../../helpers/loading/Loaders';
+
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { authLoading } = useSelector((state) => state.ownerAuth);
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     remember: false,
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const togglePassword = () => setShowPassword((prev) => !prev);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value,
-    });
-  };
-
   const validate = () => {
     const errs = {};
-    if (!formData.email) errs.email = 'Email is required';
-    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) errs.email = 'Invalid email format';
+    if (!formData.email.trim()) {
+      errs.email = 'Please enter your Email';
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      errs.email = 'Invalid email format';
+    }
 
-    if (!formData.password) errs.password = 'Password is required';
-    // else if (formData.password.length < 6) errs.password = 'Password must be at least 6 characters';
-
+    if (!formData.password.trim()) {
+      errs.password = 'Please enter your Password';
+    }
     return errs;
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const updatedValue = type === 'checkbox' ? checked : value;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: updatedValue,
+    }));
+
+    // Clear specific field error on user input
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleLogin = async (e) => {
@@ -46,30 +61,24 @@ const LoginPage = () => {
     setApiError('');
     const validationErrors = validate();
     setErrors(validationErrors);
+
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      setLoading(true);
-      const payload = {
-        email: formData.email,
-        password: formData.password,
-      };
-      await dispatch(loginOwner(payload)).unwrap();
-      navigate('/admin/dashboard'); // Adjust the route after login
+      await dispatch(loginOwner({ email: formData.email, password: formData.password })).unwrap();
+      navigate('/admin/register');
+      // navigate('/admin/dashboard');
     } catch (err) {
-      setApiError(err?.message || 'Login failed. Try again.');
-    } finally {
-      setLoading(false);
+      setApiError(err || 'Login failed. Try again.');
     }
   };
 
   return (
     <Layout>
-      <div className='d-flex flex-column align-items-center justify-content-center'>
-        <h2 style={{ fontWeight: 'bold', fontSize: '28px', marginBottom: '10px' }}>WELCOME BACK</h2>
-        <p style={{ marginBottom: '30px', color: '#555' }}>
-          Welcome back! Please enter your details.
-        </p>
+      <div className="w-50">
+        <h2 className="fw-bold fs-4 mb-2">WELCOME BACK</h2>
+        <p className="text-muted mb-4">Welcome back! Please enter your details.</p>
+        {apiError && <Alert variant="danger" className="p-0 px-1 small">{apiError}</Alert>}
 
         <Form onSubmit={handleLogin} noValidate>
           {/* Email */}
@@ -79,11 +88,12 @@ const LoginPage = () => {
               name="email"
               placeholder="Enter your email"
               value={formData.email}
+              disabled={authLoading}
               onChange={handleChange}
               isInvalid={!!errors.email}
               style={{ paddingRight: '40px', borderRadius: '8px' }}
             />
-            <FaEnvelope
+            {!errors.email && <FaEnvelope
               style={{
                 position: 'absolute',
                 right: '14px',
@@ -91,7 +101,7 @@ const LoginPage = () => {
                 transform: 'translateY(-50%)',
                 color: '#aaa',
               }}
-            />
+            />}
             <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
           </Form.Group>
 
@@ -103,10 +113,11 @@ const LoginPage = () => {
               placeholder="********"
               value={formData.password}
               onChange={handleChange}
+              disabled={authLoading}
               isInvalid={!!errors.password}
               style={{ paddingRight: '40px', borderRadius: '8px' }}
             />
-            <div
+            {!errors.password && <div
               onClick={togglePassword}
               style={{
                 position: 'absolute',
@@ -118,11 +129,11 @@ const LoginPage = () => {
               }}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </div>
+            </div>}
             <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
           </Form.Group>
 
-          {/* Options Row */}
+          {/* Remember & Forgot */}
           <div className="d-flex justify-content-between align-items-center mb-3 small">
             <Form.Check
               type="checkbox"
@@ -130,36 +141,33 @@ const LoginPage = () => {
               label="Remember me"
               checked={formData.remember}
               onChange={handleChange}
+              disabled={authLoading}
             />
-            <Link to="/admin/forgot-password" style={{ textDecoration: 'none' }}>
+            <Link to="/admin/forgot-password" className="text-decoration-none">
               Forgot password?
             </Link>
           </div>
-
-          {apiError && <p className="text-danger text-center mb-3">{apiError}</p>}
-
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={loading}
+            disabled={authLoading}
+            className="w-100 fw-semibold"
             style={{
-              width: '100%',
               padding: '12px',
               borderRadius: '30px',
               background: 'linear-gradient(to right, #4caf50, #3f51b5)',
               border: 'none',
-              fontWeight: 'bold',
               fontSize: '16px',
             }}
           >
-            {loading ? <Spinner animation="border" size="sm" /> : 'Sign in'}
+            {authLoading ? <ButtonLoading /> : 'Sign in'}
           </Button>
         </Form>
 
-        {/* Sign Up Link */}
-        <p style={{ marginTop: '20px', fontSize: '14px' }}>
+        {/* Sign Up */}
+        <p className="mt-4 text-center small">
           Don’t have an account?{' '}
-          <Link to="/admin/sign-up" style={{ color: '#3f51b5', fontWeight: 'bold', textDecoration: 'none' }}>
+          <Link to="/admin/sign-up" className="fw-bold text-decoration-none" style={{ color: '#3f51b5' }}>
             Sign up for free!
           </Link>
         </p>

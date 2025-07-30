@@ -34,6 +34,8 @@ const AdminDashboard = React.lazy(() => import('../pages/admin/dashboard/index')
 const BookingPage = React.lazy(() => import('../pages/admin/booking/index'));
 const OpenMatchesPage = React.lazy(() => import('../pages/admin/open-matches/index'));
 const CompetitionPage = React.lazy(() => import('../pages/admin/competition/index'));
+const Register = React.lazy(() => import('../pages/admin/registerClub/index'));
+const RegisterClub = React.lazy(() => import('../pages/admin/registerClub/RegisterClub'));
 
 
 
@@ -56,7 +58,7 @@ const AllRoutes = () => {
         { path: "/admin", element: <Navigate to="/admin/login" replace /> },
 
         //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
-        
+
         {
             path: "/",
             element: <DefaultLayout />,
@@ -66,10 +68,10 @@ const AllRoutes = () => {
                     element: LoadComponent(Login),
                 },
 
-                // {
-                //     path: "verify-otp",
-                //     element: LoadComponent(VerifyOtpUser),
-                // },
+                {
+                    path: "verify-otp",
+                    element: LoadComponent(VerifyOtpUser),
+                },
 
                 {
                     path: "home",
@@ -101,7 +103,7 @@ const AllRoutes = () => {
                 },
                 {
                     path: "*",
-                    element: <Navigate to="/not-found" replace /> 
+                    element: <Navigate to="/not-found" replace />
                 },
                 {
                     path: "not-found",
@@ -146,6 +148,24 @@ const AllRoutes = () => {
                 {
                     path: "verify-otp",
                     element: LoadComponent(VerifyOtp),
+                },
+                {
+                    // element: (<DefaultLayout />),
+                    element: (
+                        <PrivateRoute>
+                            <DefaultLayout />
+                        </PrivateRoute>
+                    ),
+                    children: [
+                        // { index: true, element: <Navigate to="register" replace /> }, // redirect
+                        {
+                            path: "register",
+                            element: LoadComponent(Register),
+                        },
+                        {
+                            path: "register-club",
+                            element: LoadComponent(RegisterClub),
+                        }]
                 },
                 {
                     element: (

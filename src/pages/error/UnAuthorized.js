@@ -8,7 +8,7 @@ const Unauthorized = () => {
   return (
     <Container fluid className="h-100 d-flex align-items-center justify-content-center bg-light">
       <Row className="text-center">
-        <Col>
+        <Col className="d-flex flex-column align-items-center">
           <div className="mb-4">
             <i className="bi bi-shield-lock-fill text-danger" style={{ fontSize: '5rem' }}></i>
           </div>
@@ -19,8 +19,8 @@ const Unauthorized = () => {
           {/* <Button variant="primary" onClick={() => navigate('/login')}>
             🔐 Go to Login
           </Button> */}
-          <Button style={{ backgroundColor: '#3dbe64ff' }} size="lg" onClick={() => navigate(-1)}>
-            ⬅ Go Back
+          <Button style={{ backgroundColor: '#3dbe64ff' }} className='d-flex align-items-center' size="lg" onClick={() => navigate(-1)}>
+            <i class="bi bi-arrow-left-short fw-bold fs-3"></i> Go Back
           </Button>
         </Col>
       </Row>

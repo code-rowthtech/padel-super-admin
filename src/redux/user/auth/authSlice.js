@@ -3,7 +3,7 @@ import { loginUser, signupUser, sendOtp, verifyOtp, forgotPassword, getUser, get
 import { setLoggedInUser, getUserFromSession, setAuthorization } from "../../helpers/api/apiCore";
 
 const initialState = {
-  authLoading: false,
+  userAuthLoading: false,
   user: getUserFromSession(),
   otp: null,
   error: null,
@@ -23,7 +23,7 @@ const authSlice = createSlice({
       // window.location.href = '/home';
     },
     resetAuth(state) {
-      state.authLoading = false;
+      state.userAuthLoading = false;
       state.user = null;
       state.otp = null;
       state.error = null;
@@ -33,11 +33,11 @@ const authSlice = createSlice({
     builder
       // Login
       .addCase(loginUser.pending, (state) => {
-        state.authLoading = true;
+        state.userAuthLoading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.user = action.payload;
         const { response } = action.payload
         setAuthorization(response?.token)
@@ -48,108 +48,108 @@ const authSlice = createSlice({
         setLoggedInUser(user);
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.error = action.payload;
       })
 
       // Signup 
       .addCase(signupUser.pending, (state) => {
-        state.authLoading = true
+        state.userAuthLoading = true
         state.error = null;
       })
       .addCase(signupUser.fulfilled, (state, action) => {
-        state.authLoading = false
+        state.userAuthLoading = false
         state.user = action.payload;
         setLoggedInUser(action.payload);
       })
       .addCase(signupUser.rejected, (state, action) => {
-        state.authLoading = false
+        state.userAuthLoading = false
         state.error = action.payload;
       })
 
       //Send Otp
       .addCase(sendOtp.pending, (state) => {
-        state.authLoading = true;
+        state.userAuthLoading = true;
         state.error = null;
       })
       .addCase(sendOtp.fulfilled, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.otp = action.payload;
       })
       .addCase(sendOtp.rejected, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.error = action.payload;
       })
 
       // Verify Otp
       .addCase(verifyOtp.pending, (state) => {
-        state.authLoading = true;
+        state.userAuthLoading = true;
         state.error = null;
       })
       .addCase(verifyOtp.fulfilled, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.otp = action.payload;
         // setLoggedInUser(action.payload); 
       })
       .addCase(verifyOtp.rejected, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.error = action.payload?.message || "OTP verification failed";
       })
 
       //Get User
       .addCase(getUser.pending, (state) => {
-        state.authLoading = true;
+        state.userAuthLoading = true;
         state.error = null;
       })
       .addCase(getUser.fulfilled, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.user = action.payload;
       })
       .addCase(getUser.rejected, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.error = action.payload;
       })
 
       // Get All Users
       .addCase(getAllUsers.pending, (state) => {
-        state.authLoading = true;
+        state.userAuthLoading = true;
         state.error = null;
       })
       .addCase(getAllUsers.fulfilled, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.user = action.payload;
       })
       .addCase(getAllUsers.rejected, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.error = action.payload;
       })
 
       // Update User
       .addCase(updateUser.pending, (state) => {
-        state.authLoading = true;
+        state.userAuthLoading = true;
         state.error = null;
       })
       .addCase(updateUser.fulfilled, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.user = action.payload;
       })
       .addCase(updateUser.rejected, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.error = action.payload;
       })
 
       // Forgot Password
       .addCase(forgotPassword.pending, (state) => {
-        state.authLoading = true;
+        state.userAuthLoading = true;
         state.error = null;
       })
       .addCase(forgotPassword.fulfilled, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         // If forgotPassword doesn't return a user, you might skip this line:
         // state.user = action.payload;
       })
       .addCase(forgotPassword.rejected, (state, action) => {
-        state.authLoading = false;
+        state.userAuthLoading = false;
         state.error = action.payload;
       })
   },

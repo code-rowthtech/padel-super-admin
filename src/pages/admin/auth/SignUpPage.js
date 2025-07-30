@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Row, Col, Form, Button, InputGroup } from 'react-bootstrap';
+import { Row, Col, Form, Button, InputGroup, Alert } from 'react-bootstrap';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { authImg } from '../../../assets/files';
 import { Link, useNavigate } from 'react-router-dom';
 import { signupOwner } from '../../../redux/thunks';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Layout from './AuthLayout';
 
 const SignUpPage = () => {
@@ -22,19 +22,24 @@ const SignUpPage = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const { authLoading } = useSelector((state) => state.ownerAuth)
 
+  const capitalizeFirst = (str) =>
+    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   const validate = () => {
     const newErrors = {};
+    const name = form.name.trim();
 
-    if (!form.name.trim()) newErrors.name = 'Name is required';
-    if (!form.phoneNumber) newErrors.phoneNumber = 'Phone number is required';
+    if (!name) newErrors.name = 'Please enter your name';
+    else if (name.length < 2) newErrors.name = 'Name must be at least 2 characters';
+
+    if (!form.phoneNumber) newErrors.phoneNumber = 'Please enter your phone number';
     else if (!/^\d{10}$/.test(form.phoneNumber)) newErrors.phoneNumber = 'Enter a valid 10-digit phone number';
-    if (!form.email.trim()) newErrors.email = 'Email is required';
+    if (!form.email.trim()) newErrors.email = 'Please enter your email';
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) newErrors.email = 'Enter a valid email';
-    if (!form.password) newErrors.password = 'Password is required';
+    if (!form.password) newErrors.password = 'Please create your password';
     else if (form.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
-    if (!form.confirmPassword) newErrors.confirmPassword = 'Confirm your password';
+    if (!form.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
     else if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
 
     return newErrors;
@@ -43,14 +48,27 @@ const SignUpPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Limit phone number to 10 digits
+    let val = value;
+
+    if (name === 'name') {
+      val = capitalizeFirst(val.replace(/[^\p{L}\p{N} ]+/gu, ''));
+    }
+
     if (name === 'phoneNumber') {
-      const numericValue = value.replace(/\D/g, ''); // remove non-digits
-      if (numericValue.length <= 10) {
-        setForm({ ...form, [name]: numericValue });
-      }
-    } else {
-      setForm({ ...form, [name]: value });
+      val = val.replace(/\D/g, '').slice(0, 10);
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: val,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
     }
   };
 
@@ -60,7 +78,6 @@ const SignUpPage = () => {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      setSubmitting(true);
       try {
         const payload = {
           name: form.name,
@@ -71,18 +88,18 @@ const SignUpPage = () => {
         await dispatch(signupOwner(payload)).unwrap();
         navigate('/admin/login');
       } catch (err) {
-        setErrors({ api: err?.message || 'Signup failed. Try again.' });
+        setErrors({ api: err || 'Signup failed. Try again.' });
       } finally {
-        setSubmitting(false);
       }
     }
   };
 
   return (
     <Layout>
-      <div className='d-flex flex-column align-items-center justify-content-center'>
+      <div className='w-50'>
         <h2 className="fw-bold mb-3">WELCOME</h2>
         <p className="text-muted mb-4">Please enter your details to sign up.</p>
+        {errors.api && <Alert variant="danger" className="p-0 px-1">{errors.api}</Alert>}
 
         <Form onSubmit={handleSubmit} noValidate className='small'>
           <Form.Group controlId="name" className="mb-2">
@@ -92,6 +109,7 @@ const SignUpPage = () => {
               name="name"
               placeholder="Enter your name"
               value={form.name}
+              disabled={authLoading}
               onChange={handleChange}
               isInvalid={!!errors.name}
             />
@@ -105,6 +123,7 @@ const SignUpPage = () => {
               name="phoneNumber"
               placeholder="Enter 10-digit phone number"
               value={form.phoneNumber}
+              disabled={authLoading}
               onChange={handleChange}
               isInvalid={!!errors.phoneNumber}
             />
@@ -118,6 +137,7 @@ const SignUpPage = () => {
               name="email"
               placeholder="Enter your email"
               value={form.email}
+              disabled={authLoading}
               onChange={handleChange}
               isInvalid={!!errors.email}
             />
@@ -132,6 +152,7 @@ const SignUpPage = () => {
                 name="password"
                 placeholder="******"
                 value={form.password}
+                disabled={authLoading}
                 onChange={handleChange}
                 isInvalid={!!errors.password}
               />
@@ -154,6 +175,7 @@ const SignUpPage = () => {
                 name="confirmPassword"
                 placeholder="******"
                 value={form.confirmPassword}
+                disabled={authLoading}
                 onChange={handleChange}
                 isInvalid={!!errors.confirmPassword}
               />
@@ -167,14 +189,9 @@ const SignUpPage = () => {
               <Form.Control.Feedback type="invalid">{errors.confirmPassword}</Form.Control.Feedback>
             </InputGroup>
           </Form.Group>
-
-          {errors.api && (
-            <p className="text-danger mb-3 text-center">{errors.api}</p>
-          )}
-
           <Button
             type="submit"
-            disabled={submitting}
+            disabled={authLoading}
             style={{
               width: '100%',
               backgroundColor: '#28a745',
@@ -185,7 +202,7 @@ const SignUpPage = () => {
               fontSize: '16px',
             }}
           >
-            {submitting ? 'Creating Account...' : 'Create Account'}
+            {authLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </Form>
 

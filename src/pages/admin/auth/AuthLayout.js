@@ -4,8 +4,8 @@ import { authImg } from '../../../assets/files';
 const Layout = ({ children }) => {
 
   return (
-    <Container fluid style={{ height: '100vh', padding: 0 }} className='mx-auto'>
-      <Row className="h-100">
+    <Container fluid style={{ height: '100vh', padding: 0 }} >
+      <Row className="h-100 mx-auto">
         {/* Left Section */}
         <Col
           md={6}
@@ -13,6 +13,7 @@ const Layout = ({ children }) => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
           {children}

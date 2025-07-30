@@ -1,7 +1,3 @@
-import './App.css'
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min';
-import "react-datepicker/dist/react-datepicker.css";
 import Routes from './routes/Routes';
 import CustomButton from './pages/user/button';
 import { ToastContainer } from 'react-toastify';

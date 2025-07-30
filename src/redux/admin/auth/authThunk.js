@@ -14,17 +14,27 @@ export const loginOwner = createAsyncThunk(
             return rejectWithValue(error);
         }
     });
+
 export const sendOtp = createAsyncThunk(
-    "auth/sendOtp", async (data, { rejectWithValue }) => {
+    "auth/sendOtp",
+    async (data, { rejectWithValue }) => {
         try {
             const res = await create(Url.SEND_OTP, data);
-            showSuccess(res?.data?.message);
-            return res?.data;
+
+            if (res?.data?.status === 200) {
+                showSuccess(res?.data?.message);
+                return res?.data;
+            } else {
+                showError(res?.data?.message || 'Failed to send OTP');
+                return rejectWithValue(res?.data?.message || 'Failed to send OTP');
+            }
         } catch (error) {
-            showError(error?.message);
-            return rejectWithValue(error);
+            showError(error);
+            return rejectWithValue(error?.response?.data?.message || 'Network error');
         }
-    });
+    }
+);
+
 
 export const verifyOtp = createAsyncThunk(
     "auth/verifyOtp", async (data, { rejectWithValue }) => {
@@ -67,6 +77,17 @@ export const getOwner = createAsyncThunk(
     "auth/getOwner", async (data, { rejectWithValue }) => {
         try {
             const res = await getApi(Url.GET_OWNER, data);
+            showSuccess(res?.data?.message);
+            return res?.data;
+        } catch (error) {
+            showError(error?.message);
+            return rejectWithValue(error);
+        }
+    });
+export const resetPassword = createAsyncThunk(
+    "auth/resetPassword", async (data, { rejectWithValue }) => {
+        try {
+            const res = await update(Url.RESET_PASSWORD, data);
             showSuccess(res?.data?.message);
             return res?.data;
         } catch (error) {
