@@ -67,6 +67,7 @@ const Images = ({ formData, onNext, onBack, updateFormData }) => {
         apiFormData.append('state', formData.state);
         apiFormData.append('zipCode', formData.zip);
         apiFormData.append('address', formData.address);
+        // apiFormData.append('description', 'test');
         apiFormData.append('location[coordinates][0]', '50.90');
         apiFormData.append('location[coordinates][1]', '80.09');
 

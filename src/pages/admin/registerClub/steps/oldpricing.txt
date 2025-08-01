@@ -274,7 +274,7 @@ const Pricing = () => {
     };
 
     const renderAllSlots = () => {
-        const allTimes = PricingData?.[0]?.courts?.[0]?.slotTimes?.map(slot => (slot.time)) || [];
+        const allTimes = PricingData?.[0]?.courts?.[0]?.slotTimes?.map(slot => convertTo12HourFormat(slot.time)) || [];
         const selectedTimes = Object.keys(formData.prices.All).filter(
             time => formData.prices.All[time] !== undefined
         );
@@ -392,7 +392,7 @@ const Pricing = () => {
         const payloadDays = isAllSelected ? "All" : selectedDays;
 
         if (selectedDays.length > 0 && registerId && formData.selectedSlots) {
-            dispatch(getSlots({ register_club_id: registerId, day: payloadDays, time: !isAllSelected ? formData.selectedSlots : '' }));
+            dispatch(getSlots({ register_club_id: registerId, day: payloadDays, time: formData.selectedSlots }));
         }
     }, [formData.days, registerId, formData.selectedSlots]);
     useEffect(() => {
@@ -432,34 +432,32 @@ const Pricing = () => {
                         </div>
                     </Col>
                     <Col md={6}>
-                        {!selectAllChecked &&
-                            <Dropdown>
-                                <Dropdown.Toggle
-                                    variant="secondary"
-                                    id="slot-selector"
-                                    style={{
-                                        backgroundColor: '#F9FAFB',
-                                        borderColor: '#E5E7EB',
-                                        borderRadius: '8px',
-                                        padding: '6px 12px',
-                                        fontSize: '14px',
-                                        color: '#1F2937',
-                                        position: 'absolute',
-                                        top: '-1em',
-                                        right: '0%',
-                                    }}
-                                >
-                                    {formData.selectedSlots} slots
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu>
-                                    <Dropdown.Item onClick={() => handleSlotChange('Morning')}>Morning slots</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => handleSlotChange('Afternoon')}>Afternoon slots</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => handleSlotChange('Evening')}>Evening slots</Dropdown.Item>
-                                </Dropdown.Menu>
-                            </Dropdown>
-                        }
+                        <Dropdown>
+                            <Dropdown.Toggle
+                                variant="secondary"
+                                id="slot-selector"
+                                style={{
+                                    backgroundColor: '#F9FAFB',
+                                    borderColor: '#E5E7EB',
+                                    borderRadius: '8px',
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    color: '#1F2937',
+                                    position: 'absolute',
+                                    top: '-1em',
+                                    right: '0%',
+                                }}
+                            >
+                                {formData.selectedSlots} slots
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu>
+                                <Dropdown.Item onClick={() => handleSlotChange('Morning')}>Morning slots</Dropdown.Item>
+                                <Dropdown.Item onClick={() => handleSlotChange('Afternoon')}>Afternoon slots</Dropdown.Item>
+                                <Dropdown.Item onClick={() => handleSlotChange('Evening')}>Evening slots</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
 
-                        <h5 style={{ fontWeight: 700, color: '#1F2937', marginBottom: '10px' }}>{selectAllChecked ? 'All' : formData.selectedSlots} slots</h5>
+                        <h5 style={{ fontWeight: 700, color: '#1F2937', marginBottom: '10px' }}>{formData.selectedSlots} slots</h5>
                         <div
                             style={{
                                 border: '1px solid #E5E7EB',
@@ -469,8 +467,7 @@ const Pricing = () => {
                             }}
                         >
                             {Loading ? <DataLoading /> : <>{renderTimeSlots()}</>}
-                        </div>
-                    </Col>
+                        </div>                    </Col>
                 </Row>
                 <Row className="mt-4">
                     <Col>

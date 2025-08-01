@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ClubRegistrationLayout from './RegistrationLayout';
 import VenueDetails from './steps/VenueDetails';
 import Images from './steps/Images';
 import Pricing from './steps/Pricing';
+import { useSelector } from 'react-redux';
 
 const RegisterClub = () => {
     const [step, setStep] = useState(1);
@@ -47,6 +48,12 @@ const RegisterClub = () => {
     const goBack = () => setStep(prev => prev - 1);
 
     console.log({ formData })
+    const registerId = useSelector((state) => state?.club?.clubData?.data?._id)
+    useEffect(() => {
+        if (registerId) {
+            sessionStorage.setItem('registerId', registerId);
+        }
+    }, [registerId]);
     const renderStepContent = () => {
         switch (step) {
             case 1:

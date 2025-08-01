@@ -22,6 +22,32 @@ export const registerClub = createAsyncThunk(
     }
 );
 
+export const getSlots = createAsyncThunk(
+    "club/getSlots",
+    async (data, { rejectWithValue }) => {
+        try {
+            // const buildQuery = (params) => {
+            //     console.log({ params })
+            //     const query = new URLSearchParams();
+            //     if (params.limit) query.append("register_club_id", params.register_club_id);
+            //     return query.toString();
+            // };
+            const res = await getApi(`${Url.GET_SLOT}?register_club_id=${(data?.register_club_id)}&day=${data?.day}&time=${data?.time || ''}`);
+            console.log({ res })
+            if (res?.status === 200) {
+                // showSuccess(res?.data?.message);
+                return res?.data;
+            } else {
+                showError(res?.data?.message || 'Failed to create slot');
+                return rejectWithValue(res?.data?.message || 'Failed to create slot');
+            }
+        } catch (error) {
+            showError(error);
+            return rejectWithValue(error?.response?.data?.message || 'Network error');
+        }
+    }
+);
+
 export const createSlot = createAsyncThunk(
     "club/createSlot",
     async (data, { rejectWithValue }) => {
