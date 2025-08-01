@@ -252,7 +252,7 @@ const VeiwMatch = ({
                                 <button className="btn btn-outline-light rounded-pill mb-3 px-4">
                                     Open Matches
                                 </button>
-                                <h2 className="fw-bold">Let the Battles Begin!</h2>
+                                <h2 className="fw-bold">Let the Battlesiujhgfhhjk Begin!</h2>
                                 <p className="text-light">Great for competitive vibes.</p>
                             </div>
 

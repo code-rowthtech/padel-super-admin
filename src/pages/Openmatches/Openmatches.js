@@ -493,11 +493,12 @@ const Openmatches = ({
                             >
                                 {/* Left content */}
                                 <div className="col-md-6 mb-4 mb-md-0">
-                                    <button className="btn btn-outline-light rounded-pill mb-3 px-4">
-                                        Open Matches
-                                    </button>
-                                    <h2 className="fw-bold">Let the Battles Begin!</h2>
+                                   
+                                    <h4 className="fw-bold">Let the Battles Begin!</h4>
                                     <p className="text-light">Great for competitive vibes.</p>
+                                     <button className="btn create-match-btn rounded-pill mb-3 px-4">
+                                         Create Open Matches
+                                    </button>
                                 </div>
 
                                 {/* Right image */}
@@ -507,9 +508,9 @@ const Openmatches = ({
                                         alt="Player"
                                         className="img-fluid"
                                         style={{
-                                            maxHeight: "340px",
-                                            marginTop: "-50px", // shift image upward
-                                            zIndex: 1,
+                                            maxHeight: "390px",
+                                            marginTop: "-20px", // shift image upward
+                                            zIndex: 999,
                                             position: "relative",
                                         }}
                                     />
