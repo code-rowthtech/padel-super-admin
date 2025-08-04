@@ -15,6 +15,7 @@ import AdminLayout from "../helpers/layout/AdminLayout";
 const Home = React.lazy(() => import('../pages/user/home/Home'));
 const Booking = React.lazy(() => import('../pages/user/booking/Booking'));
 const OpenMatches = React.lazy(() => import("../pages/user/openMatches/Openmatches"));
+const CreateMatches = React.lazy(() => import('../pages/user/openMatches/CreateMatches'))
 const ViewMatch = React.lazy(() => import('../pages/user/VeiwMatch/VeiwMatch'));
 const Payment = React.lazy(() => import('../pages/user/payment/Payment'));
 
@@ -32,6 +33,7 @@ const ForgotPassword = React.lazy(() => import('../pages/admin/auth/ForgotPasswo
 
 const AdminDashboard = React.lazy(() => import('../pages/admin/dashboard/index'));
 const BookingPage = React.lazy(() => import('../pages/admin/booking/index'));
+const ManualBooking = React.lazy(() => import('../pages/admin/booking/manual booking/ManualBooking'));
 const OpenMatchesPage = React.lazy(() => import('../pages/admin/open-matches/index'));
 const CompetitionPage = React.lazy(() => import('../pages/admin/competition/index'));
 const Register = React.lazy(() => import('../pages/admin/registerClub/index'));
@@ -117,6 +119,10 @@ const AllRoutes = () => {
                             path: "open-matches",
                             element: LoadComponent(OpenMatches),
                         },
+                              {
+                            path: "create-matches",
+                            element: LoadComponent(CreateMatches),
+                        },
                     ],
                 },
             ],
@@ -174,7 +180,7 @@ const AllRoutes = () => {
                         </PrivateRoute>
                     ),
                     children: [
-                        { index: true, element: <Navigate to="dashboard" replace /> }, // redirect
+                        { index: true, element: <Navigate to="dashboard" replace /> }, 
                         {
                             path: "dashboard",
                             element: LoadComponent(AdminDashboard),
@@ -183,10 +189,15 @@ const AllRoutes = () => {
                             path: "booking",
                             element: LoadComponent(BookingPage),
                         },
+                         {
+                            path: "manualbooking",
+                            element: LoadComponent(ManualBooking),
+                        },
                         {
                             path: "open-matches",
                             element: LoadComponent(OpenMatchesPage),
                         },
+                    
                         {
                             path: "competition",
                             element: LoadComponent(CompetitionPage),

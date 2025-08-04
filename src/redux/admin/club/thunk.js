@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from '../../../helpers/api/apiEndpoint';
-import { getApi, create, update, remove } from "../../../helpers/api/apiCore";
+import { getApi, create, update } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../.././../helpers/Toast";
 
 export const registerClub = createAsyncThunk(
@@ -26,12 +26,6 @@ export const getSlots = createAsyncThunk(
     "club/getSlots",
     async (data, { rejectWithValue }) => {
         try {
-            // const buildQuery = (params) => {
-            //     console.log({ params })
-            //     const query = new URLSearchParams();
-            //     if (params.limit) query.append("register_club_id", params.register_club_id);
-            //     return query.toString();
-            // };
             const res = await getApi(`${Url.GET_SLOT}?register_club_id=${(data?.register_club_id)}&day=${data?.day}&time=${data?.time || ''}`);
             console.log({ res })
             if (res?.status === 200) {
@@ -47,6 +41,24 @@ export const getSlots = createAsyncThunk(
         }
     }
 );
+
+// export const updatePrice = createAsyncThunk(
+//     "club/updatePrice",
+//     async (data, { rejectWithValue }) => {
+//         try {
+//             const res = await update(Url.UPDATE_PRICE, data);
+//             if (res?.status === 200) {
+//                 return res?.data;
+//             } else {
+//                 showError(res?.data?.message || 'Failed to create slot');
+//                 return rejectWithValue(res?.data?.message || 'Failed to create slot');
+//             }
+//         } catch (error) {
+//             showError(error);
+//             return rejectWithValue(error?.response?.data?.message || 'Network error');
+//         }
+//     }
+// );
 
 export const createSlot = createAsyncThunk(
     "club/createSlot",

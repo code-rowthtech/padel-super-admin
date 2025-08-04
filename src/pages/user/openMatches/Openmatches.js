@@ -211,7 +211,9 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         ? matchData.filter((match) => match.level === selectedLevel)
         : matchData;
 
-
+const createMatchesHandle = ()=>{
+    
+}
     return (
         <>
             {/* Booking UI */}
@@ -478,11 +480,14 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                             >
                                 {/* Left content */}
                                 <div className="col-md-6 mb-4 mb-md-0">
-                                    <button className="btn btn-outline-light rounded-pill mb-3 px-4">
-                                        Open Matches
-                                    </button>
-                                    <h2 className="fw-bold">Let the Battles Begin!</h2>
+                                   
+                                    <h4 className="fw-bold">Let the Battles Begin!</h4>
                                     <p className="text-light">Great for competitive vibes.</p>
+                                     <button className="btn create-match-btn text-white rounded-pill mb-3 ps-3 pe-3" onClick={()=>createMatchesHandle()}
+                                     style={{backgroundColor:"#3DBE64",fontSize:"14px",fontWeight:"500"}}
+                                     >
+                                         Create Open Matches
+                                    </button>
                                 </div>
 
                                 {/* Right image */}
@@ -492,9 +497,9 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                         alt="Player"
                                         className="img-fluid"
                                         style={{
-                                            maxHeight: "340px",
-                                            marginTop: "-45px",
-                                            zIndex: 1,
+                                            maxHeight: "390px",
+                                            marginTop: "-20px", // shift image upward
+                                            zIndex: 999,
                                             position: "relative",
                                         }}
                                     />

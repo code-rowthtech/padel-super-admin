@@ -26,6 +26,7 @@ const clubSlice = createSlice({
             state.clubError = null;
         });
         builder.addCase(registerClub.fulfilled, (state, action) => {
+            console.log(state, 'action');
             state.clubLoading = false;
             state.clubData = action.payload;
         });
