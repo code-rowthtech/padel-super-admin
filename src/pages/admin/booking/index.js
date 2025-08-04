@@ -104,13 +104,13 @@ const Cancellation = () => {
             </Box>
 
             <button
-              className="d-flex align-items-center position-relative gap-0 p-0"
+              className="d-flex align-items-center position-relative p-0 border-0"
               style={{
-                border: 'none',
                 borderRadius: '20px 10px 10px 20px',
                 overflow: 'hidden',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
+                background: 'none'
               }}
               onClick={() => navigate('/admin/manualbooking')}
               onMouseEnter={(e) => {
@@ -122,43 +122,37 @@ const Cancellation = () => {
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              <div className="div  rounded-circle p-1 sahdow-0 " style={{
-                position: "relative",
-                backgroundColor: ' #f8f9fa',
-                left: "10px"
-
-              }} >
+              {/* Circle Icon */}
+              <div
+                className="p-1 rounded-circle bg-light"
+                style={{ position: 'relative', left: '10px' }}
+              >
                 <div
+                  className="d-flex justify-content-center align-items-center text-white fw-bold"
                   style={{
                     backgroundColor: '#194DD5',
                     width: '36px',
                     height: '36px',
                     borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
                     fontSize: '20px',
-                    fontWeight: 'bold',
                   }}
                 >
                   +
                 </div>
               </div>
+
+              {/* Text Section */}
               <div
+                className="d-flex align-items-center text-white fw-medium"
                 style={{
                   backgroundColor: '#194DD5',
-                  color: 'white',
                   padding: '0 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  fontFamily: 'Nunito, sans-serif',
                   height: '36px',
+                  fontSize: '14px',
+                  fontFamily: 'Nunito, sans-serif',
                 }}
               >
-                Manual Booking
+               Manual Booking
               </div>
             </button>
 
