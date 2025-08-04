@@ -11,3 +11,236 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* body {
+  font-family: 'Poppins', sans-serif !important;
+} */
+
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.object-fit-cover {
+  object-fit: cover;
+}
+
+h1.display-5 {
+  font-size: 70px;
+  line-height: 80px;
+}
+.icon-button {
+  width: 70px;
+  text-align: center;
+  color: #333;
+}
+
+/* custom-datepicker.css */
+
+.custom-calendar {
+  font-family: 'Poppins', sans-serif;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.react-datepicker__header {
+  background-color: #374151 !important;
+  border-bottom: 1px solid #374151;
+  padding: 0.5rem;
+  color: white !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: white !important;
+  font-weight: 500;
+}
+.react-datepicker__current-month{
+  margin-bottom: 15px !important;
+}
+
+.react-datepicker__day {
+  color: #495057;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.react-datepicker__day:hover {
+  background-color: #e9ecef;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #374151;
+  color: white;
+}
+
+.react-datepicker__month-dropdown,
+.react-datepicker__year-dropdown {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.react-datepicker__navigation {
+  top: 10px;
+}
+
+
+.calendar-day-btn {
+  border: none;
+  background: transparent;
+  padding: 10px;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+.calendar-day-btn.selected {
+  background-color: #0d6efd;
+  color: white;
+}
+
+/* Hide scrollbar for all browsers */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  max-width: 700px !important; /* IE and Edge */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+
+
+.icon-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid #e2e2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 35px;
+  color: #3a3a3a;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.icon-circle:hover {
+  background-color: #f0f0f0;
+}
+
+.icon-circle.active {
+  background-color: #2e3a4e;
+  color: white;
+  border-color: #2e3a4e;
+}
+.image-zoom-container {
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.image-zoom-container img {
+  transition: transform 0.5s ease !important;
+}
+
+.image-zoom-container:hover img {
+  transform: scale(1.1) !important;
+}
+.image-zoom-hover img {
+  transition: transform 0.5s ease;
+}
+
+.image-zoom-hover:hover img {
+  transform: scale(1.1);
+}
+
+.calendar-day-btn{
+  width: 90px !important;
+  height: 92px !important;
+}
+.court-row .delete-btn {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.court-row:hover .delete-btn {
+  visibility: visible;
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .auth-wrapper {
+    padding: 1rem;
+  }
+}
+
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+.tabel-title{
+  font-size: 20px;
+  font-weight: 700;
+  color: #04103B;
+  font-family: "Nunito" sans-serif;
+}
+.dashboard-viewmore{
+  font-size: 12px;
+  font-weight: 600;
+  font-family: "Nunito" sans-serif;
+}
+.card-value{
+  font-size: 30px;
+  color: #04103B;
+  font-weight: 700;
+  font-family: "Nunito"sans-serif;
+}
+.table-data{
+  font-size: 14px;
+  font-weight: 500;
+  font-family: "Poppins"sans-serif;
+  color: #797D8C;
+}
+.manual-heading{
+  font-weight: 600;
+  font-family: "Poppins" sans-serif;
+  font-size: 26px;
+  color: #04103B;
+}

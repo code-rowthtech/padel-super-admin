@@ -1,0 +1,29 @@
+import { RingLoader, PulseLoader, PuffLoader } from "react-spinners";
+
+export const Loading = ({ color }) => {
+  return (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <RingLoader
+        color={color}
+        size={80}
+      />
+    </div>
+  );
+};
+export const ButtonLoading = () => {
+  return (
+    <div className="d-flex justify-content-center align-items-center w-100">
+      <PulseLoader
+        color="white"
+        size={10}
+      />
+    </div>
+  );
+};
+export const DataLoading = ({ color }) => {
+  return (
+    <div className="d-flex justify-content-center align-items-center w-100">
+      <PuffLoader color={color} />
+    </div>
+  );
+};

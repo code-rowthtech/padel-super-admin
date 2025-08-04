@@ -1,34 +1,41 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './pages/header/Navbar';
-import Home from './pages/Home/Home';
-import Footer from './pages/Footer/Footer';
-import Booking from './pages/Booking/Booking';
-import Payment from './pages/Payment';
-import './././../src/App.css'
-
-
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min';
-import Openmatches from './pages/Openmatches/Openmatches';
-import VeiwMatch from './pages/VeiwMatch/VeiwMatch';
-import CustomButton from './pages/button';
-
+import Routes from './routes/Routes';
+import CustomButton from './pages/user/button';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from 'react';
 function App() {
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason;
+    if (reason && /Loading chunk [\d]+ failed/.test(reason.message)) {
+      // Navigate to fallback route or render directly
+      window.location.href = '/no-internet';
+    }
+  });
+
+  useEffect(() => {
+    const defaultTitle = "Padel";
+    const isAdminRoute = window.location.pathname.startsWith("/admin");
+
+    document.title = isAdminRoute ? `${defaultTitle} | Admin` : defaultTitle;
+  }, [window.location.pathname]);
+
   return (
-    <Router>
-      <Navbar />
-      
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/booking" element={<Booking />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/open-matches" element={<Openmatches />} />
-        <Route path="/veiw-match" element={<VeiwMatch/>} />
-      
-      </Routes>
+    <>
+      <Routes />
       <CustomButton />
-      {/* <Footer /> */}
-    </Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+    </>
   );
 }
 
