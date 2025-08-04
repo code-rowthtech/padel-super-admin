@@ -68,12 +68,12 @@ const AdminTopbar = () => {
             )}
           </Dropdown.Toggle>
 
-          <Dropdown.Menu className="table-data fw-medium" style={{color:"#374151"}}>
-            <Dropdown.Item href="/admin/settings" >Edit Profile</Dropdown.Item>
+          <Dropdown.Menu className="table-data fw-medium" style={{ color: "#374151" }}>
+            <Dropdown.Item href="/admin/profile" >Edit Profile</Dropdown.Item>
             <Dropdown.Item >
               My Club
             </Dropdown.Item>
-            <Dropdown.Item href="/admin/settings">Review & Rating</Dropdown.Item>
+            <Dropdown.Item href="/admin/customer-reviews">Review & Rating</Dropdown.Item>
             <Dropdown.Item >
               Help & Support
             </Dropdown.Item>

@@ -39,6 +39,9 @@ const OpenMatchesPage = React.lazy(() => import('../pages/admin/open-matches/ind
 const CompetitionPage = React.lazy(() => import('../pages/admin/competition/index'));
 const Register = React.lazy(() => import('../pages/admin/registerClub/index'));
 const RegisterClub = React.lazy(() => import('../pages/admin/registerClub/RegisterClub'));
+const MatchDetails = React.lazy(() => import('../pages/admin/open-matches/matchDetails/MatchDetails'));
+const Profile = React.lazy(() => import('../pages/admin/profile/Profile'));
+const CusromerReviews = React.lazy(() => import('../pages/admin/reviews/CustomerReviews'));
 
 
 
@@ -120,7 +123,7 @@ const AllRoutes = () => {
                             path: "open-matches",
                             element: LoadComponent(OpenMatches),
                         },
-                              {
+                        {
                             path: "create-matches",
                             element: LoadComponent(CreateMatches),
                         },
@@ -181,7 +184,7 @@ const AllRoutes = () => {
                         </PrivateRoute>
                     ),
                     children: [
-                        { index: true, element: <Navigate to="dashboard" replace /> }, 
+                        { index: true, element: <Navigate to="dashboard" replace /> },
                         {
                             path: "dashboard",
                             element: LoadComponent(AdminDashboard),
@@ -190,7 +193,7 @@ const AllRoutes = () => {
                             path: "booking",
                             element: LoadComponent(BookingPage),
                         },
-                         {
+                        {
                             path: "manualbooking",
                             element: LoadComponent(ManualBooking),
                         },
@@ -202,10 +205,21 @@ const AllRoutes = () => {
                             path: "open-matches",
                             element: LoadComponent(OpenMatchesPage),
                         },
-                    
                         {
                             path: "competition",
                             element: LoadComponent(CompetitionPage),
+                        },
+                        {
+                            path: "match-details",
+                            element: LoadComponent(MatchDetails),
+                        },
+                        {
+                            path: "profile",
+                            element: LoadComponent(Profile),
+                        },
+                        {
+                            path: "customer-reviews",
+                            element: LoadComponent(CusromerReviews),
                         },
                     ],
                 },
