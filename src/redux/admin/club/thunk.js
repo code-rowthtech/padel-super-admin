@@ -66,3 +66,21 @@ export const createSlot = createAsyncThunk(
         }
     }
 );
+
+export const updatePrice = createAsyncThunk(
+    "club/updatePrice",
+    async (data, { rejectWithValue }) => {
+        try {
+            const res = await update(Url.UPDATE_PRICE, data);
+            if (res?.status === 200) {
+                return res?.data;
+            } else {
+                showError(res?.data?.message || 'Failed to create slot');
+                return rejectWithValue(res?.data?.message || 'Failed to create slot');
+            }
+        } catch (error) {
+            showError(error);
+            return rejectWithValue(error?.response?.data?.message || 'Network error');
+        }
+    }
+);

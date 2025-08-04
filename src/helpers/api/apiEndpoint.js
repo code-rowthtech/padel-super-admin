@@ -17,3 +17,5 @@ export const GET_OWNER = '/api/owners/getowner';
 export const REGISTER_CLUB = '/api/club/registerClub';
 export const CREATE_SLOT = '/api/slot/createSlot';
 export const GET_SLOT = '/api/slot/getSlot';
+export const UPDATE_PRICE = '/api/slot/updateCourt';
+

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createSlot, getSlots, registerClub } from "./thunk";
+import { createSlot, getSlots, registerClub, updatePrice } from "./thunk";
 
 
 const initialState = {
@@ -60,7 +60,20 @@ const clubSlice = createSlice({
             state.clubLoading = false;
             state.clubError = action.payload;
         });
+        //  -----------------------------------------------------//---- update price
 
+        builder.addCase(updatePrice.pending, (state) => {
+            state.clubLoading = true;
+            state.clubError = null;
+        });
+        builder.addCase(updatePrice.fulfilled, (state, action) => {
+            state.clubLoading = false;
+            state.clubData = action.payload;
+        });
+        builder.addCase(updatePrice.rejected, (state, action) => {
+            state.clubLoading = false;
+            state.clubError = action.payload;
+        });
         //  -----------------------------------------------------//---- 
     },
 });

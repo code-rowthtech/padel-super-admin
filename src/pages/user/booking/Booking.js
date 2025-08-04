@@ -403,10 +403,10 @@ const Booking = ({
                                 ))}
                             </div>
                         </div>
-                    </div>
+                    </div >
 
                     {/* Right Section - Booking Summary */}
-                    <div className="col-5" >
+                    <div div className="col-5" >
                         <div className="border rounded px-3 py-5  border-0 " style={{ backgroundColor: " #CBD6FF1A" }}>
                             <div className="text-center mb-3">
                                 <div className="rounded-circle bg-white mx-auto mb-2 shadow " style={{ width: "90px", height: "90px", lineHeight: '90px' }}>
@@ -532,9 +532,9 @@ const Booking = ({
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </div >
+                </div >
+            </div >
         </>
 
     );

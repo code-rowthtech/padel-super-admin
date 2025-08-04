@@ -85,11 +85,16 @@ export const isUserAuthenticated = () => {
     const decoded = jwtDecode(token);
     const now = Date.now() / 1000;
     if (decoded.exp < now) {
-      alert("Your session has expired. Redirecting you to login.");
       setLoggedInUser(null);
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = "/";
+      if (window.location.pathname.toLowerCase().startsWith("/admin")) {
+        alert("Your session has expired.");
+        window.location.href = "/admin/login";
+      } else {
+        alert("Your session has expired.");
+        window.location.href = "/";
+      }
       return false;
     }
     return true;

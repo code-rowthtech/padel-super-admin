@@ -6,7 +6,9 @@ import Pricing from './steps/Pricing';
 import { useSelector } from 'react-redux';
 
 const RegisterClub = () => {
-    const [step, setStep] = useState(1);
+    const registerID = sessionStorage.getItem('registerId');
+    const currentStep = registerID ? 3 : 1;
+    const [step, setStep] = useState(currentStep);
     const [formData, setFormData] = useState({
         // Venue Details
         courtName: '',
@@ -47,7 +49,6 @@ const RegisterClub = () => {
     const goNext = () => setStep(prev => prev + 1);
     const goBack = () => setStep(prev => prev - 1);
 
-    console.log({ formData })
     const registerId = useSelector((state) => state?.club?.clubData?.data?._id)
     useEffect(() => {
         if (registerId) {
