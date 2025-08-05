@@ -3,6 +3,8 @@
 //_#_#_#_#_#_#_#_#_#_#_#--USER--_#_#_#_#_#_#_#_#_#_#_#_#_#_
 export const GET_MATCH_API = '';
 export const API = '';
+export const GET_CLUB_API = '/api/club/getAllRegisteredCourts';
+
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 export const OWNER_SIGNUP = '/api/owners/ownerSignup';

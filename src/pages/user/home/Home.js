@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { twoball, taness, logo, line } from '../../../assets/files';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import PhotoSizeSelectActualIcon from '@mui/icons-material/PhotoSizeSelectActual';
@@ -12,6 +12,8 @@ import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import { Link } from 'react-router-dom';
 import 'animate.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserClub } from '../../../redux/user/club/thunk';
 
 
 const photos = [
@@ -66,10 +68,12 @@ const reviews = [
 const Home = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [photoIndex, setPhotoIndex] = useState(0);
-
+    const dispatch = useDispatch()
+    const store = useSelector((state) => state)
     const allImages = photos.map(photo => require(`../../../assets/images/${photo}`));
     const [activeTab, setActiveTab] = useState('direction');
-
+    const clubData = store
+    console.log({clubData});
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
@@ -84,6 +88,10 @@ const Home = () => {
 
     // Adjust index to match your array which starts with Monday
     const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
+
+    useEffect(() => {
+        dispatch(getUserClub({ search: "Beatae laborum magna" }))
+    }, [])
 
     return (
         <>
