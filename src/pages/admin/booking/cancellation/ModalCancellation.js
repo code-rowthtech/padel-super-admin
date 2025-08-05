@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Modal, Button, Row, Col, Form } from 'react-bootstrap';
 import { modalDetails, modalSuccess } from '../../../../assets/files';
 
 export const BookingCancellationModal = ({ show, handleClose, openDetails }) => (
@@ -113,7 +113,7 @@ export const BookingRefundModal = ({ show, handleClose, onRefundSuccess }) => (
 
                 <div className="ps-3 pe-3 mt-3">
                     <Button className=' py-2 border-0 rounded-pill w-100 '
-                        onClick={onRefundSuccess}  
+                        onClick={onRefundSuccess}
                         style={{ backgroundColor: "#3DBE64", fontSize: '17px', fontWeight: "600" }}
                     >
                         Refund Process
@@ -125,7 +125,7 @@ export const BookingRefundModal = ({ show, handleClose, onRefundSuccess }) => (
     </Modal>
 );
 
-export const RefundSuccessModal = ({ show, handleClose }) => (
+export const RefundSuccessModal = ({ show, handleClose, openCancelModal }) => (
     <Modal show={show} onHide={handleClose} className='h-100' centered backdrop="static">
         <Modal.Body className="text-center p-4 position-relative">
             <button
@@ -149,10 +149,163 @@ export const RefundSuccessModal = ({ show, handleClose }) => (
                 <h2 className="tabel-title mb-3" style={{ fontFamily: "Poppins", fontSize: '15px', fontWeight: "600" }}>Refund successfully Complete</h2>
                 <p className='table-data text-dark fw-bold'>The refund has been successfully Completed.</p>
                 <div className="ps-3 pe-3 mt-3">
-                    <Button  onClick={handleClose} className=' py-2 border-0 rounded-pill w-100 ' style={{ backgroundColor: "#3DBE64", fontSize: '17px', fontWeight: "600" }}>Continue</Button>
+                    <Button onClick={openCancelModal} className=' py-2 border-0 rounded-pill w-100 ' style={{ backgroundColor: "#3DBE64", fontSize: '17px', fontWeight: "600" }}>Continue</Button>
                 </div>
             </div>
 
         </Modal.Body>
     </Modal>
 );
+
+
+export const CancelRequestModal = ({ show, handleClose, openRequestModal }) => {
+    return (
+        <Modal show={show} onHide={handleClose} size='lg' centered backdrop="static" className="cancel-modal ">
+            <Modal.Body className="text-center  p-4 position-relative">
+                <button
+                    onClick={handleClose}
+                    style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '20px',
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '24px',
+                        cursor: 'pointer',
+                        color: 'red'
+                    }}
+                >
+                    ×
+                </button>
+                <Row className="mb-4">
+                    <h2 className="tabel-title py-4" style={{ fontFamily: "Poppins", fontWeight: "600" }}> Cancellation Request</h2>
+                    <Col md={6} className='d-flex justify-content-between rounded-3 border p-3' style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <div className="text-start ">
+                            <h6>Name:</h6>
+                            <p>Court Number:</p>
+                            <p>Date & Time:</p>
+                            <p>Time / Min:</p>
+                        </div>
+                        <div className=" text-end">
+                            <h6><strong>Floyd Miles</strong> </h6>
+                            <p><strong>3 Court</strong> </p>
+                            <p><strong>29/06/2025</strong> </p>
+                            <p><strong>8:00am (60min)</strong> </p>
+                        </div>
+                    </Col>
+
+                    <Col md={6}>
+                        <div className="">
+                            <h6><strong>Payment Details</strong></h6>
+                            <div className="d-flex justify-content-between">
+                                <p>Payment Method:</p>
+                                <p className="  mb-0">Gpay</p>
+                            </div>
+                            <div className="d-flex justify-content-between">
+                                <p>Total Payment:</p>
+                                <p className="text-primary fs-4 mb-0"><strong>₹1000</strong></p>
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+
+                <div className="mb-4 text-start">
+                    <h6>What's user reason to cancel this slot</h6>
+                    <div className="border rounded p-3 text-secondary bg-light">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore...
+                    </div>
+                </div>
+
+                <div className="mb-4 text-start">
+                    <h6>Why You Reject this Request</h6>
+                    <Form.Control as="textarea" rows={3} placeholder="Write a reason" style={{ boxShadow: "none" }} />
+                </div>
+
+                <Form.Check
+                    type="checkbox"
+                    label="This reason also not match our Terms and condition and cancellation policy"
+                    className="mb-3 text-start shadow-0"
+                    style={{ boxShadow: "none" }}
+                />
+                <div className="d-flex justify-content-end">
+                    <Button onClick={openRequestModal} style={{ backgroundColor: "#3DBE64" }} className="px-4 rounded-pill border-0 fw-bold">Continue</Button>
+
+                </div>
+            </Modal.Body>
+
+        </Modal>
+    );
+};
+
+export const SuccessRequestModal = ({ show, handleClose, openRequestSuccessModal }) => {
+    return (
+        <Modal show={show} onHide={handleClose} size='lg' centered backdrop="static" className="cancel-modal ">
+            <Modal.Body className="text-center  p-4 position-relative">
+                <button
+                    onClick={handleClose}
+                    style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '20px',
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '24px',
+                        cursor: 'pointer',
+                        color: 'red'
+                    }}
+                >
+                    ×
+                </button>
+                <Row className="mb-4">
+                    <h2 className="tabel-title py-4" style={{ fontFamily: "Poppins", fontWeight: "600" }}> Cancellation Request</h2>
+                    <Col md={6} className='d-flex justify-content-between rounded-3 border p-3' style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <div className="text-start ">
+                            <h6>Name:</h6>
+                            <p>Court Number:</p>
+                            <p>Date & Time:</p>
+                            <p>Time / Min:</p>
+                        </div>
+                        <div className=" text-end">
+                            <h6><strong>Floyd Miles</strong> </h6>
+                            <p><strong>3 Court</strong> </p>
+                            <p><strong>29/06/2025</strong> </p>
+                            <p><strong>8:00am (60min)</strong> </p>
+                        </div>
+                    </Col>
+
+                    <Col md={6}>
+                        <div className="">
+                            <h6><strong>Payment Details</strong></h6>
+                            <div className="d-flex justify-content-between">
+                                <p>Payment Method:</p>
+                                <p className="  mb-0">Gpay</p>
+                            </div>
+                            <div className="d-flex justify-content-between">
+                                <p>Total Payment:</p>
+                                <p className="text-primary fs-4 mb-0"><strong>₹1000</strong></p>
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+
+                <div className="mb-4 text-start">
+                    <h6>What's user reason to cancel this slot</h6>
+                    <div className="border rounded p-3 text-secondary bg-light">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore...
+                    </div>
+                </div>
+
+                <div className="mb-4 text-start">
+                    <h6>Our reason to Reject this Request</h6>
+                    <div className="border rounded p-3 text-secondary bg-light">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore...
+                    </div>
+                </div>
+
+            </Modal.Body>
+
+        </Modal>
+    );
+};
+
+

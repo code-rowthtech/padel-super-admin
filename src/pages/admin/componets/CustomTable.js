@@ -1,8 +1,9 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { Table } from 'react-bootstrap';
 import { FaEye } from 'react-icons/fa';
 
-const CustomTable = ({ headers, cancellations, scroll,setShowCancellation }) => {
+const CustomTable = ({ headers, cancellations, scroll, setShowCancellation = () => { }, }) => {
     return (
         <>
             <style>
@@ -61,7 +62,11 @@ const CustomTable = ({ headers, cancellations, scroll,setShowCancellation }) => 
                                 <td className="py-2 ps-4 table-data border-bottom">{item.name}</td>
                                 <td className="py-2 ps-4 table-data border-bottom"><b>{item.date}</b>{item.time}</td>
                                 <td className="py-2 ps-4 table-data border-bottom">{item.courtNo}</td>
-                                <td className="py-2 ps-4 table-data border-bottom" style={{cursor:'pointer'}} onClick={()=>setShowCancellation(true)}>
+                                <td className="py-2 ps-4 table-data border-bottom" style={{ cursor: 'pointer' }} onClick={() => {
+                                    if (typeof setShowCancellation === 'function') {
+                                        setShowCancellation(true);
+                                    }
+                                }}>
                                     <FaEye className="text-primary" />
                                 </td>
                             </tr>
@@ -71,6 +76,14 @@ const CustomTable = ({ headers, cancellations, scroll,setShowCancellation }) => 
             </div>
         </>
     );
+};
+
+CustomTable.propTypes = {
+  headers: PropTypes.array.isRequired,
+  cancellations: PropTypes.array.isRequired,
+  scroll: PropTypes.bool,
+  setShowCancellation: PropTypes.func,
+  type: PropTypes.string,
 };
 
 export default CustomTable;
