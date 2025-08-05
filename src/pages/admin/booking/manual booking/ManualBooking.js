@@ -1,13 +1,17 @@
-import React, { useRef,useEffect, useState } from 'react'
-import { Col, Container, Row } from 'react-bootstrap'
+import React, { useRef, useEffect, useState } from 'react'
+import { Button, Col, Container, Row } from 'react-bootstrap'
 import DatePicker from 'react-datepicker';
-import { FaShoppingCart } from 'react-icons/fa';
+import { FaArrowLeft, FaShoppingCart } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { BookingDetailsModal, BookingSuccessModal } from './BookingModal';
 
 const ManualBooking = () => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
-
+    const navigate = useNavigate()
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
     // Close on outside click
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -102,81 +106,25 @@ const ManualBooking = () => {
         setSelectedCourts((prev) => [...prev, newCourt]);
     };
 
-    const total = selectedCourts.reduce((sum, c) => sum + c.price, 0);
-
-    const handleDelete = (index) => {
-        const updatedCourts = [...selectedCourts];
-        updatedCourts.splice(index, 1);
-        setSelectedCourts(updatedCourts);
-    };
-
-
-
-    // Mock props for demonstration
-    const width = 370;
-    const height = 75;
-    const circleRadius = height * 0.3;
-    // Calculate the center of the curved end section more precisely
-    const curvedSectionStart = width * 0.76; // Where the curve starts
-    const curvedSectionEnd = width * 0.996; // Where the curve ends
-    const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1; // Added 1 pixel to the right
-    const circleY = height * 0.5;
-    const arrowSize = circleRadius * 0.6;
-    const arrowX = circleX;
-    const arrowY = circleY;
-
-    const buttonStyle = {
-        position: 'relative',
-        width: `${width}px`,
-        height: `${height}px`,
-        border: 'none',
-        background: 'transparent',
-        cursor: 'pointer',
-        padding: 0,
-        overflow: 'visible',
-    };
-
-    const svgStyle = {
-        width: '100%',
-        height: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        zIndex: 1,
-    };
-
-    const contentStyle = {
-        position: 'relative',
-        zIndex: 2,
-        color: 'white',
-        fontWeight: '600',
-        fontSize: `16px`,
-        textAlign: 'center',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        paddingRight: `${circleRadius * 2}px`,
-    };
-
-    const onClick = () => {
-        console.log('Button clicked!');
-        alert('Button clicked! (would navigate to /payment)');
-    };
-
     return (
         <>
-            <Container className='bg-white' fluid>
+            <Container className='p-0' fluid>
                 <Row>
+                    <Col md={6}>
+                        <h5 className='manual-heading' style={{ fontFamily: "Poppins", fontWeight: '600' }}>Manual Booking</h5>
+                    </Col>
+                    <Col md={6} className='text-end'>
+                        <Button className='bg-transparent border-0' onClick={() => navigate('/admin/booking')} style={{ color: "#1F41BB", fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}> <FaArrowLeft /> Back</Button>
+                    </Col>
+                </Row>
+                <Row className='mx-auto bg-white'>
                     <Col md={8} className="pt-3 rounded-3 px-4" >
-                    <h5 className='manual-heading'>Manual Booking</h5>
                         {/* Date Selector */}
                         <div className="calendar-strip ">
-                            <div className="tabel-title" >Select Date <div
+                            <div className="tabel-title mb-3" style={{ fontFamily: "Poppins", fontWeight: '600', color: "#374151" }} >Select Date <div
                                 className="position-relative d-inline-block"
                                 ref={wrapperRef}
                             >
-                                {/* Icon Button */}
                                 <span
                                     className="rounded-circle p-2 ms-2 shadow-sm bg-light"
                                     style={{ cursor: "pointer" }}
@@ -206,19 +154,22 @@ const ManualBooking = () => {
                                     </div>
                                 )}
                             </div></div>
-                            <div className="d-flex align-items-center gap-2 mb-3">
+                            <div className="d-flex align-items-center w-100 p-0 gap-2 mb-3">
                                 <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                                     <i className="bi bi-chevron-left"></i>
                                 </button>
 
                                 <div
                                     ref={scrollRef}
-                                    className="d-flex gap-2 w-100 overflow-auto no-scrollbar"
+                                    className="d-flex gap-2 "
                                     style={{
                                         scrollBehavior: "smooth",
                                         whiteSpace: "nowrap",
-                                        maxWidth: "620px", // Enough space for 7 buttons ~88px each
+                                        overflow: "hidden", // hides scroll
+                                        flex: 1,
                                     }}
+
+
                                 >
                                     {dates.map((d, i) => (
                                         <button
@@ -249,7 +200,7 @@ const ManualBooking = () => {
 
                         {/* Time Selector */}
                         <div className="d-flex justify-content-between align-items-center py-2">
-                            <p className="mb-0 tabel-title" >
+                            <p className="mb-3 tabel-title" style={{ fontFamily: "Poppins", fontWeight: '600', color: "#374151" }} >
                                 Available Slots <span className="fs-6">(60m)</span>
                             </p>
                             <div className="form-switch d-flex align-items-center gap-2 p-0">
@@ -258,10 +209,10 @@ const ManualBooking = () => {
                                     type="checkbox"
                                     role="switch"
                                     id="flexSwitchCheckDefault"
-                                    style={{boxShadow:"none"}}
+                                    style={{ boxShadow: "none" }}
                                 />
                                 <label
-                                    className="form-check-label mb-0"
+                                    className="table-data text-dark mb-0"
                                     htmlFor="flexSwitchCheckDefault"
                                     style={{ whiteSpace: "nowrap" }}
                                 >
@@ -275,7 +226,7 @@ const ManualBooking = () => {
                             {times.map((time, i) => (
                                 <button
                                     key={i}
-                                    className={`btn border-0 rounded-pill px-4 `}
+                                    className={`btn border-0 rounded-pill table-data px-4 `}
                                     onClick={() => toggleTime(time)}
                                     style={{
                                         backgroundColor: selectedTimes.includes(time) ? "#374151" : "#CBD6FF1A",
@@ -292,11 +243,11 @@ const ManualBooking = () => {
                         <div>
 
                             <div className="d-flex justify-content-between align-items-center pt-3">
-                                <p className="mb-0 tabel-title" >
+                                <p className="mb-0 tabel-title" style={{ fontFamily: "Poppins", fontWeight: '600', color: "#374151" }} >
                                     Available Court
                                 </p>
                                 <div>
-                                   
+
                                     <div
                                         className="modal fade"
                                         id="courtLayoutModal"
@@ -371,6 +322,51 @@ const ManualBooking = () => {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                        <div className="mt-4 px-3">
+                            <p className="mb-2 tabel-title" style={{ fontFamily: "Poppins", fontWeight: '600', color: "#374151" }}>User Information</p>
+                            <div className="d-flex gap-3 mb-3">
+                                <input
+                                    type="text"
+                                    className="form-control rounded-3 py-2"
+                                    placeholder="Name"
+                                    style={{ backgroundColor: "#CBD6FF7A" }}
+                                />
+                                <input
+                                    type="tel"
+                                    className="form-control rounded-3 py-2"
+                                    placeholder="Phone Number"
+                                    style={{ backgroundColor: "#CBD6FF7A" }}
+                                />
+                            </div>
+                            <div className="d-flex justify-content-end gap-4 align-items-end">
+                                <button
+                                    className="btn btn-secondary rounded-pill px-4 py-2"
+                                    style={{ minWidth: '120px', fontWeight: '500' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn btn-success rounded-pill px-4 py-2"
+                                    style={{ minWidth: '120px', fontWeight: '500' }}
+                                    onClick={() => setShowSuccess(true)}
+                                >
+                                    Confirm
+                                </button>
+                                <BookingSuccessModal
+                                    show={showSuccess}
+                                    handleClose={() => setShowSuccess(false)}
+                                    openDetails={() => {
+                                        setShowSuccess(false);
+                                        setShowDetails(true); 
+                                    }}
+                                />
+
+                                <BookingDetailsModal
+                                    show={showDetails}
+                                    handleClose={() => setShowDetails(false)}
+                                />
                             </div>
                         </div>
                     </Col>

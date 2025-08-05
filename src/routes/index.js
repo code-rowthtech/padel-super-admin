@@ -34,6 +34,7 @@ const ForgotPassword = React.lazy(() => import('../pages/admin/auth/ForgotPasswo
 const AdminDashboard = React.lazy(() => import('../pages/admin/dashboard/index'));
 const BookingPage = React.lazy(() => import('../pages/admin/booking/index'));
 const ManualBooking = React.lazy(() => import('../pages/admin/booking/manual booking/ManualBooking'));
+const Cancellation = React.lazy(() => import('../pages/admin/booking/cancellation/Cancellation'));
 const OpenMatchesPage = React.lazy(() => import('../pages/admin/open-matches/index'));
 const CompetitionPage = React.lazy(() => import('../pages/admin/competition/index'));
 const Register = React.lazy(() => import('../pages/admin/registerClub/index'));
@@ -195,6 +196,10 @@ const AllRoutes = () => {
                         {
                             path: "manualbooking",
                             element: LoadComponent(ManualBooking),
+                        },
+                          {
+                            path: "cancellation",
+                            element: LoadComponent(Cancellation),
                         },
                         {
                             path: "open-matches",

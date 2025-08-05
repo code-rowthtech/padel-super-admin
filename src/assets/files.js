@@ -9,6 +9,9 @@ import club from './images/club.png'
 import google from './images/googlelogo.png'
 import authImg from './images/auth.png'
 import registerClubBG from './images/registerClubBg.png'
+import modalSuccess from './images/Success.png'
+import modalDetails from './images/image 25.png'
+
 export {
     twoball,
     taness,
@@ -20,5 +23,7 @@ export {
     club,
     google,
     authImg,
-    registerClubBG
+    registerClubBG,
+    modalDetails,
+    modalSuccess
 }
