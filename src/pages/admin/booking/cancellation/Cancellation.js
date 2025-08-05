@@ -16,7 +16,7 @@ import CustomTable from '../../componets/CustomTable';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { MdDateRange } from "react-icons/md";
-import { BookingCancellationModal, BookingRefundModal, RefundSuccessModal } from './ModalCancellation';
+import { BookingCancellationModal, BookingRefundModal, CancelRequestModal, RefundSuccessModal, SuccessRequestModal } from './ModalCancellation';
 
 
 
@@ -85,6 +85,8 @@ const Cancellation = () => {
   const [showCancellation, setShowCancellation] = useState(false);
   const [showRefund, setShowRefund] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showRequest,setShowRequest] = useState(false)
+  const [showRequestSuccess,setShowRequestSuccess] = useState(false)
 
   const [value, setValue] = useState(0);
   const handleChange = (_, newValue) => {
@@ -199,6 +201,26 @@ const Cancellation = () => {
               <RefundSuccessModal
                 show={showSuccess}
                 handleClose={() => setShowSuccess(false)}
+                 openCancelModal={() => {
+                  setShowSuccess(false);
+                  setTimeout(() => setShowRequest(true), 300);
+                }}
+              />
+
+              <CancelRequestModal
+               show={showRequest}
+                handleClose={() => setShowRequest(false)}
+                 openRequestModal={() => {
+                  setShowRequest(false);
+                  setTimeout(() => setShowRequestSuccess(true), 300);
+                }}
+              />
+              <SuccessRequestModal
+                show={showRequestSuccess}
+                handleClose={() => setShowRequestSuccess(false)}
+                 openRequestSuccessModal={() => {
+                  setShowRequestSuccess(false);
+                }}
               />
 
 
