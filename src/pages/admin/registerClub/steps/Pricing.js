@@ -12,8 +12,6 @@ const Pricing = () => {
     const registerId = sessionStorage.getItem('registerId');
     const { clubLoading, clubData } = useSelector((state) => state.club);
     const PricingData = clubData?.data || [];
-    const Loading = useSelector((state) => state?.club?.clubLoading);
-    console.log(PricingData, 'PricingData');
     const navigate = useNavigate()
     const [formData, setFormData] = useState({
         selectedSlots: 'Morning',
@@ -527,7 +525,7 @@ const Pricing = () => {
                                 background: '#F9FAFB',
                             }}
                         >
-                            {Loading ? <DataLoading /> : <>{renderTimeSlots()}</>}
+                            {clubLoading ? <DataLoading /> : <>{renderTimeSlots()}</>}
                         </div>
                     </Col>
                 </Row>

@@ -20,4 +20,6 @@ export const GET_SLOT = '/api/slot/getSlot';
 export const UPDATE_PRICE = '/api/slot/updateCourt';
 
 export const GET_REGISTERED_CLUB = '/api/club/getOwnerRegisterClub';
+export const GET_ACTIVE_COURTS = '/api/slot/getAllActiveCourts';
+export const MANUAL_BOOKING_BY_OWNER = '/api/booking/manualBookingByOwner';
 
