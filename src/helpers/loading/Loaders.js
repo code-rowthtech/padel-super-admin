@@ -20,9 +20,9 @@ export const ButtonLoading = () => {
     </div>
   );
 };
-export const DataLoading = ({ color }) => {
+export const DataLoading = ({ color, height }) => {
   return (
-    <div className="d-flex justify-content-center align-items-center w-100">
+    <div className="d-flex justify-content-center align-items-center w-100" style={{ height: height }}>
       <PuffLoader color={color} />
     </div>
   );
