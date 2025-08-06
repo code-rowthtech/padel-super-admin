@@ -365,7 +365,7 @@ const Pricing = () => {
         }
 
         // Extract slotTimes and businessHours from the new structure
-        const slot = selectAllChecked ? PricingData?.[0]?.slot?.[0] : PricingData?.data?.[0]?.slot?.[0];
+        const slot = PricingData?.[0]?.slot?.[0];
         const slotData = slot?.slotTimes || [];
         const businessHours = slot?.businessHours || [];
 
@@ -373,16 +373,32 @@ const Pricing = () => {
             alert("Slot times or business hours not found in response.");
             return;
         }
-
         // Map filled slot times
+        function normalizeTime(timeStr) {
+            const match = timeStr.match(/(\d+)[\s:]*(am|pm)/i);
+            if (!match) return null;
+            const h = parseInt(match[1]);
+            const ampm = match[2].toLowerCase();
+            return `${h} ${ampm}`;
+        }
+
+        // Normalize slotPrices keys once
+        const normalizedSlotPrices = {};
+        for (const [key, price] of Object.entries(slotPrices)) {
+            const normalizedKey = key.replace(/:\d{2}/, '').trim().toLowerCase();
+            normalizedSlotPrices[normalizedKey] = price;
+        }
+
+        // Now filter and map using normalized keys
         const filledSlotTimes = slotData
             .filter(slot => {
-                const time12hr = convertTo12HourFormat(slot.time);
-                return slotPrices[time12hr] && slotPrices[time12hr].trim() !== '';
+                const key = normalizeTime(slot.time); // "6 am"
+                const price = normalizedSlotPrices[key];
+                return price != null && price.toString().trim() !== '';
             })
             .map(slot => {
-                const time12hr = convertTo12HourFormat(slot.time);
-                const price = parseFloat(slotPrices[time12hr]);
+                const key = normalizeTime(slot.time);
+                const price = parseFloat(normalizedSlotPrices[key]);
                 return {
                     _id: slot._id,
                     amount: isNaN(price) ? 0 : price,
@@ -397,7 +413,7 @@ const Pricing = () => {
                 time: bh.time,
             }));
 
-        const courtId = selectAllChecked ? PricingData?.[0]?._id : PricingData?.data?.[0]?._id;
+        const courtId = PricingData?.[0]?._id;
         if (!courtId) {
             alert('Court ID is missing.');
             return;
@@ -408,7 +424,7 @@ const Pricing = () => {
             businessHoursUpdates: selectedBusinessHours,
             slotTimesUpdates: filledSlotTimes,
         };
-
+        console.log({ payload })
         dispatch(updatePrice(payload))
             .unwrap()
             .then(() => {

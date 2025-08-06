@@ -4,8 +4,12 @@ import DatePicker from 'react-datepicker';
 import { FaArrowLeft, FaShoppingCart } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { BookingDetailsModal, BookingSuccessModal } from './BookingModal';
-
+import { getOwnerRegisteredClub } from '../../../../redux/thunks';
+import { useDispatch, useSelector } from 'react-redux';
 const ManualBooking = () => {
+    const dispatch = useDispatch();
+    const { ownerClubData } = useSelector((state) => state.manualBooking)
+    console.log({ ownerClubData })
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
@@ -19,7 +23,7 @@ const ManualBooking = () => {
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
@@ -99,6 +103,10 @@ const ManualBooking = () => {
             image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80", // Volleyball
         },
     ];
+
+    useEffect(() => {
+        dispatch(getOwnerRegisteredClub()).unwrap()
+    }, []);
 
 
     const handleCourtSelect = (court) => {
@@ -359,7 +367,7 @@ const ManualBooking = () => {
                                     handleClose={() => setShowSuccess(false)}
                                     openDetails={() => {
                                         setShowSuccess(false);
-                                        setShowDetails(true); 
+                                        setShowDetails(true);
                                     }}
                                 />
 

@@ -4,6 +4,9 @@
 export const GET_MATCH_API = '';
 export const API = '';
 export const GET_CLUB_API = '/api/club/getAllRegisteredCourts';
+export const GET_SLOT_API = '/api/slot/getAllActiveCourts';
+export const CREATE_BOOKING_API = '/api/booking/manualBookingByOwner'
+
 
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
@@ -20,4 +23,6 @@ export const REGISTER_CLUB = '/api/club/registerClub';
 export const CREATE_SLOT = '/api/slot/createSlot';
 export const GET_SLOT = '/api/slot/getSlot';
 export const UPDATE_PRICE = '/api/slot/updateCourt';
+
+export const GET_REGISTERED_CLUB = '/api/club/getOwnerRegisterClub';
 
