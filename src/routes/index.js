@@ -42,6 +42,10 @@ const RegisterClub = React.lazy(() => import('../pages/admin/registerClub/Regist
 const MatchDetails = React.lazy(() => import('../pages/admin/open-matches/matchDetails/MatchDetails'));
 const Profile = React.lazy(() => import('../pages/admin/profile/Profile'));
 const CusromerReviews = React.lazy(() => import('../pages/admin/reviews/CustomerReviews'));
+// const CheckoutPage = React.lazy(() => import('../pages/user/payment/CheckoutForm'));
+// import CheckoutPage from '../pages/user/payment/CheckoutForm'
+
+
 
 
 
@@ -91,6 +95,10 @@ const AllRoutes = () => {
                     path: "payment",
                     element: LoadComponent(Payment),
                 },
+                // {
+                //     path: "testing",
+                //     element: LoadComponent(CheckoutPage),
+                // },
                 {
                     path: "open-matches",
                     element: LoadComponent(OpenMatches),
@@ -197,7 +205,7 @@ const AllRoutes = () => {
                             path: "manualbooking",
                             element: LoadComponent(ManualBooking),
                         },
-                          {
+                        {
                             path: "cancellation",
                             element: LoadComponent(Cancellation),
                         },
@@ -217,6 +225,7 @@ const AllRoutes = () => {
                             path: "profile",
                             element: LoadComponent(Profile),
                         },
+
                         {
                             path: "customer-reviews",
                             element: LoadComponent(CusromerReviews),
