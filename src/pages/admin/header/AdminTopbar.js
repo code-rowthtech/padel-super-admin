@@ -55,7 +55,7 @@ const AdminTopbar = () => {
               <div className="text-muted small">Owner</div>
             </div>
             <img
-              src="https://i.pravatar.cc/40"
+              src={user?.profilePic}
               alt="user"
               className="rounded-circle"
               width="40"

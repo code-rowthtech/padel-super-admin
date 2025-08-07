@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { twoball, taness, logo, line } from '../../../assets/files';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import PhotoSizeSelectActualIcon from '@mui/icons-material/PhotoSizeSelectActual';
@@ -12,6 +12,8 @@ import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import { Link } from 'react-router-dom';
 import 'animate.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserClub } from '../../../redux/user/club/thunk';
 
 
 const photos = [
@@ -66,10 +68,11 @@ const reviews = [
 const Home = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [photoIndex, setPhotoIndex] = useState(0);
-
+    const dispatch = useDispatch()
+    const store = useSelector((state) => state)
     const allImages = photos.map(photo => require(`../../../assets/images/${photo}`));
     const [activeTab, setActiveTab] = useState('direction');
-
+    const clubData = store?.userClub?.clubData?.data?.courts[0]
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
@@ -84,6 +87,16 @@ const Home = () => {
 
     // Adjust index to match your array which starts with Monday
     const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
+
+    useEffect(() => {
+        dispatch(getUserClub({ search: "Good Club" }))
+    }, [])
+
+    useEffect(() => {
+        if (clubData && clubData._id) {
+            localStorage.setItem("register_club_id", clubData._id);
+        }
+    }, [clubData]);
 
     return (
         <>
@@ -163,7 +176,7 @@ const Home = () => {
                                 <img src={logo} alt="logo" style={{ width: "76px" }} />
                             </div>
                             <div>
-                                <h5 className="mb-0">The Good Club</h5>
+                                <h5 className="mb-0">{clubData?.clubName || "Club Name"}</h5>
                                 <div className="d-flex align-items-center">
 
                                     {[...Array(4)].map((_, i) => (
@@ -223,22 +236,22 @@ const Home = () => {
                                 <strong className='me-2'>
                                     <i className="bi bi-alarm-fill"></i> Close now
                                 </strong>
-                                <span>6 AM – 11 PM</span>
+                                <span>{clubData?.businessHours?.[adjustedIndex]?.time}</span>
                             </div>
 
-                            {days.map((day, idx) => (
+                            {clubData?.businessHours?.map((day, idx) => (
                                 <div
                                     key={idx}
                                     className={`d-flex justify-content-between mb-2 ${idx === adjustedIndex ? ' fw-bold rounded  py-1' : ''}`}
                                 >
-                                    <span>{day}</span>
-                                    <span>6AM–11PM</span>
+                                    <span>{day?.day}</span>
+                                    <span>{day?.time}</span>
                                 </div>
                             ))}
 
                             <p className="mt-3 text-center fw-bold">Time zone (India Standard Time)</p>
                             <div className='text-center'>
-                                <Link to="/booking" className="court-book-link animate__animated animate__fadeInUp">
+                                <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp">
                                     Court Book <i className="bi bi-arrow-right"></i>
                                 </Link>
 
@@ -307,9 +320,11 @@ const Home = () => {
                                         textDecoration: 'underline',
                                     }}
                                 >
-                                    The Good Club, Sukhna Enclave, behind Rock Garden, Kaimbwala,
-                                    Kansal, Chandigarh 160001
-                                </p>
+                                    {clubData?.clubName}
+                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                    {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                        .filter(Boolean)
+                                        .join(', ')}                                </p>
                                 <div className="ratio ratio-16x9 rounded-4 overflow-hidden mt-4">
                                     <iframe
                                         src={mapSrc}
@@ -448,28 +463,45 @@ const Home = () => {
                             <div className="container my-5">
 
 
-                                {groupPhotos.map((group, rowIndex) => (
-                                    <div className="row g-3 mb-2" key={rowIndex}>
-                                        {group.map((photoIndexLocal) => (
-                                            <div
-                                                key={photoIndexLocal}
-                                                className={`${group.length === 2 ? "col-md-6" : "col-md-4"} col-6 p-1 my-1`}
-                                            >
-                                                <div className="rounded overflow-hidden image-zoom-hover" onClick={() => {
-                                                    setPhotoIndex(photoIndexLocal);
-                                                    setIsOpen(true);
-                                                }} style={{ cursor: "pointer" }}>
+                                <div className="row g-3 mb-2">
+                                    {clubData?.courtImage?.slice(0, 10).map((image, index) => {
+                                        const totalImages = clubData?.courtImage?.length || 0;
+
+                                        let colClass = "col-md-4";
+                                        if (totalImages === 1) {
+                                            colClass = "col-12";
+                                        } else if (totalImages === 2) {
+                                            colClass = "col-md-6";
+                                        } else if (totalImages === 3) {
+                                            if (index === 2) colClass = "col-12";
+                                            else colClass = "col-md-6";
+                                        }
+                                        return (
+                                            <div key={index} className={`${colClass} col-6 p-1 my-1`}>
+                                                <div
+                                                    className="rounded overflow-hidden image-zoom-hover"
+                                                    onClick={() => {
+                                                        setPhotoIndex(index);
+                                                        setIsOpen(true);
+                                                    }}
+                                                    style={{ cursor: "pointer" }}
+                                                >
                                                     <img
-                                                        src={require(`../../../assets/images/${photos[photoIndexLocal]}`)}
-                                                        alt={`Gallery ${photoIndexLocal + 1}`}
+                                                        src={image}
+                                                        alt={`Gallery ${index + 1}`}
                                                         className="img-fluid w-100 object-fit-cover"
-                                                        style={{ aspectRatio: "4/3", objectFit: "cover", maxHeight: "300px" }}
+                                                        style={{
+                                                            aspectRatio: "4/3",
+                                                            objectFit: "cover",
+                                                            maxHeight: "300px",
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                ))}
+                                        );
+                                    })}
+                                </div>
+
 
                                 {/* Lightbox */}
                                 {isOpen && (

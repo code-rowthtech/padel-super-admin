@@ -1,39 +1,48 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import { logo, twoball } from "../../../assets/files";
 import { FaShoppingCart } from "react-icons/fa";
-import { Link } from "react-router-dom";
-
+import { Link, useLocation } from "react-router-dom";
+import { getUserSlot } from "../../../redux/user/slot/thunk";
+import { useDispatch, useSelector } from "react-redux";
+import { DataLoading } from '../../../helpers/loading/Loaders'
 const Booking = ({
-
     className = ""
 }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
-
-    // Close on outside click
+    const dispatch = useDispatch()
+    const { slotData } = useSelector((state) => state?.userSlot);
+    const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+    const location = useLocation();
+    console.log(slotData, 'slotData');
+    const clubData = location.state?.clubData;
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
             setIsOpen(false);
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
     const [selectedTimes, setSelectedTimes] = useState([]);
     const [selectedCourts, setSelectedCourts] = useState([]);
 
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState({
+        fullDate: new Date(),
+        day: new Date().toLocaleDateString("en-US", { weekday: "long" })
+    });
+
 
     const today = new Date();
     const dates = Array.from({ length: 40 }).map((_, i) => {
         const date = new Date();
         date.setDate(today.getDate() + i);
         return {
-            day: date.toLocaleDateString("en-US", { weekday: "short" }),
+            day: date.toLocaleDateString("en-US", { weekday: "long" }),
             date: date.getDate(),
             month: date.toLocaleDateString("en-US", { month: "short" }),
             fullDate: date.toISOString().split("T")[0],
@@ -52,59 +61,33 @@ const Booking = ({
         }
     };
     const toggleTime = (time) => {
-        if (selectedTimes.includes(time)) {
-            // Remove time
-            setSelectedTimes(selectedTimes.filter(t => t !== time));
+        const isAlreadySelected = selectedTimes.some(t => t._id === time._id);
+
+        if (isAlreadySelected) {
+            setSelectedTimes(selectedTimes.filter(t => t._id !== time._id));
         } else {
-            // Add time
             setSelectedTimes([...selectedTimes, time]);
         }
     };
 
-    const times = [
-        "6:00am", "7:00am", "8:00am", "9:00am", "10:00am", "11:00am",
-        "12:00pm", "1:00pm", "2:00pm", "3:00pm", "4:00pm", "5:00pm",
-        "6:00pm", "7:00pm", "8:00pm", "9:00pm", "10:00pm", "11:00pm",
-        "12:00am"
-    ];
 
 
-    const courts = [
-        {
-            id: 1,
-            name: "Court 1",
-            type: "Outdoor | wall | Double",
-            price: 1000,
-            image: "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80", // Badminton
-        },
-        {
-            id: 2,
-            name: "Court 2",
-            type: "Outdoor | wall | Double",
-            price: 1000,
-            image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80", // Tennis
-        },
-        {
-            id: 3,
-            name: "Court 3",
-            type: "Outdoor | wall | Double",
-            price: 1000,
-            image: "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80", // Basketball
-        },
-        {
-            id: 4,
-            name: "Court 4",
-            type: "Outdoor | wall | Double",
-            price: 1000,
-            image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80", // Volleyball
-        },
-    ];
-
-
-    const handleCourtSelect = (court) => {
-        const newCourt = { ...court, time: selectedTimes, date: selectedDate };
-        setSelectedCourts((prev) => [...prev, newCourt]);
+    const dayShortMap = {
+        Monday: "Mon",
+        Tuesday: "Tue",
+        Wednesday: "Wed",
+        Thursday: "Thu",
+        Friday: "Fri",
+        Saturday: "Sat",
+        Sunday: "Sun"
     };
+
+  const handleCourtSelect = (court) => {
+    const timeOnly = selectedTimes.map((item) => item?.time); // Extract time strings only
+    const newCourt = { ...court, time: timeOnly, date: selectedDate?.fullDate };
+    setSelectedCourts((prev) => [...prev, newCourt]);
+};
+
 
     const total = selectedCourts.reduce((sum, c) => sum + c.price, 0);
 
@@ -163,11 +146,17 @@ const Booking = ({
         paddingRight: `${circleRadius * 2}px`,
     };
 
-    const onClick = () => {
-        console.log('Button clicked!');
-        alert('Button clicked! (would navigate to /payment)');
-    };
+    const savedClubId = localStorage.getItem("register_club_id");
+    console.log(savedClubId, selectedDate, '000000000000000');
+    useEffect(() => {
 
+        dispatch(
+            getUserSlot({
+                register_club_id: savedClubId,
+                day: selectedDate?.day,
+            })
+        );
+    }, [selectedDate])
 
     return (
         <>
@@ -194,7 +183,7 @@ const Booking = ({
                     <div className="col-7 py-5 rounded-3 px-4" style={{ backgroundColor: " #F5F5F566" }}>
                         {/* Date Selector */}
                         <div className="calendar-strip ">
-                            <div className="" style={{ fontSize: "20px", fontWeight: "600" }}>Select Date <div
+                            <div className="mb-3" style={{ fontSize: "20px", fontWeight: "600" }}>Select Date <div
                                 className="position-relative d-inline-block"
                                 ref={wrapperRef}
                             >
@@ -218,7 +207,10 @@ const Booking = ({
                                             onChange={(date) => {
                                                 setStartDate(date);
                                                 setIsOpen(false);
+
+
                                             }}
+
                                             inline
                                             showMonthDropdown
                                             showYearDropdown
@@ -228,40 +220,44 @@ const Booking = ({
                                     </div>
                                 )}
                             </div></div>
-                            <div className="d-flex align-items-center gap-2 mb-3">
+                            <div className="d-flex  align-items-center gap-2 mb-3">
                                 <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                                     <i className="bi bi-chevron-left"></i>
                                 </button>
 
                                 <div
                                     ref={scrollRef}
-                                    className="d-flex gap-2 w-100 overflow-auto no-scrollbar"
+                                    className="d-flex gap-2  w-100 overflow-auto no-scrollbar"
                                     style={{
                                         scrollBehavior: "smooth",
                                         whiteSpace: "nowrap",
                                         maxWidth: "620px", // Enough space for 7 buttons ~88px each
                                     }}
                                 >
-                                    {dates.map((d, i) => (
+                                    {dates?.map((d, i) => (
                                         <button
                                             key={i}
-                                            className={`calendar-day-btn border px-3 py-2 rounded ${selectedDate === d.fullDate ? "text-white" : "bg-light text-dark"}`}
+                                            className={`calendar-day-btn px-3 py-2 rounded border ${selectedDate?.day === d.day ? "text-white" : "bg-light text-dark"
+                                                }`}
                                             style={{
-                                                backgroundColor: selectedDate === d.fullDate ? "#374151" : undefined,
-                                                border: "none", minWidth: "85px", border: "none"
+                                                backgroundColor: selectedDate?.day === d.day ? "#374151" : undefined,
+                                                minWidth: "85px",
+                                                border: "none",
                                             }}
+                                            onClick={() => {
+                                                setSelectedDate({ fullDate: d.fullDate, day: d.day });
 
-                                            onClick={() => setSelectedDate(d.fullDate)}
-
+                                            }}
                                         >
-                                            <div className="text-center pb-3">
-                                                <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.day}</div>
+                                            <div className="text-center ">
+                                                <div style={{ fontSize: "14px", fontWeight: "400" }}>{dayShortMap[d.day]}</div>
                                                 <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
                                                 <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
                                             </div>
                                         </button>
                                     ))}
                                 </div>
+
 
                                 <button className="btn btn-light p-0" onClick={() => scroll("right")}>
                                     <i className="bi bi-chevron-right"></i>
@@ -290,119 +286,140 @@ const Booking = ({
                                 </label>
                             </div>
                         </div>
-
-
-                        <div className="d-flex flex-wrap gap-2 mb-4">
-                            {times.map((time, i) => (
-                                <button
-                                    key={i}
-                                    className={`btn border-0 rounded-pill px-4 `}
-                                    onClick={() => toggleTime(time)}
-                                    style={{
-                                        backgroundColor: selectedTimes.includes(time) ? "#374151" : "#CBD6FF1A",
-                                        color: selectedTimes.includes(time) ? "white" : "#000000",
-                                    }}
-                                >
-                                    {time}
-                                </button>
-
-                            ))}
-                        </div>
-
-
-                        {/* Court List */}
-                        <div>
-
-                            <div className="d-flex justify-content-between align-items-center py-2">
-                                <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-                                    Available Court
-                                </p>
-                                <div>
-                                    <a
-                                        href="#"
-                                        className="text-decoration-none d-inline-flex align-items-center"
-                                        style={{ color: "#1F41BB" }}
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#courtLayoutModal"
-                                    >
-                                        View Court Layout <i className="bi bi-arrow-right fs-5 ms-2"></i>
-                                    </a>
-                                    <div
-                                        className="modal fade"
-                                        id="courtLayoutModal"
-                                        tabIndex="-1"
-                                        aria-labelledby="courtLayoutModalLabel"
-                                        aria-hidden="true"
-                                    >
-                                        <div className="modal-dialog modal-dialog-centered">
-                                            <div className="modal-content rounded-4 p-3">
-                                                <div className="modal-header border-0 p-0">
-                                                    <div className="w-100 d-flex align-items-center justify-content-center position-relative">
-                                                        <h5 className="modal-title m-0" id="courtLayoutModalLabel">View Court Layout</h5>
-                                                        <button
-                                                            type="button"
-                                                            className="btn-close position-absolute end-0 me-2"
-                                                            data-bs-dismiss="modal"
-                                                            aria-label="Close"
-                                                        ></button>
-                                                    </div>
-                                                </div>
-
-                                                <div className="modal-body p-0 mt-4">
-                                                    <div className="row g-2">
-                                                        {[1, 2, 3, 4].map((num) => (
-                                                            <div className="col-6" key={num}>
-                                                                <div
-                                                                    className="border rounded-3 d-flex align-items-center justify-content-center"
-                                                                    style={{ height: "80px" }}
-                                                                >
-                                                                    {num}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                            </div>
-                            <div className="bg-white px-3">
-                                {courts.map((court) => (
-                                    <div
-                                        key={court.id}
-                                        className="d-flex justify-content-between align-items-center border-bottom py-3"
-                                    >
-                                        {/* Left Image & Text */}
-                                        <div className="d-flex align-items-center gap-3">
-                                            <img
-                                                src={court.image}
-                                                alt={court.name}
-                                                style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover" }}
-                                            />
-                                            <div>
-                                                <div className="fw-semibold">{court.name}</div>
-                                                <small className="text-muted">{court.type}</small>
-                                            </div>
-                                        </div>
-
-                                        {/* Price and Cart Icon */}
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div className="fw-semibold" style={{ fontSize: "20px", fontWeight: "500" }}>₹{court.price}</div>
+                        {slotLoading ? (
+                            <DataLoading height={"30vh"} />
+                        ) : (
+                            <>
+                                <div className="d-flex flex-wrap gap-2 mb-4">
+                                    {slotData?.data?.length > 0 &&
+                                        slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                                        slotData.data[0].slot[0].slotTimes.map((time, i) => (
                                             <button
-                                                className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
-                                                style={{ width: "32px", height: "32px" }}
-                                                onClick={() => handleCourtSelect(court)}
+                                                key={i}
+                                                className="btn border-0 rounded-pill px-4"
+                                                onClick={() => toggleTime(time)}
+                                                style={{
+                                                    backgroundColor: selectedTimes.some(t => t?._id === time?._id) ? "#374151" : "#CBD6FF1A",
+                                                    color: selectedTimes.some(t => t?._id === time?._id) ? "white" : "#000000",
+                                                }}
                                             >
-                                                <FaShoppingCart size={14} color="white" />
+                                                {time?.time}
                                             </button>
+                                        ))
+                                    ) : (
+                                        <div className="text-end">
+                                            <p className="text-danger text-center fw-medium">No slots available for this date.</p>
                                         </div>
+                                    )}
+                                </div>
+                                <div>
+
+                                    <div className="d-flex justify-content-between align-items-center py-2">
+                                        <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
+                                            Available Court
+                                        </p>
+                                        <div>
+                                            <a
+                                                href="#"
+                                                className="text-decoration-none d-inline-flex align-items-center"
+                                                style={{ color: "#1F41BB" }}
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#courtLayoutModal"
+                                            >
+                                                View Court Layout <i className="bi bi-arrow-right fs-5 ms-2"></i>
+                                            </a>
+                                            <div
+                                                className="modal fade"
+                                                id="courtLayoutModal"
+                                                tabIndex="-1"
+                                                aria-labelledby="courtLayoutModalLabel"
+                                                aria-hidden="true"
+                                            >
+                                                <div className="modal-dialog modal-dialog-centered">
+                                                    <div className="modal-content rounded-4 p-3">
+                                                        <div className="modal-header border-0 p-0">
+                                                            <div className="w-100 d-flex align-items-center justify-content-center position-relative">
+                                                                <h5 className="modal-title m-0" id="courtLayoutModalLabel">View Court Layout</h5>
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn-close position-absolute end-0 me-2"
+                                                                    data-bs-dismiss="modal"
+                                                                    aria-label="Close"
+                                                                ></button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="modal-body p-0 mt-4">
+                                                            <div className="row g-2">
+                                                                {[1, 2, 3, 4].map((num) => (
+                                                                    <div className="col-6" key={num}>
+                                                                        <div
+                                                                            className="border rounded-3 d-flex align-items-center justify-content-center"
+                                                                            style={{ height: "80px" }}
+                                                                        >
+                                                                            {num}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
                                     </div>
-                                ))}
-                            </div>
-                        </div>
+                                    <div className="bg-white px-3">
+                                        {slotData?.data?.length > 0 &&
+                                            slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                                            slotData.data[0]?.courts?.map((court) => (
+                                                <div
+                                                    key={court.id}
+                                                    className="d-flex justify-content-between align-items-center border-bottom py-3"
+                                                >
+                                                    <div className="d-flex align-items-center gap-3">
+                                                        <img
+                                                            src='https://www.brookstreet.co.uk/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBMEZCVXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--4accdb1f96a306357a7fdeec518b142d3d50f1f2/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJYW5CbkJqb0dSVlE2QzNKbGMybDZaVWtpRFRnd01IZzJOVEE4QmpzR1ZBPT0iLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--bcd925903d97179ca0141ad2735607ce8eed3d71/bs_court-ushers_800.jpg'
+                                                            alt={court.name}
+                                                            style={{
+                                                                width: "45px",
+                                                                height: "45px",
+                                                                borderRadius: "50%",
+                                                                objectFit: "cover",
+                                                            }}
+                                                        />
+                                                        <div>
+                                                            <div className="fw-semibold">{court?.courtName}</div>
+                                                            <small className="text-muted">{court.type}</small>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="d-flex align-items-center gap-3">
+                                                        <div
+                                                            className="fw-semibold"
+                                                            style={{ fontSize: "20px", fontWeight: "500" }}
+                                                        >
+                                                            ₹{court?.price}
+                                                        </div>
+                                                        <button
+                                                            className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
+                                                            style={{ width: "32px", height: "32px" }}
+                                                            onClick={() => handleCourtSelect(court)}
+                                                        >
+                                                            <FaShoppingCart size={14} color="white" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-4 text-muted">No courts available</div>
+                                        )}
+                                    </div>
+
+                                </div>
+                            </>
+                        )}
                     </div >
 
                     {/* Right Section - Booking Summary */}
@@ -412,8 +429,12 @@ const Booking = ({
                                 <div className="rounded-circle bg-white mx-auto mb-2 shadow " style={{ width: "90px", height: "90px", lineHeight: '90px' }}>
                                     <img src={logo} width={80} alt="" />
                                 </div>
-                                <p className=" mt-4 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>The Good Club</p>
-                                <p className="small mb-0">The Good Club, Chandigarh, Chandigarh, 160001</p>
+                                <p className=" mt-4 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
+                                <p className="small mb-0"> {clubData?.clubName}
+                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                    {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                        .filter(Boolean)
+                                        .join(', ')}  </p>
                             </div>
 
                             <h6 className=" border-top  p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>Booking summary</h6>
@@ -423,9 +444,9 @@ const Booking = ({
                                     overflowY: "auto",
                                 }}
                             >
-                                {selectedCourts.map((court, index) => (
+                                {selectedCourts?.map((court, index) => (
                                     <>
-                                        <div> <span style={{ fontWeight: "600" }}>{court.name}</span></div>
+                                        <div> <span style={{ fontWeight: "600" }}>{court?.name}</span></div>
                                         <div key={index} className="court-row d-flex justify-content-between align-items-center mb-3 ">
 
                                             <div>
@@ -471,11 +492,18 @@ const Booking = ({
                             <div className="d-flex justify-content-center mt-3">
                                 <button
                                     style={buttonStyle}
-                                    onClick={onClick}
                                     className={className}
 
                                 >
-                                    <Link to="/payment" style={{ textDecoration: 'none' }} className="">
+                                    <Link to="/payment" state={{
+                                        courtData: {
+                                            day: selectedDate?.day,
+                                            date: selectedDate?.fullDate,
+                                            time: selectedTimes,
+                                            court: selectedCourts,
+                                            slot: slotData?.data?.[0]?.slot
+                                        }, clubData
+                                    }} style={{ textDecoration: 'none' }} className="">
                                         <svg
                                             style={svgStyle}
                                             viewBox={`0 0 ${width} ${height}`}

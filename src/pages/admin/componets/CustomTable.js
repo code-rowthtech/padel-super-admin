@@ -79,11 +79,11 @@ const CustomTable = ({ headers, cancellations, scroll, setShowCancellation = () 
 };
 
 CustomTable.propTypes = {
-  headers: PropTypes.array.isRequired,
-  cancellations: PropTypes.array.isRequired,
-  scroll: PropTypes.bool,
-  setShowCancellation: PropTypes.func,
-  type: PropTypes.string,
+    headers: PropTypes.array.isRequired,
+    cancellations: PropTypes.array.isRequired,
+    scroll: PropTypes.bool,
+    setShowCancellation: PropTypes.func,
+    type: PropTypes.string,
 };
 
 export default CustomTable;

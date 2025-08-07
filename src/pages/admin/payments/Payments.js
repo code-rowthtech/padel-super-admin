@@ -6,56 +6,35 @@ import {
   Table,
   OverlayTrigger,
   Tooltip,
+  Card,
 } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdDateRange } from "react-icons/md";
-import {
-  BookingCancellationModal,
-  BookingRefundModal,
-  CancelRequestModal,
-  RefundSuccessModal,
-  SuccessRequestModal,
-} from "./ModalCancellation";
 import { useDispatch, useSelector } from "react-redux";
-
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { FaEye, FaChartLine } from "react-icons/fa";
 import {
-  ButtonLoading,
-  DataLoading,
-} from "../../../../helpers/loading/Loaders";
-import { getUserFromSession } from "../../../../helpers/api/apiCore";
-import { FaEye } from "react-icons/fa";
-import { formatDate } from "../../../../helpers/Formatting";
+  BsArrowUpRightCircleFill,
+  BsFillArrowDownLeftCircleFill,
+} from "react-icons/bs";
+import { formatDate } from "../../../helpers/Formatting";
 import {
   getBookingByStatus,
   getBookingDetailsById,
-  updateBookingStatus,
-} from "../../../../redux/thunks";
+} from "../../../redux/thunks";
+import { Link } from "react-router-dom";
 
-const Cancellation = () => {
+const Payments = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [showCancellation, setShowCancellation] = useState(false);
-  const [showRefund, setShowRefund] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showRequest, setShowRequest] = useState(false);
-  const [showRequestSuccess, setShowRequestSuccess] = useState(false);
   const dispatch = useDispatch();
-  const {
-    getBookingData,
-    getBookingLoading,
-    getBookingDetailsData,
-    getBookingDetailsLoading,
-    updateBookingLoading,
-  } = useSelector((state) => state.booking);
-
-  const [value, setValue] = useState(0);
-  const handleChange = (_, newValue) => {
-    setValue(newValue);
-  };
-
+  const { getBookingData, getBookingLoading } = useSelector(
+    (state) => state.booking
+  );
   const [tab, setTab] = useState(0);
 
   const handleTabChange = (_, newValue) => {
@@ -63,9 +42,7 @@ const Cancellation = () => {
   };
 
   const bookings = getBookingData?.bookings || [];
-  const bookingDetails = getBookingDetailsData?.booking || [];
-  const status =
-    tab === 0 ? "in-progress" : tab === 1 ? "refunded" : "rejected";
+  const status = tab === 0 ? "recent" : tab === 1 ? "all" : "refund";
 
   useEffect(() => {
     dispatch(
@@ -83,17 +60,79 @@ const Cancellation = () => {
     setLoadingBookingId(id); // Start loading for this ID
     try {
       await dispatch(getBookingDetailsById({ id })).unwrap();
-      if (tab === 0) setShowCancellation(true);
-      if (tab === 1) setShowRefund(true);
-      if (tab === 2) setShowRequestSuccess(true);
     } catch (error) {
       console.error("Failed to fetch booking details:", error);
     } finally {
       setLoadingBookingId(null); // Stop loading
     }
   };
+
+  const summaryCards = [
+    {
+      title: "Today Collection",
+      value: "25Hrs",
+      percent: "+15%",
+      icon: <BsArrowUpRightCircleFill />,
+      color: "success",
+      bigicon: <FaChartLine size={35} />,
+    },
+    {
+      title: "Monthly Collection",
+      value: "30Hrs",
+      percent: "-3.5%",
+      icon: <BsFillArrowDownLeftCircleFill />,
+      color: "danger",
+      bigicon: <FaChartLine size={35} />,
+    },
+    {
+      title: "Refund Amount",
+      value: "3.5M",
+      percent: "+15%",
+      icon: <BsArrowUpRightCircleFill />,
+      color: "success",
+      bigicon: <FaChartLine size={35} />,
+    },
+  ];
   return (
-    <Container fluid className="mt-4 px-4">
+    <Container fluid className=" px-4">
+      <h3 className="fw-bold">Payment</h3>
+      <Row className="mb-4">
+        {summaryCards.map((card, index) => (
+          <Col key={index} md={4} className="mb-3">
+            <Card className="shadow-sm border-0 rounded-4 h-100">
+              <Card.Body className="d-flex justify-content-between">
+                <div className="mt-2">
+                  <div className="table-data">{card.title}</div>
+                  <div className="card-value">{card.value}</div>
+                  <div
+                    className={`d-flex align-items-center gap-1 text-${card.color} fw-semibold`}
+                  >
+                    <span
+                      style={{
+                        display: "inline-block",
+                        // transform:
+                        //   card.color === "danger"
+                        //     ? "rotate(45deg)"
+                        //     : "rotate(-45deg)",
+                        // transition: "transform 0.3s",
+                      }}
+                    >
+                      {card.icon}
+                    </span>
+                    <span className="small">{card.percent}</span>
+                  </div>
+                </div>
+                <div className=" mb-2 text-end">
+                  <div className="mb-4 text-end text-dark">{card.bigicon}</div>
+                  <Link to="#" className="dashboard-viewmore">
+                    View Report
+                  </Link>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
       <Row className="mb-3">
         <Col md={12}>
           <div className="d-flex justify-content-between align-items-center">
@@ -110,9 +149,9 @@ const Cancellation = () => {
                   indicatorColor="primary"
                   textColor="primary"
                 >
-                  <Tab className="fw-medium table-data" label="Request" />
-                  <Tab className="fw-medium table-data" label="Accepted" />
-                  <Tab className="fw-medium table-data" label="Rejected" />
+                  <Tab className="fw-medium table-data" label="Recent" />
+                  <Tab className="fw-medium table-data" label="All" />
+                  <Tab className="fw-medium table-data" label="Refund" />
                 </Tabs>
               </AppBar>
             </Box>
@@ -188,8 +227,7 @@ const Cancellation = () => {
         <Col md={12}>
           <div className="bg-white rounded shadow-sm p-3">
             <h6 className="mb-3 tabel-title">
-              {tab === 0 ? "Requested" : tab === 1 ? "Accepted" : "Rejected"}{" "}
-              Cancellation
+              {tab === 0 ? "Recent" : tab === 1 ? "All" : "Refund"} Transactions
             </h6>
 
             {getBookingLoading ? (
@@ -273,14 +311,9 @@ const Cancellation = () => {
                   >
                     No
                     <span className="px-1">
-                      {" "}
-                      {tab === 0
-                        ? "Requested"
-                        : tab === 1
-                        ? "Accepted"
-                        : "Rejected"}
+                      {tab === 0 ? "Recent" : tab === 1 ? "" : "Refund"}
                     </span>
-                    Cancellations were Found !
+                    Tansactions were Found !
                   </div>
                 )}
               </div>
@@ -288,86 +321,8 @@ const Cancellation = () => {
           </div>
         </Col>
       </Row>
-      <BookingCancellationModal
-        show={showCancellation}
-        handleClose={() => setShowCancellation(false)}
-        updateStatus={() => {
-          dispatch(
-            updateBookingStatus({ id: bookingDetails?._id, status: "refunded" })
-          )
-            .unwrap()
-            .then(() => {
-              setShowCancellation(false);
-              dispatch(
-                getBookingByStatus({
-                  status,
-                  ownerId,
-                })
-              );
-            });
-        }}
-        openRejection={() => {
-          setShowCancellation(false);
-          setTimeout(() => setShowRequest(true), 300);
-        }}
-        loading={updateBookingLoading}
-        bookingDetails={bookingDetails}
-      />
-
-      <CancelRequestModal
-        show={showRequest}
-        handleClose={() => setShowRequest(false)}
-        openRequestModal={(reason) => {
-          dispatch(
-            updateBookingStatus({
-              id: bookingDetails?._id,
-              status: "rejected",
-              cancellationReasonForOwner: reason,
-            })
-          )
-            .unwrap()
-            .then(() => {
-              setShowRequest(false);
-              dispatch(
-                getBookingByStatus({
-                  status,
-                  ownerId,
-                })
-              );
-            });
-        }}
-        loading={updateBookingLoading}
-        bookingDetails={bookingDetails}
-      />
-      <SuccessRequestModal
-        show={showRequestSuccess}
-        handleClose={() => setShowRequestSuccess(false)}
-        openRequestSuccessModal={() => {
-          setShowRequestSuccess(false);
-        }}
-        bookingDetails={bookingDetails}
-      />
-
-      <BookingRefundModal
-        show={showRefund}
-        handleClose={() => setShowRefund(false)}
-        onRefundSuccess={() => {
-          setShowRefund(false);
-          setTimeout(() => setShowSuccess(true), 300);
-        }}
-        bookingDetails={bookingDetails}
-      />
-
-      <RefundSuccessModal
-        show={showSuccess}
-        handleClose={() => setShowSuccess(false)}
-        openCancelModal={() => {
-          setShowSuccess(false);
-          setTimeout(() => setShowRequest(true), 300);
-        }}
-      />
     </Container>
   );
 };
 
-export default Cancellation;
+export default Payments;

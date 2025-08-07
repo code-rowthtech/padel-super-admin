@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { forgotPassword, getOwner, loginOwner, sendOtp, signupOwner, updateOwner, verifyOtp, resetPassword } from "./authThunk";
-import { setLoggedInUser, getUserFromSession, setAuthorization } from "../../../helpers/api/apiCore";
+import { setLoggedInUser, getUserFromSession, setAuthorization, updateUserInSession } from "../../../helpers/api/apiCore";
 
 const initialState = {
   authLoading: false,
@@ -118,6 +118,7 @@ const authSlice = createSlice({
       .addCase(updateOwner.fulfilled, (state, action) => {
         state.authLoading = false;
         state.user = action.payload;
+        updateUserInSession(action.payload?.response)
       })
       .addCase(updateOwner.rejected, (state, action) => {
         state.authLoading = false;

@@ -2,18 +2,32 @@ import React, { useState } from 'react';
 import { FaCamera } from 'react-icons/fa';
 import { getUserFromSession } from '../../../helpers/api/apiCore';
 import { useNavigate } from 'react-router-dom';
+import { updateOwner } from '../../../redux/thunks';
+import { useDispatch, useSelector } from 'react-redux';
+import { ButtonLoading } from '../../../helpers/loading/Loaders';
 
 const Profile = () => {
     const user = getUserFromSession();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { authLoading } = useSelector((state) => state.ownerAuth);
+
+    const formatDateForInput = (isoDate) => {
+        if (!isoDate) return '';
+        const date = new Date(isoDate);
+        const year = date.getFullYear();
+        const month = `${date.getMonth() + 1}`.padStart(2, '0');
+        const day = `${date.getDate()}`.padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
     const [formData, setFormData] = useState({
         fullName: user?.name,
         email: user?.email,
-        phone: `${user?.countryCode} ${user?.phoneNumber}`,
-        dob: '2000-07-12',
+        phone: user?.phoneNumber,
+        dob: formatDateForInput(user?.dob),
         location: 'Chandigarh',
-        gender: 'Female',
-        profileImage: 'https://i.pravatar.cc/40',
+        gender: user?.gender,
+        profileImage: user?.profilePic,
     });
 
     const handleChange = (e) => {
@@ -32,10 +46,58 @@ const Profile = () => {
         }
     };
 
+
+    const dataURLtoBlob = (dataURL) => {
+        const [header, base64] = dataURL.split(',');
+        const mimeMatch = header.match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        const binary = atob(base64);
+        const array = [];
+
+        for (let i = 0; i < binary.length; i++) {
+            array.push(binary.charCodeAt(i));
+        }
+
+        return new Blob([new Uint8Array(array)], { type: mime });
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        alert('Profile updated!');
-        console.log('Submitted Data:', formData);
+
+        const payload = new FormData();
+        // payload.append("_id", user._id);
+        payload.append("name", formData.fullName);
+        payload.append("email", formData.email);
+        payload.append("phoneNumber", formData.phone);
+        payload.append("dob", formData.dob);
+
+        // payload.append("location", formData.location);
+        payload.append('location[coordinates][0]', '50.90');
+        payload.append('location[coordinates][1]', '80.09');
+        payload.append("gender", formData.gender);
+        // navigator.geolocation.getCurrentPosition((position) => {
+        //     const { latitude, longitude } = position.coords;
+        //     const cords = {
+        //         latitude, longitude
+        //     }
+        //     payload.append('location', cords);
+        // });
+
+        // Check if profileImage is base64 string or already file
+        if (formData.profileImage && formData.profileImage.startsWith('data:image')) {
+            // Convert base64 to Blob if necessary (optional, but better)
+            const blob = dataURLtoBlob(formData.profileImage);
+            payload.append("profilePic", blob, "profile.jpg");
+        }
+
+        dispatch(updateOwner(payload))
+            .then(() => {
+                // alert("Profile updated!");
+                // navigate('/admin/dashboard')
+            })
+            .catch((err) => {
+                console.error("Update failed:", err);
+            });
     };
 
     const handleCancel = () => {
@@ -97,7 +159,20 @@ const Profile = () => {
                     </div>
                     <div className="col-md-4 mb-3">
                         <label className="form-label">Phone Number</label>
-                        <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="form-control" />
+                        <input
+                            type="text"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                // Allow only digits and max 10 characters
+                                if (/^\d{0,10}$/.test(value)) {
+                                    setFormData((prev) => ({ ...prev, phone: value }));
+                                }
+                            }}
+                            className="form-control"
+                            maxLength={10}
+                        />
                     </div>
                     <div className="col-md-4 mb-3">
                         <label className="form-label">Date of Birth</label>
@@ -130,7 +205,7 @@ const Profile = () => {
                         Cancel
                     </button>
                     <button type="submit" className="btn text-white px-4" style={{ backgroundColor: '#3DBE64' }}>
-                        Update
+                        {authLoading ? <ButtonLoading /> : 'Update'}
                     </button>
                 </div>
             </form>
