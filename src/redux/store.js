@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import ownerAuthReducer from './admin/auth/authSlice'
 import clubReducer from './admin/club/slice';
 import manualBookingReducer from './admin/manualBooking/slice';
+import bookingReducer from './admin/booking/slice';
 
 //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 import userClubReducer from './user/club/slice'
@@ -17,13 +18,14 @@ const store = configureStore({
         ownerAuth: ownerAuthReducer,
         club: clubReducer,
         manualBooking: manualBookingReducer,
+        booking: bookingReducer,
 
 
 
         //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
         userClub: userClubReducer,
         userSlot: userSlotReducer,
-        userBooking:userBookingReducer
+        userBooking: userBookingReducer
 
 
     },

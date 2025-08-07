@@ -10,20 +10,22 @@ export const Loading = ({ color }) => {
     </div>
   );
 };
-export const ButtonLoading = () => {
+
+export const ButtonLoading = ({ color = 'white' }) => {
   return (
-    <div className="d-flex justify-content-center align-items-center w-100">
+    <div className="d-flex justify-content-center align-items-center w-100 py-1">
       <PulseLoader
-        color="white"
+        color={color}
         size={10}
       />
     </div>
   );
 };
+
 export const DataLoading = ({ color, height }) => {
   return (
     <div className="d-flex justify-content-center align-items-center w-100" style={{ height: height }}>
-      <PuffLoader color={color} />
+      <PuffLoader color={color} size={70} />
     </div>
   );
 };

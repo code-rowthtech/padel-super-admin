@@ -2,6 +2,7 @@
 export * from './admin/auth/authThunk'
 export * from './admin/club/thunk'
 export * from './admin/manualBooking/thunk'
+export * from './admin/booking/thunk'
 
 
 //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_

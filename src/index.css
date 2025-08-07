@@ -1,21 +1,20 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
 
 /* body {
   font-family: 'Poppins', sans-serif !important;
 } */
-
 
 .App {
   text-align: center;
@@ -73,7 +72,7 @@ h1.display-5 {
 /* custom-datepicker.css */
 
 .custom-calendar {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -90,7 +89,7 @@ h1.display-5 {
   color: white !important;
   font-weight: 500;
 }
-.react-datepicker__current-month{
+.react-datepicker__current-month {
   margin-bottom: 15px !important;
 }
 
@@ -121,7 +120,6 @@ h1.display-5 {
   top: 10px;
 }
 
-
 .calendar-day-btn {
   border: none;
   background: transparent;
@@ -144,8 +142,6 @@ h1.display-5 {
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
-
-
 
 .icon-circle {
   width: 50px;
@@ -190,7 +186,7 @@ h1.display-5 {
   transform: scale(1.1);
 }
 
-.calendar-day-btn{
+.calendar-day-btn {
   width: 90px !important;
   height: 92px !important;
 }
@@ -215,32 +211,66 @@ h1.display-5 {
   display: none !important;
 }
 
-.tabel-title{
+.tabel-title {
   font-size: 20px;
   font-weight: 700;
-  color: #04103B;
+  color: #04103b;
   font-family: "Nunito" sans-serif;
 }
-.dashboard-viewmore{
+.dashboard-viewmore {
   font-size: 12px;
   font-weight: 600;
   font-family: "Nunito" sans-serif;
 }
-.card-value{
+.card-value {
   font-size: 30px;
-  color: #04103B;
+  color: #04103b;
   font-weight: 700;
-  font-family: "Nunito"sans-serif;
+  font-family: "Nunito" sans-serif;
 }
-.table-data{
+.table-data {
   font-size: 14px;
   font-weight: 500;
-  font-family: "Poppins"sans-serif;
-  color: #797D8C;
+  font-family: "Poppins" sans-serif;
+  color: #797d8c;
 }
-.manual-heading{
+.manual-heading {
   font-weight: 600;
   font-family: "Poppins" sans-serif;
   font-size: 26px;
-  color: #04103B;
+  color: #04103b;
 }
+
+/* Custom Table */
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.custom-table thead th {
+  background-color: #d0d6ea;
+  font-weight: 400;
+  text-align: center;
+  padding: 0.75rem 1rem;
+}
+
+.custom-table td {
+  padding: 0.75rem 1rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.custom-table .table-data {
+  font-size: 14px;
+}
+
+.custom-table .border-bottom {
+  border-bottom: 1px solid #dee2e6;
+}
+.react-datepicker__input-container input {
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+

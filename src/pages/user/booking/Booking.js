@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import { getUserSlot } from "../../../redux/user/slot/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders'
+
 const Booking = ({
     className = ""
 }) => {

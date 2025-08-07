@@ -28,3 +28,7 @@ export const GET_REGISTERED_CLUB = '/api/club/getOwnerRegisterClub';
 export const GET_ACTIVE_COURTS = '/api/slot/getAllActiveCourts';
 export const MANUAL_BOOKING_BY_OWNER = '/api/booking/manualBookingByOwner';
 
+export const GET_BOOKING_BY_STATUS = '/api/booking/getAllBookingByStatus';
+export const GET_BOOKING_DETAILS_BY_ID = '/api/booking/findById';
+export const UPDATE_BOOKING_STATUS = '/api/booking/updateBookingStatus';
+
