@@ -18,9 +18,8 @@ const OpenMatches = React.lazy(() => import("../pages/user/openMatches/Openmatch
 const CreateMatches = React.lazy(() => import('../pages/user/openMatches/CreateMatches'))
 const ViewMatch = React.lazy(() => import('../pages/user/VeiwMatch/VeiwMatch'));
 const Payment = React.lazy(() => import('../pages/user/payment/Payment'));
-
+const BookingHistory = React.lazy(() => import('../pages/user/booking/BookingHistory'));
 const Login = React.lazy(() => import('../pages/user/auth/LoginPage'));
-
 const VerifyOtpUser = React.lazy(() => import('../pages/user/auth/VerifyOtp'));
 
 
@@ -42,8 +41,6 @@ const RegisterClub = React.lazy(() => import('../pages/admin/registerClub/Regist
 const MatchDetails = React.lazy(() => import('../pages/admin/open-matches/matchDetails/MatchDetails'));
 const Profile = React.lazy(() => import('../pages/admin/profile/Profile'));
 const CusromerReviews = React.lazy(() => import('../pages/admin/reviews/CustomerReviews'));
-// const CheckoutPage = React.lazy(() => import('../pages/user/payment/CheckoutForm'));
-// import CheckoutPage from '../pages/user/payment/CheckoutForm'
 
 
 
@@ -88,17 +85,17 @@ const AllRoutes = () => {
                     element: LoadComponent(Home),
                 },
                 {
-                    path: "booking",
-                    element: LoadComponent(Booking),
+                    path: "booking-history",
+                    element: LoadComponent(BookingHistory),
                 },
                 {
                     path: "payment",
                     element: LoadComponent(Payment),
                 },
-                // {
-                //     path: "testing",
-                //     element: LoadComponent(CheckoutPage),
-                // },
+                {
+                    path: "booking",
+                    element: LoadComponent(Booking),
+                },
                 {
                     path: "open-matches",
                     element: LoadComponent(OpenMatches),

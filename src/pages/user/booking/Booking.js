@@ -90,7 +90,7 @@ const Booking = ({
     };
 
 
-    const total = selectedCourts.reduce((sum, c) => sum + c.price, 0);
+    const total = selectedCourts.reduce((sum, c) => sum + c.price, '');
 
     const handleDelete = (index) => {
         const updatedCourts = [...selectedCourts];
@@ -270,7 +270,7 @@ const Booking = ({
                                 >
                                     {dates?.map((d, i) => {
                                         const formatDate = (date) => {
-                                            return date.toISOString().split("T")[0]; 
+                                            return date.toISOString().split("T")[0];
                                         };
                                         const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
                                         console.log(isSelected, selectedDate, d.fullDate, 'isSelected');
@@ -334,23 +334,45 @@ const Booking = ({
                                 <div className="d-flex flex-wrap gap-2 mb-4">
                                     {slotData?.data?.length > 0 &&
                                         slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                                        slotData.data[0].slot[0].slotTimes.map((time, i) => (
-                                            <button
-                                                key={i}
-                                                className="btn border-0 rounded-pill px-4"
-                                                onClick={() => toggleTime(time)}
-                                                style={{
-                                                    backgroundColor: selectedTimes.some(t => t?._id === time?._id) ? "#374151" : "#CBD6FF1A",
-                                                    color: selectedTimes.some(t => t?._id === time?._id) ? "white" : "#000000",
-                                                }}
-                                            >
-                                                {time?.time}
-                                            </button>
-                                        ))
+                                        slotData?.data?.[0]?.slot?.[0]?.slotTimes?.map((slot, i) => {
+                                            // Parse slot time into a Date object for today
+                                            const slotDate = new Date();
+                                            const [hourString, period] = slot?.time?.toLowerCase().split(" ");
+                                            let hour = parseInt(hourString);
+
+                                            if (period === "pm" && hour !== 12) hour += 12;
+                                            if (period === "am" && hour === 12) hour = 0;
+
+                                            // Set hours to slotDate for comparison
+                                            slotDate.setHours(hour, 0, 0, 0);
+
+                                            const now = new Date();
+                                            const isPast = slotDate.getTime() < now.getTime();
+
+                                            const isSelected = selectedTimes.some(t => t._id === slot._id);
+
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    className="btn border-0 rounded-pill px-4"
+                                                    onClick={() => !isPast && toggleTime(slot)}
+                                                    disabled={isPast}
+                                                    style={{
+                                                        backgroundColor: isSelected ? "#374151" : "#CBD6FF1A",
+                                                        color: isSelected ? "white" : isPast ? "#888888" : "#000000",
+                                                        cursor: isPast ? "not-allowed" : "pointer",
+                                                        opacity: isPast ? 0.6 : 1,
+                                                    }}
+                                                >
+                                                    {slot?.time}
+                                                </button>
+                                            );
+                                        })
+
                                     ) : (
-                                        <div className="text-end">
-                                            <p className="text-danger text-center fw-medium">No slots available for this date.</p>
-                                        </div>
+                                    <div className="text-end">
+                                        <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                                    </div>
                                     )}
                                 </div>
                                 <div>
@@ -441,7 +463,7 @@ const Booking = ({
                                                             className="fw-semibold"
                                                             style={{ fontSize: "20px", fontWeight: "500" }}
                                                         >
-                                                            ₹{court?.price}
+                                                            ₹{court?.price || 100}
                                                         </div>
                                                         <button
                                                             className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
@@ -512,7 +534,7 @@ const Booking = ({
                                                 >
                                                     <i className="bi bi-trash-fill"></i>
                                                 </button>
-                                                <div>₹ {court.price}</div>
+                                                <div>₹ {court.price || 100}</div>
 
                                             </div>
 
