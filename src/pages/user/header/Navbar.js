@@ -5,7 +5,7 @@ import { Link, NavLink } from 'react-router-dom';
 const Navbar = () => {
     return (
         <>
-            <nav className="navbar navbar-expand-lg bg-white py-1 ">
+            <nav className="navbar navbar-expand-lg  bg-white py-1 ">
                 <div className="container">
                     {/* Logo */}
                     <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">

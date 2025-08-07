@@ -12,6 +12,9 @@ const Booking = ({
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
+    const scrollRef = useRef(null);
+    const selectedButtonRef = useRef(null)
+    const dateRefs = useRef({});
     const dispatch = useDispatch()
     const { slotData } = useSelector((state) => state?.userSlot);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
@@ -38,7 +41,7 @@ const Booking = ({
 
 
     const today = new Date();
-    const dates = Array.from({ length: 40 }).map((_, i) => {
+    const dates = Array.from({ length: 41 }).map((_, i) => {
         const date = new Date();
         date.setDate(today.getDate() + i);
         return {
@@ -49,8 +52,6 @@ const Booking = ({
         };
     });
 
-
-    const scrollRef = useRef(null);
 
     const scroll = (direction) => {
         if (scrollRef.current) {
@@ -82,11 +83,11 @@ const Booking = ({
         Sunday: "Sun"
     };
 
-  const handleCourtSelect = (court) => {
-    const timeOnly = selectedTimes.map((item) => item?.time); // Extract time strings only
-    const newCourt = { ...court, time: timeOnly, date: selectedDate?.fullDate };
-    setSelectedCourts((prev) => [...prev, newCourt]);
-};
+    const handleCourtSelect = (court) => {
+        const timeOnly = selectedTimes.map((item) => item?.time); // Extract time strings only
+        const newCourt = { ...court, time: timeOnly, date: selectedDate?.fullDate };
+        setSelectedCourts((prev) => [...prev, newCourt]);
+    };
 
 
     const total = selectedCourts.reduce((sum, c) => sum + c.price, 0);
@@ -158,6 +159,35 @@ const Booking = ({
         );
     }, [selectedDate])
 
+    useEffect(() => {
+        if (selectedButtonRef.current && scrollRef.current) {
+            const container = scrollRef.current;
+            const selected = selectedButtonRef.current;
+            const offsetLeft = selected.offsetLeft;
+            const scrollWidth = container.clientWidth;
+
+            container.scrollTo({
+                left: offsetLeft - scrollWidth / 2 + selected.offsetWidth / 2,
+                behavior: "smooth",
+            });
+        }
+    }, [selectedDate]);
+
+    const maxSelectableDate = new Date();
+    maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
+
+    useEffect(() => {
+        if (selectedDate?.fullDate && dateRefs.current[selectedDate.fullDate]) {
+            dateRefs.current[selectedDate.fullDate].scrollIntoView({
+                behavior: "smooth",
+                inline: "center",
+                block: "nearest",
+            });
+        }
+    }, [selectedDate]);
+
+
+
     return (
         <>
             <div className='container p-0'>
@@ -208,15 +238,19 @@ const Booking = ({
                                                 setStartDate(date);
                                                 setIsOpen(false);
 
+                                                const formattedDate = date.toISOString().split("T")[0];
+                                                const day = date.toLocaleDateString("en-US", { weekday: "long" });
 
+                                                setSelectedDate({ fullDate: formattedDate, day });
+                                                setSelectedTimes([]);
                                             }}
-
                                             inline
-                                            showMonthDropdown
-                                            showYearDropdown
+                                            maxDate={maxSelectableDate}
+                                            minDate={new Date()}
                                             dropdownMode="select"
-                                            calendarClassName="custom-calendar w-100 shadow-sm" // 👈 styled class
+                                            calendarClassName="custom-calendar w-100 shadow-sm"
                                         />
+
                                     </div>
                                 )}
                             </div></div>
@@ -234,30 +268,37 @@ const Booking = ({
                                         maxWidth: "620px", // Enough space for 7 buttons ~88px each
                                     }}
                                 >
-                                    {dates?.map((d, i) => (
-                                        <button
-                                            key={i}
-                                            className={`calendar-day-btn px-3 py-2 rounded border ${selectedDate?.day === d.day ? "text-white" : "bg-light text-dark"
-                                                }`}
-                                            style={{
-                                                backgroundColor: selectedDate?.day === d.day ? "#374151" : undefined,
-                                                minWidth: "85px",
-                                                border: "none",
-                                            }}
-                                            onClick={() => {
-                                                setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                                    {dates?.map((d, i) => {
+                                        const formatDate = (date) => {
+                                            return date.toISOString().split("T")[0]; 
+                                        };
+                                        const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                                        console.log(isSelected, selectedDate, d.fullDate, 'isSelected');
 
-                                            }}
-                                        >
-                                            <div className="text-center ">
-                                                <div style={{ fontSize: "14px", fontWeight: "400" }}>{dayShortMap[d.day]}</div>
-                                                <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
-                                                <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
-                                            </div>
-                                        </button>
-                                    ))}
+                                        return (
+                                            <button
+                                                ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                                                key={i}
+                                                className={`calendar-day-btn px-3 py-2 rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                                                style={{
+                                                    backgroundColor: isSelected ? "#374151" : undefined,
+                                                    border: "none",
+                                                }}
+                                                onClick={() => {
+                                                    setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                                                    setStartDate(new Date(d.fullDate));
+                                                    setSelectedTimes([]);
+                                                }}
+                                            >
+                                                <div className="text-center">
+                                                    <div style={{ fontSize: "14px", fontWeight: "400" }}>{dayShortMap[d.day]}</div>
+                                                    <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
+                                                    <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-
 
                                 <button className="btn btn-light p-0" onClick={() => scroll("right")}>
                                     <i className="bi bi-chevron-right"></i>
