@@ -5,7 +5,7 @@ import { Link, NavLink } from 'react-router-dom';
 const Navbar = () => {
     return (
         <>
-            <nav className="navbar navbar-expand-lg bg-white py-1 ">
+            <nav className="navbar navbar-expand-lg  bg-white py-1 ">
                 <div className="container">
                     {/* Logo */}
                     <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
@@ -42,6 +42,18 @@ const Navbar = () => {
                                     })}
                                 >
                                     Booking
+                                </NavLink>
+                            </li>
+                              <li className="nav-item">
+                                <NavLink
+                                    to="/booking-history"
+                                    className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
+                                    style={({ isActive }) => ({
+                                        color: isActive ? "#1F41BB" : "#000",
+                                        textDecoration: 'none',
+                                    })}
+                                >
+                                    Booking History
                                 </NavLink>
                             </li>
                             <li className="nav-item">

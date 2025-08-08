@@ -1,6 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { forgotPassword, getOwner, loginOwner, sendOtp, signupOwner, updateOwner, verifyOtp, resetPassword } from "./authThunk";
-import { setLoggedInUser, getUserFromSession, setAuthorization } from "../../../helpers/api/apiCore";
+import {
+  forgotPassword,
+  getOwner,
+  loginOwner,
+  sendOtp,
+  signupOwner,
+  updateOwner,
+  verifyOtp,
+  resetPassword,
+} from "./authThunk";
+import {
+  setLoggedInUser,
+  getUserFromSession,
+  setAuthorization,
+  updateUserInSession,
+} from "../../../helpers/api/apiCore";
 
 const initialState = {
   authLoading: false,
@@ -20,18 +34,18 @@ const authSlice = createSlice({
       setLoggedInUser(null);
       localStorage.clear();
       sessionStorage.clear();
-      // window.location.href = '/admin/login';
+      window.location.href = "/admin/login";
     },
     resetAuth(state) {
       state.authLoading = false;
       state.user = null;
       state.otp = null;
       state.error = null;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
-      // -----------------------------------------------------//----Login 
+      // -----------------------------------------------------//----Login
       .addCase(loginOwner.pending, (state) => {
         state.authLoading = true;
         state.error = null;
@@ -39,12 +53,12 @@ const authSlice = createSlice({
       .addCase(loginOwner.fulfilled, (state, action) => {
         state.authLoading = false;
         state.user = action.payload;
-        const { response } = action.payload
-        setAuthorization(response?.token)
+        const { response } = action.payload;
+        setAuthorization(response?.token);
         const user = {
           ...response?.user,
-          token: response.token
-        }
+          token: response.token,
+        };
         setLoggedInUser(user);
       })
       .addCase(loginOwner.rejected, (state, action) => {
@@ -52,18 +66,18 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // -----------------------------------------------------//----Signup 
+      // -----------------------------------------------------//----Signup
       .addCase(signupOwner.pending, (state) => {
-        state.authLoading = true
+        state.authLoading = true;
         state.error = null;
       })
       .addCase(signupOwner.fulfilled, (state, action) => {
-        state.authLoading = false
+        state.authLoading = false;
         state.user = action.payload;
         setLoggedInUser(action.payload);
       })
       .addCase(signupOwner.rejected, (state, action) => {
-        state.authLoading = false
+        state.authLoading = false;
         state.error = action.payload;
       })
 
@@ -89,7 +103,7 @@ const authSlice = createSlice({
       .addCase(verifyOtp.fulfilled, (state, action) => {
         state.authLoading = false;
         state.otp = action.payload;
-        // setLoggedInUser(action.payload); 
+        // setLoggedInUser(action.payload);
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.authLoading = false;
@@ -118,6 +132,7 @@ const authSlice = createSlice({
       .addCase(updateOwner.fulfilled, (state, action) => {
         state.authLoading = false;
         state.user = action.payload;
+        updateUserInSession(action.payload?.response);
       })
       .addCase(updateOwner.rejected, (state, action) => {
         state.authLoading = false;
@@ -135,7 +150,7 @@ const authSlice = createSlice({
       .addCase(resetPassword.rejected, (state, action) => {
         state.authLoading = false;
         state.error = action.payload;
-      })
+      });
   },
 });
 

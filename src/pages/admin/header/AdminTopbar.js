@@ -1,15 +1,22 @@
 import { useState } from "react";
-import { FaSearch, FaTimes, FaBell, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import {
+  FaSearch,
+  FaTimes,
+  FaBell,
+  FaChevronDown,
+  FaChevronUp,
+} from "react-icons/fa";
 import { Dropdown } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { useDispatch } from "react-redux";
 import { logout } from "../../../redux/admin/auth/authSlice";
+import { NavLink } from "react-router-dom";
 
 const AdminTopbar = () => {
   const user = getUserFromSession();
   const [searchValue, setSearchValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const handleClearSearch = () => setSearchValue("");
 
   return (
@@ -49,13 +56,18 @@ const AdminTopbar = () => {
         <FaBell className="text-muted" size={18} />
 
         <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
-          <Dropdown.Toggle variant="white" className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none">
+          <Dropdown.Toggle
+            variant="white"
+            className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
+          >
             <div className="text-end d-none d-sm-block">
-              <div className="fw-semibold">{user?.name || "Danielle Campbell"}</div>
+              <div className="fw-semibold">
+                {user?.name || "Danielle Campbell"}
+              </div>
               <div className="text-muted small">Owner</div>
             </div>
             <img
-              src="https://i.pravatar.cc/40"
+              src={user?.profilePic}
               alt="user"
               className="rounded-circle"
               width="40"
@@ -68,17 +80,30 @@ const AdminTopbar = () => {
             )}
           </Dropdown.Toggle>
 
-          <Dropdown.Menu className="table-data fw-medium" style={{ color: "#374151" }}>
-            <Dropdown.Item href="/admin/profile" >Edit Profile</Dropdown.Item>
-            <Dropdown.Item >
+          <Dropdown.Menu
+            className="table-data fw-medium"
+            style={{ color: "#374151" }}
+          >
+            <Dropdown.Item as={NavLink} to="/admin/profile">
+              Edit Profile
+            </Dropdown.Item>
+            <Dropdown.Item as={NavLink} to="/admin/my-club">
               My Club
             </Dropdown.Item>
-            <Dropdown.Item href="/admin/customer-reviews">Review & Rating</Dropdown.Item>
-            <Dropdown.Item >
+            <Dropdown.Item as={NavLink} to="/admin/customer-reviews">
+              Review & Rating
+            </Dropdown.Item>
+            <Dropdown.Item as={NavLink} to="/admin/help-support">
               Help & Support
             </Dropdown.Item>
-            <Dropdown.Item href="/admin/settings">Privacy</Dropdown.Item>
-            <Dropdown.Item onClick={() => { dispatch(logout()) }} >
+            <Dropdown.Item as={NavLink} to="/admin/settings">
+              Privacy
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() => {
+                dispatch(logout());
+              }}
+            >
               Logout
             </Dropdown.Item>
           </Dropdown.Menu>

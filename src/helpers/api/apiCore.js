@@ -69,11 +69,23 @@ export const setLoggedInUser = (session) => {
 
 export const updateUserInSession = (updatedData) => {
   const session = getUserFromSession();
-  if (session) {
-    const updatedSession = { ...session, ...updatedData };
+
+  if (session && typeof updatedData === 'object') {
+    const updatedSession = { ...session };
+
+    Object.entries(updatedData).forEach(([key, value]) => {
+      if (
+        !(key in session) ||
+        session[key] !== value
+      ) {
+        updatedSession[key] = value;
+      }
+    });
+
     setLoggedInUser(updatedSession);
   }
 };
+
 
 export const isUserAuthenticated = () => {
   const user = getUserFromSession();

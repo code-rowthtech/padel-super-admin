@@ -30,10 +30,14 @@ const AdminSidebar = () => {
 
   // Utility function for active link styling
   const linkClasses = ({ isActive }) =>
-    `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${isActive ? "bg-secondary" : "bg-transparent"} hover-bg-dark`;
+    `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${
+      isActive ? "bg-secondary" : "bg-transparent"
+    } hover-bg-dark`;
 
   const isDropdownActive = bookingPaths.includes(location.pathname);
-
+  const isActiveLink =
+    location.pathname === "/admin/booking" ||
+    location.pathname === "/admin/manualbooking";
   return (
     <aside
       className="bg-dark text-white vh-100 d-flex flex-column"
@@ -49,8 +53,9 @@ const AdminSidebar = () => {
 
         <button
           onClick={() => setBookingOpen((prev) => !prev)}
-          className={`btn d-flex justify-content-between align-items-center w-100 px-4 py-2 text-white text-start border-0 ${isDropdownActive ? "bg-secondary" : "bg-transparent"
-            }`}
+          className={`btn d-flex justify-content-between align-items-center w-100 px-4 py-2 text-white text-start border-0 ${
+            isDropdownActive ? "bg-secondary" : "bg-transparent"
+          }`}
         >
           <div className="d-flex align-items-center">
             <FaCalendarAlt className="me-2" />
@@ -64,16 +69,17 @@ const AdminSidebar = () => {
             <NavLink
               to="/admin/booking"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${
+                  isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) =>
-                isActive
+                isActiveLink
                   ? {
-                    backgroundColor: "#6c757da8",
-                    color: "#fff",
-                    borderRadius: "4px",
-                  }
+                      backgroundColor: "#6c757da8",
+                      color: "#fff",
+                      borderRadius: "4px",
+                    }
                   : {}
               }
             >
@@ -83,22 +89,22 @@ const AdminSidebar = () => {
             <NavLink
               to="/admin/cancellation"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${
+                  isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) =>
                 isActive
                   ? {
-                    backgroundColor: "#6c757da8",
-                    color: "#fff",
-                    borderRadius: "4px",
-                  }
+                      backgroundColor: "#6c757da8",
+                      color: "#fff",
+                      borderRadius: "4px",
+                    }
                   : {}
               }
             >
               Cancellation
             </NavLink>
-
           </div>
         )}
 
@@ -117,7 +123,7 @@ const AdminSidebar = () => {
           Packages
         </NavLink>
 
-        <NavLink to="/admin/payment" className={linkClasses}>
+        <NavLink to="/admin/payments" className={linkClasses}>
           <RiWallet3Line className="me-2" />
           Payment
         </NavLink>
