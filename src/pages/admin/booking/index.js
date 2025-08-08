@@ -14,13 +14,17 @@ import {
   DataLoading,
   Loading,
 } from "../../../helpers/loading/Loaders";
-import { BookingDetailsModal } from "./manual booking/BookingModal";
+import {
+  BookingConfirmationModal,
+  BookingDetailsModal,
+} from "./manual booking/BookingModal";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { formatDate } from "../../../helpers/Formatting";
 const Booking = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showBookingDetails, setShowBookingDetails] = useState(false);
+  const [showBookingConfirmation, setShowBookingConfirmation] = useState(false);
 
   const {
     getBookingData,
@@ -57,7 +61,7 @@ const Booking = () => {
   };
 
   return (
-    <Container fluid className="mt-4 px-4">
+    <Container fluid className="px-4">
       <Row className="mb-3">
         <Col
           md={12}
@@ -288,6 +292,11 @@ const Booking = () => {
         </Col>
       </Row>
       <BookingDetailsModal
+        show={showBookingDetails}
+        handleClose={() => setShowBookingDetails(false)}
+        bookingDetails={bookingDetails}
+      />
+      <BookingConfirmationModal
         show={showBookingDetails}
         handleClose={() => setShowBookingDetails(false)}
         bookingDetails={bookingDetails}

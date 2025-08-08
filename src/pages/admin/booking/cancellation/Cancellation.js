@@ -93,7 +93,7 @@ const Cancellation = () => {
     }
   };
   return (
-    <Container fluid className="mt-4 px-4">
+    <Container fluid className="px-4">
       <Row className="mb-3">
         <Col md={12}>
           <div className="d-flex justify-content-between align-items-center">
@@ -189,7 +189,7 @@ const Cancellation = () => {
           <div className="bg-white rounded shadow-sm p-3">
             <h6 className="mb-3 tabel-title">
               {tab === 0 ? "Requested" : tab === 1 ? "Accepted" : "Rejected"}{" "}
-              Cancellation
+              Cancellations
             </h6>
 
             {getBookingLoading ? (
@@ -339,6 +339,7 @@ const Cancellation = () => {
         loading={updateBookingLoading}
         bookingDetails={bookingDetails}
       />
+
       <SuccessRequestModal
         show={showRequestSuccess}
         handleClose={() => setShowRequestSuccess(false)}

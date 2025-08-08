@@ -42,7 +42,7 @@ const Payments = () => {
   };
 
   const bookings = getBookingData?.bookings || [];
-  const status = tab === 0 ? "recent" : tab === 1 ? "all" : "refund";
+  const status = tab === 0 ? "" : "refund";
 
   useEffect(() => {
     dispatch(
@@ -150,7 +150,6 @@ const Payments = () => {
                   textColor="primary"
                 >
                   <Tab className="fw-medium table-data" label="Recent" />
-                  <Tab className="fw-medium table-data" label="All" />
                   <Tab className="fw-medium table-data" label="Refund" />
                 </Tabs>
               </AppBar>
@@ -227,7 +226,7 @@ const Payments = () => {
         <Col md={12}>
           <div className="bg-white rounded shadow-sm p-3">
             <h6 className="mb-3 tabel-title">
-              {tab === 0 ? "Recent" : tab === 1 ? "All" : "Refund"} Transactions
+              {tab === 0 ? "Recent" : "Refund"} Transactions
             </h6>
 
             {getBookingLoading ? (
@@ -249,9 +248,9 @@ const Payments = () => {
                         <th>User</th>
                         <th>Contact</th>
                         <th>Booking Type</th>
+                        <th>Court Name</th>
                         <th>Booking Amount</th>
                         <th>Booking Date</th>
-                        <th>Cancellation Reason</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -269,25 +268,13 @@ const Payments = () => {
                             {item?.bookingType || "-"}
                           </td>
                           <td className="table-data border-bottom">
+                            {item?.slot[0]?.courtName || "-"}
+                          </td>
+                          <td className="table-data border-bottom">
                             ₹{item?.totalAmount}
                           </td>
                           <td className="table-data border-bottom">
                             {formatDate(item?.bookingDate)}
-                          </td>
-                          <td className="table-data border-bottom">
-                            <OverlayTrigger
-                              placement="left"
-                              overlay={
-                                <Tooltip>
-                                  {item?.cancellationReason || "N/A"}
-                                </Tooltip>
-                              }
-                            >
-                              <span style={{ cursor: "default" }}>
-                                {item?.cancellationReason?.slice(0, 50) +
-                                  "..." || "N/A"}
-                              </span>
-                            </OverlayTrigger>
                           </td>
                           <td
                             className="table-data border-bottom"
@@ -311,9 +298,10 @@ const Payments = () => {
                   >
                     No
                     <span className="px-1">
-                      {tab === 0 ? "Recent" : tab === 1 ? "" : "Refund"}
+                      {tab === 0
+                        ? "Recent Tansactions were Found !"
+                        : "Tansactions were Found for Refund !"}
                     </span>
-                    Tansactions were Found !
                   </div>
                 )}
               </div>
