@@ -13,6 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Copy .env file from backup
+      run: |
+        cp /var/www/env-backups/.env.padel_fe /var/www/padel_fe_runner/_work/PADEL_FE/PADEL_FE/.env
+        echo ".env file copied from backup."
+
     - name: Run deploy command
       run: docker-compose -f docker-compose.yaml up -d --build
 

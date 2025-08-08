@@ -22,12 +22,6 @@ const photos = [
     'gallery6.png', 'gallery7.png',
     'gallery8.png', 'gallery9.png', 'gallery10.png'
 ];
-const groupPhotos = [
-    [0, 1],          // Row 1
-    [2, 3, 4],       // Row 2
-    [5, 6],          // Row 3
-    [7, 8, 9],       // Row 4
-];
 
 
 const reviews = [

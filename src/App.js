@@ -12,13 +12,6 @@ function App() {
     }
   });
 
-  useEffect(() => {
-    const defaultTitle = "Padel";
-    const isAdminRoute = window.location.pathname.startsWith("/admin");
-
-    document.title = isAdminRoute ? `${defaultTitle} | Admin` : defaultTitle;
-  }, [window.location.pathname]);
-
   return (
     <>
       <Routes />

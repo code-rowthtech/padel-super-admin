@@ -35,7 +35,9 @@ const AdminSidebar = () => {
     } hover-bg-dark`;
 
   const isDropdownActive = bookingPaths.includes(location.pathname);
-
+  const isActiveLink =
+    location.pathname === "/admin/booking" ||
+    location.pathname === "/admin/manualbooking";
   return (
     <aside
       className="bg-dark text-white vh-100 d-flex flex-column"
@@ -72,7 +74,7 @@ const AdminSidebar = () => {
                 }`
               }
               style={({ isActive }) =>
-                isActive
+                isActiveLink
                   ? {
                       backgroundColor: "#6c757da8",
                       color: "#fff",

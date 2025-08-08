@@ -12,6 +12,7 @@ import {
 import { SlCloudUpload } from "react-icons/sl";
 import { useDispatch, useSelector } from "react-redux";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
+import Pricing from "./tabs/Pricing";
 
 const MAX_IMAGES = 10;
 
@@ -672,7 +673,7 @@ const MyClub = () => {
   return (
     <>
       <Row className="mb-3">
-        <Col md={4}>
+        <Col md={3}>
           <Box sx={{ bgcolor: "white" }}>
             <AppBar
               position="static"
@@ -717,7 +718,7 @@ const MyClub = () => {
       <div
         ref={clubRef}
         className={`border rounded p-3 mb-4 bg-white ${
-          activeTab === 0 ? "border-success border-2" : "border-light"
+          activeTab === 0 ? "border-primary border-2" : "border-light"
         }`}
       >
         <ClubUpdateForm onCancel={handleCancel} />
@@ -727,11 +728,10 @@ const MyClub = () => {
       <div
         ref={pricingRef}
         className={`border rounded p-3 bg-white ${
-          activeTab === 1 ? "border-success border-2" : "border-light"
+          activeTab === 1 ? "border-primary border-2" : "border-light"
         }`}
       >
-        <h5 className="fw-bold text-gray-800 mb-3">Pricing</h5>
-        <p>Please configure pricing for your club courts.</p>
+        <Pricing />
       </div>
     </>
   );

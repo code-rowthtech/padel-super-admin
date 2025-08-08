@@ -102,37 +102,6 @@ const ManualBooking = () => {
     }
   };
 
-  // const courts = [
-  //     {
-  //         id: 1,
-  //         name: "Court 1",
-  //         type: "Outdoor | wall | Double",
-  //         price: 1000,
-  //         image: "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80", // Badminton
-  //     },
-  //     {
-  //         id: 2,
-  //         name: "Court 2",
-  //         type: "Outdoor | wall | Double",
-  //         price: 1000,
-  //         image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80", // Tennis
-  //     },
-  //     {
-  //         id: 3,
-  //         name: "Court 3",
-  //         type: "Outdoor | wall | Double",
-  //         price: 1000,
-  //         image: "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80", // Basketball
-  //     },
-  //     {
-  //         id: 4,
-  //         name: "Court 4",
-  //         type: "Outdoor | wall | Double",
-  //         price: 1000,
-  //         image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80", // Volleyball
-  //     },
-  // ];
-
   useEffect(() => {
     dispatch(getOwnerRegisteredClub()).unwrap();
   }, []);
@@ -470,7 +439,7 @@ const ManualBooking = () => {
                             isBooked
                               ? "bg-danger-subtle"
                               : isPast
-                              ? "bg-warning-subtle"
+                              ? "bg-secondary-subtle"
                               : ""
                           }`}
                           onClick={() => toggleTime(slot)}
@@ -597,6 +566,7 @@ const ManualBooking = () => {
                       setName("");
                       setPhone("");
                       setShowSuccess(false);
+                      navigate(-1);
                     }}
                   >
                     Cancel
@@ -611,7 +581,10 @@ const ManualBooking = () => {
 
                   <BookingSuccessModal
                     show={showSuccess}
-                    handleClose={() => setShowSuccess(false)}
+                    handleClose={() => {
+                      setShowSuccess(false);
+                      navigate(-1);
+                    }}
                     openDetails={() => {
                       setShowSuccess(false);
                       setShowDetails(true);

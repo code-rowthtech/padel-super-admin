@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { logo } from "../../assets/files";
 import { FaWifi, FaRedo, FaArrowLeft, FaBolt } from "react-icons/fa";
@@ -7,18 +7,14 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 
 const NoInternet = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [retryClicked, setRetryClicked] = useState(false); // 🆕 flag
-  const navigatedRef = useRef(false); // 🆕 to prevent multiple navigations
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleConnectionChange = () => {
       const newStatus = navigator.onLine;
       setIsOnline(newStatus);
-
-      if (newStatus && !navigatedRef.current) {
-        navigatedRef.current = true;
-        setTimeout(() => navigate(-1), 500); // faster redirect
+      if (newStatus) {
+        setTimeout(() => navigate(-1), 1500);
       }
     };
 
@@ -32,24 +28,14 @@ const NoInternet = () => {
   }, [navigate]);
 
   const handleRetry = () => {
-    if (retryClicked) return; // ⛔ prevent multiple reloads
-
-    setRetryClicked(true); // ✅ mark that retry was clicked
-
     if (navigator.onLine) {
-      navigate(-1);
+      const lastRoute = localStorage.getItem("lastOnlineRoute") || "/";
+      navigate(lastRoute, { replace: true });
     } else {
-      setTimeout(() => setRetryClicked(false), 2000); // allow retry again after 2s
       window.location.reload();
     }
   };
 
-  const handleNavigate = () => {
-    if (!navigatedRef.current) {
-      navigatedRef.current = true;
-      navigate(-1);
-    }
-  };
   // Inline styles
   const styles = {
     container: {
@@ -212,7 +198,7 @@ const NoInternet = () => {
               ...styles.button,
               ...(isOnline ? styles.onlineButton : styles.offlineButton),
             }}
-            onClick={isOnline ? handleNavigate : handleRetry}
+            onClick={handleRetry}
             className={isOnline ? "hover-scale" : ""}
           >
             {isOnline ? (

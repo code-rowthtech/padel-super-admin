@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import axios from "axios";
+import { logo } from '../../../assets/files';
+
 
 // Load Razorpay Checkout
 const loadRazorpay = (callback) => {
     const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.src = "http://checkout.razorpay.com/v1/checkout.js";
     script.onload = callback;
     script.onerror = () => alert("Failed to load Razorpay SDK. Please try again.");
     document.body.appendChild(script);
@@ -16,19 +18,18 @@ const loadRazorpay = (callback) => {
 const Payment = ({ className = "" }) => {
     const location = useLocation();
     const { courtData, clubData } = location.state || {};
+    console.log(courtData, 'clubData');
     const [name, setName] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [email, setEmail] = useState("");
     const [selectedPayment, setSelectedPayment] = useState("");
-    const [upiId, setUpiId] = useState("");
     const [paymentId, setPaymentId] = useState("");
-    const [clientSecret, setClientSecret] = useState('')
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
-    const [showUpiInput, setShowUpiInput] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
-
+    const [selectedCourts, setSelectedCourts] = useState([]);
+console.log({selectedCourts});
     const totalAmount = courtData?.time?.reduce((acc, curr) => acc + (curr.amount || 100), 0);
 
     // Button styling
@@ -112,85 +113,58 @@ const Payment = ({ className = "" }) => {
             };
 
             // Dispatch booking creation
-            dispatch(createBooking(payload));
+            // dispatch(createBooking(payload));
 
-            // Call backend to create Razorpay order
-            const response = await axios.post("http://103.185.212.117:7600/api/booking/createPaymentIntent", {
+            // Call backend to create Razorpay order with provided API and keys
+            const response = await axios.post("http://103.185.212.117:7600/api/booking/createOrder", {
                 amount: totalAmount * 100, // Amount in paise
-                currency: "inr",
+                currency: "INR",
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
             });
 
             console.log("API Response:", response.data); // Debug API response
 
-            const { paymentIntentId, clientSecret } = response.data?.data;
-            if (!paymentIntentId && !clientSecret) {
-                throw new Error("Invalid response from server: paymentIntentId missing.");
+            const { id } = response.data || {};
+            if (!id) {
+                throw new Error("Invalid response from server: paymentIntentId or clientSecret missing.");
             }
 
-            setPaymentId(paymentIntentId);
-            setClientSecret(clientSecret)
+            setPaymentId(id);
 
-            if (selectedPayment === "google") {
-                setShowUpiInput(true); // Show UPI ID input for Google Pay
-            } else if (selectedPayment === "apple") {
-                // Placeholder for Apple Pay (requires server-side setup)
-                setError("Apple Pay is not fully implemented. Contact support.");
-            }
-        } catch (err) {
-            console.error("Payment Error:", err);
-            setError(err.message || "An error occurred during payment processing.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleUpiPayment = async () => {
-        if (!upiId) {
-            setError("Please enter a UPI ID.");
-            return;
-        }
-
-        // Basic UPI ID validation
-        const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
-        if (!upiRegex.test(upiId)) {
-            setError("Invalid UPI ID format. Use format like example@upi.");
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
             loadRazorpay(() => {
                 const options = {
-                    key: 'pk_test_51PR7yyRtiTZeMEJoLz3SgGSzOcHhYPpA0qpyBVbfbmmwOtvmiFNYioR5LvfJcF6FXGczVzTsIOA37UqPIxlLE8yk00TNpSPiJe',
-                    amount: totalAmount || 100,
+                    key: 'rzp_test_c5wVsgpbPYa9uX',
+                    amount: totalAmount * 100,
                     currency: 'INR',
                     name: "padel fe",
                     description: "payment to padel fe",
                     image: "https://papayacoders.com/demo.png",
-                    order_id: paymentId, // Added order_id from handlePayment
-                    handler: function (response) {
-                        setSuccess(true);
-                        console.log("Payment Success:", response);
+                    order_id: paymentId,
+                    handler: async function (response) {
+                        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
+                        await verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature);
                     },
                     prefill: {
                         name: "padel fe",
-                        email: "padelfe@gmail.com"
+                        email: "padelfe@gmail.com",
+                        contact: phoneNumber
                     },
                     theme: {
                         color: "#F4C430"
-                    },
-                    payment_method: {
-                        upi: {
-                            vpa: upiId // Added UPI configuration
-                        }
                     },
                     modal: {
                         ondismiss: function () {
                             setError("Payment was cancelled.");
                             setIsLoading(false);
                         }
+                    },
+                    payment_method: {
+                        upi: selectedPayment === "google" ? true : null,
+                        card: selectedPayment === "card" ? true : null,
+                        wallet: selectedPayment === "google" || selectedPayment === "apple" ? true : null
                     }
                 };
 
@@ -203,10 +177,58 @@ const Payment = ({ className = "" }) => {
                 paymentObject.open();
             });
         } catch (err) {
-            console.error("UPI Payment Error:", err);
-            setError(err.message || "An error occurred during UPI payment.");
+            console.error("Payment Error:", err);
+            setError(err.message || "An error occurred during payment processing.");
+        } finally {
             setIsLoading(false);
         }
+    };
+
+    const verifyPayment = async (order_id, payment_id, signature) => {
+        try {
+            const response = await axios.post("http://103.185.212.117:7600/api/booking/verify-payment", {
+                order_id,
+                payment_id,
+                signature,
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response.data.success) {
+                setSuccess(true);
+                console.log("Payment Verified:", response.data);
+            } else {
+                throw new Error(response.data.message || "Payment verification failed.");
+            }
+        } catch (err) {
+            console.error("Verification Error:", err);
+            setError(err.message || "An error occurred during payment verification.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!courtData) return;
+
+        const formattedData = courtData?.time?.map((timeSlot) => ({
+            date: courtData.date,
+            day: courtData.day,
+            time: timeSlot.time,
+            price: timeSlot.amount || 1000, // fallback to 1000 if amount is 0 or undefined
+            court: courtData.court?.[0]?.name || 'Court'
+        }));
+        console.log({formattedData});
+
+        setSelectedCourts(formattedData);
+    }, [courtData]);
+
+    const handleDelete = (index) => {
+        const updatedCourts = [...selectedCourts];
+        updatedCourts.splice(index, 1);
+        setSelectedCourts(updatedCourts);
     };
 
     return (
@@ -272,6 +294,7 @@ const Payment = ({ className = "" }) => {
                                 {[
                                     { id: "google", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
                                     { id: "apple", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
+                                    { id: "paypal", name: "Paypal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
                                 ].map((method) => (
                                     <label
                                         key={method.id}
@@ -287,32 +310,16 @@ const Payment = ({ className = "" }) => {
                                             value={method.id}
                                             className="form-check-input"
                                             checked={selectedPayment === method.id}
-                                            onChange={(e) => setSelectedPayment(e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setSelectedPayment(value);
+                                            }}
+
                                         />
                                     </label>
                                 ))}
                             </div>
 
-                            {/* UPI ID Input for Google Pay */}
-                            {showUpiInput && selectedPayment === "google" && (
-                                <div className="mt-4">
-                                    <label className="form-label">UPI ID *</label>
-                                    <input
-                                        type="text"
-                                        value={upiId}
-                                        onChange={(e) => setUpiId(e.target.value)}
-                                        className="form-control border-0 p-2"
-                                        placeholder="Enter your UPI ID (e.g., example@upi)"
-                                    />
-                                    <button
-                                        className="btn btn-primary mt-3"
-                                        onClick={handleUpiPayment}
-                                        disabled={!upiId || isLoading}
-                                    >
-                                        {isLoading ? "Processing..." : "Confirm UPI Payment"}
-                                    </button>
-                                </div>
-                            )}
                         </div>
 
                         {/* Error and Success Messages */}
@@ -333,36 +340,65 @@ const Payment = ({ className = "" }) => {
                                 className="rounded-circle bg-white mx-auto mb-2 shadow"
                                 style={{ width: "90px", height: "90px", lineHeight: "90px" }}
                             >
-                                <img src="https://via.placeholder.com/80" width={80} alt="Club Logo" />
+                                <img src={logo} width={80} alt="Club Logo" />
                             </div>
-                            <p className="mt-4 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>
-                                {clubData?.clubName}
-                            </p>
-                            <p className="small mb-0">
+                            <p className=" mt-4 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
+                            <p className="small mb-0"> {clubData?.clubName}
+                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                 {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
                                     .filter(Boolean)
-                                    .join(", ")}
-                            </p>
+                                    .join(', ')}  </p>
                         </div>
 
                         <h6 className="border-top p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
                             Booking Summary
                         </h6>
-                        <div style={{ maxHeight: "240px", overflowY: "auto" }}>
-                            {/* Add booking summary details here */}
+                        <div
+                            style={{
+                                maxHeight: "240px",
+                                overflowY: "auto",
+                            }}
+                        >
+                            {selectedCourts?.map((court, index) => (
+                                <div key={index} className="court-row d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <span >
+                                            <b>
+                                            {new Date(court.date).toLocaleDateString("en-GB", {
+                                                weekday: "short",
+                                                day: "numeric",
+                                                month: "short",
+                                            })}
+                                            , {court.time} (60m)</b> Court {index + 1}
+                                        </span>
+                                    </div>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <button
+                                            className="btn btn-sm text-danger delete-btn"
+                                            onClick={() => handleDelete(index)}
+                                        >
+                                            <i className="bi bi-trash-fill"></i>
+                                        </button>
+                                        <div>₹ {court.price}</div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
 
                         <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to pay</span>
-                            <span className="text-primary">₹ {totalAmount}</span>
+                            <span className="" style={{fontSize: "22px", fontWeight: "600",color:"#1A237E"}}>
+                                ₹ {selectedCourts?.reduce((acc, cur) => acc + cur.price, 0)}
+                            </span>
                         </div>
+
 
                         <div className="d-flex justify-content-center mt-3">
                             <button
                                 style={buttonStyle}
                                 onClick={handlePayment}
                                 className={className}
-                                disabled={!selectedPayment || isLoading}
+                                disabled={!selectedPayment || (selectedPayment === "google") || isLoading}
                             >
                                 <svg
                                     style={svgStyle}
