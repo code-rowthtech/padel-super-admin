@@ -24,7 +24,7 @@ import {
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { formatDate } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
-
+import { resetBookingData } from "../../../redux/admin/booking/slice";
 const Booking = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -88,7 +88,10 @@ const Booking = () => {
             >
               <Tabs
                 value={tab}
-                onChange={(_, v) => setTab(v)}
+                onChange={(_, v) => {
+                  setTab(v);
+                  dispatch(resetBookingData());
+                }}
                 indicatorColor="primary"
                 textColor="primary"
               >
@@ -161,10 +164,7 @@ const Booking = () => {
             {getBookingLoading ? (
               <DataLoading height="60vh" />
             ) : bookings.length > 0 ? (
-              <div
-                className="custom-scroll-container"
-                style={{ maxHeight: "290px", overflowY: "auto" }}
-              >
+              <div className="custom-scroll-container">
                 <Table responsive borderless size="sm" className="custom-table">
                   <thead>
                     <tr className="text-center">

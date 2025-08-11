@@ -16,6 +16,7 @@ import {
 } from "../../../../helpers/loading/Loaders";
 import { useNavigate } from "react-router-dom";
 import { resetClub } from "../../../../redux/admin/club/slice";
+import { showInfo, showWarning } from "../../../../helpers/Toast";
 
 const DAYS_OF_WEEK = [
   "Monday",
@@ -37,9 +38,12 @@ const containerStyle = {
 const Pricing = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const registerId = sessionStorage.getItem("registerId");
+  const { ownerClubData } = useSelector((state) => state.manualBooking);
+  const registerId = ownerClubData?.[0]?._id || "";
 
-  const { clubLoading, clubData } = useSelector((state) => state.club);
+  const { updateClubLoading, clubLoading, clubData } = useSelector(
+    (state) => state.club
+  );
   const pricingData = clubData?.data || [];
 
   const [formData, setFormData] = useState({
@@ -66,13 +70,14 @@ const Pricing = () => {
   }, []);
 
   /** Initialize formData prices from API */
+  console.log({ pricingData });
   useEffect(() => {
     if (
       pricingData.length &&
-      pricingData[0]?.courts?.length &&
+      pricingData[0]?.slot?.length &&
       formData.selectedSlots
     ) {
-      const slotData = pricingData[0]?.courts[0]?.slotTimes || [];
+      const slotData = pricingData[0]?.slot[0]?.slotTimes || [];
       if (slotData.length) {
         setFormData((prev) => ({
           ...prev,
@@ -191,7 +196,7 @@ const Pricing = () => {
             />
           </Col>
           <Col xs={3}>
-            <InputGroup>
+            <InputGroup className="d-flex align-items-center">
               ₹
               <FormControl
                 placeholder="Price"
@@ -288,18 +293,19 @@ const Pricing = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.changesConfirmed)
-      return alert("Please confirm changes first.");
+      return showInfo("Please confirm changes first.");
 
     const selectedDays = Object.keys(formData.days).filter(
       (day) => formData.days[day]
     );
     const slotType = selectAllChecked ? "All" : formData.selectedSlots;
     const slotPrices = formData.prices[slotType];
-    if (!Object.keys(slotPrices).length) return alert("No prices entered.");
+    if (!Object.keys(slotPrices).length)
+      return showWarning("No prices entered.");
 
     const slotInfo = pricingData[0]?.slot?.[0];
     if (!slotInfo?.slotTimes?.length || !slotInfo?.businessHours?.length) {
-      return alert("Slot times or business hours missing.");
+      return showInfo("Slot times or business hours missing.");
     }
 
     const normalizeTime = (t) => t.replace(/:\d{2}/, "").toLowerCase();
@@ -322,11 +328,10 @@ const Pricing = () => {
 
     dispatch(updatePrice(payload))
       .unwrap()
-      .then(() => {
-        navigate("/admin/dashboard");
-        sessionStorage.removeItem("registerId");
-        dispatch(resetClub());
-      })
+      // .then(() => {
+      //   navigate("/admin/dashboard");
+      //   dispatch(resetClub());
+      // })
       .catch(() => alert("Failed to update prices."));
   };
 
@@ -356,6 +361,10 @@ const Pricing = () => {
                     backgroundColor: "#F9FAFB",
                     borderColor: "#E5E7EB",
                     borderRadius: "8px",
+                    color: "#1F2937",
+                    position: "absolute",
+                    top: "-1em",
+                    right: "0%",
                   }}
                 >
                   {formData.selectedSlots} slots
@@ -404,9 +413,9 @@ const Pricing = () => {
               padding: "10px 30px",
               fontWeight: 600,
             }}
-            disabled={clubLoading}
+            disabled={updateClubLoading}
           >
-            {clubLoading ? <ButtonLoading /> : "Update"}
+            {updateClubLoading ? <ButtonLoading /> : "Update"}
           </Button>
         </div>
       </Form>

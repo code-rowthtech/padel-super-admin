@@ -29,7 +29,7 @@ const Payment = ({ className = "" }) => {
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const [selectedCourts, setSelectedCourts] = useState([]);
-console.log({selectedCourts});
+    console.log({ selectedCourts });
     const totalAmount = courtData?.time?.reduce((acc, curr) => acc + (curr.amount || 100), 0);
 
     // Button styling
@@ -77,7 +77,7 @@ console.log({selectedCourts});
         height: "100%",
         paddingRight: `${circleRadius * 2}px`,
     };
-
+console.log(clubData,'clubDataclubData');
     const handlePayment = async () => {
         if (!name || !phoneNumber || !email || !selectedPayment) {
             setError("Please fill in all required fields and select a payment method.");
@@ -88,21 +88,21 @@ console.log({selectedCourts});
         setError(null);
 
         try {
-            // Create booking payload
+            const register_club_id = localStorage.getItem('register_club_id')
             const selectedSlot = courtData?.slot?.[0];
             const selectedTimeArray = courtData?.time || [];
             const payload = {
                 name,
                 phoneNumber,
                 email,
-                register_club_id: clubData?._id,
+                register_club_id: register_club_id,
                 ownerId: clubData?.ownerId,
                 slot: courtData?.court?.map((courtItem) => ({
                     slotId: selectedSlot?._id,
-                    courtId: courtItem?.courtName,
+                    courtId: courtItem?._id,
                     bookingDate: new Date(courtData?.date).toISOString(),
-                    businessHours: selectedTimeArray.map(() => ({
-                        time: "6:00 AM To 10:00 PM",
+                    businessHours: selectedTimeArray.map((time) => ({
+                        time: time?.time || "6:00 AM To 10:00 PM",
                         day: courtData?.day || "Monday",
                     })),
                     slotTimes: courtData?.time?.map((timeSlot) => ({
@@ -113,7 +113,7 @@ console.log({selectedCourts});
             };
 
             // Dispatch booking creation
-            // dispatch(createBooking(payload));
+            dispatch(createBooking(payload));
 
             // Call backend to create Razorpay order with provided API and keys
             const response = await axios.post("http://103.185.212.117:7600/api/booking/createOrder", {
@@ -220,7 +220,7 @@ console.log({selectedCourts});
             price: timeSlot.amount || 1000, // fallback to 1000 if amount is 0 or undefined
             court: courtData.court?.[0]?.name || 'Court'
         }));
-        console.log({formattedData});
+        console.log({ formattedData });
 
         setSelectedCourts(formattedData);
     }, [courtData]);
@@ -323,12 +323,12 @@ console.log({selectedCourts});
                         </div>
 
                         {/* Error and Success Messages */}
-                        {error && <div className="alert alert-danger mt-3">{error}</div>}
+                        {/* {error && <div className="alert alert-danger mt-3">{error}</div>}
                         {success && (
                             <div className="alert alert-success mt-3">
                                 Payment successful! Payment ID: {paymentId}
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </div>
 
@@ -364,12 +364,12 @@ console.log({selectedCourts});
                                     <div>
                                         <span >
                                             <b>
-                                            {new Date(court.date).toLocaleDateString("en-GB", {
-                                                weekday: "short",
-                                                day: "numeric",
-                                                month: "short",
-                                            })}
-                                            , {court.time} (60m)</b> Court {index + 1}
+                                                {new Date(court.date).toLocaleDateString("en-GB", {
+                                                    weekday: "short",
+                                                    day: "numeric",
+                                                    month: "short",
+                                                })}
+                                                , {court.time} (60m)</b> Court {index + 1}
                                         </span>
                                     </div>
                                     <div className="d-flex align-items-center gap-2">
@@ -387,7 +387,7 @@ console.log({selectedCourts});
 
                         <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to pay</span>
-                            <span className="" style={{fontSize: "22px", fontWeight: "600",color:"#1A237E"}}>
+                            <span className="" style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
                                 ₹ {selectedCourts?.reduce((acc, cur) => acc + cur.price, 0)}
                             </span>
                         </div>
@@ -398,7 +398,7 @@ console.log({selectedCourts});
                                 style={buttonStyle}
                                 onClick={handlePayment}
                                 className={className}
-                                disabled={!selectedPayment || (selectedPayment === "google") || isLoading}
+                            // disabled={!selectedPayment || (selectedPayment === "google") || isLoading}
                             >
                                 <svg
                                     style={svgStyle}
