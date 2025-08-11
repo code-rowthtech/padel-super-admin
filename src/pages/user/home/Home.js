@@ -24,6 +24,7 @@ const photos = [
 ];
 
 
+
 const reviews = [
     {
         name: "Eleanor Pena",

@@ -398,7 +398,7 @@ console.log({selectedCourts});
                                 style={buttonStyle}
                                 onClick={handlePayment}
                                 className={className}
-                                disabled={!selectedPayment || (selectedPayment === "google") || isLoading}
+                                // disabled={!selectedPayment || (selectedPayment === "google") || isLoading}
                             >
                                 <svg
                                     style={svgStyle}
