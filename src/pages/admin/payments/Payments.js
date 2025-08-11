@@ -27,14 +27,16 @@ import {
   getBookingDetailsById,
 } from "../../../redux/thunks";
 import { Link } from "react-router-dom";
+import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 
 const Payments = () => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [showPaymentDetails, setShowPaymentDetails] = useState(false);
+
   const dispatch = useDispatch();
-  const { getBookingData, getBookingLoading } = useSelector(
-    (state) => state.booking
-  );
+  const { getBookingData, getBookingLoading, getBookingDetailsData } =
+    useSelector((state) => state.booking);
   const [tab, setTab] = useState(0);
 
   const handleTabChange = (_, newValue) => {
@@ -56,7 +58,10 @@ const Payments = () => {
     </button>
   );
 
-  const bookings = getBookingData?.bookings || [];
+  const payments = getBookingData?.bookings || [];
+  const paymentDetails = getBookingDetailsData?.booking || {};
+  console.log({ paymentDetails });
+
   const status = tab === 0 ? "" : "refund";
   const sendDate = startDate && endDate;
 
@@ -70,16 +75,17 @@ const Payments = () => {
     dispatch(getBookingByStatus(payload));
   }, [tab, sendDate]);
   const ownerId = getUserFromSession()?._id;
-  const [loadingBookingId, setLoadingBookingId] = useState(null);
+  const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
-  const handleBookingDetails = async (id) => {
-    setLoadingBookingId(id); // Start loading for this ID
+  const handlePaymentDetails = async (id) => {
+    setLoadingPaymentId(id); // Start loading for this ID
     try {
       await dispatch(getBookingDetailsById({ id })).unwrap();
+      setShowPaymentDetails(true);
     } catch (error) {
       console.error("Failed to fetch booking details:", error);
     } finally {
-      setLoadingBookingId(null); // Stop loading
+      setLoadingPaymentId(null); // Stop loading
     }
   };
 
@@ -219,7 +225,7 @@ const Payments = () => {
               <DataLoading height="60vh" />
             ) : (
               <>
-                {bookings?.length > 0 ? (
+                {payments?.length > 0 ? (
                   <div
                     className="custom-scroll-container"
                     style={{ maxHeight: "290px", overflowY: "auto" }}
@@ -242,7 +248,7 @@ const Payments = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {bookings?.map((item, index) => (
+                        {payments?.map((item, index) => (
                           <tr key={index}>
                             <td className="table-data border-bottom">
                               {item?.userId?.name || "N/A"}
@@ -266,9 +272,9 @@ const Payments = () => {
                             <td
                               className="table-data border-bottom"
                               style={{ cursor: "pointer" }}
-                              onClick={() => handleBookingDetails(item?._id)}
+                              onClick={() => handlePaymentDetails(item?._id)}
                             >
-                              {loadingBookingId === item?._id ? (
+                              {loadingPaymentId === item?._id ? (
                                 <ButtonLoading color="blue" />
                               ) : (
                                 <FaEye className="text-primary" />
@@ -297,6 +303,11 @@ const Payments = () => {
           </div>
         </Col>
       </Row>
+      <PaymentDetailsModal
+        show={showPaymentDetails}
+        handleClose={() => setShowPaymentDetails(false)}
+        paymentDetails={paymentDetails}
+      />
     </Container>
   );
 };

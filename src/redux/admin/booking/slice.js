@@ -1,94 +1,93 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getBookingByStatus, getBookingDetailsById, updateBookingStatus } from "./thunk";
-
+import {
+  getBookingByStatus,
+  getBookingDetailsById,
+  updateBookingStatus,
+} from "./thunk";
 
 const initialState = {
-    getBookingData: null,
-    getBookingLoading: false,
-    getBookingError: null,
+  getBookingData: null,
+  getBookingLoading: false,
+  getBookingError: null,
 
-    getBookingDetailsData: null,
-    getBookingDetailsLoading: false,
-    getBookingDetailsError: null,
+  getBookingDetailsData: null,
+  getBookingDetailsLoading: false,
+  getBookingDetailsError: null,
 
-    updateBookingData: null,
-    updateBookingLoading: false,
-    updateBookingError: null,
+  updateBookingData: null,
+  updateBookingLoading: false,
+  updateBookingError: null,
 };
 
-
 const BookingSlice = createSlice({
-    name: "Booking",
-    initialState,
-    reducers: {
-        resetBookingData: (state) => {
-            state.getBookingData = null;
-            state.getBookingLoading = false;
-            state.getBookingError = null;
+  name: "Booking",
+  initialState,
+  reducers: {
+    resetBookingData: (state) => {
+      state.getBookingData = null;
+      state.getBookingLoading = false;
+      state.getBookingError = null;
 
-            state.getBookingDetailsData = null;
-            state.getBookingDetailsLoading = false;
-            state.getBookingDetailsError = null;
+      state.getBookingDetailsData = null;
+      state.getBookingDetailsLoading = false;
+      state.getBookingDetailsError = null;
 
-            state.updateBookingData = null;
-            state.updateBookingLoading = false;
-            state.updateBookingError = null;
-        },
+      state.updateBookingData = null;
+      state.updateBookingLoading = false;
+      state.updateBookingError = null;
     },
-    extraReducers: (builder) => {
-        // -----------------------------------------------------//---- Get Bookings by status
-        builder.addCase(getBookingByStatus.pending, (state) => {
-            state.getBookingLoading = true;
-            state.getBookingError = null;
-            state.getBookingData = null;
-        });
-        builder.addCase(getBookingByStatus.fulfilled, (state, action) => {
-            console.log({ action, state })
-            state.getBookingLoading = false;
-            state.getBookingData = action.payload;
-            state.getBookingError = null;
-        });
-        builder.addCase(getBookingByStatus.rejected, (state, action) => {
-            state.getBookingLoading = false;
-            state.getBookingData = null;
-            state.getBookingError = action.payload;
-        });
-        // -----------------------------------------------------//---- Get Booking Details By Id
-        builder.addCase(getBookingDetailsById.pending, (state) => {
-            state.getBookingDetailsLoading = true;
-            state.getBookingDetailsError = null;
-            state.getBookingDetailsData = null;
-        });
-        builder.addCase(getBookingDetailsById.fulfilled, (state, action) => {
-            console.log({ action, state })
-            state.getBookingDetailsLoading = false;
-            state.getBookingDetailsData = action.payload;
-            state.getBookingDetailsError = null;
-        });
-        builder.addCase(getBookingDetailsById.rejected, (state, action) => {
-            state.getBookingDetailsLoading = false;
-            state.getBookingDetailsData = null;
-            state.getBookingDetailsError = action.payload;
-        });
-        // -----------------------------------------------------//---- Update Booking Status
-        builder.addCase(updateBookingStatus.pending, (state) => {
-            state.updateBookingLoading = true;
-            state.updateBookingError = null;
-            state.updateBookingData = null;
-        });
-        builder.addCase(updateBookingStatus.fulfilled, (state, action) => {
-            console.log({ action, state })
-            state.updateBookingLoading = false;
-            state.updateBookingData = action.payload;
-            state.updateBookingError = null;
-        });
-        builder.addCase(updateBookingStatus.rejected, (state, action) => {
-            state.updateBookingLoading = false;
-            state.updateBookingData = null;
-            state.updateBookingError = action.payload;
-        });
-
-    },
+  },
+  extraReducers: (builder) => {
+    // -----------------------------------------------------//---- Get Bookings by status
+    builder.addCase(getBookingByStatus.pending, (state) => {
+      state.getBookingLoading = true;
+      state.getBookingError = null;
+      state.getBookingData = null;
+    });
+    builder.addCase(getBookingByStatus.fulfilled, (state, action) => {
+      state.getBookingLoading = false;
+      state.getBookingData = action.payload;
+      state.getBookingError = null;
+    });
+    builder.addCase(getBookingByStatus.rejected, (state, action) => {
+      state.getBookingLoading = false;
+      state.getBookingData = null;
+      state.getBookingError = action.payload;
+    });
+    // -----------------------------------------------------//---- Get Booking Details By Id
+    builder.addCase(getBookingDetailsById.pending, (state) => {
+      state.getBookingDetailsLoading = true;
+      state.getBookingDetailsError = null;
+      state.getBookingDetailsData = null;
+    });
+    builder.addCase(getBookingDetailsById.fulfilled, (state, action) => {
+      state.getBookingDetailsLoading = false;
+      state.getBookingDetailsData = action.payload;
+      state.getBookingDetailsError = null;
+    });
+    builder.addCase(getBookingDetailsById.rejected, (state, action) => {
+      state.getBookingDetailsLoading = false;
+      state.getBookingDetailsData = null;
+      state.getBookingDetailsError = action.payload;
+    });
+    // -----------------------------------------------------//---- Update Booking Status
+    builder.addCase(updateBookingStatus.pending, (state) => {
+      state.updateBookingLoading = true;
+      state.updateBookingError = null;
+      state.updateBookingData = null;
+    });
+    builder.addCase(updateBookingStatus.fulfilled, (state, action) => {
+      console.log({ action, state });
+      state.updateBookingLoading = false;
+      state.updateBookingData = action.payload;
+      state.updateBookingError = null;
+    });
+    builder.addCase(updateBookingStatus.rejected, (state, action) => {
+      state.updateBookingLoading = false;
+      state.updateBookingData = null;
+      state.updateBookingError = action.payload;
+    });
+  },
 });
 
 export const { resetBookingData } = BookingSlice.actions;

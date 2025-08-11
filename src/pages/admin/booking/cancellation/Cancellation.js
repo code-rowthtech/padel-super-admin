@@ -32,7 +32,7 @@ import {
   getBookingDetailsById,
   updateBookingStatus,
 } from "../../../../redux/thunks";
-
+import { resetBookingData } from "../../../../redux/admin/booking/slice";
 const Cancellation = () => {
   const dispatch = useDispatch();
   const ownerId = getUserFromSession()?._id;
@@ -115,7 +115,13 @@ const Cancellation = () => {
         >
           <Box sx={{ bgcolor: "white" }}>
             <AppBar position="static" color="default" elevation={0}>
-              <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+              <Tabs
+                value={tab}
+                onChange={(_, v) => {
+                  setTab(v);
+                  dispatch(resetBookingData());
+                }}
+              >
                 <Tab label="Request" />
                 <Tab label="Accepted" />
                 <Tab label="Rejected" />
