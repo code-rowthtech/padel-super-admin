@@ -102,37 +102,6 @@ const ManualBooking = () => {
     }
   };
 
-  // const courts = [
-  //     {
-  //         id: 1,
-  //         name: "Court 1",
-  //         type: "Outdoor | wall | Double",
-  //         price: 1000,
-  //         image: "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80", // Badminton
-  //     },
-  //     {
-  //         id: 2,
-  //         name: "Court 2",
-  //         type: "Outdoor | wall | Double",
-  //         price: 1000,
-  //         image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80", // Tennis
-  //     },
-  //     {
-  //         id: 3,
-  //         name: "Court 3",
-  //         type: "Outdoor | wall | Double",
-  //         price: 1000,
-  //         image: "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80", // Basketball
-  //     },
-  //     {
-  //         id: 4,
-  //         name: "Court 4",
-  //         type: "Outdoor | wall | Double",
-  //         price: 1000,
-  //         image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80", // Volleyball
-  //     },
-  // ];
-
   useEffect(() => {
     dispatch(getOwnerRegisteredClub()).unwrap();
   }, []);
@@ -470,7 +439,7 @@ const ManualBooking = () => {
                             isBooked
                               ? "bg-danger-subtle"
                               : isPast
-                              ? "bg-warning-subtle"
+                              ? "bg-secondary-subtle"
                               : ""
                           }`}
                           onClick={() => toggleTime(slot)}
@@ -498,71 +467,67 @@ const ManualBooking = () => {
               </div>
             </Col>
             <Col md={4}>
-              <div>
-                <div className="d-flex justify-content-between align-items-center pt-3">
-                  <p
-                    className="mb-0 tabel-title"
-                    style={{
-                      fontFamily: "Poppins",
-                      fontWeight: "600",
-                      color: "#374151",
-                    }}
-                  >
-                    Available Court
-                  </p>
-                </div>
+              <div
+                className="mt-4 tabel-title"
+                style={{
+                  fontFamily: "Poppins",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                Available Court
+              </div>
+              <div style={{ maxHeight: "30vh", overflow: "auto" }}>
+                <div className="d-flex justify-content-between align-items-center pt-3"></div>
                 <div className="bg-white px-3">
-                  {activeCourtsLoading ? (
-                    <DataLoading height="20vh" />
+                  {/* {activeCourtsLoading ? (
+                    <DataLoading height="30vh" />
                   ) : (
-                    <>
-                      {courts?.map((court) => (
-                        <div
-                          key={court._id}
-                          className={`d-flex justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
-                            selectedCourts?.includes(court?._id)
-                              ? "bg-success-subtle rounded-pill"
-                              : ""
-                          }`}
-                        >
-                          {/* Left Image & Text */}
-                          <div className="d-flex align-items-center gap-3">
-                            {/* <img
+                    <></>
+                  )} */}
+                  {courts?.map((court) => (
+                    <div
+                      key={court._id}
+                      className={`d-flex justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
+                        selectedCourts?.includes(court?._id)
+                          ? "bg-success-subtle rounded-pill"
+                          : ""
+                      }`}
+                    >
+                      {/* Left Image & Text */}
+                      <div className="d-flex align-items-center gap-3">
+                        {/* <img
                                                 src={court.image}
                                                 alt={court.courtName}
                                                 style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover" }}
                                             /> */}
-                            <div>
-                              <div className="fw-semibold">
-                                {court.courtName}
-                              </div>
-                              {/* <small className="text-muted">{court.type}</small> */}
-                            </div>
-                          </div>
-
-                          {/* Price and Cart Icon */}
-                          <div className="d-flex align-items-center gap-3">
-                            <div
-                              className="fw-semibold"
-                              style={{ fontSize: "20px", fontWeight: "500" }}
-                            >
-                              ₹{court.price}
-                            </div>
-                            <button
-                              className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
-                              style={{ width: "32px", height: "32px" }}
-                              onClick={() => handleCourtSelect(court?._id)}
-                            >
-                              <FaShoppingCart size={14} color="white" />
-                            </button>
-                          </div>
+                        <div>
+                          <div className="fw-semibold">{court.courtName}</div>
+                          {/* <small className="text-muted">{court.type}</small> */}
                         </div>
-                      ))}
-                    </>
-                  )}
+                      </div>
+
+                      {/* Price and Cart Icon */}
+                      <div className="d-flex align-items-center gap-3">
+                        <div
+                          className="fw-semibold"
+                          style={{ fontSize: "20px", fontWeight: "500" }}
+                        >
+                          ₹{court.price}
+                        </div>
+                        <button
+                          className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
+                          style={{ width: "32px", height: "32px" }}
+                          onClick={() => handleCourtSelect(court?._id)}
+                        >
+                          <FaShoppingCart size={14} color="white" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="mt-4 px-3">
+              <div className="mt-3 p-3">
                 <p
                   className="mb-2 tabel-title"
                   style={{
@@ -601,6 +566,7 @@ const ManualBooking = () => {
                       setName("");
                       setPhone("");
                       setShowSuccess(false);
+                      navigate(-1);
                     }}
                   >
                     Cancel
@@ -615,7 +581,10 @@ const ManualBooking = () => {
 
                   <BookingSuccessModal
                     show={showSuccess}
-                    handleClose={() => setShowSuccess(false)}
+                    handleClose={() => {
+                      setShowSuccess(false);
+                      navigate(-1);
+                    }}
                     openDetails={() => {
                       setShowSuccess(false);
                       setShowDetails(true);

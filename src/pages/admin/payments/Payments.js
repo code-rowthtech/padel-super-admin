@@ -29,8 +29,8 @@ import {
 import { Link } from "react-router-dom";
 
 const Payments = () => {
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const dispatch = useDispatch();
   const { getBookingData, getBookingLoading } = useSelector(
     (state) => state.booking
@@ -40,19 +40,35 @@ const Payments = () => {
   const handleTabChange = (_, newValue) => {
     setTab(newValue);
   };
+  const DateButton = ({ value, onClick }) => (
+    <button
+      onClick={onClick}
+      style={{
+        border: "none",
+        backgroundColor: "white",
+        padding: "8px 16px",
+        cursor: "pointer",
+        fontWeight: 600,
+        color: "#495057",
+      }}
+    >
+      {value || "Select Date"} <MdDateRange className="ms-2 mb-1" size={20} />
+    </button>
+  );
 
   const bookings = getBookingData?.bookings || [];
-  const status = tab === 0 ? "recent" : tab === 1 ? "all" : "refund";
+  const status = tab === 0 ? "" : "refund";
+  const sendDate = startDate && endDate;
 
   useEffect(() => {
-    dispatch(
-      getBookingByStatus({
-        status,
-        ownerId,
-        //  startDate: formatDate(startDate), endDate: formatDate(endDate)
-      })
-    );
-  }, [tab]);
+    const payload = { status, ownerId };
+    if (sendDate) {
+      payload.startDate = formatDate(startDate);
+      payload.endDate = formatDate(endDate);
+    }
+
+    dispatch(getBookingByStatus(payload));
+  }, [tab, sendDate]);
   const ownerId = getUserFromSession()?._id;
   const [loadingBookingId, setLoadingBookingId] = useState(null);
 
@@ -150,74 +166,43 @@ const Payments = () => {
                   textColor="primary"
                 >
                   <Tab className="fw-medium table-data" label="Recent" />
-                  <Tab className="fw-medium table-data" label="All" />
                   <Tab className="fw-medium table-data" label="Refund" />
                 </Tabs>
               </AppBar>
             </Box>
 
             <div className="d-flex align-items-center gap-2">
-              <span style={{ fontWeight: 600 }}>From</span>
-              <div className="position-relative">
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date) => setStartDate(date)}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  customInput={
-                    <button
-                      style={{
-                        border: "none",
-                        backgroundColor: "white",
-                        padding: "8px 16px",
-                        cursor: "pointer",
-                        fontWeight: 600,
-                        color: "#495057",
-                      }}
-                    >
-                      {startDate.toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                      <MdDateRange className="ms-2 mb-1" size={20} />
-                    </button>
-                  }
-                />
-              </div>
+              <span className="fw-semibold">From</span>
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => {
+                  setStartDate(date);
+                  if (!date) setEndDate(null); // reset end date if start cleared
+                }}
+                selectsStart
+                startDate={startDate}
+                endDate={endDate}
+                customInput={<DateButton />}
+              />
 
-              <span style={{ fontWeight: 600 }}>To</span>
-
-              <div className="position-relative ">
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate}
-                  customInput={
-                    <button
-                      style={{
-                        border: "none",
-                        backgroundColor: "white",
-                        padding: "8px 16px",
-                        cursor: "pointer",
-                        fontWeight: 600,
-                        color: "#495057",
-                      }}
-                    >
-                      {endDate.toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                      <MdDateRange className="ms-2 mb-1" size={20} />
-                    </button>
-                  }
-                />
-              </div>
+              <span className="fw-semibold">To</span>
+              <DatePicker
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                selectsEnd
+                startDate={startDate}
+                endDate={endDate}
+                minDate={startDate}
+                customInput={<DateButton />}
+              />
+              {sendDate && (
+                <i
+                  className="bi bi-x-square-fill text-danger"
+                  onClick={() => {
+                    setStartDate(null, setEndDate(null));
+                  }}
+                ></i>
+              )}
             </div>
           </div>
         </Col>
@@ -227,96 +212,87 @@ const Payments = () => {
         <Col md={12}>
           <div className="bg-white rounded shadow-sm p-3">
             <h6 className="mb-3 tabel-title">
-              {tab === 0 ? "Recent" : tab === 1 ? "All" : "Refund"} Transactions
+              {tab === 0 ? "Recent" : "Refund"} Transactions
             </h6>
 
             {getBookingLoading ? (
               <DataLoading height="60vh" />
             ) : (
-              <div
-                className="custom-scroll-container"
-                style={{ maxHeight: "290px", overflowY: "auto" }}
-              >
+              <>
                 {bookings?.length > 0 ? (
-                  <Table
-                    responsive
-                    borderless
-                    size="sm"
-                    className="custom-table"
+                  <div
+                    className="custom-scroll-container"
+                    style={{ maxHeight: "290px", overflowY: "auto" }}
                   >
-                    <thead>
-                      <tr>
-                        <th>User</th>
-                        <th>Contact</th>
-                        <th>Booking Type</th>
-                        <th>Booking Amount</th>
-                        <th>Booking Date</th>
-                        <th>Cancellation Reason</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bookings?.map((item, index) => (
-                        <tr key={index}>
-                          <td className="table-data border-bottom">
-                            {item?.userId?.name || "N/A"}
-                          </td>
-                          <td className="table-data border-bottom">
-                            {item?.userId?.countryCode || ""}
-                            {item?.userId?.phoneNumber || "N/A"}
-                          </td>
-                          <td className="table-data border-bottom">
-                            {item?.bookingType || "-"}
-                          </td>
-                          <td className="table-data border-bottom">
-                            ₹{item?.totalAmount}
-                          </td>
-                          <td className="table-data border-bottom">
-                            {formatDate(item?.bookingDate)}
-                          </td>
-                          <td className="table-data border-bottom">
-                            <OverlayTrigger
-                              placement="left"
-                              overlay={
-                                <Tooltip>
-                                  {item?.cancellationReason || "N/A"}
-                                </Tooltip>
-                              }
-                            >
-                              <span style={{ cursor: "default" }}>
-                                {item?.cancellationReason?.slice(0, 50) +
-                                  "..." || "N/A"}
-                              </span>
-                            </OverlayTrigger>
-                          </td>
-                          <td
-                            className="table-data border-bottom"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleBookingDetails(item?._id)}
-                          >
-                            {loadingBookingId === item?._id ? (
-                              <ButtonLoading color="blue" />
-                            ) : (
-                              <FaEye className="text-primary" />
-                            )}
-                          </td>
+                    <Table
+                      responsive
+                      borderless
+                      size="sm"
+                      className="custom-table"
+                    >
+                      <thead>
+                        <tr>
+                          <th>User</th>
+                          <th>Contact</th>
+                          <th>Booking Type</th>
+                          <th>Court Name</th>
+                          <th>Booking Amount</th>
+                          <th>Booking Date</th>
+                          <th>Action</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+                      </thead>
+                      <tbody>
+                        {bookings?.map((item, index) => (
+                          <tr key={index}>
+                            <td className="table-data border-bottom">
+                              {item?.userId?.name || "N/A"}
+                            </td>
+                            <td className="table-data border-bottom">
+                              {item?.userId?.countryCode || ""}
+                              {item?.userId?.phoneNumber || "N/A"}
+                            </td>
+                            <td className="table-data border-bottom">
+                              {item?.bookingType || "-"}
+                            </td>
+                            <td className="table-data border-bottom">
+                              {item?.slot[0]?.courtName || "-"}
+                            </td>
+                            <td className="table-data border-bottom">
+                              ₹{item?.totalAmount}
+                            </td>
+                            <td className="table-data border-bottom">
+                              {formatDate(item?.bookingDate)}
+                            </td>
+                            <td
+                              className="table-data border-bottom"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => handleBookingDetails(item?._id)}
+                            >
+                              {loadingBookingId === item?._id ? (
+                                <ButtonLoading color="blue" />
+                              ) : (
+                                <FaEye className="text-primary" />
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
                 ) : (
                   <div
                     className="d-flex text-danger justify-content-center align-items-center"
-                    style={{ height: "30vh" }}
+                    style={{ height: "60vh" }}
                   >
                     No
                     <span className="px-1">
-                      {tab === 0 ? "Recent" : tab === 1 ? "" : "Refund"}
+                      {tab === 0
+                        ? "Recent Tansactions were Found !"
+                        : "Tansactions were Found for Refund !"}
                     </span>
-                    Tansactions were Found !
                   </div>
                 )}
-              </div>
+              </>
             )}
           </div>
         </Col>

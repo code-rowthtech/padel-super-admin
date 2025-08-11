@@ -22,7 +22,9 @@ const CreateMatches = React.lazy(() =>
 );
 const ViewMatch = React.lazy(() => import("../pages/user/VeiwMatch/VeiwMatch"));
 const Payment = React.lazy(() => import("../pages/user/payment/Payment"));
-const BookingHistory = React.lazy(() => import('../pages/user/booking/BookingHistory'));
+const BookingHistory = React.lazy(() =>
+  import("../pages/user/booking/BookingHistory")
+);
 const Login = React.lazy(() => import("../pages/user/auth/LoginPage"));
 
 const VerifyOtpUser = React.lazy(() => import("../pages/user/auth/VerifyOtp"));
@@ -39,9 +41,9 @@ const ForgotPassword = React.lazy(() =>
 );
 
 const AdminDashboard = React.lazy(() =>
-  import("../pages/admin/dashboard/index")
+  import("../pages/admin/dashboard/Dashboard")
 );
-const BookingPage = React.lazy(() => import("../pages/admin/booking/index"));
+const BookingPage = React.lazy(() => import("../pages/admin/booking/Booking"));
 const ManualBooking = React.lazy(() =>
   import("../pages/admin/booking/manual booking/ManualBooking")
 );
@@ -49,12 +51,14 @@ const Cancellation = React.lazy(() =>
   import("../pages/admin/booking/cancellation/Cancellation")
 );
 const OpenMatchesPage = React.lazy(() =>
-  import("../pages/admin/open-matches/index")
+  import("../pages/admin/open-matches/OpenMatches")
 );
 const CompetitionPage = React.lazy(() =>
   import("../pages/admin/competition/index")
 );
-const Register = React.lazy(() => import("../pages/admin/registerClub/index"));
+const Register = React.lazy(() =>
+  import("../pages/admin/registerClub/Register")
+);
 const RegisterClub = React.lazy(() =>
   import("../pages/admin/registerClub/RegisterClub")
 );
@@ -69,6 +73,10 @@ const Payments = React.lazy(() => import("../pages/admin/payments/Payments"));
 const Packages = React.lazy(() => import("../pages/admin/packages/Packages"));
 const PackageDetails = React.lazy(() =>
   import("../pages/admin/packages/PackageDetails")
+);
+const MyClub = React.lazy(() => import("../pages/admin/myClub/MyClub"));
+const Americano = React.lazy(() =>
+  import("../pages/admin/americano/Americano")
 );
 
 // Errors
@@ -113,7 +121,7 @@ const AllRoutes = () => {
           path: "booking",
           element: LoadComponent(Booking),
         },
-         {
+        {
           path: "booking-history",
           element: LoadComponent(BookingHistory),
         },
@@ -186,6 +194,10 @@ const AllRoutes = () => {
         {
           path: "verify-otp",
           element: LoadComponent(VerifyOtp),
+        },
+        {
+          path: "no-internet",
+          element: LoadComponent(NoInternet),
         },
         {
           // element: (<DefaultLayout />),
@@ -261,6 +273,14 @@ const AllRoutes = () => {
             {
               path: "package-details",
               element: LoadComponent(PackageDetails),
+            },
+            {
+              path: "my-club",
+              element: LoadComponent(MyClub),
+            },
+            {
+              path: "americano",
+              element: LoadComponent(Americano),
             },
           ],
         },
