@@ -84,7 +84,7 @@ const Home = () => {
     const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
 
     useEffect(() => {
-        dispatch(getUserClub({ search: "Good Club" }))
+        dispatch(getUserClub({ search: "New Club For You" }))
     }, [])
 
     useEffect(() => {
