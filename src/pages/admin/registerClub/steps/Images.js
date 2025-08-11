@@ -12,6 +12,7 @@ import { SlCloudUpload } from "react-icons/sl";
 import { useDispatch, useSelector } from "react-redux";
 import { registerClub } from "../../../../redux/thunks";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
+import { showInfo } from "../../../../helpers/Toast";
 
 const Images = ({ formData, onNext, onBack, updateFormData }) => {
   const dispatch = useDispatch();
@@ -24,7 +25,7 @@ const Images = ({ formData, onNext, onBack, updateFormData }) => {
 
     // Check if adding these files would exceed the limit
     if (previewImages.length + files.length > MAX_IMAGES) {
-      alert(`You can upload a maximum of ${MAX_IMAGES} images.`);
+      showInfo(`You can upload a maximum of ${MAX_IMAGES} images.`);
       return;
     }
 
@@ -57,7 +58,7 @@ const Images = ({ formData, onNext, onBack, updateFormData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.termsAccepted) {
-      alert("Please accept the Terms and Conditions.");
+      showInfo("Please accept the Terms and Conditions.");
       return;
     }
 

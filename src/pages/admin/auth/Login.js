@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Form, Button, Alert } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaEnvelope, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginOwner } from '../../../redux/thunks';
-import Layout from './AuthLayout';
-import { ButtonLoading } from '../../../helpers/loading/Loaders';
+import { useState } from "react";
+import { Form, Button, Alert } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import { FaEnvelope, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { loginOwner } from "../../../redux/thunks";
+import Layout from "./AuthLayout";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -13,33 +13,33 @@ const LoginPage = () => {
   const { authLoading } = useSelector((state) => state.ownerAuth);
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     remember: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState('');
+  const [apiError, setApiError] = useState("");
 
   const togglePassword = () => setShowPassword((prev) => !prev);
 
   const validate = () => {
     const errs = {};
     if (!formData.email.trim()) {
-      errs.email = 'Please enter your Email';
+      errs.email = "Please enter your Email";
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      errs.email = 'Invalid email format';
+      errs.email = "Invalid email format";
     }
 
     if (!formData.password.trim()) {
-      errs.password = 'Please enter your Password';
+      errs.password = "Please enter your Password";
     }
     return errs;
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const updatedValue = type === 'checkbox' ? checked : value;
+    const updatedValue = type === "checkbox" ? checked : value;
 
     setFormData((prev) => ({
       ...prev,
@@ -58,18 +58,20 @@ const LoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setApiError('');
+    setApiError("");
     const validationErrors = validate();
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      await dispatch(loginOwner({ email: formData.email, password: formData.password })).unwrap();
-      navigate('/admin/register');
+      await dispatch(
+        loginOwner({ email: formData.email, password: formData.password })
+      ).unwrap();
+      navigate("/admin/register");
       // navigate('/admin/dashboard');
     } catch (err) {
-      setApiError(err || 'Login failed. Try again.');
+      setApiError(err || "Login failed. Try again.");
     }
   };
 
@@ -77,10 +79,12 @@ const LoginPage = () => {
     <Layout>
       <div className="w-50">
         <h2 className="fw-bold fs-4 mb-2">WELCOME BACK</h2>
-        <p className="text-muted mb-4">Welcome back! Please enter your details.</p>
-        {apiError && <Alert variant="danger" className="p-0 px-1 small">{apiError}</Alert>}
+        <p className="text-muted mb-4">
+          Welcome back! Please enter your details.
+        </p>
 
         <Form onSubmit={handleLogin} noValidate>
+          <span className="p-1 small text-danger">{apiError}</span>
           {/* Email */}
           <Form.Group controlId="formEmail" className="mb-3 position-relative">
             <Form.Control
@@ -91,46 +95,57 @@ const LoginPage = () => {
               disabled={authLoading}
               onChange={handleChange}
               isInvalid={!!errors.email}
-              style={{ paddingRight: '40px', borderRadius: '8px' }}
+              style={{ paddingRight: "40px", borderRadius: "8px" }}
             />
-            {!errors.email && <FaEnvelope
-              style={{
-                position: 'absolute',
-                right: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#aaa',
-              }}
-            />}
-            <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+            {!errors.email && (
+              <FaEnvelope
+                style={{
+                  position: "absolute",
+                  right: "14px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "#aaa",
+                }}
+              />
+            )}
+            <Form.Control.Feedback type="invalid">
+              {errors.email}
+            </Form.Control.Feedback>
           </Form.Group>
 
           {/* Password */}
-          <Form.Group controlId="formPassword" className="mb-3 position-relative">
+          <Form.Group
+            controlId="formPassword"
+            className="mb-3 position-relative"
+          >
             <Form.Control
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               name="password"
               placeholder="********"
               value={formData.password}
               onChange={handleChange}
               disabled={authLoading}
               isInvalid={!!errors.password}
-              style={{ paddingRight: '40px', borderRadius: '8px' }}
+              style={{ paddingRight: "40px", borderRadius: "8px" }}
             />
-            {!errors.password && <div
-              onClick={togglePassword}
-              style={{
-                position: 'absolute',
-                right: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                cursor: 'pointer',
-                color: '#aaa',
-              }}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </div>}
-            <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
+            {!errors.password && (
+              <div
+                onClick={togglePassword}
+                style={{
+                  position: "absolute",
+                  right: "14px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  cursor: "pointer",
+                  color: "#aaa",
+                }}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </div>
+            )}
+            <Form.Control.Feedback type="invalid">
+              {errors.password}
+            </Form.Control.Feedback>
           </Form.Group>
 
           {/* Remember & Forgot */}
@@ -153,21 +168,25 @@ const LoginPage = () => {
             disabled={authLoading}
             className="w-100 fw-semibold"
             style={{
-              padding: '12px',
-              borderRadius: '30px',
-              background: 'linear-gradient(to right, #4caf50, #3f51b5)',
-              border: 'none',
-              fontSize: '16px',
+              padding: "12px",
+              borderRadius: "30px",
+              background: "linear-gradient(to right, #4caf50, #3f51b5)",
+              border: "none",
+              fontSize: "16px",
             }}
           >
-            {authLoading ? <ButtonLoading /> : 'Sign in'}
+            {authLoading ? <ButtonLoading /> : "Sign in"}
           </Button>
         </Form>
 
         {/* Sign Up */}
         <p className="mt-4 text-center small">
-          Don’t have an account?{' '}
-          <Link to="/admin/sign-up" className="fw-bold text-decoration-none" style={{ color: '#3f51b5' }}>
+          Don’t have an account?{" "}
+          <Link
+            to="/admin/sign-up"
+            className="fw-bold text-decoration-none"
+            style={{ color: "#3f51b5" }}
+          >
             Sign up for free!
           </Link>
         </p>
