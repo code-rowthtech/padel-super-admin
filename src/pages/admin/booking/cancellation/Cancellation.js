@@ -71,7 +71,7 @@ const Cancellation = () => {
     }
 
     dispatch(getBookingByStatus(payload));
-  }, [tab, startDate, endDate]);
+  }, [tab, sendDate]);
 
   // Booking details handler
   const handleBookingDetails = async (id) => {
@@ -176,10 +176,7 @@ const Cancellation = () => {
             {getBookingLoading ? (
               <DataLoading height="60vh" />
             ) : bookings.length > 0 ? (
-              <div
-                style={{ maxHeight: "290px", overflowY: "auto" }}
-                className="custom-scroll-container"
-              >
+              <div className="custom-scroll-container">
                 <Table responsive borderless size="sm" className="custom-table">
                   <thead>
                     <tr>
@@ -221,7 +218,7 @@ const Cancellation = () => {
                         </td>
                         <td onClick={() => handleBookingDetails(item._id)}>
                           {loadingBookingId === item._id ? (
-                            <ButtonLoading color="blue" />
+                            <ButtonLoading color="blue" size={7} />
                           ) : (
                             <FaEye className="text-primary" />
                           )}

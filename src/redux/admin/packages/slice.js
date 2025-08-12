@@ -1,10 +1,19 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllPackages, createPackage } from "./thunk";
+import {
+  getAllPackages,
+  createPackage,
+  updatePackage,
+  deletePackage,
+} from "./thunk";
+import { update } from "../../../helpers/api/apiCore";
 
 const initialState = {
   packageData: null,
   packageLoading: false,
   packageError: null,
+
+  updatePackageLoading: false,
+  deletePackageLoading: false,
 };
 
 const packageSlice = createSlice({
@@ -15,6 +24,9 @@ const packageSlice = createSlice({
       state.packageData = null;
       state.packageLoading = false;
       state.packageError = null;
+
+      state.updatePackageLoading = false;
+      state.deletePackageLoading = false;
     },
   },
   extraReducers: (builder) => {
@@ -44,10 +56,33 @@ const packageSlice = createSlice({
       .addCase(createPackage.rejected, (state, action) => {
         state.packageLoading = false;
         state.packageError = action.payload;
+      })
+      // -----------------------------------------------------//---- Update Package
+      .addCase(updatePackage.pending, (state) => {
+        state.updatePackageLoading = true;
+        state.packageError = null;
+      })
+      .addCase(updatePackage.fulfilled, (state, action) => {
+        state.updatePackageLoading = false;
+        state.packageData = action.payload;
+      })
+      .addCase(updatePackage.rejected, (state, action) => {
+        state.updatePackageLoading = false;
+        state.packageError = action.payload;
+      })
+      // -----------------------------------------------------//---- Delete Package
+      .addCase(deletePackage.pending, (state) => {
+        state.deletePackageLoading = true;
+        state.packageError = null;
+      })
+      .addCase(deletePackage.fulfilled, (state, action) => {
+        state.deletePackageLoading = false;
+        state.packageData = action.payload;
+      })
+      .addCase(deletePackage.rejected, (state, action) => {
+        state.deletePackageLoading = false;
+        state.packageError = action.payload;
       });
-    // -----------------------------------------------------//---- Update Package
-
-    // -----------------------------------------------------//---- Delete Package
   },
 });
 

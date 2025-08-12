@@ -1,22 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { createPackage, updatePackage } from "../../../redux/thunks";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
 const PackageDetails = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { state } = useLocation();
 
-  const initialFormState = {
-    packageName: "",
-    numberOfSlots: "",
-    validity: "",
-    price: "",
-    description: "",
-    isActive: true,
-  };
+  // Memoized initial form state
+  const initialFormState = useMemo(
+    () => ({
+      packageName: state?.packageName || "",
+      numberOfSlots: state?.numberOfSlots?.toString() || "",
+      validity: state?.validity || "",
+      price: state?.price?.toString() || "",
+      description: state?.description || "",
+      isActive: state?.isActive ?? true,
+    }),
+    [state]
+  );
 
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -25,44 +36,94 @@ const PackageDetails = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
 
+    // Clear field-specific error on change
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
+  // Validate form fields
+  // Validate form fields
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.packageName.trim())
-      newErrors.packageName = "Please enter package name";
-    if (!formData.numberOfSlots.trim())
-      newErrors.numberOfSlots = "Please enter number of slots";
-    else if (isNaN(formData.numberOfSlots))
-      newErrors.numberOfSlots = "Slot must be number";
-    if (!formData.validity.trim()) newErrors.validity = "Please enter validity";
-    if (!formData.price.trim()) newErrors.price = "Please enter price";
-    else if (isNaN(formData.price)) newErrors.price = "Price must be number";
-    if (!formData.description.trim())
-      newErrors.description = "Please enter description";
+
+    const trimAndCheck = (field, msg) => {
+      const value = formData[field];
+      if (!String(value || "").trim()) {
+        newErrors[field] = msg;
+      }
+    };
+
+    trimAndCheck("packageName", "Please enter package name");
+    trimAndCheck("numberOfSlots", "Please enter number of slots");
+    if (formData.numberOfSlots && isNaN(Number(formData.numberOfSlots))) {
+      newErrors.numberOfSlots = "Slot must be a number";
+    }
+
+    trimAndCheck("validity", "Please enter validity");
+    trimAndCheck("price", "Please enter price");
+    if (formData.price && isNaN(Number(formData.price))) {
+      newErrors.price = "Price must be a number";
+    }
+
+    trimAndCheck("description", "Please enter description");
+
     return newErrors;
   };
 
+  // Reset form to initial state
   const resetForm = () => {
     setFormData(initialFormState);
     setErrors({});
   };
 
-  const handleSubmit = (e) => {
+  // Submit handler
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    console.log("Submitted:", formData);
-    resetForm();
-    navigate(-1);
+
+    setIsSubmitting(true);
+    try {
+      if (state?._id) {
+        await dispatch(updatePackage({ ...formData, _id: state._id })).unwrap();
+      } else {
+        await dispatch(createPackage(formData)).unwrap();
+      }
+      resetForm();
+      navigate(-1);
+    } catch (err) {
+      console.error("Package save failed:", err);
+      setErrors((prev) => ({
+        ...prev,
+        submit:
+          err?.message || "An unexpected error occurred. Please try again.",
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  function numbersOnly(e) {
+    const allowedKeys = [
+      "Backspace",
+      "Tab",
+      "ArrowLeft",
+      "ArrowRight",
+      "Delete", // control keys
+    ];
+    // Block everything except digits and allowed control keys
+    if (
+      !allowedKeys.includes(e.key) &&
+      !/^\d$/.test(e.key) // allow only 0–9 digits
+    ) {
+      e.preventDefault();
+    }
+  }
   return (
     <Container
       fluid
@@ -73,6 +134,7 @@ const PackageDetails = () => {
         maxWidth: "1200px",
       }}
     >
+      {/* Header */}
       <Row className="mb-4 justify-content-between align-items-center">
         <Col xs="auto">
           <h3 className="fw-bold mb-0" style={{ color: "#0f172a" }}>
@@ -95,6 +157,7 @@ const PackageDetails = () => {
         </Col>
       </Row>
 
+      {/* Form */}
       <Form onSubmit={handleSubmit}>
         <Row className="g-3">
           <Col md={4}>
@@ -120,6 +183,9 @@ const PackageDetails = () => {
                 name="numberOfSlots"
                 value={formData.numberOfSlots}
                 onChange={handleChange}
+                onKeyDown={(e) => {
+                  numbersOnly(e);
+                }}
                 isInvalid={!!errors.numberOfSlots}
                 className="border-1"
               />
@@ -136,6 +202,9 @@ const PackageDetails = () => {
                 name="validity"
                 value={formData.validity}
                 onChange={handleChange}
+                onKeyDown={(e) => {
+                  numbersOnly(e);
+                }}
                 isInvalid={!!errors.validity}
                 className="border-1"
               />
@@ -154,6 +223,9 @@ const PackageDetails = () => {
                 name="price"
                 value={formData.price}
                 onChange={handleChange}
+                onKeyDown={(e) => {
+                  numbersOnly(e);
+                }}
                 isInvalid={!!errors.price}
                 className="border-1"
               />
@@ -164,6 +236,7 @@ const PackageDetails = () => {
           </Col>
 
           <Col md={8} className="d-flex align-items-center">
+            {/* Status Toggle */}
             <div className="d-flex align-items-center">
               <span
                 className="me-3"
@@ -176,7 +249,6 @@ const PackageDetails = () => {
                 Status:
               </span>
 
-              {/* Professional Toggle Switch */}
               <div
                 onClick={() =>
                   setFormData((p) => ({ ...p, isActive: !p.isActive }))
@@ -241,6 +313,10 @@ const PackageDetails = () => {
           </Col>
         </Row>
 
+        {errors.submit && (
+          <div className="text-danger mt-2">{errors.submit}</div>
+        )}
+
         <Row className="mt-4 justify-content-end">
           <Col xs="auto">
             <Button
@@ -254,11 +330,12 @@ const PackageDetails = () => {
                 borderRadius: "8px",
                 fontWeight: 600,
               }}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
-              variant="primary"
+              variant="success"
               type="submit"
               className="px-4 py-2"
               style={{
@@ -267,8 +344,15 @@ const PackageDetails = () => {
                 backgroundColor: "#22c55e",
                 border: "none",
               }}
+              disabled={isSubmitting}
             >
-              Confirm
+              {isSubmitting ? (
+                <ButtonLoading size={15} />
+              ) : state?._id ? (
+                "Update"
+              ) : (
+                "Confirm"
+              )}
             </Button>
           </Col>
         </Row>

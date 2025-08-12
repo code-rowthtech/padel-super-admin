@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from "../../../helpers/api/apiEndpoint";
-import { create, getApi } from "../../../helpers/api/apiCore";
+import { create, getApi, remove, update } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 export const getAllPackages = createAsyncThunk(
@@ -10,7 +10,7 @@ export const getAllPackages = createAsyncThunk(
       const res = await getApi(
         `${Url.GET_ALL_PACKAGES}?search=${params?.search}`
       );
-      const { status, data, message } = res?.data || {};
+      const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
@@ -19,7 +19,7 @@ export const getAllPackages = createAsyncThunk(
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      showError(error);
+      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }
@@ -42,6 +42,47 @@ export const createPackage = createAsyncThunk(
     } catch (error) {
       showError(error);
       return rejectWithValue(error?.response?.data?.message || "Network error");
+    }
+  }
+);
+
+export const updatePackage = createAsyncThunk(
+  "club/updatePackage",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await update(Url.UPDATE_PACKAGE, data);
+      if (res?.status === 200) {
+        showSuccess(res?.data?.message);
+        return res?.data;
+      } else {
+        showError(res?.data?.message || "Failed to update package");
+        return rejectWithValue(
+          res?.data?.message || "Failed to update package"
+        );
+      }
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error?.response?.data?.message || "Network error");
+    }
+  }
+);
+export const deletePackage = createAsyncThunk(
+  "club/deletePackage",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await remove(Url.DELETE_PACKAGE, { data });
+      if (res?.status === 200) {
+        showSuccess(res?.data?.message);
+        return res?.data;
+      } else {
+        showError(res?.data?.message || "Failed to delete package");
+        return rejectWithValue(
+          res?.data?.message || "Failed to delete package"
+        );
+      }
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error || "Network error");
     }
   }
 );
