@@ -1,94 +1,403 @@
+// src/components/BookingHistoryCancelModal.js
 import React, { useState } from 'react';
-import { Modal, Button } from 'react-bootstrap';
-import { FaCheckCircle } from 'react-icons/fa';
-import { logo, modalSuccess } from '../../../../assets/files';
+import { Modal, Button, Form } from 'react-bootstrap';
+import { modalSuccess, logo } from '../../../../assets/files';
 
-export const BookingHistoryCancelModal = ({ show, onHide }) => {
-    const [changeContent, setChangeContent] = useState(false)
-    const closeModal = () => {
-        onHide()
-        setTimeout(()=>
-        setChangeContent(false),500)
+export const BookingHistoryCancelModal = ({ show, onHide, booking }) => {
+  const [changeContent, setChangeContent] = useState(false);
+  const [selectedReason, setSelectedReason] = useState('');
+  const [otherReason, setOtherReason] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  console.log(otherReason, 'otherReason');
+
+  const handleClose = () => {
+    onHide();
+    setChangeContent(false);
+    setSelectedReason('');
+    setOtherReason('');
+    setShowSuccessModal(false);
+    setShowConfirmationModal(false);
+  };
+
+  const handleSubmit = () => {
+    if (!selectedReason || (selectedReason === 'other' && !otherReason.trim())) {
+      alert('Please select a reason or provide a custom reason.');
+      return;
     }
-    return (
-        <Modal show={show} onHide={closeModal} centered backdrop="static">
-            <Modal.Body className="text-center p-4">
-                <div className="d-flex justify-content-end">
-                    <i class="bi bi-x fs-4 text-danger" onClick={closeModal}></i>
-                </div>
+    setShowSuccessModal(true);
+  };
 
-                {/* Check Icon */}
-                {!changeContent && <img src={modalSuccess} alt="Details" className='py-4' style={{ width: '200px', marginBottom: '20px' }} />}
+  const handleContinue = () => {
+    setShowSuccessModal(false);
+    setShowConfirmationModal(true);
+  };
 
-                <div className="rounded-3 border mb-4" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <div className="d-flex justify-content-start ps-2 pt-2 align-items-center">
-                        <img src={logo} className='rounded-circle shadow' style={{ width: "80px", height: "80px", objectFit: "contain" }} alt="Logo" />
-                        <p>Your Slots are Successfully booked.</p>
-                    </div>
-                    <div className="d-flex justify-content-between align-items-center">
-                        <div className="text-start p-2 ps-3">
-                            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: "500", fontFamily: 'Poppins' }}>Name</p>
-                            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: "500", fontFamily: 'Poppins' }}>Court Number</p>
-                            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: "500", fontFamily: 'Poppins' }}>Date & Time /Min</p>
-                        </div>
-                        <div className="text-end p-2 pe-3">
-                            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: "600", fontFamily: 'Poppins' }}>The Good Club</p>
-                            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: "600", fontFamily: 'Poppins' }}>1 Court</p>
-                            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: "600", fontFamily: 'Poppins' }}>19thJun’ 2025  8:00am (60min)</p>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <>
+      <Modal show={show && !showSuccessModal && !showConfirmationModal} onHide={handleClose} centered backdrop="static">
+        <Modal.Body className="text-center p-4">
+          <div className="d-flex justify-content-end">
+            <button
+              type="button"
+              className="bi bi-x fs-4 text-danger"
+              style={{ border: 'none', background: 'none' }}
+              aria-label="Close"
+              onClick={handleClose}
+            />
+          </div>
 
-                {/* Payment Details */}
-                <div className="text-start px-2">
-                    <h5>Payment Details</h5>
-                    <div className="d-flex justify-content-between">
-                        <h6>Payment Method</h6>
-                        <h6>Gpay</h6>
-                    </div>
-                    <div className="d-flex justify-content-between">
-                        <h6>Total Payment</h6>
-                        <h3 style={{ color: "#1A237E" }}>1000</h3>
-                    </div>
-                </div>
-                {changeContent && (
-                    <div className="mt-4 text-start px-2">
-                        <h5 className="mb-3" style={{ color: "#374151" }}>What's your reason to cancel this slot?</h5>
-                        <select className="form-select">
-                            <option selected disabled>Choose a reason</option>
-                            <option value="not-available">Not Available</option>
-                            <option value="timing-issue">Timing Issue</option>
-                            <option value="double-booked">Double Booked</option>
-                        </select>
-                    </div>
-                )}
+          {!changeContent && (
+            <img
+              src={modalSuccess}
+              alt="Success"
+              className="py-4"
+              style={{ width: '200px', marginBottom: '20px' }}
+            />
+          )}
 
-            </Modal.Body>
-
-            <div className="justify-content-center mb-3 d-flex align-items-center p-3">
-                {changeContent ? (
-
-                    <Button
-                        style={{ backgroundColor: "#1A237E", fontWeight: "500", fontSize: "17px" }}
-                        onClick={() => {
-                            // handle submit reason
-                            closeModal();
-                        }}
-                        className="rounded-pill py-2 border-0 w-100 px-4"
-                    >
-                        Submit
-                    </Button>
-                ) : (
-                    <Button
-                        style={{ backgroundColor: "#3DBE64", fontWeight: "500", fontSize: "17px" }}
-                        onClick={() => setChangeContent(true)}
-                        className="rounded-pill py-2 border-0 w-100 px-4"
-                    >
-                        Cancel Booking
-                    </Button>
-                )}
-
+          <div className="rounded-3 border mb-4" style={{ backgroundColor: '#CBD6FF1A' }}>
+            <div className="d-flex justify-content-start ps-2 pt-2 gap-2 align-items-center">
+              <img
+                src={logo}
+                className="rounded-circle shadow"
+                style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+                alt="Club Logo"
+              />
+              <p>Your slots are successfully booked.</p>
             </div>
-        </Modal>
-    );
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="text-start p-2 ps-3">
+                <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+                  Name
+                </p>
+                <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+                  Court Number
+                </p>
+                <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+                  Date & Time /Min
+                </p>
+              </div>
+              <div className="text-end p-2 pe-3">
+                <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                  {booking?.clubName || 'The Good Club'}
+                </p>
+                <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                  {booking?.courtNumber || '1 Court'}
+                </p>
+                <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                  {booking?.dateTime || '19th Jun’ 2025 8:00am (60min)'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-start px-2">
+            <h5>Payment Details</h5>
+            <div className="d-flex justify-content-between">
+              <h6>Payment Method</h6>
+              <h6>{booking?.paymentMethod || 'Gpay'}</h6>
+            </div>
+            <div className="d-flex justify-content-between">
+              <h6>Total Payment</h6>
+              <h3 style={{ color: '#1A237E' }}>{booking?.totalPayment || '1000'}</h3>
+            </div>
+          </div>
+
+          {changeContent && (
+            <div className="mt-4 text-start px-2">
+              <h5 className="mb-3" style={{ color: '#374151' }}>
+                What's your reason to cancel this slot?
+              </h5>
+              <Form.Select
+                style={{ boxShadow: 'none' }}
+                value={selectedReason}
+                onChange={(e) => setSelectedReason(e.target.value)}
+                aria-label="Select cancellation reason"
+              >
+                <option value="" disabled>
+                  Choose a reason
+                </option>
+                <option value="not-available">Not Available</option>
+                <option value="timing-issue">Timing Issue</option>
+                <option value="double-booked">Double Booked</option>
+                <option value="other">Other</option>
+              </Form.Select>
+
+              {selectedReason === 'other' && (
+                <div className="mt-4">
+                  <p className="mb-3" style={{ fontWeight: '500', color: '#374151' }}>
+                    Write a reason here
+                  </p>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    style={{ boxShadow: 'none' }}
+                    placeholder="Please describe your reason"
+                    value={otherReason}
+                    onChange={(e) => setOtherReason(e.target.value)}
+                    aria-label="Custom cancellation reason"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="justify-content-center mb-3 d-flex align-items-center p-3">
+            {changeContent ? (
+              <Button
+                style={{ backgroundColor: '#1A237E', fontWeight: '500', fontSize: '17px', border: '0' }}
+                onClick={handleSubmit}
+                className="rounded-pill py-2 w-100 px-4"
+              >
+                Submit
+              </Button>
+            ) : (
+              <Button
+                style={{ backgroundColor: '#3DBE64', fontWeight: '500', fontSize: '17px', border: '0' }}
+                onClick={() => setChangeContent(true)}
+                className="rounded-pill py-2 w-100 px-4"
+              >
+                Cancel Booking
+              </Button>
+            )}
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      <BookingHistorySuccessModal
+        show={showSuccessModal}
+        onHide={handleClose}
+        onContinue={handleContinue}
+      />
+
+      <CancellationConfirmationModal
+        show={showConfirmationModal}
+        onHide={handleClose}
+        selectedReason={selectedReason}
+        otherReason={otherReason}
+      />
+    </>
+  );
+};
+
+export const BookingHistorySuccessModal = ({ show, onHide, onContinue }) => {
+  return (
+    <Modal show={show} onHide={onHide} centered backdrop="static">
+      <Modal.Body className="text-center p-4">
+        <div className="d-flex justify-content-end">
+          <button
+            type="button"
+            className="bi bi-x fs-4 text-danger"
+            style={{ border: 'none', background: 'none' }}
+            aria-label="Close"
+            onClick={onHide}
+          />
+        </div>
+
+        <img
+          src={modalSuccess}
+          alt="Success"
+          className="py-4"
+          style={{ width: '200px', marginBottom: '20px' }}
+        />
+
+        <div className="rounded-3 mb-4">
+          <h3>Confirm Cancellation</h3>
+          <p>You will receive your refund in your account.</p>
+          <a href="#" style={{ color: '#1A237E' }}>
+            View Status
+          </a>
+        </div>
+
+        <div className="justify-content-center mb-3 d-flex align-items-center p-3">
+          <Button
+            style={{ backgroundColor: '#1A237E', fontWeight: '500', fontSize: '17px', border: '0' }}
+            onClick={onContinue}
+            className="rounded-pill py-2 w-100 px-4"
+          >
+            Continue
+          </Button>
+        </div>
+      </Modal.Body>
+    </Modal>
+  );
+};
+
+export const CancellationConfirmationModal = ({ show, onHide, selectedReason, otherReason }) => {
+  const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
+
+  return (
+    <Modal show={show} onHide={onHide} centered backdrop="static">
+      <Modal.Body className="text-center p-4">
+        <div className="d-flex justify-content-end">
+          <button
+            type="button"
+            className="bi bi-x fs-4 text-danger"
+            style={{ border: 'none', background: 'none' }}
+            aria-label="Close"
+            onClick={onHide}
+          />
+        </div>
+        <h3 className="text-center tabel-title mb-3">Booking Cancellation</h3>
+        <div className="d-flex mb-3 justify-content-between border rounded bg-light align-items-center">
+          <div className="text-start p-2 ps-3">
+            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+              Name
+            </p>
+            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+              Court Number
+            </p>
+            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+              Date & Time /Min
+            </p>
+          </div>
+          <div className="text-end p-2 pe-3">
+            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {'The Good Club'}
+            </p>
+            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {'1 Court'}
+            </p>
+            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {'19th Jun’ 2025 8:00am (60min)'}
+            </p>
+          </div>
+        </div>
+
+        <div className="text-start mb-3 px-2">
+          <h5 className="tabel-title">Payment Details</h5>
+          <div className="d-flex justify-content-between">
+            <h6>Payment Method</h6>
+            <h6>{'Gpay'}</h6>
+          </div>
+          <div className="d-flex justify-content-between">
+            <h6>Total Payment</h6>
+            <h3 style={{ color: '#1A237E' }}>{'1000'}</h3>
+          </div>
+        </div>
+
+        <div className="mt-3 mb-3">
+          <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
+            What’s your reason to cancel this slot
+          </h5>
+          <Form.Select
+            as="select"
+            value={displayReason}
+            disabled
+            aria-label="Cancellation reason"
+            style={{ boxShadow: 'none' }}
+          >
+            <option value={displayReason}>{displayReason}</option>
+          </Form.Select>
+        </div>
+
+        <div className="rounded-3 mb-4">
+          <h3 className="tabel-title">You will Receive a message with in ‘5 hr to 1 day’ about this request</h3>
+          <p className="table-data">
+            If you are not receive any message, so{' '}
+            <span className="text-primary">apply <br /> again</span> to cancellation.
+          </p>
+        </div>
+      </Modal.Body>
+      <CancellationConfirmationModal selectedReason={selectedReason} otherReason={otherReason} />
+
+    </Modal>
+  );
+};
+
+export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, selectedReason, otherReason }) => {
+  const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
+
+  return (
+    <Modal show={show} onHide={onHide} centered backdrop="static">
+      <Modal.Body className="text-center p-4">
+        <div className="d-flex justify-content-end">
+          <button
+            type="button"
+            className="bi bi-x fs-4 text-danger"
+            style={{ border: 'none', background: 'none' }}
+            aria-label="Close"
+            onClick={onHide}
+          />
+        </div>
+        <h3 className="text-center tabel-title mb-3">Booking Cancellation</h3>
+        {selectedOption === "Accepted" || booking === "Accepted" ?
+          <img
+            src={modalSuccess}
+            alt="Success"
+            className="py-4"
+            style={{ width: '200px', marginBottom: '20px' }}
+          />
+          :null
+        }
+        <div className="d-flex mb-3 justify-content-between border rounded bg-light align-items-center">
+          <div className="text-start p-2 ps-3">
+            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+              Name
+            </p>
+            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+              Court Number
+            </p>
+            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+              Date & Time /Min
+            </p>
+          </div>
+          <div className="text-end p-2 pe-3">
+            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {'The Good Club'}
+            </p>
+            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {'1 Court'}
+            </p>
+            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {'19th Jun’ 2025 8:00am (60min)'}
+            </p>
+          </div>
+        </div>
+
+        <div className="text-start mb-3 px-2">
+          <h5 className="tabel-title">Payment Details</h5>
+          <div className="d-flex justify-content-between">
+            <h6>Payment Method</h6>
+            <h6>{'Gpay'}</h6>
+          </div>
+          <div className="d-flex justify-content-between">
+            <h6>Total Payment</h6>
+            <h3 style={{ color: '#1A237E' }}>{'1000'}</h3>
+          </div>
+        </div>
+
+        <div className="mt-3 mb-3">
+          <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
+            What’s your reason to cancel this slot
+          </h5>
+          <Form.Select
+            as="select"
+            value={displayReason}
+            disabled
+            aria-label="Cancellation reason"
+            style={{ boxShadow: 'none' }}
+          >
+            <option value={displayReason}>{displayReason}</option>
+          </Form.Select>
+        </div>
+
+        <div className="rounded-3 mb-4">
+          {selectedOption === "Accepted" || booking === "Accepted" ?
+            <h3 className="tabel-title">Your Refund has been Deposited into your account within 3 days</h3>
+            :
+            <>
+              <h3 className="tabel-title">Your Request has been <span className="text-danger">Rejected</span> Because of our <span className='text-primary'>team & condition</span>  are not applicable on this reason</h3>
+              <p className="table-data">
+                If you Know our team & condition for cancellation, so <br /> <span className="text-primary">click here</span>
+              </p>
+            </>
+          }
+
+
+        </div>
+      </Modal.Body>
+    </Modal>
+  );
 };

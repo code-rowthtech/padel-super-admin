@@ -19,9 +19,11 @@ const Booking = ({
     const dispatch = useDispatch()
     const { slotData } = useSelector((state) => state?.userSlot);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+    const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]);
+
     const location = useLocation();
     console.log(slotData, 'slotData');
-    const clubData = location.state?.clubData;
+    console.log(clubData, 'booking0000');
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
             setIsOpen(false);
@@ -85,13 +87,13 @@ const Booking = ({
     };
 
     const handleCourtSelect = (court) => {
-        const timeOnly = selectedTimes.map((item) => item?.time); // Extract time strings only
+        const timeOnly = selectedTimes.map((item) => item?.time);
         const newCourt = { ...court, time: timeOnly, date: selectedDate?.fullDate };
         setSelectedCourts((prev) => [...prev, newCourt]);
     };
 
 
-    const total = selectedCourts.reduce((sum, c) => sum + c.price, '');
+    const total = selectedCourts.reduce((sum, c) => sum + c.price || 100, '');
 
     const handleDelete = (index) => {
         const updatedCourts = [...selectedCourts];
@@ -105,10 +107,9 @@ const Booking = ({
     const width = 370;
     const height = 75;
     const circleRadius = height * 0.3;
-    // Calculate the center of the curved end section more precisely
-    const curvedSectionStart = width * 0.76; // Where the curve starts
-    const curvedSectionEnd = width * 0.996; // Where the curve ends
-    const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1; // Added 1 pixel to the right
+    const curvedSectionStart = width * 0.76;
+    const curvedSectionEnd = width * 0.996;
+    const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
     const circleY = height * 0.5;
     const arrowSize = circleRadius * 0.6;
     const arrowX = circleX;
@@ -371,9 +372,9 @@ const Booking = ({
                                         })
 
                                     ) : (
-                                    <div className="text-end">
-                                        <p className="text-danger text-center fw-medium">No slots available for this date.</p>
-                                    </div>
+                                        <div className="text-end">
+                                            <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                                        </div>
                                     )}
                                 </div>
                                 <div>
