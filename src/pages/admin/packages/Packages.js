@@ -81,9 +81,9 @@ const Packages = () => {
   const handleToggleStatus = useCallback(
     async (pkg) => {
       try {
-        setToggleLoadingId(pkg._id);
+        setToggleLoadingId(pkg?._id);
         await dispatch(
-          updatePackage({ _id: pkg._id, isActive: !pkg.isActive })
+          updatePackage({ _id: pkg?._id, isActive: !pkg?.isActive })
         ).unwrap();
         await dispatch(getAllPackages({ search: "" }));
       } catch (error) {
@@ -315,7 +315,7 @@ const Packages = () => {
               {packages?.length > 0 ? (
                 <>
                   {packages.map((pkg, index) => (
-                    <Col xs={12} key={pkg._id}>
+                    <Col xs={12} key={pkg?._id}>
                       <Card
                         className={`border-0 shadow-sm ${
                           selectedPackage === index
@@ -334,15 +334,15 @@ const Packages = () => {
                             className="fw-bold text-primary"
                             style={{ fontSize: "20px", minWidth: "90px" }}
                           >
-                            ₹{pkg.price}
+                            ₹{pkg?.price}
                           </div>
                           <div className="flex-grow-1 ms-3">
-                            <h6 className="fw-bold mb-1">{pkg.packageName}</h6>
+                            <h6 className="fw-bold mb-1">{pkg?.packageName}</h6>
                             <p
                               className="text-muted mb-1"
                               style={{ fontSize: "12px" }}
                             >
-                              {pkg.description}
+                              {pkg?.description}
                             </p>
                             <div
                               className="d-flex gap-4"
@@ -351,13 +351,17 @@ const Packages = () => {
                               <span>
                                 Slots:{" "}
                                 <strong style={{ color: "#0f172a" }}>
-                                  {pkg.numberOfSlots}
+                                  {pkg?.numberOfSlots}
                                 </strong>
                               </span>
                               <span>
                                 Validity:{" "}
                                 <strong style={{ color: "#0f172a" }}>
-                                  {pkg.validity}
+                                  {pkg?.validity
+                                    ? `${pkg?.validity} ${
+                                        pkg?.validity > 1 ? "days" : "day"
+                                      }`
+                                    : "N/A"}
                                 </strong>
                               </span>
                             </div>
@@ -387,8 +391,8 @@ const Packages = () => {
                             ) : (
                               <Form.Check
                                 type="switch"
-                                checked={pkg.isActive}
-                                disabled={toggleLoadingId === pkg._id}
+                                checked={pkg?.isActive}
+                                disabled={toggleLoadingId === pkg?._id}
                                 onChange={(e) => {
                                   e.stopPropagation();
                                   handleToggleStatus(pkg);
