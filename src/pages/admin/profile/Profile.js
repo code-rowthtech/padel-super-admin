@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { FaCamera } from "react-icons/fa";
-import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
 import { updateOwner } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
 const Profile = () => {
-  const user = getUserFromSession();
+  const user = getOwnerFromSession();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { authLoading } = useSelector((state) => state.ownerAuth);

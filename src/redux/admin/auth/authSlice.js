@@ -10,15 +10,15 @@ import {
   resetPassword,
 } from "./authThunk";
 import {
-  setLoggedInUser,
-  getUserFromSession,
+  setLoggedInOwner,
+  getOwnerFromSession,
   setAuthorization,
-  updateUserInSession,
+  updateSessionData,
 } from "../../../helpers/api/apiCore";
 
 const initialState = {
   authLoading: false,
-  user: getUserFromSession(),
+  user: getOwnerFromSession(),
   otp: null,
   error: null,
 };
@@ -31,16 +31,18 @@ const authSlice = createSlice({
       state.user = null;
       state.error = null;
       setAuthorization(null);
-      setLoggedInUser(null);
+      setLoggedInOwner(null);
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = "/admin/login";
     },
     resetAuth(state) {
-      state.authLoading = false;
-      state.user = null;
-      state.otp = null;
-      state.error = null;
+      state = initialState;
+
+      // state.authLoading = false;
+      // state.user = null;
+      // state.otp = null;
+      // state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -58,8 +60,9 @@ const authSlice = createSlice({
         const user = {
           ...response?.user,
           token: response.token,
+          hasCourt: response.hasCourt,
         };
-        setLoggedInUser(user);
+        setLoggedInOwner(user);
       })
       .addCase(loginOwner.rejected, (state, action) => {
         state.authLoading = false;
@@ -74,7 +77,7 @@ const authSlice = createSlice({
       .addCase(signupOwner.fulfilled, (state, action) => {
         state.authLoading = false;
         state.user = action.payload;
-        setLoggedInUser(action.payload);
+        setLoggedInOwner(action.payload);
       })
       .addCase(signupOwner.rejected, (state, action) => {
         state.authLoading = false;
@@ -103,7 +106,7 @@ const authSlice = createSlice({
       .addCase(verifyOtp.fulfilled, (state, action) => {
         state.authLoading = false;
         state.otp = action.payload;
-        // setLoggedInUser(action.payload);
+        // setLoggedInOwner(action.payload);
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.authLoading = false;
@@ -132,7 +135,7 @@ const authSlice = createSlice({
       .addCase(updateOwner.fulfilled, (state, action) => {
         state.authLoading = false;
         state.user = action.payload;
-        updateUserInSession(action.payload?.response);
+        updateSessionData(action.payload?.response);
       })
       .addCase(updateOwner.rejected, (state, action) => {
         state.authLoading = false;

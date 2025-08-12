@@ -18,6 +18,7 @@ const loadRazorpay = (callback) => {
 const Payment = ({ className = "" }) => {
     const location = useLocation();
     const { courtData, clubData, seletctedCourt } = location.state || {};
+
     console.log(courtData, 'clubData');
     const [name, setName] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -94,24 +95,25 @@ const Payment = ({ className = "" }) => {
                 name,
                 phoneNumber,
                 email,
-                register_club_id: register_club_id,
+                register_club_id,
                 ownerId: clubData?.ownerId,
                 slot: courtData?.court?.map((courtItem) => ({
                     slotId: selectedSlot?._id,
                     courtName: courtItem?.courtName,
                     bookingDate: courtData?.date,
-                    businessHours: selectedTimeArray.map((time) => ({
+                    businessHours: selectedTimeArray.map(() => ({
                         time: "6:00 AM To 10:00 PM",
                         day: courtData?.day || "Monday",
                     })),
-                    slotTimes: courtData?.court?.time?.map((timeSlot) => ({
-                        time: timeSlot?.time,
-                        amount: timeSlot?.amount || 100,
-                    })) || [],
+                    slotTimes: courtData?.slot?.[0]?.slotTimes?.map(t => ({
+                        time: t?.time,
+                        amount: t?.amount ?? 100
+                    })) || []
                 })),
             };
 
             dispatch(createBooking(payload));
+
 
             const response = await axios.post("http://103.185.212.117:7600/api/booking/createOrde", {
                 amount: totalAmount || 100,

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser, signupUser, sendOtp, verifyOtp, forgotPassword, getUser, getAllUsers, updateUser } from "./authThunk";
+import { loginUser, sendOtp, verifyOtp, getUser, getAllUsers, loginUserNumber } from "./authThunk";
 import { setLoggedInUser, getUserFromSession, setAuthorization } from "../../../helpers/api/apiCore";
 
 const initialState = {
@@ -13,7 +13,7 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    logout(state) {
+    logoutUser(state) {
       state.user = null;
       state.error = null;
       setAuthorization(null);
@@ -45,25 +45,31 @@ const authSlice = createSlice({
           ...response?.user,
           token: response.token
         }
-        setLoggedInUser(user);
+        setLoggedInUser();
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.userAuthLoading = false;
         state.error = action.payload;
       })
 
-      // Signup 
-      .addCase(signupUser.pending, (state) => {
-        state.userAuthLoading = true
+        // LoginNumber
+      .addCase(loginUserNumber.pending, (state) => {
+        state.userAuthLoading = true;
         state.error = null;
       })
-      .addCase(signupUser.fulfilled, (state, action) => {
-        state.userAuthLoading = false
+      .addCase(loginUserNumber.fulfilled, (state, action) => {
+        state.userAuthLoading = false;
         state.user = action.payload;
-        setLoggedInUser(action.payload);
+        const { response } = action.payload
+        setAuthorization(response?.token)
+        const user = {
+          ...response?.user,
+          token: response.token
+        }
+        setLoggedInUser(user);
       })
-      .addCase(signupUser.rejected, (state, action) => {
-        state.userAuthLoading = false
+      .addCase(loginUserNumber.rejected, (state, action) => {
+        state.userAuthLoading = false;
         state.error = action.payload;
       })
 
@@ -124,36 +130,9 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Update User
-      .addCase(updateUser.pending, (state) => {
-        state.userAuthLoading = true;
-        state.error = null;
-      })
-      .addCase(updateUser.fulfilled, (state, action) => {
-        state.userAuthLoading = false;
-        state.user = action.payload;
-      })
-      .addCase(updateUser.rejected, (state, action) => {
-        state.userAuthLoading = false;
-        state.error = action.payload;
-      })
 
-      // Forgot Password
-      .addCase(forgotPassword.pending, (state) => {
-        state.userAuthLoading = true;
-        state.error = null;
-      })
-      .addCase(forgotPassword.fulfilled, (state, action) => {
-        state.userAuthLoading = false;
-        // If forgotPassword doesn't return a user, you might skip this line:
-        // state.user = action.payload;
-      })
-      .addCase(forgotPassword.rejected, (state, action) => {
-        state.userAuthLoading = false;
-        state.error = action.payload;
-      })
   },
 });
 
-export const { logout, resetAuth } = authSlice.actions;
+export const { logoutUser, resetAuth } = authSlice.actions;
 export default authSlice.reducer;

@@ -14,6 +14,18 @@ export const loginUser = createAsyncThunk(
             return rejectWithValue(error);
         }
     });
+
+export const loginUserNumber = createAsyncThunk(
+    "auth/loginNumber", async (data, { rejectWithValue }) => {
+        try {
+            const res = await create(Url.User_Login_Number, data);
+            showSuccess(res?.data?.message);
+            return res?.data;
+        } catch (error) {
+            showError(error?.message);
+            return rejectWithValue(error);
+        }
+    });
 export const sendOtp = createAsyncThunk(
     "auth/sendOtp", async (data, { rejectWithValue }) => {
         try {
@@ -36,39 +48,8 @@ export const verifyOtp = createAsyncThunk(
             return rejectWithValue(error);
         }
     });
-export const signupUser = createAsyncThunk(
-    "auth/signupUser", async (data, { rejectWithValue }) => {
-        try {
-            const res = await create(Url.Verify_Otp, data);
-            showSuccess(res?.data?.message);
-            return res?.data;
-        } catch (error) {
-            showError(error?.message);
-            return rejectWithValue(error);
-        }
-    });
-export const forgotPassword = createAsyncThunk(
-    "auth/forgotPassword", async (data, { rejectWithValue }) => {
-        try {
-            const res = await create(Url.Verify_Otp, data);
-            showSuccess(res?.data?.message);
-            return res?.data;
-        } catch (error) {
-            showError(error?.message);
-            return rejectWithValue(error);
-        }
-    });
-export const updateUser = createAsyncThunk(
-    "auth/updateUser", async (data, { rejectWithValue }) => {
-        try {
-            const res = await update(Url.Verify_Otp, data);
-            showSuccess(res?.data?.message);
-            return res?.data;
-        } catch (error) {
-            showError(error?.message);
-            return rejectWithValue(error);
-        }
-    });
+
+
 export const getUser = createAsyncThunk(
     "auth/getUser", async (data, { rejectWithValue }) => {
         try {

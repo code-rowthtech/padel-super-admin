@@ -32,14 +32,17 @@ const PackageDetails = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.packageName.trim()) newErrors.packageName = "Required";
-    if (!formData.numberOfSlots.trim()) newErrors.numberOfSlots = "Required";
+    if (!formData.packageName.trim())
+      newErrors.packageName = "Please enter package name";
+    if (!formData.numberOfSlots.trim())
+      newErrors.numberOfSlots = "Please enter number of slots";
     else if (isNaN(formData.numberOfSlots))
-      newErrors.numberOfSlots = "Must be number";
-    if (!formData.validity.trim()) newErrors.validity = "Required";
-    if (!formData.price.trim()) newErrors.price = "Required";
-    else if (isNaN(formData.price)) newErrors.price = "Must be number";
-    if (!formData.description.trim()) newErrors.description = "Required";
+      newErrors.numberOfSlots = "Slot must be number";
+    if (!formData.validity.trim()) newErrors.validity = "Please enter validity";
+    if (!formData.price.trim()) newErrors.price = "Please enter price";
+    else if (isNaN(formData.price)) newErrors.price = "Price must be number";
+    if (!formData.description.trim())
+      newErrors.description = "Please enter description";
     return newErrors;
   };
 
