@@ -9,6 +9,7 @@ import bookingReducer from './admin/booking/slice';
 import userClubReducer from './user/club/slice'
 import userSlotReducer from './user/slot/slice'
 import userBookingReducer from './user/booking/slice'
+import userAuthReducer from './user/auth/authSlice'
 
 
 const store = configureStore({
@@ -23,6 +24,7 @@ const store = configureStore({
 
 
         //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
+        userAuth : userAuthReducer,
         userClub: userClubReducer,
         userSlot: userSlotReducer,
         userBooking: userBookingReducer

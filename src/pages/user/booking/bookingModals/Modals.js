@@ -316,7 +316,7 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
           <button
             type="button"
             className="bi bi-x fs-4 text-danger"
-            style={{ border: 'none', background: 'none' }}
+            style={{ border: 'none', background:'none' }}
             aria-label="Close"
             onClick={onHide}
           />

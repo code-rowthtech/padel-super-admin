@@ -1,4 +1,7 @@
 //_#_#_#_#_#_#_#_#_#_#_#--USER--_#_#_#_#_#_#_#_#_#_#_#_#_#_
+export const User_Login = "/api/customer/customerLogin";
+export const Send_Otp = "/api/customer/sentOtp";
+export const Verify_Otp = "/api/customer/verifyOtp";
 export const GET_MATCH_API = "";
 export const API = "";
 export const GET_CLUB_API = "/api/club/getAllRegisteredCourts";

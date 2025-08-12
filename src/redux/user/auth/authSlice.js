@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser, signupUser, sendOtp, verifyOtp, forgotPassword, getUser, getAllUsers, updateUser } from "./authThunks";
-import { setLoggedInUser, getUserFromSession, setAuthorization } from "../../helpers/api/apiCore";
+import { loginUser, signupUser, sendOtp, verifyOtp, forgotPassword, getUser, getAllUsers, updateUser } from "./authThunk";
+import { setLoggedInUser, getUserFromSession, setAuthorization } from "../../../helpers/api/apiCore";
 
 const initialState = {
   userAuthLoading: false,

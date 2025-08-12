@@ -4,11 +4,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authImg } from '../../../assets/files';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { logo } from '../../../assets/files';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, sendOtp } from '../../../redux/user/auth/authThunk';
 const LoginPage = () => {
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
+    const store = useSelector((state)=>state)
+    console.log(store,'============================');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const dispatch = useDispatch()
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -16,30 +21,13 @@ const LoginPage = () => {
 
         // Validate phone
         const cleanedPhone = phone.replace(/\D/g, '').slice(0, 10);
-
+        dispatch(sendOtp({ phoneNumber: cleanedPhone,countryCode: "+91",type:"Signup" }))
         if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
             setError('Please enter a valid 10-digit Indian phone number');
             return;
         }
 
-        try {
-            setLoading(true);
 
-            // ✅ Replace this with your real API call
-            const response = await fakeSendOtpApi(phone);
-
-            if (response.success) {
-                // Save phone (if needed) and redirect
-                localStorage.setItem('otpPhone', phone); // Optional: persist
-                navigate('/verify-otp');
-            } else {
-                setError('Failed to send OTP. Try again.');
-            }
-        } catch (err) {
-            setError('Something went wrong!');
-        } finally {
-            setLoading(false);
-        }
     };
 
     // Mock API
@@ -74,7 +62,7 @@ const LoginPage = () => {
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
-                                        className="rounded shadow-sm"
+                                        className="rounded form-control py-2"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         required
@@ -86,7 +74,7 @@ const LoginPage = () => {
                                         backgroundColor: '#4CAF50',
                                     }}
                                     type="submit"
-                                    className="w-100 rounded-pill py-2 fw-semibold"
+                                    className="w-100 rounded-pill border-0 py-2 fw-semibold"
                                     disabled={loading}
                                 >
                                     {loading ? <ButtonLoading size="sm" animation="border" /> : 'Get OTP'}

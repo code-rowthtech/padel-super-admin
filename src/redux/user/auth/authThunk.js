@@ -39,7 +39,7 @@ export const verifyOtp = createAsyncThunk(
 export const signupUser = createAsyncThunk(
     "auth/signupUser", async (data, { rejectWithValue }) => {
         try {
-            const res = await create(Url.User_Sign_Up, data);
+            const res = await create(Url.Verify_Otp, data);
             showSuccess(res?.data?.message);
             return res?.data;
         } catch (error) {
@@ -50,7 +50,7 @@ export const signupUser = createAsyncThunk(
 export const forgotPassword = createAsyncThunk(
     "auth/forgotPassword", async (data, { rejectWithValue }) => {
         try {
-            const res = await create(Url.Forgot_password, data);
+            const res = await create(Url.Verify_Otp, data);
             showSuccess(res?.data?.message);
             return res?.data;
         } catch (error) {
@@ -61,7 +61,7 @@ export const forgotPassword = createAsyncThunk(
 export const updateUser = createAsyncThunk(
     "auth/updateUser", async (data, { rejectWithValue }) => {
         try {
-            const res = await update(Url.Update_User, data);
+            const res = await update(Url.Verify_Otp, data);
             showSuccess(res?.data?.message);
             return res?.data;
         } catch (error) {
@@ -72,7 +72,7 @@ export const updateUser = createAsyncThunk(
 export const getUser = createAsyncThunk(
     "auth/getUser", async (data, { rejectWithValue }) => {
         try {
-            const res = await getApi(Url.Get_User, data);
+            const res = await getApi(Url.Verify_Otp, data);
             showSuccess(res?.data?.message);
             return res?.data;
         } catch (error) {
@@ -84,7 +84,7 @@ export const getAllUsers = createAsyncThunk(
     "auth/getAllUsers",
     async (data, { rejectWithValue }) => {
         try {
-            const res = await getApi(Url.Get_All_Users, data);
+            const res = await getApi(Url.Verify_Otp, data);
             showSuccess(res?.data?.message);
             return res?.data;
         } catch (error) {

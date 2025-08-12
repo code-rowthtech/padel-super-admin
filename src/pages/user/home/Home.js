@@ -71,16 +71,7 @@ const Home = () => {
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
-
-
-    const days = [
-        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-    ];
-
-    // Get today's day index (0 for Sunday, 6 for Saturday)
     const todayIndex = new Date().getDay(); // JS: Sunday = 0, Monday = 1, ...
-
-    // Adjust index to match your array which starts with Monday
     const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
 
     useEffect(() => {
