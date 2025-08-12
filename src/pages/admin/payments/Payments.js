@@ -228,10 +228,7 @@ const Payments = () => {
             ) : (
               <>
                 {payments?.length > 0 ? (
-                  <div
-                    className="custom-scroll-container"
-                    style={{ maxHeight: "290px", overflowY: "auto" }}
-                  >
+                  <div className="custom-scroll-container">
                     <Table
                       responsive
                       borderless
@@ -277,7 +274,7 @@ const Payments = () => {
                               onClick={() => handlePaymentDetails(item?._id)}
                             >
                               {loadingPaymentId === item?._id ? (
-                                <ButtonLoading color="blue" />
+                                <ButtonLoading color="blue" size={7} />
                               ) : (
                                 <FaEye className="text-primary" />
                               )}

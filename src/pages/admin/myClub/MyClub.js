@@ -73,18 +73,19 @@ const MyClub = () => {
         {activeTab === 0 ? (
           <div
             ref={clubRef}
-            className={`border rounded p-4 bg-white ${
-              activeTab === 0 ? "border-primary border-2" : "border-light"
-            }`}
+            // className={`border rounded p-4 bg-white ${
+            //   activeTab === 0 ? "border-primary border-2" : "border-light"
+            // }`}
           >
             <ClubUpdateForm />
           </div>
         ) : (
           <div
             ref={pricingRef}
-            className={`border rounded p-4 bg-white ${
-              activeTab === 1 ? "border-primary border-2" : "border-light"
-            }`}
+            // className={`border rounded p-4 bg-white ${
+            //   activeTab === 1 ? "border-primary border-2" : "border-light"
+            // }`}
+            className="border rounded p-4 bg-white"
           >
             <Pricing />
           </div>

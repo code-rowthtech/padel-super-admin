@@ -193,7 +193,7 @@ const Booking = () => {
                         <td>{formatDate(item?.bookingDate)}</td>
                         <td style={{ cursor: "pointer" }}>
                           {loadingBookingId === item?._id ? (
-                            <ButtonLoading color="blue" />
+                            <ButtonLoading color="blue" size={7} />
                           ) : (
                             <>
                               {tab !== 1 && (

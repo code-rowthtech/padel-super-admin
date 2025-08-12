@@ -17,7 +17,10 @@ import {
   updateRegisteredClub,
 } from "../../../../redux/thunks";
 import { showInfo, showWarning } from "../../../../helpers/Toast";
-import { DataLoading } from "../../../../helpers/loading/Loaders";
+import {
+  ButtonLoading,
+  DataLoading,
+} from "../../../../helpers/loading/Loaders";
 import { useNavigate } from "react-router-dom";
 
 const MAX_IMAGES = 10;
@@ -140,8 +143,10 @@ const validateFields = (data) => {
 const ClubUpdateForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { ownerClubLoading, ownerClubError, ownerClubData, updateClubLoading } =
-    useSelector((state) => state.manualBooking);
+  const { ownerClubLoading, ownerClubError, ownerClubData } = useSelector(
+    (state) => state.manualBooking
+  );
+  const { updateClubLoading } = useSelector((state) => state.club);
   const clubDetails = ownerClubData?.[0];
 
   // Prefill from clubDetails and update if clubDetails changes.
@@ -488,7 +493,7 @@ const ClubUpdateForm = () => {
       // Only append new images (files) to the form data
       previewImages.forEach((image, index) => {
         if (!image.isRemote && image.file) {
-          apiFormData.append("images", image.file);
+          apiFormData.append("image", image.file);
           apiFormData.append("imageIndex", index);
         }
       });
@@ -503,7 +508,11 @@ const ClubUpdateForm = () => {
       }
 
       try {
-        dispatch(updateRegisteredClub(apiFormData));
+        dispatch(updateRegisteredClub(apiFormData))
+          .unwrap()
+          .then(() => {
+            dispatch(getOwnerRegisteredClub());
+          });
         console.log("Form ready to submit", apiFormData);
       } catch (err) {
         console.error("Update failed:", err);
@@ -821,7 +830,7 @@ const ClubUpdateForm = () => {
             {renderBusinessHours()}
           </div>
 
-          <div className="mt-3">
+          {/* <div className="mt-3">
             <Form.Check
               type="checkbox"
               id="termsCheckbox"
@@ -851,7 +860,7 @@ const ClubUpdateForm = () => {
                 </span>
               }
             />
-          </div>
+          </div> */}
 
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button
@@ -863,11 +872,17 @@ const ClubUpdateForm = () => {
             </Button>
             <Button
               variant="success"
+              style={{
+                borderRadius: "8px",
+                fontWeight: 600,
+                backgroundColor: "#22c55e",
+                border: "none",
+              }}
               onClick={handleSubmit}
               disabled={!isFormValid || updateClubLoading}
               className="rounded-pill px-4 py-2 fw-medium"
             >
-              {updateClubLoading ? "Processing..." : "Update"}
+              {updateClubLoading ? <ButtonLoading size={13} /> : "Update"}
             </Button>
           </div>
 

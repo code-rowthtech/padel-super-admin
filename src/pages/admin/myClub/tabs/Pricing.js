@@ -53,7 +53,7 @@ const Pricing = () => {
       return acc;
     }, {}),
     prices: { Morning: {}, Afternoon: {}, Evening: {}, All: {} },
-    changesConfirmed: false,
+    changesConfirmed: true,
   });
 
   const selectAllChecked = useMemo(
@@ -95,13 +95,13 @@ const Pricing = () => {
   }, [pricingData, formData.selectedSlots, convertTo12HourFormat]);
 
   /** Fetch slots when days/slots change */
+  const selectedDays = Object.keys(formData.days).filter(
+    (day) => formData.days[day]
+  );
+  const isAll = selectedDays.length === DAYS_OF_WEEK.length;
   useEffect(() => {
-    const selectedDays = Object.keys(formData.days).filter(
-      (day) => formData.days[day]
-    );
     if (!selectedDays.length || !registerId) return;
 
-    const isAll = selectedDays.length === DAYS_OF_WEEK.length;
     dispatch(
       getSlots({
         register_club_id: registerId,
@@ -328,10 +328,17 @@ const Pricing = () => {
 
     dispatch(updatePrice(payload))
       .unwrap()
-      // .then(() => {
-      //   navigate("/admin/dashboard");
-      //   dispatch(resetClub());
-      // })
+      .then(() => {
+        // navigate("/admin/dashboard");
+        dispatch(
+          getSlots({
+            register_club_id: registerId,
+            day: isAll ? "All" : selectedDays,
+            time: isAll ? "" : formData.selectedSlots,
+          })
+        );
+        dispatch(resetClub());
+      })
       .catch(() => alert("Failed to update prices."));
   };
 
@@ -354,7 +361,7 @@ const Pricing = () => {
 
           <Col md={6}>
             {!selectAllChecked && (
-              <Dropdown className="mb-2">
+              <Dropdown>
                 <Dropdown.Toggle
                   variant="secondary"
                   style={{
@@ -391,7 +398,7 @@ const Pricing = () => {
         </Row>
 
         <Row className="mt-4">
-          <Col>
+          {/* <Col>
             <Form.Check
               type="checkbox"
               checked={formData.changesConfirmed}
@@ -400,14 +407,14 @@ const Pricing = () => {
                 <span>If done, click this before moving to other pages.</span>
               }
             />
-          </Col>
+          </Col> */}
         </Row>
 
         <div className="d-flex justify-content-end mt-4">
           <Button
             type="submit"
             style={{
-              backgroundColor: "#374151",
+              backgroundColor: "#22c55e",
               border: "none",
               borderRadius: "30px",
               padding: "10px 30px",
