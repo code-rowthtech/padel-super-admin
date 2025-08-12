@@ -25,7 +25,7 @@ import {
   ButtonLoading,
   DataLoading,
 } from "../../../../helpers/loading/Loaders";
-import { getUserFromSession } from "../../../../helpers/api/apiCore";
+import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 import { formatDate } from "../../../../helpers/Formatting";
 import {
   getBookingByStatus,
@@ -35,7 +35,7 @@ import {
 import { resetBookingData } from "../../../../redux/admin/booking/slice";
 const Cancellation = () => {
   const dispatch = useDispatch();
-  const ownerId = getUserFromSession()?._id;
+  const ownerId = getOwnerFromSession()?._id;
 
   const [startDate, setStartDate] = useState(null); // empty by default
   const [endDate, setEndDate] = useState(null); // empty by default
@@ -71,7 +71,7 @@ const Cancellation = () => {
     }
 
     dispatch(getBookingByStatus(payload));
-  }, [tab, sendDate]);
+  }, [tab, startDate, endDate]);
 
   // Booking details handler
   const handleBookingDetails = async (id) => {
@@ -135,7 +135,7 @@ const Cancellation = () => {
               selected={startDate}
               onChange={(date) => {
                 setStartDate(date);
-                if (!date) setEndDate(null); // reset end date if start cleared
+                if (!date) setEndDate(null);
               }}
               selectsStart
               startDate={startDate}

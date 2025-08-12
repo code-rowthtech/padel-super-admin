@@ -15,7 +15,7 @@ import { MdDateRange } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
-import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { FaEye, FaChartLine } from "react-icons/fa";
 import {
   BsArrowUpRightCircleFill,
@@ -28,6 +28,7 @@ import {
 } from "../../../redux/thunks";
 import { Link } from "react-router-dom";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
+import { resetBookingData } from "../../../redux/admin/booking/slice";
 
 const Payments = () => {
   const [startDate, setStartDate] = useState(null);
@@ -40,6 +41,7 @@ const Payments = () => {
   const [tab, setTab] = useState(0);
 
   const handleTabChange = (_, newValue) => {
+    dispatch(resetBookingData());
     setTab(newValue);
   };
   const DateButton = ({ value, onClick }) => (
@@ -74,7 +76,7 @@ const Payments = () => {
 
     dispatch(getBookingByStatus(payload));
   }, [tab, sendDate]);
-  const ownerId = getUserFromSession()?._id;
+  const ownerId = getOwnerFromSession()?._id;
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
   const handlePaymentDetails = async (id) => {

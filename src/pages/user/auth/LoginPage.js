@@ -1,53 +1,38 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { authImg } from '../../../assets/files';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { logo } from '../../../assets/files';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, sendOtp } from '../../../redux/user/auth/authThunk';
+import { resetAuth } from '../../../redux/user/auth/authSlice';
 const LoginPage = () => {
     const [phone, setPhone] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const { error, user, otp, userAuthLoading } = useSelector((state) => state?.userAuth)
+    const [showAlert, setShowAlert] = useState(false);
+    const store = useSelector((state) => state?.userAuth)
+    console.log(store, '============================');
     const navigate = useNavigate();
+    const dispatch = useDispatch()
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-
-        // Validate phone
         const cleanedPhone = phone.replace(/\D/g, '').slice(0, 10);
+        dispatch(sendOtp({ phoneNumber: cleanedPhone, countryCode: "+91", type: "Signup" })).unwrap().then(() => {
+            navigate('/verify-otp', { state: { phone } });
+            dispatch(resetAuth())
 
-        if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
-            setError('Please enter a valid 10-digit Indian phone number');
-            return;
-        }
-
-        try {
-            setLoading(true);
-
-            // ✅ Replace this with your real API call
-            const response = await fakeSendOtpApi(phone);
-
-            if (response.success) {
-                // Save phone (if needed) and redirect
-                localStorage.setItem('otpPhone', phone); // Optional: persist
-                navigate('/verify-otp');
-            } else {
-                setError('Failed to send OTP. Try again.');
-            }
-        } catch (err) {
-            setError('Something went wrong!');
-        } finally {
-            setLoading(false);
-        }
+        })
     };
 
-    // Mock API
-    const fakeSendOtpApi = (phone) => {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve({ success: true }), 1000); // Simulate success
-        });
-    };
+    useEffect(() => {
+        if (error) {
+            setShowAlert(true);
+            const timer = setTimeout(() => setShowAlert(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
 
     return (
         <div className="auth-wrapper">
@@ -67,15 +52,18 @@ const LoginPage = () => {
                             <p className="text-muted mb-4">Welcome back! Please enter your details.</p>
 
                             <Form onSubmit={handleSubmit}>
-                                {error && <Alert variant="danger">{error}</Alert>}
+                                {showAlert && <Alert variant="danger">{error}</Alert>}
+
 
                                 <Form.Group className="mb-3" controlId="formPhone">
                                     <Form.Label className="fw-semibold">Phone Number</Form.Label>
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
-                                        className="rounded shadow-sm"
+                                        className="rounded form-control py-2"
                                         value={phone}
+                                        minLength={10}
+                                        maxLength={10}
                                         onChange={(e) => setPhone(e.target.value)}
                                         required
                                     />
@@ -86,10 +74,10 @@ const LoginPage = () => {
                                         backgroundColor: '#4CAF50',
                                     }}
                                     type="submit"
-                                    className="w-100 rounded-pill py-2 fw-semibold"
-                                    disabled={loading}
+                                    className="w-100 rounded-pill border-0 py-2 fw-semibold"
+                                    disabled={userAuthLoading}
                                 >
-                                    {loading ? <ButtonLoading size="sm" animation="border" /> : 'Get OTP'}
+                                    {userAuthLoading ? <ButtonLoading size="sm" animation="border" /> : 'Get OTP'}
                                 </Button>
 
                                 <div className="text-center mt-3">

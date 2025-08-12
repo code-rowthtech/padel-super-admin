@@ -21,14 +21,14 @@ import {
   BookingDetailsModal,
   BookingCancelModal,
 } from "./manual booking/BookingModal";
-import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { formatDate } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 const Booking = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const ownerId = getUserFromSession()?._id;
+  const ownerId = getOwnerFromSession()?._id;
 
   // State
   const [showBookingDetails, setShowBookingDetails] = useState(false);
@@ -89,8 +89,8 @@ const Booking = () => {
               <Tabs
                 value={tab}
                 onChange={(_, v) => {
-                  setTab(v);
                   dispatch(resetBookingData());
+                  setTab(v);
                 }}
                 indicatorColor="primary"
                 textColor="primary"

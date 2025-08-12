@@ -3,18 +3,17 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import config from "../../config";
 
-const AUTH_SESSION_KEY = "padel_user";
+const USER_SESSION_KEY = "padel_user";
+const OWNER_SESSION_KEY = "padel_owner";
 
 // Set base URL
 axios.defaults.baseURL = config.API_URL;
 
 // Global error interceptor
-// Global error interceptor
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
     if (!navigator.onLine) {
-      // If offline, redirect to a fallback route
       window.location.href = "/no-internet";
       return Promise.reject("No internet connection");
     }
@@ -44,8 +43,9 @@ export const setAuthorization = (token) => {
   }
 };
 
+// User Session Management
 export const getUserFromSession = () => {
-  const stored = localStorage.getItem(AUTH_SESSION_KEY);
+  const stored = localStorage.getItem(USER_SESSION_KEY);
   if (!stored) return null;
 
   try {
@@ -59,54 +59,81 @@ export const getUserFromSession = () => {
 
 export const setLoggedInUser = (session) => {
   if (session) {
-    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+    localStorage.setItem(USER_SESSION_KEY, JSON.stringify(session));
     setAuthorization(session.token);
+    // Clear owner session when setting user session
+    localStorage.removeItem(OWNER_SESSION_KEY);
   } else {
-    localStorage.removeItem(AUTH_SESSION_KEY);
+    localStorage.removeItem(USER_SESSION_KEY);
     setAuthorization(null);
   }
 };
 
-export const updateUserInSession = (updatedData) => {
-  const session = getUserFromSession();
+// Owner Session Management
+export const getOwnerFromSession = () => {
+  const stored = localStorage.getItem(OWNER_SESSION_KEY);
+  if (!stored) return null;
 
-  if (session && typeof updatedData === 'object') {
-    const updatedSession = { ...session };
-
-    Object.entries(updatedData).forEach(([key, value]) => {
-      if (
-        !(key in session) ||
-        session[key] !== value
-      ) {
-        updatedSession[key] = value;
-      }
-    });
-
-    setLoggedInUser(updatedSession);
+  try {
+    const owner = JSON.parse(stored);
+    setAuthorization(owner?.token);
+    return owner;
+  } catch {
+    return null;
   }
 };
 
+export const setLoggedInOwner = (session) => {
+  if (session) {
+    localStorage.setItem(OWNER_SESSION_KEY, JSON.stringify(session));
+    setAuthorization(session.token);
+    // Clear user session when setting owner session
+    localStorage.removeItem(USER_SESSION_KEY);
+  } else {
+    localStorage.removeItem(OWNER_SESSION_KEY);
+    setAuthorization(null);
+  }
+};
+
+// Common functions
+export const updateSessionData = (updatedData) => {
+  const user = getUserFromSession();
+  const owner = getOwnerFromSession();
+  const session = user || owner;
+
+  if (session && typeof updatedData === "object") {
+    const updatedSession = { ...session, ...updatedData };
+    if (user) {
+      setLoggedInUser(updatedSession);
+    } else if (owner) {
+      setLoggedInOwner(updatedSession);
+    }
+  }
+};
+
+export const isAuthenticated = () => {
+  return isUserAuthenticated() || isOwnerAuthenticated();
+};
 
 export const isUserAuthenticated = () => {
   const user = getUserFromSession();
-  const token = user?.token;
+  return validateToken(user?.token, "user");
+};
 
+export const isOwnerAuthenticated = () => {
+  const owner = getOwnerFromSession();
+  return validateToken(owner?.token, "owner");
+};
+
+const validateToken = (token, userType) => {
   if (!token) return false;
 
   try {
     const decoded = jwtDecode(token);
     const now = Date.now() / 1000;
+
     if (decoded.exp < now) {
-      setLoggedInUser(null);
-      localStorage.clear();
-      sessionStorage.clear();
-      if (window.location.pathname.toLowerCase().startsWith("/admin")) {
-        alert("Your session has expired.");
-        window.location.href = "/admin/login";
-      } else {
-        alert("Your session has expired.");
-        window.location.href = "/";
-      }
+      handleExpiredSession(userType);
       return false;
     }
     return true;
@@ -115,7 +142,29 @@ export const isUserAuthenticated = () => {
   }
 };
 
-// --- API Helpers ---
+const handleExpiredSession = (userType) => {
+  if (userType === "user") {
+    setLoggedInUser(null);
+  } else {
+    setLoggedInOwner(null);
+  }
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  const message = "Your session has expired.";
+  alert(message);
+
+  if (window.location.pathname.toLowerCase().startsWith("/admin")) {
+    window.location.href = "/admin/login";
+  } else if (userType === "owner") {
+    window.location.href = "/owner/login";
+  } else {
+    window.location.href = "/";
+  }
+};
+
+// --- API Helpers --- (keep these the same as before)
 export const getApi = (url, params = {}) => {
   const query = new URLSearchParams(params).toString();
   return axios.get(`${url}${query ? `?${query}` : ""}`);
@@ -163,5 +212,15 @@ export const apiPatchWithFile = (url, data) => {
 };
 
 // Initialize auth header on load
-const user = getUserFromSession();
-if (user?.token) setAuthorization(user.token);
+const initializeAuth = () => {
+  const user = getUserFromSession();
+  const owner = getOwnerFromSession();
+
+  if (user?.token) {
+    setAuthorization(user.token);
+  } else if (owner?.token) {
+    setAuthorization(owner.token);
+  }
+};
+
+initializeAuth();

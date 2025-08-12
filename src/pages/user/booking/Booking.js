@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import { getUserSlot } from "../../../redux/user/slot/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders'
+import { getUserClub } from "../../../redux/user/club/thunk";
 
 const Booking = ({
     className = ""
@@ -19,9 +20,12 @@ const Booking = ({
     const dispatch = useDispatch()
     const { slotData } = useSelector((state) => state?.userSlot);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
-    const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]);
+    const store = useSelector((state) => state)
+    const clubData = store?.userClub?.clubData?.data?.courts[0]
 
-    const location = useLocation();
+    // const location = useLocation();
+    //     const clubData = location.state?.clubData;
+
     console.log(slotData, 'slotData');
     console.log(clubData, 'booking0000');
     const handleClickOutside = (e) => {
@@ -31,10 +35,13 @@ const Booking = ({
     };
 
     useEffect(() => {
+        dispatch(getUserClub({ search: "New Club For You" }))
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
     const [selectedTimes, setSelectedTimes] = useState([]);
+    const [selectedBuisness, setSelectedBuisness] = useState([]);
     const [selectedCourts, setSelectedCourts] = useState([]);
 
     const [selectedDate, setSelectedDate] = useState({
@@ -69,8 +76,10 @@ const Booking = ({
 
         if (isAlreadySelected) {
             setSelectedTimes(selectedTimes.filter(t => t._id !== time._id));
+            setSelectedBuisness(selectedBuisness.filter(t => t._id !== time._id))
         } else {
             setSelectedTimes([...selectedTimes, time]);
+            setSelectedBuisness([...selectedBuisness, time])
         }
     };
 
@@ -86,11 +95,32 @@ const Booking = ({
         Sunday: "Sun"
     };
 
+    // const handleCourtSelect = (court) => {
+    //     const timeOnly = selectedTimes.map((item) => item?.time);
+    //     const newCourt = { _id: court._id || court.id, ...court, time: timeOnly, date: selectedDate?.fullDate };
+    //     setSelectedCourts((prev) => [...prev, newCourt]);
+    // };
+
     const handleCourtSelect = (court) => {
-        const timeOnly = selectedTimes.map((item) => item?.time);
-        const newCourt = { ...court, time: timeOnly, date: selectedDate?.fullDate };
-        setSelectedCourts((prev) => [...prev, newCourt]);
+        const timeOnly = selectedTimes.map(item => ({
+            _id: item._id,
+            time: item.time,
+            amount: item.amount
+        }));
+
+        const newCourt = {
+            _id: court._id || court.id,
+            ...court,
+            date: selectedDate?.fullDate,
+            time: timeOnly
+        };
+
+        setSelectedCourts(prev => [...prev, newCourt]);
+        setSelectedTimes([]); // ready for next court's selection
     };
+
+    console.log(selectedCourts, 'selectedCourtsselectedCourts');
+
 
 
     const total = selectedCourts.reduce((sum, c) => sum + c.price || 100, '');
@@ -245,6 +275,7 @@ const Booking = ({
 
                                                 setSelectedDate({ fullDate: formattedDate, day });
                                                 setSelectedTimes([]);
+                                                
                                             }}
                                             inline
                                             maxDate={maxSelectableDate}
@@ -337,19 +368,20 @@ const Booking = ({
                                     {slotData?.data?.length > 0 &&
                                         slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
                                         slotData?.data?.[0]?.slot?.[0]?.slotTimes?.map((slot, i) => {
-                                            // Parse slot time into a Date object for today
-                                            const slotDate = new Date();
+                                            const selectedDateObj = new Date(selectedDate.fullDate);
+                                            const slotDate = new Date(selectedDateObj);
                                             const [hourString, period] = slot?.time?.toLowerCase().split(" ");
                                             let hour = parseInt(hourString);
 
                                             if (period === "pm" && hour !== 12) hour += 12;
                                             if (period === "am" && hour === 12) hour = 0;
 
-                                            // Set hours to slotDate for comparison
                                             slotDate.setHours(hour, 0, 0, 0);
 
                                             const now = new Date();
-                                            const isPast = slotDate.getTime() < now.getTime();
+                                            // Only mark as past if the selected date is today
+                                            const isToday = selectedDateObj.toDateString() === now.toDateString();
+                                            const isPast = isToday && slotDate.getTime() < now.getTime();
 
                                             const isSelected = selectedTimes.some(t => t._id === slot._id);
 
@@ -505,7 +537,7 @@ const Booking = ({
                             <h6 className=" border-top  p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>Booking summary</h6>
                             <div
                                 style={{
-                                    maxHeight: "240px", // ~4 rows x 60px each
+                                    maxHeight: "240px",
                                     overflowY: "auto",
                                 }}
                             >
@@ -523,9 +555,10 @@ const Booking = ({
                                                         return `${day}${month}`;
                                                     })()},
                                                 </span>  {Array.isArray(court.time)
-                                                    ? court.time.join(' | ')
-                                                    : court.time}{' '}
-                                                (60m)
+                                                    ? court.time.map(t => t.time).join(' | ')
+                                                    : court.time
+                                                }
+
                                             </div>
 
 
@@ -564,10 +597,14 @@ const Booking = ({
                                         courtData: {
                                             day: selectedDate?.day,
                                             date: selectedDate?.fullDate,
-                                            time: selectedTimes,
-                                            court: selectedCourts,
+                                            time: selectedBuisness,
+                                            court: selectedCourts.map(c => ({
+                                                _id: c._id || c.id,  // ensure ID is set
+                                                ...c
+                                            })),
                                             slot: slotData?.data?.[0]?.slot
-                                        }, clubData
+                                        },
+                                        clubData ,seletctedCourt:selectedCourts// now full club object, not just court[0]
                                     }} style={{ textDecoration: 'none' }} className="">
                                         <svg
                                             style={svgStyle}

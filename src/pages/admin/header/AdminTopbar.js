@@ -7,13 +7,13 @@ import {
   FaChevronUp,
 } from "react-icons/fa";
 import { Dropdown } from "react-bootstrap";
-import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useDispatch } from "react-redux";
 import { logout } from "../../../redux/admin/auth/authSlice";
 import { NavLink } from "react-router-dom";
 
 const AdminTopbar = () => {
-  const user = getUserFromSession();
+  const user = getOwnerFromSession();
   const [searchValue, setSearchValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();

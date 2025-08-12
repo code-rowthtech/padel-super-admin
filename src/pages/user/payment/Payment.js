@@ -17,7 +17,8 @@ const loadRazorpay = (callback) => {
 
 const Payment = ({ className = "" }) => {
     const location = useLocation();
-    const { courtData, clubData } = location.state || {};
+    const { courtData, clubData, seletctedCourt } = location.state || {};
+
     console.log(courtData, 'clubData');
     const [name, setName] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -29,7 +30,6 @@ const Payment = ({ className = "" }) => {
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const [selectedCourts, setSelectedCourts] = useState([]);
-    console.log({ selectedCourts });
     const totalAmount = courtData?.time?.reduce((acc, curr) => acc + (curr.amount || 100), 0);
 
     // Button styling
@@ -77,7 +77,7 @@ const Payment = ({ className = "" }) => {
         height: "100%",
         paddingRight: `${circleRadius * 2}px`,
     };
-console.log(clubData,'clubDataclubData');
+    console.log(clubData, 'clubDataclubData');
     const handlePayment = async () => {
         if (!name || !phoneNumber || !email || !selectedPayment) {
             setError("Please fill in all required fields and select a payment method.");
@@ -95,29 +95,28 @@ console.log(clubData,'clubDataclubData');
                 name,
                 phoneNumber,
                 email,
-                register_club_id: register_club_id,
+                register_club_id,
                 ownerId: clubData?.ownerId,
                 slot: courtData?.court?.map((courtItem) => ({
                     slotId: selectedSlot?._id,
-                    courtId: courtItem?._id,
-                    bookingDate: new Date(courtData?.date).toISOString(),
-                    businessHours: selectedTimeArray.map((time) => ({
-                        time: time?.time || "6:00 AM To 10:00 PM",
+                    courtName: courtItem?.courtName,
+                    bookingDate: courtData?.date,
+                    businessHours: selectedTimeArray.map(() => ({
+                        time: "6:00 AM To 10:00 PM",
                         day: courtData?.day || "Monday",
                     })),
-                    slotTimes: courtData?.time?.map((timeSlot) => ({
-                        time: timeSlot?.time,
-                        amount: timeSlot?.amount,
-                    })) || [],
+                    slotTimes: courtData?.slot?.[0]?.slotTimes?.map(t => ({
+                        time: t?.time,
+                        amount: t?.amount ?? 100
+                    })) || []
                 })),
             };
 
-            // Dispatch booking creation
             dispatch(createBooking(payload));
 
-            // Call backend to create Razorpay order with provided API and keys
-            const response = await axios.post("http://103.185.212.117:7600/api/booking/createOrder", {
-                amount: totalAmount * 100, // Amount in paise
+
+            const response = await axios.post("http://103.185.212.117:7600/api/booking/createOrde", {
+                amount: totalAmount || 100,
                 currency: "INR",
             }, {
                 headers: {
@@ -125,7 +124,7 @@ console.log(clubData,'clubDataclubData');
                 },
             });
 
-            console.log("API Response:", response.data); // Debug API response
+            console.log("API Response:", response.data);
 
             const { id } = response.data || {};
             if (!id) {
@@ -137,7 +136,7 @@ console.log(clubData,'clubDataclubData');
             loadRazorpay(() => {
                 const options = {
                     key: 'rzp_test_c5wVsgpbPYa9uX',
-                    amount: totalAmount * 100,
+                    amount: totalAmount || 100,
                     currency: 'INR',
                     name: "padel fe",
                     description: "payment to padel fe",
@@ -217,12 +216,12 @@ console.log(clubData,'clubDataclubData');
             date: courtData.date,
             day: courtData.day,
             time: timeSlot.time,
-            price: timeSlot.amount || 1000, // fallback to 1000 if amount is 0 or undefined
+            price: timeSlot.amount || 100,
             court: courtData.court?.[0]?.name || 'Court'
         }));
-        console.log({ formattedData });
+        console.log({ courtData });
 
-        setSelectedCourts(formattedData);
+        setSelectedCourts(seletctedCourt);
     }, [courtData]);
 
     const handleDelete = (index) => {
@@ -360,37 +359,58 @@ console.log(clubData,'clubDataclubData');
                             }}
                         >
                             {selectedCourts?.map((court, index) => (
-                                <div key={index} className="court-row d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <span >
-                                            <b>
-                                                {new Date(court.date).toLocaleDateString("en-GB", {
-                                                    weekday: "short",
-                                                    day: "numeric",
-                                                    month: "short",
-                                                })}
-                                                , {court.time} (60m)</b> Court {index + 1}
-                                        </span>
+                                <>
+                                    <div> <span style={{ fontWeight: "600" }}>{court?.name}</span></div>
+                                    <div key={index} className="court-row d-flex justify-content-between align-items-center mb-3 ">
+
+                                        <div>
+                                            <span style={{ fontWeight: "500" }}>
+                                                {(() => {
+                                                    const date = new Date(court.date);
+                                                    const day = date.toLocaleString('en-US', { day: '2-digit' });
+                                                    const month = date.toLocaleString('en-US', { month: 'short' });
+                                                    return `${day}${month}`;
+                                                })()},
+                                            </span>  {Array.isArray(court.time)
+                                                ? court.time.map(t => t.time).join(' | ')
+                                                : court.time
+                                            }
+
+                                        </div>
+
+
+                                        <div className="d-flex align-items-center gap-2">
+                                            <button
+                                                className="btn btn-sm text-danger delete-btn "
+                                                onClick={() => handleDelete(index)}
+                                            >
+                                                <i className="bi bi-trash-fill"></i>
+                                            </button>
+                                            <div>₹ {court.price || 100}</div>
+
+                                        </div>
+
                                     </div>
-                                    <div className="d-flex align-items-center gap-2">
-                                        <button
-                                            className="btn btn-sm text-danger delete-btn"
-                                            onClick={() => handleDelete(index)}
-                                        >
-                                            <i className="bi bi-trash-fill"></i>
-                                        </button>
-                                        <div>₹ {court.price}</div>
-                                    </div>
-                                </div>
+                                </>
                             ))}
                         </div>
 
                         <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to pay</span>
-                            <span className="" style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
-                                ₹ {selectedCourts?.reduce((acc, cur) => acc + cur.price, 0)}
+                            <span
+                                style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}
+                            >
+                                ₹ {
+                                    selectedCourts?.reduce((total, court) => {
+                                        const courtTotal = Array.isArray(court.time)
+                                            ? court.time.reduce((sum, t) => sum + (t.amount || 0), 0)
+                                            : 0;
+                                        return total + courtTotal || 100;
+                                    }, 0)
+                                }
                             </span>
                         </div>
+
 
 
                         <div className="d-flex justify-content-center mt-3">
