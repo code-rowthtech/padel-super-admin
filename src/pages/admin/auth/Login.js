@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginOwner } from "../../../redux/thunks";
 import Layout from "./AuthLayout";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -68,8 +69,11 @@ const LoginPage = () => {
       await dispatch(
         loginOwner({ email: formData.email, password: formData.password })
       ).unwrap();
-      navigate("/admin/register");
-      // navigate('/admin/dashboard');
+      const ownerData = getOwnerFromSession();
+      const shouldSkipRegister = ownerData?.hasCourt;
+
+      // 3. Navigate based on fresh data
+      navigate(shouldSkipRegister ? "/admin/dashboard" : "/admin/register");
     } catch (err) {
       setApiError(err || "Login failed. Try again.");
     }

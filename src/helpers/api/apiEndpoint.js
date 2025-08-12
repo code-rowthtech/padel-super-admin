@@ -27,3 +27,8 @@ export const MANUAL_BOOKING_BY_OWNER = "/api/booking/manualBookingByOwner";
 export const GET_BOOKING_BY_STATUS = "/api/booking/getAllBookingByStatus";
 export const GET_BOOKING_DETAILS_BY_ID = "/api/booking/findById";
 export const UPDATE_BOOKING_STATUS = "/api/booking/updateBookingStatus";
+
+export const CREATE_PACKAGE = "/api/package/createPackage";
+export const GET_ALL_PACKAGES = "/api/package/getAllPackages";
+export const UPDATE_PACKAGE = "/api/package/editPackage";
+export const DELETE_PACKAGE = "/api/package/deletePackage";

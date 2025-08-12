@@ -24,17 +24,18 @@ const BookingSlice = createSlice({
   initialState,
   reducers: {
     resetBookingData: (state) => {
-      state.getBookingData = null;
-      state.getBookingLoading = false;
-      state.getBookingError = null;
+      state = initialState;
+      //   state.getBookingData = null;
+      //   state.getBookingLoading = false;
+      //   state.getBookingError = null;
 
-      state.getBookingDetailsData = null;
-      state.getBookingDetailsLoading = false;
-      state.getBookingDetailsError = null;
+      //   state.getBookingDetailsData = null;
+      //   state.getBookingDetailsLoading = false;
+      //   state.getBookingDetailsError = null;
 
-      state.updateBookingData = null;
-      state.updateBookingLoading = false;
-      state.updateBookingError = null;
+      //   state.updateBookingData = null;
+      //   state.updateBookingLoading = false;
+      //   state.updateBookingError = null;
     },
   },
   extraReducers: (builder) => {

@@ -583,7 +583,7 @@ const ManualBooking = () => {
                     show={showSuccess}
                     handleClose={() => {
                       setShowSuccess(false);
-                      navigate(-1);
+                      // navigate(-1);
                     }}
                     openDetails={() => {
                       setShowSuccess(false);

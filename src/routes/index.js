@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 import { Navigate, useRoutes } from "react-router-dom";
-import { getUserFromSession } from "../helpers/api/apiCore";
+import { getOwnerFromSession } from "../helpers/api/apiCore";
 import DefaultLayout from "../helpers/layout/DefaultLayout";
 import Root from "./Root";
 import PrivateRoute from "./PrivateRoute";
@@ -91,7 +91,7 @@ const LoadComponent = (Component) => (
 );
 
 const AllRoutes = () => {
-  const Role = getUserFromSession()?.role;
+  const skipRegister = getOwnerFromSession()?.hasCourt;
 
   return useRoutes([
     { path: "/", element: <Root /> },
@@ -200,14 +200,12 @@ const AllRoutes = () => {
           element: LoadComponent(NoInternet),
         },
         {
-          // element: (<DefaultLayout />),
           element: (
             <PrivateRoute>
               <DefaultLayout />
             </PrivateRoute>
           ),
           children: [
-            // { index: true, element: <Navigate to="register" replace /> }, // redirect
             {
               path: "register",
               element: LoadComponent(Register),
