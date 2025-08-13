@@ -266,12 +266,124 @@ const Pricing = () => {
     });
   };
 
+  // const renderAllSlots = () => {
+  //   const allTimes =
+  //     PricingData?.[0]?.slot?.[0]?.slotTimes?.map((slot) => slot.time) || [];
+  //   const selectedTimes = Object.keys(formData.prices.All).filter(
+  //     (time) => formData.prices.All[time] !== undefined
+  //   );
+
+  //   const getCommonPrice = () => {
+  //     if (selectedTimes.length === 0) return "";
+  //     const firstPrice = formData.prices.All[selectedTimes[0]];
+  //     const allSame = selectedTimes.every(
+  //       (time) => formData.prices.All[time] === firstPrice
+  //     );
+  //     return allSame ? firstPrice : "";
+  //   };
+
+  //   const toggleSlot = (time) => {
+  //     setFormData((prev) => {
+  //       const newPrices = { ...prev.prices.All };
+  //       if (newPrices[time] === undefined) {
+  //         newPrices[time] = getCommonPrice() || "";
+  //       } else {
+  //         delete newPrices[time];
+  //       }
+  //       return {
+  //         ...prev,
+  //         prices: {
+  //           ...prev.prices,
+  //           All: newPrices,
+  //         },
+  //       };
+  //     });
+  //   };
+
+  //   const updatePriceForAll = (price) => {
+  //     setFormData((prev) => {
+  //       const newPrices = { ...prev.prices.All };
+  //       selectedTimes.forEach((time) => {
+  //         newPrices[time] = price;
+  //       });
+  //       return {
+  //         ...prev,
+  //         prices: {
+  //           ...prev.prices,
+  //           All: newPrices,
+  //         },
+  //       };
+  //     });
+  //   };
+
+  //   return (
+  //     <div>
+  //       <div className="d-flex flex-wrap gap-2 mb-3">
+  //         {allTimes.map((time) => {
+  //           const isSelected = formData.prices.All[time] !== undefined;
+  //           return (
+  //             <Button
+  //               key={time}
+  //               variant={isSelected ? "primary" : "outline-primary"}
+  //               onClick={() => toggleSlot(time)}
+  //               style={{
+  //                 padding: "8px 16px",
+  //                 fontSize: "14px",
+  //                 color: isSelected ? "#fff" : "#1F2937",
+  //                 borderRadius: "8px",
+  //                 border: "1px solid #E5E7EB",
+  //                 backgroundColor: isSelected ? "#22C55E" : "#F9FAFB",
+  //               }}
+  //             >
+  //               {time}
+  //             </Button>
+  //           );
+  //         })}
+  //       </div>
+  //       <div className="mt-3">
+  //         <h5
+  //           style={{
+  //             fontWeight: 700,
+  //             color: "#1F2937",
+  //             marginBottom: "10px",
+  //           }}
+  //         >
+  //           {selectedTimes.length > 0
+  //             ? `Set Price for ${selectedTimes.length} slot${
+  //                 selectedTimes.length > 1 ? "s" : ""
+  //               }`
+  //             : "Set Price (select slots first)"}
+  //         </h5>
+  //         <InputGroup>
+  //           <FormControl
+  //             placeholder={selectedTimes.length > 0 ? "Enter price" : ""}
+  //             value={getCommonPrice()}
+  //             onChange={(e) => updatePriceForAll(e.target.value)}
+  //             disabled={selectedTimes.length === 0}
+  //             style={{
+  //               height: "40px",
+  //               borderRadius: "8px",
+  //               border: "1px solid #E5E7EB",
+  //               fontSize: "14px",
+  //               backgroundColor: "#fff",
+  //             }}
+  //           />
+  //         </InputGroup>
+  //       </div>
+  //     </div>
+  //   );
+  // };
+
   const renderAllSlots = () => {
     const allTimes =
       PricingData?.[0]?.slot?.[0]?.slotTimes?.map((slot) => slot.time) || [];
     const selectedTimes = Object.keys(formData.prices.All).filter(
       (time) => formData.prices.All[time] !== undefined
     );
+
+    // Check if all slots are selected
+    const allSelected =
+      allTimes.length > 0 && selectedTimes.length === allTimes.length;
 
     const getCommonPrice = () => {
       if (selectedTimes.length === 0) return "";
@@ -300,6 +412,33 @@ const Pricing = () => {
       });
     };
 
+    const toggleAllSlots = () => {
+      setFormData((prev) => {
+        const newPrices = { ...prev.prices.All };
+
+        if (!allSelected) {
+          // Select all with current common price or empty
+          const commonPrice = getCommonPrice() || "";
+          allTimes.forEach((time) => {
+            newPrices[time] = commonPrice;
+          });
+        } else {
+          // Deselect all
+          allTimes.forEach((time) => {
+            delete newPrices[time];
+          });
+        }
+
+        return {
+          ...prev,
+          prices: {
+            ...prev.prices,
+            All: newPrices,
+          },
+        };
+      });
+    };
+
     const updatePriceForAll = (price) => {
       setFormData((prev) => {
         const newPrices = { ...prev.prices.All };
@@ -318,6 +457,20 @@ const Pricing = () => {
 
     return (
       <div>
+        <div className="d-flex align-items-center mb-3">
+          <Form.Check
+            type="checkbox"
+            id="select-all-slots"
+            label="Select All"
+            checked={allSelected}
+            onChange={toggleAllSlots}
+            className="me-2"
+          />
+          <span className="text-muted small">
+            {selectedTimes.length} of {allTimes.length} slots selected
+          </span>
+        </div>
+
         <div className="d-flex flex-wrap gap-2 mb-3">
           {allTimes.map((time) => {
             const isSelected = formData.prices.All[time] !== undefined;
@@ -340,6 +493,7 @@ const Pricing = () => {
             );
           })}
         </div>
+
         <div className="mt-3">
           <h5
             style={{
@@ -382,9 +536,10 @@ const Pricing = () => {
       return;
     }
 
-    const selectedDays = Object.keys(formData.days).filter(
-      (day) => formData.days[day]
-    );
+    const selectedDays = selectAllChecked
+      ? Object.keys(formData.days) // All days when "Select All" is checked
+      : Object.keys(formData.days).filter((day) => formData.days[day]);
+    console.log({ selectedDays });
     const selectedSlotType = selectAllChecked ? "All" : formData.selectedSlots;
 
     // Validate slot prices
@@ -395,15 +550,31 @@ const Pricing = () => {
     }
 
     // Extract slotTimes and businessHours from the new structure
-    const slot = PricingData?.[0]?.slot?.[0];
-    const slotData = slot?.slotTimes || [];
-    const businessHours = slot?.businessHours || [];
+    const allSlots = PricingData?.[0]?.slot || [];
 
+    // Get slot data for selected days
+    const selectedSlotData = selectAllChecked
+      ? allSlots
+      : allSlots.filter((slot) => {
+          const slotDay = slot.businessHours?.[0]?.day;
+          return slotDay && selectedDays.includes(slotDay);
+        });
+
+    // Get all slot times (flattened array when selectAllChecked)
+    const slotData = selectAllChecked
+      ? selectedSlotData.flatMap((slot) => slot.slotTimes || [])
+      : selectedSlotData[0]?.slotTimes || [];
+
+    // Get all business hours
+    const businessHours = selectedSlotData.flatMap(
+      (slot) => slot.businessHours || []
+    );
     if (slotData.length === 0 || businessHours.length === 0) {
       showWarning("Slot times or business hours not found in response.");
       return;
     }
-    // Map filled slot times
+
+    // Normalize time function
     function normalizeTime(timeStr) {
       const match = timeStr.match(/(\d+)[\s:]*(am|pm)/i);
       if (!match) return null;
@@ -422,7 +593,7 @@ const Pricing = () => {
       normalizedSlotPrices[normalizedKey] = price;
     }
 
-    // Now filter and map using normalized keys
+    // Filter and map using normalized keys
     const filledSlotTimes = slotData
       .filter((slot) => {
         const key = normalizeTime(slot.time); // "6 am"
@@ -438,14 +609,27 @@ const Pricing = () => {
         };
       });
 
-    // Map business hours for selected days
-    const selectedBusinessHours = businessHours
-      .filter((bh) => selectedDays.includes(bh.day))
-      .map((bh) => ({
-        _id: bh._id,
-        time: bh.time,
-      }));
+    // Get business hours - send all when "Select All" is checked
+    const completeBusinessHours = selectedDays.map((day) => {
+      const existing = businessHours.find((bh) => bh.day === day);
+      console.log({ businessHours, selectedDays, existing });
+      if (!existing) {
+        console.warn(`Missing business hours for ${day}`);
+      }
+      return (
+        existing || {
+          _id: day._id, // or generate a proper ID
+          day,
+          time: "06:00 AM - 11:00 PM", // default time
+        }
+      );
+    });
 
+    const selectedBusinessHours = completeBusinessHours.map((bh) => ({
+      _id: bh._id,
+      day: bh.day,
+      time: bh.time,
+    }));
     const courtId = PricingData?.[0]?._id;
     if (!courtId) {
       showWarning("Court ID is missing.");
@@ -457,7 +641,7 @@ const Pricing = () => {
       businessHoursUpdates: selectedBusinessHours,
       slotTimesUpdates: filledSlotTimes,
     };
-    console.log({ payload });
+
     dispatch(updatePrice(payload))
       .unwrap()
       .then(() => {
@@ -477,7 +661,7 @@ const Pricing = () => {
     const selectedDays = allDays.filter((day) => daysObj[day]);
 
     const isAllSelected = selectedDays.length === allDays.length;
-    const payloadDays = isAllSelected ? "All" : selectedDays;
+    const payloadDays = isAllSelected ? "" : selectedDays;
 
     if (selectedDays.length > 0 && registerId && formData.selectedSlots) {
       dispatch(

@@ -46,14 +46,6 @@ const ManualBooking = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  const [selectedTimes, setSelectedTimes] = useState([]);
-
-  const [selectedCourts, setSelectedCourts] = useState([]);
-
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [selectedDay, setSelectedDay] = useState("");
 
   const today = new Date();
 
@@ -68,7 +60,7 @@ const ManualBooking = () => {
       fullDate: date.toISOString().split("T")[0], // e.g., 2025-08-05
     };
   });
-
+  console.log({ dates });
   const dayFullNames = {
     Sun: "Sunday",
     Mon: "Monday",
@@ -78,6 +70,14 @@ const ManualBooking = () => {
     Fri: "Friday",
     Sat: "Saturday",
   };
+  const [selectedTimes, setSelectedTimes] = useState([]);
+
+  const [selectedCourts, setSelectedCourts] = useState([]);
+
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [selectedDay, setSelectedDay] = useState(dayFullNames[dates[0]?.day]);
 
   const scrollRef = useRef(null);
   const selectedButtonRef = useRef(null);
@@ -198,7 +198,6 @@ const ManualBooking = () => {
         name: name,
         ownerId: ownerClubData?.[0]?.ownerId,
       };
-
       // Dispatch the API call
       await dispatch(manualBookingByOwner(payload)).unwrap();
 
@@ -387,9 +386,10 @@ const ManualBooking = () => {
                     color: "#374151",
                   }}
                 >
-                  Available Slots <span className="fs-6">(60m)</span>
+                  Available Slots
+                  {/* <span className="fs-6">(60m)</span> */}
                 </p>
-                <div className="form-switch d-flex align-items-center gap-2 p-0">
+                {/* <div className="form-switch d-flex align-items-center gap-2 p-0">
                   <input
                     className="form-check-input fs-5 mb-1"
                     type="checkbox"
@@ -404,7 +404,7 @@ const ManualBooking = () => {
                   >
                     Show Unavailable Slots
                   </label>
-                </div>
+                </div> */}
               </div>
 
               <div className="d-flex flex-wrap gap-2 mb-4">

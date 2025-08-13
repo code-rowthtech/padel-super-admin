@@ -223,7 +223,6 @@ const AllRoutes = () => {
             </PrivateRoute>
           ),
           children: [
-            { index: true, element: <Navigate to="dashboard" replace /> },
             {
               path: "dashboard",
               element: LoadComponent(AdminDashboard),

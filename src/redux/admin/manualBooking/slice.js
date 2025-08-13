@@ -24,19 +24,17 @@ const manualBookingSlice = createSlice({
   initialState,
   reducers: {
     resetOwnerClub: (state) => {
-      state = initialState;
+      state.ownerClubData = null;
+      state.ownerClubLoading = false;
+      state.ownerClubError = null;
 
-      // state.ownerClubData = null;
-      // state.ownerClubLoading = false;
-      // state.ownerClubError = null;
+      state.manualBookingData = null;
+      state.manualBookingLoading = false;
+      state.manualBookingError = null;
 
-      // state.manualBookingData = null;
-      // state.manualBookingLoading = false;
-      // state.manualBookingError = null;
-
-      // state.activeCourtsData = null;
-      // state.activeCourtsLoading = false;
-      // state.activeCourtsError = null;
+      state.activeCourtsData = null;
+      state.activeCourtsLoading = false;
+      state.activeCourtsError = null;
     },
   },
   extraReducers: (builder) => {

@@ -17,6 +17,7 @@ const RegisterClub = () => {
     state: "",
     zip: "",
     courtCount: "",
+    description: "",
     courtTypes: { indoor: false, outdoor: false },
     features: {
       changingRooms: false,
