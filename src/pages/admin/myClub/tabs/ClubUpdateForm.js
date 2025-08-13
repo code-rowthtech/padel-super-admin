@@ -87,17 +87,9 @@ const getInitialFormState = (details = {}) => {
       typeof details?.termsAccepted !== "undefined"
         ? !!details.termsAccepted
         : true,
+    description: details?.description || "",
   };
 };
-
-// const getInitialPreviews = (details = {}) => {
-//   // Accepts an array of image URLs in clubDetails.images
-//   if (!Array.isArray(details?.images)) return [];
-//   return details.images.slice(0, MAX_IMAGES).map((url) => ({
-//     preview: url,
-//     isRemote: true,
-//   }));
-// };
 
 const getInitialPreviews = (details = {}) => {
   // Handle single image URL (courtImage)
@@ -369,21 +361,44 @@ const ClubUpdateForm = () => {
   const renderInput = useCallback(
     (placeholder, fieldName, type = "text") => (
       <div className="mb-3">
-        <Form.Control
-          type={type}
-          placeholder={placeholder}
-          value={formData[fieldName]}
-          onChange={(e) => handleChange(fieldName, e.target.value)}
-          onBlur={() => setTouched((prev) => ({ ...prev, [fieldName]: true }))}
-          isInvalid={!!errors[fieldName]}
-          style={{
-            height: "50px",
-            borderRadius: "12px",
-            border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
-            fontSize: "14px",
-            backgroundColor: "#F9FAFB",
-          }}
-        />
+        {type === "text-area" ? (
+          <Form.Control
+            as="textarea"
+            placeholder={placeholder}
+            value={formData[fieldName]}
+            onChange={(e) => handleChange(fieldName, e.target.value)}
+            onBlur={() =>
+              setTouched((prev) => ({ ...prev, [fieldName]: true }))
+            }
+            isInvalid={!!errors[fieldName]}
+            style={{
+              height: "70px", // Adjust height for textarea
+              borderRadius: "12px",
+              border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
+              fontSize: "14px",
+              backgroundColor: "#F9FAFB",
+              resize: "vertical", // Allow vertical resizing
+            }}
+          />
+        ) : (
+          <Form.Control
+            type={type}
+            placeholder={placeholder}
+            value={formData[fieldName]}
+            onChange={(e) => handleChange(fieldName, e.target.value)}
+            onBlur={() =>
+              setTouched((prev) => ({ ...prev, [fieldName]: true }))
+            }
+            isInvalid={!!errors[fieldName]}
+            style={{
+              height: "50px",
+              borderRadius: "12px",
+              border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
+              fontSize: "14px",
+              backgroundColor: "#F9FAFB",
+            }}
+          />
+        )}
         {errors[fieldName] && (
           <Form.Control.Feedback
             type="invalid"
@@ -468,6 +483,7 @@ const ClubUpdateForm = () => {
       apiFormData.append("state", formData.state);
       apiFormData.append("zipCode", formData.zip);
       apiFormData.append("address", formData.address);
+      apiFormData.append("description", formData.description);
       // placeholder coordinates (replace with real)
       apiFormData.append("location[coordinates][0]", "50.90");
       apiFormData.append("location[coordinates][1]", "80.09");
@@ -485,11 +501,6 @@ const ClubUpdateForm = () => {
           }))
         )
       );
-
-      //   previewImages.forEach((image) => {
-      //     // only append local files (remote URLs won't be re-uploaded)
-      //     if (image.file) apiFormData.append("image", image.file);
-      //   });
       // Only append new images (files) to the form data
       previewImages.forEach((image, index) => {
         if (!image.isRemote && image.file) {
@@ -659,16 +670,19 @@ const ClubUpdateForm = () => {
           <h5 className="fw-bold text-gray-800 mb-3">Club Details</h5>
 
           <Row className="mb-3">
-            <Col md>{renderInput("Club/Facility name", "courtName")}</Col>
-            <Col md>{renderInput("Full Address", "address")}</Col>
-            <Col md>{renderInput("City", "city")}</Col>
+            <Col md={3}>{renderInput("Club/Facility name", "courtName")}</Col>
+            <Col md={3}>{renderInput("Full Address", "address")}</Col>
+            <Col md={3}>{renderInput("City", "city")}</Col>
+            <Col md={3}>{renderInput("State", "state")}</Col>
           </Row>
 
           <Row className="mb-3">
-            <Col md>{renderInput("State", "state")}</Col>
-            <Col md>{renderInput("Zip Code", "zip", "number")}</Col>
-            <Col md>
+            <Col md={3}>{renderInput("Zip Code", "zip", "number")}</Col>
+            <Col md={3}>
               {renderInput("Number of court", "courtCount", "number")}
+            </Col>
+            <Col md={6}>
+              {renderInput("Description", "description", "text-area")}
             </Col>
           </Row>
 
@@ -829,39 +843,6 @@ const ClubUpdateForm = () => {
             <h5 className="fw-bold text-gray-800 mb-3">Business Hours</h5>
             {renderBusinessHours()}
           </div>
-
-          {/* <div className="mt-3">
-            <Form.Check
-              type="checkbox"
-              id="termsCheckbox"
-              checked={!!formData.termsAccepted}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  termsAccepted: e.target.checked,
-                }))
-              }
-              label={
-                <span className="text-gray-800 fw-medium">
-                  I agree to the{" "}
-                  <a
-                    href="#"
-                    className="text-success text-decoration-underline"
-                  >
-                    Terms and conditions
-                  </a>{" "}
-                  and{" "}
-                  <a
-                    href="#"
-                    className="text-success text-decoration-underline"
-                  >
-                    Privacy policy
-                  </a>
-                </span>
-              }
-            />
-          </div> */}
-
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button
               variant="secondary"

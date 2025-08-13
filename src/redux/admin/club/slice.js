@@ -22,14 +22,13 @@ const clubSlice = createSlice({
   initialState,
   reducers: {
     resetClub: (state) => {
-      state = initialState;
-      //   state.clubData = null;
-      //   state.clubLoading = false;
-      //   state.clubError = null;
+      state.clubData = null;
+      state.clubLoading = false;
+      state.clubError = null;
 
-      //   state.updateClubData = null;
-      //   state.updateClubLoading = false;
-      //   state.updateClubError = null;
+      state.updateClubData = null;
+      state.updateClubLoading = false;
+      state.updateClubError = null;
     },
   },
   extraReducers: (builder) => {

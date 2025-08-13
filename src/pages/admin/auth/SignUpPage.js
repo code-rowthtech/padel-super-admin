@@ -1,28 +1,29 @@
-import React, { useState } from 'react';
-import { Row, Col, Form, Button, InputGroup, Alert } from 'react-bootstrap';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { authImg } from '../../../assets/files';
-import { Link, useNavigate } from 'react-router-dom';
-import { signupOwner } from '../../../redux/thunks';
-import { useDispatch, useSelector } from 'react-redux';
-import Layout from './AuthLayout';
+import React, { useState } from "react";
+import { Row, Col, Form, Button, InputGroup, Alert } from "react-bootstrap";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { authImg } from "../../../assets/files";
+import { Link, useNavigate } from "react-router-dom";
+import { signupOwner } from "../../../redux/thunks";
+import { useDispatch, useSelector } from "react-redux";
+import Layout from "./AuthLayout";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
 const SignUpPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    name: '',
-    phoneNumber: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    phoneNumber: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { authLoading } = useSelector((state) => state.ownerAuth)
+  const { authLoading } = useSelector((state) => state.ownerAuth);
 
   const capitalizeFirst = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -30,17 +31,24 @@ const SignUpPage = () => {
     const newErrors = {};
     const name = form.name.trim();
 
-    if (!name) newErrors.name = 'Please enter your name';
-    else if (name.length < 2) newErrors.name = 'Name must be at least 2 characters';
+    if (!name) newErrors.name = "Please enter your name";
+    else if (name.length < 2)
+      newErrors.name = "Name must be at least 2 characters";
 
-    if (!form.phoneNumber) newErrors.phoneNumber = 'Please enter your phone number';
-    else if (!/^\d{10}$/.test(form.phoneNumber)) newErrors.phoneNumber = 'Enter a valid 10-digit phone number';
-    if (!form.email.trim()) newErrors.email = 'Please enter your email';
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) newErrors.email = 'Enter a valid email';
-    if (!form.password) newErrors.password = 'Please create your password';
-    else if (form.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
-    if (!form.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
-    else if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!form.phoneNumber)
+      newErrors.phoneNumber = "Please enter your phone number";
+    else if (!/^\d{10}$/.test(form.phoneNumber))
+      newErrors.phoneNumber = "Enter a valid 10-digit phone number";
+    if (!form.email.trim()) newErrors.email = "Please enter your email";
+    else if (!/^\S+@\S+\.\S+$/.test(form.email))
+      newErrors.email = "Enter a valid email";
+    if (!form.password) newErrors.password = "Please create your password";
+    else if (form.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+    if (!form.confirmPassword)
+      newErrors.confirmPassword = "Please confirm your password";
+    else if (form.password !== form.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
 
     return newErrors;
   };
@@ -50,12 +58,12 @@ const SignUpPage = () => {
 
     let val = value;
 
-    if (name === 'name') {
-      val = capitalizeFirst(val.replace(/[^\p{L}\p{N} ]+/gu, ''));
+    if (name === "name") {
+      val = capitalizeFirst(val.replace(/[^\p{L}\p{N} ]+/gu, ""));
     }
 
-    if (name === 'phoneNumber') {
-      val = val.replace(/\D/g, '').slice(0, 10);
+    if (name === "phoneNumber") {
+      val = val.replace(/\D/g, "").slice(0, 10);
     }
 
     setForm((prev) => ({
@@ -86,9 +94,9 @@ const SignUpPage = () => {
           password: form.password,
         };
         await dispatch(signupOwner(payload)).unwrap();
-        navigate('/admin/login');
+        navigate("/admin/login");
       } catch (err) {
-        setErrors({ api: err || 'Signup failed. Try again.' });
+        setErrors({ api: err || "Signup failed. Try again." });
       } finally {
       }
     }
@@ -96,12 +104,11 @@ const SignUpPage = () => {
 
   return (
     <Layout>
-      <div className='w-50'>
+      <div className="w-50">
         <h2 className="fw-bold mb-3">WELCOME</h2>
-        <p className="text-muted mb-4">Please enter your details to sign up.</p>
-        {errors.api && <Alert variant="danger" className="p-0 px-1">{errors.api}</Alert>}
-
-        <Form onSubmit={handleSubmit} noValidate className='small'>
+        <p className="text-muted mb-3">Please enter your details to sign up.</p>
+        <Form onSubmit={handleSubmit} noValidate className="small">
+          <span className="p-1 text-danger small">{errors.api}</span>
           <Form.Group controlId="name" className="mb-2">
             <Form.Label>Name</Form.Label>
             <Form.Control
@@ -113,7 +120,9 @@ const SignUpPage = () => {
               onChange={handleChange}
               isInvalid={!!errors.name}
             />
-            <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.name}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="phoneNumber" className="mb-2">
@@ -127,7 +136,9 @@ const SignUpPage = () => {
               onChange={handleChange}
               isInvalid={!!errors.phoneNumber}
             />
-            <Form.Control.Feedback type="invalid">{errors.phoneNumber}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.phoneNumber}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="email" className="mb-2">
@@ -141,14 +152,16 @@ const SignUpPage = () => {
               onChange={handleChange}
               isInvalid={!!errors.email}
             />
-            <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.email}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="password" className="mb-2">
             <Form.Label>Password</Form.Label>
             <InputGroup>
               <Form.Control
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="******"
                 value={form.password}
@@ -163,7 +176,9 @@ const SignUpPage = () => {
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </Button>
-              <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">
+                {errors.password}
+              </Form.Control.Feedback>
             </InputGroup>
           </Form.Group>
 
@@ -171,7 +186,7 @@ const SignUpPage = () => {
             <Form.Label>Confirm Password</Form.Label>
             <InputGroup>
               <Form.Control
-                type={showConfirmPassword ? 'text' : 'password'}
+                type={showConfirmPassword ? "text" : "password"}
                 name="confirmPassword"
                 placeholder="******"
                 value={form.confirmPassword}
@@ -186,30 +201,36 @@ const SignUpPage = () => {
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </Button>
-              <Form.Control.Feedback type="invalid">{errors.confirmPassword}</Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">
+                {errors.confirmPassword}
+              </Form.Control.Feedback>
             </InputGroup>
           </Form.Group>
           <Button
             type="submit"
             disabled={authLoading}
             style={{
-              width: '100%',
-              backgroundColor: '#28a745',
-              border: 'none',
-              fontWeight: '500',
-              padding: '10px',
-              borderRadius: '30px',
-              fontSize: '16px',
+              width: "100%",
+              backgroundColor: "#28a745",
+              border: "none",
+              fontWeight: "500",
+              padding: "10px",
+              borderRadius: "30px",
+              fontSize: "16px",
             }}
           >
-            {authLoading ? 'Creating Account...' : 'Create Account'}
+            {authLoading ? <ButtonLoading size={12} /> : "Create Account"}
           </Button>
         </Form>
 
         <div className="text-center mt-3">
-          <p style={{ fontSize: '14px' }}>
-            Already have an account?{' '}
-            <Link to="/admin/login" className="fw-bold" style={{ color: '#3f51b5' }}>
+          <p style={{ fontSize: "14px" }}>
+            Already have an account?{" "}
+            <Link
+              to="/admin/login"
+              className="fw-bold"
+              style={{ color: "#3f51b5" }}
+            >
               Login!
             </Link>
           </p>

@@ -51,6 +51,7 @@ const Booking = () => {
 
   // Fetch bookings on tab change
   useEffect(() => {
+    dispatch(resetBookingData());
     dispatch(getBookingByStatus({ status, ownerId }));
   }, [tab]);
 
@@ -89,7 +90,6 @@ const Booking = () => {
               <Tabs
                 value={tab}
                 onChange={(_, v) => {
-                  dispatch(resetBookingData());
                   setTab(v);
                 }}
                 indicatorColor="primary"
@@ -188,7 +188,22 @@ const Booking = () => {
                         </td>
                         <td>{item?.bookingType || "-"}</td>
                         <td>{item?.slot[0]?.courtName || "-"}</td>
-                        <td>{renderSlotTimes(item?.slot[0]?.slotTimes)}</td>
+                        <td>
+                          <OverlayTrigger
+                            placement="left"
+                            overlay={
+                              <Tooltip>
+                                {renderSlotTimes(item?.slot[0]?.slotTimes)}
+                              </Tooltip>
+                            }
+                          >
+                            <b>
+                              {renderSlotTimes(
+                                item?.slot[0]?.slotTimes.slice(0, 4)
+                              )}
+                            </b>
+                          </OverlayTrigger>
+                        </td>
                         <td>₹{item?.totalAmount}</td>
                         <td>{formatDate(item?.bookingDate)}</td>
                         <td style={{ cursor: "pointer" }}>

@@ -5,6 +5,7 @@ import {
   FaCalendarAlt,
   FaChevronDown,
   FaChevronUp,
+  FaEdit,
 } from "react-icons/fa";
 import { logout } from "../../../redux/admin/auth/authSlice";
 import { useDispatch } from "react-redux";
@@ -43,9 +44,39 @@ const AdminSidebar = () => {
       className="bg-dark text-white vh-100 d-flex flex-column"
       style={{ width: "250px" }}
     >
+      {/* <div
+        className="d-flex align-items-center justify-content-center border-bottom pb-2"
+        style={{ marginTop: "10px" }}
+      >
+        <div className="position-relative me-3">
+          <img
+            src={"https://i.pravatar.cc/40"}
+            alt="Profile"
+            className="rounded-circle border"
+            style={{ width: "100px", height: "100px", objectFit: "cover" }}
+          />
+          <label
+            htmlFor="profileImageUpload"
+            className="position-absolute bottom-0 end-0 rounded-circle p-1"
+            style={{
+              width: "30px",
+              height: "30px",
+              backgroundColor: "#797b7dff",
+              opacity: 0.8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+            }}
+          >
+            <FaEdit style={{ color: "white", fontSize: "14px" }} />
+          </label>
+        </div>
+        <input type="file" id="profileImageUpload" accept="image/*" hidden />
+      </div> */}
       <div className="px-4 py-4 fs-4 fw-bold border-bottom">Logo here</div>
 
-      <nav className="flex-grow-1 mt-3">
+      <nav className="flex-grow-1 mt-2">
         <NavLink to="/admin/dashboard" className={linkClasses}>
           <FaTachometerAlt className="me-2" />
           Dashboard

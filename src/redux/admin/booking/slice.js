@@ -24,26 +24,25 @@ const BookingSlice = createSlice({
   initialState,
   reducers: {
     resetBookingData: (state) => {
-      state = initialState;
-      //   state.getBookingData = null;
-      //   state.getBookingLoading = false;
-      //   state.getBookingError = null;
+      state.getBookingData = null;
+      state.getBookingLoading = true;
+      state.getBookingError = null;
 
-      //   state.getBookingDetailsData = null;
-      //   state.getBookingDetailsLoading = false;
-      //   state.getBookingDetailsError = null;
+      state.getBookingDetailsData = null;
+      state.getBookingDetailsLoading = true;
+      state.getBookingDetailsError = null;
 
-      //   state.updateBookingData = null;
-      //   state.updateBookingLoading = false;
-      //   state.updateBookingError = null;
+      state.updateBookingData = null;
+      state.updateBookingLoading = true;
+      state.updateBookingError = null;
     },
   },
   extraReducers: (builder) => {
     // -----------------------------------------------------//---- Get Bookings by status
     builder.addCase(getBookingByStatus.pending, (state) => {
       state.getBookingLoading = true;
-      state.getBookingError = null;
       state.getBookingData = null;
+      state.getBookingError = null;
     });
     builder.addCase(getBookingByStatus.fulfilled, (state, action) => {
       state.getBookingLoading = false;
@@ -58,8 +57,8 @@ const BookingSlice = createSlice({
     // -----------------------------------------------------//---- Get Booking Details By Id
     builder.addCase(getBookingDetailsById.pending, (state) => {
       state.getBookingDetailsLoading = true;
-      state.getBookingDetailsError = null;
       state.getBookingDetailsData = null;
+      state.getBookingDetailsError = null;
     });
     builder.addCase(getBookingDetailsById.fulfilled, (state, action) => {
       state.getBookingDetailsLoading = false;
@@ -74,8 +73,8 @@ const BookingSlice = createSlice({
     // -----------------------------------------------------//---- Update Booking Status
     builder.addCase(updateBookingStatus.pending, (state) => {
       state.updateBookingLoading = true;
-      state.updateBookingError = null;
       state.updateBookingData = null;
+      state.updateBookingError = null;
     });
     builder.addCase(updateBookingStatus.fulfilled, (state, action) => {
       console.log({ action, state });
