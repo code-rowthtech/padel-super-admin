@@ -213,7 +213,7 @@ export const apiPatchWithFile = (url, data) => {
 const initializeAuth = () => {
   const user = getUserFromSession();
   const owner = getOwnerFromSession();
-
+  console.log({ user, owner }, "api core");
   if (user?.token) {
     setAuthorization(user.token);
   } else if (owner?.token) {
