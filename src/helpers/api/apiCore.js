@@ -157,8 +157,6 @@ const handleExpiredSession = (userType) => {
 
   if (window.location.pathname.toLowerCase().startsWith("/admin")) {
     window.location.href = "/admin/login";
-  } else if (userType === "owner") {
-    window.location.href = "/owner/login";
   } else {
     window.location.href = "/";
   }
@@ -185,7 +183,7 @@ export const apiGetMultiple = (urls, params = {}) => {
 export const create = (url, data) => axios.post(url, data);
 export const update = (url, data) => axios.put(url, data);
 export const apiPatch = (url, data) => axios.patch(url, data);
-export const remove = (url) => axios.delete(url);
+export const remove = (url, data) => axios.delete(url, data);
 
 export const apiPostWithFile = (url, data) => {
   const formData = new FormData();

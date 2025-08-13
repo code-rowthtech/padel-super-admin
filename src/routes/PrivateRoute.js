@@ -1,13 +1,13 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { isAuthenticated } from "../helpers/api/apiCore";
+import { isOwnerAuthenticated } from "../helpers/api/apiCore";
 
 /**
  * PrivateRoute ensures only authenticated users can access a route.
  */
 const PrivateRoute = ({ children }) => {
   const location = useLocation();
-  const authenticated = isAuthenticated();
+  const authenticated = isOwnerAuthenticated();
 
   if (!authenticated) {
     // Check if it's an admin route

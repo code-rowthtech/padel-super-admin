@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Container,
   Row,
@@ -8,13 +8,33 @@ import {
   Form,
   Stack,
   Badge,
+  Modal,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import {
+  deletePackage,
+  getAllPackages,
+  updatePackage,
+} from "../../../redux/thunks";
+import { useDispatch, useSelector } from "react-redux";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 
 const Packages = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const {
+    packageData,
+    packageLoading,
+    updatePackageLoading,
+    deletePackageLoading,
+  } = useSelector((state) => state.package);
+
   const [selectedPlan, setSelectedPlan] = useState("Pro");
   const [selectedPackage, setSelectedPackage] = useState(null);
-  const navigate = useNavigate();
+  const [toggleLoadingId, setToggleLoadingId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [packageToDelete, setPackageToDelete] = useState(null);
 
   const plans = [
     {
@@ -45,40 +65,53 @@ const Packages = () => {
     },
   ];
 
-  const packages = [
-    {
-      id: 1,
-      price: "₹1800",
-      title: "Beginner Pack",
-      description: "Perfect for newcomers or a weekend tryout.",
-      slots: "2 Hrs",
-      validity: "3 Days",
+  const packages = packageData?.packages || [];
+
+  useEffect(() => {
+    dispatch(getAllPackages({ search: "" }));
+  }, [dispatch]);
+
+  const handleEditPackage = useCallback(
+    (pkg) => {
+      navigate("/admin/package-details", { state: pkg });
     },
-    {
-      id: 2,
-      price: "₹5000",
-      title: "Regular Player",
-      description: "Ideal for players who book a few sessions a week.",
-      slots: "10 Hrs",
-      validity: "50 Days",
+    [navigate]
+  );
+
+  const handleToggleStatus = useCallback(
+    async (pkg) => {
+      try {
+        setToggleLoadingId(pkg?._id);
+        await dispatch(
+          updatePackage({ _id: pkg?._id, isActive: !pkg?.isActive })
+        ).unwrap();
+        await dispatch(getAllPackages({ search: "" }));
+      } catch (error) {
+        console.error("Error updating package status:", error);
+      } finally {
+        setToggleLoadingId(null);
+      }
     },
-    {
-      id: 3,
-      price: "₹9500",
-      title: "Weekend Warrior",
-      description: "Great for consistent weekend or evening players.",
-      slots: "30 Hrs",
-      validity: "30 Days",
-    },
-    {
-      id: 4,
-      price: "₹1750",
-      title: "Champion",
-      description: "Best value for club members or serious competitors.",
-      slots: "40 Hrs",
-      validity: "30 Days",
-    },
-  ];
+    [dispatch]
+  );
+
+  // Open modal instead of direct delete
+  const confirmDeletePackage = (pkg) => {
+    setPackageToDelete(pkg);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!packageToDelete) return;
+    try {
+      await dispatch(deletePackage({ _id: packageToDelete._id })).unwrap();
+      await dispatch(getAllPackages({ search: "" }));
+      setShowDeleteModal(false);
+      setPackageToDelete(null);
+    } catch (error) {
+      console.error("Error Deleting package:", error);
+    }
+  };
 
   return (
     <Container
@@ -90,6 +123,29 @@ const Packages = () => {
         minHeight: "100vh",
       }}
     >
+      {/* Delete Confirmation Modal */}
+      <Modal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        centered
+      >
+        <Modal.Header closeButton className="py-1">
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete{" "}
+          <strong>{packageToDelete?.packageName}</strong>?
+        </Modal.Body>
+        <Modal.Footer className="py-1">
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDeleteConfirmed}>
+            Confirm
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       {/* Header */}
       <Row className="mb-4 justify-content-between align-items-center">
         <Col xs="auto">
@@ -252,69 +308,114 @@ const Packages = () => {
 
         {/* Right: Packages */}
         <Col sm={5}>
-          <Row className="g-3">
-            {packages.map((pkg, index) => (
-              <Col xs={12} key={pkg.id}>
-                <Card
-                  className={`border-0 shadow-sm ${
-                    selectedPackage === index ? "border-2 border-primary" : ""
-                  }`}
-                  style={{
-                    borderRadius: "16px",
-                    backgroundColor: "#fff",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setSelectedPackage(index)}
+          {packageLoading ? (
+            <DataLoading height="60vh" />
+          ) : (
+            <Row className="g-3">
+              {packages?.length > 0 ? (
+                <>
+                  {packages.map((pkg, index) => (
+                    <Col xs={12} key={pkg?._id}>
+                      <Card
+                        className={`border-0 shadow-sm ${
+                          selectedPackage === index
+                            ? "border-2 border-primary"
+                            : ""
+                        }`}
+                        style={{
+                          borderRadius: "16px",
+                          backgroundColor: "#fff",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setSelectedPackage(index)}
+                      >
+                        <Card.Body className="d-flex align-items-center p-3">
+                          <div
+                            className="fw-bold text-primary"
+                            style={{ fontSize: "20px", minWidth: "90px" }}
+                          >
+                            ₹{pkg?.price}
+                          </div>
+                          <div className="flex-grow-1 ms-3">
+                            <h6 className="fw-bold mb-1">{pkg?.packageName}</h6>
+                            <p
+                              className="text-muted mb-1"
+                              style={{ fontSize: "12px" }}
+                            >
+                              {pkg?.description}
+                            </p>
+                            <div
+                              className="d-flex gap-4"
+                              style={{ fontSize: "12px", color: "#64748b" }}
+                            >
+                              <span>
+                                Slots:{" "}
+                                <strong style={{ color: "#0f172a" }}>
+                                  {pkg?.numberOfSlots}
+                                </strong>
+                              </span>
+                              <span>
+                                Validity:{" "}
+                                <strong style={{ color: "#0f172a" }}>
+                                  {pkg?.validity
+                                    ? `${pkg?.validity} ${
+                                        pkg?.validity > 1 ? "days" : "day"
+                                      }`
+                                    : "N/A"}
+                                </strong>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="d-flex flex-column align-items-center gap-2">
+                            <div className="d-flex">
+                              <i
+                                className="bi bi-pencil text-success"
+                                style={{ fontSize: "16px", cursor: "pointer" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditPackage(pkg);
+                                }}
+                              ></i>
+                              <i
+                                className="bi bi-trash text-danger mx-2"
+                                style={{ fontSize: "16px", cursor: "pointer" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  confirmDeletePackage(pkg);
+                                }}
+                              ></i>
+                            </div>
+                            {pkg?._id === toggleLoadingId &&
+                            updatePackageLoading ? (
+                              <ButtonLoading color="blue" size={10} />
+                            ) : (
+                              <Form.Check
+                                type="switch"
+                                checked={pkg?.isActive}
+                                disabled={toggleLoadingId === pkg?._id}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleStatus(pkg);
+                                }}
+                                style={{ "--bs-switch-bg": "#22c55e" }}
+                              />
+                            )}
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))}
+                </>
+              ) : (
+                <div
+                  className="d-flex text-danger justify-content-center align-items-center w-100"
+                  style={{ height: "20vh" }}
                 >
-                  <Card.Body className="d-flex align-items-center p-3">
-                    <div
-                      className="fw-bold text-primary"
-                      style={{ fontSize: "20px", minWidth: "90px" }}
-                    >
-                      {pkg.price}
-                    </div>
-                    <div className="flex-grow-1 ms-3">
-                      <h6 className="fw-bold mb-1">{pkg.title}</h6>
-                      <p
-                        className="text-muted mb-1"
-                        style={{ fontSize: "12px" }}
-                      >
-                        {pkg.description}
-                      </p>
-                      <div
-                        className="d-flex gap-4"
-                        style={{ fontSize: "12px", color: "#64748b" }}
-                      >
-                        <span>
-                          Slots:{" "}
-                          <strong style={{ color: "#0f172a" }}>
-                            {pkg.slots}
-                          </strong>
-                        </span>
-                        <span>
-                          Validity:{" "}
-                          <strong style={{ color: "#0f172a" }}>
-                            {pkg.validity}
-                          </strong>
-                        </span>
-                      </div>
-                    </div>
-                    <div className="d-flex flex-column align-items-center gap-2">
-                      <i
-                        className="bi bi-pencil text-primary"
-                        style={{ fontSize: "16px" }}
-                      ></i>
-                      <Form.Check
-                        type="switch"
-                        defaultChecked
-                        style={{ "--bs-switch-bg": "#22c55e" }}
-                      />
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                  No Packages were found
+                </div>
+              )}
+            </Row>
+          )}
         </Col>
       </Row>
     </Container>

@@ -410,6 +410,13 @@ const ManualBooking = () => {
               <div className="d-flex flex-wrap gap-2 mb-4">
                 {activeCourtsLoading ? (
                   <DataLoading height="20vh" />
+                ) : slotTimes?.length === 0 ? (
+                  <div
+                    className="d-flex text-danger justify-content-center align-items-center w-100"
+                    style={{ height: "20vh" }}
+                  >
+                    No slots available
+                  </div>
                 ) : (
                   <>
                     {slotTimes?.map((slot, i) => {
@@ -485,46 +492,60 @@ const ManualBooking = () => {
                   ) : (
                     <></>
                   )} */}
-                  {courts?.map((court) => (
+                  {console.log({ courts })}
+                  {courts?.length === 0 ? (
                     <div
-                      key={court._id}
-                      className={`d-flex justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
-                        selectedCourts?.includes(court?._id)
-                          ? "bg-success-subtle rounded-pill"
-                          : ""
-                      }`}
+                      className="d-flex text-danger justify-content-center align-items-center w-100"
+                      style={{ height: "20vh" }}
                     >
-                      {/* Left Image & Text */}
-                      <div className="d-flex align-items-center gap-3">
-                        {/* <img
+                      No courts available
+                    </div>
+                  ) : (
+                    <>
+                      {courts?.map((court) => (
+                        <div
+                          key={court._id}
+                          className={`d-flex justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
+                            selectedCourts?.includes(court?._id)
+                              ? "bg-success-subtle rounded-pill"
+                              : ""
+                          }`}
+                        >
+                          {/* Left Image & Text */}
+                          <div className="d-flex align-items-center gap-3">
+                            {/* <img
                                                 src={court.image}
                                                 alt={court.courtName}
                                                 style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover" }}
                                             /> */}
-                        <div>
-                          <div className="fw-semibold">{court.courtName}</div>
-                          {/* <small className="text-muted">{court.type}</small> */}
-                        </div>
-                      </div>
+                            <div>
+                              <div className="fw-semibold">
+                                {court.courtName}
+                              </div>
+                              {/* <small className="text-muted">{court.type}</small> */}
+                            </div>
+                          </div>
 
-                      {/* Price and Cart Icon */}
-                      <div className="d-flex align-items-center gap-3">
-                        <div
-                          className="fw-semibold"
-                          style={{ fontSize: "20px", fontWeight: "500" }}
-                        >
-                          ₹{court.price}
+                          {/* Price and Cart Icon */}
+                          <div className="d-flex align-items-center gap-3">
+                            <div
+                              className="fw-semibold"
+                              style={{ fontSize: "20px", fontWeight: "500" }}
+                            >
+                              {/* ₹{court.price} */}
+                            </div>
+                            <button
+                              className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
+                              style={{ width: "32px", height: "32px" }}
+                              onClick={() => handleCourtSelect(court?._id)}
+                            >
+                              <FaShoppingCart size={14} color="white" />
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
-                          style={{ width: "32px", height: "32px" }}
-                          onClick={() => handleCourtSelect(court?._id)}
-                        >
-                          <FaShoppingCart size={14} color="white" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                      ))}
+                    </>
+                  )}
                 </div>
               </div>
               <div className="mt-3 p-3">
@@ -555,6 +576,21 @@ const ManualBooking = () => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     maxLength={10}
+                    onKeyDown={(e) => {
+                      const allowedKeys = [
+                        "Backspace",
+                        "Tab",
+                        "ArrowLeft",
+                        "ArrowRight",
+                        "Delete", // control keys
+                      ];
+                      if (
+                        !allowedKeys.includes(e.key) &&
+                        !/^\d$/.test(e.key) // allow only 0–9 digits
+                      ) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </div>
 
@@ -576,14 +612,18 @@ const ManualBooking = () => {
                     style={{ minWidth: "120px", fontWeight: "500" }}
                     onClick={handleConfirm}
                   >
-                    {manualBookingLoading ? <ButtonLoading /> : "Confirm"}
+                    {manualBookingLoading ? (
+                      <ButtonLoading size={12} />
+                    ) : (
+                      "Confirm"
+                    )}
                   </button>
 
                   <BookingSuccessModal
                     show={showSuccess}
                     handleClose={() => {
                       setShowSuccess(false);
-                      // navigate(-1);
+                      navigate(-1);
                     }}
                     openDetails={() => {
                       setShowSuccess(false);
