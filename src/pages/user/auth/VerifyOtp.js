@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Row, Col, Form } from 'react-bootstrap';
+import { Button, Row, Col, Form, Alert } from 'react-bootstrap';
 import { authImg } from '../../../assets/files';
 import { showError, showSuccess, showInfo } from '../../../helpers/Toast';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUserNumber, verifyOtp } from '../../../redux/user/auth/authThunk';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { resetAuth } from '../../../redux/user/auth/authSlice';
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '']);
-  const [timer, setTimer] = useState(120);
+  const [timer, setTimer] = useState(60);
+  const [showAlert, setShowAlert] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate()
+  const phone = location.state?.phone;
+  const { error, user, userAuthLoading } = useSelector((state) => state?.userAuth)
+  const store = useSelector((state) => state?.userAuth)
+  console.log(store, 'otperror');
+  const dispatch = useDispatch()
   console.log({ timer })
   useEffect(() => {
     const countdown = setInterval(() => {
@@ -13,6 +25,19 @@ const VerifyOTP = () => {
     }, 1000);
     return () => clearInterval(countdown);
   }, []);
+  console.log(store?.user, '//////////////////');
+  useEffect(() => {
+    if (store?.otp?.status === "200") {
+      dispatch(loginUserNumber({ phoneNumber: phone }));
+    }
+  }, [store?.otp?.status, dispatch, phone]);
+
+  useEffect(() => {
+    if (store?.user?.status === "200") {
+      navigate('/home');
+      dispatch(resetAuth());
+    }
+  }, [store?.user?.status, navigate, dispatch]);
 
   const handleChange = (index, value) => {
     if (/^\d?$/.test(value)) {
@@ -25,10 +50,19 @@ const VerifyOTP = () => {
       }
     }
   };
+  const otpValue = Number(otp.join(''));
 
   const handleSubmit = () => {
-    showInfo('Verifying OTP: ' + otp.join(''));
+    dispatch(verifyOtp({ otp: otpValue, phoneNumber: phone }))
   };
+
+  useEffect(() => {
+    if (error) {
+      setShowAlert(true);
+      const timer = setTimeout(() => setShowAlert(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   return (
     <Row style={{ height: '100vh', margin: 0 }}>
@@ -45,7 +79,7 @@ const VerifyOTP = () => {
           <p style={{ marginBottom: 25, color: '#666' }}>
             A verification code has been sent at <strong>+91••••••••••</strong>
           </p>
-
+          {showAlert && <Alert variant="danger">{error}</Alert>}
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
             {otp.map((digit, index) => (
               <Form.Control
@@ -91,7 +125,8 @@ const VerifyOTP = () => {
           {timer === 0 &&
             <div style={{ marginTop: 15 }}>
               <span style={{ color: '#777' }}>Didn’t receive code? </span>
-              <span style={{ color: '#007bff', cursor: 'pointer' }}>Re-send</span>
+              <span onClick={() => dispatch(verifyOtp({ otp: otpValue, phoneNumber: phone }))
+              } style={{ color: '#007bff', cursor: 'pointer' }}>Re-send</span>
             </div>}
         </div>
       </Col>

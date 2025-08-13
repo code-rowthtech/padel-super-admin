@@ -1,8 +1,18 @@
 import { logo } from '../../../assets/files';
 import { Link, NavLink } from 'react-router-dom';
+import { getUserFromSession } from '../../../helpers/api/apiCore';
+import { Dropdown } from 'react-bootstrap';
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { logoutUser } from '../../../redux/user/auth/authSlice';
 
 
 const Navbar = () => {
+    const dispatch = useDispatch()
+    const user = getUserFromSession()
+    const [isOpen, setIsOpen] = useState(false);
+
     return (
         <>
             <nav className="navbar navbar-expand-lg  bg-white py-1 ">
@@ -44,18 +54,6 @@ const Navbar = () => {
                                     Booking
                                 </NavLink>
                             </li>
-                              <li className="nav-item">
-                                <NavLink
-                                    to="/booking-history"
-                                    className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
-                                    style={({ isActive }) => ({
-                                        color: isActive ? "#1F41BB" : "#000",
-                                        textDecoration: 'none',
-                                    })}
-                                >
-                                    Booking History
-                                </NavLink>
-                            </li>
                             <li className="nav-item">
                                 <NavLink
                                     to="/open-matches"
@@ -84,11 +82,69 @@ const Navbar = () => {
                         </ul>
 
                         <div className="d-flex ">
-                            <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
-                                <button className="btn px-4 py-2 rounded-pill text-white" style={{ whiteSpace: "nowrap", backgroundColor: " #3DBE64", fontSize: "20", fontWeight: "600" }}>
-                                    Login
-                                </button>
-                            </Link>
+                            {user?.token ?
+                                <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
+                                    <Dropdown.Toggle
+                                        variant="white"
+                                        className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
+                                    >
+                                        <img
+                                            src={user?.profilePic || "https://i.pravatar.cc/40"}
+                                            alt="user"
+                                            className="rounded-circle"
+                                            width="40"
+                                            height="40"
+                                        />
+                                        <div className="text-end d-none d-sm-block">
+
+                                            <div className="fw-semibold">
+                                                {user?.name || "Danielle Campbell"}
+                                            </div>
+                                            <div className="text-muted small">{user?.phoneNumber}</div>
+                                        </div>
+
+                                        {isOpen ? (
+                                            <FaChevronUp className="ms-2 text-muted" />
+                                        ) : (
+                                            <FaChevronDown className="ms-2 text-muted" />
+                                        )}
+                                    </Dropdown.Toggle>
+
+                                    <Dropdown.Menu
+                                        className="table-data fw-medium"
+                                        style={{ color: "#374151" }}
+                                    >
+                                        <Dropdown.Item as={NavLink} to="/admin/profile">
+                                             Profile
+                                        </Dropdown.Item>
+                                        <Dropdown.Item as={NavLink} to="/booking-history">
+                                            My Booking
+                                        </Dropdown.Item>
+                                        <Dropdown.Item as={NavLink} to="/open-matches">
+                                            Open Matches
+                                        </Dropdown.Item>
+                                        <Dropdown.Item as={NavLink} to="/admin/help-support">
+                                           Americano
+                                        </Dropdown.Item>
+                                        <Dropdown.Item as={NavLink} to="/admin/settings">
+                                            Help & Support
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                            onClick={() => {
+                                                dispatch(logoutUser());
+                                            }}
+                                        >
+                                            Logout
+                                        </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                                :
+                                <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
+                                    <button className="btn px-4 py-2 rounded-pill text-white" style={{ whiteSpace: "nowrap", backgroundColor: " #3DBE64", fontSize: "20", fontWeight: "600" }}>
+                                        Login
+                                    </button>
+                                </Link>
+                            }
                         </div>
                     </div>
                 </div>

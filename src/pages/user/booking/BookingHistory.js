@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import { Container, Row, Col, Table, Button, Form, InputGroup } from 'react-bootstrap';
@@ -11,6 +11,10 @@ import { FiEye } from "react-icons/fi";
 import { AcceptedRejectedModal, BookingHistoryCancelModal } from './bookingModals/Modals';
 import { format, parse } from 'date-fns';
 import { BookingRatingModal } from './bookingModals/RatingModal';
+import { useDispatch, useSelector } from 'react-redux';
+import { getBooking } from '../../../redux/user/booking/thunk';
+import { Loading } from '../../../helpers/loading/Loaders';
+import { resetBooking } from '../../../redux/user/booking/slice';
 
 const BookingHistory = () => {
     const [activeTab, setActiveTab] = useState('all');
@@ -23,8 +27,10 @@ const BookingHistory = () => {
     const [ratings, setRatings] = useState({});
     const [ratingBookingIndex, setRatingBookingIndex] = useState(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
-    const [acceptedRejected,setAcceptedRejected] = useState(false)
-
+    const [acceptedRejected, setAcceptedRejected] = useState(false)
+    const getBookingData = useSelector((state) => state?.userBooking)
+    console.log(getBookingData, 'getBookingDatagetBookingData');
+    const dispatch = useDispatch()
     const bookings = [
         { dateTime: '27th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Accepted' },
         { dateTime: '20th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Rejected' },
@@ -65,6 +71,8 @@ const BookingHistory = () => {
 
     const handleChange = (event, newValue) => {
         setActiveTab(newValue);
+        dispatch(resetBooking())
+        dispatch(getBooking({type:newValue}))
     };
 
     const handleSelect = (value) => {
@@ -76,6 +84,10 @@ const BookingHistory = () => {
         setRatingBookingIndex(index);
         setShowRatingModal(true);
     };
+
+    useEffect(() => {
+        dispatch(getBooking())
+    }, [])
 
     return (
         <Container>
@@ -94,7 +106,7 @@ const BookingHistory = () => {
                         aria-label="booking history tabs"
                         TabIndicatorProps={{ style: { display: 'none' } }}
                     >
-                        {['all', 'upcoming', 'cancelled', 'complete'].map((tab, i) => (
+                        {['all', 'upcoming', 'cancelled', 'completed'].map((tab, i) => (
                             <Tab
                                 key={tab}
                                 label={tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -170,11 +182,11 @@ const BookingHistory = () => {
                             <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Reason</th>
                         )}
 
-                        {activeTab === 'complete' && (
+                        {activeTab === 'completed' && (
                             <th className="py-3 text-center" style={{ backgroundColor: "#D0D6EA" }}>Rating</th>
                         )}
 
-                        {activeTab === 'complete' && (
+                        {activeTab === 'completed' && (
                             <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Message</th>
                         )}
                         <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Amount</th>
@@ -198,77 +210,87 @@ const BookingHistory = () => {
                     </tr>
                 </thead>
                 <tbody className="border">
-                    {filteredBookings.length > 0 ? (
-                        filteredBookings?.map((booking, index) => (
-                            <tr key={index}>
-                                <td className="px-4 table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{booking.dateTime}</td>
-                                <td className="table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{booking.courtNumber}</td>
-                                {activeTab === 'cancelled' && (
-                                    <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>reason lorem...............</td>
-                                )}
-
-                                {activeTab === 'complete' && (
-                                    <td className='text-center' >
-                                        {[1, 2, 3, 4, 5].map((star) => {
-                                            const ratingValue = ratings[index]?.rating || 0;
-                                            let iconClass = "bi-star"; // empty star by default
-
-                                            if (star <= Math.floor(ratingValue)) {
-                                                iconClass = "bi-star-fill"; // full star
-                                            } else if (star - ratingValue <= 0.5 && star - ratingValue > 0) {
-                                                iconClass = "bi-star-half"; // half star
-                                            }
-
-                                            return (
-                                                <i
-                                                    key={star}
-                                                    className={`bi ${iconClass} ms-2`}
-                                                    style={{
-                                                        color: "#3DBE64",
-                                                        cursor: "pointer",
-                                                        fontSize: "18px"
-                                                    }}
-                                                    onClick={() => handleRatingClick(index)}
-                                                ></i>
-                                            );
-                                        })}
-
-                                    </td>
-                                )}
-
-                                {activeTab === 'complete' && (
-                                    <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                        {ratings[index]?.review || ""}
-                                    </td>
-                                )}
-                                <td style={{ color: "#1A237E", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{booking.amount}</td>
-                                {activeTab === 'cancelled' && (
-                                    <td style={{ color: selectedOption === 'Rejected' && booking.status === 'Rejected' ? "red" : "lime", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{selectedOption === "status" ? booking?.status : selectedOption}</td>
-                                )}
-                                <td className="text-center">
-                                    {activeTab === 'cancelled' || activeTab === 'complete' ? '' : (
-                                        <MdOutlineCancel
-                                            size={20}
-                                            onClick={() => {
-                                                setSelectedBooking(booking);
-                                                setModalCancel(true);
-                                            }}
-                                            className="text-danger"
-                                            style={{ cursor: 'pointer' }}
-                                        />
-                                    )}
-                                    <FiEye size={20} className="text-muted ms-2" onClick={() => {
-                                        if(activeTab === "cancelled"){
-                                        setAcceptedRejected(true);
-                                        }
-                                    }} style={{ cursor: 'pointer' }} />
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
+                    {getBookingData?.bookingLoading ? (
                         <tr>
-                            <td colSpan={activeTab === 'cancelled' ? 5 : 4} className="text-center">No bookings found.</td>
+                            <td colSpan={7} rowSpan={3} className="text-center"><Loading /></td>
                         </tr>
+                    ) : (
+                        getBookingData?.bookingData?.bookings?.length > 0 ? (
+                            getBookingData.bookingData.bookings.map((booking, i) =>
+                                booking.slot.map((slotItem, index) => (
+                                    <tr key={`${i}-${index}`}>
+                                        <td className="px-4 table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                            {format(new Date(slotItem.bookingDate), 'dd/MM/yyyy hh:mm aa')}
+                                        </td>
+                                        <td className="table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{slotItem.courtName}</td>
+                                        {activeTab === 'cancelled' && (
+                                            <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>reason lorem...............</td>
+                                        )}
+
+                                        {activeTab === 'completed' && (
+                                            <td className='text-center' >
+                                                {[1, 2, 3, 4, 5].map((star) => {
+                                                    const ratingValue = ratings[index]?.rating || 0;
+                                                    let iconClass = "bi-star"; // empty star by default
+
+                                                    if (star <= Math.floor(ratingValue)) {
+                                                        iconClass = "bi-star-fill"; // full star
+                                                    } else if (star - ratingValue <= 0.5 && star - ratingValue > 0) {
+                                                        iconClass = "bi-star-half"; // half star
+                                                    }
+
+                                                    return (
+                                                        <i
+                                                            key={star}
+                                                            className={`bi ${iconClass} ms-2`}
+                                                            style={{
+                                                                color: "#3DBE64",
+                                                                cursor: "pointer",
+                                                                fontSize: "18px"
+                                                            }}
+                                                            onClick={() => handleRatingClick(index)}
+                                                        ></i>
+                                                    );
+                                                })}
+
+                                            </td>
+                                        )}
+
+                                        {activeTab === 'completed' && (
+                                            <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                                {ratings[index]?.review || ""}
+                                            </td>
+                                        )}
+                                        <td style={{ color: "#1A237E", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{booking.amount || 100}</td>
+                                        {activeTab === 'cancelled' && (
+                                            <td style={{ color: selectedOption === 'Rejected' && booking.status === 'Rejected' ? "red" : "lime", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{selectedOption === "status" ? booking?.status : selectedOption}</td>
+                                        )}
+                                        <td className="text-center">
+                                            {activeTab === 'cancelled' || activeTab === 'completed' ? '' : (
+                                                <MdOutlineCancel
+                                                    size={20}
+                                                    onClick={() => {
+                                                        setSelectedBooking(booking);
+                                                        setModalCancel(true);
+                                                    }}
+                                                    className="text-danger"
+                                                    style={{ cursor: 'pointer' }}
+                                                />
+                                            )}
+                                            <FiEye size={20} className="text-muted ms-2" onClick={() => {
+                                                if (activeTab === "cancelled") {
+                                                    setAcceptedRejected(true);
+                                                }
+                                            }} style={{ cursor: 'pointer' }} />
+                                        </td>
+                                    </tr>
+                                ))
+                            )
+                        ) : (
+                            <tr>
+                                <td colSpan={7} className="text-center">No bookings found.</td>
+                            </tr>
+                        )
                     )}
                 </tbody>
             </Table>
@@ -296,7 +318,7 @@ const BookingHistory = () => {
                 defaultMessage={ratingBookingIndex !== null ? ratings[ratingBookingIndex]?.review : ''}
             />
 
-            <AcceptedRejectedModal booking={filteredBookings} selectedOption={selectedOption} onHide={()=>setAcceptedRejected(false)} show={acceptedRejected} />
+            <AcceptedRejectedModal booking={filteredBookings} selectedOption={selectedOption} onHide={() => setAcceptedRejected(false)} show={acceptedRejected} />
         </Container>
     );
 };
