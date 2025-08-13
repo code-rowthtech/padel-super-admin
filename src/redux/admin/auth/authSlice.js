@@ -37,12 +37,10 @@ const authSlice = createSlice({
       window.location.href = "/admin/login";
     },
     resetAuth(state) {
-      state = initialState;
-
-      // state.authLoading = false;
-      // state.user = null;
-      // state.otp = null;
-      // state.error = null;
+      state.authLoading = false;
+      state.user = null;
+      state.otp = null;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {

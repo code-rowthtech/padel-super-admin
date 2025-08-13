@@ -69,7 +69,7 @@ const Cancellation = () => {
       payload.startDate = formatDate(startDate);
       payload.endDate = formatDate(endDate);
     }
-
+    dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
   }, [tab, sendDate]);
 
@@ -119,7 +119,6 @@ const Cancellation = () => {
                 value={tab}
                 onChange={(_, v) => {
                   setTab(v);
-                  dispatch(resetBookingData());
                 }}
               >
                 <Tab label="Request" />

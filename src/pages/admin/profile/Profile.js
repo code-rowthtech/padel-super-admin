@@ -133,10 +133,11 @@ const Profile = () => {
           {/* Profile Image */}
           <div className="position-relative me-3">
             <img
-              src={formData.profileImage}
+              src={formData.profileImage || "https://i.pravatar.cc/40"}
               alt="Profile"
               className="rounded-circle border"
               style={{ width: "100px", height: "100px", objectFit: "cover" }}
+              loading="lazy"
             />
             {/* Camera Icon */}
             <label

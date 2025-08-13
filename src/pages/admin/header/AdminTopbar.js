@@ -67,11 +67,12 @@ const AdminTopbar = () => {
               <div className="text-muted small">Owner</div>
             </div>
             <img
-              src={user?.profilePic}
+              src={user?.profilePic || "https://i.pravatar.cc/40"}
               alt="user"
               className="rounded-circle"
               width="40"
               height="40"
+              loading="lazy"
             />
             {isOpen ? (
               <FaChevronUp className="ms-2 text-muted" />

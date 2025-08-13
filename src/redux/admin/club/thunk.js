@@ -89,6 +89,7 @@ export const updatePrice = createAsyncThunk(
     try {
       const res = await update(Url.UPDATE_PRICE, data);
       if (res?.status === 200) {
+        showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to create slot");
