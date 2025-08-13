@@ -1,9 +1,9 @@
 import { logo } from '../../../assets/files';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { getUserFromSession } from '../../../helpers/api/apiCore';
 import { Dropdown } from 'react-bootstrap';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
 
@@ -11,7 +11,16 @@ import { logoutUser } from '../../../redux/user/auth/authSlice';
 const Navbar = () => {
     const dispatch = useDispatch()
     const user = getUserFromSession()
+    const navigate = useNavigate()
     const [isOpen, setIsOpen] = useState(false);
+    const [userData, setUserData] = useState(false);
+    const userLocal = localStorage.getItem("padel_user")
+    console.log(userData, localStorage, user, 'alldata');
+    useEffect(() => {
+        if (userLocal) {
+            setUserData(userLocal)
+        }
+    }, [userLocal, user])
 
     return (
         <>
@@ -82,7 +91,7 @@ const Navbar = () => {
                         </ul>
 
                         <div className="d-flex ">
-                            {user?.token ?
+                            {user?.token || userData?.token ?
                                 <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
                                     <Dropdown.Toggle
                                         variant="white"
@@ -98,7 +107,7 @@ const Navbar = () => {
                                         <div className="text-end d-none d-sm-block">
 
                                             <div className="fw-semibold">
-                                                {user?.name || "Danielle Campbell"}
+                                                {user?.name.charAt().toUpperCase(0) + user?.name?.slice(1) || "Danielle Campbell"}
                                             </div>
                                             <div className="text-muted small">{user?.phoneNumber}</div>
                                         </div>
@@ -115,7 +124,7 @@ const Navbar = () => {
                                         style={{ color: "#374151" }}
                                     >
                                         <Dropdown.Item as={NavLink} to="/admin/profile">
-                                             Profile
+                                            Profile
                                         </Dropdown.Item>
                                         <Dropdown.Item as={NavLink} to="/booking-history">
                                             My Booking
@@ -124,7 +133,7 @@ const Navbar = () => {
                                             Open Matches
                                         </Dropdown.Item>
                                         <Dropdown.Item as={NavLink} to="/admin/help-support">
-                                           Americano
+                                            Americano
                                         </Dropdown.Item>
                                         <Dropdown.Item as={NavLink} to="/admin/settings">
                                             Help & Support
@@ -132,6 +141,7 @@ const Navbar = () => {
                                         <Dropdown.Item
                                             onClick={() => {
                                                 dispatch(logoutUser());
+                                                navigate('/home');
                                             }}
                                         >
                                             Logout
