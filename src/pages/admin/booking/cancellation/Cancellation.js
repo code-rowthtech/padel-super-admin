@@ -189,7 +189,7 @@ const Cancellation = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {bookings.map((item) => (
+                    {bookings?.map((item) => (
                       <tr key={item._id} className="table-data border-bottom">
                         <td>{item?.userId?.name || "N/A"}</td>
                         <td>
@@ -293,8 +293,18 @@ const Cancellation = () => {
         show={showRefund}
         handleClose={() => setShowRefund(false)}
         onRefundSuccess={() => {
-          setShowRefund(false);
-          setTimeout(() => setShowSuccess(true), 300);
+          dispatch(
+            updateBookingStatus({
+              id: bookingDetails._id,
+              status: "refunded",
+            })
+          )
+            .unwrap()
+            .then(() => {
+              setShowRefund(false);
+              dispatch(getBookingByStatus({ status, ownerId }));
+              setTimeout(() => setShowSuccess(true), 300);
+            });
         }}
         bookingDetails={bookingDetails}
       />

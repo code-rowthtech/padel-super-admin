@@ -1,16 +1,19 @@
 import { configureStore } from "@reduxjs/toolkit";
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
-import ownerAuthReducer from "./admin/auth/authSlice";
+import ownerAuthReducer from "./admin/auth/slice";
 import clubReducer from "./admin/club/slice";
 import manualBookingReducer from "./admin/manualBooking/slice";
 import bookingReducer from "./admin/booking/slice";
 import packageReducer from "./admin/packages/slice";
+import dashboardReducer from "./admin/dashboard/slice";
+import reviewReducer from "./admin/reviews/slice";
+
 //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 import userClubReducer from "./user/club/slice";
 import userSlotReducer from "./user/slot/slice";
 import userBookingReducer from "./user/booking/slice";
-import userAuthReducer from './user/auth/authSlice'
-
+import userAuthReducer from "./user/auth/authSlice";
+import { review } from "../assets/files";
 
 const store = configureStore({
   reducer: {
@@ -21,9 +24,11 @@ const store = configureStore({
     manualBooking: manualBookingReducer,
     booking: bookingReducer,
     package: packageReducer,
+    dashboard: dashboardReducer,
+    reviews: reviewReducer,
 
     //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
-    userAuth : userAuthReducer,
+    userAuth: userAuthReducer,
     userClub: userClubReducer,
     userSlot: userSlotReducer,
     userBooking: userBookingReducer,

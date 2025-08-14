@@ -1,9 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
-
+import {
+  getOwnerRegisteredClub,
+  getReviewsForOwner,
+} from "../../../redux/thunks";
+import { useSelector, useDispatch } from "react-redux";
 const CustomerReviews = () => {
-  // Sample data for reviews
+  const dispatch = useDispatch();
+  const { reviewData } = useSelector((state) => state?.reviews);
+  console.log({ reviewData });
   const reviews = [
     {
       id: 1,
@@ -71,6 +77,13 @@ const CustomerReviews = () => {
     return stars;
   };
 
+  useEffect(() => {
+    dispatch(getOwnerRegisteredClub())
+      .unwrap()
+      .then((res) => {
+        dispatch(getReviewsForOwner({ clubId: res?.[0]?._id }));
+      });
+  }, []);
   return (
     <div className="container py-4" style={{ maxWidth: "1200px" }}>
       {/* Overall Rating Section */}

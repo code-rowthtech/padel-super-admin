@@ -5,7 +5,6 @@ import {
   updatePackage,
   deletePackage,
 } from "./thunk";
-import { update } from "../../../helpers/api/apiCore";
 
 const initialState = {
   packageData: null,

@@ -1,9 +1,6 @@
-import React, { useState } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
-import { modalDetails, modalSuccess } from "../../../../assets/files";
+import { Modal } from "react-bootstrap";
+import { modalSuccess } from "../../../../assets/files";
 import { formatDate } from "../../../../helpers/Formatting";
-import { set } from "date-fns";
-import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 
 export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
   <Modal

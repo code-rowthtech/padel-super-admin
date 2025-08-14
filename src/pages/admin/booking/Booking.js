@@ -179,7 +179,7 @@ const Booking = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {bookings.map((item) => (
+                    {bookings?.map((item) => (
                       <tr key={item._id} className="table-data border-bottom">
                         <td>{item?.userId?.name || "N/A"}</td>
                         <td>
