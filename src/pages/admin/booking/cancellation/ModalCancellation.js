@@ -449,7 +449,7 @@ export const BookingRefundModal = ({
               fontWeight: "600",
             }}
           >
-            Refund Process
+            Process Refund
           </Button>
         </div>
       </div>
@@ -457,7 +457,7 @@ export const BookingRefundModal = ({
   </Modal>
 );
 
-export const RefundSuccessModal = ({ show, handleClose, openCancelModal }) => (
+export const RefundSuccessModal = ({ show, handleClose }) => (
   <Modal
     show={show}
     onHide={handleClose}
@@ -500,7 +500,7 @@ export const RefundSuccessModal = ({ show, handleClose, openCancelModal }) => (
         </p>
         <div className="ps-3 pe-3 mt-3">
           <Button
-            onClick={openCancelModal}
+            onClick={handleClose}
             className=" py-2 border-0 rounded-pill w-100 "
             style={{
               backgroundColor: "#3DBE64",

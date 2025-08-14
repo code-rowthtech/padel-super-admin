@@ -7,14 +7,51 @@ export const getCountDataForDashboard = createAsyncThunk(
   "dashboard/getCountDataForDashboard",
   async (params, { rejectWithValue }) => {
     try {
-      const res = await getApi(
-        `${Url.GET_ALL_PACKAGES}?search=${params?.search}`
-      );
+      const res = await getApi(Url.GET_COUNT_DASHBOARD);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        return data;
+        return data?.data;
       }
-      const errorMessage = message || "error fetching packages";
+      const errorMessage = message || "error fetching Data";
+      showError(errorMessage);
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message;
+      // showError(error);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+export const getCancelledBookingsForDashboard = createAsyncThunk(
+  "dashboard/getCancelledBookingsForDashboard",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await getApi(Url.GET_CANCELLATION_BOOKING_DASHBOARD);
+      console.log({ res }, "resresres");
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data?.data;
+      }
+      const errorMessage = message || "error fetching Bookings";
+      showError(errorMessage);
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message;
+      // showError(error);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+export const getRecentBookingsForDashboard = createAsyncThunk(
+  "dashboard/getRecentBookingsForDashboard",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await getApi(Url.GET_RECENT_BOOKING_DASHBOARD);
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data?.data;
+      }
+      const errorMessage = message || "error fetching Bookings";
       showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Container,
   Row,
@@ -84,8 +84,11 @@ const Packages = () => {
         setToggleLoadingId(pkg?._id);
         await dispatch(
           updatePackage({ _id: pkg?._id, isActive: !pkg?.isActive })
-        ).unwrap();
-        await dispatch(getAllPackages({ search: "" }));
+        )
+          .unwrap()
+          .then(() => {
+            dispatch(getAllPackages({ search: "" }));
+          });
       } catch (error) {
         console.error("Error updating package status:", error);
       } finally {
@@ -104,10 +107,13 @@ const Packages = () => {
   const handleDeleteConfirmed = async () => {
     if (!packageToDelete) return;
     try {
-      await dispatch(deletePackage({ _id: packageToDelete._id })).unwrap();
-      await dispatch(getAllPackages({ search: "" }));
-      setShowDeleteModal(false);
-      setPackageToDelete(null);
+      await dispatch(deletePackage({ _id: packageToDelete._id }))
+        .unwrap()
+        .then(() => {
+          dispatch(getAllPackages({ search: "" }));
+          setShowDeleteModal(false);
+          setPackageToDelete(null);
+        });
     } catch (error) {
       console.error("Error Deleting package:", error);
     }

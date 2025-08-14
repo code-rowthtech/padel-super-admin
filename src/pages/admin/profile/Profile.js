@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaCamera } from "react-icons/fa";
+import { FaCamera, FaUserCircle } from "react-icons/fa";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
 import { updateOwner } from "../../../redux/thunks";
@@ -132,21 +132,30 @@ const Profile = () => {
         >
           {/* Profile Image */}
           <div className="position-relative me-3">
-            <img
-              src={formData.profileImage || "https://i.pravatar.cc/40"}
-              alt="Profile"
-              className="rounded-circle border"
-              style={{ width: "100px", height: "100px", objectFit: "cover" }}
-              loading="lazy"
-            />
+            {formData.profileImage ? (
+              <img
+                src={formData.profileImage}
+                alt="Profile"
+                className="rounded-circle border bg-secondary"
+                style={{ objectFit: "cover" }}
+                width="100"
+                height="100"
+                loading="lazy"
+              />
+            ) : (
+              <div className="bg-secondary rounded-circle">
+                <FaUserCircle size={100} />
+              </div>
+            )}
+
             {/* Camera Icon */}
             <label
               htmlFor="profileImageUpload"
-              className="position-absolute bottom-0 end-0 bg-primary rounded-circle p-1"
+              className="position-absolute bottom-0 end-0 rounded-circle p-1"
               style={{
                 width: "30px",
                 height: "30px",
-                backgroundColor: "#0d6efd", // Bootstrap primary color
+                backgroundColor: "#ca60ad",
                 opacity: 0.8, // Slightly transparent
                 display: "flex",
                 alignItems: "center",

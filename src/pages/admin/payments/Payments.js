@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Row,
-  Col,
-  Container,
-  Table,
-  OverlayTrigger,
-  Tooltip,
-  Card,
-} from "react-bootstrap";
+import { Row, Col, Container, Table, Card } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -44,6 +36,7 @@ const Payments = () => {
     dispatch(resetBookingData());
     setTab(newValue);
   };
+
   const DateButton = ({ value, onClick }) => (
     <button
       onClick={onClick}
@@ -76,6 +69,7 @@ const Payments = () => {
 
     dispatch(getBookingByStatus(payload));
   }, [tab, sendDate]);
+
   const ownerId = getOwnerFromSession()?._id;
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
