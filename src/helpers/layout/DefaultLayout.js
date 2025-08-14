@@ -1,9 +1,11 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useMemo } from "react";
 import Navbar from "../../pages/user/header/Navbar";
+import { getUserFromSession } from "../api/apiCore";
 
 const DefaultLayout = () => {
   const location = useLocation();
+    const user = getUserFromSession()
 
   // List of user-auth routes where Navbar/Footer should be hidden
   const excludedPages = useMemo(
@@ -31,7 +33,7 @@ const DefaultLayout = () => {
     <div>
       {!shouldHideHeaderFooter ? (
         <>
-          <Navbar />
+          <Navbar user={user}/>
           <div style={{ height: "100vh", overflowY: "auto" ,overflowX: "hidden"}}>
             <Outlet />
           </div>

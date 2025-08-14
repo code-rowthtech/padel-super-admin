@@ -61,6 +61,7 @@ const authSlice = createSlice({
         state.userAuthLoading = false;
         state.user = action.payload;
         const { response } = action.payload
+        console.log({response},'auth Slice');
         setAuthorization(response?.token)
         const user = {
           ...response?.user,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import { Container, Row, Col, Table, Button, Form, InputGroup } from 'react-bootstrap';
+import { Container, Row, Col, Table, Button, Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Tab, Tabs } from '@mui/material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -13,8 +13,9 @@ import { format, parse } from 'date-fns';
 import { BookingRatingModal } from './bookingModals/RatingModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { getBooking } from '../../../redux/user/booking/thunk';
-import { Loading } from '../../../helpers/loading/Loaders';
+import { DataLoading, Loading } from '../../../helpers/loading/Loaders';
 import { resetBooking } from '../../../redux/user/booking/slice';
+import { formatDate } from '../../../helpers/Formatting';
 
 const BookingHistory = () => {
     const [activeTab, setActiveTab] = useState('all');
@@ -44,6 +45,10 @@ const BookingHistory = () => {
         { dateTime: '13th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Accepted' },
     ];
 
+    const renderSlotTimes = (slotTimes) =>
+        slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
+
+
     const filteredBookings = bookings.filter((booking) => {
         const matchesStatus = activeTab === 'all' || booking.status.toLowerCase() !== activeTab.toLowerCase();
         const matchesSearch = searchText === '' || booking.courtNumber.toLowerCase().includes(searchText.toLowerCase());
@@ -72,7 +77,20 @@ const BookingHistory = () => {
     const handleChange = (event, newValue) => {
         setActiveTab(newValue);
         dispatch(resetBooking())
-        dispatch(getBooking({type:newValue}))
+        let type = "";
+
+        if (newValue === "all") {
+            type = "";
+        } else if (newValue === "cancelled") {
+            type = "cancelled";
+        } else if (newValue === "upcoming") {
+            type = "upcoming";
+        } else if (newValue === "completed") {
+            type = "completed";
+        }
+
+        dispatch(getBooking({ type }));
+
     };
 
     const handleSelect = (value) => {
@@ -86,7 +104,7 @@ const BookingHistory = () => {
     };
 
     useEffect(() => {
-        dispatch(getBooking())
+        dispatch(getBooking({ type: "" }))
     }, [])
 
     return (
@@ -176,7 +194,8 @@ const BookingHistory = () => {
             <Table hover>
                 <thead>
                     <tr>
-                        <th className="py-3 px-4" style={{ backgroundColor: "#D0D6EA", borderRadius: "10px 0px 0px 0px" }}>Date & Time</th>
+                        <th className="py-3 ps-4" style={{ backgroundColor: "#D0D6EA", borderRadius: "10px 0px 0px 0px" }}>Date & Time</th>
+                        <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Time</th>
                         <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Court Number</th>
                         {activeTab === 'cancelled' && (
                             <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Reason</th>
@@ -209,90 +228,141 @@ const BookingHistory = () => {
                         <th className="py-3 text-center" style={{ backgroundColor: "#D0D6EA", borderRadius: "0px 10px 0px 0px" }}>Action</th>
                     </tr>
                 </thead>
-                <tbody className="border">
-                    {getBookingData?.bookingLoading ? (
+                {getBookingData?.bookingLoading ? (
+                    <tbody>
                         <tr>
-                            <td colSpan={7} rowSpan={3} className="text-center"><Loading /></td>
+                            <td colSpan={7} style={{ height: "60vh", verticalAlign: "middle" }} className="text-center">
+                                <DataLoading height={100} />
+                            </td>
                         </tr>
-                    ) : (
-                        getBookingData?.bookingData?.bookings?.length > 0 ? (
-                            getBookingData.bookingData.bookings.map((booking, i) =>
-                                booking.slot.map((slotItem, index) => (
-                                    <tr key={`${i}-${index}`}>
-                                        <td className="px-4 table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                            {format(new Date(slotItem.bookingDate), 'dd/MM/yyyy hh:mm aa')}
+                    </tbody>
+                ) : getBookingData?.bookingData?.data?.length > 0 ? (
+                    <tbody className="border">
+                        {getBookingData?.bookingData?.data?.map((booking, i) =>
+                            booking?.slot?.map((slotItem, index) => (
+                                <tr key={`${i}-${index}`}>
+                                    <td className="ps-4 table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                        {formatDate(slotItem?.bookingDate)}
+                                    </td>
+                                    <td className="table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                        <OverlayTrigger
+                                            placement="top"
+                                            overlay={
+                                                <Tooltip id={`slot-tooltip-${slotItem?.id}`}>
+                                                    {renderSlotTimes(slotItem?.slotTimes)}
+                                                </Tooltip>
+                                            }
+                                        >
+                                            <span>
+                                                {(() => {
+                                                    const times = slotItem?.slotTimes?.map((slot) => slot.time) || [];
+                                                    const displayed = times.slice(0, 5).join(", ");
+                                                    return times.length > 5 ? `${displayed} ...` : displayed;
+                                                })()}
+                                            </span>
+                                        </OverlayTrigger>
+                                    </td>
+                                    <td className="table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                        {slotItem?.courtName || 'N/A'}
+                                    </td>
+
+                                    {activeTab === 'cancelled' && (
+                                        <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                            reason lorem...............
                                         </td>
-                                        <td className="table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{slotItem.courtName}</td>
-                                        {activeTab === 'cancelled' && (
-                                            <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>reason lorem...............</td>
+                                    )}
+
+                                    {activeTab === 'completed' && (
+                                        <td className='text-center'>
+                                            {[1, 2, 3, 4, 5].map((star) => {
+                                                const ratingValue = ratings[index]?.rating || 0;
+                                                let iconClass = "bi-star"; // empty star by default
+
+                                                if (star <= Math.floor(ratingValue)) {
+                                                    iconClass = "bi-star-fill"; // full star
+                                                } else if (star - ratingValue <= 0.5 && star - ratingValue > 0) {
+                                                    iconClass = "bi-star-half"; // half star
+                                                }
+
+                                                return (
+                                                    <i
+                                                        key={star}
+                                                        className={`bi ${iconClass} ms-2`}
+                                                        style={{
+                                                            color: "#3DBE64",
+                                                            cursor: "pointer",
+                                                            fontSize: "18px"
+                                                        }}
+                                                        onClick={() => handleRatingClick(index)}
+                                                    ></i>
+                                                );
+                                            })}
+                                        </td>
+                                    )}
+
+                                    {activeTab === 'completed' && (
+                                        <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                            {ratings[index]?.review || ""}
+                                        </td>
+                                    )}
+
+                                    <td style={{ color: "#1A237E", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                        {booking?.totalAmount || 'N/A'}
+                                    </td>
+
+                                    {activeTab === 'cancelled' && (
+                                        <td
+                                            style={{
+                                                color: selectedOption === 'Rejected' && booking.status === 'Rejected'
+                                                    ? "red"
+                                                    : "lime",
+                                                fontSize: "16px",
+                                                fontFamily: "Poppins",
+                                                fontWeight: "500"
+                                            }}
+                                        >
+                                            {selectedOption === "status" ? booking?.status : selectedOption}
+                                        </td>
+                                    )}
+
+                                    <td className="text-center">
+                                        {activeTab === 'cancelled' || activeTab === 'completed' ? '' : (
+                                            <MdOutlineCancel
+                                                size={20}
+                                                onClick={() => {
+                                                    setSelectedBooking(booking);
+                                                    setModalCancel(true);
+                                                }}
+                                                className="text-danger"
+                                                style={{ cursor: 'pointer' }}
+                                            />
                                         )}
-
-                                        {activeTab === 'completed' && (
-                                            <td className='text-center' >
-                                                {[1, 2, 3, 4, 5].map((star) => {
-                                                    const ratingValue = ratings[index]?.rating || 0;
-                                                    let iconClass = "bi-star"; // empty star by default
-
-                                                    if (star <= Math.floor(ratingValue)) {
-                                                        iconClass = "bi-star-fill"; // full star
-                                                    } else if (star - ratingValue <= 0.5 && star - ratingValue > 0) {
-                                                        iconClass = "bi-star-half"; // half star
-                                                    }
-
-                                                    return (
-                                                        <i
-                                                            key={star}
-                                                            className={`bi ${iconClass} ms-2`}
-                                                            style={{
-                                                                color: "#3DBE64",
-                                                                cursor: "pointer",
-                                                                fontSize: "18px"
-                                                            }}
-                                                            onClick={() => handleRatingClick(index)}
-                                                        ></i>
-                                                    );
-                                                })}
-
-                                            </td>
-                                        )}
-
-                                        {activeTab === 'completed' && (
-                                            <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                                {ratings[index]?.review || ""}
-                                            </td>
-                                        )}
-                                        <td style={{ color: "#1A237E", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{booking.amount || 100}</td>
-                                        {activeTab === 'cancelled' && (
-                                            <td style={{ color: selectedOption === 'Rejected' && booking.status === 'Rejected' ? "red" : "lime", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{selectedOption === "status" ? booking?.status : selectedOption}</td>
-                                        )}
-                                        <td className="text-center">
-                                            {activeTab === 'cancelled' || activeTab === 'completed' ? '' : (
-                                                <MdOutlineCancel
-                                                    size={20}
-                                                    onClick={() => {
-                                                        setSelectedBooking(booking);
-                                                        setModalCancel(true);
-                                                    }}
-                                                    className="text-danger"
-                                                    style={{ cursor: 'pointer' }}
-                                                />
-                                            )}
-                                            <FiEye size={20} className="text-muted ms-2" onClick={() => {
+                                        <FiEye
+                                            size={20}
+                                            className="text-muted ms-2"
+                                            onClick={() => {
                                                 if (activeTab === "cancelled") {
                                                     setAcceptedRejected(true);
                                                 }
-                                            }} style={{ cursor: 'pointer' }} />
-                                        </td>
-                                    </tr>
-                                ))
-                            )
-                        ) : (
-                            <tr>
-                                <td colSpan={7} className="text-center">No bookings found.</td>
-                            </tr>
-                        )
-                    )}
-                </tbody>
+                                            }}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                ) : (
+                    <tbody>
+                        <tr>
+                            <td colSpan={7} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
+                                <p className="table-data text-danger">No bookings found.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                )}
+
+
             </Table>
             <BookingHistoryCancelModal
                 show={modalCancel}

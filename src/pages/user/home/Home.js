@@ -75,7 +75,7 @@ const Home = () => {
     const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
 
     useEffect(() => {
-        dispatch(getUserClub({ search: "New Club For You" }))
+        dispatch(getUserClub({ search: "" }))
     }, [])
 
     useEffect(() => {
@@ -178,39 +178,14 @@ const Home = () => {
 
                         <h4 style={{ fontWeight: "600" }}>About </h4>
                         <p style={{ fontSize: "16px", fontFamily: "600" }}>
-                            The Good Club – Chandigarh’s premier lifestyle hub! <br />
-                            With 3 all weather padel courts, a Pilates studio, a kids’ play area, and a niche café, it’s<br />
-                            where good people meet, play, and build bonds beyond the court.
+                          {clubData?.clubName}  {clubData?.description}
                         </p>
                         <p style={{ fontSize: "16px", fontFamily: "600" }}>
                             Join the community, feel the energy, and experience the good vibes!<br />
                             #theGoodPeople
                         </p>
 
-                        <p className="mb-2" style={{ fontSize: "16px" }}>
-                            Join the Padel community group on WhatsApp: <br />
-                            <a
-                                href="https://chat.whatsapp.com/DqKAR0MlIiS8dP2Wqe0srt"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="d-inline-block text-break"
-                                style={{ wordBreak: "break-all" }}
-                            >
-                                https://chat.whatsapp.com/DqKAR0MlIiS8dP2Wqe0srt
-                            </a>
-                        </p>
-
-                        <p className="mb-3">
-                            <a
-                                href="https://maps.app.goo.gl/hUmCundkX4qSjbaiB7g"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="d-inline-block text-break"
-                                style={{ wordBreak: "break-all" }}
-                            >
-                                https://maps.app.goo.gl/hUmCundkX4qSjbaiB7g
-                            </a>
-                        </p>
+                       
 
 
                     </div>
