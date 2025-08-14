@@ -44,7 +44,7 @@ const AdminSidebar = () => {
       className="bg-dark text-white vh-100 d-flex flex-column"
       style={{ width: "250px" }}
     >
-      {/* <div
+      <div
         className="d-flex align-items-center justify-content-center border-bottom pb-2"
         style={{ marginTop: "10px" }}
       >
@@ -73,9 +73,7 @@ const AdminSidebar = () => {
           </label>
         </div>
         <input type="file" id="profileImageUpload" accept="image/*" hidden />
-      </div> */}
-      <div className="px-4 py-4 fs-4 fw-bold border-bottom">Logo here</div>
-
+      </div>
       <nav className="flex-grow-1 mt-2">
         <NavLink to="/admin/dashboard" className={linkClasses}>
           <FaTachometerAlt className="me-2" />
