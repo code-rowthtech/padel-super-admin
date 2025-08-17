@@ -60,7 +60,7 @@ const ManualBooking = () => {
       fullDate: date.toISOString().split("T")[0], // e.g., 2025-08-05
     };
   });
-  console.log({ dates });
+
   const dayFullNames = {
     Sun: "Sunday",
     Mon: "Monday",

@@ -5,11 +5,12 @@ import {
   FaBell,
   FaChevronDown,
   FaChevronUp,
+  FaUserCircle,
 } from "react-icons/fa";
 import { Dropdown } from "react-bootstrap";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useDispatch } from "react-redux";
-import { logout } from "../../../redux/admin/auth/authSlice";
+import { logout } from "../../../redux/admin/auth/slice";
 import { NavLink } from "react-router-dom";
 
 const AdminTopbar = () => {
@@ -66,14 +67,20 @@ const AdminTopbar = () => {
               </div>
               <div className="text-muted small">Owner</div>
             </div>
-            <img
-              src={user?.profilePic || "https://i.pravatar.cc/40"}
-              alt="user"
-              className="rounded-circle"
-              width="40"
-              height="40"
-              loading="lazy"
-            />
+            {user?.profilePic ? (
+              <img
+                src={user?.profilePic}
+                alt="user"
+                className="rounded-circle bg-secondary"
+                width="40"
+                height="40"
+                loading="lazy"
+              />
+            ) : (
+              <div className="bg-secondary rounded-circle">
+                <FaUserCircle size={40} />
+              </div>
+            )}
             {isOpen ? (
               <FaChevronUp className="ms-2 text-muted" />
             ) : (

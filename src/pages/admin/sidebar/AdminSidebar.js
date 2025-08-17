@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FaTachometerAlt,
   FaCalendarAlt,
@@ -7,12 +7,13 @@ import {
   FaChevronUp,
   FaEdit,
 } from "react-icons/fa";
-import { logout } from "../../../redux/admin/auth/authSlice";
+import { logout } from "../../../redux/admin/auth/slice";
 import { useDispatch } from "react-redux";
 import { RiLogoutCircleLine, RiWallet3Line } from "react-icons/ri";
 import { LuSwords } from "react-icons/lu";
 import { FaRankingStar } from "react-icons/fa6";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
+import { IoTennisballOutline } from "react-icons/io5";
 
 const AdminSidebar = () => {
   const dispatch = useDispatch();
@@ -39,24 +40,54 @@ const AdminSidebar = () => {
   const isActiveLink =
     location.pathname === "/admin/booking" ||
     location.pathname === "/admin/manualbooking";
+
+  const [clubLogo, setClubLogo] = useState(null);
+  const handleLogoChange = useCallback(
+    (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Create a preview URL for the image
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        alert("action dispatched");
+        setClubLogo(reader.result);
+        dispatch({
+          type: "UPDATE_LOGO",
+          payload: {
+            file, // The actual file object
+            previewUrl: reader.result, // Data URL for preview
+          },
+        });
+      };
+      reader.readAsDataURL(file);
+    },
+    [dispatch]
+  );
   return (
     <aside
       className="bg-dark text-white vh-100 d-flex flex-column"
       style={{ width: "250px" }}
     >
-      {/* <div
+      <div
         className="d-flex align-items-center justify-content-center border-bottom pb-2"
         style={{ marginTop: "10px" }}
       >
         <div className="position-relative me-3">
-          <img
-            src={"https://i.pravatar.cc/40"}
-            alt="Profile"
-            className="rounded-circle border"
-            style={{ width: "100px", height: "100px", objectFit: "cover" }}
-          />
+          {clubLogo ? (
+            <img
+              src={clubLogo}
+              alt="Profile"
+              className="rounded-circle border"
+              style={{ width: "100px", height: "100px", objectFit: "cover" }}
+            />
+          ) : (
+            <div className="bg-secondary rounded-circle p-2">
+              <IoTennisballOutline size={80} />
+            </div>
+          )}
           <label
-            htmlFor="profileImageUpload"
+            htmlFor="clubLogoUpload"
             className="position-absolute bottom-0 end-0 rounded-circle p-1"
             style={{
               width: "30px",
@@ -72,10 +103,14 @@ const AdminSidebar = () => {
             <FaEdit style={{ color: "white", fontSize: "14px" }} />
           </label>
         </div>
-        <input type="file" id="profileImageUpload" accept="image/*" hidden />
-      </div> */}
-      <div className="px-4 py-4 fs-4 fw-bold border-bottom">Logo here</div>
-
+        <input
+          type="file"
+          id="clubLogoUpload"
+          accept="image/*"
+          hidden
+          onChange={handleLogoChange}
+        />
+      </div>
       <nav className="flex-grow-1 mt-2">
         <NavLink to="/admin/dashboard" className={linkClasses}>
           <FaTachometerAlt className="me-2" />

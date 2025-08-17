@@ -48,3 +48,8 @@ export const DELETE_PACKAGE = "/api/package/deletePackage";
 export const GET_COUNT_DASHBOARD = "/api/booking/dashboardData";
 export const GET_CANCELLATION_BOOKING_DASHBOARD =
   "/api/booking/dashboardCancellationBooking";
+export const GET_RECENT_BOOKING_DASHBOARD =
+  "/api/booking/dashboardShowCurrentBooking";
+
+//-----------------------------------------------R_E_V_I_E_W_S-----------------------------------//
+export const GET_REVIEWS_FOR_OWNER = "/api/owners/getownerClubReview";

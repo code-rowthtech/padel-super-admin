@@ -8,7 +8,7 @@ import {
   updateOwner,
   verifyOtp,
   resetPassword,
-} from "./authThunk";
+} from "./thunk";
 import {
   setLoggedInOwner,
   getOwnerFromSession,

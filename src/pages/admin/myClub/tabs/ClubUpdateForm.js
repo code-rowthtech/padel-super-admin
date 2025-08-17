@@ -1,5 +1,5 @@
 // ClubUpdateForm.jsx
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Card,
@@ -11,7 +11,6 @@ import {
   Alert,
 } from "react-bootstrap";
 import { SlCloudUpload } from "react-icons/sl";
-import PropTypes from "prop-types";
 import {
   getOwnerRegisteredClub,
   updateRegisteredClub,

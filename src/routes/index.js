@@ -53,9 +53,6 @@ const Cancellation = React.lazy(() =>
 const OpenMatchesPage = React.lazy(() =>
   import("../pages/admin/open-matches/OpenMatches")
 );
-const CompetitionPage = React.lazy(() =>
-  import("../pages/admin/competition/index")
-);
 const Register = React.lazy(() =>
   import("../pages/admin/registerClub/Register")
 );
@@ -242,10 +239,6 @@ const AllRoutes = () => {
             {
               path: "open-matches",
               element: LoadComponent(OpenMatchesPage),
-            },
-            {
-              path: "competition",
-              element: LoadComponent(CompetitionPage),
             },
             {
               path: "match-details",
