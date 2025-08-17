@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from '../../../helpers/api/apiEndpoint';
-import { apiPatch, create, getApi } from "../../../helpers/api/apiCore";
+import { apiPatch, create, getApi, update } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 export const createBooking = createAsyncThunk(
@@ -29,4 +29,17 @@ export const getBooking = createAsyncThunk(
     }
   }
 );
+
+export const bookingStatus = createAsyncThunk(
+  "booking/bookingStatus",
+  async (data, {rejectWithValue}) => {
+    try {
+      const res = await update(`${Url.BOOKING_STATUS_CHANGE}`,data)
+      return res?.data;
+    } catch (error) {
+      showError(error?.message);
+      return rejectWithValue(error)
+    }
+  }
+)
 

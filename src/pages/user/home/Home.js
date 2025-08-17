@@ -178,14 +178,14 @@ const Home = () => {
 
                         <h4 style={{ fontWeight: "600" }}>About </h4>
                         <p style={{ fontSize: "16px", fontFamily: "600" }}>
-                          {clubData?.clubName}  {clubData?.description}
+                            {clubData?.clubName}  {clubData?.description}
                         </p>
                         <p style={{ fontSize: "16px", fontFamily: "600" }}>
                             Join the community, feel the energy, and experience the good vibes!<br />
                             #theGoodPeople
                         </p>
 
-                       
+
 
 
                     </div>
@@ -422,47 +422,20 @@ const Home = () => {
 
                         {activeTab === 'photos' && (
                             <div className="container my-5">
-
-
-                                <div className="row g-3 mb-2">
-                                    {clubData?.courtImage?.slice(0, 10).map((image, index) => {
-                                        const totalImages = clubData?.courtImage?.length || 0;
-
-                                        let colClass = "col-md-4";
-                                        if (totalImages === 1) {
-                                            colClass = "col-12";
-                                        } else if (totalImages === 2) {
-                                            colClass = "col-md-6";
-                                        } else if (totalImages === 3) {
-                                            if (index === 2) colClass = "col-12";
-                                            else colClass = "col-md-6";
-                                        }
-                                        return (
-                                            <div key={index} className={`${colClass} col-6 p-1 my-1`}>
-                                                <div
-                                                    className="rounded overflow-hidden image-zoom-hover"
-                                                    onClick={() => {
-                                                        setPhotoIndex(index);
-                                                        setIsOpen(true);
-                                                    }}
-                                                    style={{ cursor: "pointer" }}
-                                                >
-                                                    <img
-                                                        src={image}
-                                                        alt={`Gallery ${index + 1}`}
-                                                        className="img-fluid w-100 object-fit-cover"
-                                                        style={{
-                                                            aspectRatio: "4/3",
-                                                            objectFit: "cover",
-                                                            maxHeight: "300px",
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                <div className="custom-gallery">
+                                    {clubData?.courtImage?.slice(0, 10).map((image, index) => (
+                                        <div
+                                            key={index}
+                                            className={`gallery-item item${index + 1}`}
+                                            onClick={() => {
+                                                setPhotoIndex(index);
+                                                setIsOpen(true);
+                                            }}
+                                        >
+                                            <img src={image} alt={`Gallery ${index + 1}`} />
+                                        </div>
+                                    ))}
                                 </div>
-
 
                                 {/* Lightbox */}
                                 {isOpen && (
@@ -480,6 +453,7 @@ const Home = () => {
                                     />
                                 )}
                             </div>
+
                         )}
 
                         {activeTab === 'call' && (

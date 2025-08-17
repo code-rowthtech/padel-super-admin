@@ -6,6 +6,7 @@ import axios from "axios";
 import { logo } from '../../../assets/files';
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
 
 // Load Razorpay Checkout
@@ -21,6 +22,7 @@ const Payment = ({ className = "" }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { courtData, clubData, seletctedCourt } = location.state || {};
+    console.log(clubData,'clubDataclubDataclubData');
     const user = getUserFromSession()
     const store = useSelector((state) => state?.userAuth)
     const bookingStatus = useSelector((state) => state?.userBooking)
@@ -479,7 +481,7 @@ const Payment = ({ className = "" }) => {
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{bookingStatus?.bookingLoading || isLoading ? "Processing..." : "Book Now"}</div>
+                                <div style={contentStyle}>{bookingStatus?.bookingLoading || isLoading ? <ButtonLoading/> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
