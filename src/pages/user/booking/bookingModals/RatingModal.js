@@ -1,24 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import { modalSuccess } from '../../../../assets/files';
-import { FaStar, FaStarHalfAlt } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { Modal, Button, Form } from "react-bootstrap";
+import { modalSuccess } from "../../../../assets/files";
+import { FaStar, FaStarHalfAlt } from "react-icons/fa";
+import { addReviewClub, getReviewClub } from "../../../../redux/user/club/thunk";
+import { useDispatch, useSelector } from "react-redux";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import StarIcon from "@mui/icons-material/Star";
+import { ButtonLoading } from "../../../../helpers/loading/Loaders";
+import { formatDate } from "../../../../helpers/Formatting";
 
-export const BookingRatingModal = ({ show, onHide, onSubmit, initialRating, defaultMessage }) => {
+export const BookingRatingModal = ({ show, tableData,onHide, reviewData, initialRating, defaultMessage }) => {
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
-    const [review, setReview] = useState('');
-
+    const [review, setReview] = useState("");
+    const dispatch = useDispatch();
+    const store = useSelector((state) => state);
+    const getReviewData = store?.userClub?.getReviewData?.data;
+    const addReviewLoading = store?.userClub?.reviewLoading;
+console.log({tableData});
     useEffect(() => {
-        // Initialize with the passed values when modal opens
         if (show) {
-            setRating(initialRating || 0);
-            setReview(defaultMessage || '');
+            // Set default values based on reviewData if it exists
+            if (reviewData) {
+                setRating(reviewData.averageRating || 0);
+                setReview(reviewData.reviews?.[reviewData.reviews.length - 1]?.reviewComment || "");
+            } else {
+                setRating(initialRating || 0);
+                setReview(defaultMessage || "");
+            }
         }
-    }, [show, initialRating, defaultMessage]);
+    }, [show, reviewData, initialRating, defaultMessage]);
 
-    const handleSave = () => {
-        onSubmit({ rating, review });
-        onHide();
+    const handleSubmit = () => {
+        const club_id = localStorage.getItem("register_club_id");
+        const payload = {
+            reviewComment: review,
+            reviewRating: rating,
+            register_club_id: club_id,
+        };
+        dispatch(addReviewClub(payload))
+            .unwrap()
+            .then(() => {
+                setRating(0);
+                setReview("");
+                onHide();
+                dispatch(getReviewClub(club_id));
+            });
     };
 
     const handleClick = (event, star) => {
@@ -33,8 +60,66 @@ export const BookingRatingModal = ({ show, onHide, onSubmit, initialRating, defa
         const { left, width } = event.currentTarget.getBoundingClientRect();
         const hoverX = event.clientX - left;
         const isHalf = hoverX < width / 2;
-        const newHoverRating = isHalf ? star - 0.5 : star;
-        setHoverRating(newHoverRating);
+        setHoverRating(isHalf ? star - 0.5 : star);
+    };
+
+    const handleMouseLeave = () => {
+        setHoverRating(0);
+    };
+
+    const renderStars = () => {
+        const currentRating = hoverRating || rating;
+        return (
+            <div className="d-flex align-items-center justify-content-center">
+                {[...Array(5)].map((_, i) => {
+                    const starValue = i + 1;
+                    if (currentRating >= starValue) {
+                        return (
+                            <StarIcon
+                                key={i}
+                                style={{ color: "#32B768", cursor: "pointer", fontSize: "18px" }}
+                                onClick={(e) => handleClick(e, starValue)}
+                                onMouseMove={(e) => handleHover(e, starValue)}
+                                onMouseLeave={handleMouseLeave}
+                            />
+                        );
+                    } else if (currentRating >= starValue - 0.5) {
+                        return (
+                            <FaStarHalfAlt
+                                key={i}
+                                style={{ color: "#32B768", cursor: "pointer", fontSize: "18px" }}
+                                onClick={(e) => handleClick(e, starValue)}
+                                onMouseMove={(e) => handleHover(e, starValue)}
+                                onMouseLeave={handleMouseLeave}
+                            />
+                        );
+                    } else {
+                        return (
+                            <StarBorderIcon
+                                key={i}
+                                style={{ color: "#ccc", cursor: "pointer", fontSize: "18px" }}
+                                onClick={(e) => handleClick(e, starValue)}
+                                onMouseMove={(e) => handleHover(e, starValue)}
+                                onMouseLeave={handleMouseLeave}
+                            />
+                        );
+                    }
+                })}
+                {currentRating > 0 && (
+                    <span
+                        className="ms-2"
+                        style={{
+                            fontSize: "18px",
+                            fontWeight: "500",
+                            color: "#374151",
+                            fontFamily: "Poppins",
+                        }}
+                    >
+                        {currentRating.toFixed(1)}
+                    </span>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -45,7 +130,7 @@ export const BookingRatingModal = ({ show, onHide, onSubmit, initialRating, defa
                     <button
                         type="button"
                         className="bi bi-x fs-4 text-danger"
-                        style={{ border: 'none', background: 'none' }}
+                        style={{ border: "none", background: "none" }}
                         aria-label="Close"
                         onClick={onHide}
                     />
@@ -57,47 +142,57 @@ export const BookingRatingModal = ({ show, onHide, onSubmit, initialRating, defa
                     src={modalSuccess}
                     alt="Success"
                     className="mb-3"
-                    style={{ width: '200px', marginBottom: '20px' }}
+                    style={{ width: "200px", marginBottom: "20px" }}
                 />
 
                 {/* Booking Details */}
                 <div
                     className="rounded-3 border mb-4 p-3"
                     style={{
-                        backgroundColor: '#FFFFFF',
-                        borderColor: '#1A73E8',
-                        borderWidth: '1px',
-                        borderStyle: 'solid',
-                        borderRadius: '10px',
-                        textAlign: 'left',
+                        backgroundColor: "#FFFFFF",
+                        borderColor: "#1A73E8",
+                        borderWidth: "1px",
+                        borderStyle: "solid",
+                        borderRadius: "10px",
+                        textAlign: "left",
                     }}
                 >
-                    <h5 className="mb-1 fw-bold" style={{ color: '#111827' }}>🎉 You Played very well</h5>
-                    <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                    <h5 className="mb-1 fw-bold" style={{ color: "#111827" }}>
+                        🎉 You Played very well
+                    </h5>
+                    <p style={{ fontSize: "14px", color: "#6B7280" }}>
                         Your Slots are Successfully booked.
                     </p>
 
                     <div className="d-flex justify-content-between">
                         <div>
-                            <p className="text-muted mb-1" style={{ fontSize: '13px', fontWeight: '500' }}>
+                            <p
+                                className="text-muted mb-1"
+                                style={{ fontSize: "13px", fontWeight: "500" }}
+                            >
                                 Court Name
                             </p>
-                            <p className="text-muted mb-1" style={{ fontSize: '13px', fontWeight: '500' }}>
-                                Court Number
-                            </p>
-                            <p className="text-muted mb-1" style={{ fontSize: '13px', fontWeight: '500' }}>
-                                Date & Time / Min
+                         
+                            <p
+                                className="text-muted mb-1"
+                                style={{ fontSize: "13px", fontWeight: "500" }}
+                            >
+                                Date 
                             </p>
                         </div>
                         <div className="text-end">
-                            <p className="fw-bold mb-1" style={{ fontSize: '14px', color: '#111827' }}>
-                                The Good Club
+                            <p
+                                className="fw-bold mb-1"
+                                style={{ fontSize: "14px", color: "#111827" }}
+                            >
+                               {tableData?.slotItem?.courtName || 'N/A'}
                             </p>
-                            <p className="fw-bold mb-1" style={{ fontSize: '14px', color: '#111827' }}>
-                                1 Court
-                            </p>
-                            <p className="fw-bold mb-1" style={{ fontSize: '14px', color: '#111827' }}>
-                                19th Jun' 2025 8:00am (60min)
+                        
+                            <p
+                                className="fw-bold mb-1"
+                                style={{ fontSize: "14px", color: "#111827" }}
+                            >
+                                 {formatDate(tableData?.slotItem?.bookingDate) || '1N/A'}
                             </p>
                         </div>
                     </div>
@@ -112,61 +207,25 @@ export const BookingRatingModal = ({ show, onHide, onSubmit, initialRating, defa
                     </div>
                     <div className="d-flex justify-content-between">
                         <span className="text-muted">Total Payment</span>
-                        <span style={{ color: '#1A237E', fontWeight: '700' }}>₹1000</span>
+                        <span style={{ color: "#1A237E", fontWeight: "700" }}>₹{tableData?.booking?.totalAmount || "N/A"}</span>
                     </div>
                 </div>
 
                 {/* Star Rating */}
                 <div className="my-3">
                     <h4 className="tabel-title text-start">Rate this court (Padel Haus)</h4>
-                    {[1, 2, 3, 4, 5].map((star) => {
-                        const fillValue = hoverRating || rating;
-                        let icon;
-
-                        if (fillValue >= star) {
-                            icon = <i className="bi bi-star-fill" style={{ color: "#3DBE64", fontSize: "30px" }}></i>;
-                        } else if (fillValue >= star - 0.5) {
-                            icon = <i className="bi bi-star-half" style={{ color: "#3DBE64", fontSize: "30px" }}></i>;
-                        } else {
-                            icon = <i className="bi bi-star" style={{ color: "#3DBE64", fontSize: "30px" }}></i>;
-                        }
-
-                        return (
-                            <span
-                                key={star}
-                                className='ms-2'
-                                style={{ cursor: "pointer" }}
-                                onClick={(e) => handleClick(e, star)}
-                                onMouseMove={(e) => handleHover(e, star)}
-                                onMouseLeave={() => setHoverRating(0)}
-                            >
-                                {icon}
-                            </span>
-                        );
-                    })}
-                    {rating > 0 && (
-                        <span className=' ms-2'
-                            style={{
-                                fontSize: "18px",
-                                fontWeight: "500",
-                                color: "#374151",
-                                fontFamily: "Poppins"
-                            }}
-                        >
-                            {rating.toFixed(1)}
-                        </span>
-                    )}
+                    {renderStars()}
                 </div>
 
                 {/* Review Box */}
                 <div className="mt-4 text-start">
-                    <p className="mb-2" style={{ fontWeight: '600', color: '#374151' }}>
+                    <p className="mb-2" style={{ fontWeight: "600", color: "#374151" }}>
                         Write a message
                     </p>
                     <Form.Control
                         as="textarea"
                         rows={3}
-                        style={{ boxShadow: 'none', fontWeight: "600" }}
+                        style={{ boxShadow: "none", fontWeight: "600" }}
                         placeholder="Write Here"
                         value={review}
                         onChange={(e) => setReview(e.target.value)}
@@ -177,15 +236,21 @@ export const BookingRatingModal = ({ show, onHide, onSubmit, initialRating, defa
                 <div className="justify-content-center mt-4 d-flex align-items-center">
                     <Button
                         style={{
-                            backgroundColor: '#1A237E',
-                            fontWeight: '500',
-                            fontSize: '17px',
-                            border: '0'
+                            backgroundColor: "#1A237E",
+                            fontWeight: "500",
+                            fontSize: "17px",
+                            border: "0",
                         }}
-                        onClick={handleSave}
+                        onClick={() => handleSubmit()}
                         className="rounded-pill py-2 w-100"
                     >
-                        {initialRating ? "Update" : "Submit"}
+                        {addReviewLoading ? (
+                            <ButtonLoading />
+                        ) : reviewData ? (
+                            "Update"
+                        ) : (
+                            "Submit"
+                        )}
                     </Button>
                 </div>
             </Modal.Body>

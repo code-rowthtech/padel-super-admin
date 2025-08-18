@@ -6,10 +6,12 @@ import { FaChevronDown } from "react-icons/fa";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
+import { formatDate } from "../../../helpers/Formatting";
 
 const Openmatches = ({ width = 370, height = 70 }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
+    const dateRefs = useRef({});
     const wrapperRef = useRef(null);
     const navigate = useNavigate()
     // Close on outside click
@@ -40,7 +42,15 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         };
     });
 
-
+    const dayShortMap = {
+        Monday: "Mon",
+        Tuesday: "Tue",
+        Wednesday: "Wed",
+        Thursday: "Thu",
+        Friday: "Fri",
+        Saturday: "Sat",
+        Sunday: "Sun",
+    };
     const scrollRef = useRef(null);
 
     const scroll = (direction) => {
@@ -207,6 +217,10 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         setSelectedLevel(level);
     };
 
+    const maxSelectableDate = new Date();
+    maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
+
+
     const filteredMatches = selectedLevel
         ? matchData.filter((match) => match.level === selectedLevel)
         : matchData;
@@ -222,120 +236,91 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                     {/* Left Section */}
                     <div className="col-7 py-5 rounded-3 px-4" style={{ backgroundColor: " #F5F5F566" }}>
                         {/* Date Selector */}
-                        <div className="calendar-strip ">
-                            <div className="" style={{ fontSize: "20px", fontWeight: "600" }}>Select Date <div
-                                className="position-relative d-inline-block"
-                                ref={wrapperRef}
-                            >
-                                {/* Icon Button */}
-                                <span
-                                    className="rounded-circle p-2 ms-2 shadow-sm bg-light"
-                                    style={{ cursor: "pointer" }}
-                                    onClick={() => setIsOpen(!isOpen)}
-                                >
-                                    <i className="bi bi-calendar2-week" style={{ fontSize: "18px" }}></i>
-                                </span>
-
-                                {/* Calendar */}
-                                {isOpen && (
-                                    <div
-                                        className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
-                                        style={{ top: "100%", left: "0", minWidth: "100%", }}
+                        <div className="calendar-strip">
+                            <div className="mb-3 ps-4" style={{ fontSize: "20px", fontWeight: "600" }}>
+                                Select Date
+                                <div className="position-relative d-inline-block" ref={wrapperRef}>
+                                    <span
+                                        className="rounded-circle p-2 ms-2 shadow-sm bg-light"
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => setIsOpen(!isOpen)}
                                     >
-                                        <DatePicker
-                                            selected={startDate}
-                                            onChange={(date) => {
-                                                setStartDate(date);
-                                                setIsOpen(false);
-                                            }}
-                                            inline
-                                            showMonthDropdown
-                                            showYearDropdown
-                                            dropdownMode="select"
-                                            calendarClassName="custom-calendar w-100 shadow-sm" // 👈 styled class
-                                        />
-                                    </div>
-                                )}
-                            </div></div>
+                                        <i className="bi bi-calendar2-week" style={{ fontSize: "18px" }}></i>
+                                    </span>
+                                    {isOpen && (
+                                        <div
+                                            className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
+                                            style={{ top: "100%", left: "0", minWidth: "100%" }}
+                                        >
+                                            <DatePicker
+                                                selected={startDate}
+                                                onChange={(date) => {
+                                                    setStartDate(date);
+                                                    setIsOpen(false);
+                                                    const formattedDate = date.toISOString().split("T")[0];
+                                                    const day = date.toLocaleDateString("en-US", { weekday: "long" });
+                                                    setSelectedDate({ fullDate: formattedDate, day });
+                                                    setSelectedTimes([]);
+                                                }}
+                                                inline
+                                                maxDate={maxSelectableDate}
+                                                minDate={new Date()}
+                                                dropdownMode="select"
+                                                calendarClassName="custom-calendar w-100 shadow-sm"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                             <div className="d-flex align-items-center gap-2 mb-3">
                                 <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                                     <i className="bi bi-chevron-left"></i>
                                 </button>
-
                                 <div
                                     ref={scrollRef}
                                     className="d-flex gap-2 w-100 overflow-auto no-scrollbar"
                                     style={{
                                         scrollBehavior: "smooth",
                                         whiteSpace: "nowrap",
-                                        maxWidth: "620px", // Enough space for 7 buttons ~88px each
+                                        maxWidth: "820px",
                                     }}
                                 >
-                                    {dates.map((d, i) => (
-                                        <button
-                                            key={i}
-                                            className={`calendar-day-btn border px-3 py-2 rounded ${selectedDate === d.fullDate ? "text-white" : "bg-light text-dark"}`}
-                                            style={{
-                                                backgroundColor: selectedDate === d.fullDate ? "#374151" : undefined,
-                                                border: "none", minWidth: "85px", border: "none"
-                                            }}
-
-                                            onClick={() => setSelectedDate(d.fullDate)}
-
-                                        >
-                                            <div className="text-center pb-3">
-                                                <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.day}</div>
-                                                <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
-                                                <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
-                                            </div>
-                                        </button>
-                                    ))}
+                                    {dates?.map((d, i) => {
+                                        const isSelected = selectedDate?.fullDate ? formatDate(new Date(selectedDate.fullDate)) === d.fullDate : false;
+                                        return (
+                                            <button
+                                                ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                                                key={i}
+                                                className={`calendar-day-btn px-3 py-2 rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                                                style={{
+                                                    backgroundColor: isSelected ? "#374151" : undefined,
+                                                    border: "none",
+                                                }}
+                                                onClick={() => {
+                                                    setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                                                    setStartDate(new Date(d.fullDate));
+                                                    setSelectedTimes([]);
+                                                }}
+                                            >
+                                                <div className="text-center">
+                                                    <div style={{ fontSize: "14px", fontWeight: "400" }}>{dayShortMap[d.day]}</div>
+                                                    <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
+                                                    <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-
                                 <button className="btn btn-light p-0" onClick={() => scroll("right")}>
                                     <i className="bi bi-chevron-right"></i>
                                 </button>
                             </div>
                         </div>
-
                         {/* Time Selector */}
                         <div className="d-flex justify-content-between align-items-center py-2">
                             <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-                                Available Slots <span className="fs-6">(60m)</span>
+                                Available Slots
                             </p>
-                            <div className="form-switch d-flex align-items-center gap-2 p-0">
-                                <input
-                                    className="form-check-input fs-5 mb-1"
-                                    type="checkbox"
-                                    role="switch"
-                                    id="flexSwitchCheckDefault"
-                                />
-                                <label
-                                    className="form-check-label mb-0"
-                                    htmlFor="flexSwitchCheckDefault"
-                                    style={{ whiteSpace: "nowrap" }}
-                                >
-                                    Show Unavailable Slots
-                                </label>
-                            </div>
-                        </div>
-
-
-                        <div className="d-flex flex-wrap gap-2 mb-4">
-                            {times.map((time, i) => (
-                                <button
-                                    key={i}
-                                    className={`btn border-0 rounded-pill px-4 `}
-                                    onClick={() => toggleTime(time)}
-                                    style={{
-                                        backgroundColor: selectedTimes.includes(time) ? "#374151" : "#CBD6FF1A",
-                                        color: selectedTimes.includes(time) ? "white" : "#000000",
-                                    }}
-                                >
-                                    {time}
-                                </button>
-
-                            ))}
                         </div>
                         {/* Court List */}
                         <div>

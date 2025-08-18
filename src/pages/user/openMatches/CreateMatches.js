@@ -3,9 +3,12 @@ import { Container, Row, Col, Button, Card, Form, ProgressBar } from 'react-boot
 import DatePicker from 'react-datepicker';
 import { FaChevronDown, FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaShoppingCart } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { NavLink } from 'react-router-dom';
+import { Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { getUserSlot } from '../../../redux/user/slot/thunk';
-import { DataLoading } from '../../../helpers/loading/Loaders';
+import { createMatches } from '../../../redux/user/matches/thunk';
+import { getUserFromSession } from '../../../helpers/api/apiCore';
+import { ButtonLoading, DataLoading } from '../../../helpers/loading/Loaders';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -13,6 +16,9 @@ const CreateMatches = () => {
   const wrapperRef = useRef(null);
   const dateRefs = useRef({});
   const dispatch = useDispatch();
+  const navigate = useNavigate()
+  const user = getUserFromSession();
+  const store = useSelector((state) => state)
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTimes, setSelectedTimes] = useState([]);
   const [selectedDate, setSelectedDate] = useState({
@@ -21,10 +27,11 @@ const CreateMatches = () => {
   });
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedCourts, setSelectedCourts] = useState([]);
+  const [skillDetails, setSkillDetails] = useState([]);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
-
-  // Close dropdown on outside click
+  const userMatches = store?.userMatches
+  console.log({ userMatches });
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
@@ -76,10 +83,6 @@ const CreateMatches = () => {
     }
   };
 
-
-
-  const levels = ["Beginner", "Intermediate", "Advanced", "Professional"];
-
   const maxSelectableDate = new Date();
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
 
@@ -128,7 +131,6 @@ const CreateMatches = () => {
     return date.toISOString().split("T")[0];
   };
 
-
   const steps = [
     {
       question: 'On the following scale, where would you place yourself?',
@@ -166,16 +168,58 @@ const CreateMatches = () => {
   ];
 
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+    if (selectedLevel && currentStep < steps.length - 1) {
+      setSkillDetails(prev => {
+        const newDetails = [...prev];
+        newDetails[currentStep] = selectedLevel;
+        return newDetails;
+      });
       setCurrentStep(currentStep + 1);
-      setSelectedLevel(''); // Reset selected level for the new step
+      setSelectedLevel('');
+    } else if (currentStep === steps.length - 1 && selectedLevel) {
+      // Handle submit
+      const finalSkillDetails = [...skillDetails];
+      finalSkillDetails[currentStep] = selectedLevel;
+
+      const formattedData = {
+        slot: selectedCourts?.map(court => ({
+          slotId: court?._id || "689d6e4938589ba8294ccebe",
+          courtName: court?.courtName || "Court 1",
+          bookingDate: new Date(selectedDate.fullDate).toISOString(),
+          businessHours: [{
+            time: "6:00 AM To 11:00 PM",
+            day: selectedDate.day,
+          }],
+          slotTimes: selectedTimes.map(time => ({
+            time: time.time,
+            amount: time.amount || 100,
+          })),
+        })),
+        clubId: savedClubId || "688ca6c8e8f0b4d358015af5",
+        matchDate: new Date(selectedDate.fullDate).toISOString(),
+        matchTime: selectedTimes.map(time => time.time).join(','),
+        skillLevel: finalSkillDetails[0]?.toLowerCase() || "beginner",
+        matchStatus: "open",
+        players: user?._id ? [user?._id] : ["689aeef5f29d437107e24470"],
+      };
+
+      console.log(JSON.stringify(formattedData, null, 2));
+      dispatch(createMatches(formattedData)).unwrap().then(() => {
+        setSelectedCourts([]);
+        setSelectedDate([]);
+        setSelectedTimes([])
+        setSelectedLevel([])
+        navigate('/view-match')
+        // dispatch(getReviewClub(clubData._id))
+
+      });
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      setSelectedLevel(''); // Reset selected level for the new step
+      setSelectedLevel(skillDetails[currentStep - 1] || '');
     }
   };
 
@@ -197,6 +241,7 @@ const CreateMatches = () => {
       }
     }
   }, [slotData, selectedDate?.fullDate, selectedTimes]);
+
   return (
     <Container className="p-4" style={{ minHeight: '100vh' }}>
       <Row>
@@ -207,7 +252,6 @@ const CreateMatches = () => {
             <div className="mb-3 ps-4" style={{ fontSize: "20px", fontWeight: "600" }}>
               Select Date
               <div className="position-relative d-inline-block" ref={wrapperRef}>
-                {/* Icon Button */}
                 <span
                   className="rounded-circle p-2 ms-2 shadow-sm bg-light"
                   style={{ cursor: "pointer" }}
@@ -215,8 +259,6 @@ const CreateMatches = () => {
                 >
                   <i className="bi bi-calendar2-week" style={{ fontSize: "18px" }}></i>
                 </span>
-
-                {/* Calendar */}
                 {isOpen && (
                   <div
                     className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
@@ -227,10 +269,8 @@ const CreateMatches = () => {
                       onChange={(date) => {
                         setStartDate(date);
                         setIsOpen(false);
-
                         const formattedDate = date.toISOString().split("T")[0];
                         const day = date.toLocaleDateString("en-US", { weekday: "long" });
-
                         setSelectedDate({ fullDate: formattedDate, day });
                         setSelectedTimes([]);
                       }}
@@ -248,7 +288,6 @@ const CreateMatches = () => {
               <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                 <i className="bi bi-chevron-left"></i>
               </button>
-
               <div
                 ref={scrollRef}
                 className="d-flex gap-2 w-100 overflow-auto no-scrollbar"
@@ -260,7 +299,6 @@ const CreateMatches = () => {
               >
                 {dates?.map((d, i) => {
                   const isSelected = selectedDate?.fullDate ? formatDate(new Date(selectedDate.fullDate)) === d.fullDate : false;
-
                   return (
                     <button
                       ref={(el) => (dateRefs.current[d.fullDate] = el)}
@@ -285,13 +323,11 @@ const CreateMatches = () => {
                   );
                 })}
               </div>
-
               <button className="btn btn-light p-0" onClick={() => scroll("right")}>
                 <i className="bi bi-chevron-right"></i>
               </button>
             </div>
           </div>
-
           {/* Time Selector */}
           <div className="d-flex justify-content-between align-items-center py-2">
             <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
@@ -310,18 +346,13 @@ const CreateMatches = () => {
                     const slotDate = new Date(selectedDateObj);
                     const [hourString, period] = slot?.time?.toLowerCase().split(" ");
                     let hour = parseInt(hourString);
-
                     if (period === "pm" && hour !== 12) hour += 12;
                     if (period === "am" && hour === 12) hour = 0;
-
                     slotDate.setHours(hour, 0, 0, 0);
-
                     const now = new Date();
                     const isToday = selectedDateObj.toDateString() === now.toDateString();
                     const isPast = isToday && slotDate.getTime() < now.getTime();
-
                     const isSelected = selectedTimes.some(t => t._id === slot._id);
-
                     return (
                       <button
                         key={i}
@@ -409,8 +440,8 @@ const CreateMatches = () => {
                         onClick={() => handleCourtSelect(court)}
                         style={{ cursor: "pointer" }}
                         className={`d-flex p-4 justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${selectedCourts.some(selCourt => selCourt._id === court._id)
-                            ? "bg-success-subtle rounded"
-                            : ""
+                          ? "bg-success-subtle rounded"
+                          : ""
                           }`}
                       >
                         <div className="d-flex align-items-center gap-3">
@@ -431,7 +462,6 @@ const CreateMatches = () => {
             </>
           )}
         </Col>
-
         {/* RIGHT PANEL */}
         <Col md={5}>
           <ProgressBar
@@ -480,10 +510,10 @@ const CreateMatches = () => {
                     border: 'none',
                     borderRadius: '4px',
                   }}
-                  disabled={!selectedTimes}
+                  disabled={!selectedLevel || selectedTimes.length === 0 || selectedCourts.length === 0}
                   onClick={handleNext}
                 >
-                  {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
+                  {currentStep === steps.length - 1 ? userMatches?.matchesLoading ? <ButtonLoading /> : 'Submit' : 'Next'}
                 </Button>
               </div>
             </Form>
