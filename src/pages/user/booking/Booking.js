@@ -215,23 +215,36 @@ const Booking = ({
     }, [selectedDate]);
 
     useEffect(() => {
-        if (slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0) {
+        if (
+            slotData?.data?.length > 0 &&
+            slotData.data[0]?.courts?.length > 0 &&
+            selectedCourts.length === 0 // Only set default if no court is selected
+        ) {
             const firstCourt = slotData.data[0].courts[0];
-            const timeOnly = selectedTimes?.map(item => ({
+            const newCourt = {
+                ...firstCourt,
+                date: selectedDate?.fullDate,
+                time: [], // Initialize with empty time array
+            };
+            setSelectedCourts([newCourt]);
+        }
+    }, [slotData, selectedDate?.fullDate]);
+
+    useEffect(() => {
+        if (selectedCourts.length > 0 && selectedTimes.length > 0) {
+            const timeOnly = selectedTimes.map(item => ({
                 _id: item?._id,
                 time: item?.time,
                 amount: item?.amount || 100,
             }));
-            const newCourt = {
-                ...firstCourt,
-                date: selectedDate?.fullDate,
-                time: timeOnly,
-            };
-            if (!selectedCourts.some(c => c._id === firstCourt._id)) {
-                setSelectedCourts([newCourt]);
-            }
+            setSelectedCourts(prev =>
+                prev.map(court => ({
+                    ...court,
+                    time: timeOnly,
+                }))
+            );
         }
-    }, [slotData, selectedDate?.fullDate, selectedTimes]);
+    }, [selectedTimes]);
 
     return (
         <>
@@ -557,57 +570,51 @@ const Booking = ({
                             </div>
 
                             <h6 className=" border-top  p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>Booking summary</h6>
-                            <div
-                                style={{
-                                    maxHeight: "240px",
-                                    overflowY: "auto",
-                                }}
-                            >
-                                {selectedCourts?.map((court, index) => (
-                                    <>
-                                        <div> <span style={{ fontWeight: "600" }}>{court?.courtName}</span></div>
-                                        <div key={index} className="court-row d-flex justify-content-between align-items-center mb-3 ">
-
+                            <div style={{ maxHeight: "240px", overflowY: "auto" }}>
+                                {selectedCourts.length > 0 ? (
+                                    selectedCourts.map((court, index) => (
+                                        <div key={index}>
                                             <div>
-                                                <span style={{ fontWeight: "500" }}>
-                                                    {(() => {
-                                                        const date = new Date(court.date);
-                                                        const day = date.toLocaleString('en-US', { day: '2-digit' });
-                                                        const month = date.toLocaleString('en-US', { month: 'short' });
-                                                        return `${day}${month}`;
-                                                    })()},
-                                                </span>
-
+                                                <span style={{ fontWeight: "600" }}>{court?.courtName}</span>
                                             </div>
-
-
-                                            <div className="d-flex align-items-center gap-2">
-                                                <button
-                                                    className="btn btn-sm text-danger delete-btn "
-                                                    onClick={() => handleDelete(index)}
-                                                >
-                                                    <i className="bi bi-trash-fill pt-1"></i>
-                                                </button>
-                                                <span className="mb-1">  {Array.isArray(court.time)
-                                                    ? court.time.map(t => t.time).join(' | ')
-                                                    : court.time
-                                                }</span>
-
+                                            <div className="court-row d-flex justify-content-between align-items-center mb-3">
+                                                <div>
+                                                    <span style={{ fontWeight: "500" }}>
+                                                        {(() => {
+                                                            const date = new Date(court.date);
+                                                            const day = date.toLocaleString('en-US', { day: '2-digit' });
+                                                            const month = date.toLocaleString('en-US', { month: 'short' });
+                                                            return `${day} ${month}`;
+                                                        })()}
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <button
+                                                        className="btn btn-sm text-danger delete-btn"
+                                                        onClick={() => handleDelete(index)}
+                                                    >
+                                                        <i className="bi bi-trash-fill pt-1"></i>
+                                                    </button>
+                                                    <span className="mb-1">
+                                                        {court.time.length > 0
+                                                            ? court.time.map(t => t.time).join(' | ')
+                                                            : 'No time selected'}
+                                                    </span>
+                                                </div>
                                             </div>
-
+                                            {court.time.length > 0 && (
+                                                <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
+                                                    <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
+                                                    <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
+                                                        ₹ {court.time.reduce((total, t) => total + Number(t.amount || 0), 0)}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
-                                            <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to pay</span>
-                                            <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}
-                                            >
-                                                ₹ {Array.isArray(court.time)
-                                                    ? court.time.reduce((total, t) => total + Number(t.amount || 0), 0)
-                                                    : court.amount}
-                                            </span>
-
-                                        </div>
-                                    </>
-                                ))}
+                                    ))
+                                ) : (
+                                    <div className="text-center py-4 text-muted">No court selected</div>
+                                )}
                             </div>
 
                             <div className="d-flex justify-content-center mt-3">
