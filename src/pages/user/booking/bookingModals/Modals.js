@@ -1,24 +1,35 @@
 // src/components/BookingHistoryCancelModal.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { modalSuccess, logo } from '../../../../assets/files';
+import { formatDate } from '../../../../helpers/Formatting';
+import { useDispatch, useSelector } from 'react-redux';
+import { bookingStatus } from '../../../../redux/user/booking/thunk';
+import { ButtonLoading } from '../../../../helpers/loading/Loaders';
 
-export const BookingHistoryCancelModal = ({ show, onHide, booking }) => {
+export const BookingHistoryCancelModal = ({ tableData, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  console.log(otherReason, 'otherReason');
+  const bookingStatusData = useSelector((state) => state?.userBooking)
 
+  const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
     setChangeContent(false);
+    setChangeCancelShow(false)
     setSelectedReason('');
     setOtherReason('');
     setShowSuccessModal(false);
     setShowConfirmationModal(false);
   };
+  useEffect(() => {
+    if (changeCancelShow) {
+      setChangeContent(true)
+    }
+  }, [changeCancelShow])
 
   const handleSubmit = () => {
     if (!selectedReason || (selectedReason === 'other' && !otherReason.trim())) {
@@ -31,6 +42,7 @@ export const BookingHistoryCancelModal = ({ show, onHide, booking }) => {
   const handleContinue = () => {
     setShowSuccessModal(false);
     setShowConfirmationModal(true);
+    dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason }))
   };
 
   return (
@@ -69,24 +81,19 @@ export const BookingHistoryCancelModal = ({ show, onHide, booking }) => {
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-start p-2 ps-3">
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-                  Name
+                  Court Name
                 </p>
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-                  Court Number
-                </p>
-                <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-                  Date & Time /Min
+                  Date
                 </p>
               </div>
               <div className="text-end p-2 pe-3">
                 <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-                  {booking?.clubName || 'The Good Club'}
+                  {tableData?.slotItem?.courtName || 'N/A'}
                 </p>
+
                 <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-                  {booking?.courtNumber || '1 Court'}
-                </p>
-                <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-                  {booking?.dateTime || '19th Jun’ 2025 8:00am (60min)'}
+                  {formatDate(tableData?.slotItem?.bookingDate) || '1N/A'}
                 </p>
               </div>
             </div>
@@ -100,7 +107,7 @@ export const BookingHistoryCancelModal = ({ show, onHide, booking }) => {
             </div>
             <div className="d-flex justify-content-between">
               <h6>Total Payment</h6>
-              <h3 style={{ color: '#1A237E' }}>{booking?.totalPayment || '1000'}</h3>
+              <h3 style={{ color: '#1A237E' }}>{tableData?.booking?.totalAmount || "N/A"}</h3>
             </div>
           </div>
 
@@ -169,6 +176,7 @@ export const BookingHistoryCancelModal = ({ show, onHide, booking }) => {
         show={showSuccessModal}
         onHide={handleClose}
         onContinue={handleContinue}
+        bookingStatusData={bookingStatusData}
       />
 
       <CancellationConfirmationModal
@@ -176,12 +184,13 @@ export const BookingHistoryCancelModal = ({ show, onHide, booking }) => {
         onHide={handleClose}
         selectedReason={selectedReason}
         otherReason={otherReason}
+        tableData={tableData}
       />
     </>
   );
 };
 
-export const BookingHistorySuccessModal = ({ show, onHide, onContinue }) => {
+export const BookingHistorySuccessModal = ({ show, onHide,bookingStatusData, onContinue }) => {
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">
@@ -216,7 +225,7 @@ export const BookingHistorySuccessModal = ({ show, onHide, onContinue }) => {
             onClick={onContinue}
             className="rounded-pill py-2 w-100 px-4"
           >
-            Continue
+          {bookingStatusData?.bookingLoading ? <ButtonLoading/> : 'Continue'}  
           </Button>
         </div>
       </Modal.Body>
@@ -224,7 +233,7 @@ export const BookingHistorySuccessModal = ({ show, onHide, onContinue }) => {
   );
 };
 
-export const CancellationConfirmationModal = ({ show, onHide, selectedReason, otherReason }) => {
+export const CancellationConfirmationModal = ({tableData, show, onHide, selectedReason, otherReason }) => {
   const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
 
   return (
@@ -243,24 +252,19 @@ export const CancellationConfirmationModal = ({ show, onHide, selectedReason, ot
         <div className="d-flex mb-3 justify-content-between border rounded bg-light align-items-center">
           <div className="text-start p-2 ps-3">
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Name
+             Court Name
             </p>
-            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Court Number
-            </p>
+
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
               Date & Time /Min
             </p>
           </div>
           <div className="text-end p-2 pe-3">
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-              {'The Good Club'}
+              {tableData?.slotItem?.courtName}
             </p>
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-              {'1 Court'}
-            </p>
-            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-              {'19th Jun’ 2025 8:00am (60min)'}
+              {formatDate(tableData?.slotItem?.bookingDate)}
             </p>
           </div>
         </div>
@@ -273,7 +277,7 @@ export const CancellationConfirmationModal = ({ show, onHide, selectedReason, ot
           </div>
           <div className="d-flex justify-content-between">
             <h6>Total Payment</h6>
-            <h3 style={{ color: '#1A237E' }}>{'1000'}</h3>
+            <h3 style={{ color: '#1A237E' }}>{tableData?.booking?.totalAmount}</h3>
           </div>
         </div>
 
@@ -316,42 +320,37 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
           <button
             type="button"
             className="bi bi-x fs-4 text-danger"
-            style={{ border: 'none', background:'none' }}
+            style={{ border: 'none', background: 'none' }}
             aria-label="Close"
             onClick={onHide}
           />
         </div>
         <h3 className="text-center tabel-title mb-3">Booking Cancellation</h3>
-        {selectedOption === "Accepted" || booking === "Accepted" ?
+        {booking?.booking?.bookingStatus === "refunded" ?
           <img
             src={modalSuccess}
             alt="Success"
             className="py-4"
             style={{ width: '200px', marginBottom: '20px' }}
           />
-          :null
+          : null
         }
         <div className="d-flex mb-3 justify-content-between border rounded bg-light align-items-center">
           <div className="text-start p-2 ps-3">
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Name
+              Court Name
             </p>
+
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Court Number
-            </p>
-            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Date & Time /Min
+              Date
             </p>
           </div>
           <div className="text-end p-2 pe-3">
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-              {'The Good Club'}
+              {booking?.slotItem?.courtName}
             </p>
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-              {'1 Court'}
-            </p>
-            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-              {'19th Jun’ 2025 8:00am (60min)'}
+              {formatDate(booking?.slotItem?.bookingDate)}
             </p>
           </div>
         </div>
@@ -364,7 +363,7 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
           </div>
           <div className="d-flex justify-content-between">
             <h6>Total Payment</h6>
-            <h3 style={{ color: '#1A237E' }}>{'1000'}</h3>
+            <h3 style={{ color: '#1A237E' }}>{booking?.booking?.totalAmount}</h3>
           </div>
         </div>
 
@@ -374,17 +373,17 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
           </h5>
           <Form.Select
             as="select"
-            value={displayReason}
+            value={booking?.booking?.cancellationReason}
             disabled
             aria-label="Cancellation reason"
             style={{ boxShadow: 'none' }}
           >
-            <option value={displayReason}>{displayReason}</option>
+            <option value={booking?.booking?.cancellationReason}>{booking?.booking?.cancellationReason}</option>
           </Form.Select>
         </div>
 
         <div className="rounded-3 mb-4">
-          {selectedOption === "Accepted" || booking === "Accepted" ?
+          {booking?.booking?.bookingStatus === "refunded" ?
             <h3 className="tabel-title">Your Refund has been Deposited into your account within 3 days</h3>
             :
             <>

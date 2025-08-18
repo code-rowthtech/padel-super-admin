@@ -107,7 +107,9 @@ const Navbar = () => {
                                         <div className="text-end d-none d-sm-block">
 
                                             <div className="fw-semibold">
-                                                {user?.name.charAt().toUpperCase(0) + user?.name?.slice(1) || "Danielle Campbell"}
+                                                {user?.name
+                                                    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
+                                                    : "Danielle Campbell"}
                                             </div>
                                             <div className="text-muted small">{user?.phoneNumber}</div>
                                         </div>

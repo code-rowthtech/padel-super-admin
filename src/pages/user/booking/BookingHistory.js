@@ -8,7 +8,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { FaCalendarAlt, FaSearch, FaStar } from 'react-icons/fa';
 import { MdOutlineCancel } from "react-icons/md";
 import { FiEye } from "react-icons/fi";
-import { AcceptedRejectedModal, BookingHistoryCancelModal } from './bookingModals/Modals';
+import { AcceptedRejectedModal, BookingHistoryCancelModal, CancellationConfirmationModal } from './bookingModals/Modals';
 import { format, parse } from 'date-fns';
 import { BookingRatingModal } from './bookingModals/RatingModal';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,49 +23,21 @@ const BookingHistory = () => {
     const [searchText, setSearchText] = useState('');
     const [modalCancel, setModalCancel] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
-    const [selectedOption, setSelectedOption] = useState('status');
+    const [selectedOption, setSelectedOption] = useState('All');
     const [isOpen, setIsOpen] = useState(false);
     const [ratings, setRatings] = useState({});
+    const [changeCancelShow, setChangeCancelShow] = useState(false);
     const [ratingBookingIndex, setRatingBookingIndex] = useState(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [acceptedRejected, setAcceptedRejected] = useState(false)
+    const [tableData, setCourtData] = useState(null)
+    const [statusData, setStatusData] = useState(null)
     const getBookingData = useSelector((state) => state?.userBooking)
     console.log(getBookingData, 'getBookingDatagetBookingData');
     const dispatch = useDispatch()
-    const bookings = [
-        { dateTime: '27th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Accepted' },
-        { dateTime: '20th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Rejected' },
-        { dateTime: '16th Jun 2025 10:00AM', courtNumber: 'Court 3', amount: '₹ 1000', status: 'Rejected' },
-        { dateTime: '12th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Rejected' },
-        { dateTime: '10th Jun 2025 10:00AM', courtNumber: 'Court 2', amount: '₹ 1000', status: 'Accepted' },
-        { dateTime: '8th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Rejected' },
-        { dateTime: '19th Jun 2025 10:00AM', courtNumber: 'Court 2', amount: '₹ 1000', status: 'Accepted' },
-        { dateTime: '15th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Accepted' },
-        { dateTime: '14th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Rejected' },
-        { dateTime: '13th Jun 2025 10:00AM', courtNumber: 'Court 1', amount: '₹ 1000', status: 'Accepted' },
-    ];
 
     const renderSlotTimes = (slotTimes) =>
         slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
-
-
-    const filteredBookings = bookings.filter((booking) => {
-        const matchesStatus = activeTab === 'all' || booking.status.toLowerCase() !== activeTab.toLowerCase();
-        const matchesSearch = searchText === '' || booking.courtNumber.toLowerCase().includes(searchText.toLowerCase());
-        let matchesDate = true;
-        if (searchDate) {
-            try {
-                const cleanedDateStr = booking.dateTime.replace(/(\d{1,2})(st|nd|rd|th)/, '$1');
-                const bookingDate = parse(cleanedDateStr, 'd MMM yyyy hh:mma', new Date());
-                matchesDate = format(bookingDate, 'dd/MM/yy HH:mm') === format(searchDate, 'dd/MM/yy HH:mm');
-            } catch (err) {
-                console.error('Error parsing booking date:', booking.dateTime, err);
-                matchesDate = false;
-            }
-        }
-        console.log('Booking:', booking, 'Matches Status:', matchesStatus, 'Matches Date:', matchesDate, 'Matches Search:', matchesSearch);
-        return matchesStatus && matchesDate && matchesSearch;
-    });
 
     function a11yProps(index) {
         return {
@@ -106,6 +78,39 @@ const BookingHistory = () => {
     useEffect(() => {
         dispatch(getBooking({ type: "" }))
     }, [])
+
+    const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
+        const status = booking?.bookingStatus;
+
+        // Status filter
+        let statusMatch = false;
+        if (selectedOption === "Rejected") {
+            statusMatch = ["in-progress", "rejected"].includes(status);
+        } else if (selectedOption === "Accepted") {
+            statusMatch = ["refunded"].includes(status);
+        } else if (selectedOption === "All") {
+            statusMatch = true;
+        }
+
+        // Date filter
+        let dateMatch = true;
+        if (searchDate) {
+            dateMatch = booking?.slot?.some((slotItem) => {
+                const bookingDate = new Date(slotItem?.bookingDate);
+                return bookingDate.toDateString() === searchDate.toDateString();
+            });
+        }
+
+        // Court name filter (case insensitive)
+        let courtMatch = true;
+        if (searchText.trim() !== "") {
+            courtMatch = booking?.slot?.some((slotItem) =>
+                slotItem?.courtName?.toLowerCase().includes(searchText.toLowerCase())
+            );
+        }
+
+        return statusMatch && dateMatch && courtMatch;
+    });
 
     return (
         <Container>
@@ -193,10 +198,10 @@ const BookingHistory = () => {
             {/* Table */}
             <Table hover>
                 <thead>
-                    <tr>
+                    <tr className=''>
                         <th className="py-3 ps-4" style={{ backgroundColor: "#D0D6EA", borderRadius: "10px 0px 0px 0px" }}>Date & Time</th>
                         <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Time</th>
-                        <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Court Number</th>
+                        <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Court Name</th>
                         {activeTab === 'cancelled' && (
                             <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Reason</th>
                         )}
@@ -217,6 +222,7 @@ const BookingHistory = () => {
                                     </div>
                                     {isOpen && (
                                         <div className="dropdown-list">
+                                            <div onClick={() => handleSelect("All")}>All</div>
                                             <div onClick={() => handleSelect("Accepted")}>Accepted</div>
                                             <div onClick={() => handleSelect("Rejected")}>Rejected</div>
                                         </div>
@@ -238,7 +244,7 @@ const BookingHistory = () => {
                     </tbody>
                 ) : getBookingData?.bookingData?.data?.length > 0 ? (
                     <tbody className="border">
-                        {getBookingData?.bookingData?.data?.map((booking, i) =>
+                        {filterStatus?.map((booking, i) =>
                             booking?.slot?.map((slotItem, index) => (
                                 <tr key={`${i}-${index}`}>
                                     <td className="ps-4 table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
@@ -255,9 +261,9 @@ const BookingHistory = () => {
                                         >
                                             <span>
                                                 {(() => {
-                                                    const times = slotItem?.slotTimes?.map((slot) => slot.time) || [];
-                                                    const displayed = times.slice(0, 5).join(", ");
-                                                    return times.length > 5 ? `${displayed} ...` : displayed;
+                                                    const times = slotItem?.slotTimes?.map((slot) => slot?.time) || [];
+                                                    const displayed = times?.slice(0, 5).join(", ");
+                                                    return times?.length > 5 ? `${displayed} ...` : displayed;
                                                 })()}
                                             </span>
                                         </OverlayTrigger>
@@ -268,7 +274,7 @@ const BookingHistory = () => {
 
                                     {activeTab === 'cancelled' && (
                                         <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                            reason lorem...............
+                                            {booking?.cancellationReason}
                                         </td>
                                     )}
 
@@ -313,41 +319,63 @@ const BookingHistory = () => {
                                     {activeTab === 'cancelled' && (
                                         <td
                                             style={{
-                                                color: selectedOption === 'Rejected' && booking.status === 'Rejected'
+                                                color: booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected'
                                                     ? "red"
-                                                    : "lime",
+                                                    : "green",
                                                 fontSize: "16px",
                                                 fontFamily: "Poppins",
                                                 fontWeight: "500"
                                             }}
                                         >
-                                            {selectedOption === "status" ? booking?.status : selectedOption}
+                                            {booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected' ? "Rejected" : "Accepted"}
                                         </td>
                                     )}
 
                                     <td className="text-center">
-                                        {activeTab === 'cancelled' || activeTab === 'completed' ? '' : (
+                                        {activeTab === 'cancelled' || activeTab === 'completed' ? (
+                                            ''
+                                        ) : booking?.cancellationReason ? (
+                                            <span
+                                                className="d-inline-block"
+                                                style={{
+                                                    color: "#F29410",
+                                                    fontSize: "12px",
+                                                    fontWeight: "500",
+                                                    fontFamily: "Poppins"
+                                                }}
+                                            >
+                                                Request For Cancellation
+                                            </span>
+                                        ) : (
                                             <MdOutlineCancel
                                                 size={20}
                                                 onClick={() => {
                                                     setSelectedBooking(booking);
+                                                    setChangeCancelShow(true);
+                                                    setCourtData({ slotItem: slotItem, booking: booking });
                                                     setModalCancel(true);
                                                 }}
                                                 className="text-danger"
-                                                style={{ cursor: 'pointer' }}
+                                                style={{ cursor: "pointer" }}
                                             />
                                         )}
+
                                         <FiEye
                                             size={20}
                                             className="text-muted ms-2"
                                             onClick={() => {
                                                 if (activeTab === "cancelled") {
                                                     setAcceptedRejected(true);
+                                                    setStatusData({ booking: booking, slotItem: slotItem });
+                                                } else if (["all", "upcoming", "completed"].includes(activeTab)) {
+                                                    setModalCancel(true);
+                                                    setCourtData({ slotItem: slotItem, booking: booking });
                                                 }
                                             }}
-                                            style={{ cursor: 'pointer' }}
+                                            style={{ cursor: "pointer" }}
                                         />
                                     </td>
+
                                 </tr>
                             ))
                         )}
@@ -369,6 +397,9 @@ const BookingHistory = () => {
                 onHide={() => setModalCancel(false)}
                 booking={selectedBooking}
                 isCancelledTab={activeTab === 'cancelled'}
+                tableData={tableData}
+                setChangeCancelShow={setChangeCancelShow}
+                changeCancelShow={changeCancelShow}
             />
             <BookingRatingModal
                 show={showRatingModal}
@@ -387,8 +418,9 @@ const BookingHistory = () => {
                 initialRating={ratingBookingIndex !== null ? ratings[ratingBookingIndex]?.rating : 0}
                 defaultMessage={ratingBookingIndex !== null ? ratings[ratingBookingIndex]?.review : ''}
             />
+            <CancellationConfirmationModal />
 
-            <AcceptedRejectedModal booking={filteredBookings} selectedOption={selectedOption} onHide={() => setAcceptedRejected(false)} show={acceptedRejected} />
+            <AcceptedRejectedModal booking={statusData} selectedOption={selectedOption} onHide={() => setAcceptedRejected(false)} show={acceptedRejected} />
         </Container>
     );
 };

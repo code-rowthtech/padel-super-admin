@@ -13,7 +13,9 @@ import "react-image-lightbox/style.css";
 import { Link } from 'react-router-dom';
 import 'animate.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserClub } from '../../../redux/user/club/thunk';
+import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/club/thunk';
+import { ButtonLoading } from '../../../helpers/loading/Loaders';
+import { formatDate } from '../../../helpers/Formatting';
 
 
 const photos = [
@@ -63,11 +65,19 @@ const reviews = [
 const Home = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [photoIndex, setPhotoIndex] = useState(0);
+    const [rating, setRating] = useState(0);
+    const [hover, setHover] = useState(null);
+    const [message, setMessage] = useState("");
     const dispatch = useDispatch()
     const store = useSelector((state) => state)
     const allImages = photos.map(photo => require(`../../../assets/images/${photo}`));
     const [activeTab, setActiveTab] = useState('direction');
     const clubData = store?.userClub?.clubData?.data?.courts[0]
+    const addReviewLoading = store?.userClub?.reviewLoading
+    const getReviewData = store?.userClub?.getReviewData?.data
+
+    console.log({ getReviewData });
+
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
@@ -83,6 +93,30 @@ const Home = () => {
             localStorage.setItem("register_club_id", clubData._id);
         }
     }, [clubData]);
+
+    const handleClick = (value) => {
+        setRating(value);
+    };
+
+    const handleSubmit = () => {
+        const payload = {
+            reviewComment: message,
+            reviewRating: rating,
+            register_club_id: clubData._id
+        }
+        dispatch(addReviewClub(payload)).unwrap().then(() => {
+            setRating(0);
+            setMessage('');
+            dispatch(getReviewClub(clubData._id))
+
+        })
+    };
+
+    useEffect(() => {
+        if (activeTab === 'reviews') {
+            dispatch(getReviewClub(clubData._id))
+        }
+    }, [activeTab])
 
     return (
         <>
@@ -115,9 +149,9 @@ const Home = () => {
                                         style={{
                                             backgroundImage: `url(${line})`,
                                             backgroundRepeat: 'no-repeat',
-                                            backgroundSize: 'cover', // or 'contain', depending on your design
+                                            backgroundSize: 'cover',
                                             backgroundPosition: 'center',
-                                            padding: '2rem' // optional: space inside the div
+                                            padding: '2rem'
                                         }}
                                     >
                                         <button type="button" className="btn btn-outline-light mb-3 rounded-pill px-4 py-1">
@@ -178,14 +212,14 @@ const Home = () => {
 
                         <h4 style={{ fontWeight: "600" }}>About </h4>
                         <p style={{ fontSize: "16px", fontFamily: "600" }}>
-                          {clubData?.clubName}  {clubData?.description}
+                            {clubData?.clubName}  {clubData?.description}
                         </p>
                         <p style={{ fontSize: "16px", fontFamily: "600" }}>
                             Join the community, feel the energy, and experience the good vibes!<br />
                             #theGoodPeople
                         </p>
 
-                       
+
 
 
                     </div>
@@ -309,16 +343,19 @@ const Home = () => {
                                             <div className='col-5 text-center d-flex align-items-center justify-contant-center'>
                                                 <div className='w-100'>
                                                     <h4 className="" style={{ fontSize: "16px", fontWeight: "500" }}>Overall Rating</h4>
-                                                    <div className="display-4 fw-bold">4.0</div>
+                                                    <div className="display-4 fw-bold">{getReviewData?.averageRating}</div>
                                                     <div className="text-success">
-
-                                                        {[...Array(4)].map((_, i) => (
-                                                            <StarIcon key={i} style={{ color: '#32B768' }} />
+                                                        {[...Array(5)].map((_, i) => (
+                                                            i < Math.round(getReviewData?.averageRating) ? (
+                                                                <StarIcon key={i} style={{ color: '#32B768' }} />
+                                                            ) : (
+                                                                <StarBorderIcon key={i} style={{ color: '#ccc' }} />
+                                                            )
                                                         ))}
-                                                        <StarBorderIcon style={{ color: '#ccc' }} />
                                                     </div>
                                                     <div className="text-muted mt-2">based on 40 reviews</div>
                                                 </div>
+
                                             </div>
 
                                             <div className=" col-7 px-4 border-start d-flex align-items-center">
@@ -355,26 +392,72 @@ const Home = () => {
                                     {/* Rate This Court */}
                                     <div className="col-md-6">
                                         <div className="p-4 bg-white rounded-4 h-100">
-                                            <h5 className="" style={{ fontSize: "20px", fontWeight: "600" }}>Rate this Court</h5>
-                                            <div className="d-flex align-items-center gap-2 mt-2 text-success fs-5">
+                                            <h5 style={{ fontSize: "20px", fontWeight: "600" }}>Rate this Court</h5>
 
-                                                {[...Array(4)].map((_, i) => (
-                                                    <StarIcon key={i} style={{ color: '#32B768' }} />
-                                                ))}
-                                                <StarBorderIcon style={{ color: '#ccc' }} />
-                                                <span className="ms-2">4.5</span>
+                                            <div className="d-flex align-items-center gap-2 mt-2 fs-5">
+                                                {[...Array(5)].map((_, i) => {
+                                                    const fullValue = i + 1;
+                                                    const halfValue = i + 0.5;
+
+                                                    return (
+                                                        <span key={i} style={{ position: "relative", cursor: "pointer" }}>
+                                                            <span
+                                                                onClick={() => handleClick(halfValue)}
+                                                                onMouseEnter={() => setHover(halfValue)}
+                                                                onMouseLeave={() => setHover(null)}
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    left: 0,
+                                                                    width: "50%",
+                                                                    height: "100%",
+                                                                    zIndex: 2,
+                                                                }}
+                                                            />
+                                                            <span
+                                                                onClick={() => handleClick(fullValue)}
+                                                                onMouseEnter={() => setHover(fullValue)}
+                                                                onMouseLeave={() => setHover(null)}
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    right: 0,
+                                                                    width: "50%",
+                                                                    height: "100%",
+                                                                    zIndex: 1,
+                                                                }}
+                                                            />
+
+                                                            {rating >= fullValue || (hover && hover >= fullValue) ? (
+                                                                <StarIcon style={{ color: "#32B768" }} />
+                                                            ) : rating >= halfValue || (hover && hover >= halfValue) ? (
+                                                                <StarHalfIcon style={{ color: "#32B768" }} />
+                                                            ) : (
+                                                                <StarBorderIcon style={{ color: "#ccc" }} />
+                                                            )}
+                                                        </span>
+                                                    );
+                                                })}
+                                                <span className="ms-2">{rating}</span>
                                             </div>
+
+                                            {/* Message Box */}
                                             <div className="form-group mt-3">
-                                                <p className='' style={{ fontWeight: "600", fontSize: "14px" }}>Write a message</p>
+                                                <p style={{ fontWeight: "600", fontSize: "14px" }}>Write a message</p>
                                                 <textarea
                                                     className="form-control rounded-3"
                                                     rows="4"
                                                     placeholder="Write Here"
-                                                ></textarea>
+                                                    value={message}
+                                                    onChange={(e) => setMessage(e.target.value)}
+                                                />
                                             </div>
-                                            <div className='text-end'>
-                                                <button className="btn  mt-3 px-5 rounded-pill text-white" style={{ backgroundColor: "#3DBE64" }} >
-                                                    Submit
+
+                                            <div className="text-end">
+                                                <button
+                                                    className="btn mt-3 px-5 rounded-pill text-white"
+                                                    style={{ backgroundColor: "#3DBE64" }}
+                                                    onClick={handleSubmit}
+                                                >
+                                                    {addReviewLoading ? <ButtonLoading /> : "Submit"}
                                                 </button>
                                             </div>
                                         </div>
@@ -384,85 +467,65 @@ const Home = () => {
                                 {/* Customer Reviews */}
                                 <div className="mt-5">
                                     <h4 className=" mb-4" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
-                                    {reviews.map((review, i) => (
-                                        <div
-                                            className="border bg-white rounded-3 p-3 mb-4 d-flex justify-content-between align-items-start flex-wrap"
-                                            key={i}
-                                        >
-                                            <div className="d-flex align-items-start">
-                                                <img
-                                                    src={review.avatar}
-                                                    alt={review.name}
-                                                    className="rounded-circle me-3"
-                                                    width="60"
-                                                    height="60"
-                                                />
-                                                <div>
-                                                    <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500" }}>{review.name}</h6>
-                                                    <div className="text-success mb-2">
-                                                        {[...Array(4)].map((_, i) => (
-                                                            <FaStar key={i} size={14} />
-                                                        ))}
-                                                        <FaStar size={14} style={{ opacity: 0.3 }} />
-                                                        <span className="ms-1">{review.rating}</span>
+                                    <div
+                                        style={{
+                                            maxHeight: getReviewData?.reviews?.length >= 4 ? "500px" : "auto",
+                                            overflowY: getReviewData?.reviews?.length >= 4 ? "auto" : "visible"
+                                        }}
+                                    >
+                                        {getReviewData?.reviews?.map((review, i) => (
+                                            <div
+                                                className="border bg-white rounded-3 p-3 mb-4 d-flex justify-content-between align-items-start flex-wrap"
+                                                key={i}
+                                            >
+                                                <div className="d-flex align-items-start">
+                                                    <img
+                                                        src={review.avatar || 'https://t4.ftcdn.net/jpg/15/13/35/75/360_F_1513357508_F3lTOCrYHHjBB8Lb3K9IBfS4IPLyNcrJ.jpg'}
+                                                        alt={review?.userId?.name}
+                                                        className="rounded-circle me-3"
+                                                        width="60"
+                                                        height="60"
+                                                    />
+                                                    <div>
+                                                        <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500" }}>{review?.userId?.name || review?.userId?.email}</h6>
+                                                        <div className="text-success mb-2">
+                                                            {[...Array(4)].map((_, i) => (
+                                                                <FaStar key={i} size={14} />
+                                                            ))}
+                                                            <FaStar size={14} style={{ opacity: 0.3 }} />
+                                                            <span className="ms-1">{review?.reviewRating}</span>
+                                                        </div>
+                                                        <p className="mb-0 text-muted" style={{ maxWidth: "700px" }}>
+                                                            {review?.reviewComment}
+                                                        </p>
                                                     </div>
-                                                    <p className="mb-0 text-muted" style={{ maxWidth: "700px" }}>
-                                                        {review.message}
-                                                    </p>
+                                                </div>
+                                                <div className="text-muted small mt-3 mt-md-0">
+                                                    Post Date : <strong>{formatDate(review?.createdAt)}</strong>
                                                 </div>
                                             </div>
-                                            <div className="text-muted small mt-3 mt-md-0">
-                                                Post Date : <strong>{review.date}</strong>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'photos' && (
                             <div className="container my-5">
-
-
-                                <div className="row g-3 mb-2">
-                                    {clubData?.courtImage?.slice(0, 10).map((image, index) => {
-                                        const totalImages = clubData?.courtImage?.length || 0;
-
-                                        let colClass = "col-md-4";
-                                        if (totalImages === 1) {
-                                            colClass = "col-12";
-                                        } else if (totalImages === 2) {
-                                            colClass = "col-md-6";
-                                        } else if (totalImages === 3) {
-                                            if (index === 2) colClass = "col-12";
-                                            else colClass = "col-md-6";
-                                        }
-                                        return (
-                                            <div key={index} className={`${colClass} col-6 p-1 my-1`}>
-                                                <div
-                                                    className="rounded overflow-hidden image-zoom-hover"
-                                                    onClick={() => {
-                                                        setPhotoIndex(index);
-                                                        setIsOpen(true);
-                                                    }}
-                                                    style={{ cursor: "pointer" }}
-                                                >
-                                                    <img
-                                                        src={image}
-                                                        alt={`Gallery ${index + 1}`}
-                                                        className="img-fluid w-100 object-fit-cover"
-                                                        style={{
-                                                            aspectRatio: "4/3",
-                                                            objectFit: "cover",
-                                                            maxHeight: "300px",
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                <div className="custom-gallery">
+                                    {clubData?.courtImage?.slice(0, 10).map((image, index) => (
+                                        <div
+                                            key={index}
+                                            className={`gallery-item item${index + 1}`}
+                                            onClick={() => {
+                                                setPhotoIndex(index);
+                                                setIsOpen(true);
+                                            }}
+                                        >
+                                            <img src={image} alt={`Gallery ${index + 1}`} />
+                                        </div>
+                                    ))}
                                 </div>
-
 
                                 {/* Lightbox */}
                                 {isOpen && (
@@ -480,6 +543,7 @@ const Home = () => {
                                     />
                                 )}
                             </div>
+
                         )}
 
                         {activeTab === 'call' && (

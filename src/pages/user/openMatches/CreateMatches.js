@@ -1,83 +1,491 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Container, Row, Col, Button, Card, Form, ProgressBar } from 'react-bootstrap';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import DatePicker from 'react-datepicker';
+import { FaChevronDown, FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaShoppingCart } from 'react-icons/fa';
+import { useDispatch, useSelector } from 'react-redux';
+import { NavLink } from 'react-router-dom';
+import { getUserSlot } from '../../../redux/user/slot/thunk';
+import { DataLoading } from '../../../helpers/loading/Loaders';
 
 const CreateMatches = () => {
-  const [selectedSlot, setSelectedSlot] = useState('9:00am');
-  const [selectedLevel, setSelectedLevel] = useState('');
-  const [selectedDate, setSelectedDate] = useState('22 June');
+  const [startDate, setStartDate] = useState(new Date());
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+  const dateRefs = useRef({});
+  const dispatch = useDispatch();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedTimes, setSelectedTimes] = useState([]);
+  const [selectedDate, setSelectedDate] = useState({
+    fullDate: new Date().toISOString().split("T")[0],
+    day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
+  });
+  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedCourts, setSelectedCourts] = useState([]);
+  const { slotData } = useSelector((state) => state?.userSlot);
+  const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
 
-  const timeSlots = ['8:00am', '9:00am', '10:00am', '11:00am', '12:00pm', '1:00pm', '2:00pm', '3:00pm', '4:00pm', '5:00pm', '6:00pm', '7:00pm', '8:00pm', '9:00pm', '10:00pm', '11:00pm'];
-  const dates = ['22 June', '23 June', '24 June', '25 June', '26 June', '27 June', '28 June'];
-  const levels = ['Benninger', 'Intermediate', 'Advanced', 'Professional'];
+  // Close dropdown on outside click
+  const handleClickOutside = (e) => {
+    if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+      setIsOpen(false);
+    }
+  };
 
+  React.useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const today = new Date();
+  const dates = Array.from({ length: 41 }).map((_, i) => {
+    const date = new Date();
+    date.setDate(today.getDate() + i);
+    return {
+      day: date.toLocaleDateString("en-US", { weekday: "long" }),
+      date: date.getDate(),
+      month: date.toLocaleDateString("en-US", { month: "short" }),
+      fullDate: date.toISOString().split("T")[0],
+    };
+  });
+
+  const dayShortMap = {
+    Monday: "Mon",
+    Tuesday: "Tue",
+    Wednesday: "Wed",
+    Thursday: "Thu",
+    Friday: "Fri",
+    Saturday: "Sat",
+    Sunday: "Sun",
+  };
+
+  const scrollRef = useRef(null);
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -120 : 120,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const toggleTime = (time) => {
+    if (selectedTimes.includes(time)) {
+      setSelectedTimes(selectedTimes.filter((t) => t !== time));
+    } else {
+      setSelectedTimes([...selectedTimes, time]);
+    }
+  };
+
+
+
+  const levels = ["Beginner", "Intermediate", "Advanced", "Professional"];
+
+  const maxSelectableDate = new Date();
+  maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
+
+  useEffect(() => {
+    if (selectedDate?.fullDate && dateRefs.current[selectedDate?.fullDate]) {
+      dateRefs.current[selectedDate?.fullDate].scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [selectedDate]);
+
+  const savedClubId = localStorage.getItem("register_club_id");
+  useEffect(() => {
+    if (savedClubId && selectedDate?.fullDate && selectedDate?.day) {
+      dispatch(
+        getUserSlot({
+          register_club_id: savedClubId,
+          day: selectedDate.day,
+        })
+      );
+    }
+  }, [savedClubId, selectedDate?.fullDate, selectedDate?.day, dispatch]);
+
+  const handleCourtSelect = (court) => {
+    const timeOnly = selectedTimes?.map(item => ({
+      _id: item?._id,
+      time: item?.time,
+      amount: item?.amount || 100,
+    }));
+
+    const newCourt = {
+      ...court,
+      date: selectedDate?.fullDate,
+      time: timeOnly,
+    };
+
+    setSelectedCourts(prev =>
+      prev.some(c => c?._id === court?._id) ? [] : [newCourt]
+    );
+  };
+
+  const formatDate = (date) => {
+    if (!date || isNaN(date.getTime())) return null;
+    return date.toISOString().split("T")[0];
+  };
+
+
+  const steps = [
+    {
+      question: 'On the following scale, where would you place yourself?',
+      options: ['Beginner', 'Intermediate', 'Advanced', 'Professional'],
+    },
+    {
+      question: 'Select the racket sport you have played before?',
+      options: ['Tennis', 'Badminton', 'Squash', 'Others'],
+    },
+    {
+      question: 'How old are you?',
+      options: ['Between 18 and 30 years', 'Between 31 and 40 years', 'Between 41 and 50 years', 'Over 50'],
+    },
+    {
+      question: 'On the volley?',
+      options: [
+        'I hardly get to the net',
+        "I don't feel safe at the net, I make too many mistakes",
+        'I can volley forehand and backhand with some difficulties',
+        'I have good positioning at the net and I volley confidently',
+        'I don\'t know',
+      ],
+    },
+    {
+      question: 'On the rebounds...',
+      options: [
+        'I don\'t know how to read the rebounds, I hit before it rebounds',
+        'I try, with difficulty, to hit the rebounds on the back wall',
+        'I return rebounds on the back wall, it is difficult for me to return the double wall ones',
+        'I return double-wall rebounds and reach for quick rebounds',
+        'I perform powerful wall descent shots with forehand and backhand',
+        'I don\'t know',
+      ],
+    },
+  ];
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+      setSelectedLevel(''); // Reset selected level for the new step
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      setSelectedLevel(''); // Reset selected level for the new step
+    }
+  };
+
+  useEffect(() => {
+    if (slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0) {
+      const firstCourt = slotData.data[0].courts[0];
+      const timeOnly = selectedTimes?.map(item => ({
+        _id: item?._id,
+        time: item?.time,
+        amount: item?.amount || 100,
+      }));
+      const newCourt = {
+        ...firstCourt,
+        date: selectedDate?.fullDate,
+        time: timeOnly,
+      };
+      if (!selectedCourts.some(c => c._id === firstCourt._id)) {
+        setSelectedCourts([newCourt]);
+      }
+    }
+  }, [slotData, selectedDate?.fullDate, selectedTimes]);
   return (
-    <Container fluid className="p-4" style={{ background: '#f9faff', minHeight: '100vh' }}>
+    <Container className="p-4" style={{ minHeight: '100vh' }}>
       <Row>
-        {/* Left Panel */}
-        <Col md={7}>
-          <h5 className="mb-3">Select Date</h5>
-          <div className="d-flex align-items-center mb-3">
-            <Button variant="light" className="me-2"><FaChevronLeft /></Button>
-            {dates.map((date, i) => (
-              <Card
-                key={i}
-                className={`me-2 px-3 py-2 ${selectedDate === date ? 'bg-dark text-white' : 'bg-light'}`}
-                style={{ minWidth: '80px', cursor: 'pointer' }}
-                onClick={() => setSelectedDate(date)}
-              >
-                <div className="text-center">{date}</div>
-              </Card>
-            ))}
-            <Button variant="light"><FaChevronRight /></Button>
-          </div>
+        {/* LEFT PANEL */}
+        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
+          {/* Date Selector */}
+          <div className="calendar-strip">
+            <div className="mb-3 ps-4" style={{ fontSize: "20px", fontWeight: "600" }}>
+              Select Date
+              <div className="position-relative d-inline-block" ref={wrapperRef}>
+                {/* Icon Button */}
+                <span
+                  className="rounded-circle p-2 ms-2 shadow-sm bg-light"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setIsOpen(!isOpen)}
+                >
+                  <i className="bi bi-calendar2-week" style={{ fontSize: "18px" }}></i>
+                </span>
 
-          <h6 className="mb-2">Available Slots (60m)</h6>
-          <div className="d-flex flex-wrap mb-4">
-            {timeSlots.map((slot, i) => (
-              <Button
-                key={i}
-                variant={selectedSlot === slot ? 'dark' : 'outline-secondary'}
-                className="me-2 mb-2"
-                onClick={() => setSelectedSlot(slot)}
-              >
-                {slot}
-              </Button>
-            ))}
-          </div>
+                {/* Calendar */}
+                {isOpen && (
+                  <div
+                    className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
+                    style={{ top: "100%", left: "0", minWidth: "100%" }}
+                  >
+                    <DatePicker
+                      selected={startDate}
+                      onChange={(date) => {
+                        setStartDate(date);
+                        setIsOpen(false);
 
-          <h6 className="mb-3">Available Court</h6>
-          {[1, 2, 3, 4].map((court) => (
-            <Card key={court} className="mb-2 p-3 d-flex flex-row justify-content-between align-items-center">
-              <div>
-                <h6 className="mb-0">Court {court}</h6>
-                <small>Outdoor | well | Double</small>
+                        const formattedDate = date.toISOString().split("T")[0];
+                        const day = date.toLocaleDateString("en-US", { weekday: "long" });
+
+                        setSelectedDate({ fullDate: formattedDate, day });
+                        setSelectedTimes([]);
+                      }}
+                      inline
+                      maxDate={maxSelectableDate}
+                      minDate={new Date()}
+                      dropdownMode="select"
+                      calendarClassName="custom-calendar w-100 shadow-sm"
+                    />
+                  </div>
+                )}
               </div>
-              <div>₹1000</div>
-            </Card>
-          ))}
+            </div>
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <button className="btn btn-light p-0" onClick={() => scroll("left")}>
+                <i className="bi bi-chevron-left"></i>
+              </button>
+
+              <div
+                ref={scrollRef}
+                className="d-flex gap-2 w-100 overflow-auto no-scrollbar"
+                style={{
+                  scrollBehavior: "smooth",
+                  whiteSpace: "nowrap",
+                  maxWidth: "820px",
+                }}
+              >
+                {dates?.map((d, i) => {
+                  const isSelected = selectedDate?.fullDate ? formatDate(new Date(selectedDate.fullDate)) === d.fullDate : false;
+
+                  return (
+                    <button
+                      ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                      key={i}
+                      className={`calendar-day-btn px-3 py-2 rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                      style={{
+                        backgroundColor: isSelected ? "#374151" : undefined,
+                        border: "none",
+                      }}
+                      onClick={() => {
+                        setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                        setStartDate(new Date(d.fullDate));
+                        setSelectedTimes([]);
+                      }}
+                    >
+                      <div className="text-center">
+                        <div style={{ fontSize: "14px", fontWeight: "400" }}>{dayShortMap[d.day]}</div>
+                        <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
+                        <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button className="btn btn-light p-0" onClick={() => scroll("right")}>
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+          {/* Time Selector */}
+          <div className="d-flex justify-content-between align-items-center py-2">
+            <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
+              Available Slots
+            </p>
+          </div>
+          {slotLoading ? (
+            <DataLoading height={"30vh"} />
+          ) : (
+            <>
+              <div className="d-flex flex-wrap gap-2 mb-4">
+                {slotData?.data?.length > 0 &&
+                  slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                  slotData?.data?.[0]?.slot?.[0]?.slotTimes?.map((slot, i) => {
+                    const selectedDateObj = new Date(selectedDate?.fullDate);
+                    const slotDate = new Date(selectedDateObj);
+                    const [hourString, period] = slot?.time?.toLowerCase().split(" ");
+                    let hour = parseInt(hourString);
+
+                    if (period === "pm" && hour !== 12) hour += 12;
+                    if (period === "am" && hour === 12) hour = 0;
+
+                    slotDate.setHours(hour, 0, 0, 0);
+
+                    const now = new Date();
+                    const isToday = selectedDateObj.toDateString() === now.toDateString();
+                    const isPast = isToday && slotDate.getTime() < now.getTime();
+
+                    const isSelected = selectedTimes.some(t => t._id === slot._id);
+
+                    return (
+                      <button
+                        key={i}
+                        className="btn border-0 rounded-pill px-4"
+                        onClick={() => !isPast && toggleTime(slot)}
+                        disabled={isPast}
+                        style={{
+                          backgroundColor: isSelected ? "#374151" : "#CBD6FF1A",
+                          color: isSelected ? "white" : isPast ? "#888888" : "#000000",
+                          cursor: isPast ? "not-allowed" : "pointer",
+                          opacity: isPast ? 0.6 : 1,
+                        }}
+                      >
+                        {slot?.time}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="text-end">
+                    <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="d-flex justify-content-between align-items-center py-2">
+                  <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
+                    Available Court
+                  </p>
+                  <div>
+                    <a
+                      href="#"
+                      className="text-decoration-none d-inline-flex align-items-center"
+                      style={{ color: "#1F41BB" }}
+                      data-bs-toggle="modal"
+                      data-bs-target="#courtLayoutModal"
+                    >
+                      View Court Layout <i className="bi bi-arrow-right fs-5 ms-2"></i>
+                    </a>
+                    <div
+                      className="modal fade"
+                      id="courtLayoutModal"
+                      tabIndex="-1"
+                      aria-labelledby="courtLayoutModalLabel"
+                      aria-hidden="true"
+                    >
+                      <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content rounded-4 p-3">
+                          <div className="modal-header border-0 p-0">
+                            <div className="w-100 d-flex align-items-center justify-content-center position-relative">
+                              <h5 className="modal-title m-0" id="courtLayoutModalLabel">View Court Layout</h5>
+                              <button
+                                type="button"
+                                className="btn-close position-absolute end-0 me-2"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                              ></button>
+                            </div>
+                          </div>
+                          <div className="modal-body p-0 mt-4">
+                            <div className="row g-2">
+                              {Array.isArray(slotData?.data[0]?.courts) &&
+                                slotData?.data[0]?.courts?.map((court, index) => (
+                                  <div className="col-6" key={court._id || index}>
+                                    <div
+                                      className="border rounded-3 d-flex align-items-center justify-content-center"
+                                      style={{ height: "80px" }}
+                                    >
+                                      {court?.courtName}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-3">
+                  {slotData?.data?.length > 0 &&
+                    slotData?.data[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                    slotData.data[0]?.courts?.map((court) => (
+                      <div
+                        key={court?._id}
+                        onClick={() => handleCourtSelect(court)}
+                        style={{ cursor: "pointer" }}
+                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${selectedCourts.some(selCourt => selCourt._id === court._id)
+                            ? "bg-success-subtle rounded"
+                            : ""
+                          }`}
+                      >
+                        <div className="d-flex align-items-center gap-3">
+                          <img src="https://picsum.photos/60" alt="court" className="rounded" />
+                          <div>
+                            <p className="mb-1 fw-semibold">{court?.courtName}</p>
+                            <small className="text-muted">{court?.type}</small>
+                          </div>
+                        </div>
+                        <p className="mb-0 fw-semibold">₹ 1000</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-muted">No courts available</div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </Col>
 
-        {/* Right Panel */}
+        {/* RIGHT PANEL */}
         <Col md={5}>
-          <ProgressBar now={25} className="mb-4" style={{ height: '6px' }} />
-          <Card className="p-4">
-            <h5 className="mb-3">On the following scale, where would you place yourself?</h5>
+          <ProgressBar
+            now={(currentStep / (steps.length - 1)) * 100}
+            className="mb-4"
+            style={{ height: '6px', backgroundColor: '#e0e7ff', color: "#1F41BB" }}
+            variant="info"
+          />
+          <Card className="p-4" style={{ backgroundColor: '#f9faff', border: 'none', borderRadius: '8px' }}>
+            <h5 className="mb-4" style={{ color: '#4b5563' }}>
+              {steps[currentStep].question}
+            </h5>
             <Form>
-              {levels.map((level, i) => (
+              {steps[currentStep].options.map((option, i) => (
                 <Form.Check
                   key={i}
                   type="radio"
-                  label={level}
+                  label={option}
                   name="level"
-                  id={`level-${i}`}
-                  value={level}
-                  checked={selectedLevel === level}
+                  id={`level-${currentStep}-${i}`}
+                  value={option}
+                  checked={selectedLevel === option}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="mb-3 border rounded px-3 py-2"
+                  className="mb-3 ps-5 shadow-sm border rounded px-3 py-2"
+                  style={{
+                    backgroundColor: selectedLevel === option ? '#e0f2fe' : '#FFFFFF',
+                    borderColor: '#d1d5db',
+                    borderRadius: '4px',
+                  }}
                 />
               ))}
-              <Button variant="success" className="mt-3">Next</Button>
+              <div className="d-flex justify-content-between align-items-center">
+                {currentStep > 0 && (
+                  <Button
+                    className="mt-3 btn rounded-pill px-4"
+                    style={{ backgroundColor: '#374151', border: 'none', borderRadius: '4px', color: '#ffffff' }}
+                    onClick={handleBack}
+                  >
+                    Back
+                  </Button>
+                )}
+                <Button
+                  className="mt-3 btn rounded-pill px-4"
+                  style={{
+                    backgroundColor: currentStep === steps.length - 1 ? '#3DBE64' : '#10b981',
+                    border: 'none',
+                    borderRadius: '4px',
+                  }}
+                  disabled={!selectedTimes}
+                  onClick={handleNext}
+                >
+                  {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
+                </Button>
+              </div>
             </Form>
           </Card>
         </Col>

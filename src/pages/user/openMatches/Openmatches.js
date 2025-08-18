@@ -4,14 +4,14 @@ import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { FaChevronDown } from "react-icons/fa";
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 
 const Openmatches = ({ width = 370, height = 70 }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
-
+    const navigate = useNavigate()
     // Close on outside click
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -211,9 +211,9 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         ? matchData.filter((match) => match.level === selectedLevel)
         : matchData;
 
-const createMatchesHandle = ()=>{
-    
-}
+    const createMatchesHandle = () => {
+        navigate('/create-matches')
+    }
     return (
         <>
             {/* Booking UI */}
@@ -480,13 +480,13 @@ const createMatchesHandle = ()=>{
                             >
                                 {/* Left content */}
                                 <div className="col-md-6 mb-4 mb-md-0">
-                                   
+
                                     <h4 className="fw-bold">Let the Battles Begin!</h4>
                                     <p className="text-light">Great for competitive vibes.</p>
-                                     <button className="btn create-match-btn text-white rounded-pill mb-3 ps-3 pe-3" onClick={()=>createMatchesHandle()}
-                                     style={{backgroundColor:"#3DBE64",fontSize:"14px",fontWeight:"500"}}
-                                     >
-                                         Create Open Matches
+                                    <button className="btn create-match-btn text-white rounded-pill mb-3 ps-3 pe-3" onClick={() => createMatchesHandle()}
+                                        style={{ backgroundColor: "#3DBE64", fontSize: "14px", fontWeight: "500" }}
+                                    >
+                                        Create Open Matches
                                     </button>
                                 </div>
 

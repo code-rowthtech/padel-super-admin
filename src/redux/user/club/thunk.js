@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from '../../../helpers/api/apiEndpoint';
-import { getApi } from "../../../helpers/api/apiCore";
+import { create, getApi } from "../../../helpers/api/apiCore";
 import { showError } from "../../../helpers/Toast";
 
 export const getUserClub = createAsyncThunk(
@@ -20,3 +20,21 @@ export const getUserClub = createAsyncThunk(
             return res?.data;
         } catch (error) { showError(error?.message); return rejectWithValue(error) }
     });
+
+    export const addReviewClub = createAsyncThunk(
+        "club/addReviewClub", async (data, {rejectWithValue}) => {
+            try {
+                const res = await create(Url.ADD_REVIEW_CLUB,data);
+                return res?.data
+            }catch (error) {showError(error?.message); return rejectWithValue(error)}
+        }
+    )
+
+    export const getReviewClub = createAsyncThunk(
+        "club/getReviewClub" , async (data, {rejectWithValue}) =>{
+            try{
+                const res = await getApi(`${Url.GET_REVIEW_CLUB}?clubId=${data}`)
+                return res?.data
+            }catch (error) {showError(error?.message);return rejectWithValue(error)}
+        }
+    )

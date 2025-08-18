@@ -17,6 +17,7 @@ const Booking = React.lazy(() => import("../pages/user/booking/Booking"));
 const OpenMatches = React.lazy(() =>
   import("../pages/user/openMatches/Openmatches")
 );
+
 const CreateMatches = React.lazy(() =>
   import("../pages/user/openMatches/CreateMatches")
 );
@@ -130,6 +131,11 @@ const AllRoutes = () => {
           path: "open-matches",
           element: LoadComponent(OpenMatches),
         },
+          {
+          path: "create-matches",
+          element: LoadComponent(CreateMatches),
+        },
+        
         {
           path: "view-match",
           element: LoadComponent(ViewMatch),

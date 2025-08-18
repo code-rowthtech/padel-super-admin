@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBooking, getBooking } from "./thunk";
+import { bookingStatus, createBooking, getBooking } from "./thunk";
 
 const initialState = {
     bookingLoading: false,
@@ -33,7 +33,7 @@ const bookingSlice = createSlice({
                 state.bookingError = action.payload;
             })
             // -------------------------G-E-T--B-O-O-K-I-N-G----------------------//
-              .addCase(getBooking.pending, (state) => {
+            .addCase(getBooking.pending, (state) => {
                 state.bookingLoading = true;
                 state.bookingError = null;
             })
@@ -45,6 +45,20 @@ const bookingSlice = createSlice({
                 state.bookingLoading = false;
                 state.bookingError = action.payload;
             })
+            // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
+            .addCase(bookingStatus.pending, (state) => {
+                state.bookingLoading = true;
+                state.bookingError = null
+            })
+            .addCase(bookingStatus.fulfilled, (state,action) => {
+                state.bookingLoading = false;
+                state.bookingData = action.payload;
+            })
+            .addCase(bookingStatus.rejected, (state,action) => {
+                state.bookingLoading = false;
+                state.bookingError = action.payload
+            })
+
     }
 });
 
