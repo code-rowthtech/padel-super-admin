@@ -13,6 +13,7 @@ import userClubReducer from "./user/club/slice";
 import userSlotReducer from "./user/slot/slice";
 import userBookingReducer from "./user/booking/slice";
 import userAuthReducer from "./user/auth/authSlice";
+import userMatchesReducer from './user/matches/slice'
 import { review } from "../assets/files";
 
 const store = configureStore({
@@ -32,6 +33,7 @@ const store = configureStore({
     userClub: userClubReducer,
     userSlot: userSlotReducer,
     userBooking: userBookingReducer,
+    userMatches :userMatchesReducer
   },
 });
 
