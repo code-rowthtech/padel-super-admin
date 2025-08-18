@@ -94,7 +94,6 @@ const Booking = ({
     };
 
 
-    console.log(selectedCourts, 'pankajsin');
     const handleCourtSelect = (court) => {
         const timeOnly = selectedTimes?.map(item => ({
             _id: item?._id,
@@ -178,12 +177,11 @@ const Booking = ({
     };
 
     const savedClubId = localStorage.getItem("register_club_id");
-    console.log(savedClubId, selectedDate, '000000000000000');
     useEffect(() => {
 
         dispatch(
             getUserSlot({
-                register_club_id: "68959eb6e7d3d09e38448faf",
+                register_club_id: savedClubId,
                 day: selectedDate?.day,
             })
         );
@@ -216,7 +214,24 @@ const Booking = ({
         }
     }, [selectedDate]);
 
-
+    useEffect(() => {
+        if (slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0) {
+            const firstCourt = slotData.data[0].courts[0];
+            const timeOnly = selectedTimes?.map(item => ({
+                _id: item?._id,
+                time: item?.time,
+                amount: item?.amount || 100,
+            }));
+            const newCourt = {
+                ...firstCourt,
+                date: selectedDate?.fullDate,
+                time: timeOnly,
+            };
+            if (!selectedCourts.some(c => c._id === firstCourt._id)) {
+                setSelectedCourts([newCourt]);
+            }
+        }
+    }, [slotData, selectedDate?.fullDate, selectedTimes]);
 
     return (
         <>

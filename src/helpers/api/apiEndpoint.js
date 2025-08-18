@@ -10,6 +10,8 @@ export const GET_SLOT_API = "/api/slot/getAllActiveCourts";
 export const CREATE_BOOKING_API = "/api/booking/manualBookingByOwner";
 export const GET_BOOKING_API = "/api/booking/getUserBookings";
 export const BOOKING_STATUS_CHANGE = "/api/booking/updateBookingStatus"
+export const ADD_REVIEW_CLUB = "/api/review/saveCustomerReview"
+export const GET_REVIEW_CLUB = "/api/review/getownerClubReview"
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 //-----------------------------------------------A_U_T_H----------------------------------------------//

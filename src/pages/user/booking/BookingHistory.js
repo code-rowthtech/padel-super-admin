@@ -31,7 +31,7 @@ const BookingHistory = () => {
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [acceptedRejected, setAcceptedRejected] = useState(false)
     const [tableData, setCourtData] = useState(null)
-    const [statusData,setStatusData] = useState(null)
+    const [statusData, setStatusData] = useState(null)
     const getBookingData = useSelector((state) => state?.userBooking)
     console.log(getBookingData, 'getBookingDatagetBookingData');
     const dispatch = useDispatch()
@@ -79,41 +79,38 @@ const BookingHistory = () => {
         dispatch(getBooking({ type: "" }))
     }, [])
 
-   const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
-    const status = booking?.bookingStatus;
+    const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
+        const status = booking?.bookingStatus;
 
-    // Status filter
-    let statusMatch = false;
-    if (selectedOption === "Rejected") {
-        statusMatch = ["in-progress", "rejected"].includes(status);
-    } else if (selectedOption === "Accepted") {
-        statusMatch = ["refunded"].includes(status);
-    } else if (selectedOption === "All") {
-        statusMatch = true;
-    }
+        // Status filter
+        let statusMatch = false;
+        if (selectedOption === "Rejected") {
+            statusMatch = ["in-progress", "rejected"].includes(status);
+        } else if (selectedOption === "Accepted") {
+            statusMatch = ["refunded"].includes(status);
+        } else if (selectedOption === "All") {
+            statusMatch = true;
+        }
 
-    // Date filter
-    let dateMatch = true;
-    if (searchDate) {
-        dateMatch = booking?.slot?.some((slotItem) => {
-            const bookingDate = new Date(slotItem?.bookingDate);
-            return bookingDate.toDateString() === searchDate.toDateString();
-        });
-    }
+        // Date filter
+        let dateMatch = true;
+        if (searchDate) {
+            dateMatch = booking?.slot?.some((slotItem) => {
+                const bookingDate = new Date(slotItem?.bookingDate);
+                return bookingDate.toDateString() === searchDate.toDateString();
+            });
+        }
 
-    // Court name filter (case insensitive)
-    let courtMatch = true;
-    if (searchText.trim() !== "") {
-        courtMatch = booking?.slot?.some((slotItem) =>
-            slotItem?.courtName?.toLowerCase().includes(searchText.toLowerCase())
-        );
-    }
+        // Court name filter (case insensitive)
+        let courtMatch = true;
+        if (searchText.trim() !== "") {
+            courtMatch = booking?.slot?.some((slotItem) =>
+                slotItem?.courtName?.toLowerCase().includes(searchText.toLowerCase())
+            );
+        }
 
-    return statusMatch && dateMatch && courtMatch;
-});
-
-
-
+        return statusMatch && dateMatch && courtMatch;
+    });
 
     return (
         <Container>
@@ -322,7 +319,7 @@ const BookingHistory = () => {
                                     {activeTab === 'cancelled' && (
                                         <td
                                             style={{
-                                                color: booking?.bookingStatus === 'in-progress'|| booking?.bookingStatus === 'rejected'
+                                                color: booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected'
                                                     ? "red"
                                                     : "green",
                                                 fontSize: "16px",
@@ -334,36 +331,51 @@ const BookingHistory = () => {
                                         </td>
                                     )}
 
-                                    <td className={`${booking?.cancellationReason ? 'text-start ps-4' : 'text-center'}`}>
-                                        {activeTab === 'cancelled' || activeTab === 'completed' ? '' : (
-                                            booking?.cancellationReason ? <span style={{color:"#F29410", fontSize:"12px",fontWeight:"500",fontFamily:"Poppins"}}>Request For Cancellation</span> :
+                                    <td className="text-center">
+                                        {activeTab === 'cancelled' || activeTab === 'completed' ? (
+                                            ''
+                                        ) : booking?.cancellationReason ? (
+                                            <span
+                                                className="d-inline-block"
+                                                style={{
+                                                    color: "#F29410",
+                                                    fontSize: "12px",
+                                                    fontWeight: "500",
+                                                    fontFamily: "Poppins"
+                                                }}
+                                            >
+                                                Request For Cancellation
+                                            </span>
+                                        ) : (
                                             <MdOutlineCancel
                                                 size={20}
                                                 onClick={() => {
                                                     setSelectedBooking(booking);
                                                     setChangeCancelShow(true);
-                                                    setCourtData({ slotItem: slotItem, booking: booking })
+                                                    setCourtData({ slotItem: slotItem, booking: booking });
                                                     setModalCancel(true);
                                                 }}
                                                 className="text-danger"
-                                                style={{ cursor: 'pointer' }}
+                                                style={{ cursor: "pointer" }}
                                             />
                                         )}
+
                                         <FiEye
                                             size={20}
                                             className="text-muted ms-2"
                                             onClick={() => {
                                                 if (activeTab === "cancelled") {
                                                     setAcceptedRejected(true);
-                                                    setStatusData({booking:booking,slotItem:slotItem})
-                                                } else if (activeTab === "all" || activeTab === 'upcoming' || activeTab === 'completed') {
+                                                    setStatusData({ booking: booking, slotItem: slotItem });
+                                                } else if (["all", "upcoming", "completed"].includes(activeTab)) {
                                                     setModalCancel(true);
-                                                    setCourtData({ slotItem: slotItem, booking: booking })
+                                                    setCourtData({ slotItem: slotItem, booking: booking });
                                                 }
                                             }}
-                                            style={{ cursor: 'pointer' }}
+                                            style={{ cursor: "pointer" }}
                                         />
                                     </td>
+
                                 </tr>
                             ))
                         )}
