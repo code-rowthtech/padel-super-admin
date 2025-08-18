@@ -22,10 +22,11 @@ const Payment = ({ className = "" }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { courtData, clubData, seletctedCourt } = location.state || {};
-    console.log(clubData,'clubDataclubDataclubData');
+    console.log(courtData, 'clubDataclubDataclubData');
     const user = getUserFromSession()
     const store = useSelector((state) => state?.userAuth)
     const bookingStatus = useSelector((state) => state?.userBooking)
+    const userLoading = useSelector((state) => state?.userAuth)
     console.log(courtData, 'bookingStatusbookingStatus');
     const [name, setName] = useState(user?.name || "");
     const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ? String(user.phoneNumber) : "");
@@ -95,108 +96,115 @@ const Payment = ({ className = "" }) => {
         setIsLoading(true);
         setError(null);
         try {
-            const register_club_id = localStorage.getItem('register_club_id')
-            const selectedSlot = courtData?.slot?.[0];
+            const register_club_id = localStorage.getItem('register_club_id');
             const selectedTimeArray = courtData?.time || [];
+            const bookingDate = courtData?.date;
+            const courtName = courtData?.court?.[0]?.courtName || 'Court 1';
+            const slotTimesData = courtData?.slot?.[0]?.slotTimes || [];
+
+            // Create slot array based on selected times, mapping each time to its corresponding slotId
+            const slotArray = selectedTimeArray.map((timeSlot) => {
+                // Find the matching slot time in slotTimesData to get the correct slotId
+                const matchingSlot = slotTimesData.find(slot => slot.time === timeSlot.time);
+                return {
+                    slotId: matchingSlot?._id || courtData?.slot?.[0]?._id,
+                    businessHours: courtData?.slot?.[0]?.businessHours?.map(t => ({
+                        time: t?.time,
+                        day: t?.day
+                    })) || [{
+                        time: "6:00 AM To 11:00 PM",
+                        day: "Monday"
+                    }],
+                    slotTimes: [{
+                        time: timeSlot?.time,
+                        amount: timeSlot?.amount ?? 2000
+                    }],
+                    courtName: courtName,
+                    bookingDate: bookingDate
+                };
+            });
+
             const payload = {
                 name,
                 phoneNumber,
                 email,
                 register_club_id,
                 ownerId: clubData?.ownerId,
-                slot: courtData?.court?.map((courtItem, idx) => {
-                    const currentSlot = courtData?.slot?.[idx] || courtData?.slot?.[0];
-                    return {
-
-                        slotId: selectedSlot?._id,
-                        courtName: courtItem?.courtName,
-                        bookingDate: courtData?.date,
-                        businessHours: currentSlot?.businessHours?.map(t => ({
-                            time: t?.time,
-                            day: t?.day
-                        })) || [],
-
-                        slotTimes: selectedTimeArray?.map(t => ({
-                            time: t?.time,
-                            amount: t?.amount ?? 100
-                        })) || []
-                    }
-                }),
+                slot: slotArray
             };
 
             dispatch(createBooking(payload)).unwrap().then(() => {
                 if (user?.name) {
-                    getUserFromSession()
-                    navigate('/booking-history')
+                    getUserFromSession();
+                    navigate('/booking-history');
                 } else {
                     dispatch(loginUserNumber({ phoneNumber: phoneNumber }));
-                    getUserFromSession()
-                    navigate('/booking-history')
+                    getUserFromSession();
+                    navigate('/booking-history');
                 }
-
             });
             // http://103.185.212.117:7600/api/booking/createOrde
 
-            const response = await axios.post("", {
-                amount: totalAmount || 100,
-                currency: "INR",
-            }, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
+            // const response = await axios.post("", {
+            //     amount: totalAmount || 100,
+            //     currency: "INR",
+            // }, {
+            //     headers: {
+            //         "Content-Type": "application/json",
+            //     },
+            // });
 
-            console.log("API Response:", response.data);
+            // console.log("API Response:", response.data);
 
-            const { id } = response.data || {};
-            if (!id) {
-                throw new Error("Invalid response from server: paymentIntentId or clientSecret missing.");
-            }
+            // const { id } = response.data || {};
+            // if (!id) {
+            //     throw new Error("Invalid response from server: paymentIntentId or clientSecret missing.");
+            // }
 
-            setPaymentId(id);
+            // setPaymentId(id);
 
-            loadRazorpay(() => {
-                const options = {
-                    key: 'rzp_test_c5wVsgpbPYa9uX',
-                    amount: totalAmount || 100,
-                    currency: 'INR',
-                    name: "padel fe",
-                    description: "payment to padel fe",
-                    image: "https://papayacoders.com/demo.png",
-                    order_id: paymentId,
-                    handler: async function (response) {
-                        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
-                        await verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature);
-                    },
-                    prefill: {
-                        name: "padel fe",
-                        email: "padelfe@gmail.com",
-                        contact: phoneNumber
-                    },
-                    theme: {
-                        color: "#F4C430"
-                    },
-                    modal: {
-                        ondismiss: function () {
-                            setError("Payment was cancelled.");
-                            setIsLoading(false);
-                        }
-                    },
-                    payment_method: {
-                        upi: selectedPayment === "google" ? true : null,
-                        card: selectedPayment === "card" ? true : null,
-                        wallet: selectedPayment === "google" || selectedPayment === "apple" ? true : null
-                    }
-                };
+            // loadRazorpay(() => {
+            //     const options = {
+            //         key: 'rzp_test_c5wVsgpbPYa9uX',
+            //         amount: totalAmount || 100,
+            //         currency: 'INR',
+            //         name: "padel fe",
+            //         description: "payment to padel fe",
+            //         image: "https://papayacoders.com/demo.png",
+            //         order_id: paymentId,
+            //         handler: async function (response) {
+            //             const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
+            //             // await verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+            //         },
+            //         prefill: {
+            //             name: "padel fe",
+            //             email: "padelfe@gmail.com",
+            //             contact: phoneNumber
+            //         },
+            //         theme: {
+            //             color: "#F4C430"
+            //         },
+            //         modal: {
+            //             ondismiss: function () {
+            //                 setError("Payment was cancelled.");
+            //                 setIsLoading(false);
+            //             }
+            //         },
+            //         payment_method: {
+            //             upi: selectedPayment === "google" ? true : null,
+            //             card: selectedPayment === "card" ? true : null,
+            //             wallet: selectedPayment === "google" || selectedPayment === "apple" ? true : null
+            //         }
+            //     };
 
-                const paymentObject = new window.Razorpay(options);
-                paymentObject.on('payment.failed', function (response) {
-                    console.error("Payment Failed:", response.error);
-                    setError(response.error.description || "Payment failed. Please try again.");
-                    setIsLoading(false);
-                });
-                paymentObject.open();
-            });
+            //     const paymentObject = new window.Razorpay(options);
+            //     paymentObject.on('payment.failed', function (response) {
+            //         console.error("Payment Failed:", response.error);
+            //         setError(response.error.description || "Payment failed. Please try again.");
+            //         setIsLoading(false);
+            //     });
+            //     paymentObject.open();
+            // });
         } catch (err) {
             console.error("Payment Error:", err);
             setError(err.message || "An error occurred during payment processing.");
@@ -207,31 +215,31 @@ const Payment = ({ className = "" }) => {
 
     };
 
-    const verifyPayment = async (order_id, payment_id, signature) => {
-        try {
-            const response = await axios.post("http://103.185.212.117:7600/api/booking/verify-payment", {
-                order_id,
-                payment_id,
-                signature,
-            }, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
+    // const verifyPayment = async (order_id, payment_id, signature) => {
+    //     try {
+    //         const response = await axios.post("http://103.185.212.117:7600/api/booking/verify-payment", {
+    //             order_id,
+    //             payment_id,
+    //             signature,
+    //         }, {
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //             },
+    //         });
 
-            if (response.data.success) {
-                setSuccess(true);
-                console.log("Payment Verified:", response.data);
-            } else {
-                throw new Error(response.data.message || "Payment verification failed.");
-            }
-        } catch (err) {
-            console.error("Verification Error:", err);
-            setError(err.message || "An error occurred during payment verification.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    //         if (response.data.success) {
+    //             setSuccess(true);
+    //             console.log("Payment Verified:", response.data);
+    //         } else {
+    //             throw new Error(response.data.message || "Payment verification failed.");
+    //         }
+    //     } catch (err) {
+    //         console.error("Verification Error:", err);
+    //         setError(err.message || "An error occurred during payment verification.");
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
 
     useEffect(() => {
         if (!courtData) return;
@@ -481,7 +489,7 @@ const Payment = ({ className = "" }) => {
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{bookingStatus?.bookingLoading || isLoading ? <ButtonLoading/> : "Book Now"}</div>
+                                <div style={contentStyle}>{bookingStatus?.bookingLoading || isLoading || userLoading?.userAuthLoading ? <ButtonLoading /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>

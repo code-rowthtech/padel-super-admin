@@ -16,51 +16,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/club/thunk';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { formatDate } from '../../../helpers/Formatting';
-
-
-const photos = [
-    'gallery1.png', 'gallery2.png',
-    'taness.png', 'gallery4.png', 'gallery5.png',
-    'gallery6.png', 'gallery7.png',
-    'gallery8.png', 'gallery9.png', 'gallery10.png'
-];
+import { Avatar } from '@mui/material';
 
 
 
-const reviews = [
-    {
-        name: "Eleanor Pena",
-        rating: 4.5,
-        date: "22/07/2025",
-        message:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-        avatar: "https://i.pravatar.cc/100?img=1",
-    },
-    {
-        name: "Leslie Alexander",
-        rating: 4.5,
-        date: "22/07/2025",
-        message:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-        avatar: "https://i.pravatar.cc/100?img=2",
-    },
-    {
-        name: "Courtney Henry",
-        rating: 4.5,
-        date: "22/07/2025",
-        message:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-        avatar: "https://i.pravatar.cc/100?img=3",
-    },
-    {
-        name: "Devon Lane",
-        rating: 4.5,
-        date: "22/07/2025",
-        message:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-        avatar: "https://i.pravatar.cc/100?img=4",
-    },
-];
 
 const Home = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -70,14 +29,16 @@ const Home = () => {
     const [message, setMessage] = useState("");
     const dispatch = useDispatch()
     const store = useSelector((state) => state)
-    const allImages = photos.map(photo => require(`../../../assets/images/${photo}`));
     const [activeTab, setActiveTab] = useState('direction');
     const clubData = store?.userClub?.clubData?.data?.courts[0]
     const addReviewLoading = store?.userClub?.reviewLoading
     const getReviewData = store?.userClub?.getReviewData?.data
+    const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
+    const [loadedImages, setLoadedImages] = useState({});
 
-    console.log({ getReviewData });
-
+    const handleImageLoad = (index) => {
+        setLoadedImages((prev) => ({ ...prev, [index]: true }));
+    };
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
@@ -110,6 +71,15 @@ const Home = () => {
             dispatch(getReviewClub(clubData._id))
 
         })
+    };
+
+    const getRatingLabel = (rating) => {
+        if (rating >= 4.5) return "Excellent";
+        if (rating >= 3.5) return "Very Good";
+        if (rating >= 2.5) return "Good";
+        if (rating >= 1.5) return "Average";
+        if (rating >= 0.5) return "Poor";
+        return "Not Rated";
     };
 
     useEffect(() => {
@@ -192,17 +162,23 @@ const Home = () => {
                     {/* Left Column: About + Contact Info */}
                     <div className="col-lg-8">
                         <div className="mb-3 d-flex align-items-center gap-3">
-                            <div className='bg-white rounded-circle py-4 px-2'>
-                                <img src={logo} alt="logo" style={{ width: "76px" }} />
+                            <div className=''>
+                                <Avatar>
+                                    {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                </Avatar>
                             </div>
                             <div>
                                 <h5 className="mb-0">{clubData?.clubName || "Club Name"}</h5>
                                 <div className="d-flex align-items-center">
-
-                                    {[...Array(4)].map((_, i) => (
-                                        <StarIcon key={i} style={{ color: '#32B768' }} />
-                                    ))}
-                                    <StarBorderIcon style={{ color: '#ccc' }} />
+                                    <div className="text-success">
+                                        {[...Array(5)].map((_, i) => (
+                                            i < Math.round(getReviewData?.averageRating) ? (
+                                                <StarIcon key={i} style={{ color: '#32B768' }} />
+                                            ) : (
+                                                <StarBorderIcon key={i} style={{ color: '#ccc' }} />
+                                            )
+                                        ))}
+                                    </div>
                                     <span className="ms-2 " style={{ fontSize: '17px', color: '#374151', fontWeight: "500" }}>
                                         4.5
                                     </span>
@@ -425,7 +401,6 @@ const Home = () => {
                                                                     zIndex: 1,
                                                                 }}
                                                             />
-
                                                             {rating >= fullValue || (hover && hover >= fullValue) ? (
                                                                 <StarIcon style={{ color: "#32B768" }} />
                                                             ) : rating >= halfValue || (hover && hover >= halfValue) ? (
@@ -436,7 +411,7 @@ const Home = () => {
                                                         </span>
                                                     );
                                                 })}
-                                                <span className="ms-2">{rating}</span>
+                                                <span className="ms-2">{rating} {getRatingLabel(rating)}</span>
                                             </div>
 
                                             {/* Message Box */}
@@ -513,33 +488,51 @@ const Home = () => {
                         {activeTab === 'photos' && (
                             <div className="container my-5">
                                 <div className="custom-gallery">
-                                    {clubData?.courtImage?.slice(0, 10).map((image, index) => (
-                                        <div
-                                            key={index}
-                                            className={`gallery-item item${index + 1}`}
-                                            onClick={() => {
-                                                setPhotoIndex(index);
-                                                setIsOpen(true);
-                                            }}
-                                        >
-                                            <img src={image} alt={`Gallery ${index + 1}`} />
-                                        </div>
-                                    ))}
+                                    {clubData?.courtImage?.length > 0 ? (
+                                        galleryImages.map((image, index) => (
+                                            <div
+                                                key={index}
+                                                className={`gallery-item item${index + 1}`}
+                                                onClick={() => {
+                                                    setPhotoIndex(index);
+                                                    setIsOpen(true);
+                                                }}
+                                                style={{ cursor: 'pointer' }}
+                                            >
+                                                {!loadedImages[index] && (
+                                                    <div className="image-loader youtube-style">
+                                                        <div className="youtube-spinner"></div>
+                                                    </div>
+                                                )}
+                                                <img
+                                                    src={image}
+                                                    alt={`Gallery ${index + 1}`}
+                                                    onLoad={() => handleImageLoad(index)}
+                                                    onError={() => handleImageLoad(index)} // Handle broken images
+                                                    style={{ display: loadedImages[index] ? 'block' : 'none' }}
+                                                />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p>{store?.userClub?.clubData?.data?.courts?.length === 0 ? 'No images yet!' : 'No images available'}</p>
+                                    )}
                                 </div>
 
                                 {/* Lightbox */}
-                                {isOpen && (
+                                {isOpen && galleryImages.length > 0 && (
                                     <Lightbox
-                                        mainSrc={allImages[photoIndex]}
-                                        nextSrc={allImages[(photoIndex + 1) % allImages.length]}
-                                        prevSrc={allImages[(photoIndex + allImages.length - 1) % allImages.length]}
+                                        mainSrc={galleryImages[photoIndex]}
+                                        nextSrc={galleryImages[(photoIndex + 1) % galleryImages.length]}
+                                        prevSrc={galleryImages[(photoIndex + galleryImages.length - 1) % galleryImages.length]}
                                         onCloseRequest={() => setIsOpen(false)}
                                         onMovePrevRequest={() =>
-                                            setPhotoIndex((photoIndex + allImages.length - 1) % allImages.length)
+                                            setPhotoIndex((photoIndex + galleryImages.length - 1) % galleryImages.length)
                                         }
                                         onMoveNextRequest={() =>
-                                            setPhotoIndex((photoIndex + 1) % allImages.length)
+                                            setPhotoIndex((photoIndex + 1) % galleryImages.length)
                                         }
+                                        imagePadding={0} // Remove padding for edge-to-edge image
+                                        wrapperClassName="full-screen-lightbox" // Custom class for full-screen styling
                                     />
                                 )}
                             </div>
