@@ -35,6 +35,6 @@ export const getUserClub = createAsyncThunk(
             try{
                 const res = await getApi(`${Url.GET_REVIEW_CLUB}?clubId=${data}`)
                 return res?.data
-            }catch (error) {showError(error?.message);return rejectWithValue(error)}
+            }catch (error) {return rejectWithValue(error)}
         }
     )

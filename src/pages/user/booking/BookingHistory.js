@@ -80,7 +80,7 @@ const BookingHistory = () => {
         if (club_id) {
             dispatch(getReviewClub(club_id));
         }
-    }, [club_id, dispatch]);
+    }, [ dispatch]);
 
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
         const status = booking?.bookingStatus;

@@ -1,168 +1,213 @@
 import { logo } from '../../../assets/files';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { getUserFromSession } from '../../../helpers/api/apiCore';
 import { Dropdown } from 'react-bootstrap';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
 
-
 const Navbar = () => {
-    const dispatch = useDispatch()
-    const user = getUserFromSession()
-    const navigate = useNavigate()
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
-    const [userData, setUserData] = useState(false);
-    const userLocal = localStorage.getItem("padel_user")
-    console.log(userData, localStorage, user, 'alldata');
+    const [userData, setUserData] = useState(null);
+    const store = useSelector((state) => state?.userAuth);
+
     useEffect(() => {
-        if (userLocal) {
-            setUserData(userLocal)
+        // Update userData based on Redux store
+        if (store?.user?.status === '200' && store?.user?.response?.user) {
+            setUserData(store.user.response.user);
+            // Optionally, sync with localStorage
+            localStorage.setItem('padel_user', JSON.stringify(store.user.response.user));
+        } else {
+            // Check localStorage as fallback
+            const userLocal = localStorage.getItem('padel_user');
+            if (userLocal) {
+                try {
+                    const parsedData = JSON.parse(userLocal);
+                    setUserData(parsedData);
+                } catch (error) {
+                    console.error('Error parsing user data from localStorage:', error);
+                    setUserData(null);
+                }
+            } else {
+                setUserData(null);
+            }
         }
-    }, [userLocal, user])
+
+        // Listen for storage changes (optional, if cross-tab sync is needed)
+        const updateUserData = () => {
+            const userLocal = localStorage.getItem('padel_user');
+            if (userLocal) {
+                try {
+                    const parsedData = JSON.parse(userLocal);
+                    setUserData(parsedData);
+                } catch (error) {
+                    console.error('Error parsing user data from localStorage:', error);
+                    setUserData(null);
+                }
+            } else {
+                setUserData(null);
+            }
+        };
+
+        window.addEventListener('storage', updateUserData);
+
+        // Cleanup listener on component unmount
+        return () => {
+            window.removeEventListener('storage', updateUserData);
+        };
+    }, [store?.user?.status, store?.user?.response?.user]); // Depend on Redux store changes
+
+    console.log({ store, userData });
 
     return (
-        <>
-            <nav className="navbar navbar-expand-lg  bg-white py-1 ">
-                <div className="container">
-                    {/* Logo */}
-                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
-                        <img src={logo} alt="Logo" style={{ width: "120px" }} />
-                    </Link>
+        <nav className="navbar navbar-expand-lg bg-white py-1">
+            <div className="container">
+                {/* Logo */}
+                <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
+                    {/* <img src={logo} alt="Logo" style={{ width: '120px' }} /> */}
+                    <h4 className='text-dark fw-bold m-0' style={{fontFamily:"Poppins"}}>Here <br /> Logo</h4>
+                </Link>
 
-                    {/* Toggle button for mobile */}
-                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-                        <span className="navbar-toggler-icon"></span>
-                    </button>
+                {/* Toggle button for mobile */}
+                <button
+                    className="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#mainNav"
+                    aria-controls="mainNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span className="navbar-toggler-icon"></span>
+                </button>
 
-                    {/* Navigation links */}
-                    <div className="collapse navbar-collapse" id="mainNav">
-                        <ul className="navbar-nav w-100 ps-md-5 ps-0 ms-md-5 ms-0 mb-2 mb-lg-0 gap-4">
-                            <li className="nav-item">
-                                <NavLink
-                                    to="/home"
-                                    className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
-                                    style={({ isActive }) => ({
-                                        color: isActive ? "#1F41BB" : "#000",
-                                        textDecoration: 'none',
-                                    })}
+                {/* Navigation links */}
+                <div className="collapse navbar-collapse" id="mainNav">
+                    <ul className="navbar-nav w-100 ps-md-5 ps-0 ms-md-5 ms-0 mb-2 mb-lg-0 gap-4">
+                        <li className="nav-item">
+                            <NavLink
+                                to="/home"
+                                className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
+                                style={({ isActive }) => ({
+                                    color: isActive ? '#1F41BB' : '#000',
+                                    textDecoration: 'none',
+                                })}
+                            >
+                                Home
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink
+                                to="/booking"
+                                className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
+                                style={({ isActive }) => ({
+                                    color: isActive ? '#1F41BB' : '#000',
+                                    textDecoration: 'none',
+                                })}
+                            >
+                                Booking
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink
+                                to="/open-matches"
+                                className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
+                                style={({ isActive }) => ({
+                                    color: isActive ? '#1F41BB' : '#000',
+                                    textDecoration: 'none',
+                                })}
+                            >
+                                Open Matches
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink
+                                to="/competitions"
+                                className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
+                                style={({ isActive }) => ({
+                                    color: isActive ? '#1F41BB' : '#000',
+                                    textDecoration: 'none',
+                                })}
+                            >
+                                Competitions
+                            </NavLink>
+                        </li>
+                    </ul>
+
+                    <div className="d-flex">
+                        {store?.user?.status === '200' || userData?.token ? (
+                            <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
+                                <Dropdown.Toggle
+                                    variant="white"
+                                    className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
                                 >
-                                    Home
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink
-                                    to="/booking"
-                                    className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
-                                    style={({ isActive }) => ({
-                                        color: isActive ? "#1F41BB" : "#000",
-                                        textDecoration: 'none',
-                                    })}
-                                >
-                                    Booking
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink
-                                    to="/open-matches"
-                                    className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
-                                    style={({ isActive }) => ({
-                                        color: isActive ? "#1F41BB" : "#000",
-                                        textDecoration: 'none',
-                                    })}
-                                >
-                                    Open Matches
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink
-                                    to="/competitions"
-                                    className={({ isActive }) => `nav-link ${isActive ? "fw-semibold" : ""}`}
-                                    style={({ isActive }) => ({
-                                        color: isActive ? "#1F41BB" : "#000",
-                                        textDecoration: 'none',
-
-                                    })}
-                                >
-                                    Competitions
-                                </NavLink>
-                            </li>
-                        </ul>
-
-                        <div className="d-flex ">
-                            {user?.token || userData?.token ?
-                                <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
-                                    <Dropdown.Toggle
-                                        variant="white"
-                                        className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
-                                    >
-                                        <img
-                                            src={user?.profilePic || "https://i.pravatar.cc/40"}
-                                            alt="user"
-                                            className="rounded-circle"
-                                            width="40"
-                                            height="40"
-                                        />
-                                        <div className="text-end d-none d-sm-block">
-
-                                            <div className="fw-semibold">
-                                                {user?.name
-                                                    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-                                                    : "Danielle Campbell"}
-                                            </div>
-                                            <div className="text-muted small">{user?.phoneNumber}</div>
+                                    <img
+                                        src={userData?.profilePic || 'https://i.pravatar.cc/40'}
+                                        alt="user"
+                                        className="rounded-circle"
+                                        width="40"
+                                        height="40"
+                                    />
+                                    <div className="text-end d-none d-sm-block">
+                                        <div className="fw-semibold">
+                                            {userData?.name
+                                                ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
+                                                : 'User'}
                                         </div>
+                                        <div className="text-muted small">{userData?.phoneNumber || 'N/A'}</div>
+                                    </div>
+                                    {isOpen ? (
+                                        <FaChevronUp className="ms-2 text-muted" />
+                                    ) : (
+                                        <FaChevronDown className="ms-2 text-muted" />
+                                    )}
+                                </Dropdown.Toggle>
 
-                                        {isOpen ? (
-                                            <FaChevronUp className="ms-2 text-muted" />
-                                        ) : (
-                                            <FaChevronDown className="ms-2 text-muted" />
-                                        )}
-                                    </Dropdown.Toggle>
-
-                                    <Dropdown.Menu
-                                        className="table-data fw-medium"
-                                        style={{ color: "#374151" }}
+                                <Dropdown.Menu className="table-data fw-medium" style={{ color: '#374151' }}>
+                                    <Dropdown.Item as={NavLink} to="/admin/profile">
+                                        Profile
+                                    </Dropdown.Item>
+                                    <Dropdown.Item as={NavLink} to="/booking-history">
+                                        My Booking
+                                    </Dropdown.Item>
+                                    <Dropdown.Item as={NavLink} to="/open-matches">
+                                        Open Matches
+                                    </Dropdown.Item>
+                                    <Dropdown.Item as={NavLink} to="/admin/help-support">
+                                        Americano
+                                    </Dropdown.Item>
+                                    <Dropdown.Item as={NavLink} to="/admin/settings">
+                                        Help & Support
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                        onClick={() => {
+                                            dispatch(logoutUser());
+                                            localStorage.removeItem('padel_user');
+                                            setUserData(null);
+                                            navigate('/home');
+                                        }}
                                     >
-                                        <Dropdown.Item as={NavLink} to="/admin/profile">
-                                            Profile
-                                        </Dropdown.Item>
-                                        <Dropdown.Item as={NavLink} to="/booking-history">
-                                            My Booking
-                                        </Dropdown.Item>
-                                        <Dropdown.Item as={NavLink} to="/open-matches">
-                                            Open Matches
-                                        </Dropdown.Item>
-                                        <Dropdown.Item as={NavLink} to="/admin/help-support">
-                                            Americano
-                                        </Dropdown.Item>
-                                        <Dropdown.Item as={NavLink} to="/admin/settings">
-                                            Help & Support
-                                        </Dropdown.Item>
-                                        <Dropdown.Item
-                                            onClick={() => {
-                                                dispatch(logoutUser());
-                                                navigate('/home');
-                                            }}
-                                        >
-                                            Logout
-                                        </Dropdown.Item>
-                                    </Dropdown.Menu>
-                                </Dropdown>
-                                :
-                                <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
-                                    <button className="btn px-4 py-2 rounded-pill text-white" style={{ whiteSpace: "nowrap", backgroundColor: " #3DBE64", fontSize: "20", fontWeight: "600" }}>
-                                        Login
-                                    </button>
-                                </Link>
-                            }
-                        </div>
+                                        Logout
+                                    </Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        ) : (
+                            <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
+                                <button
+                                    className="btn px-4 py-2 rounded-pill text-white"
+                                    style={{ whiteSpace: 'nowrap', backgroundColor: '#3DBE64', fontSize: '20px', fontWeight: '600' }}
+                                >
+                                    Login
+                                </button>
+                            </Link>
+                        )}
                     </div>
                 </div>
-            </nav>
-        </>
-    )
-}
+            </div>
+        </nav>
+    );
+};
 
-export default Navbar
+export default Navbar;

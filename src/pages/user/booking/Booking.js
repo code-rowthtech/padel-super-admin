@@ -409,20 +409,20 @@ const Booking = ({
                                             // Only mark as past if the selected date is today
                                             const isToday = selectedDateObj.toDateString() === now.toDateString();
                                             const isPast = isToday && slotDate.getTime() < now.getTime();
-
+                                            const isBooked = slot?.status === "booked";
                                             const isSelected = selectedTimes.some(t => t._id === slot._id);
 
                                             return (
                                                 <button
                                                     key={i}
                                                     className="btn border-0 rounded-pill px-4"
-                                                    onClick={() => !isPast && toggleTime(slot)}
-                                                    disabled={isPast}
+                                                    onClick={() => !isPast && !isBooked && toggleTime(slot)}
+                                                    disabled={isPast || isBooked}
                                                     style={{
                                                         backgroundColor: isSelected ? "#374151" : "#CBD6FF1A",
-                                                        color: isSelected ? "white" : isPast ? "#888888" : "#000000",
-                                                        cursor: isPast ? "not-allowed" : "pointer",
-                                                        opacity: isPast ? 0.6 : 1,
+                                                        color: isSelected ? "white" : (isPast || isBooked) ? "#888888" : "#000000",
+                                                        cursor: (isPast || isBooked) ? "not-allowed" : "pointer",
+                                                        opacity: (isPast || isBooked) ? 0.6 : 1,
                                                     }}
                                                 >
                                                     {slot?.time}
@@ -477,7 +477,15 @@ const Booking = ({
                                                             <div className="row g-2">
                                                                 {Array.isArray(slotData?.data[0]?.courts) &&
                                                                     slotData?.data[0]?.courts?.map((court, index) => (
-                                                                        <div className="col-6" key={court._id || index}>
+                                                                        <div 
+                                                                            className={`${court.length === 1
+                                                                                    ? "col-12"
+                                                                                    : court.length === 2
+                                                                                        ? "col-6"
+                                                                                        : court.length === 3 && index === 2
+                                                                                            ? "col-12"
+                                                                                            : "col-6"
+                                                                                }`} key={court._id || index}>
                                                                             <div
                                                                                 className="border rounded-3 d-flex align-items-center justify-content-center"
                                                                                 style={{ height: "80px" }}
