@@ -610,12 +610,6 @@ const Booking = ({
                                 ))}
                             </div>
 
-
-
-
-
-
-
                             <div className="d-flex justify-content-center mt-3">
                                 <button
                                     style={{ ...buttonStyle, opacity: isBookDisabled ? 0.5 : 1, pointerEvents: isBookDisabled ? 'none' : 'auto' }}

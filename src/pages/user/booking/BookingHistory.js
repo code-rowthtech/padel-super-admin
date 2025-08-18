@@ -16,8 +16,11 @@ import { getBooking } from '../../../redux/user/booking/thunk';
 import { DataLoading, Loading } from '../../../helpers/loading/Loaders';
 import { resetBooking } from '../../../redux/user/booking/slice';
 import { formatDate } from '../../../helpers/Formatting';
+import { getReviewClub } from '../../../redux/user/club/thunk';
 
 const BookingHistory = () => {
+    const store = useSelector((state) => state)
+    const dispatch = useDispatch()
     const [activeTab, setActiveTab] = useState('all');
     const [searchDate, setSearchDate] = useState(null);
     const [searchText, setSearchText] = useState('');
@@ -33,8 +36,8 @@ const BookingHistory = () => {
     const [tableData, setCourtData] = useState(null)
     const [statusData, setStatusData] = useState(null)
     const getBookingData = useSelector((state) => state?.userBooking)
-    console.log(getBookingData, 'getBookingDatagetBookingData');
-    const dispatch = useDispatch()
+    const getReviewData = store?.userClub?.getReviewData?.data
+    console.log({ getReviewData });
 
     const renderSlotTimes = (slotTimes) =>
         slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
@@ -69,15 +72,15 @@ const BookingHistory = () => {
         setSelectedOption(value);
         setIsOpen(false);
     };
-
-    const handleRatingClick = (index) => {
-        setRatingBookingIndex(index);
-        setShowRatingModal(true);
-    };
+    const club_id = localStorage.getItem("register_club_id");
 
     useEffect(() => {
-        dispatch(getBooking({ type: "" }))
-    }, [])
+        dispatch(getBooking({ type: "" }));
+
+        if (club_id) {
+            dispatch(getReviewClub(club_id));
+        }
+    }, [club_id, dispatch]);
 
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
         const status = booking?.bookingStatus;
@@ -279,14 +282,14 @@ const BookingHistory = () => {
                                     )}
 
                                     {activeTab === 'completed' && (
-                                        <td className='text-center'>
+                                        <td className="text-center">
                                             {[1, 2, 3, 4, 5].map((star) => {
-                                                const ratingValue = ratings[index]?.rating || 0;
+                                                const averageRating = getReviewData?.averageRating || 0;
                                                 let iconClass = "bi-star"; // empty star by default
 
-                                                if (star <= Math.floor(ratingValue)) {
+                                                if (star <= Math.floor(averageRating)) {
                                                     iconClass = "bi-star-fill"; // full star
-                                                } else if (star - ratingValue <= 0.5 && star - ratingValue > 0) {
+                                                } else if (star - averageRating <= 0.5 && star - averageRating > 0) {
                                                     iconClass = "bi-star-half"; // half star
                                                 }
 
@@ -296,24 +299,24 @@ const BookingHistory = () => {
                                                         className={`bi ${iconClass} ms-2`}
                                                         style={{
                                                             color: "#3DBE64",
-                                                            cursor: "pointer",
-                                                            fontSize: "18px"
+                                                            fontSize: "18px",
                                                         }}
-                                                        onClick={() => handleRatingClick(index)}
                                                     ></i>
                                                 );
                                             })}
                                         </td>
                                     )}
 
-                                    {activeTab === 'completed' && (
+                                    {activeTab === "completed" && (
                                         <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                            {ratings[index]?.review || ""}
+                                            <span>
+                                                {getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment || "No comment"}
+                                            </span>
                                         </td>
                                     )}
 
                                     <td style={{ color: "#1A237E", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                        {booking?.totalAmount || 'N/A'}
+                                        ₹{booking?.totalAmount || 'N/A'}
                                     </td>
 
                                     {activeTab === 'cancelled' && (
@@ -367,9 +370,13 @@ const BookingHistory = () => {
                                                 if (activeTab === "cancelled") {
                                                     setAcceptedRejected(true);
                                                     setStatusData({ booking: booking, slotItem: slotItem });
-                                                } else if (["all", "upcoming", "completed"].includes(activeTab)) {
+                                                } else if (["all", "upcoming"].includes(activeTab)) {
                                                     setModalCancel(true);
                                                     setCourtData({ slotItem: slotItem, booking: booking });
+                                                } else if (activeTab === "completed") {
+                                                    setShowRatingModal(true);
+                                                    setStatusData({ booking: booking, slotItem: slotItem });
+
                                                 }
                                             }}
                                             style={{ cursor: "pointer" }}
@@ -403,6 +410,8 @@ const BookingHistory = () => {
             />
             <BookingRatingModal
                 show={showRatingModal}
+                reviewData={getReviewData}
+                tableData={statusData}
                 onHide={() => {
                     setShowRatingModal(false);
                     setRatingBookingIndex(null);
