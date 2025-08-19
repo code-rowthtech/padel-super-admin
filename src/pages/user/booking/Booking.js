@@ -419,13 +419,13 @@ const Booking = ({
                                                     onClick={() => !isPast && !isBooked && toggleTime(slot)}
                                                     disabled={isPast || isBooked}
                                                     style={{
-                                                        backgroundColor: isSelected ? "#374151" : "#CBD6FF1A",
-                                                        color: isSelected ? "white" : (isPast || isBooked) ? "#888888" : "#000000",
+                                                        backgroundColor: isSelected ? "#374151" : isBooked ? "#b42424ff" : "#CBD6FF1A",
+                                                        color: isSelected ? "white" : isPast && !isBooked ? "#888888" : isBooked ? 'white' : "#000000",
                                                         cursor: (isPast || isBooked) ? "not-allowed" : "pointer",
                                                         opacity: (isPast || isBooked) ? 0.6 : 1,
                                                     }}
                                                 >
-                                                    {slot?.time}
+                                                    {isBooked ? "Booked" : slot?.time}
                                                 </button>
                                             );
                                         })
@@ -477,14 +477,14 @@ const Booking = ({
                                                             <div className="row g-2">
                                                                 {Array.isArray(slotData?.data[0]?.courts) &&
                                                                     slotData?.data[0]?.courts?.map((court, index) => (
-                                                                        <div 
+                                                                        <div
                                                                             className={`${court.length === 1
-                                                                                    ? "col-12"
-                                                                                    : court.length === 2
-                                                                                        ? "col-6"
-                                                                                        : court.length === 3 && index === 2
-                                                                                            ? "col-12"
-                                                                                            : "col-6"
+                                                                                ? "col-12"
+                                                                                : court.length === 2
+                                                                                    ? "col-6"
+                                                                                    : court.length === 3 && index === 2
+                                                                                        ? "col-12"
+                                                                                        : "col-6"
                                                                                 }`} key={court._id || index}>
                                                                             <div
                                                                                 className="border rounded-3 d-flex align-items-center justify-content-center"
@@ -536,12 +536,6 @@ const Booking = ({
                                                     </div>
 
                                                     <div className="d-flex align-items-center gap-3">
-                                                        {/* <div
-                                                            className="fw-semibold"
-                                                            style={{ fontSize: "20px", fontWeight: "500" }}
-                                                        >
-                                                            ₹{court?.price || 100}
-                                                        </div> */}
                                                         <button
                                                             className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
                                                             style={{ width: "32px", height: "32px" }}
@@ -638,12 +632,12 @@ const Booking = ({
                                             date: selectedDate?.fullDate,
                                             time: selectedBuisness,
                                             court: selectedCourts.map(c => ({
-                                                _id: c._id || c.id,  // ensure ID is set
+                                                _id: c._id || c.id, 
                                                 ...c
                                             })),
                                             slot: slotData?.data?.[0]?.slot
                                         },
-                                        clubData: clubData, seletctedCourt: selectedCourts// now full club object, not just court[0]
+                                        clubData: clubData, seletctedCourt: selectedCourts
                                     }} style={{ textDecoration: 'none' }} className="">
                                         <svg
                                             style={svgStyle}

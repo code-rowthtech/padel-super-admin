@@ -10,7 +10,7 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { FaStar } from "react-icons/fa";
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import 'animate.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/club/thunk';
@@ -28,6 +28,7 @@ const Home = () => {
     const [hover, setHover] = useState(null);
     const [message, setMessage] = useState("");
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const store = useSelector((state) => state)
     const [activeTab, setActiveTab] = useState('direction');
     const clubData = store?.userClub?.clubData?.data?.courts[0]
@@ -124,7 +125,7 @@ const Home = () => {
                                             padding: '2rem'
                                         }}
                                     >
-                                        <button type="button" className="btn btn-outline-light mb-3 rounded-pill px-4 py-1">
+                                        <button type="button" className="btn btn-outline-light mb-3 rounded-pill px-4 py-1" onClick={()=>navigate('/open-matches')}>
                                             Open Matches
                                         </button>
                                         <h4 className="fw-bold">Upcoming Open Matches</h4>
@@ -156,7 +157,7 @@ const Home = () => {
                 </div>
             </div>
 
-            <div className="container py-4 px-4 mt-4 rounded-3 bg-light">
+            <div className="container py-4 px-4 mt-4 mb-5 rounded-3 bg-light">
                 <div className="row g-4">
 
                     {/* Left Column: About + Contact Info */}
@@ -171,16 +172,19 @@ const Home = () => {
                                 <h5 className="mb-0">{clubData?.clubName || "Club Name"}</h5>
                                 <div className="d-flex align-items-center">
                                     <div className="text-success">
-                                        {[...Array(5)].map((_, i) => (
-                                            i < Math.round(getReviewData?.averageRating) ? (
-                                                <StarIcon key={i} style={{ color: '#32B768' }} />
-                                            ) : (
-                                                <StarBorderIcon key={i} style={{ color: '#ccc' }} />
-                                            )
-                                        ))}
+                                        {[...Array(5)].map((_, i) => {
+                                            const rating = getReviewData?.averageRating || 0;
+                                            if (i < Math.floor(rating)) {
+                                                return <StarIcon key={i} style={{ color: "#32B768" }} />;
+                                            } else if (i < rating && rating % 1 >= 0.5) {
+                                                return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
+                                            } else {
+                                                return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
+                                            }
+                                        })}
                                     </div>
                                     <span className="ms-2 " style={{ fontSize: '17px', color: '#374151', fontWeight: "500" }}>
-                                        4.5
+                                        {getReviewData?.averageRating}
                                     </span>
                                 </div>
                             </div>
@@ -280,7 +284,7 @@ const Home = () => {
                     </div>
 
                     {/* Tab Content */}
-                    <div className="mt-5">
+                    <div className="mt-5 mb-5">
                         {activeTab === 'direction' && (
                             <>
                                 <h4 style={{ fontWeight: '600' }}>Address</h4>
@@ -317,49 +321,42 @@ const Home = () => {
                                     <div className="col-md-6">
                                         <div className="p-4 row rounded-4 bg-white h-100">
                                             <div className='col-5 text-center d-flex align-items-center justify-contant-center'>
-                                                <div className='w-100'>
+                                                <div className="w-100">
                                                     <h4 className="" style={{ fontSize: "16px", fontWeight: "500" }}>Overall Rating</h4>
                                                     <div className="display-4 fw-bold">{getReviewData?.averageRating}</div>
                                                     <div className="text-success">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            i < Math.round(getReviewData?.averageRating) ? (
-                                                                <StarIcon key={i} style={{ color: '#32B768' }} />
-                                                            ) : (
-                                                                <StarBorderIcon key={i} style={{ color: '#ccc' }} />
-                                                            )
-                                                        ))}
+                                                        {[...Array(5)].map((_, i) => {
+                                                            const rating = getReviewData?.averageRating || 0;
+                                                            if (i < Math.floor(rating)) {
+                                                                return <StarIcon key={i} style={{ color: "#32B768" }} />;
+                                                            } else if (i < rating && rating % 1 >= 0.5) {
+                                                                return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
+                                                            } else {
+                                                                return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
+                                                            }
+                                                        })}
                                                     </div>
-                                                    <div className="text-muted mt-2">based on 40 reviews</div>
+                                                    <div className="text-muted mt-2">based on {getReviewData?.totalReviews} reviews</div>
                                                 </div>
 
                                             </div>
 
-                                            <div className=" col-7 px-4 border-start d-flex align-items-center">
-                                                <div className='w-100'>
-                                                    {["Excellent", "Good", "Average", "Below Average", "Poor"].map(
-                                                        (label, idx) => (
-                                                            <div className="d-flex align-items-center mb-1 w-100" key={idx}>
-                                                                <div className="me-2" style={{ width: "100px" }}>
-                                                                    {label}
-                                                                </div>
-                                                                <div className="progress w-100" style={{ height: "8px" }}>
-                                                                    <div
-                                                                        className={`progress-bar bg-${idx === 0
-                                                                            ? "success"
-                                                                            : idx === 1
-                                                                                ? "info"
-                                                                                : idx === 2
-                                                                                    ? "warning"
-                                                                                    : idx === 3
-                                                                                        ? "danger"
-                                                                                        : "dark"
-                                                                            }`}
-                                                                        style={{ width: `${100 - idx * 15}%` }}
-                                                                    ></div>
-                                                                </div>
+                                            <div className="col-7 px-4 border-start d-flex align-items-center">
+                                                <div className="w-100">
+                                                    {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => (
+                                                        <div className="d-flex align-items-center mb-1 w-100" key={idx}>
+                                                            <div className="me-2" style={{ width: "100px" }}>
+                                                                {label}
                                                             </div>
-                                                        )
-                                                    )}
+                                                            <div className="progress w-100" style={{ height: "8px" }}>
+                                                                <div
+                                                                    className={`progress-bar bg-${idx === 0 ? "success" : idx === 1 ? "info" : idx === 2 ? "warning" : idx === 3 ? "danger" : "dark"
+                                                                        }`}
+                                                                    style={{ width: label === getReviewData?.ratingCategory ? "70%" : "0%" }}
+                                                                ></div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         </div>

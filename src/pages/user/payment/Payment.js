@@ -102,9 +102,7 @@ const Payment = ({ className = "" }) => {
             const courtName = courtData?.court?.[0]?.courtName || 'Court 1';
             const slotTimesData = courtData?.slot?.[0]?.slotTimes || [];
 
-            // Create slot array based on selected times, mapping each time to its corresponding slotId
-            const slotArray = selectedTimeArray.map((timeSlot) => {
-                // Find the matching slot time in slotTimesData to get the correct slotId
+            const slotArray = selectedTimeArray?.map((timeSlot) => {
                 const matchingSlot = slotTimesData.find(slot => slot.time === timeSlot.time);
                 return {
                     slotId: matchingSlot?._id || courtData?.slot?.[0]?._id,
