@@ -8,6 +8,7 @@ export const loginUser = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.post(Url.User_Login, data);
+      console.log({res},'thunk');
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {

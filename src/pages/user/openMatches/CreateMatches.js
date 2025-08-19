@@ -18,6 +18,7 @@ const CreateMatches = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = getUserFromSession();
+  console.log({user},'core session');
   const store = useSelector((state) => state);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTimes, setSelectedTimes] = useState([]);

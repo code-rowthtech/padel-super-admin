@@ -132,12 +132,10 @@ const Payment = ({ className = "" }) => {
             };
 
             dispatch(createBooking(payload)).unwrap().then(() => {
-                if (user?.name) {
-                    getUserFromSession();
+                if (user?.token) {
                     navigate('/booking-history');
                 } else {
                     dispatch(loginUserNumber({ phoneNumber: phoneNumber }));
-                    getUserFromSession();
                     navigate('/booking-history');
                 }
             });
@@ -295,9 +293,16 @@ const Payment = ({ className = "" }) => {
                                             minLength={10}
                                             value={phoneNumber}
                                             style={{ boxShadow: "none" }}
-                                            onChange={(e) => setPhoneNumber(e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '' || /^[6-9][0-9]{0,9}$/.test(value)) {
+                                                    setPhoneNumber(value);
+                                                }
+                                            }}
                                             className="form-control border-0 p-2"
                                             placeholder="91+"
+                                            pattern="[6-9][0-9]{9}"
+                                            title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
                                             disabled={user?.phoneNumber}
                                         />
                                     </div>

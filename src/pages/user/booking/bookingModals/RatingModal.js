@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { modalSuccess } from "../../../../assets/files";
-import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { addReviewClub, getReviewClub } from "../../../../redux/user/club/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import StarIcon from "@mui/icons-material/Star";
+import StarHalfIcon from "@mui/icons-material/StarHalf";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { formatDate } from "../../../../helpers/Formatting";
 
-export const BookingRatingModal = ({ show, tableData,onHide, reviewData, initialRating, defaultMessage }) => {
+export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initialRating, defaultMessage }) => {
     const [rating, setRating] = useState(0);
-    const [hoverRating, setHoverRating] = useState(0);
+    const [hover, setHover] = useState(null);
     const [review, setReview] = useState("");
     const dispatch = useDispatch();
     const store = useSelector((state) => state);
     const getReviewData = store?.userClub?.getReviewData?.data;
     const addReviewLoading = store?.userClub?.reviewLoading;
-console.log({tableData});
+
     useEffect(() => {
         if (show) {
-            // Set default values based on reviewData if it exists
             if (reviewData) {
                 setRating(reviewData.averageRating || 0);
                 setReview(reviewData.reviews?.[reviewData.reviews.length - 1]?.reviewComment || "");
@@ -48,76 +47,126 @@ console.log({tableData});
             });
     };
 
-    const handleClick = (event, star) => {
-        const { left, width } = event.currentTarget.getBoundingClientRect();
-        const clickX = event.clientX - left;
-        const isHalf = clickX < width / 2;
-        const newRating = isHalf ? star - 0.5 : star;
-        setRating(newRating);
+    const handleClick = (value) => {
+        setRating(value);
     };
 
-    const handleHover = (event, star) => {
-        const { left, width } = event.currentTarget.getBoundingClientRect();
-        const hoverX = event.clientX - left;
-        const isHalf = hoverX < width / 2;
-        setHoverRating(isHalf ? star - 0.5 : star);
+    const handleHover = (value) => {
+        setHover(value);
     };
 
     const handleMouseLeave = () => {
-        setHoverRating(0);
+        setHover(null);
+    };
+
+    const getRatingLabel = (currentRating) => {
+        if (currentRating >= 4.5) return "Excellent";
+        if (currentRating >= 3.5) return "Very Good";
+        if (currentRating >= 2.5) return "Good";
+        if (currentRating >= 1.5) return "Average";
+        if (currentRating >= 0.5) return "Poor";
+        return "Not Rated";
     };
 
     const renderStars = () => {
-        const currentRating = hoverRating || rating;
+        const currentRating = hover !== null ? hover : rating;
         return (
-            <div className="d-flex align-items-center justify-content-center">
+            // <div className="d-flex align-items-center justify-content-center">
+            //     {[...Array(5)].map((_, i) => {
+            //         const fullValue = i + 1;
+            //         const halfValue = i + 0.5;
+            //         return (
+            //             <span key={i} style={{ position: "relative", cursor: "pointer" }}>
+            //                 <span
+            //                     onClick={() => handleClick(halfValue)}
+            //                     onMouseEnter={() => handleHover(halfValue)}
+            //                     onMouseLeave={() => handleHover(null)}
+            //                     style={{
+            //                         position: "absolute",
+            //                         left: 0,
+            //                         width: "50%",
+            //                         height: "100%",
+            //                         zIndex: 2,
+            //                     }}
+            //                 />
+            //                 <span
+            //                     onClick={() => handleClick(fullValue)}
+            //                     onMouseEnter={() => handleHover(fullValue)}
+            //                     onMouseLeave={() => handleHover(null)}
+            //                     style={{
+            //                         position: "absolute",
+            //                         right: 0,
+            //                         width: "50%",
+            //                         height: "100%",
+            //                         zIndex: 1,
+            //                     }}
+            //                 />
+            //                 {currentRating >= fullValue ? (
+            //                     <StarIcon style={{ color: "#32B768", fontSize: "18px" }} />
+            //                 ) : currentRating >= halfValue ? (
+            //                     <StarHalfIcon style={{ color: "#32B768", fontSize: "18px" }} />
+            //                 ) : (
+            //                     <StarBorderIcon style={{ color: "#ccc", fontSize: "18px" }} />
+            //                 )}
+            //             </span>
+            //         );
+            //     })}
+            //     {currentRating > 0 && (
+            //         <span
+            //             className="ms-2"
+            //             style={{
+            //                 fontSize: "18px",
+            //                 fontWeight: "500",
+            //                 color: "#374151",
+            //                 fontFamily: "Poppins",
+            //             }}
+            //         >
+            //             {currentRating.toFixed(1)} {getRatingLabel(currentRating)}
+            //         </span>
+            //     )}
+            // </div>
+            <div className="d-flex align-items-center justify-content-center gap-2 mt-2 fs-5">
                 {[...Array(5)].map((_, i) => {
-                    const starValue = i + 1;
-                    if (currentRating >= starValue) {
-                        return (
-                            <StarIcon
-                                key={i}
-                                style={{ color: "#32B768", cursor: "pointer", fontSize: "18px" }}
-                                onClick={(e) => handleClick(e, starValue)}
-                                onMouseMove={(e) => handleHover(e, starValue)}
-                                onMouseLeave={handleMouseLeave}
+                    const fullValue = i + 1;
+                    const halfValue = i + 0.5;
+
+                    return (
+                        <span key={i} style={{ position: "relative", cursor: "pointer" }}>
+                            <span
+                                onClick={() => handleClick(halfValue)}
+                                onMouseEnter={() => setHover(halfValue)}
+                                onMouseLeave={() => setHover(null)}
+                                style={{
+                                    position: "absolute",
+                                    left: 0,
+                                    width: "50%",
+                                    height: "100%",
+                                    zIndex: 2,
+                                }}
                             />
-                        );
-                    } else if (currentRating >= starValue - 0.5) {
-                        return (
-                            <FaStarHalfAlt
-                                key={i}
-                                style={{ color: "#32B768", cursor: "pointer", fontSize: "18px" }}
-                                onClick={(e) => handleClick(e, starValue)}
-                                onMouseMove={(e) => handleHover(e, starValue)}
-                                onMouseLeave={handleMouseLeave}
+                            <span
+                                onClick={() => handleClick(fullValue)}
+                                onMouseEnter={() => setHover(fullValue)}
+                                onMouseLeave={() => setHover(null)}
+                                style={{
+                                    position: "absolute",
+                                    right: 0,
+                                    width: "50%",
+                                    height: "100%",
+                                    zIndex: 1,
+                                }}
                             />
-                        );
-                    } else {
-                        return (
-                            <StarBorderIcon
-                                key={i}
-                                style={{ color: "#ccc", cursor: "pointer", fontSize: "18px" }}
-                                onClick={(e) => handleClick(e, starValue)}
-                                onMouseMove={(e) => handleHover(e, starValue)}
-                                onMouseLeave={handleMouseLeave}
-                            />
-                        );
-                    }
+                            {rating >= fullValue || (hover && hover >= fullValue) ? (
+                                <StarIcon style={{ color: "#32B768" }} />
+                            ) : rating >= halfValue || (hover && hover >= halfValue) ? (
+                                <StarHalfIcon style={{ color: "#32B768" }} />
+                            ) : (
+                                <StarBorderIcon style={{ color: "#ccc" }} />
+                            )}
+                        </span>
+                    );
                 })}
-                {currentRating > 0 && (
-                    <span
-                        className="ms-2"
-                        style={{
-                            fontSize: "18px",
-                            fontWeight: "500",
-                            color: "#374151",
-                            fontFamily: "Poppins",
-                        }}
-                    >
-                        {currentRating.toFixed(1)}
-                    </span>
-                )}
+                <span className="ms-2" style={{fontFamily:"Poppins",fontWeight:"500",fontSize:"15px"}}>{rating} {getRatingLabel(rating)}</span>
             </div>
         );
     };
@@ -125,7 +174,6 @@ console.log({tableData});
     return (
         <Modal show={show} onHide={onHide} centered backdrop="static">
             <Modal.Body className="text-center p-4">
-                {/* Close Button */}
                 <div className="d-flex justify-content-end">
                     <button
                         type="button"
@@ -136,7 +184,6 @@ console.log({tableData});
                     />
                 </div>
 
-                {/* Title */}
                 <h3 className="text-center tabel-title mb-2">Booking Confirmation</h3>
                 <img
                     src={modalSuccess}
@@ -145,7 +192,6 @@ console.log({tableData});
                     style={{ width: "200px", marginBottom: "20px" }}
                 />
 
-                {/* Booking Details */}
                 <div
                     className="rounded-3 border mb-4 p-3"
                     style={{
@@ -172,12 +218,11 @@ console.log({tableData});
                             >
                                 Court Name
                             </p>
-                         
                             <p
                                 className="text-muted mb-1"
                                 style={{ fontSize: "13px", fontWeight: "500" }}
                             >
-                                Date 
+                                Date
                             </p>
                         </div>
                         <div className="text-end">
@@ -185,20 +230,18 @@ console.log({tableData});
                                 className="fw-bold mb-1"
                                 style={{ fontSize: "14px", color: "#111827" }}
                             >
-                               {tableData?.slotItem?.courtName || 'N/A'}
+                                {tableData?.slotItem?.courtName || "N/A"}
                             </p>
-                        
                             <p
                                 className="fw-bold mb-1"
                                 style={{ fontSize: "14px", color: "#111827" }}
                             >
-                                 {formatDate(tableData?.slotItem?.bookingDate) || '1N/A'}
+                                {formatDate(tableData?.slotItem?.bookingDate) || "N/A"}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Payment Section */}
                 <div className="text-start px-1 mb-4">
                     <h5 className="fw-bold mb-2">Payment Details</h5>
                     <div className="d-flex justify-content-between">
@@ -207,17 +250,17 @@ console.log({tableData});
                     </div>
                     <div className="d-flex justify-content-between">
                         <span className="text-muted">Total Payment</span>
-                        <span style={{ color: "#1A237E", fontWeight: "700" }}>₹{tableData?.booking?.totalAmount || "N/A"}</span>
+                        <span style={{ color: "#1A237E", fontWeight: "700" }}>
+                            ₹{tableData?.booking?.totalAmount || "N/A"}
+                        </span>
                     </div>
                 </div>
 
-                {/* Star Rating */}
                 <div className="my-3">
                     <h4 className="tabel-title text-start">Rate this court (Padel Haus)</h4>
                     {renderStars()}
                 </div>
 
-                {/* Review Box */}
                 <div className="mt-4 text-start">
                     <p className="mb-2" style={{ fontWeight: "600", color: "#374151" }}>
                         Write a message
@@ -232,7 +275,6 @@ console.log({tableData});
                     />
                 </div>
 
-                {/* Submit Button */}
                 <div className="justify-content-center mt-4 d-flex align-items-center">
                     <Button
                         style={{

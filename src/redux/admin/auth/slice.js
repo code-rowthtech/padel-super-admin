@@ -52,13 +52,6 @@ const authSlice = createSlice({
         state.authLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
-        // setAuthorization(response?.token);
-        // const user = {
-        //   ...response?.user,
-        //   token: response.token,
-        //   hasCourt: response.hasCourt,
-        // };
-        // setLoggedInOwner(user);
         const owner = {
           ...response.user,
           token: response.token,

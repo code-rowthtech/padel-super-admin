@@ -4,10 +4,10 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import { modalSuccess, logo } from '../../../../assets/files';
 import { formatDate } from '../../../../helpers/Formatting';
 import { useDispatch, useSelector } from 'react-redux';
-import { bookingStatus } from '../../../../redux/user/booking/thunk';
+import { bookingStatus, getBooking } from '../../../../redux/user/booking/thunk';
 import { ButtonLoading } from '../../../../helpers/loading/Loaders';
 
-export const BookingHistoryCancelModal = ({ tableData, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
+export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
@@ -15,6 +15,7 @@ export const BookingHistoryCancelModal = ({ tableData, setChangeCancelShow, chan
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const bookingStatusData = useSelector((state) => state?.userBooking)
 
+  console.log({ bookingStatusData });
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
@@ -40,10 +41,20 @@ export const BookingHistoryCancelModal = ({ tableData, setChangeCancelShow, chan
   };
 
   const handleContinue = () => {
-    setShowSuccessModal(false);
-    setShowConfirmationModal(true);
     dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason }))
   };
+
+  useEffect(() => {
+    if (bookingStatusData?.bookingStatusData?.status === "200") {
+      setShowSuccessModal(false);
+      setShowConfirmationModal(true);
+    }
+    if (activeTab === "upcoming") {
+      dispatch(getBooking({ type: "upcoming" }));
+    } else {
+      dispatch(getBooking());
+    }
+  }, [bookingStatusData?.bookingStatusData?.status])
 
   return (
     <>
@@ -160,13 +171,15 @@ export const BookingHistoryCancelModal = ({ tableData, setChangeCancelShow, chan
                 Submit
               </Button>
             ) : (
-              <Button
-                style={{ backgroundColor: '#3DBE64', fontWeight: '500', fontSize: '17px', border: '0' }}
-                onClick={() => setChangeContent(true)}
-                className="rounded-pill py-2 w-100 px-4"
-              >
-                Cancel Booking
-              </Button>
+              tableData?.booking?.cancellationReason ? '' :
+                <Button
+                  style={{ backgroundColor: '#3DBE64', fontWeight: '500', fontSize: '17px', border: '0' }}
+                  onClick={() => setChangeContent(true)}
+                  className="rounded-pill py-2 w-100 px-4"
+                >
+                  Cancel Booking
+                </Button>
+
             )}
           </div>
         </Modal.Body>
@@ -190,7 +203,7 @@ export const BookingHistoryCancelModal = ({ tableData, setChangeCancelShow, chan
   );
 };
 
-export const BookingHistorySuccessModal = ({ show, onHide,bookingStatusData, onContinue }) => {
+export const BookingHistorySuccessModal = ({ show, onHide, bookingStatusData, onContinue }) => {
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">
@@ -214,9 +227,9 @@ export const BookingHistorySuccessModal = ({ show, onHide,bookingStatusData, onC
         <div className="rounded-3 mb-4">
           <h3>Confirm Cancellation</h3>
           <p>You will receive your refund in your account.</p>
-          <a href="#" style={{ color: '#1A237E' }}>
+          {/* <a href="#" style={{ color: '#1A237E' }}>
             View Status
-          </a>
+          </a> */}
         </div>
 
         <div className="justify-content-center mb-3 d-flex align-items-center p-3">
@@ -225,7 +238,7 @@ export const BookingHistorySuccessModal = ({ show, onHide,bookingStatusData, onC
             onClick={onContinue}
             className="rounded-pill py-2 w-100 px-4"
           >
-          {bookingStatusData?.bookingLoading ? <ButtonLoading/> : 'Continue'}  
+            {bookingStatusData?.bookingStatusLoading ? <ButtonLoading /> : 'Continue'}
           </Button>
         </div>
       </Modal.Body>
@@ -233,7 +246,7 @@ export const BookingHistorySuccessModal = ({ show, onHide,bookingStatusData, onC
   );
 };
 
-export const CancellationConfirmationModal = ({tableData, show, onHide, selectedReason, otherReason }) => {
+export const CancellationConfirmationModal = ({ tableData, show, onHide, selectedReason, otherReason }) => {
   const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
 
   return (
@@ -252,7 +265,7 @@ export const CancellationConfirmationModal = ({tableData, show, onHide, selected
         <div className="d-flex mb-3 justify-content-between border rounded bg-light align-items-center">
           <div className="text-start p-2 ps-3">
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-             Court Name
+              Court Name
             </p>
 
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>

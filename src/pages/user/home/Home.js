@@ -31,7 +31,7 @@ const Home = () => {
     const navigate = useNavigate()
     const store = useSelector((state) => state)
     const [activeTab, setActiveTab] = useState('direction');
-    const clubData = store?.userClub?.clubData?.data?.courts[0]
+    const clubData = store?.userClub?.clubData?.data?.courts[0] || []
     const addReviewLoading = store?.userClub?.reviewLoading
     const getReviewData = store?.userClub?.getReviewData?.data
     const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
@@ -84,10 +84,11 @@ const Home = () => {
     };
 
     useEffect(() => {
+        const id = clubData._id || '';
         if (activeTab === 'reviews') {
-            dispatch(getReviewClub(clubData._id))
+            dispatch(getReviewClub(id));
         }
-    }, [activeTab])
+    }, [activeTab]);
 
     return (
         <>
@@ -125,7 +126,7 @@ const Home = () => {
                                             padding: '2rem'
                                         }}
                                     >
-                                        <button type="button" className="btn btn-outline-light mb-3 rounded-pill px-4 py-1" onClick={()=>navigate('/open-matches')}>
+                                        <button type="button" className="btn btn-outline-light mb-3 rounded-pill px-4 py-1" onClick={() => navigate('/open-matches')}>
                                             Open Matches
                                         </button>
                                         <h4 className="fw-bold">Upcoming Open Matches</h4>
@@ -209,7 +210,7 @@ const Home = () => {
                         <div className="bg-white p-4">
                             <div className="d-flex justify-content-center mb-4">
                                 <strong className='me-2'>
-                                    <i className="bi bi-alarm-fill"></i> Close now
+                                    <i className="bi bi-alarm-fill"></i> Close Now
                                 </strong>
                                 <span>{clubData?.businessHours?.[adjustedIndex]?.time}</span>
                             </div>
@@ -318,7 +319,7 @@ const Home = () => {
                             <div className="container my-5">
                                 {/* Rating Overview */}
                                 <div className="row g-4">
-                                    <div className="col-md-6">
+                                    <div className="col-md-12">
                                         <div className="p-4 row rounded-4 bg-white h-100">
                                             <div className='col-5 text-center d-flex align-items-center justify-contant-center'>
                                                 <div className="w-100">
@@ -364,7 +365,7 @@ const Home = () => {
 
                                     {/* Rate This Court */}
                                     <div className="col-md-6">
-                                        <div className="p-4 bg-white rounded-4 h-100">
+                                        {/* <div className="p-4 bg-white rounded-4 h-100">
                                             <h5 style={{ fontSize: "20px", fontWeight: "600" }}>Rate this Court</h5>
 
                                             <div className="d-flex align-items-center gap-2 mt-2 fs-5">
@@ -411,7 +412,6 @@ const Home = () => {
                                                 <span className="ms-2">{rating} {getRatingLabel(rating)}</span>
                                             </div>
 
-                                            {/* Message Box */}
                                             <div className="form-group mt-3">
                                                 <p style={{ fontWeight: "600", fontSize: "14px" }}>Write a message</p>
                                                 <textarea
@@ -432,7 +432,7 @@ const Home = () => {
                                                     {addReviewLoading ? <ButtonLoading /> : "Submit"}
                                                 </button>
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </div>
 

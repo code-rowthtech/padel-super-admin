@@ -4,7 +4,9 @@ import { bookingStatus, createBooking, getBooking } from "./thunk";
 const initialState = {
     bookingLoading: false,
     bookingData: null,
-    bookingError: null
+    bookingError: null,
+    bookingStatusData: null,
+    bookingStatusLoading:false
 };
 
 const bookingSlice = createSlice({
@@ -13,8 +15,11 @@ const bookingSlice = createSlice({
     reducers: {
         resetBooking(state) {
             state.bookingLoading = false;
+            state.bookingStatusLoading = false;
             state.bookingData = null;
             state.bookingError = null;
+            state.bookingStatusData = null;
+
         }
     },
     extraReducers: (builder) => {
@@ -47,15 +52,15 @@ const bookingSlice = createSlice({
             })
             // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
             .addCase(bookingStatus.pending, (state) => {
-                state.bookingLoading = true;
+                state.bookingStatusLoading = true;
                 state.bookingError = null
             })
-            .addCase(bookingStatus.fulfilled, (state,action) => {
-                state.bookingLoading = false;
-                state.bookingData = action.payload;
+            .addCase(bookingStatus.fulfilled, (state, action) => {
+                state.bookingStatusLoading = false;
+                state.bookingStatusData = action.payload;
             })
-            .addCase(bookingStatus.rejected, (state,action) => {
-                state.bookingLoading = false;
+            .addCase(bookingStatus.rejected, (state, action) => {
+                state.bookingStatusLoading = false;
                 state.bookingError = action.payload
             })
 

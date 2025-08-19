@@ -64,7 +64,12 @@ const LoginPage = () => {
                                         value={phone}
                                         minLength={10}
                                         maxLength={10}
-                                        onChange={(e) => setPhone(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '' || /^[6-9][0-9]{0,9}$/.test(value)) {
+                                                setPhone(value);
+                                            }
+                                        }}
                                         required
                                     />
                                 </Form.Group>
