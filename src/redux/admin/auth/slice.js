@@ -30,7 +30,7 @@ const authSlice = createSlice({
       state.user = null;
       state.error = null;
       setLoggedInOwner(null);
-      localStorage.clear();
+      localStorage.removeItem("padel_owner");
       sessionStorage.clear();
       window.location.href = "/admin/login";
     },
@@ -52,13 +52,6 @@ const authSlice = createSlice({
         state.authLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
-        // setAuthorization(response?.token);
-        // const user = {
-        //   ...response?.user,
-        //   token: response.token,
-        //   hasCourt: response.hasCourt,
-        // };
-        // setLoggedInOwner(user);
         const owner = {
           ...response.user,
           token: response.token,

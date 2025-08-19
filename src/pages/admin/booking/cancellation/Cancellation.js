@@ -185,7 +185,7 @@ const Cancellation = () => {
                       <th>Booking Amount</th>
                       <th>Booking Date</th>
                       <th>Cancellation Reason</th>
-                      <th>Action</th>
+                      {tab !== 1 && <th>Action</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -215,13 +215,15 @@ const Cancellation = () => {
                             </span>
                           </OverlayTrigger>
                         </td>
-                        <td onClick={() => handleBookingDetails(item._id)}>
-                          {loadingBookingId === item._id ? (
-                            <ButtonLoading color="blue" size={7} />
-                          ) : (
-                            <FaEye className="text-primary" />
-                          )}
-                        </td>
+                        {tab !== 1 && (
+                          <td onClick={() => handleBookingDetails(item._id)}>
+                            {loadingBookingId === item._id ? (
+                              <ButtonLoading color="blue" size={7} />
+                            ) : (
+                              <FaEye className="text-primary" />
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
