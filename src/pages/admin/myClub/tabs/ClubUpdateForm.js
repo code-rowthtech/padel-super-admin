@@ -519,7 +519,6 @@ const ClubUpdateForm = () => {
           .then(() => {
             dispatch(getOwnerRegisteredClub());
           });
-        console.log("Form ready to submit", apiFormData);
       } catch (err) {
         console.error("Update failed:", err);
       }

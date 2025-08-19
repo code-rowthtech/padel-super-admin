@@ -60,7 +60,9 @@ const Cancellation = () => {
 
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
-
+  useEffect(() => {
+    dispatch(resetBookingData());
+  }, []);
   // Fetch bookings when tab changes or valid date range selected
   const sendDate = startDate && endDate;
   useEffect(() => {
@@ -69,10 +71,8 @@ const Cancellation = () => {
       payload.startDate = formatDate(startDate);
       payload.endDate = formatDate(endDate);
     }
-    dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
   }, [tab, sendDate]);
-
   // Booking details handler
   const handleBookingDetails = async (id) => {
     setLoadingBookingId(id);

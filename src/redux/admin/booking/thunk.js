@@ -26,7 +26,6 @@ export const getBookingByStatus = createAsyncThunk(
       const res = await ownerApi.get(
         `${Url.GET_BOOKING_BY_STATUS}?${buildQuery(params)}`
       );
-      console.log({ res });
       // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {

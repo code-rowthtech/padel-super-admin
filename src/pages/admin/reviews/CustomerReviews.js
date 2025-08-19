@@ -9,7 +9,6 @@ import { useSelector, useDispatch } from "react-redux";
 const CustomerReviews = () => {
   const dispatch = useDispatch();
   const { reviewData } = useSelector((state) => state?.reviews);
-  console.log({ reviewData });
   const reviews = [
     {
       id: 1,

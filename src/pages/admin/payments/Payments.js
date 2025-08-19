@@ -55,7 +55,6 @@ const Payments = () => {
 
   const payments = getBookingData?.bookings || [];
   const paymentDetails = getBookingDetailsData?.booking || {};
-  console.log({ paymentDetails });
 
   const status = tab === 0 ? "" : "refund";
   const sendDate = startDate && endDate;

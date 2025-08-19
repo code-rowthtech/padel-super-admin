@@ -539,7 +539,7 @@ const Pricing = () => {
     const selectedDays = selectAllChecked
       ? Object.keys(formData.days) // All days when "Select All" is checked
       : Object.keys(formData.days).filter((day) => formData.days[day]);
-    console.log({ selectedDays });
+
     const selectedSlotType = selectAllChecked ? "All" : formData.selectedSlots;
 
     // Validate slot prices

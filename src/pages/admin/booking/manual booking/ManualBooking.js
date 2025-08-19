@@ -494,7 +494,6 @@ const ManualBooking = () => {
                   ) : (
                     <></>
                   )} */}
-                  {console.log({ courts })}
                   {courts?.length === 0 ? (
                     <div
                       className="d-flex text-danger justify-content-center align-items-center w-100"
