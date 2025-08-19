@@ -146,6 +146,7 @@ const ManualBooking = () => {
   const handleCourtSelect = (courtId) => {
     setSelectedCourts((prev) => (prev.includes(courtId) ? [] : [courtId]));
   };
+  const court = courts?.find((c) => c._id === selectedCourts?.[0]);
 
   const handleConfirm = async () => {
     if (!name || !phone) {
@@ -165,9 +166,8 @@ const ManualBooking = () => {
 
     try {
       // Construct the slot array for the payload
-      const slotsPayload = selectedCourts?.map((courtId) => {
+      const slotsPayload = selectedTimes?.map((timeSlot) => {
         // Find the court data
-        const court = courts?.find((c) => c._id === courtId);
 
         // Find the slot data for this court
         const slotData = activeCourtsData?.[0]?.slot?.[0];
@@ -180,12 +180,14 @@ const ManualBooking = () => {
           })) || [];
 
         return {
-          slotId: slotData?._id,
-          businessHours: formattedBusinessHours, // Use formatted businessHours without _id
-          slotTimes: selectedTimes.map((time) => ({
-            time: time.time,
-            amount: time.amount || 0,
-          })),
+          slotId: timeSlot?._id,
+          businessHours: formattedBusinessHours,
+          slotTimes: [
+            {
+              time: timeSlot.time,
+              amount: timeSlot.amount || 0,
+            },
+          ],
           courtName: court?.courtName,
           bookingDate: new Date(selectedDate).toISOString(),
         };

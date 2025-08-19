@@ -12,7 +12,6 @@ import {
 import {
   setLoggedInOwner,
   getOwnerFromSession,
-  setAuthorization,
   updateSessionData,
 } from "../../../helpers/api/apiCore";
 
@@ -30,7 +29,6 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.error = null;
-      setAuthorization(null);
       setLoggedInOwner(null);
       localStorage.clear();
       sessionStorage.clear();
@@ -54,13 +52,19 @@ const authSlice = createSlice({
         state.authLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
-        setAuthorization(response?.token);
-        const user = {
-          ...response?.user,
+        // setAuthorization(response?.token);
+        // const user = {
+        //   ...response?.user,
+        //   token: response.token,
+        //   hasCourt: response.hasCourt,
+        // };
+        // setLoggedInOwner(user);
+        const owner = {
+          ...response.user,
           token: response.token,
           hasCourt: response.hasCourt,
         };
-        setLoggedInOwner(user);
+        setLoggedInOwner(owner);
       })
       .addCase(loginOwner.rejected, (state, action) => {
         state.authLoading = false;
@@ -133,7 +137,7 @@ const authSlice = createSlice({
       .addCase(updateOwner.fulfilled, (state, action) => {
         state.authLoading = false;
         state.user = action.payload;
-        updateSessionData(action.payload?.response);
+        updateSessionData(action.payload?.response, "owner");
       })
       .addCase(updateOwner.rejected, (state, action) => {
         state.authLoading = false;

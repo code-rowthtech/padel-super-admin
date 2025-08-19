@@ -6,52 +6,14 @@ import config from "../../config";
 const USER_SESSION_KEY = "padel_user";
 const OWNER_SESSION_KEY = "padel_owner";
 
-// Set base URL
-axios.defaults.baseURL = config.API_URL;
-
-// Global error interceptor
-axios.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (!navigator.onLine) {
-      window.location.href = "/no-internet";
-      return Promise.reject("No internet connection");
-    }
-
-    const { response } = err;
-    const status = response?.status;
-    const message =
-      response?.data?.message ||
-      {
-        400: "Error",
-        401: "Invalid credentials",
-        403: "Access Forbidden",
-        404: "Sorry! the data you are looking for could not be found",
-      }[status] ||
-      err.message;
-
-    return Promise.reject(message);
-  }
-);
-
-// --- Authorization Helpers ---
-export const setAuthorization = (token) => {
-  if (token) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete axios.defaults.headers.common["Authorization"];
-  }
-};
-
-// User Session Management
+// -------------------
+// SESSION MANAGEMENT
+// -------------------
 export const getUserFromSession = () => {
   const stored = localStorage.getItem(USER_SESSION_KEY);
   if (!stored) return null;
-
   try {
-    const user = JSON.parse(stored);
-    setAuthorization(user?.token);
-    return user;
+    return JSON.parse(stored);
   } catch {
     return null;
   }
@@ -60,24 +22,16 @@ export const getUserFromSession = () => {
 export const setLoggedInUser = (session) => {
   if (session) {
     localStorage.setItem(USER_SESSION_KEY, JSON.stringify(session));
-    setAuthorization(session.token);
-    // Clear owner session when setting user session
-    localStorage.removeItem(OWNER_SESSION_KEY);
   } else {
     localStorage.removeItem(USER_SESSION_KEY);
-    setAuthorization(null);
   }
 };
 
-// Owner Session Management
 export const getOwnerFromSession = () => {
   const stored = localStorage.getItem(OWNER_SESSION_KEY);
   if (!stored) return null;
-
   try {
-    const owner = JSON.parse(stored);
-    setAuthorization(owner?.token);
-    return owner;
+    return JSON.parse(stored);
   } catch {
     return null;
   }
@@ -86,52 +40,19 @@ export const getOwnerFromSession = () => {
 export const setLoggedInOwner = (session) => {
   if (session) {
     localStorage.setItem(OWNER_SESSION_KEY, JSON.stringify(session));
-    setAuthorization(session.token);
-    // Clear user session when setting owner session
-    localStorage.removeItem(USER_SESSION_KEY);
   } else {
     localStorage.removeItem(OWNER_SESSION_KEY);
-    setAuthorization(null);
   }
 };
 
-// Common functions
-export const updateSessionData = (updatedData) => {
-  const user = getUserFromSession();
-  const owner = getOwnerFromSession();
-  const session = user || owner;
-
-  if (session && typeof updatedData === "object") {
-    const updatedSession = { ...session, ...updatedData };
-    if (user) {
-      setLoggedInUser(updatedSession);
-    } else if (owner) {
-      setLoggedInOwner(updatedSession);
-    }
-  }
-};
-
-export const isAuthenticated = () => {
-  return isUserAuthenticated() || isOwnerAuthenticated();
-};
-
-export const isUserAuthenticated = () => {
-  const user = getUserFromSession();
-  return validateToken(user?.token, "user");
-};
-
-export const isOwnerAuthenticated = () => {
-  const owner = getOwnerFromSession();
-  return validateToken(owner?.token, "owner");
-};
-
+// -------------------
+// TOKEN VALIDATION
+// -------------------
 const validateToken = (token, userType) => {
   if (!token) return false;
-
   try {
     const decoded = jwtDecode(token);
     const now = Date.now() / 1000;
-
     if (decoded.exp < now) {
       handleExpiredSession(userType);
       return false;
@@ -149,9 +70,6 @@ const handleExpiredSession = (userType) => {
     setLoggedInOwner(null);
   }
 
-  localStorage.clear();
-  sessionStorage.clear();
-
   const message = "Your session has expired.";
   alert(message);
 
@@ -162,63 +80,135 @@ const handleExpiredSession = (userType) => {
   }
 };
 
-// --- API Helpers --- (keep these the same as before)
-export const getApi = (url, params = {}) => {
-  const query = new URLSearchParams(params).toString();
-  return axios.get(`${url}${query ? `?${query}` : ""}`);
+export const isUserAuthenticated = () => {
+  const user = getUserFromSession();
+  return validateToken(user?.token, "user");
 };
 
-export const apiGetFile = (url, params = {}) => {
-  const query = new URLSearchParams(params).toString();
-  return axios.get(`${url}${query ? `?${query}` : ""}`, {
-    responseType: "blob",
-  });
+export const isOwnerAuthenticated = () => {
+  const owner = getOwnerFromSession();
+  return validateToken(owner?.token, "owner");
 };
 
-export const apiGetMultiple = (urls, params = {}) => {
-  const query = new URLSearchParams(params).toString();
-  return axios.all(urls.map((url) => axios.get(`${url}?${query}`)));
+export const isAuthenticated = () =>
+  isUserAuthenticated() || isOwnerAuthenticated();
+
+// -------------------
+// AXIOS INSTANCES
+// -------------------
+const userAxios = axios.create({ baseURL: config.API_URL });
+const ownerAxios = axios.create({ baseURL: config.API_URL });
+
+// Shared error handler
+const errorInterceptor = (err) => {
+  if (!navigator.onLine) {
+    window.location.href = "/no-internet";
+    return Promise.reject("No internet connection");
+  }
+
+  const { response } = err;
+  const status = response?.status;
+  const message =
+    response?.data?.message ||
+    {
+      400: "Error",
+      401: "Invalid credentials",
+      403: "Access Forbidden",
+      404: "Sorry! the data you are looking for could not be found",
+    }[status] ||
+    err.message;
+
+  return Promise.reject(message);
 };
 
-export const create = (url, data) => axios.post(url, data);
-export const update = (url, data) => axios.put(url, data);
-export const apiPatch = (url, data) => axios.patch(url, data);
-export const remove = (url, data) => axios.delete(url, data);
+// Attach interceptors
+userAxios.interceptors.response.use((res) => res, errorInterceptor);
+ownerAxios.interceptors.response.use((res) => res, errorInterceptor);
 
-export const apiPostWithFile = (url, data) => {
+// Attach tokens dynamically
+userAxios.interceptors.request.use((config) => {
+  const token = getUserFromSession()?.token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+ownerAxios.interceptors.request.use((config) => {
+  const token = getOwnerFromSession()?.token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// -------------------
+// ROLE-BASED HELPERS
+// -------------------
+const buildFormData = (data) => {
   const formData = new FormData();
   for (const key in data) {
     if (data[key] !== undefined) {
       formData.append(key, data[key]);
     }
   }
-  return axios.post(url, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  return formData;
 };
 
-export const apiPatchWithFile = (url, data) => {
-  const formData = new FormData();
-  for (const key in data) {
-    if (data[key] !== undefined) {
-      formData.append(key, data[key]);
+export const userApi = {
+  get: (url, params = {}) => userAxios.get(url, { params }),
+  post: (url, data) => userAxios.post(url, data),
+  put: (url, data) => userAxios.put(url, data),
+  patch: (url, data) => userAxios.patch(url, data),
+  delete: (url, params = {}) => userAxios.delete(url, { params }),
+  postFile: (url, data) =>
+    userAxios.post(url, buildFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  patchFile: (url, data) =>
+    userAxios.patch(url, buildFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+};
+
+export const ownerApi = {
+  get: (url, params = {}) => ownerAxios.get(url, { params }),
+  post: (url, data) => ownerAxios.post(url, data),
+  put: (url, data) => ownerAxios.put(url, data),
+  patch: (url, data) => ownerAxios.patch(url, data),
+  delete: (url, params = {}) => ownerAxios.delete(url, { params }),
+  postFile: (url, data) =>
+    ownerAxios.post(url, buildFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  patchFile: (url, data) =>
+    ownerAxios.patch(url, buildFormData(data), {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+};
+
+export const updateSessionData = (updatedData, type = "user") => {
+  if (!updatedData || typeof updatedData !== "object") return;
+
+  if (type === "user") {
+    const user = getUserFromSession();
+    if (user) {
+      const updatedUser = { ...user, ...updatedData };
+      setLoggedInUser(updatedUser);
     }
   }
-  return axios.patch(url, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+
+  if (type === "owner") {
+    const owner = getOwnerFromSession();
+    if (owner) {
+      const updatedOwner = { ...owner, ...updatedData };
+      setLoggedInOwner(updatedOwner);
+    }
+  }
 };
 
-// Initialize auth header on load
+// -------------------
+// INIT AUTH ON LOAD
+// -------------------
 const initializeAuth = () => {
   const user = getUserFromSession();
   const owner = getOwnerFromSession();
-  console.log({ user, owner }, "api core");
-  if (user?.token) {
-    setAuthorization(user.token);
-  } else if (owner?.token) {
-    setAuthorization(owner.token);
-  }
+  console.log({ user, owner }, "api core loaded");
 };
-
 initializeAuth();

@@ -1,13 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from "../../../helpers/api/apiEndpoint";
-import { create, getApi, remove, update } from "../../../helpers/api/apiCore";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 export const getCountDataForDashboard = createAsyncThunk(
   "dashboard/getCountDataForDashboard",
   async (params, { rejectWithValue }) => {
     try {
-      const res = await getApi(Url.GET_COUNT_DASHBOARD);
+      const res = await ownerApi.get(Url.GET_COUNT_DASHBOARD);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data?.data;
@@ -26,7 +26,7 @@ export const getCancelledBookingsForDashboard = createAsyncThunk(
   "dashboard/getCancelledBookingsForDashboard",
   async (params, { rejectWithValue }) => {
     try {
-      const res = await getApi(Url.GET_CANCELLATION_BOOKING_DASHBOARD);
+      const res = await ownerApi.get(Url.GET_CANCELLATION_BOOKING_DASHBOARD);
       console.log({ res }, "resresres");
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
@@ -46,7 +46,7 @@ export const getRecentBookingsForDashboard = createAsyncThunk(
   "dashboard/getRecentBookingsForDashboard",
   async (params, { rejectWithValue }) => {
     try {
-      const res = await getApi(Url.GET_RECENT_BOOKING_DASHBOARD);
+      const res = await ownerApi.get(Url.GET_RECENT_BOOKING_DASHBOARD);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data?.data;

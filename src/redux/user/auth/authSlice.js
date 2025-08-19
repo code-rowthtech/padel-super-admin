@@ -1,6 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser, sendOtp, verifyOtp, getUser, getAllUsers, loginUserNumber } from "./authThunk";
-import { setLoggedInUser, getUserFromSession, setAuthorization } from "../../../helpers/api/apiCore";
+import {
+  loginUser,
+  sendOtp,
+  verifyOtp,
+  getUser,
+  getAllUsers,
+  loginUserNumber,
+} from "./authThunk";
+import {
+  setLoggedInUser,
+  getUserFromSession,
+} from "../../../helpers/api/apiCore";
 
 const initialState = {
   userAuthLoading: false,
@@ -16,7 +26,6 @@ const authSlice = createSlice({
     logoutUser(state) {
       state.user = null;
       state.error = null;
-      setAuthorization(null);
       setLoggedInUser(null);
       localStorage.clear();
       sessionStorage.clear();
@@ -27,7 +36,7 @@ const authSlice = createSlice({
       state.user = null;
       state.otp = null;
       state.error = null;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -39,20 +48,16 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.userAuthLoading = false;
         state.user = action.payload;
-        const { response } = action.payload
-        setAuthorization(response?.token)
-        const user = {
-          ...response?.user,
-          token: response.token
-        }
-        setLoggedInUser();
+        const { response } = action.payload;
+        const user = { ...response.user, token: response.token };
+        setLoggedInUser(user);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.userAuthLoading = false;
         state.error = action.payload;
       })
 
-        // LoginNumber
+      // LoginNumber
       .addCase(loginUserNumber.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -60,13 +65,9 @@ const authSlice = createSlice({
       .addCase(loginUserNumber.fulfilled, (state, action) => {
         state.userAuthLoading = false;
         state.user = action.payload;
-        const { response } = action.payload
-        console.log({response},'auth Slice');
-        setAuthorization(response?.token)
-        const user = {
-          ...response?.user,
-          token: response.token
-        }
+        const { response } = action.payload;
+        console.log({ response }, "auth Slice");
+        const user = { ...response.user, token: response.token };
         setLoggedInUser(user);
       })
       .addCase(loginUserNumber.rejected, (state, action) => {
@@ -96,7 +97,7 @@ const authSlice = createSlice({
       .addCase(verifyOtp.fulfilled, (state, action) => {
         state.userAuthLoading = false;
         state.otp = action.payload;
-        // setLoggedInUser(action.payload); 
+        // setLoggedInUser(action.payload);
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.userAuthLoading = false;
@@ -129,9 +130,7 @@ const authSlice = createSlice({
       .addCase(getAllUsers.rejected, (state, action) => {
         state.userAuthLoading = false;
         state.error = action.payload;
-      })
-
-
+      });
   },
 });
 

@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getApi } from "../../../helpers/api/apiCore";
+import { userApi } from "../../../helpers/api/apiCore";
 import { showError } from "../../../helpers/Toast";
-import * as Url from '../../../helpers/api/apiEndpoint';
+import * as Url from "../../../helpers/api/apiEndpoint";
 
 export const getUserSlot = createAsyncThunk(
   "club/getUserSlot",
@@ -17,7 +17,7 @@ export const getUserSlot = createAsyncThunk(
         day,
       }).toString();
 
-      const response = await getApi(`${Url.GET_SLOT_API}?${queryParams}`);
+      const response = await userApi.get(`${Url.GET_SLOT_API}?${queryParams}`);
 
       return response?.data;
     } catch (error) {
