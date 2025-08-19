@@ -30,7 +30,7 @@ const authSlice = createSlice({
       state.user = null;
       state.error = null;
       setLoggedInOwner(null);
-      localStorage.clear();
+      localStorage.removeItem("padel_owner");
       sessionStorage.clear();
       window.location.href = "/admin/login";
     },

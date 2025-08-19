@@ -3,11 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import axios from "axios";
-import { logo } from '../../../assets/files';
+import { logo } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
-
 
 // Load Razorpay Checkout
 const loadRazorpay = (callback) => {

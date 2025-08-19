@@ -25,11 +25,11 @@ import { useNavigate } from "react-router-dom";
 const MAX_IMAGES = 10;
 
 const defaultFeatureKeys = [
-  "changingRooms",
-  "parking",
-  "shower",
-  "chillPad",
-  "coaching",
+  "Changing Room",
+  "Parking",
+  "Shower",
+  "Chill Pad",
+  "Coaching Avaiable",
 ];
 
 const defaultBusinessHoursTemplate = {
@@ -43,15 +43,11 @@ const defaultBusinessHoursTemplate = {
 };
 
 const getInitialFormState = (details = {}) => {
+  const type = details?.courtType?.trim().toLowerCase();
+
   const courtTypes = {
-    indoor:
-      details?.courtType === "Indoor" ||
-      details?.courtType === "Indoor/Outdoor" ||
-      false,
-    outdoor:
-      details?.courtType === "Outdoor" ||
-      details?.courtType === "Indoor/Outdoor" ||
-      false,
+    indoor: type === "indoor" || type === "indoor/outdoor",
+    outdoor: type === "outdoor" || type === "indoor/outdoor",
   };
 
   const features = defaultFeatureKeys.reduce((acc, key) => {
@@ -523,7 +519,6 @@ const ClubUpdateForm = () => {
           .then(() => {
             dispatch(getOwnerRegisteredClub());
           });
-        console.log("Form ready to submit", apiFormData);
       } catch (err) {
         console.error("Update failed:", err);
       }
@@ -713,20 +708,24 @@ const ClubUpdateForm = () => {
                   {renderCheckbox(
                     "Changing Rooms",
                     "features",
-                    "changingRooms"
+                    "Changing Room"
                   )}
                 </Col>
                 <Col md={4}>
-                  {renderCheckbox("Parking", "features", "parking")}
+                  {renderCheckbox("Parking", "features", "Parking")}
                 </Col>
                 <Col md={4}>
-                  {renderCheckbox("Shower", "features", "shower")}
+                  {renderCheckbox("Shower", "features", "Shower")}
                 </Col>
                 <Col md={4}>
-                  {renderCheckbox("Chill Pad", "features", "chillPad")}
+                  {renderCheckbox("Chill Pad", "features", "Chill Pad")}
                 </Col>
                 <Col md={4}>
-                  {renderCheckbox("Coaching Available", "features", "coaching")}
+                  {renderCheckbox(
+                    "Coaching Available",
+                    "features",
+                    "Coaching Avaiable"
+                  )}
                 </Col>
               </Row>
             </Col>

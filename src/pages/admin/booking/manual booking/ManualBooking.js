@@ -143,6 +143,16 @@ const ManualBooking = () => {
   //         : [...prev, courtId]
   //     );
   //   };
+  // const handleCourtSelect = (courtId) => {
+  //   setSelectedCourts((prev) => (prev.includes(courtId) ? [] : [courtId]));
+  // };
+  useEffect(() => {
+    if (courts?.length > 0 && selectedCourts.length === 0) {
+      setSelectedCourts([courts[0]._id]);
+    }
+  }, [courts, selectedCourts]);
+
+  // Handler
   const handleCourtSelect = (courtId) => {
     setSelectedCourts((prev) => (prev.includes(courtId) ? [] : [courtId]));
   };
@@ -165,14 +175,8 @@ const ManualBooking = () => {
     }
 
     try {
-      // Construct the slot array for the payload
       const slotsPayload = selectedTimes?.map((timeSlot) => {
-        // Find the court data
-
-        // Find the slot data for this court
         const slotData = activeCourtsData?.[0]?.slot?.[0];
-
-        // Format businessHours without _id fields
         const formattedBusinessHours =
           slotData?.businessHours?.map((bh) => ({
             time: bh.time,
@@ -494,7 +498,6 @@ const ManualBooking = () => {
                   ) : (
                     <></>
                   )} */}
-                  {console.log({ courts })}
                   {courts?.length === 0 ? (
                     <div
                       className="d-flex text-danger justify-content-center align-items-center w-100"
