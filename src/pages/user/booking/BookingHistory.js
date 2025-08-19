@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import { Container, Row, Col, Table, Button, Form, InputGroup, OverlayTrigger, Tooltip, Pagination } from 'react-bootstrap';
+import { Container, Row, Col, Table, Button, Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Tab, Tabs } from '@mui/material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -18,7 +18,7 @@ import { resetBooking } from '../../../redux/user/booking/slice';
 import { formatDate } from '../../../helpers/Formatting';
 import { getReviewClub } from '../../../redux/user/club/thunk';
 import { getUserFromSession } from '../../../helpers/api/apiCore';
-
+import Pagination from '../../../helpers/Pagination'
 const BookingHistory = () => {
     const store = useSelector((state) => state);
     const dispatch = useDispatch();
@@ -93,11 +93,11 @@ const BookingHistory = () => {
     };
 
     const getRatingLabel = (currentRating) => {
-        if (currentRating >= 4.5) ;
-        if (currentRating >= 3.5) ;
-        if (currentRating >= 2.5) ;
-        if (currentRating >= 1.5) ;
-        if (currentRating >= 0.5) ;
+        if (currentRating >= 4.5);
+        if (currentRating >= 3.5);
+        if (currentRating >= 2.5);
+        if (currentRating >= 1.5);
+        if (currentRating >= 0.5);
         return "";
     };
 
@@ -145,19 +145,19 @@ const BookingHistory = () => {
         return statusMatch && dateMatch && courtMatch;
     });
 
-    const totalPages = getBookingData?.bookingData?.totalPages || 1;
-    const paginationItems = [];
-    for (let number = 1; number <= totalPages; number++) {
-        paginationItems.push(
-            <Pagination.Item
-                key={number}
-                active={number === currentPage}
-                onClick={() => handlePageChange(number)}
-            >
-                {number}
-            </Pagination.Item>
-        );
-    }
+    const totalRecords = getBookingData?.bookingData?.total || 1;
+    // const paginationItems = [];
+    // for (let number = 1; number <= totalPages; number++) {
+    //     paginationItems.push(
+    //         <Pagination.Item
+    //             key={number}
+    //             active={number === currentPage}
+    //             onClick={() => handlePageChange(number)}
+    //         >
+    //             {number}
+    //         </Pagination.Item>
+    //     );
+    // }
 
     return (
         <Container>
@@ -242,232 +242,233 @@ const BookingHistory = () => {
                     </InputGroup>
                 </Col>
             </Row>
-
-            <Table hover>
-                <thead>
-                    <tr className=''>
-                        <th className="py-3 ps-4" style={{ backgroundColor: "#D0D6EA", borderRadius: "10px 0px 0px 0px" }}>Date</th>
-                        <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Time</th>
-                        <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Court Name</th>
-                        {activeTab === 'cancelled' && (
-                            <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Reason</th>
-                        )}
-                        {activeTab === 'completed' && (
-                            <th className="py-3 text-center" style={{ backgroundColor: "#D0D6EA" }}>Rating</th>
-                        )}
-                        {activeTab === 'completed' && (
-                            <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Message</th>
-                        )}
-                        <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Amount</th>
-                        {activeTab === 'cancelled' && (
-                            <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>
-                                <div className="dropdown-wrapper">
-                                    <div className="dropdown-header" onClick={() => setIsOpen(!isOpen)}>
-                                        Status <b className="arrow"><i className="bi bi-chevron-down text-dark fw-bold"></i></b>
-                                    </div>
-                                    {isOpen && (
-                                        <div className="dropdown-list">
-                                            <div onClick={() => handleSelect("All")}>All</div>
-                                            <div onClick={() => handleSelect("Accepted")}>Accepted</div>
-                                            <div onClick={() => handleSelect("Rejected")}>Rejected</div>
+            {/* D0D6EA */}
+            <div className="custom-scroll-container">
+                <Table responsive borderless size="sm" className="custom-table">
+                    <thead>
+                        <tr className=''>
+                            <th className='' >Date</th>
+                            <th >Time</th>
+                            <th >Court Name</th>
+                            <th >Booking Type</th>
+                            {activeTab === 'cancelled' && (
+                                <th >Reason</th>
+                            )}
+                            {activeTab === 'completed' && (
+                                <th >Rating</th>
+                            )}
+                            {activeTab === 'completed' && (
+                                <th >Message</th>
+                            )}
+                            <th  >Amount</th>
+                            {activeTab === 'cancelled' && (
+                                <th >
+                                    <div className="dropdown-wrapper">
+                                        <div className="dropdown-header" onClick={() => setIsOpen(!isOpen)}>
+                                            Status <b className="arrow"><i className="bi bi-chevron-down text-dark fw-bold"></i></b>
                                         </div>
-                                    )}
-                                </div>
-                            </th>
-                        )}
-                        <th className="py-3 text-center" style={{ backgroundColor: "#D0D6EA", borderRadius: "0px 10px 0px 0px" }}>Action</th>
-                    </tr>
-                </thead>
-                {getBookingData?.bookingLoading ? (
-                    <tbody>
-                        <tr>
-                            <td colSpan={7} style={{ height: "60vh", verticalAlign: "middle" }} className="text-center">
-                                <DataLoading height={100} />
-                            </td>
+                                        {isOpen && (
+                                            <div className="dropdown-list">
+                                                <div onClick={() => handleSelect("All")}>All</div>
+                                                <div onClick={() => handleSelect("Accepted")}>Accepted</div>
+                                                <div onClick={() => handleSelect("Rejected")}>Rejected</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </th>
+                            )}
+                            <th >Action</th>
                         </tr>
-                    </tbody>
-                ) : searchDate && filterStatus?.length === 0 ? (
-                    <tbody>
-                        <tr>
-                            <td colSpan={7} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
-                                <p className="table-data text-danger">No bookings found.</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                ) : getBookingData?.bookingData?.data?.length > 0 ? (
-                    <tbody className="border">
-                        {filterStatus?.map((booking, i) =>
-                            booking?.slot?.map((slotItem, index) => (
-                                <tr key={`${i}-${index}`}>
-                                    <td className="ps-4 table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                        {formatDate(slotItem?.bookingDate)}
-                                    </td>
-                                    <td className="table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                        <OverlayTrigger
-                                            placement="top"
-                                            overlay={
-                                                <Tooltip id={`slot-tooltip-${slotItem?.id}`}>
-                                                    {renderSlotTimes(slotItem?.slotTimes)}
-                                                </Tooltip>
-                                            }
-                                        >
-                                            <span>
-                                                {(() => {
-                                                    const times = slotItem?.slotTimes?.map((slot) => slot?.time) || [];
-                                                    const displayed = times?.slice(0, 5).join(", ");
-                                                    return times?.length > 5 ? `${displayed} ...` : displayed;
-                                                })()}
-                                            </span>
-                                        </OverlayTrigger>
-                                    </td>
-                                    <td className="table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                        {slotItem?.courtName || 'N/A'}
-                                    </td>
-                                    {activeTab === 'cancelled' && (
-                                        <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                            {booking?.cancellationReason?.charAt(0).toUpperCase(1) + booking?.cancellationReason?.slice(1)}
+                    </thead>
+                    {getBookingData?.bookingLoading ? (
+                        <tbody>
+                            <tr>
+                                <td colSpan={7} style={{ height: "60vh", verticalAlign: "middle" }} className="text-center">
+                                    <DataLoading height={100} />
+                                </td>
+                            </tr>
+                        </tbody>
+                    ) : searchDate && filterStatus?.length === 0 ? (
+                        <tbody>
+                            <tr>
+                                <td colSpan={7} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
+                                    <p className="table-data text-danger">No bookings found.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    ) : getBookingData?.bookingData?.data?.length > 0 ? (
+                        <tbody className="border">
+                            {filterStatus?.map((booking, i) =>
+                                booking?.slot?.map((slotItem, index) => (
+                                    <tr key={`${i}-${index}`} className="table-data border-bottom">
+                                        <td>
+                                            {formatDate(slotItem?.bookingDate)}
                                         </td>
-                                    )}
-                                    {activeTab === 'completed' && (
-                                        <td className="text-center">
-                                            {[1, 2, 3, 4, 5].map((star) => {
-                                                const averageRating = getReviewData?.averageRating || 0;
-                                                let iconClass = "bi-star";
-                                                if (star <= Math.floor(averageRating)) {
-                                                    iconClass = "bi-star-fill";
-                                                } else if (star - averageRating <= 0.5 && star - averageRating > 0) {
-                                                    iconClass = "bi-star-half";
+                                        <td >
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={
+                                                    <Tooltip id={`slot-tooltip-${slotItem?.id}`}>
+                                                        {renderSlotTimes(slotItem?.slotTimes)}
+                                                    </Tooltip>
                                                 }
-                                                return (
-                                                    <>
-                                                        <i
-                                                            key={star}
-                                                            className={`bi ${iconClass} ms-2`}
-                                                            style={{
-                                                                color: "#3DBE64",
-                                                                fontSize: "18px",
-                                                            }}
-                                                        ></i>
-                                                    </>
-                                                );
+                                            >
+                                                <span>
+                                                    {(() => {
+                                                        const times = slotItem?.slotTimes?.map((slot) => slot?.time) || [];
+                                                        const displayed = times?.slice(0, 5).join(", ");
+                                                        return times?.length > 5 ? `${displayed} ...` : displayed;
+                                                    })()}
+                                                </span>
+                                            </OverlayTrigger>
+                                        </td>
+                                        <td className="table-data">
+                                            {slotItem?.courtName || 'N/A'}
+                                        </td>
+                                        <td className="table-data">
+                                            {booking?.bookingType || 'N/A'}
+                                        </td>
+                                        {activeTab === 'cancelled' && (
+                                            <td>
+                                                {booking?.cancellationReason?.charAt(0).toUpperCase(1) + booking?.cancellationReason?.slice(1)}
+                                            </td>
+                                        )}
+                                        {activeTab === 'completed' && (
+                                            <td className="text-center">
+                                                {[1, 2, 3, 4, 5].map((star) => {
+                                                    const averageRating = getReviewData?.averageRating || 0;
+                                                    let iconClass = "bi-star";
+                                                    if (star <= Math.floor(averageRating)) {
+                                                        iconClass = "bi-star-fill";
+                                                    } else if (star - averageRating <= 0.5 && star - averageRating > 0) {
+                                                        iconClass = "bi-star-half";
+                                                    }
+                                                    return (
+                                                        <>
+                                                            <i
+                                                                key={star}
+                                                                className={`bi ${iconClass} ms-2`}
+                                                                style={{
+                                                                    color: "#3DBE64",
+                                                                    fontSize: "18px",
+                                                                }}
+                                                            ></i>
+                                                        </>
+                                                    );
 
-                                            })}
-                                            <span
-                                                className="ms-2"
+                                                })}
+                                                <span
+                                                    className="ms-2"
+                                                    style={{
+                                                        fontSize: "15px",
+                                                        fontWeight: "500",
+                                                        color: "#374151",
+                                                        fontFamily: "Poppins",
+                                                    }}
+                                                >
+                                                    {getReviewData.averageRating.toFixed(1)}{" "}
+                                                    {getRatingLabel(getReviewData.averageRating)}
+                                                </span>
+                                            </td>
+                                        )}
+                                        {activeTab === "completed" && (
+                                            <td>
+                                                <span>
+                                                    {getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.charAt(0).toUpperCase(1) + getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.slice(1) || "No comment"}
+                                                </span>
+                                            </td>
+                                        )}
+                                        <td style={{ color: "#1A237E", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                            ₹{booking?.totalAmount || 'N/A'}
+                                        </td>
+                                        {activeTab === 'cancelled' && (
+                                            <td
                                                 style={{
-                                                    fontSize: "15px",
-                                                    fontWeight: "500",
-                                                    color: "#374151",
+                                                    color: booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected'
+                                                        ? "red"
+                                                        : "green",
+                                                    fontSize: "16px",
                                                     fontFamily: "Poppins",
+                                                    fontWeight: "500"
                                                 }}
                                             >
-                                                {getReviewData.averageRating.toFixed(1)}{" "}
-                                                {getRatingLabel(getReviewData.averageRating)}
-                                            </span>
-                                        </td>
-                                    )}
-                                    {activeTab === "completed" && (
-                                        <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                            <span>
-                                                {getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.charAt(0).toUpperCase(1) + getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.slice(1) || "No comment"}
-                                            </span>
-                                        </td>
-                                    )}
-                                    <td style={{ color: "#1A237E", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                        ₹{booking?.totalAmount || 'N/A'}
-                                    </td>
-                                    {activeTab === 'cancelled' && (
-                                        <td
-                                            style={{
-                                                color: booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected'
-                                                    ? "red"
-                                                    : "green",
-                                                fontSize: "16px",
-                                                fontFamily: "Poppins",
-                                                fontWeight: "500"
-                                            }}
-                                        >
-                                            {booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected' ? "Rejected" : "Accepted"}
-                                        </td>
-                                    )}
-                                    <td className="text-center">
-                                        {activeTab === 'cancelled' || activeTab === 'completed' ? (
-                                            ''
-                                        ) : booking?.cancellationReason ? (
-                                            <span
-                                                className="d-inline-block"
-                                                style={{
-                                                    color: "#F29410",
-                                                    fontSize: "12px",
-                                                    fontWeight: "500",
-                                                    fontFamily: "Poppins"
-                                                }}
-                                            >
-                                                Request For Cancellation
-                                            </span>
-                                        ) : (
-                                            <MdOutlineCancel
+                                                {booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected' ? "Rejected" : "Accepted"}
+                                            </td>
+                                        )}
+                                        <td className="text-center">
+                                            {activeTab === 'cancelled' || activeTab === 'completed' ? (
+                                                ''
+                                            ) : booking?.cancellationReason ? (
+                                                <span
+                                                    className="d-inline-block"
+                                                    style={{
+                                                        color: "#F29410",
+                                                        fontSize: "12px",
+                                                        fontWeight: "500",
+                                                        fontFamily: "Poppins"
+                                                    }}
+                                                >
+                                                    Request For Cancellation
+                                                </span>
+                                            ) : (
+                                                <MdOutlineCancel
+                                                    size={20}
+                                                    onClick={() => {
+                                                        setSelectedBooking(booking);
+                                                        setChangeCancelShow(true);
+                                                        setCourtData({ slotItem: slotItem, booking: booking });
+                                                        setModalCancel(true);
+                                                    }}
+                                                    className="text-danger"
+                                                    style={{ cursor: "pointer" }}
+                                                />
+                                            )}
+                                            <FiEye
                                                 size={20}
+                                                className="text-muted ms-2"
                                                 onClick={() => {
-                                                    setSelectedBooking(booking);
-                                                    setChangeCancelShow(true);
-                                                    setCourtData({ slotItem: slotItem, booking: booking });
-                                                    setModalCancel(true);
+                                                    if (activeTab === "cancelled") {
+                                                        setAcceptedRejected(true);
+                                                        setStatusData({ booking: booking, slotItem: slotItem });
+                                                    } else if (["all", "upcoming"].includes(activeTab)) {
+                                                        setModalCancel(true);
+                                                        setCourtData({ slotItem: slotItem, booking: booking });
+                                                    } else if (activeTab === "completed") {
+                                                        setShowRatingModal(true);
+                                                        setStatusData({ booking: booking, slotItem: slotItem });
+                                                    }
                                                 }}
-                                                className="text-danger"
                                                 style={{ cursor: "pointer" }}
                                             />
-                                        )}
-                                        <FiEye
-                                            size={20}
-                                            className="text-muted ms-2"
-                                            onClick={() => {
-                                                if (activeTab === "cancelled") {
-                                                    setAcceptedRejected(true);
-                                                    setStatusData({ booking: booking, slotItem: slotItem });
-                                                } else if (["all", "upcoming"].includes(activeTab)) {
-                                                    setModalCancel(true);
-                                                    setCourtData({ slotItem: slotItem, booking: booking });
-                                                } else if (activeTab === "completed") {
-                                                    setShowRatingModal(true);
-                                                    setStatusData({ booking: booking, slotItem: slotItem });
-                                                }
-                                            }}
-                                            style={{ cursor: "pointer" }}
-                                        />
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                ) : (
-                    <tbody>
-                        <tr>
-                            <td colSpan={7} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
-                                <p className="table-data text-danger">No bookings found.</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                )}
-            </Table>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    ) : (
+                        <tbody>
+                            <tr>
+                                <td colSpan={7} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
+                                    <p className="table-data text-danger">No bookings found.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    )}
+                </Table>
+            </div>
 
-            {getBookingData?.bookingData?.totalPages > 1 && (
-                <Row className="mt-3">
-                    <Col className="d-flex justify-content-center">
-                        <Pagination>
-                            <Pagination.Prev
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                            />
-                            {paginationItems}
-                            <Pagination.Next
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                            />
-                        </Pagination>
-                    </Col>
-                </Row>
-            )}
+            {/* {getBookingData?.bookingData?.totalPages > 1 && ( */}
+            <Row className="mt-3">
+                <Col className="d-flex justify-content-center">
+                    <Pagination
+                        totalRecords={totalRecords}
+                        defaultLimit={10}
+                        handlePageChange={handlePageChange}
+                        currentPage={currentPage}
+                    />
+                </Col>
+            </Row>
+            {/* )} */}
 
             <BookingHistoryCancelModal
                 show={modalCancel}

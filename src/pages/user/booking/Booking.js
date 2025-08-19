@@ -7,6 +7,7 @@ import { getUserSlot } from "../../../redux/user/slot/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders'
 import { getUserClub } from "../../../redux/user/club/thunk";
+import { Avatar } from "@mui/material";
 
 const Booking = ({
     className = ""
@@ -529,6 +530,7 @@ const Booking = ({
                                                                 objectFit: "cover",
                                                             }}
                                                         />
+
                                                         <div>
                                                             <div className="fw-semibold">{court?.courtName}</div>
                                                             <small className="text-muted">{court.type}</small>
@@ -560,10 +562,12 @@ const Booking = ({
                     <div div className="col-5" >
                         <div className="border rounded px-3 py-5  border-0 " style={{ backgroundColor: " #CBD6FF1A" }}>
                             <div className="text-center mb-3">
-                                <div className="rounded-circle bg-white mx-auto mb-2 shadow " style={{ width: "90px", height: "90px", lineHeight: '90px' }}>
-                                    <img src={logo} width={80} alt="" />
+                                <div className="d-flex justify-content-center " style={{ lineHeight: '90px' }}>
+                                    <Avatar>
+                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                    </Avatar>
                                 </div>
-                                <p className=" mt-4 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
+                                <p className=" mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
                                 <p className="small mb-0"> {clubData?.clubName}
                                     {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                     {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
@@ -632,7 +636,7 @@ const Booking = ({
                                             date: selectedDate?.fullDate,
                                             time: selectedBuisness,
                                             court: selectedCourts.map(c => ({
-                                                _id: c._id || c.id, 
+                                                _id: c._id || c.id,
                                                 ...c
                                             })),
                                             slot: slotData?.data?.[0]?.slot
