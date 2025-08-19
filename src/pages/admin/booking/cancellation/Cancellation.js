@@ -33,9 +33,11 @@ import {
   updateBookingStatus,
 } from "../../../../redux/thunks";
 import { resetBookingData } from "../../../../redux/admin/booking/slice";
+import Pagination from "../../../../helpers/Pagination";
 const Cancellation = () => {
   const dispatch = useDispatch();
   const ownerId = getOwnerFromSession()?._id;
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [startDate, setStartDate] = useState(null); // empty by default
   const [endDate, setEndDate] = useState(null); // empty by default
@@ -66,13 +68,13 @@ const Cancellation = () => {
   // Fetch bookings when tab changes or valid date range selected
   const sendDate = startDate && endDate;
   useEffect(() => {
-    const payload = { status, ownerId };
+    const payload = { status, ownerId, page: currentPage };
     if (sendDate) {
       payload.startDate = formatDate(startDate);
       payload.endDate = formatDate(endDate);
     }
     dispatch(getBookingByStatus(payload));
-  }, [tab, sendDate]);
+  }, [tab, sendDate, status, currentPage]);
   // Booking details handler
   const handleBookingDetails = async (id) => {
     setLoadingBookingId(id);
@@ -104,7 +106,10 @@ const Cancellation = () => {
       {value || "Select Date"} <MdDateRange className="ms-2 mb-1" size={20} />
     </button>
   );
-
+  const totalRecords = getBookingData?.totalItems || 1;
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
   return (
     <Container fluid className="px-4">
       {/* Tabs + Date filters */}
@@ -241,7 +246,16 @@ const Cancellation = () => {
           </div>
         </Col>
       </Row>
-
+      <Row className="mt-3">
+        <Col className="d-flex justify-content-center">
+          <Pagination
+            totalRecords={totalRecords}
+            defaultLimit={10}
+            handlePageChange={handlePageChange}
+            currentPage={currentPage}
+          />
+        </Col>
+      </Row>
       {/* Modals */}
       <BookingCancellationModal
         show={showCancellation}
