@@ -16,9 +16,10 @@ const CreateMatches = () => {
   const wrapperRef = useRef(null);
   const dateRefs = useRef({});
   const dispatch = useDispatch();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const user = getUserFromSession();
-  const store = useSelector((state) => state)
+  console.log({user},'core session');
+  const store = useSelector((state) => state);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTimes, setSelectedTimes] = useState([]);
   const [selectedDate, setSelectedDate] = useState({
@@ -30,8 +31,9 @@ const CreateMatches = () => {
   const [skillDetails, setSkillDetails] = useState([]);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
-  const userMatches = store?.userMatches
+  const userMatches = store?.userMatches;
   console.log({ userMatches });
+
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
@@ -177,41 +179,43 @@ const CreateMatches = () => {
       setCurrentStep(currentStep + 1);
       setSelectedLevel('');
     } else if (currentStep === steps.length - 1 && selectedLevel) {
-      // Handle submit
       const finalSkillDetails = [...skillDetails];
       finalSkillDetails[currentStep] = selectedLevel;
 
       const formattedData = {
-        slot: selectedCourts?.map(court => ({
-          slotId: court?._id || "689d6e4938589ba8294ccebe",
-          courtName: court?.courtName || "Court 1",
-          bookingDate: new Date(selectedDate.fullDate).toISOString(),
-          businessHours: [{
-            time: "6:00 AM To 11:00 PM",
-            day: selectedDate.day,
-          }],
-          slotTimes: selectedTimes.map(time => ({
-            time: time.time,
-            amount: time.amount || 100,
-          })),
-        })),
-        clubId: savedClubId || "688ca6c8e8f0b4d358015af5",
-        matchDate: new Date(selectedDate.fullDate).toISOString(),
-        matchTime: selectedTimes.map(time => time.time).join(','),
-        skillLevel: finalSkillDetails[0]?.toLowerCase() || "beginner",
+        slot: selectedTimes.map(timeSlot => {
+          const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
+          return {
+            slotId: timeSlot?._id ,
+            businessHours: [{
+              time: "6:00 AM To 11:00 PM",
+              day: selectedDate.day,
+            }],
+            slotTimes: [{
+              time: timeSlot?.time,
+              amount: timeSlot?.amount || 2000,
+            }],
+            courtName: selectedCourt?.courtName ,
+            bookingDate: new Date(selectedDate.fullDate).toISOString(),
+          };
+        }),
+        clubId: savedClubId ,
+        matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
+        skillLevel: finalSkillDetails[0]?.toLowerCase() ,
+        skillDetails: finalSkillDetails?.slice(1) ,
         matchStatus: "open",
-        players: user?._id ? [user?._id] : ["689aeef5f29d437107e24470"],
+        matchTime: selectedTimes.map(time => time.time).join(","),
+        players: user?._id ? [user?._id] : user?.id,
       };
 
       console.log(JSON.stringify(formattedData, null, 2));
       dispatch(createMatches(formattedData)).unwrap().then(() => {
         setSelectedCourts([]);
         setSelectedDate([]);
-        setSelectedTimes([])
-        setSelectedLevel([])
-        navigate('/view-match')
-        // dispatch(getReviewClub(clubData._id))
-
+        setSelectedTimes([]);
+        setSelectedLevel('');
+        setSkillDetails([]);
+        navigate('/view-match');
       });
     }
   };
@@ -243,7 +247,7 @@ const CreateMatches = () => {
   }, [slotData, selectedDate?.fullDate, selectedTimes]);
 
   return (
-    <Container className="p-4" style={{ minHeight: '100vh' }}>
+    <Container className="p-4 mb-5" style={{ minHeight: '100vh' }}>
       <Row>
         {/* LEFT PANEL */}
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
@@ -352,21 +356,22 @@ const CreateMatches = () => {
                     const now = new Date();
                     const isToday = selectedDateObj.toDateString() === now.toDateString();
                     const isPast = isToday && slotDate.getTime() < now.getTime();
+                    const isBooked = slot?.status === "booked";
                     const isSelected = selectedTimes.some(t => t._id === slot._id);
                     return (
                       <button
                         key={i}
                         className="btn border-0 rounded-pill px-4"
-                        onClick={() => !isPast && toggleTime(slot)}
-                        disabled={isPast}
+                        onClick={() => !isPast && !isBooked && toggleTime(slot)}
+                        disabled={isPast || isBooked}
                         style={{
-                          backgroundColor: isSelected ? "#374151" : "#CBD6FF1A",
-                          color: isSelected ? "white" : isPast ? "#888888" : "#000000",
-                          cursor: isPast ? "not-allowed" : "pointer",
-                          opacity: isPast ? 0.6 : 1,
+                          backgroundColor: isSelected ? "#374151" : isBooked ? "#b42424ff" : "#CBD6FF1A",
+                          color: isSelected ? "white" : isPast && !isBooked ? "#888888" : isBooked ? 'white' : "#000000",
+                          cursor: (isPast || isBooked) ? "not-allowed" : "pointer",
+                          opacity: (isPast || isBooked) ? 0.6 : 1,
                         }}
                       >
-                        {slot?.time}
+                        {isBooked ? "Booked" : slot?.time}
                       </button>
                     );
                   })

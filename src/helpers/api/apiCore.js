@@ -20,10 +20,13 @@ export const getUserFromSession = () => {
 };
 
 export const setLoggedInUser = (session) => {
-  if (session) {
+  console.log({session}, 'core');
+  if (session?.token) {
     localStorage.setItem(USER_SESSION_KEY, JSON.stringify(session));
+    console.log('Stored value:', localStorage.getItem(USER_SESSION_KEY));
   } else {
     localStorage.removeItem(USER_SESSION_KEY);
+    console.log('After removal, stored value:', localStorage.getItem(USER_SESSION_KEY));
   }
 };
 

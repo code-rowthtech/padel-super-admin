@@ -27,7 +27,7 @@ const authSlice = createSlice({
       state.user = null;
       state.error = null;
       setLoggedInUser(null);
-      localStorage.clear();
+      localStorage.removeItem("padel_user");
       sessionStorage.clear();
       // window.location.href = '/home';
     },
@@ -49,11 +49,13 @@ const authSlice = createSlice({
         state.userAuthLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
+        console.log(action.payload,'responseresponse');
         const user = { ...response.user, token: response.token };
         setLoggedInUser(user);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.userAuthLoading = false;
+                console.log(action.payload,'responseresponse');
         state.error = action.payload;
       })
 
@@ -66,8 +68,9 @@ const authSlice = createSlice({
         state.userAuthLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
-        console.log({ response }, "auth Slice");
+        console.log({ response },action.payload, "auth Slice",response.token);
         const user = { ...response.user, token: response.token };
+        console.log({user},'auth user');
         setLoggedInUser(user);
       })
       .addCase(loginUserNumber.rejected, (state, action) => {

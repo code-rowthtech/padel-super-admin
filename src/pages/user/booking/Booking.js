@@ -248,7 +248,7 @@ const Booking = ({
 
     return (
         <>
-            <div className='container p-0'>
+            <div className='container p-0 mb-5'>
                 <div className="ps-0" style={{ height: "340px" }}>
                     <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{ height: '100%' }}>
                         <img src={twoball} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover rounded-3" />
@@ -265,7 +265,7 @@ const Booking = ({
                 </div>
             </div>
             {/* Booking UI */}
-            <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
+            <div className="container mt-4 d-flex gap-4 mb-5 px-4 flex-wrap">
                 <div className="row">
                     {/* Left Section */}
                     <div className="col-7 py-5 rounded-3 px-4" style={{ backgroundColor: " #F5F5F566" }}>
@@ -419,13 +419,13 @@ const Booking = ({
                                                     onClick={() => !isPast && !isBooked && toggleTime(slot)}
                                                     disabled={isPast || isBooked}
                                                     style={{
-                                                        backgroundColor: isSelected ? "#374151" : "#CBD6FF1A",
-                                                        color: isSelected ? "white" : (isPast || isBooked) ? "#888888" : "#000000",
+                                                        backgroundColor: isSelected ? "#374151" : isBooked ? "#b42424ff" : "#CBD6FF1A",
+                                                        color: isSelected ? "white" : isPast && !isBooked ? "#888888" : isBooked ? 'white' : "#000000",
                                                         cursor: (isPast || isBooked) ? "not-allowed" : "pointer",
                                                         opacity: (isPast || isBooked) ? 0.6 : 1,
                                                     }}
                                                 >
-                                                    {slot?.time}
+                                                    {isBooked ? "Booked" : slot?.time}
                                                 </button>
                                             );
                                         })
@@ -477,14 +477,14 @@ const Booking = ({
                                                             <div className="row g-2">
                                                                 {Array.isArray(slotData?.data[0]?.courts) &&
                                                                     slotData?.data[0]?.courts?.map((court, index) => (
-                                                                        <div 
+                                                                        <div
                                                                             className={`${court.length === 1
-                                                                                    ? "col-12"
-                                                                                    : court.length === 2
-                                                                                        ? "col-6"
-                                                                                        : court.length === 3 && index === 2
-                                                                                            ? "col-12"
-                                                                                            : "col-6"
+                                                                                ? "col-12"
+                                                                                : court.length === 2
+                                                                                    ? "col-6"
+                                                                                    : court.length === 3 && index === 2
+                                                                                        ? "col-12"
+                                                                                        : "col-6"
                                                                                 }`} key={court._id || index}>
                                                                             <div
                                                                                 className="border rounded-3 d-flex align-items-center justify-content-center"
@@ -536,12 +536,6 @@ const Booking = ({
                                                     </div>
 
                                                     <div className="d-flex align-items-center gap-3">
-                                                        {/* <div
-                                                            className="fw-semibold"
-                                                            style={{ fontSize: "20px", fontWeight: "500" }}
-                                                        >
-                                                            ₹{court?.price || 100}
-                                                        </div> */}
                                                         <button
                                                             className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
                                                             style={{ width: "32px", height: "32px" }}
@@ -638,12 +632,12 @@ const Booking = ({
                                             date: selectedDate?.fullDate,
                                             time: selectedBuisness,
                                             court: selectedCourts.map(c => ({
-                                                _id: c._id || c.id,  // ensure ID is set
+                                                _id: c._id || c.id, 
                                                 ...c
                                             })),
                                             slot: slotData?.data?.[0]?.slot
                                         },
-                                        clubData: clubData, seletctedCourt: selectedCourts// now full club object, not just court[0]
+                                        clubData: clubData, seletctedCourt: selectedCourts
                                     }} style={{ textDecoration: 'none' }} className="">
                                         <svg
                                             style={svgStyle}
