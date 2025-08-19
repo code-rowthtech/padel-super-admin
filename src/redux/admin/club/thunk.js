@@ -1,13 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from "../../../helpers/api/apiEndpoint";
-import { getApi, create, update } from "../../../helpers/api/apiCore";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../.././../helpers/Toast";
 
 export const registerClub = createAsyncThunk(
   "club/registerClub",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await create(Url.REGISTER_CLUB, data);
+      const res = await ownerApi.post(Url.REGISTER_CLUB, data);
       if (res?.data?.status === 200) {
         showSuccess(res?.data?.message);
         return res?.data;
@@ -26,7 +26,7 @@ export const getSlots = createAsyncThunk(
   "club/getSlots",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await getApi(
+      const res = await ownerApi.get(
         `${Url.GET_SLOT}?register_club_id=${data?.register_club_id}&day=${
           data?.day
         }&time=${data?.time || ""}`
@@ -50,7 +50,7 @@ export const updateRegisteredClub = createAsyncThunk(
   "club/updateRegisteredClub",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await update(Url.UPDATE_REGISTERED_CLUB, data);
+      const res = await ownerApi.put(Url.UPDATE_REGISTERED_CLUB, data);
       if (res?.status === 200) {
         return res?.data;
       } else {
@@ -68,7 +68,7 @@ export const createSlot = createAsyncThunk(
   "club/createSlot",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await create(Url.CREATE_SLOT, data);
+      const res = await ownerApi.post(Url.CREATE_SLOT, data);
       if (res?.data?.status === 200) {
         showSuccess(res?.data?.message);
         return res?.data;
@@ -87,7 +87,7 @@ export const updatePrice = createAsyncThunk(
   "club/updatePrice",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await update(Url.UPDATE_PRICE, data);
+      const res = await ownerApi.put(Url.UPDATE_PRICE, data);
       if (res?.status === 200) {
         showSuccess(res?.data?.message);
         return res?.data;

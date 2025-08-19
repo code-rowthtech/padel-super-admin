@@ -1,13 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from "../../../helpers/api/apiEndpoint";
-import { create, getApi, remove, update } from "../../../helpers/api/apiCore";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 export const getAllPackages = createAsyncThunk(
   "packages/getAllPackages",
   async (params, { rejectWithValue }) => {
     try {
-      const res = await getApi(
+      const res = await ownerApi.get(
         `${Url.GET_ALL_PACKAGES}?search=${params?.search}`
       );
       const { status, data, message } = res || {};
@@ -29,7 +29,7 @@ export const createPackage = createAsyncThunk(
   "club/createPackage",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await create(Url.CREATE_PACKAGE, data);
+      const res = await ownerApi.post(Url.CREATE_PACKAGE, data);
       if (res?.status === 200) {
         showSuccess(res?.data?.message);
         return res?.data;
@@ -50,7 +50,7 @@ export const updatePackage = createAsyncThunk(
   "club/updatePackage",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await update(Url.UPDATE_PACKAGE, data);
+      const res = await ownerApi.put(Url.UPDATE_PACKAGE, data);
       if (res?.status === 200) {
         showSuccess(res?.data?.message);
         return res?.data;
@@ -70,7 +70,7 @@ export const deletePackage = createAsyncThunk(
   "club/deletePackage",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await remove(Url.DELETE_PACKAGE, { data });
+      const res = await ownerApi.delete(Url.DELETE_PACKAGE, { data });
       if (res?.status === 200) {
         showSuccess(res?.data?.message);
         return res?.data;
