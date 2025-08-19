@@ -7,6 +7,7 @@ import { logo } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import { Avatar } from "@mui/material";
 
 // Load Razorpay Checkout
 const loadRazorpay = (callback) => {
@@ -371,13 +372,12 @@ const Payment = ({ className = "" }) => {
                 <div className="col-5">
                     <div className="border rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="text-center mb-3">
-                            <div
-                                className="rounded-circle bg-white mx-auto mb-2 shadow"
-                                style={{ width: "90px", height: "90px", lineHeight: "90px" }}
-                            >
-                                <img src={logo} width={80} alt="Club Logo" />
+                            <div className="d-flex justify-content-center " style={{ lineHeight: '90px' }}>
+                                <Avatar>
+                                    {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                </Avatar>
                             </div>
-                            <p className=" mt-4 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
+                            <p className=" mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
                             <p className="small mb-0"> {clubData?.clubName}
                                 {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                 {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]

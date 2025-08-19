@@ -85,11 +85,13 @@ const Home = () => {
 
     useEffect(() => {
         const id = clubData._id || '';
-        dispatch(getReviewClub(id));
+        if (id) {
+            dispatch(getReviewClub(id));
+        }
         if (activeTab === 'reviews') {
             dispatch(getReviewClub(id));
         }
-    }, [activeTab]);
+    }, [activeTab,clubData?._id]);
 
     return (
         <>
