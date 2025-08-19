@@ -260,7 +260,7 @@ const Booking = ({
                             }}
                         >
                             <p className='mb-0' style={{ fontSize: "20px" }}>BOOK YOUR SLOT</p>
-                            <h1 className="fw-bold display-5">The Good <br />Club<br /></h1>
+                            <h1 className="fw-bold display-5">{clubData?.clubName || "The Good Club"}</h1>
                         </div>
                     </div>
                 </div>
@@ -369,7 +369,7 @@ const Booking = ({
                         {/* Time Selector */}
                         <div className="d-flex justify-content-between align-items-center py-2">
                             <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-                                Available Slots <span className="fs-6">(60m)</span>
+                                Available Slots
                             </p>
                             {/* <div className="form-switch d-flex align-items-center gap-2 p-0">
                                 <input
@@ -418,12 +418,17 @@ const Booking = ({
                                                     key={i}
                                                     className="btn border-0 rounded-pill px-4"
                                                     onClick={() => !isPast && !isBooked && toggleTime(slot)}
-                                                    disabled={isPast || isBooked}
+                                                    disabled={isPast || isBooked || (selectedCourts[0]?.time?.length === 15 && !isSelected)}
                                                     style={{
-                                                        backgroundColor: isSelected ? "#374151" : isBooked ? "#b42424ff" : "#CBD6FF1A",
-                                                        color: isSelected ? "white" : isPast && !isBooked ? "#888888" : isBooked ? 'white' : "#000000",
-                                                        cursor: (isPast || isBooked) ? "not-allowed" : "pointer",
-                                                        opacity: (isPast || isBooked) ? 0.6 : 1,
+                                                        backgroundColor: isSelected ? "#374151" :
+                                                            isBooked ? "#b42424ff" :
+                                                                (selectedCourts[0]?.time?.length ?? 0) === 15 && !isSelected ? "#888888" :
+                                                                    isPast && !isBooked ? "#CBD6FF1A" : "#CBD6FF1A",
+                                                        color: isSelected ? "white" :
+                                                            isPast && !isBooked ? "#888888" :
+                                                                isBooked ? "white" : "#000000",
+                                                        cursor: (isPast || isBooked || (selectedCourts[0]?.time?.length ?? 0) === 15 && !isSelected) ? "not-allowed" : "pointer",
+                                                        opacity: (isPast || isBooked || (selectedCourts[0]?.time?.length ?? 0) === 15 && !isSelected) ? 0.6 : 1,
                                                     }}
                                                 >
                                                     {isBooked ? "Booked" : slot?.time}
@@ -576,15 +581,15 @@ const Booking = ({
                             </div>
 
                             <h6 className=" border-top  p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>Booking summary</h6>
-                            <div style={{ maxHeight: "240px", overflowY: "auto" }}>
+                            <div style={{ maxHeight: "240px" }}>
                                 {selectedCourts.length > 0 ? (
                                     selectedCourts.map((court, index) => (
                                         <div key={index}>
-                                            <div>
-                                                <span style={{ fontWeight: "600" }}>{court?.courtName}</span>
-                                            </div>
-                                            <div className="court-row d-flex justify-content-between align-items-center mb-3">
-                                                <div>
+                                            <div className="row  mb-3">
+                                                <div className="col-5">
+                                                    <div>
+                                                        <span style={{ fontWeight: "600" }}>{court?.courtName}</span>
+                                                    </div>
                                                     <span style={{ fontWeight: "500" }}>
                                                         {(() => {
                                                             const date = new Date(court.date);
@@ -594,23 +599,31 @@ const Booking = ({
                                                         })()}
                                                     </span>
                                                 </div>
-                                                <div className="d-flex align-items-center gap-2">
+                                                <div className="col-7 d-flex justify-content-end gap-2">
                                                     <button
                                                         className="btn btn-sm text-danger delete-btn"
                                                         onClick={() => handleDelete(index)}
                                                     >
                                                         <i className="bi bi-trash-fill pt-1"></i>
                                                     </button>
-                                                    <span className="mb-1">
-                                                        {court.time.length > 0
-                                                            ? court.time.map(t => t.time).join(' | ')
-                                                            : 'No time selected'}
-                                                    </span>
+                                                    <div className="d-flex justify-conent-end align-items-center" style={{ whiteSpace: "nowrap", overflowX: "auto" }}>
+                                                        <span className="mb-1">
+                                                            {court.time.length > 0
+                                                                ? court.time.map((t, i) => (
+                                                                    <span key={i} style={{ marginRight: "10px" }}>
+                                                                        {t.time}
+                                                                        {i < court.time.length - 1 ? " | " : ""}
+                                                                    </span>
+                                                                ))
+                                                                : <span >No time selected</span>}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             {court.time.length > 0 && (
-                                                <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
+                                                <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
                                                     <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
+                                                    {court.time && <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots({court.time.length})</span>}
                                                     <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
                                                         ₹ {court.time.reduce((total, t) => total + Number(t.amount || 0), 0)}
                                                     </span>
