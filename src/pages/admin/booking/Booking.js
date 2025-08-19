@@ -25,10 +25,12 @@ import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { formatDate } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
+import Pagination from "../../../helpers/Pagination";
 const Booking = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const ownerId = getOwnerFromSession()?._id;
+  const [currentPage, setCurrentPage] = useState(1);
 
   // State
   const [showBookingDetails, setShowBookingDetails] = useState(false);
@@ -52,8 +54,8 @@ const Booking = () => {
   // Fetch bookings on tab change
   useEffect(() => {
     dispatch(resetBookingData());
-    dispatch(getBookingByStatus({ status, ownerId }));
-  }, [tab]);
+    dispatch(getBookingByStatus({ status, ownerId, page: currentPage }));
+  }, [tab, currentPage]);
 
   const handleBookingDetails = async (id, type) => {
     setLoadingBookingId(id);
@@ -71,7 +73,10 @@ const Booking = () => {
 
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
-
+  const totalRecords = getBookingData?.totalItems || 1;
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
   return (
     <Container fluid className="px-4">
       {/* Tabs & Manual Booking Button */}
@@ -256,6 +261,16 @@ const Booking = () => {
               </div>
             )}
           </div>
+        </Col>
+      </Row>
+      <Row className="mt-3">
+        <Col className="d-flex justify-content-center">
+          <Pagination
+            totalRecords={totalRecords}
+            defaultLimit={10}
+            handlePageChange={handlePageChange}
+            currentPage={currentPage}
+          />
         </Col>
       </Row>
 

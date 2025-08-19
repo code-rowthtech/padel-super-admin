@@ -9,10 +9,10 @@ export const GET_CLUB_API = "/api/club/getAllRegisteredCourts";
 export const GET_SLOT_API = "/api/slot/getAllActiveCourts";
 export const CREATE_BOOKING_API = "/api/booking/manualBookingByOwner";
 export const GET_BOOKING_API = "/api/booking/getUserBookings";
-export const BOOKING_STATUS_CHANGE = "/api/booking/updateBookingStatus"
-export const ADD_REVIEW_CLUB = "/api/review/saveCustomerReview"
-export const GET_REVIEW_CLUB = "/api/review/getownerClubReview"
-export const CREATE_MATCHES = "/api/openmatch/createOpenMatch"
+export const BOOKING_STATUS_CHANGE = "/api/booking/updateBookingStatus";
+export const ADD_REVIEW_CLUB = "/api/review/saveCustomerReview";
+export const GET_REVIEW_CLUB = "/api/review/getownerClubReview";
+export const CREATE_MATCHES = "/api/openmatch/createOpenMatch";
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 //-----------------------------------------------A_U_T_H----------------------------------------------//
@@ -55,4 +55,4 @@ export const GET_RECENT_BOOKING_DASHBOARD =
   "/api/booking/dashboardShowCurrentBooking";
 
 //-----------------------------------------------R_E_V_I_E_W_S-----------------------------------//
-export const GET_REVIEWS_FOR_OWNER = "/api/owners/getownerClubReview";
+export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";

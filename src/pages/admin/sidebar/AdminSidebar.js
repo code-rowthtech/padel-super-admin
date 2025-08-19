@@ -6,6 +6,7 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaEdit,
+  FaUsersCog,
 } from "react-icons/fa";
 import { logout } from "../../../redux/admin/auth/slice";
 import { useDispatch } from "react-redux";
@@ -189,6 +190,10 @@ const AdminSidebar = () => {
           Packages
         </NavLink>
 
+        {/* <NavLink to="/admin/users" className={linkClasses}>
+          <FaUsersCog className="me-2" />
+          Users
+        </NavLink> */}
         <NavLink to="/admin/payments" className={linkClasses}>
           <RiWallet3Line className="me-2" />
           Payment
