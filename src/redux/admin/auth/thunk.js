@@ -1,13 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from "../../../helpers/api/apiEndpoint";
-import { create, getApi, update } from "../../../helpers/api/apiCore";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 export const loginOwner = createAsyncThunk(
   "auth/loginOwner",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await create(Url.OWNER_LOGIN, data);
+      const res = await ownerApi.post(Url.OWNER_LOGIN, data);
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
@@ -21,7 +21,7 @@ export const sendOtp = createAsyncThunk(
   "auth/sendOtp",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await create(Url.SEND_OTP, data);
+      const res = await ownerApi.post(Url.SEND_OTP, data);
 
       if (res?.data?.status === 200) {
         showSuccess(res?.data?.message);
@@ -41,7 +41,7 @@ export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await create(Url.VERIFY_OTP, data);
+      const res = await ownerApi.post(Url.VERIFY_OTP, data);
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
@@ -55,7 +55,7 @@ export const signupOwner = createAsyncThunk(
   "auth/signupOwner",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await create(Url.OWNER_SIGNUP, data);
+      const res = await ownerApi.post(Url.OWNER_SIGNUP, data);
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
@@ -69,7 +69,7 @@ export const updateOwner = createAsyncThunk(
   "auth/updateOwner",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await update(Url.UPDATE_OWNER, data);
+      const res = await ownerApi.put(Url.UPDATE_OWNER, data);
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
@@ -83,7 +83,7 @@ export const getOwner = createAsyncThunk(
   "auth/getOwner",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await getApi(Url.GET_OWNER, data);
+      const res = await ownerApi.get(Url.GET_OWNER, data);
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
@@ -96,7 +96,7 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await update(Url.RESET_PASSWORD, data);
+      const res = await ownerApi.put(Url.RESET_PASSWORD, data);
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {

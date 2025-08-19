@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import { Container, Row, Col, Table, Button, Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Container, Row, Col, Table, Button, Form, InputGroup, OverlayTrigger, Tooltip, Pagination } from 'react-bootstrap';
 import { Tab, Tabs } from '@mui/material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaCalendarAlt, FaSearch, FaStar } from 'react-icons/fa';
+import { FaCalendarAlt, FaSearch, FaTimes } from 'react-icons/fa'; // Added FaTimes for cancel icon
 import { MdOutlineCancel } from "react-icons/md";
 import { FiEye } from "react-icons/fi";
 import { AcceptedRejectedModal, BookingHistoryCancelModal, CancellationConfirmationModal } from './bookingModals/Modals';
@@ -17,10 +17,11 @@ import { DataLoading, Loading } from '../../../helpers/loading/Loaders';
 import { resetBooking } from '../../../redux/user/booking/slice';
 import { formatDate } from '../../../helpers/Formatting';
 import { getReviewClub } from '../../../redux/user/club/thunk';
+import { getUserFromSession } from '../../../helpers/api/apiCore';
 
 const BookingHistory = () => {
-    const store = useSelector((state) => state)
-    const dispatch = useDispatch()
+    const store = useSelector((state) => state);
+    const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState('all');
     const [searchDate, setSearchDate] = useState(null);
     const [searchText, setSearchText] = useState('');
@@ -32,12 +33,13 @@ const BookingHistory = () => {
     const [changeCancelShow, setChangeCancelShow] = useState(false);
     const [ratingBookingIndex, setRatingBookingIndex] = useState(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
-    const [acceptedRejected, setAcceptedRejected] = useState(false)
-    const [tableData, setCourtData] = useState(null)
-    const [statusData, setStatusData] = useState(null)
-    const getBookingData = useSelector((state) => state?.userBooking)
-    const getReviewData = store?.userClub?.getReviewData?.data
-    console.log({ getReviewData });
+    const [acceptedRejected, setAcceptedRejected] = useState(false);
+    const [tableData, setCourtData] = useState(null);
+    const [statusData, setStatusData] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const getBookingData = useSelector((state) => state?.userBooking);
+    const getReviewData = store?.userClub?.getReviewData?.data;
+    const User = getUserFromSession();
 
     const renderSlotTimes = (slotTimes) =>
         slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
@@ -51,9 +53,10 @@ const BookingHistory = () => {
 
     const handleChange = (event, newValue) => {
         setActiveTab(newValue);
-        dispatch(resetBooking())
+        setCurrentPage(1);
+        setSearchDate(null); // Reset date when tab changes
+        dispatch(resetBooking());
         let type = "";
-
         if (newValue === "all") {
             type = "";
         } else if (newValue === "cancelled") {
@@ -61,26 +64,53 @@ const BookingHistory = () => {
         } else if (newValue === "upcoming") {
             type = "upcoming";
         } else if (newValue === "completed") {
-            type = "completed";
+            type = "complete";
         }
-
-        dispatch(getBooking({ type }));
-
+        dispatch(getBooking({ type, page: 1 }));
     };
 
     const handleSelect = (value) => {
         setSelectedOption(value);
         setIsOpen(false);
+        setCurrentPage(1);
     };
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        let type = "";
+        if (activeTab === "cancelled") {
+            type = "cancelled";
+        } else if (activeTab === "upcoming") {
+            type = "upcoming";
+        } else if (activeTab === "completed") {
+            type = "complete";
+        }
+        dispatch(getBooking({ type, page: pageNumber }));
+    };
+
+    const handleClearDate = () => {
+        setSearchDate(null);
+    };
+
+    const getRatingLabel = (currentRating) => {
+        if (currentRating >= 4.5) ;
+        if (currentRating >= 3.5) ;
+        if (currentRating >= 2.5) ;
+        if (currentRating >= 1.5) ;
+        if (currentRating >= 0.5) ;
+        return "";
+    };
+
     const club_id = localStorage.getItem("register_club_id");
 
     useEffect(() => {
-        dispatch(getBooking({ type: "" }));
-
+        if (User?.token) {
+            dispatch(getBooking({ type: "", page: 1 }));
+        }
         if (club_id) {
             dispatch(getReviewClub(club_id));
         }
-    }, [ dispatch]);
+    }, [User?.token, club_id]);
 
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
         const status = booking?.bookingStatus;
@@ -114,6 +144,20 @@ const BookingHistory = () => {
 
         return statusMatch && dateMatch && courtMatch;
     });
+
+    const totalPages = getBookingData?.bookingData?.totalPages || 1;
+    const paginationItems = [];
+    for (let number = 1; number <= totalPages; number++) {
+        paginationItems.push(
+            <Pagination.Item
+                key={number}
+                active={number === currentPage}
+                onClick={() => handlePageChange(number)}
+            >
+                {number}
+            </Pagination.Item>
+        );
+    }
 
     return (
         <Container>
@@ -158,30 +202,31 @@ const BookingHistory = () => {
                     <h2 className="tabel-title mt-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking</h2>
                 </Col>
                 <Col md={6} className="d-flex gap-2 justify-content-end align-items-center">
-                    {/* Date Picker */}
                     <InputGroup
                         className="rounded bg-light p-1 align-items-center"
                     >
-                        {/* Calendar Icon */}
                         <InputGroup.Text className="bg-light border-0 px-3">
                             <FaCalendarAlt className="text-muted" />
                         </InputGroup.Text>
-
-                        {/* Date Picker */}
                         <DatePicker
                             selected={searchDate}
                             onChange={(date) => setSearchDate(date)}
-                            showTimeSelect
-                            timeFormat="hh:mm aa"
-                            timeIntervals={30}
-                            dateFormat="dd/MM/yy hh:mm aa"
-                            placeholderText="dd/mm/yy 00:00 AM/PM"
+                            dateFormat="dd/MM/yy"
+                            placeholderText="dd/mm/yy"
                             calendarClassName="custom-calendar"
                             className="form-control border-0 bg-light shadow-none custom-datepicker-input"
                         />
+                        {searchDate && (
+                            <InputGroup.Text
+                                className="bg-light border-0 px-3"
+                                onClick={handleClearDate}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <FaTimes className="text-danger" />
+                            </InputGroup.Text>
+                        )}
                     </InputGroup>
 
-                    {/* Search Input */}
                     <InputGroup className="rounded overflow-hidden bg-light p-1" style={{ maxWidth: '300px', backgroundColor: "#F5F5F5" }}>
                         <Form.Control
                             type="text"
@@ -198,21 +243,18 @@ const BookingHistory = () => {
                 </Col>
             </Row>
 
-            {/* Table */}
             <Table hover>
                 <thead>
                     <tr className=''>
-                        <th className="py-3 ps-4" style={{ backgroundColor: "#D0D6EA", borderRadius: "10px 0px 0px 0px" }}>Date & Time</th>
+                        <th className="py-3 ps-4" style={{ backgroundColor: "#D0D6EA", borderRadius: "10px 0px 0px 0px" }}>Date</th>
                         <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Time</th>
                         <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Court Name</th>
                         {activeTab === 'cancelled' && (
                             <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Reason</th>
                         )}
-
                         {activeTab === 'completed' && (
                             <th className="py-3 text-center" style={{ backgroundColor: "#D0D6EA" }}>Rating</th>
                         )}
-
                         {activeTab === 'completed' && (
                             <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>Message</th>
                         )}
@@ -221,7 +263,7 @@ const BookingHistory = () => {
                             <th className="py-3" style={{ backgroundColor: "#D0D6EA" }}>
                                 <div className="dropdown-wrapper">
                                     <div className="dropdown-header" onClick={() => setIsOpen(!isOpen)}>
-                                        Status <b className="arrow"><i class="bi bi-chevron-down text-dark fw-bold"></i></b>
+                                        Status <b className="arrow"><i className="bi bi-chevron-down text-dark fw-bold"></i></b>
                                     </div>
                                     {isOpen && (
                                         <div className="dropdown-list">
@@ -232,7 +274,6 @@ const BookingHistory = () => {
                                     )}
                                 </div>
                             </th>
-
                         )}
                         <th className="py-3 text-center" style={{ backgroundColor: "#D0D6EA", borderRadius: "0px 10px 0px 0px" }}>Action</th>
                     </tr>
@@ -242,6 +283,14 @@ const BookingHistory = () => {
                         <tr>
                             <td colSpan={7} style={{ height: "60vh", verticalAlign: "middle" }} className="text-center">
                                 <DataLoading height={100} />
+                            </td>
+                        </tr>
+                    </tbody>
+                ) : searchDate && filterStatus?.length === 0 ? (
+                    <tbody>
+                        <tr>
+                            <td colSpan={7} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
+                                <p className="table-data text-danger">No bookings found.</p>
                             </td>
                         </tr>
                     </tbody>
@@ -274,51 +323,59 @@ const BookingHistory = () => {
                                     <td className="table-data" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
                                         {slotItem?.courtName || 'N/A'}
                                     </td>
-
                                     {activeTab === 'cancelled' && (
                                         <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                            {booking?.cancellationReason}
+                                            {booking?.cancellationReason?.charAt(0).toUpperCase(1) + booking?.cancellationReason?.slice(1)}
                                         </td>
                                     )}
-
                                     {activeTab === 'completed' && (
                                         <td className="text-center">
                                             {[1, 2, 3, 4, 5].map((star) => {
                                                 const averageRating = getReviewData?.averageRating || 0;
-                                                let iconClass = "bi-star"; // empty star by default
-
+                                                let iconClass = "bi-star";
                                                 if (star <= Math.floor(averageRating)) {
-                                                    iconClass = "bi-star-fill"; // full star
+                                                    iconClass = "bi-star-fill";
                                                 } else if (star - averageRating <= 0.5 && star - averageRating > 0) {
-                                                    iconClass = "bi-star-half"; // half star
+                                                    iconClass = "bi-star-half";
                                                 }
-
                                                 return (
-                                                    <i
-                                                        key={star}
-                                                        className={`bi ${iconClass} ms-2`}
-                                                        style={{
-                                                            color: "#3DBE64",
-                                                            fontSize: "18px",
-                                                        }}
-                                                    ></i>
+                                                    <>
+                                                        <i
+                                                            key={star}
+                                                            className={`bi ${iconClass} ms-2`}
+                                                            style={{
+                                                                color: "#3DBE64",
+                                                                fontSize: "18px",
+                                                            }}
+                                                        ></i>
+                                                    </>
                                                 );
-                                            })}
-                                        </td>
-                                    )}
 
-                                    {activeTab === "completed" && (
-                                        <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                            <span>
-                                                {getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment || "No comment"}
+                                            })}
+                                            <span
+                                                className="ms-2"
+                                                style={{
+                                                    fontSize: "15px",
+                                                    fontWeight: "500",
+                                                    color: "#374151",
+                                                    fontFamily: "Poppins",
+                                                }}
+                                            >
+                                                {getReviewData.averageRating.toFixed(1)}{" "}
+                                                {getRatingLabel(getReviewData.averageRating)}
                                             </span>
                                         </td>
                                     )}
-
+                                    {activeTab === "completed" && (
+                                        <td style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                            <span>
+                                                {getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.charAt(0).toUpperCase(1) + getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.slice(1) || "No comment"}
+                                            </span>
+                                        </td>
+                                    )}
                                     <td style={{ color: "#1A237E", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
                                         ₹{booking?.totalAmount || 'N/A'}
                                     </td>
-
                                     {activeTab === 'cancelled' && (
                                         <td
                                             style={{
@@ -333,7 +390,6 @@ const BookingHistory = () => {
                                             {booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected' ? "Rejected" : "Accepted"}
                                         </td>
                                     )}
-
                                     <td className="text-center">
                                         {activeTab === 'cancelled' || activeTab === 'completed' ? (
                                             ''
@@ -362,7 +418,6 @@ const BookingHistory = () => {
                                                 style={{ cursor: "pointer" }}
                                             />
                                         )}
-
                                         <FiEye
                                             size={20}
                                             className="text-muted ms-2"
@@ -376,13 +431,11 @@ const BookingHistory = () => {
                                                 } else if (activeTab === "completed") {
                                                     setShowRatingModal(true);
                                                     setStatusData({ booking: booking, slotItem: slotItem });
-
                                                 }
                                             }}
                                             style={{ cursor: "pointer" }}
                                         />
                                     </td>
-
                                 </tr>
                             ))
                         )}
@@ -396,9 +449,26 @@ const BookingHistory = () => {
                         </tr>
                     </tbody>
                 )}
-
-
             </Table>
+
+            {getBookingData?.bookingData?.totalPages > 1 && (
+                <Row className="mt-3">
+                    <Col className="d-flex justify-content-center">
+                        <Pagination>
+                            <Pagination.Prev
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            />
+                            {paginationItems}
+                            <Pagination.Next
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            />
+                        </Pagination>
+                    </Col>
+                </Row>
+            )}
+
             <BookingHistoryCancelModal
                 show={modalCancel}
                 onHide={() => setModalCancel(false)}
@@ -407,6 +477,7 @@ const BookingHistory = () => {
                 tableData={tableData}
                 setChangeCancelShow={setChangeCancelShow}
                 changeCancelShow={changeCancelShow}
+                activeTab={activeTab}
             />
             <BookingRatingModal
                 show={showRatingModal}
@@ -428,7 +499,6 @@ const BookingHistory = () => {
                 defaultMessage={ratingBookingIndex !== null ? ratings[ratingBookingIndex]?.review : ''}
             />
             <CancellationConfirmationModal />
-
             <AcceptedRejectedModal booking={statusData} selectedOption={selectedOption} onHide={() => setAcceptedRejected(false)} show={acceptedRejected} />
         </Container>
     );

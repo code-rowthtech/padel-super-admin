@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from "../../../helpers/api/apiEndpoint";
-import { create, getApi } from "../../../helpers/api/apiCore";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 // Constants for error messages
@@ -14,7 +14,7 @@ export const getOwnerRegisteredClub = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     // Removed unused 'data' parameter
     try {
-      const res = await getApi(Url.GET_REGISTERED_CLUB);
+      const res = await ownerApi.get(Url.GET_REGISTERED_CLUB);
 
       // Destructure response data
       const { status, data, message } = res?.data || {};
@@ -38,7 +38,7 @@ export const getActiveCourts = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     // Removed unused 'data' parameter
     try {
-      const res = await getApi(
+      const res = await ownerApi.get(
         `${Url.GET_ACTIVE_COURTS}?register_club_id=${params?.register_club_id}&day=${params?.day}`
       );
 
@@ -64,7 +64,7 @@ export const manualBookingByOwner = createAsyncThunk(
   "manualBooking/manualBookingByOwner",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await create(Url.MANUAL_BOOKING_BY_OWNER, data);
+      const res = await ownerApi.post(Url.MANUAL_BOOKING_BY_OWNER, data);
       if (res?.status === 200) {
         showSuccess(res?.data?.message);
         return res?.data;

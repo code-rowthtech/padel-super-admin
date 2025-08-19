@@ -3,11 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import axios from "axios";
-import { logo } from '../../../assets/files';
+import { logo } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
-
 
 // Load Razorpay Checkout
 const loadRazorpay = (callback) => {
@@ -102,9 +101,7 @@ const Payment = ({ className = "" }) => {
             const courtName = courtData?.court?.[0]?.courtName || 'Court 1';
             const slotTimesData = courtData?.slot?.[0]?.slotTimes || [];
 
-            // Create slot array based on selected times, mapping each time to its corresponding slotId
-            const slotArray = selectedTimeArray.map((timeSlot) => {
-                // Find the matching slot time in slotTimesData to get the correct slotId
+            const slotArray = selectedTimeArray?.map((timeSlot) => {
                 const matchingSlot = slotTimesData.find(slot => slot.time === timeSlot.time);
                 return {
                     slotId: matchingSlot?._id || courtData?.slot?.[0]?._id,
@@ -134,12 +131,10 @@ const Payment = ({ className = "" }) => {
             };
 
             dispatch(createBooking(payload)).unwrap().then(() => {
-                if (user?.name) {
-                    getUserFromSession();
+                if (user?.token) {
                     navigate('/booking-history');
                 } else {
                     dispatch(loginUserNumber({ phoneNumber: phoneNumber }));
-                    getUserFromSession();
                     navigate('/booking-history');
                 }
             });
@@ -297,9 +292,16 @@ const Payment = ({ className = "" }) => {
                                             minLength={10}
                                             value={phoneNumber}
                                             style={{ boxShadow: "none" }}
-                                            onChange={(e) => setPhoneNumber(e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '' || /^[6-9][0-9]{0,9}$/.test(value)) {
+                                                    setPhoneNumber(value);
+                                                }
+                                            }}
                                             className="form-control border-0 p-2"
                                             placeholder="91+"
+                                            pattern="[6-9][0-9]{9}"
+                                            title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
                                             disabled={user?.phoneNumber}
                                         />
                                     </div>

@@ -453,7 +453,6 @@ const Pricing = () => {
     // Get business hours - send all when "Select All" is checked
     const completeBusinessHours = selectedDays.map((day) => {
       const existing = businessHours.find((bh) => bh.day === day);
-      console.log({ businessHours, selectedDays, existing });
       if (!existing) {
         console.warn(`Missing business hours for ${day}`);
       }

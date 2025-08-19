@@ -1,14 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from "../../../helpers/api/apiEndpoint";
-import { create, getApi, remove, update } from "../../../helpers/api/apiCore";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 export const getReviewsForOwner = createAsyncThunk(
   "reviews/getReviewsForOwner",
   async (params, { rejectWithValue }) => {
-    console.log({ params });
     try {
-      const res = await getApi(
+      const res = await ownerApi.get(
         `${Url.GET_REVIEWS_FOR_OWNER}?clubId=${params?.clubId}`
       );
       const { status, data, message } = res?.data || {};

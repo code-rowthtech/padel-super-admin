@@ -7,6 +7,7 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { formatDate } from "../../../helpers/Formatting";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 const Openmatches = ({ width = 370, height = 70 }) => {
     const [startDate, setStartDate] = useState(new Date());
@@ -14,6 +15,8 @@ const Openmatches = ({ width = 370, height = 70 }) => {
     const dateRefs = useRef({});
     const wrapperRef = useRef(null);
     const navigate = useNavigate()
+    const user = getUserFromSession()
+    console.log(user,'pankajuser');
     // Close on outside click
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -26,7 +29,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
     const [selectedTimes, setSelectedTimes] = useState([]);
-    const [selectedCourts, setSelectedCourts] = useState([]);
 
     const [selectedDate, setSelectedDate] = useState(null);
 
@@ -61,116 +63,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
             });
         }
     };
-    const toggleTime = (time) => {
-        if (selectedTimes.includes(time)) {
-            // Remove time
-            setSelectedTimes(selectedTimes.filter(t => t !== time));
-        } else {
-            // Add time
-            setSelectedTimes([...selectedTimes, time]);
-        }
-    };
-
-    const times = [
-        "6:00am", "7:00am", "8:00am", "9:00am", "10:00am", "11:00am",
-        "12:00pm", "1:00pm", "2:00pm", "3:00pm", "4:00pm", "5:00pm",
-        "6:00pm", "7:00pm", "8:00pm", "9:00pm", "10:00pm", "11:00pm",
-        "12:00am"
-    ];
-
-
-    const courts = [
-        {
-            id: 1,
-            name: "Court 1",
-            type: "Outdoor | wall | Double",
-            price: 1000,
-            image: "https://images.unsplash.com/photo-1583454110551-d9f43f24d2bf?auto=format&fit=crop&w=100&q=80", // Badminton
-        },
-        {
-            id: 2,
-            name: "Court 2",
-            type: "Outdoor | wall | Double",
-            price: 1000,
-            image: "https://images.unsplash.com/photo-1583454154908-59a9c43fa7c2?auto=format&fit=crop&w=100&q=80", // Tennis
-        },
-        {
-            id: 3,
-            name: "Court 3",
-            type: "Outdoor | wall | Double",
-            price: 1000,
-            image: "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80", // Basketball
-        },
-        {
-            id: 4,
-            name: "Court 4",
-            type: "Outdoor | wall | Double",
-            price: 1000,
-            image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80", // Volleyball
-        },
-    ];
-
-
-    const handleCourtSelect = (court) => {
-        const newCourt = { ...court, time: selectedTimes, date: selectedDate };
-        setSelectedCourts((prev) => [...prev, newCourt]);
-    };
-
-    const total = selectedCourts.reduce((sum, c) => sum + c.price, 0);
-
-    const handleDelete = (index) => {
-        const updatedCourts = [...selectedCourts];
-        updatedCourts.splice(index, 1);
-        setSelectedCourts(updatedCourts);
-    };
-
-
-
-    const buttonStyle = {
-        width: `${width}px`,
-        height: `${height}px`,
-        position: 'relative',
-        cursor: 'pointer',
-        border: 'none',
-        background: 'none',
-        padding: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-    };
-
-    const svgStyle = {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        zIndex: 1
-    };
-
-    const contentStyle = {
-        position: 'relative',
-        zIndex: 2,
-        color: 'white',
-        fontWeight: '600',
-        fontSize: '16px',
-        paddingRight: '55px'
-    };
-
-
-    // Calculate proportional values based on width and height
-    const circleRadius = height * 0.30; // Smaller radius for equal padding on all sides
-    const circleX = width - (height * 0.40); // Adjust horizontal position for equal left/right padding
-    const circleY = height * 0.5; // Center vertically
-
-    // Arrow dimensions proportional to circle size
-    const arrowSize = circleRadius * 0.6;
-    const arrowX = circleX;
-    const arrowY = circleY;
-
-
-
-
     const matchData = [
         {
             level: "Beginner",
@@ -226,7 +118,13 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         : matchData;
 
     const createMatchesHandle = () => {
-        navigate('/create-matches')
+        if (user?.id || user?._id) {
+            navigate('/create-matches')
+
+        } else {
+            navigate('/login')
+
+        }
     }
     return (
         <>

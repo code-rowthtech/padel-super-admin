@@ -143,9 +143,20 @@ const ManualBooking = () => {
   //         : [...prev, courtId]
   //     );
   //   };
+  // const handleCourtSelect = (courtId) => {
+  //   setSelectedCourts((prev) => (prev.includes(courtId) ? [] : [courtId]));
+  // };
+  useEffect(() => {
+    if (courts?.length > 0 && selectedCourts.length === 0) {
+      setSelectedCourts([courts[0]._id]);
+    }
+  }, [courts, selectedCourts]);
+
+  // Handler
   const handleCourtSelect = (courtId) => {
     setSelectedCourts((prev) => (prev.includes(courtId) ? [] : [courtId]));
   };
+  const court = courts?.find((c) => c._id === selectedCourts?.[0]);
 
   const handleConfirm = async () => {
     if (!name || !phone) {
@@ -164,15 +175,8 @@ const ManualBooking = () => {
     }
 
     try {
-      // Construct the slot array for the payload
-      const slotsPayload = selectedCourts?.map((courtId) => {
-        // Find the court data
-        const court = courts?.find((c) => c._id === courtId);
-
-        // Find the slot data for this court
+      const slotsPayload = selectedTimes?.map((timeSlot) => {
         const slotData = activeCourtsData?.[0]?.slot?.[0];
-
-        // Format businessHours without _id fields
         const formattedBusinessHours =
           slotData?.businessHours?.map((bh) => ({
             time: bh.time,
@@ -180,12 +184,14 @@ const ManualBooking = () => {
           })) || [];
 
         return {
-          slotId: slotData?._id,
-          businessHours: formattedBusinessHours, // Use formatted businessHours without _id
-          slotTimes: selectedTimes.map((time) => ({
-            time: time.time,
-            amount: time.amount || 0,
-          })),
+          slotId: timeSlot?._id,
+          businessHours: formattedBusinessHours,
+          slotTimes: [
+            {
+              time: timeSlot.time,
+              amount: timeSlot.amount || 0,
+            },
+          ],
           courtName: court?.courtName,
           bookingDate: new Date(selectedDate).toISOString(),
         };
@@ -492,7 +498,6 @@ const ManualBooking = () => {
                   ) : (
                     <></>
                   )} */}
-                  {console.log({ courts })}
                   {courts?.length === 0 ? (
                     <div
                       className="d-flex text-danger justify-content-center align-items-center w-100"

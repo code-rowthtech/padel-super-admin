@@ -103,7 +103,7 @@ const Images = ({ formData, onNext, onBack, updateFormData }) => {
     previewImages.forEach((image, index) => {
       apiFormData.append(`image`, image.file);
     });
-    console.log(apiFormData, "apiFormData");
+
     try {
       await dispatch(registerClub(apiFormData)).unwrap();
       onNext();

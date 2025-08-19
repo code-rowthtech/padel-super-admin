@@ -14,13 +14,9 @@ const Navbar = () => {
     const store = useSelector((state) => state?.userAuth);
 
     useEffect(() => {
-        // Update userData based on Redux store
         if (store?.user?.status === '200' && store?.user?.response?.user) {
             setUserData(store.user.response.user);
-            // Optionally, sync with localStorage
-            localStorage.setItem('padel_user', JSON.stringify(store.user.response.user));
         } else {
-            // Check localStorage as fallback
             const userLocal = localStorage.getItem('padel_user');
             if (userLocal) {
                 try {
@@ -122,7 +118,7 @@ const Navbar = () => {
                                 Open Matches
                             </NavLink>
                         </li>
-                        <li className="nav-item">
+                        {/* <li className="nav-item">
                             <NavLink
                                 to="/competitions"
                                 className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
@@ -133,7 +129,7 @@ const Navbar = () => {
                             >
                                 Competitions
                             </NavLink>
-                        </li>
+                        </li> */}
                     </ul>
 
                     <div className="d-flex">
