@@ -5,6 +5,8 @@ import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
+import { IoTennisballOutline } from 'react-icons/io5';
+import { Avatar } from '@mui/material';
 
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -12,6 +14,7 @@ const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
+    const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
 
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
@@ -62,8 +65,10 @@ const Navbar = () => {
             <div className="container">
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
-                    {/* <img src={logo} alt="Logo" style={{ width: '120px' }} /> */}
-                    <h4 className='text-dark fw-bold m-0' style={{fontFamily:"Poppins"}}>Here <br /> Logo</h4>
+                    <Avatar>
+                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                    </Avatar>
+                    {/* <h4 className='text-dark fw-bold m-0' style={{ fontFamily: "Poppins" }}>Logo</h4> */}
                 </Link>
 
                 {/* Toggle button for mobile */}
@@ -162,7 +167,7 @@ const Navbar = () => {
                                 </Dropdown.Toggle>
 
                                 <Dropdown.Menu className="table-data fw-medium" style={{ color: '#374151' }}>
-                                    <Dropdown.Item as={NavLink} to="/admin/profile">
+                                    <Dropdown.Item as={NavLink} to="/profile">
                                         Profile
                                     </Dropdown.Item>
                                     <Dropdown.Item as={NavLink} to="/booking-history">
@@ -192,8 +197,8 @@ const Navbar = () => {
                         ) : (
                             <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
                                 <button
-                                    className="btn px-4 py-2 rounded-pill text-white"
-                                    style={{ whiteSpace: 'nowrap', backgroundColor: '#3DBE64', fontSize: '20px', fontWeight: '600' }}
+                                    className="btn btn-sm px-4 fw-medium small  rounded-pill text-white"
+                                    style={{ backgroundColor: '#3DBE64' }}
                                 >
                                     Login
                                 </button>

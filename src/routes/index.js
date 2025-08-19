@@ -76,6 +76,7 @@ const MyClub = React.lazy(() => import("../pages/admin/myClub/MyClub"));
 const Americano = React.lazy(() =>
   import("../pages/admin/americano/Americano")
 );
+const Users = React.lazy(() => import("../pages/admin/users/Users"));
 
 // Errors
 const UnAuthorized = React.lazy(() => import("../pages/error/UnAuthorized"));
@@ -131,11 +132,11 @@ const AllRoutes = () => {
           path: "open-matches",
           element: LoadComponent(OpenMatches),
         },
-          {
+        {
           path: "create-matches",
           element: LoadComponent(CreateMatches),
         },
-        
+
         {
           path: "view-match",
           element: LoadComponent(ViewMatch),
@@ -277,6 +278,10 @@ const AllRoutes = () => {
             {
               path: "americano",
               element: LoadComponent(Americano),
+            },
+            {
+              path: "users",
+              element: LoadComponent(Users),
             },
           ],
         },

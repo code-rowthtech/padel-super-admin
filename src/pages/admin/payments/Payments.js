@@ -21,11 +21,13 @@ import {
 import { Link } from "react-router-dom";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
+import Pagination from "../../../helpers/Pagination";
 
 const Payments = () => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const dispatch = useDispatch();
   const { getBookingData, getBookingLoading, getBookingDetailsData } =
@@ -60,14 +62,14 @@ const Payments = () => {
   const sendDate = startDate && endDate;
 
   useEffect(() => {
-    const payload = { status, ownerId };
+    const payload = { status, ownerId, page: currentPage };
     if (sendDate) {
       payload.startDate = formatDate(startDate);
       payload.endDate = formatDate(endDate);
     }
 
     dispatch(getBookingByStatus(payload));
-  }, [tab, sendDate]);
+  }, [tab, sendDate, currentPage]);
 
   const ownerId = getOwnerFromSession()?._id;
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
@@ -110,6 +112,11 @@ const Payments = () => {
       bigicon: <FaChartLine size={35} />,
     },
   ];
+
+  const totalRecords = getBookingData?.totalItems || 1;
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
   return (
     <Container fluid className=" px-4">
       <h3 className="fw-bold">Payment</h3>
@@ -293,6 +300,16 @@ const Payments = () => {
               </>
             )}
           </div>
+        </Col>
+      </Row>
+      <Row className="mt-3">
+        <Col className="d-flex justify-content-center">
+          <Pagination
+            totalRecords={totalRecords}
+            defaultLimit={10}
+            handlePageChange={handlePageChange}
+            currentPage={currentPage}
+          />
         </Col>
       </Row>
       <PaymentDetailsModal

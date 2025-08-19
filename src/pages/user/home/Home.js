@@ -85,11 +85,13 @@ const Home = () => {
 
     useEffect(() => {
         const id = clubData._id || '';
-        dispatch(getReviewClub(id));
+        if (id) {
+            dispatch(getReviewClub(id));
+        }
         if (activeTab === 'reviews') {
             dispatch(getReviewClub(id));
         }
-    }, [activeTab]);
+    }, [activeTab, clubData?._id]);
 
     return (
         <>
@@ -345,20 +347,42 @@ const Home = () => {
 
                                             <div className="col-7 px-4 border-start d-flex align-items-center">
                                                 <div className="w-100">
-                                                    {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => (
-                                                        <div className="d-flex align-items-center mb-1 w-100" key={idx}>
-                                                            <div className="me-2" style={{ width: "100px" }}>
-                                                                {label}
+                                                    {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
+                                                        let width = 0;
+                                                        if (label === getReviewData?.ratingCategory) {
+                                                            const rating = getReviewData.averageRating || 0;
+                                                            width = Math.min(100, (rating / 5) * 100) + "%"; // Scale 0-5 to 0-100%
+                                                        }
+                                                        return (
+                                                            <div className="d-flex align-items-center mb-1 w-100" key={idx}>
+                                                                <div className="me-2" style={{ width: "100px" }}>
+                                                                    {label}
+                                                                </div>
+                                                                <div className="progress w-100" style={{ height: "8px", position: "relative" }}>
+                                                                    <div
+                                                                        className={`progress-bar bg-${idx === 0 ? "success" : idx === 1 ? "info" : idx === 2 ? "warning" : idx === 3 ? "danger" : "dark"}`}
+                                                                        style={{ width }}
+                                                                    ></div>
+                                                                    {label === getReviewData?.ratingCategory && (
+                                                                        <span
+                                                                            style={{
+                                                                                position: "absolute",
+                                                                                right: "0px",
+                                                                                color: "#000",
+                                                                                top: "50%",
+                                                                                transform: "translateY(-50%)",
+                                                                                fontSize: "12px",
+                                                                                backgroundColor: "rgba(255, 255, 255, 0.7)",
+                                                                                padding: "0 5px",
+                                                                            }}
+                                                                        >
+                                                                            {Math.round(getReviewData.averageRating * 20)}%
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                            <div className="progress w-100" style={{ height: "8px" }}>
-                                                                <div
-                                                                    className={`progress-bar bg-${idx === 0 ? "success" : idx === 1 ? "info" : idx === 2 ? "warning" : idx === 3 ? "danger" : "dark"
-                                                                        }`}
-                                                                    style={{ width: label === getReviewData?.ratingCategory ? "70%" : "0%" }}
-                                                                ></div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         </div>
@@ -438,20 +462,18 @@ const Home = () => {
                                 </div>
 
                                 {/* Customer Reviews */}
-                                <div className="mt-5">
+                                <div className="mt-2">
                                     <h4 className=" mb-4" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
-                                    <div
+                                    <div className='border-top border-start border-end bg-white rounded-3 '
                                         style={{
                                             maxHeight: getReviewData?.reviews?.length >= 4 ? "500px" : "auto",
                                             overflowY: getReviewData?.reviews?.length >= 4 ? "auto" : "visible"
                                         }}
                                     >
+
                                         {getReviewData?.reviews?.map((review, i) => (
-                                            <div
-                                                className="border bg-white rounded-3 p-3 mb-4 d-flex justify-content-between align-items-start flex-wrap"
-                                                key={i}
-                                            >
-                                                <div className="d-flex align-items-start">
+                                            <div div className='p-3 border-bottom mb-2 d-flex justify-content-between align-items-start flex-wrap'>
+                                                <div key={i} className="d-flex align-items-start">
                                                     <img
                                                         src={review.avatar || 'https://t4.ftcdn.net/jpg/15/13/35/75/360_F_1513357508_F3lTOCrYHHjBB8Lb3K9IBfS4IPLyNcrJ.jpg'}
                                                         alt={review?.userId?.name}
@@ -477,7 +499,9 @@ const Home = () => {
                                                     Post Date : <strong>{formatDate(review?.createdAt)}</strong>
                                                 </div>
                                             </div>
+
                                         ))}
+
                                     </div>
                                 </div>
                             </div>

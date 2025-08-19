@@ -11,10 +11,12 @@ const ERROR_MESSAGES = {
 
 export const getOwnerRegisteredClub = createAsyncThunk(
   "manualBooking/getOwnerRegisteredClub",
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     // Removed unused 'data' parameter
     try {
-      const res = await ownerApi.get(Url.GET_REGISTERED_CLUB);
+      const res = await ownerApi.get(
+        `${Url.GET_REGISTERED_CLUB}?ownerId=${params?.ownerId}`
+      );
 
       // Destructure response data
       const { status, data, message } = res?.data || {};
