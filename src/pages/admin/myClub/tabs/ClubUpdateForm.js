@@ -21,7 +21,7 @@ import {
   DataLoading,
 } from "../../../../helpers/loading/Loaders";
 import { useNavigate } from "react-router-dom";
-
+import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 const MAX_IMAGES = 10;
 
 const defaultFeatureKeys = [
@@ -130,6 +130,8 @@ const validateFields = (data) => {
 const ClubUpdateForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const owner = getOwnerFromSession();
+  const ownerId = owner?.generatedBy || owner?._id;
   const { ownerClubLoading, ownerClubError, ownerClubData } = useSelector(
     (state) => state.manualBooking
   );
@@ -517,7 +519,7 @@ const ClubUpdateForm = () => {
         dispatch(updateRegisteredClub(apiFormData))
           .unwrap()
           .then(() => {
-            dispatch(getOwnerRegisteredClub());
+            dispatch(getOwnerRegisteredClub({ ownerId }));
           });
       } catch (err) {
         console.error("Update failed:", err);
@@ -653,7 +655,7 @@ const ClubUpdateForm = () => {
   // --- Render ---
 
   useEffect(() => {
-    dispatch(getOwnerRegisteredClub()).unwrap();
+    dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
   }, []);
   return (
     <Card>
