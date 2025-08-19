@@ -85,6 +85,7 @@ const Home = () => {
 
     useEffect(() => {
         const id = clubData._id || '';
+        dispatch(getReviewClub(id));
         if (activeTab === 'reviews') {
             dispatch(getReviewClub(id));
         }

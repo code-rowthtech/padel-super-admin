@@ -248,7 +248,7 @@ const Booking = ({
 
     return (
         <>
-            <div className='container p-0'>
+            <div className='container p-0 mb-5'>
                 <div className="ps-0" style={{ height: "340px" }}>
                     <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{ height: '100%' }}>
                         <img src={twoball} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover rounded-3" />
@@ -265,7 +265,7 @@ const Booking = ({
                 </div>
             </div>
             {/* Booking UI */}
-            <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
+            <div className="container mt-4 d-flex gap-4 mb-5 px-4 flex-wrap">
                 <div className="row">
                     {/* Left Section */}
                     <div className="col-7 py-5 rounded-3 px-4" style={{ backgroundColor: " #F5F5F566" }}>

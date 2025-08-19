@@ -6,6 +6,7 @@ import { formatDate } from '../../../../helpers/Formatting';
 import { useDispatch, useSelector } from 'react-redux';
 import { bookingStatus, getBooking } from '../../../../redux/user/booking/thunk';
 import { ButtonLoading } from '../../../../helpers/loading/Loaders';
+import { getUserFromSession } from '../../../../helpers/api/apiCore';
 
 export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
@@ -14,7 +15,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const bookingStatusData = useSelector((state) => state?.userBooking)
-
+  const User = getUserFromSession()
   console.log({ bookingStatusData });
   const dispatch = useDispatch()
   const handleClose = () => {
@@ -49,9 +50,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
       setShowSuccessModal(false);
       setShowConfirmationModal(true);
     }
-    if (activeTab === "upcoming") {
+    if (activeTab === "upcoming" && User?.token) {
       dispatch(getBooking({ type: "upcoming" }));
-    } else {
+    } else if(User?.token) {
       dispatch(getBooking());
     }
   }, [bookingStatusData?.bookingStatusData?.status])
