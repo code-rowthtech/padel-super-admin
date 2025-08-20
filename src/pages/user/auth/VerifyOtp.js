@@ -18,7 +18,6 @@ const VerifyOTP = () => {
   const store = useSelector((state) => state?.userAuth)
   console.log(store, 'otperror');
   const dispatch = useDispatch()
-  console.log({ timer })
   useEffect(() => {
     const countdown = setInterval(() => {
       setTimer(prev => (prev > 0 ? prev - 1 : 0));

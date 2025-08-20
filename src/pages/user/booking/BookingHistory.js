@@ -64,7 +64,7 @@ const BookingHistory = () => {
         } else if (newValue === "upcoming") {
             type = "upcoming";
         } else if (newValue === "completed") {
-            type = "complete";
+            type = "completed";
         }
         dispatch(getBooking({ type, page: 1 }));
     };
@@ -83,7 +83,7 @@ const BookingHistory = () => {
         } else if (activeTab === "upcoming") {
             type = "upcoming";
         } else if (activeTab === "completed") {
-            type = "complete";
+            type = "completed";
         }
         dispatch(getBooking({ type, page: pageNumber }));
     };
