@@ -25,7 +25,7 @@ export const DataLoading = ({ color, height }) => {
       className="d-flex justify-content-center align-items-center w-100"
       style={{ height: height }}
     >
-      <PuffLoader color={color} size={70} />
+      <PuffLoader color={color} size={80} />
     </div>
   );
 };

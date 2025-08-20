@@ -70,7 +70,7 @@ const LoginPage = () => {
         loginOwner({ email: formData.email, password: formData.password })
       ).unwrap();
       const ownerData = getOwnerFromSession();
-      const shouldSkipRegister = ownerData?.hasCourt;
+      const shouldSkipRegister = ownerData?.hasCourt || ownerData?.generatedBy;
 
       // 3. Navigate based on fresh data
       navigate(shouldSkipRegister ? "/admin/dashboard" : "/admin/register");

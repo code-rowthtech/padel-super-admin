@@ -243,7 +243,11 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
                 {renderCheckbox("Chill Pad", "features", "chillPad")}
               </Col>
               <Col md={4}>
-                {renderCheckbox("Coaching Available", "features", "coaching")}
+                {renderCheckbox(
+                  "Coaching Available",
+                  "features",
+                  "coachingAvailable"
+                )}
               </Col>
             </Row>
           </Col>

@@ -157,8 +157,6 @@ const Booking = () => {
           </button>
         </Col>
       </Row>
-
-      {/* Bookings Table */}
       <Row>
         <Col md={12}>
           <div className="bg-white rounded shadow-sm p-3">

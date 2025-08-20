@@ -16,8 +16,10 @@ import {
   Loading,
 } from "../../../../helpers/loading/Loaders";
 import { showError, showInfo } from "../../../../helpers/Toast";
+import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 const ManualBooking = () => {
   const dispatch = useDispatch();
+  const Owner = getOwnerFromSession();
   const {
     manualBookingLoading,
     ownerClubLoading,
@@ -103,7 +105,8 @@ const ManualBooking = () => {
   };
 
   useEffect(() => {
-    dispatch(getOwnerRegisteredClub()).unwrap();
+    const ownerId = Owner?.generatedBy ? Owner?.generatedBy : Owner?._id;
+    dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
   }, []);
 
   useEffect(() => {
@@ -112,10 +115,11 @@ const ManualBooking = () => {
         getActiveCourts({
           register_club_id: ownerClubData?.[0]?._id,
           day: selectedDay,
+          courtId: selectedCourts?.[0],
         })
       );
     }
-  }, [selectedDay, ownerClubData?.[0]?._id]);
+  }, [selectedDay, ownerClubData?.[0]?._id, selectedCourts]);
 
   useEffect(() => {
     if (selectedButtonRef.current && scrollRef.current) {
@@ -193,6 +197,7 @@ const ManualBooking = () => {
             },
           ],
           courtName: court?.courtName,
+          courtId: court?._id || selectedCourts?.[0],
           bookingDate: new Date(selectedDate).toISOString(),
         };
       });
@@ -202,7 +207,7 @@ const ManualBooking = () => {
         register_club_id: ownerClubData?.[0]?._id,
         phoneNumber: phone,
         name: name,
-        ownerId: ownerClubData?.[0]?.ownerId,
+        ownerId: Owner?._id,
       };
       // Dispatch the API call
       await dispatch(manualBookingByOwner(payload)).unwrap();
@@ -249,153 +254,158 @@ const ManualBooking = () => {
               </Button>
             </Col>
           </Row>
-          <Row className="mx-auto bg-white">
-            <Col md={8} className="pt-3 rounded-3 px-4">
-              {/* Date Selector */}
-              <div className="calendar-strip ">
-                <div
-                  className="tabel-title mb-3"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
-                >
-                  Select Date{" "}
+          {activeCourtsLoading ? (
+            <DataLoading height="70vh" />
+          ) : (
+            <Row className="mx-auto bg-white">
+              <Col md={8} className="pt-3 rounded-3 px-4">
+                {/* Date Selector */}
+                <div className="calendar-strip ">
                   <div
-                    className="position-relative d-inline-block"
-                    ref={wrapperRef}
-                  >
-                    <span
-                      className="rounded-circle p-2 ms-2 shadow-sm bg-light"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => setIsOpen(!isOpen)}
-                    >
-                      <i
-                        className="bi bi-calendar2-week"
-                        style={{ fontSize: "18px" }}
-                      ></i>
-                    </span>
-
-                    {/* Calendar */}
-                    {isOpen && (
-                      <div
-                        className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
-                        style={{ top: "100%", left: "0", minWidth: "100%" }}
-                      >
-                        <DatePicker
-                          selected={startDate}
-                          onChange={(date) => {
-                            setStartDate(date);
-
-                            const iso = date.toISOString().split("T")[0];
-                            setSelectedDate(iso);
-
-                            const dayName = date.toLocaleDateString("en-US", {
-                              weekday: "short",
-                            });
-                            setSelectedDay(dayFullNames[dayName]);
-
-                            setIsOpen(false);
-                            setSelectedTimes([]); // clear selected slots
-                          }}
-                          minDate={new Date()}
-                          maxDate={maxSelectableDate}
-                          inline
-                          // showMonthDropdown
-                          // showYearDropdown
-                          dropdownMode="select"
-                          calendarClassName="custom-calendar w-100 shadow-sm"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {/* DATE HORIZONTAL SCROLLER */}
-                <div className="d-flex align-items-center w-100 p-0 gap-2 mb-3">
-                  <button
-                    className="btn btn-light p-0"
-                    onClick={() => scroll("left")}
-                  >
-                    <i className="bi bi-chevron-left"></i>
-                  </button>
-
-                  <div
-                    ref={scrollRef}
-                    className="d-flex gap-2"
+                    className="tabel-title mb-3"
                     style={{
-                      scrollBehavior: "smooth",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      flex: 1,
+                      fontFamily: "Poppins",
+                      fontWeight: "600",
+                      color: "#374151",
                     }}
                   >
-                    {dates?.map((d, i) => {
-                      const isSelected = selectedDate === d.fullDate;
+                    Select Date{" "}
+                    <div
+                      className="position-relative d-inline-block"
+                      ref={wrapperRef}
+                    >
+                      <span
+                        className="rounded-circle p-2 ms-2 shadow-sm bg-light"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setIsOpen(!isOpen)}
+                      >
+                        <i
+                          className="bi bi-calendar2-week"
+                          style={{ fontSize: "18px" }}
+                        ></i>
+                      </span>
 
-                      return (
-                        <button
-                          key={i}
-                          ref={isSelected ? selectedButtonRef : null}
-                          className={`calendar-day-btn border px-3 py-2 rounded ${
-                            isSelected ? "text-white" : "bg-light text-dark"
-                          }`}
-                          style={{
-                            backgroundColor: isSelected ? "#374151" : undefined,
-                            border: "none",
-                            minWidth: "85px",
-                          }}
-                          onClick={() => {
-                            setSelectedDate(d.fullDate);
-                            setSelectedDay(dayFullNames[d.day]);
-                            setSelectedTimes([]);
-                          }}
+                      {/* Calendar */}
+                      {isOpen && (
+                        <div
+                          className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
+                          style={{ top: "100%", left: "0", minWidth: "100%" }}
                         >
-                          <div className="text-center pb-3">
-                            <div
-                              style={{ fontSize: "14px", fontWeight: "400" }}
-                            >
-                              {d.day}
-                            </div>
-                            <div
-                              style={{ fontSize: "26px", fontWeight: "500" }}
-                            >
-                              {d.date}
-                            </div>
-                            <div
-                              style={{ fontSize: "14px", fontWeight: "400" }}
-                            >
-                              {d.month}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                          <DatePicker
+                            selected={startDate}
+                            onChange={(date) => {
+                              setStartDate(date);
+
+                              const iso = date.toISOString().split("T")[0];
+                              setSelectedDate(iso);
+
+                              const dayName = date.toLocaleDateString("en-US", {
+                                weekday: "short",
+                              });
+                              setSelectedDay(dayFullNames[dayName]);
+
+                              setIsOpen(false);
+                              setSelectedTimes([]); // clear selected slots
+                            }}
+                            minDate={new Date()}
+                            maxDate={maxSelectableDate}
+                            inline
+                            // showMonthDropdown
+                            // showYearDropdown
+                            dropdownMode="select"
+                            calendarClassName="custom-calendar w-100 shadow-sm"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  {/* DATE HORIZONTAL SCROLLER */}
+                  <div className="d-flex align-items-center w-100 p-0 gap-2 mb-3">
+                    <button
+                      className="btn btn-light p-0"
+                      onClick={() => scroll("left")}
+                    >
+                      <i className="bi bi-chevron-left"></i>
+                    </button>
 
-                  <button
-                    className="btn btn-light p-0"
-                    onClick={() => scroll("right")}
-                  >
-                    <i className="bi bi-chevron-right"></i>
-                  </button>
+                    <div
+                      ref={scrollRef}
+                      className="d-flex gap-2"
+                      style={{
+                        scrollBehavior: "smooth",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        flex: 1,
+                      }}
+                    >
+                      {dates?.map((d, i) => {
+                        const isSelected = selectedDate === d.fullDate;
+
+                        return (
+                          <button
+                            key={i}
+                            ref={isSelected ? selectedButtonRef : null}
+                            className={`calendar-day-btn border px-3 py-2 rounded ${
+                              isSelected ? "text-white" : "bg-light text-dark"
+                            }`}
+                            style={{
+                              backgroundColor: isSelected
+                                ? "#374151"
+                                : undefined,
+                              border: "none",
+                              minWidth: "85px",
+                            }}
+                            onClick={() => {
+                              setSelectedDate(d.fullDate);
+                              setSelectedDay(dayFullNames[d.day]);
+                              setSelectedTimes([]);
+                            }}
+                          >
+                            <div className="text-center pb-3">
+                              <div
+                                style={{ fontSize: "14px", fontWeight: "400" }}
+                              >
+                                {d.day}
+                              </div>
+                              <div
+                                style={{ fontSize: "26px", fontWeight: "500" }}
+                              >
+                                {d.date}
+                              </div>
+                              <div
+                                style={{ fontSize: "14px", fontWeight: "400" }}
+                              >
+                                {d.month}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      className="btn btn-light p-0"
+                      onClick={() => scroll("right")}
+                    >
+                      <i className="bi bi-chevron-right"></i>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Time Selector */}
-              <div className="d-flex justify-content-between align-items-center py-2">
-                <p
-                  className="mb-3 tabel-title"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
-                >
-                  Available Slots
-                  {/* <span className="fs-6">(60m)</span> */}
-                </p>
-                {/* <div className="form-switch d-flex align-items-center gap-2 p-0">
+                {/* Time Selector */}
+                <div className="d-flex justify-content-between align-items-center py-2">
+                  <p
+                    className="mb-3 tabel-title"
+                    style={{
+                      fontFamily: "Poppins",
+                      fontWeight: "600",
+                      color: "#374151",
+                    }}
+                  >
+                    Available Slots
+                    {/* <span className="fs-6">(60m)</span> */}
+                  </p>
+                  {/* <div className="form-switch d-flex align-items-center gap-2 p-0">
                   <input
                     className="form-check-input fs-5 mb-1"
                     type="checkbox"
@@ -411,239 +421,259 @@ const ManualBooking = () => {
                     Show Unavailable Slots
                   </label>
                 </div> */}
-              </div>
-
-              <div className="d-flex flex-wrap gap-2 mb-4">
-                {activeCourtsLoading ? (
-                  <DataLoading height="20vh" />
-                ) : slotTimes?.length === 0 ? (
-                  <div
-                    className="d-flex text-danger justify-content-center align-items-center w-100"
-                    style={{ height: "20vh" }}
-                  >
-                    No slots available
-                  </div>
-                ) : (
-                  <>
-                    {slotTimes?.map((slot, i) => {
-                      // Parse slot time into a Date object for today
-                      const slotDate = new Date();
-                      const [hourString, period] = slot?.time
-                        ?.toLowerCase()
-                        .split(" ");
-                      let hour = parseInt(hourString);
-
-                      if (period === "pm" && hour !== 12) hour += 12;
-                      if (period === "am" && hour === 12) hour = 0;
-                      slotDate.setHours(hour, 0, 0, 0);
-
-                      const now = new Date();
-                      const isPast = slotDate.getTime() < now.getTime();
-
-                      const isSelected = selectedTimes.some(
-                        (t) => t._id === slot._id
-                      );
-                      const isBooked = slot?.status === "booked";
-
-                      return (
-                        <button
-                          key={i}
-                          className={`btn border-0 rounded-pill table-data px-4 ${
-                            isBooked
-                              ? "bg-danger-subtle"
-                              : isPast
-                              ? "bg-secondary-subtle"
-                              : ""
-                          }`}
-                          onClick={() => toggleTime(slot)}
-                          title={`${
-                            isBooked
-                              ? "Booked"
-                              : isPast
-                              ? "Cannot book slot in past hours"
-                              : "Book Now"
-                          }`}
-                          disabled={isPast || isBooked}
-                          style={{
-                            backgroundColor: isSelected
-                              ? "#374151"
-                              : "#CBD6FF1A",
-                            color: isSelected ? "white" : "#000000",
-                          }}
-                        >
-                          {slot?.time}
-                        </button>
-                      );
-                    })}
-                  </>
-                )}
-              </div>
-            </Col>
-            <Col md={4}>
-              <div
-                className="mt-4 tabel-title"
-                style={{
-                  fontFamily: "Poppins",
-                  fontWeight: "600",
-                  color: "#374151",
-                }}
-              >
-                Available Court
-              </div>
-              <div style={{ maxHeight: "30vh", overflow: "auto" }}>
-                <div className="d-flex justify-content-between align-items-center pt-3"></div>
-                <div className="bg-white px-3">
-                  {/* {activeCourtsLoading ? (
-                    <DataLoading height="30vh" />
-                  ) : (
-                    <></>
-                  )} */}
-                  {courts?.length === 0 ? (
+                </div>
+                <div className="d-flex flex-wrap gap-2 mb-4">
+                  {slotTimes?.length === 0 ? (
                     <div
                       className="d-flex text-danger justify-content-center align-items-center w-100"
                       style={{ height: "20vh" }}
                     >
-                      No courts available
+                      No slots available
                     </div>
                   ) : (
                     <>
-                      {courts?.map((court) => (
-                        <div
-                          key={court._id}
-                          className={`d-flex justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
-                            selectedCourts?.includes(court?._id)
-                              ? "bg-success-subtle rounded-pill"
-                              : ""
-                          }`}
-                        >
-                          {/* Left Image & Text */}
-                          <div className="d-flex align-items-center gap-3">
-                            {/* <img
-                                                src={court.image}
-                                                alt={court.courtName}
-                                                style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover" }}
-                                            /> */}
-                            <div>
-                              <div className="fw-semibold">
-                                {court.courtName}
-                              </div>
-                              {/* <small className="text-muted">{court.type}</small> */}
-                            </div>
-                          </div>
+                      {slotTimes?.map((slot, i) => {
+                        // Build slotDate using selected date instead of always today
+                        const slotDate = new Date(selectedDate); // 👈 use selected date
+                        const [hourString, period] = slot?.time
+                          ?.toLowerCase()
+                          .split(" ");
+                        let hour = parseInt(hourString);
 
-                          {/* Price and Cart Icon */}
-                          <div className="d-flex align-items-center gap-3">
-                            <div
-                              className="fw-semibold"
-                              style={{ fontSize: "20px", fontWeight: "500" }}
-                            >
-                              {/* ₹{court.price} */}
-                            </div>
-                            <button
-                              className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
-                              style={{ width: "32px", height: "32px" }}
-                              onClick={() => handleCourtSelect(court?._id)}
-                            >
-                              <FaShoppingCart size={14} color="white" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        if (period === "pm" && hour !== 12) hour += 12;
+                        if (period === "am" && hour === 12) hour = 0;
+                        slotDate.setHours(hour, 0, 0, 0);
+
+                        const now = new Date();
+
+                        // Only mark as past if selectedDate is today
+                        const isSameDay =
+                          slotDate.toDateString() === now.toDateString();
+
+                        const isPast =
+                          isSameDay && slotDate.getTime() < now.getTime();
+
+                        const isSelected = selectedTimes.some(
+                          (t) => t._id === slot._id
+                        );
+                        const isBooked = slot?.status === "booked";
+                        const isAvailable =
+                          slot?.availabilityStatus === "available";
+
+                        return (
+                          <button
+                            key={i}
+                            className={`btn border-0 rounded-pill table-data px-4 ${
+                              isBooked
+                                ? "bg-danger-subtle"
+                                : isPast
+                                ? "bg-secondary-subtle"
+                                : !isAvailable
+                                ? "bg-warning-subtle"
+                                : ""
+                            }`}
+                            onClick={() => toggleTime(slot)}
+                            title={`${
+                              isBooked
+                                ? "Booked"
+                                : isPast
+                                ? "Cannot book slot in past hours"
+                                : "Book Now"
+                            }`}
+                            disabled={isPast || isBooked}
+                            style={{
+                              backgroundColor: isSelected
+                                ? "#374151"
+                                : "#CBD6FF1A",
+                              color: isSelected ? "white" : "#000000",
+                            }}
+                          >
+                            {slot?.time}
+                          </button>
+                        );
+                      })}
                     </>
                   )}
                 </div>
-              </div>
-              <div className="mt-3 p-3">
-                <p
-                  className="mb-2 tabel-title"
+              </Col>
+              <Col md={4}>
+                <div
+                  className="mt-4 tabel-title"
                   style={{
                     fontFamily: "Poppins",
                     fontWeight: "600",
                     color: "#374151",
                   }}
                 >
-                  User Information
-                </p>
-                <div className="d-flex gap-3 mb-3">
-                  <input
-                    type="text"
-                    className="form-control rounded-3 py-2"
-                    placeholder="Name"
-                    style={{ backgroundColor: "#CBD6FF7A" }}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <input
-                    type="tel"
-                    className="form-control rounded-3 py-2"
-                    placeholder="Phone Number"
-                    style={{ backgroundColor: "#CBD6FF7A" }}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    maxLength={10}
-                    onKeyDown={(e) => {
-                      const allowedKeys = [
-                        "Backspace",
-                        "Tab",
-                        "ArrowLeft",
-                        "ArrowRight",
-                        "Delete", // control keys
-                      ];
-                      if (
-                        !allowedKeys.includes(e.key) &&
-                        !/^\d$/.test(e.key) // allow only 0–9 digits
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                  />
+                  Available Court
                 </div>
-
-                <div className="d-flex justify-content-end gap-4 align-items-end">
-                  <button
-                    className="btn btn-secondary rounded-pill px-4 py-2"
-                    style={{ minWidth: "120px", fontWeight: "500" }}
-                    onClick={() => {
-                      setName("");
-                      setPhone("");
-                      setShowSuccess(false);
-                      navigate(-1);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="btn btn-success rounded-pill px-4 py-2"
-                    style={{ minWidth: "120px", fontWeight: "500" }}
-                    onClick={handleConfirm}
-                  >
-                    {manualBookingLoading ? (
-                      <ButtonLoading size={12} />
+                <div style={{ maxHeight: "30vh", overflow: "auto" }}>
+                  <div className="d-flex justify-content-between align-items-center pt-3"></div>
+                  <div className="bg-white px-3">
+                    {/* {activeCourtsLoading ? (
+                    <DataLoading height="30vh" />
+                  ) : (
+                    <></>
+                  )} */}
+                    {courts?.length === 0 ? (
+                      <div
+                        className="d-flex text-danger justify-content-center align-items-center w-100"
+                        style={{ height: "20vh" }}
+                      >
+                        No courts available
+                      </div>
                     ) : (
-                      "Confirm"
+                      <>
+                        {courts?.map((court) => (
+                          <div
+                            key={court._id}
+                            className={`d-flex justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
+                              selectedCourts?.includes(court?._id)
+                                ? "bg-success-subtle rounded-pill"
+                                : ""
+                            }`}
+                            onClick={() => handleCourtSelect(court?._id)}
+                          >
+                            {/* Left Image & Text */}
+                            <div className="d-flex align-items-center gap-3">
+                              {/* <img
+                                                src={court.image}
+                                                alt={court.courtName}
+                                                style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover" }}
+                                            /> */}
+                              <div>
+                                <div className="fw-semibold">
+                                  {court.courtName}
+                                </div>
+                                {/* <small className="text-muted">{court.type}</small> */}
+                              </div>
+                            </div>
+
+                            {/* Price and Cart Icon */}
+                            <div className="d-flex align-items-center gap-3">
+                              <div
+                                className="fw-semibold"
+                                style={{ fontSize: "20px", fontWeight: "500" }}
+                              >
+                                {/* ₹{court.price} */}
+                              </div>
+                              <button
+                                className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
+                                style={{ width: "32px", height: "32px" }}
+                                onClick={() => handleCourtSelect(court?._id)}
+                              >
+                                <FaShoppingCart size={14} color="white" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </>
                     )}
-                  </button>
-
-                  <BookingSuccessModal
-                    show={showSuccess}
-                    handleClose={() => {
-                      setShowSuccess(false);
-                      navigate(-1);
-                    }}
-                    openDetails={() => {
-                      setShowSuccess(false);
-                      setShowDetails(true);
-                    }}
-                  />
-
-                  <BookingDetailsModal
-                    show={showDetails}
-                    handleClose={() => setShowDetails(false)}
-                  />
+                  </div>
                 </div>
-              </div>
-            </Col>
-          </Row>
+                <div className="mt-3 p-3">
+                  <p
+                    className="mb-2 tabel-title"
+                    style={{
+                      fontFamily: "Poppins",
+                      fontWeight: "600",
+                      color: "#374151",
+                    }}
+                  >
+                    User Information
+                  </p>
+                  {phone && !phone.startsWith("6") && (
+                    <div className="text-danger small">
+                      Phone number must start with 6
+                    </div>
+                  )}
+                  <div className="d-flex gap-3 mb-3">
+                    <input
+                      type="text"
+                      className="form-control rounded-3 py-2"
+                      placeholder="Name"
+                      style={{ backgroundColor: "#CBD6FF7A" }}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                    <input
+                      type="tel"
+                      className="form-control rounded-3 py-2"
+                      placeholder="Phone Number"
+                      style={{
+                        backgroundColor: "#CBD6FF7A",
+                        borderColor:
+                          phone && !phone.startsWith("6")
+                            ? "#dc3545"
+                            : "#dee2e6",
+                      }}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      maxLength={10}
+                      onKeyDown={(e) => {
+                        const allowedKeys = [
+                          "Backspace",
+                          "Tab",
+                          "ArrowLeft",
+                          "ArrowRight",
+                          "Delete",
+                        ];
+                        if (
+                          !allowedKeys.includes(e.key) &&
+                          !/^\d$/.test(e.key)
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="d-flex justify-content-end gap-4 align-items-end">
+                    <button
+                      className="btn btn-secondary rounded-pill px-4 py-2"
+                      style={{ minWidth: "120px", fontWeight: "500" }}
+                      onClick={() => {
+                        setName("");
+                        setPhone("");
+                        setShowSuccess(false);
+                        navigate(-1);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="btn btn-success rounded-pill px-4 py-2"
+                      style={{ minWidth: "120px", fontWeight: "500" }}
+                      onClick={handleConfirm}
+                    >
+                      {manualBookingLoading ? (
+                        <ButtonLoading size={12} />
+                      ) : (
+                        "Confirm"
+                      )}
+                    </button>
+
+                    <BookingSuccessModal
+                      show={showSuccess}
+                      handleClose={() => {
+                        setShowSuccess(false);
+                        // navigate(-1);
+                      }}
+                      openDetails={() => {
+                        setShowSuccess(false);
+                        setShowDetails(true);
+                      }}
+                    />
+
+                    <BookingDetailsModal
+                      show={showDetails}
+                      handleClose={() => setShowDetails(false)}
+                    />
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          )}
         </Container>
       )}
     </>
