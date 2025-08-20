@@ -10,14 +10,11 @@ export const getUsers = createAsyncThunk(
       const buildQuery = (params) => {
         const query = new URLSearchParams();
 
-        if (params?.status) query.append("bookingStatus", params?.status);
-        if (params?.ownerId) query.append("ownerId", params?.ownerId);
+        if (params?.page) query.append("page", params?.page);
 
         return query.toString();
       };
-      const res = await ownerApi.get(
-        `${Url.GET_BOOKING_BY_STATUS}?${buildQuery(params)}`
-      );
+      const res = await ownerApi.get(`${Url.GET_USERS}?${buildQuery(params)}`);
       // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
