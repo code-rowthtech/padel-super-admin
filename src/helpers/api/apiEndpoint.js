@@ -56,3 +56,11 @@ export const GET_RECENT_BOOKING_DASHBOARD =
 
 //-----------------------------------------------R_E_V_I_E_W_S-----------------------------------//
 export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
+
+//-----------------------------------------------U_S_E_R_S-----------------------------------//
+export const GET_USERS = "/api/owners/getusers";
+
+//-----------------------------------------------U_S_E_R_S-----------------------------------//
+export const GET_LOGO = "/api/logo/getLogo";
+export const CREATE_LOGO = "/api/logo/saveLogo";
+export const UPDATE_LOGO = "/api/logo/updateLogo";

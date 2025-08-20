@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import axios from "axios";
-import { logo } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
@@ -22,23 +21,19 @@ const Payment = ({ className = "" }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { courtData, clubData, seletctedCourt } = location.state || {};
-    console.log(courtData?.court, 'clubDataclubDataclubData');
     const user = getUserFromSession()
     const store = useSelector((state) => state?.userAuth)
     const bookingStatus = useSelector((state) => state?.userBooking)
     const userLoading = useSelector((state) => state?.userAuth)
-    console.log(courtData, 'bookingStatusbookingStatus');
+    const logo = useSelector((state) => state?.userAuth?.logo?.logo);
     const [name, setName] = useState(user?.name || "");
     const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ? String(user.phoneNumber) : "");
     const [email, setEmail] = useState("");
     const [selectedPayment, setSelectedPayment] = useState("");
-    const [paymentId, setPaymentId] = useState("");
     const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const [selectedCourts, setSelectedCourts] = useState([]);
-    const totalAmount = courtData?.time?.reduce((acc, curr) => acc + (curr.amount || 100), 0);
     const isFormValid = name.trim() && phoneNumber.trim().length === 10 && email.trim() && selectedPayment;
 
     // Button styling
@@ -128,6 +123,7 @@ const Payment = ({ className = "" }) => {
                 phoneNumber,
                 email,
                 register_club_id,
+                // status:"upcoming",
                 ownerId: clubData?.ownerId,
                 slot: slotArray
             };
@@ -253,11 +249,11 @@ const Payment = ({ className = "" }) => {
         setSelectedCourts(seletctedCourt);
     }, [courtData]);
 
-    const handleDelete = (index) => {
-        const updatedCourts = [...selectedCourts];
-        updatedCourts.splice(index, 1);
-        setSelectedCourts(updatedCourts);
-    };
+    // const handleDelete = (index) => {
+    //     const updatedCourts = [...selectedCourts];
+    //     updatedCourts.splice(index, 1);
+    //     setSelectedCourts(updatedCourts);
+    // };
 
     return (
         <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
@@ -374,9 +370,12 @@ const Payment = ({ className = "" }) => {
                     <div className="border rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center " style={{ lineHeight: '90px' }}>
-                                <Avatar>
-                                    {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
-                                </Avatar>
+                                {logo?.logo ?
+                                    <Avatar src={logo?.logo} alt="User Profile" /> :
+                                    <Avatar>
+                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                    </Avatar>
+                                }
                             </div>
                             <p className=" mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
                             <p className="small mb-0"> {clubData?.clubName}
@@ -408,13 +407,13 @@ const Payment = ({ className = "" }) => {
                                                 </span>
                                             </div>
                                             <div className="col-7 d-flex justify-content-end gap-2">
-                                                <button
+                                                {/* <button
                                                     className="btn btn-sm text-danger delete-btn"
                                                     onClick={() => handleDelete(index)}
                                                 >
                                                     <i className="bi bi-trash-fill pt-1"></i>
-                                                </button>
-                                                <div className="d-flex justify-conent-end align-items-center" style={{ whiteSpace: "nowrap", overflowX: "auto" }}>
+                                                </button> */}
+                                                <div className="d-flex justify-conent-end align-items-center" >
                                                     <span className="mb-1">
                                                         {court.time.length > 0
                                                             ? court.time.map((t, i) => (

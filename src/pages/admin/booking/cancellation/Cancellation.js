@@ -34,6 +34,7 @@ import {
 } from "../../../../redux/thunks";
 import { resetBookingData } from "../../../../redux/admin/booking/slice";
 import Pagination from "../../../../helpers/Pagination";
+import { format } from "date-fns";
 const Cancellation = () => {
   const dispatch = useDispatch();
   const ownerId = getOwnerFromSession()?._id;
@@ -110,6 +111,8 @@ const Cancellation = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+  const renderSlotTimes = (slotTimes) =>
+    slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
     <Container fluid className="px-4">
       {/* Tabs + Date filters */}
@@ -185,7 +188,9 @@ const Cancellation = () => {
                       <th>User</th>
                       <th>Contact</th>
                       <th>Booking Type</th>
+                      <th>Slot</th>
                       <th>Booking Amount</th>
+                      <th>Date/Time</th>
                       <th>Booking Date</th>
                       <th>Cancellation Reason</th>
                       {tab !== 1 && <th>Action</th>}
@@ -200,7 +205,25 @@ const Cancellation = () => {
                           {item?.userId?.phoneNumber || "N/A"}
                         </td>
                         <td>{item?.bookingType || "-"}</td>
+                        <td>
+                          {/* <OverlayTrigger
+                            placement="left"
+                            overlay={
+                              <Tooltip>
+                                {renderSlotTimes(item?.slot[0]?.slotTimes)}
+                              </Tooltip>
+                            }
+                          > */}
+                          <b>{renderSlotTimes(item?.slot[0]?.slotTimes)}</b>
+                          {/* </OverlayTrigger> */}
+                        </td>
                         <td>₹{item?.totalAmount}</td>
+                        <td>
+                          {format(
+                            new Date(item?.createdAt),
+                            "dd/MM/yyyy | hh:mm a"
+                          )}
+                        </td>
                         <td>{formatDate(item?.bookingDate)}</td>
                         <td>
                           <OverlayTrigger

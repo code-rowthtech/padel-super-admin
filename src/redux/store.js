@@ -7,14 +7,16 @@ import bookingReducer from "./admin/booking/slice";
 import packageReducer from "./admin/packages/slice";
 import dashboardReducer from "./admin/dashboard/slice";
 import reviewReducer from "./admin/reviews/slice";
-
+import userReducer from "./admin/users/slice";
+import logoReducer from "./admin/logo/slice";
 //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 import userClubReducer from "./user/club/slice";
 import userSlotReducer from "./user/slot/slice";
 import userBookingReducer from "./user/booking/slice";
 import userAuthReducer from "./user/auth/authSlice";
-import userMatchesReducer from './user/matches/slice'
+import userMatchesReducer from "./user/matches/slice";
 import { review } from "../assets/files";
+import { use } from "react";
 
 const store = configureStore({
   reducer: {
@@ -27,13 +29,14 @@ const store = configureStore({
     package: packageReducer,
     dashboard: dashboardReducer,
     reviews: reviewReducer,
-
+    users: userReducer,
+    logo: logoReducer,
     //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
     userAuth: userAuthReducer,
     userClub: userClubReducer,
     userSlot: userSlotReducer,
     userBooking: userBookingReducer,
-    userMatches :userMatchesReducer
+    userMatches: userMatchesReducer,
   },
 });
 

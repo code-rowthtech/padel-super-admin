@@ -9,20 +9,24 @@ import {
   FaUsersCog,
 } from "react-icons/fa";
 import { logout } from "../../../redux/admin/auth/slice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RiLogoutCircleLine, RiWallet3Line } from "react-icons/ri";
 import { LuSwords } from "react-icons/lu";
 import { FaRankingStar } from "react-icons/fa6";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import { IoTennisballOutline } from "react-icons/io5";
-
+import { getLogo, createLogo, updateLogo } from "../../../redux/thunks";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
+import { DataLoading } from "../../../helpers/loading/Loaders";
 const AdminSidebar = () => {
   const dispatch = useDispatch();
   const location = useLocation();
-
+  const Owner = getOwnerFromSession();
+  const { getLogoData, getLogoLoading } = useSelector((state) => state?.logo);
+  const ownerId = Owner?._id || Owner?.generatedBy;
   // Tracks active status of dropdown based on location
   const [isBookingOpen, setBookingOpen] = useState(false);
-
+  const [clubLogo, setClubLogo] = useState(null);
   const bookingPaths = ["/admin/booking", "/admin/cancellation"];
 
   useEffect(() => {
@@ -42,29 +46,38 @@ const AdminSidebar = () => {
     location.pathname === "/admin/booking" ||
     location.pathname === "/admin/manualbooking";
 
-  const [clubLogo, setClubLogo] = useState(null);
   const handleLogoChange = useCallback(
     (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      // Create a preview URL for the image
+      // Create a preview URL for UI display
       const reader = new FileReader();
       reader.onloadend = () => {
-        alert("action dispatched");
         setClubLogo(reader.result);
-        dispatch({
-          type: "UPDATE_LOGO",
-          payload: {
-            file, // The actual file object
-            previewUrl: reader.result, // Data URL for preview
-          },
-        });
+
+        // Prepare FormData
+        const formData = new FormData();
+        formData.append("ownerId", ownerId);
+        formData.append("image", file);
+
+        // Dispatch with FormData
+        if (getLogoData?.logo?._id) {
+          dispatch(updateLogo(formData));
+        } else {
+          dispatch(createLogo(formData));
+        }
       };
       reader.readAsDataURL(file);
     },
-    [dispatch]
+    [dispatch, ownerId, getLogoData?.logo?._id]
   );
+  useEffect(() => {
+    dispatch(getLogo({ ownerId: ownerId }));
+  }, []);
+  useEffect(() => {
+    setClubLogo(getLogoData?.logo?.logo?.[0]);
+  }, [getLogoData?.logo?._id]);
   return (
     <aside
       className="bg-dark text-white vh-100 d-flex flex-column"
@@ -75,34 +88,46 @@ const AdminSidebar = () => {
         style={{ marginTop: "10px" }}
       >
         <div className="position-relative me-3">
-          {clubLogo ? (
-            <img
-              src={clubLogo}
-              alt="Profile"
-              className="rounded-circle border"
-              style={{ width: "100px", height: "100px", objectFit: "cover" }}
-            />
+          {getLogoLoading ? (
+            <DataLoading height="100px" color="white" />
           ) : (
-            <div className="bg-secondary rounded-circle p-2">
-              <IoTennisballOutline size={80} />
-            </div>
+            <>
+              {clubLogo ? (
+                <img
+                  src={clubLogo}
+                  alt="Profile"
+                  className="rounded-circle border"
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <div className="bg-secondary rounded-circle p-2">
+                  <IoTennisballOutline size={80} />
+                </div>
+              )}
+            </>
           )}
-          <label
-            htmlFor="clubLogoUpload"
-            className="position-absolute bottom-0 end-0 rounded-circle p-1"
-            style={{
-              width: "30px",
-              height: "30px",
-              backgroundColor: "#797b7dff",
-              opacity: 0.8,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-            }}
-          >
-            <FaEdit style={{ color: "white", fontSize: "14px" }} />
-          </label>
+          {!getLogoLoading && (
+            <label
+              htmlFor="clubLogoUpload"
+              className="position-absolute bottom-0 end-0 rounded-circle p-1"
+              style={{
+                width: "30px",
+                height: "30px",
+                backgroundColor: "#797b7dff",
+                opacity: 0.8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <FaEdit style={{ color: "white", fontSize: "14px" }} />
+            </label>
+          )}
         </div>
         <input
           type="file"

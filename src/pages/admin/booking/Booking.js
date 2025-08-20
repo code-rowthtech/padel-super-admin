@@ -26,6 +26,7 @@ import { formatDate } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
+import { format } from "date-fns";
 const Booking = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -50,11 +51,18 @@ const Booking = () => {
 
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
-
+  const defaultLimit = 10;
   // Fetch bookings on tab change
   useEffect(() => {
     dispatch(resetBookingData());
-    dispatch(getBookingByStatus({ status, ownerId, page: currentPage }));
+    dispatch(
+      getBookingByStatus({
+        status,
+        ownerId,
+        page: currentPage,
+        limit: defaultLimit,
+      })
+    );
   }, [tab, currentPage]);
 
   const handleBookingDetails = async (id, type) => {
@@ -175,8 +183,9 @@ const Booking = () => {
                       <th>Contact</th>
                       <th>Booking Type</th>
                       <th>Court Name</th>
-                      <th>Slot Time</th>
+                      <th>Slot</th>
                       <th>Booking Amount</th>
+                      <th>Date/Time</th>
                       <th>Booking Date</th>
                       <th>Action</th>
                     </tr>
@@ -192,22 +201,24 @@ const Booking = () => {
                         <td>{item?.bookingType || "-"}</td>
                         <td>{item?.slot[0]?.courtName || "-"}</td>
                         <td>
-                          <OverlayTrigger
+                          {/* <OverlayTrigger
                             placement="left"
                             overlay={
                               <Tooltip>
                                 {renderSlotTimes(item?.slot[0]?.slotTimes)}
                               </Tooltip>
                             }
-                          >
-                            <b>
-                              {renderSlotTimes(
-                                item?.slot[0]?.slotTimes.slice(0, 4)
-                              )}
-                            </b>
-                          </OverlayTrigger>
+                          > */}
+                          <b>{renderSlotTimes(item?.slot[0]?.slotTimes)}</b>
+                          {/* </OverlayTrigger> */}
                         </td>
                         <td>₹{item?.totalAmount}</td>
+                        <td>
+                          {format(
+                            new Date(item?.createdAt),
+                            "dd/MM/yyyy | hh:mm a"
+                          )}
+                        </td>
                         <td>{formatDate(item?.bookingDate)}</td>
                         <td style={{ cursor: "pointer" }}>
                           {loadingBookingId === item?._id ? (
@@ -265,7 +276,7 @@ const Booking = () => {
         <Col className="d-flex justify-content-center">
           <Pagination
             totalRecords={totalRecords}
-            defaultLimit={10}
+            defaultLimit={defaultLimit}
             handlePageChange={handlePageChange}
             currentPage={currentPage}
           />

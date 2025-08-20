@@ -21,6 +21,7 @@ export const getBookingByStatus = createAsyncThunk(
         if (params.startDate) query.append("startDate", params.startDate);
         if (params.endDate) query.append("endDate", params.endDate);
         if (params.page) query.append("page", params.page);
+        if (params.limit) query.append("limit", params.limit);
 
         return query.toString();
       };

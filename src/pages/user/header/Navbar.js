@@ -15,7 +15,8 @@ const Navbar = () => {
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
-
+    const logo = useSelector((state) => state?.userAuth?.logo?.logo);
+    console.log(logo, 'logoooooooooooooooooo');
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
             setUserData(store.user.response.user);
@@ -65,9 +66,12 @@ const Navbar = () => {
             <div className="container">
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
-                    <Avatar>
-                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
-                    </Avatar>
+                    {logo?.logo ?
+                        <Avatar src={logo?.logo} alt="User Profile" /> :
+                        <Avatar>
+                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                        </Avatar>
+                    }
                     {/* <h4 className='text-dark fw-bold m-0' style={{ fontFamily: "Poppins" }}>Logo</h4> */}
                 </Link>
 
