@@ -25,11 +25,11 @@ import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 const MAX_IMAGES = 10;
 
 const defaultFeatureKeys = [
-  "Changing Room",
-  "Parking",
-  "Shower",
-  "Chill Pad",
-  "Coaching Avaiable",
+  "changingRooms",
+  "parking",
+  "shower",
+  "chillPad",
+  "coachingAvailable",
 ];
 
 const defaultBusinessHoursTemplate = {
@@ -710,23 +710,23 @@ const ClubUpdateForm = () => {
                   {renderCheckbox(
                     "Changing Rooms",
                     "features",
-                    "Changing Room"
+                    "changingRooms"
                   )}
                 </Col>
                 <Col md={4}>
-                  {renderCheckbox("Parking", "features", "Parking")}
+                  {renderCheckbox("Parking", "features", "parking")}
                 </Col>
                 <Col md={4}>
-                  {renderCheckbox("Shower", "features", "Shower")}
+                  {renderCheckbox("Shower", "features", "shower")}
                 </Col>
                 <Col md={4}>
-                  {renderCheckbox("Chill Pad", "features", "Chill Pad")}
+                  {renderCheckbox("Chill Pad", "features", "chillPad")}
                 </Col>
                 <Col md={4}>
                   {renderCheckbox(
                     "Coaching Available",
                     "features",
-                    "Coaching Avaiable"
+                    "coachingAvailable"
                   )}
                 </Col>
               </Row>
