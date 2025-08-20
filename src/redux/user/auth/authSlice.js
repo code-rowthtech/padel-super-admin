@@ -17,6 +17,7 @@ const initialState = {
   user: getUserFromSession(),
   otp: null,
   error: null,
+  new:null
 };
 
 const authSlice = createSlice({
@@ -34,7 +35,7 @@ const authSlice = createSlice({
     resetAuth(state) {
       state.userAuthLoading = false;
       state.user = null;
-      state.otp = null;
+      // state.otp = null;
       state.error = null;
     },
   },
@@ -70,7 +71,6 @@ const authSlice = createSlice({
         const { response } = action.payload;
         console.log({ response },action.payload, "auth Slice",response.token);
         const user = { ...response.user, token: response.token };
-        console.log({user},'auth user');
         setLoggedInUser(user);
       })
       .addCase(loginUserNumber.rejected, (state, action) => {
@@ -85,6 +85,7 @@ const authSlice = createSlice({
       })
       .addCase(sendOtp.fulfilled, (state, action) => {
         state.userAuthLoading = false;
+        console.log(action,action.payload,'slice');
         state.otp = action.payload;
       })
       .addCase(sendOtp.rejected, (state, action) => {
@@ -104,7 +105,7 @@ const authSlice = createSlice({
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.userAuthLoading = false;
-        state.error = action.payload?.message || "OTP verification failed";
+        state.error = action.payload || "OTP verification failed";
       })
 
       //Get User

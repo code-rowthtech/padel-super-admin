@@ -105,7 +105,7 @@ const authSlice = createSlice({
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.authLoading = false;
-        state.error = action.payload?.message || "OTP verification failed";
+        state.error = action.payload || "OTP verification failed";
       })
 
       // -----------------------------------------------------//---- Get Owner

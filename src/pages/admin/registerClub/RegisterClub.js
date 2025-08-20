@@ -24,7 +24,7 @@ const RegisterClub = () => {
       parking: false,
       shower: false,
       chillPad: false,
-      coaching: false,
+      coachingAvailable: false,
     },
 
     // Images
@@ -46,7 +46,7 @@ const RegisterClub = () => {
   const updateFormData = (newData) => {
     setFormData((prev) => ({ ...prev, ...newData }));
   };
-
+  console.log({ formData });
   const goNext = () => setStep((prev) => prev + 1);
   const goBack = () => setStep((prev) => prev - 1);
 

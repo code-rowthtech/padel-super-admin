@@ -23,7 +23,7 @@ export const loginUserNumber = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.post(Url.User_Login_Number, data);
-      showSuccess(res?.data?.message);
+      // showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
       showError(error?.message);
@@ -36,7 +36,8 @@ export const sendOtp = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.post(Url.Send_Otp, data);
-      showSuccess(res?.data?.message);
+      // showSuccess(res?.data?.message);
+      console.log({res},'thunk');
       return res?.data;
     } catch (error) {
       showError(error?.message);
@@ -49,10 +50,12 @@ export const verifyOtp = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.post(Url.Verify_Otp, data);
+      console.log(res,'000000000000000000');
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
+      console.log(error,'errorerrorerror');
+      // showError(error);
       return rejectWithValue(error);
     }
   }

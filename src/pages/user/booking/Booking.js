@@ -23,10 +23,8 @@ const Booking = ({
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
     const store = useSelector((state) => state)
     const clubData = store?.userClub?.clubData?.data?.courts[0]
-    console.log(clubData, 'muskan');
+    console.log(slotData?.data?.[0], 'slotdatachecking');
 
-    console.log(slotData, 'slotDataslotData');
-    console.log(clubData, 'booking0000');
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
             setIsOpen(false);
@@ -115,11 +113,6 @@ const Booking = ({
 
     };
 
-    useEffect(() => {
-        dispatch(getUserClub({ search: "" }))
-    }, [])
-
-
     const total = selectedCourts.reduce((sum, c) => sum + (c.price || 2000), 0);
     const isBookDisabled = selectedCourts?.length === 0 || selectedTimes?.length === 0;
 
@@ -178,15 +171,29 @@ const Booking = ({
     };
 
     const savedClubId = localStorage.getItem("register_club_id");
+    console.log(selectedCourts, '==================');
     useEffect(() => {
-
         dispatch(
             getUserSlot({
                 register_club_id: savedClubId,
                 day: selectedDate?.day,
+                courtId: selectedCourts[0]?._id,
             })
         );
-    }, [selectedDate])
+    }, [selectedCourts[0]?._id,selectedDate])
+
+    useEffect(() => {
+        if (selectedCourts[0]?._id) {
+            dispatch(
+                getUserSlot({
+                    register_club_id: savedClubId,
+                    day: selectedDate?.day,
+                    courtId: selectedCourts[0]?._id,
+                })
+            );
+        }
+
+    }, [selectedDate,selectedCourts[0]?._id]);
 
     useEffect(() => {
         if (selectedButtonRef.current && scrollRef.current) {
@@ -216,20 +223,29 @@ const Booking = ({
     }, [selectedDate]);
 
     useEffect(() => {
+        const savedClubId = localStorage.getItem("register_club_id");
+        dispatch(getUserClub({ search: "" }));
         if (
             slotData?.data?.length > 0 &&
             slotData.data[0]?.courts?.length > 0 &&
-            selectedCourts.length === 0 // Only set default if no court is selected
+            selectedCourts.length === 0
         ) {
             const firstCourt = slotData.data[0].courts[0];
             const newCourt = {
                 ...firstCourt,
                 date: selectedDate?.fullDate,
-                time: [], // Initialize with empty time array
+                time: [],
             };
             setSelectedCourts([newCourt]);
+            dispatch(
+                getUserSlot({
+                    register_club_id: savedClubId,
+                    day: selectedDate?.day,
+                    courtId: firstCourt?._id,
+                })
+            );
         }
-    }, [slotData, selectedDate?.fullDate]);
+    }, [slotData, selectedDate, dispatch, selectedCourts.length]);
 
     useEffect(() => {
         if (selectedCourts.length > 0 && selectedTimes.length > 0) {
