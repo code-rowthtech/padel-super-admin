@@ -1,7 +1,7 @@
 // src/components/BookingHistoryCancelModal.js
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { modalSuccess, logo } from '../../../../assets/files';
+import { modalSuccess } from '../../../../assets/files';
 import { formatDate } from '../../../../helpers/Formatting';
 import { useDispatch, useSelector } from 'react-redux';
 import { bookingStatus, getBooking } from '../../../../redux/user/booking/thunk';
@@ -16,6 +16,10 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const bookingStatusData = useSelector((state) => state?.userBooking)
+  const store = useSelector((state) => state)
+  const clubData = store?.userClub?.clubData?.data?.courts[0] || []
+  const logo = useSelector((state) => state?.userAuth?.logo?.logo);
+
   const User = getUserFromSession()
   console.log({ bookingStatusData });
   const dispatch = useDispatch()
@@ -49,7 +53,8 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   useEffect(() => {
     if (bookingStatusData?.bookingStatusData?.status === "200") {
       setShowSuccessModal(false);
-      setShowConfirmationModal(true);
+      // setShowConfirmationModal(true);
+      handleClose();
     }
     if (activeTab === "upcoming" && User?.token) {
       dispatch(getBooking({ type: "upcoming" }));
@@ -76,7 +81,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
             <img
               src={modalSuccess}
               alt="Success"
-              className="py-4"
+              className="py-4 animated-image"
               style={{ width: '200px', marginBottom: '20px' }}
             />
           )}
@@ -89,9 +94,12 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                 alt="Club Logo"
               /> */}
-              <Avatar>
-                {/* {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"} */}
-              </Avatar>
+              {logo?.logo ?
+                <Avatar src={logo?.logo} alt="User Profile" /> :
+                <Avatar>
+                  {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                </Avatar>
+              }
               <p className='mt-3'>Your slots are successfully booked.</p>
             </div>
             <div className="d-flex justify-content-between align-items-center">
@@ -123,7 +131,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
             </div>
             <div className="d-flex justify-content-between">
               <h6>Total Payment</h6>
-              <h3 style={{ color: '#1A237E' }}>{tableData?.booking?.totalAmount || "N/A"}</h3>
+              <h3 style={{ color: '#1A237E' }}>₹{tableData?.booking?.totalAmount || "N/A"}</h3>
             </div>
           </div>
 
@@ -225,7 +233,7 @@ export const BookingHistorySuccessModal = ({ show, onHide, bookingStatusData, on
         <img
           src={modalSuccess}
           alt="Success"
-          className="py-4"
+          className="py-4 animated-image"
           style={{ width: '200px', marginBottom: '20px' }}
         />
 
@@ -295,7 +303,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
           </div>
           <div className="d-flex justify-content-between">
             <h6>Total Payment</h6>
-            <h3 style={{ color: '#1A237E' }}>{tableData?.booking?.totalAmount}</h3>
+            <h3 style={{ color: '#1A237E' }}>₹{tableData?.booking?.totalAmount}</h3>
           </div>
         </div>
 
@@ -348,7 +356,7 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
           <img
             src={modalSuccess}
             alt="Success"
-            className="py-4"
+            className="py-4 animated-image"
             style={{ width: '200px', marginBottom: '20px' }}
           />
           : null
@@ -381,7 +389,7 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
           </div>
           <div className="d-flex justify-content-between">
             <h6>Total Payment</h6>
-            <h3 style={{ color: '#1A237E' }}>{booking?.booking?.totalAmount}</h3>
+            <h3 style={{ color: '#1A237E' }}>₹{booking?.booking?.totalAmount}</h3>
           </div>
         </div>
 

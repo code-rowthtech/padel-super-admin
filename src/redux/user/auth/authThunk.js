@@ -87,3 +87,17 @@ export const getAllUsers = createAsyncThunk(
     }
   }
 );
+
+export const getLogo = createAsyncThunk(
+  "auth/getLogo",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.get(`${Url.GET_LOGO}?ownerId=${data}`);
+      // showSuccess(res?.data?.message);
+      return res?.data;
+    } catch (error) {
+      // showError(error?.message);
+      return rejectWithValue(error);
+    }
+  }
+);

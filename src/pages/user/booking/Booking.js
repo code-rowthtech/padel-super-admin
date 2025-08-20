@@ -23,7 +23,7 @@ const Booking = ({
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
     const store = useSelector((state) => state)
     const clubData = store?.userClub?.clubData?.data?.courts[0]
-    console.log(slotData?.data?.[0], 'slotdatachecking');
+    const logo = useSelector((state) => state?.userAuth?.logo?.logo);
 
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -116,11 +116,12 @@ const Booking = ({
     const total = selectedCourts.reduce((sum, c) => sum + (c.price || 2000), 0);
     const isBookDisabled = selectedCourts?.length === 0 || selectedTimes?.length === 0;
 
-    const handleDelete = (index) => {
-        const updatedCourts = [...selectedCourts];
-        updatedCourts.splice(index, 1);
-        setSelectedCourts(updatedCourts);
-    };
+    // const handleDelete = (index) => {
+    //     const updatedCourts = [...selectedCourts];
+    //     updatedCourts.splice(index, 1);
+    //     setSelectedCourts(updatedCourts);
+
+    // };
 
 
 
@@ -180,7 +181,7 @@ const Booking = ({
                 courtId: selectedCourts[0]?._id,
             })
         );
-    }, [selectedCourts[0]?._id,selectedDate])
+    }, [selectedCourts[0]?._id, selectedDate])
 
     useEffect(() => {
         if (selectedCourts[0]?._id) {
@@ -193,7 +194,7 @@ const Booking = ({
             );
         }
 
-    }, [selectedDate,selectedCourts[0]?._id]);
+    }, [selectedDate, selectedCourts[0]?._id]);
 
     useEffect(() => {
         if (selectedButtonRef.current && scrollRef.current) {
@@ -432,7 +433,12 @@ const Booking = ({
                                             return (
                                                 <button
                                                     key={i}
-                                                    className="btn border-0 rounded-pill px-4"
+                                                    className={`btn border-0 rounded-pill  px-4 ${isBooked
+                                                        ? "bg-danger text-white"
+                                                        : isPast
+                                                            ? "bg-secondary-subtle"
+                                                            : ""
+                                                        }`}
                                                     onClick={() => !isPast && !isBooked && toggleTime(slot)}
                                                     disabled={isPast || isBooked || (selectedCourts[0]?.time?.length === 15 && !isSelected)}
                                                     style={{
@@ -446,6 +452,7 @@ const Booking = ({
                                                         cursor: (isPast || isBooked || (selectedCourts[0]?.time?.length ?? 0) === 15 && !isSelected) ? "not-allowed" : "pointer",
                                                         opacity: (isPast || isBooked || (selectedCourts[0]?.time?.length ?? 0) === 15 && !isSelected) ? 0.6 : 1,
                                                     }}
+
                                                 >
                                                     {isBooked ? "Booked" : slot?.time}
                                                 </button>
@@ -584,9 +591,12 @@ const Booking = ({
                         <div className="border rounded px-3 py-5  border-0 " style={{ backgroundColor: " #CBD6FF1A" }}>
                             <div className="text-center mb-3">
                                 <div className="d-flex justify-content-center " style={{ lineHeight: '90px' }}>
-                                    <Avatar>
-                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
-                                    </Avatar>
+                                    {logo?.logo ?
+                                        <Avatar src={logo?.logo} alt="User Profile" /> :
+                                        <Avatar>
+                                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                        </Avatar>
+                                    }
                                 </div>
                                 <p className=" mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
                                 <p className="small mb-0"> {clubData?.clubName}
@@ -616,13 +626,13 @@ const Booking = ({
                                                     </span>
                                                 </div>
                                                 <div className="col-7 d-flex justify-content-end gap-2">
-                                                    <button
+                                                    {/* <button
                                                         className="btn btn-sm text-danger delete-btn"
                                                         onClick={() => handleDelete(index)}
                                                     >
                                                         <i className="bi bi-trash-fill pt-1"></i>
-                                                    </button>
-                                                    <div className="d-flex justify-conent-end align-items-center" style={{ whiteSpace: "nowrap", overflowX: "auto" }}>
+                                                    </button> */}
+                                                    <div className="d-flex justify-conent-end align-items-center" >
                                                         <span className="mb-1">
                                                             {court.time.length > 0
                                                                 ? court.time.map((t, i) => (

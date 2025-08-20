@@ -6,6 +6,7 @@ import {
   getUser,
   getAllUsers,
   loginUserNumber,
+  getLogo,
 } from "./authThunk";
 import {
   setLoggedInUser,
@@ -17,7 +18,9 @@ const initialState = {
   user: getUserFromSession(),
   otp: null,
   error: null,
-  new:null
+  new: null,
+  logo: [],
+  logoLoading: false
 };
 
 const authSlice = createSlice({
@@ -50,13 +53,13 @@ const authSlice = createSlice({
         state.userAuthLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
-        console.log(action.payload,'responseresponse');
+        console.log(action.payload, 'responseresponse');
         const user = { ...response.user, token: response.token };
         setLoggedInUser(user);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.userAuthLoading = false;
-                console.log(action.payload,'responseresponse');
+        console.log(action.payload, 'responseresponse');
         state.error = action.payload;
       })
 
@@ -69,7 +72,7 @@ const authSlice = createSlice({
         state.userAuthLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
-        console.log({ response },action.payload, "auth Slice",response.token);
+        console.log({ response }, action.payload, "auth Slice", response.token);
         const user = { ...response.user, token: response.token };
         setLoggedInUser(user);
       })
@@ -85,7 +88,7 @@ const authSlice = createSlice({
       })
       .addCase(sendOtp.fulfilled, (state, action) => {
         state.userAuthLoading = false;
-        console.log(action,action.payload,'slice');
+        console.log(action, action.payload, 'slice');
         state.otp = action.payload;
       })
       .addCase(sendOtp.rejected, (state, action) => {
@@ -134,7 +137,22 @@ const authSlice = createSlice({
       .addCase(getAllUsers.rejected, (state, action) => {
         state.userAuthLoading = false;
         state.error = action.payload;
+      })
+
+      // Get All Users
+      .addCase(getLogo.pending, (state) => {
+        state.logoLoading = true;
+        state.error = null;
+      })
+      .addCase(getLogo.fulfilled, (state, action) => {
+        state.logoLoading = false;
+        state.logo = action.payload;
+      })
+      .addCase(getLogo.rejected, (state, action) => {
+        state.logoLoading = false;
+        state.error = action.payload;
       });
+
   },
 });
 

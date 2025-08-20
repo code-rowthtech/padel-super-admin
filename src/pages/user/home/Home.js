@@ -17,6 +17,7 @@ import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/c
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { formatDate } from '../../../helpers/Formatting';
 import { Avatar } from '@mui/material';
+import { getLogo } from '../../../redux/user/auth/authThunk';
 
 
 
@@ -36,7 +37,6 @@ const Home = () => {
     const getReviewData = store?.userClub?.getReviewData?.data
     const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
     const [loadedImages, setLoadedImages] = useState({});
-
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
@@ -53,6 +53,7 @@ const Home = () => {
     useEffect(() => {
         if (clubData && clubData._id) {
             localStorage.setItem("register_club_id", clubData._id);
+            dispatch(getLogo(clubData?.ownerId))
         }
     }, [clubData]);
 
