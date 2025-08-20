@@ -68,7 +68,9 @@ const Profile = () => {
     payload.append("name", formData.fullName);
     payload.append("email", formData.email);
     payload.append("phoneNumber", formData.phone);
-    payload.append("dob", formData.dob);
+    if (formData.dob) {
+      payload.append("dob", formData.dob);
+    }
 
     // payload.append("location", formData.location);
     payload.append("location[coordinates][0]", "50.90");
