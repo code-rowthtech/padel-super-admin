@@ -22,6 +22,7 @@ import { Link } from "react-router-dom";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
+import { format } from "date-fns";
 
 const Payments = () => {
   const [startDate, setStartDate] = useState(null);
@@ -242,7 +243,7 @@ const Payments = () => {
                           <th>Booking Type</th>
                           <th>Court Name</th>
                           <th>Booking Amount</th>
-                          <th>Booking Date</th>
+                          <th>Date/Time</th>
                           <th>Action</th>
                         </tr>
                       </thead>
@@ -266,7 +267,10 @@ const Payments = () => {
                               ₹{item?.totalAmount}
                             </td>
                             <td className="table-data border-bottom">
-                              {formatDate(item?.bookingDate)}
+                              {format(
+                                new Date(item?.createdAt),
+                                "dd/MM/yyyy | hh:mm a"
+                              )}
                             </td>
                             <td
                               className="table-data border-bottom"

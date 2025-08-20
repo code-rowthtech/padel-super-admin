@@ -388,7 +388,6 @@ h1.display-5 {
   grid-area: img10;
 }
 
-
 .full-screen-lightbox {
   position: fixed !important;
   top: 0 !important;
@@ -420,4 +419,33 @@ h1.display-5 {
 
 .image-loader {
   background: linear-gradient(180deg, #181818 0%, #282828 100%);
+}
+
+/* =======-Image hoveer effect for table  */
+.img-container {
+  position: relative;
+  display: inline-block;
+}
+
+.preview {
+  display: none;
+  position: absolute;
+  top: -10px;
+  left: 60px;
+  z-index: 999;
+  border: 2px solid #ddd;
+  background: #fff;
+  padding: 5px;
+  border-radius: 8px;
+}
+
+.preview img {
+  width: 150px; /* Big size preview */
+  height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.img-container:hover .preview {
+  display: block;
 }

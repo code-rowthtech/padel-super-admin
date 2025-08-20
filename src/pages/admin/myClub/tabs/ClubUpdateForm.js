@@ -58,10 +58,15 @@ const getInitialFormState = (details = {}) => {
   }, {});
 
   const businessHours = { ...defaultBusinessHoursTemplate };
-  (details?.businessHours || []).forEach(({ day, time }) => {
+
+  (details?.businessHours || []).forEach(({ day, time, _id }) => {
     if (!day || !time) return;
+
     const [start, end] = time.split(" - ").map((s) => s?.trim() || "");
-    if (businessHours[day]) businessHours[day] = { start, end };
+
+    if (businessHours[day]) {
+      businessHours[day] = { start, end, _id };
+    }
   });
 
   return {
@@ -344,7 +349,9 @@ const ClubUpdateForm = () => {
     setFormData((prev) => {
       const updatedHours = {};
       Object.keys(prev.businessHours).forEach((d) => {
+        const existing = prev.businessHours[d] || {};
         updatedHours[d] = {
+          _id: existing._id || undefined, // keep the existing _id if present
           start: referenceHours.start,
           end: referenceHours.end,
         };
@@ -489,15 +496,20 @@ const ClubUpdateForm = () => {
         if (value) apiFormData.append("features", key);
       });
 
-      apiFormData.append(
-        "businessHours",
-        JSON.stringify(
-          Object.entries(formData.businessHours).map(([day, times]) => ({
-            time: `${times.start} - ${times.end}`,
-            day,
-          }))
-        )
-      );
+      if (
+        formData.businessHours &&
+        typeof formData.businessHours === "object"
+      ) {
+        Object.values(formData.businessHours).forEach((hour, index) => {
+          console.log({ hour });
+          apiFormData.append(
+            `businessHoursUpdates[${index}][time]`,
+            `${hour.start} - ${hour.end}`
+          );
+          apiFormData.append(`businessHoursUpdates[${index}][_id]`, hour?._id);
+        });
+      }
+
       // Only append new images (files) to the form data
       previewImages.forEach((image, index) => {
         if (!image.isRemote && image.file) {

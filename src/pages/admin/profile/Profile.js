@@ -207,9 +207,11 @@ const Profile = () => {
               value={formData.phone}
               onChange={(e) => {
                 const value = e.target.value;
-                // Allow only digits and max 10 characters
                 if (/^\d{0,10}$/.test(value)) {
-                  setFormData((prev) => ({ ...prev, phone: value }));
+                  // If not empty, check if first digit is between 6–9
+                  if (value === "" || /^[6-9]/.test(value)) {
+                    setFormData((prev) => ({ ...prev, phone: value }));
+                  }
                 }
               }}
               className="form-control"
