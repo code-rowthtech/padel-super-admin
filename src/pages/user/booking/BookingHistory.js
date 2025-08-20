@@ -61,6 +61,8 @@ const BookingHistory = () => {
             type = "";
         } else if (newValue === "cancelled") {
             type = "cancelled";
+        }else if (newValue === "requested") {
+            type = "in-progress";
         } else if (newValue === "upcoming") {
             type = "upcoming";
         } else if (newValue === "completed") {
@@ -80,6 +82,8 @@ const BookingHistory = () => {
         let type = "";
         if (activeTab === "cancelled") {
             type = "cancelled";
+        }else if (activeTab === "requested") {
+            type = "in-progress";
         } else if (activeTab === "upcoming") {
             type = "upcoming";
         } else if (activeTab === "completed") {
@@ -111,14 +115,14 @@ const BookingHistory = () => {
             dispatch(getReviewClub(club_id));
         }
     }, [User?.token, club_id]);
-
+console.log(getBookingData,'getBookingDatagetBookingData');
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
         const status = booking?.bookingStatus;
 
         // Status filter
         let statusMatch = false;
         if (selectedOption === "Rejected") {
-            statusMatch = ["in-progress", "rejected"].includes(status);
+            statusMatch = [ "rejected"].includes(status);
         } else if (selectedOption === "Accepted") {
             statusMatch = ["refunded"].includes(status);
         } else if (selectedOption === "All") {
@@ -176,7 +180,7 @@ const BookingHistory = () => {
                         aria-label="booking history tabs"
                         TabIndicatorProps={{ style: { display: 'none' } }}
                     >
-                        {['all', 'upcoming', 'cancelled', 'completed'].map((tab, i) => (
+                        {['all', 'upcoming','requested' ,'cancelled', 'completed'].map((tab, i) => (
                             <Tab
                                 key={tab}
                                 label={tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -384,7 +388,7 @@ const BookingHistory = () => {
                                         {activeTab === 'cancelled' && (
                                             <td
                                                 style={{
-                                                    color: booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected'
+                                                    color:  booking?.bookingStatus === 'rejected'
                                                         ? "red"
                                                         : "green",
                                                     fontSize: "16px",
@@ -392,11 +396,11 @@ const BookingHistory = () => {
                                                     fontWeight: "500"
                                                 }}
                                             >
-                                                {booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected' ? "Rejected" : "Accepted"}
+                                                { booking?.bookingStatus === 'rejected' ? "Rejected" : "Accepted"}
                                             </td>
                                         )}
                                         <td className="text-center">
-                                            {activeTab === 'cancelled' || activeTab === 'completed' ? (
+                                            {activeTab === 'cancelled' || activeTab === 'completed'  ? (
                                                 ''
                                             ) : booking?.cancellationReason ? (
                                                 <span
@@ -430,7 +434,7 @@ const BookingHistory = () => {
                                                     if (activeTab === "cancelled") {
                                                         setAcceptedRejected(true);
                                                         setStatusData({ booking: booking, slotItem: slotItem });
-                                                    } else if (["all", "upcoming"].includes(activeTab)) {
+                                                    } else if (["all", "requested"].includes(activeTab)) {
                                                         setModalCancel(true);
                                                         setCourtData({ slotItem: slotItem, booking: booking });
                                                     } else if (activeTab === "completed") {
