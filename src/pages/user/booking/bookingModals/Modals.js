@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { bookingStatus, getBooking } from '../../../../redux/user/booking/thunk';
 import { ButtonLoading } from '../../../../helpers/loading/Loaders';
 import { getUserFromSession } from '../../../../helpers/api/apiCore';
+import { Avatar } from '@mui/material';
 
 export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
@@ -52,7 +53,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
     }
     if (activeTab === "upcoming" && User?.token) {
       dispatch(getBooking({ type: "upcoming" }));
-    } else if(User?.token) {
+    } else if (User?.token) {
       dispatch(getBooking());
     }
   }, [bookingStatusData?.bookingStatusData?.status])
@@ -81,14 +82,17 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
           )}
 
           <div className="rounded-3 border mb-4" style={{ backgroundColor: '#CBD6FF1A' }}>
-            <div className="d-flex justify-content-start ps-2 pt-2 gap-2 align-items-center">
-              <img
+            <div className="d-flex  ps-2 pt-2 gap-2 align-items-center">
+              {/* <img
                 src={logo}
                 className="rounded-circle shadow"
                 style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                 alt="Club Logo"
-              />
-              <p>Your slots are successfully booked.</p>
+              /> */}
+              <Avatar>
+                {/* {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"} */}
+              </Avatar>
+              <p className='mt-3'>Your slots are successfully booked.</p>
             </div>
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-start p-2 ps-3">
