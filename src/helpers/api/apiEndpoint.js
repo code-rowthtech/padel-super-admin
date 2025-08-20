@@ -13,7 +13,6 @@ export const BOOKING_STATUS_CHANGE = "/api/booking/updateBookingStatus";
 export const ADD_REVIEW_CLUB = "/api/review/saveCustomerReview";
 export const GET_REVIEW_CLUB = "/api/review/getownerClubReview";
 export const CREATE_MATCHES = "/api/openmatch/createOpenMatch";
-export const GET_LOGO = "/api/logo/getLogo"
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 //-----------------------------------------------A_U_T_H----------------------------------------------//
