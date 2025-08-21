@@ -1,5 +1,12 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Button, Col, Container, Row } from "react-bootstrap";
+import {
+  Button,
+  Col,
+  Container,
+  OverlayTrigger,
+  Row,
+  Tooltip,
+} from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import { FaArrowLeft, FaShoppingCart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -432,8 +439,7 @@ const ManualBooking = () => {
                   ) : (
                     <>
                       {slotTimes?.map((slot, i) => {
-                        // Build slotDate using selected date instead of always today
-                        const slotDate = new Date(selectedDate); // 👈 use selected date
+                        const slotDate = new Date(selectedDate);
                         const [hourString, period] = slot?.time
                           ?.toLowerCase()
                           .split(" ");
@@ -444,11 +450,8 @@ const ManualBooking = () => {
                         slotDate.setHours(hour, 0, 0, 0);
 
                         const now = new Date();
-
-                        // Only mark as past if selectedDate is today
                         const isSameDay =
                           slotDate.toDateString() === now.toDateString();
-
                         const isPast =
                           isSameDay && slotDate.getTime() < now.getTime();
 
@@ -458,37 +461,50 @@ const ManualBooking = () => {
                         const isBooked = slot?.status === "booked";
                         const isAvailable =
                           slot?.availabilityStatus === "available";
+                        const hasAmount = slot?.amount && slot?.amount !== 0;
+
+                        // ✅ Decide tooltip text
+                        let tooltipText = "";
+                        if (!hasAmount) tooltipText = "Amount not available";
+                        else if (isBooked) tooltipText = "Booked";
+                        else if (isPast)
+                          tooltipText = "Cannot book slot in past hours";
+                        else if (!isAvailable) tooltipText = "Unavailable";
+                        else tooltipText = "Book Now";
 
                         return (
-                          <button
+                          <OverlayTrigger
                             key={i}
-                            className={`btn border-0 rounded-pill table-data px-4 ${
-                              isBooked
-                                ? "bg-danger text-white"
-                                : isPast
-                                ? "bg-secondary-subtle"
-                                : !isAvailable
-                                ? "bg-warning-subtle"
-                                : ""
-                            }`}
-                            onClick={() => toggleTime(slot)}
-                            title={`${
-                              isBooked
-                                ? "Booked"
-                                : isPast
-                                ? "Cannot book slot in past hours"
-                                : "Book Now"
-                            }`}
-                            disabled={isPast || isBooked}
-                            style={{
-                              backgroundColor: isSelected
-                                ? "#374151"
-                                : "#CBD6FF1A",
-                              color: isSelected ? "white" : "#000000",
-                            }}
+                            placement="top"
+                            overlay={<Tooltip>{tooltipText}</Tooltip>}
                           >
-                            {isBooked ? "Booked" : slot?.time}
-                          </button>
+                            <span className="d-inline-block">
+                              <button
+                                className={`btn border-0 rounded-pill table-data px-4 ${
+                                  isBooked
+                                    ? "bg-danger text-white"
+                                    : isPast
+                                    ? "bg-secondary-subtle"
+                                    : !isAvailable || !hasAmount
+                                    ? "bg-warning-subtle"
+                                    : ""
+                                }`}
+                                onClick={() => toggleTime(slot)}
+                                disabled={isPast || isBooked || !hasAmount}
+                                style={{
+                                  backgroundColor: isSelected
+                                    ? "#374151"
+                                    : "#7df97a3d",
+                                  color: isSelected ? "white" : "#000000",
+                                  cursor: !hasAmount
+                                    ? "not-allowed"
+                                    : "pointer",
+                                }}
+                              >
+                                {isBooked ? "Booked" : slot?.time}
+                              </button>
+                            </span>
+                          </OverlayTrigger>
                         );
                       })}
                     </>
@@ -635,8 +651,12 @@ const ManualBooking = () => {
                     Cancel
                   </button>
                   <button
-                    className="btn btn-success rounded-pill px-4 py-2"
-                    style={{ minWidth: "120px", fontWeight: "500" }}
+                    className="btn text-white rounded-pill px-4 py-2"
+                    style={{
+                      minWidth: "120px",
+                      fontWeight: "500",
+                      backgroundColor: "#22c55e",
+                    }}
                     onClick={handleConfirm}
                   >
                     {manualBookingLoading ? (

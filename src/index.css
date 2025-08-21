@@ -262,7 +262,7 @@ h1.display-5 {
 
 .custom-table thead th {
   background-color: #d0d6ea;
-  font-weight: 400;
+  font-weight: 700;
   text-align: center;
   padding: 0.45rem 0.7rem;
 }
@@ -270,6 +270,7 @@ h1.display-5 {
 .custom-table td {
   padding: 0.7rem 1rem !important;
   text-align: center;
+  font-weight: 500;
   vertical-align: middle;
 }
 
@@ -449,7 +450,6 @@ h1.display-5 {
 .img-container:hover .preview {
   display: block;
 }
-
 
 .animated-image {
   animation: scaleAnimation 2s infinite ease-in-out;

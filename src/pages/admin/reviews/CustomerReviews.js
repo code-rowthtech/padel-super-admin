@@ -6,8 +6,11 @@ import {
   getReviewsForOwner,
 } from "../../../redux/thunks";
 import { useSelector, useDispatch } from "react-redux";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 const CustomerReviews = () => {
   const dispatch = useDispatch();
+  const Owner = getOwnerFromSession();
+  const ownerId = Owner?.generatedBy || Owner?._id;
   const { reviewData } = useSelector((state) => state?.reviews);
   const reviews = [
     {
@@ -77,7 +80,7 @@ const CustomerReviews = () => {
   };
 
   useEffect(() => {
-    dispatch(getOwnerRegisteredClub())
+    dispatch(getOwnerRegisteredClub({ ownerId }))
       .unwrap()
       .then((res) => {
         dispatch(getReviewsForOwner({ clubId: res?.[0]?._id }));

@@ -118,6 +118,9 @@ const Payments = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
+  const renderSlotTimes = (slotTimes) =>
+    slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
     <Container fluid className=" px-4">
       <h3 className="fw-bold">Payment</h3>
@@ -240,9 +243,10 @@ const Payments = () => {
                         <tr>
                           <th>User</th>
                           <th>Contact</th>
-                          <th>Booking Type</th>
-                          <th>Court Name</th>
-                          <th>Booking Amount</th>
+                          <th>Booking</th>
+                          <th>Slot</th>
+                          <th>Court</th>
+                          <th>Amount</th>
                           <th>Date/Time</th>
                           <th>Action</th>
                         </tr>
@@ -250,15 +254,25 @@ const Payments = () => {
                       <tbody>
                         {payments?.map((item, index) => (
                           <tr key={index}>
-                            <td className="table-data border-bottom">
-                              {item?.userId?.name || "N/A"}
+                            <td>
+                              {item?.userId?.name
+                                .slice(0, 1)
+                                .toUpperCase()
+                                .concat(item?.userId?.name.slice(1)) || "N/A"}
                             </td>
                             <td className="table-data border-bottom">
                               {item?.userId?.countryCode || ""}
                               {item?.userId?.phoneNumber || "N/A"}
                             </td>
-                            <td className="table-data border-bottom">
-                              {item?.bookingType || "-"}
+                            <td>
+                              {item?.bookingType
+                                .slice(0, 1)
+                                .toUpperCase()
+                                .concat(item?.bookingType.slice(1)) || "-"}
+                            </td>
+                            <td>
+                              {item?.slot[0]?.businessHours?.[0]?.day || ""}{" "}
+                              {renderSlotTimes(item?.slot[0]?.slotTimes)}
                             </td>
                             <td className="table-data border-bottom">
                               {item?.slot[0]?.courtName || "-"}
