@@ -15,6 +15,7 @@ import {
   getOwnerRegisteredClub,
   getActiveCourts,
   manualBookingByOwner,
+  getBookingDetailsById,
 } from "../../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -217,7 +218,13 @@ const ManualBooking = () => {
         ownerId: Owner?._id,
       };
       // Dispatch the API call
-      await dispatch(manualBookingByOwner(payload)).unwrap();
+      await dispatch(manualBookingByOwner(payload))
+        .unwrap()
+        .then((res) => {
+          console.log({ res });
+          const id = res?.data?.[0]?._id;
+          dispatch(getBookingDetailsById({ id }));
+        });
 
       // On success
       setShowSuccess(true);
@@ -229,6 +236,9 @@ const ManualBooking = () => {
       console.log("Booking failed:", error);
     }
   };
+
+  const { getBookingDetailsData } = useSelector((state) => state.booking);
+  const bookingDetails = getBookingDetailsData?.booking || {};
 
   return (
     <>
@@ -681,6 +691,7 @@ const ManualBooking = () => {
                   <BookingDetailsModal
                     show={showDetails}
                     handleClose={() => setShowDetails(false)}
+                    bookingDetails={bookingDetails}
                   />
                 </div>
               </div>

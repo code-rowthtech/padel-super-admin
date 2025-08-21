@@ -466,3 +466,25 @@ h1.display-5 {
     transform: scale(0.8); /* फिर वापस छोटा */
   }
 }
+
+/* booking details modal image */
+.animated-img {
+  animation: bounceIn 1.2s ease;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
