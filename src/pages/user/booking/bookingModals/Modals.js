@@ -337,8 +337,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
 };
 
 export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, selectedReason, otherReason }) => {
-  const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
-
+console.log(booking,'muskan0');
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">

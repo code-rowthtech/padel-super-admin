@@ -189,6 +189,7 @@ const Navbar = () => {
                                         onClick={() => {
                                             dispatch(logoutUser());
                                             localStorage.removeItem('padel_user');
+                                            localStorage.removeItem('logo');
                                             setUserData(null);
                                             navigate('/home');
                                         }}

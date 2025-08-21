@@ -315,21 +315,7 @@ const BookingHistory = () => {
                                 </td>
                             </tr>
                         </tbody>
-                    ) : getBookingData?.bookingData?.data?.length === 0 ? (
-                        <tbody>
-                            <tr>
-                                <td
-                                    colSpan={8}
-                                    className="text-center"
-                                    style={{ height: "60vh", verticalAlign: "middle" }}
-                                >
-                                    <p className="table-data text-danger">
-                                        No bookings found.
-                                    </p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    ) : getBookingData?.bookingData?.data?.length > 0 ? (
+                    ) : filterStatus?.length > 0 ? (
                         <tbody className="border">
                             {filterStatus?.map((booking, i) =>
                                 booking?.slot?.map((slotItem, index) => (
@@ -423,7 +409,7 @@ const BookingHistory = () => {
                                         )}
                                         {activeTab === "completed" && (
                                             <td>
-                                                {console.log(booking, 'bookingbookingbooking')}
+                                                {console.log(booking, "bookingbookingbooking")}
                                                 <span>
                                                     {booking?.customerReview?.reviewComment
                                                         ? booking?.customerReview?.reviewComment.charAt(0).toUpperCase() +
@@ -531,8 +517,13 @@ const BookingHistory = () => {
                                                 className="text-muted ms-2"
                                                 onClick={() => {
                                                     if (activeTab === "cancelled") {
-                                                        setAcceptedRejected(true);
-                                                        setStatusData({ booking, slotItem });
+                                                        if (booking?.bookingStatus === "in-progress") {
+                                                            setModalCancel(true);
+                                                            setCourtData({ slotItem, booking });
+                                                        } else {
+                                                            setAcceptedRejected(true);
+                                                            setStatusData({ booking, slotItem });
+                                                        }
                                                     } else if (["all", "upcoming"].includes(activeTab)) {
                                                         if (
                                                             booking?.bookingStatus === "refunded" ||
@@ -572,9 +563,7 @@ const BookingHistory = () => {
                                     className="text-center"
                                     style={{ height: "60vh", verticalAlign: "middle" }}
                                 >
-                                    <p className="table-data text-danger">
-                                        No bookings found.
-                                    </p>
+                                    <p className="table-data text-danger">No bookings found.</p>
                                 </td>
                             </tr>
                         </tbody>

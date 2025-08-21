@@ -7,7 +7,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import StarIcon from '@mui/icons-material/Star';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import { Link, useNavigate } from 'react-router-dom';
@@ -484,12 +484,17 @@ const Home = () => {
                                                     />
                                                     <div>
                                                         <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500" }}>{review?.userId?.name || review?.userId?.email}</h6>
-                                                        <div className="text-success mb-2">
-                                                            {[...Array(4)].map((_, i) => (
-                                                                <FaStar key={i} size={14} />
+                                                        <div className=" mb-2">
+                                                            {[...Array(Math.floor(review?.reviewRating || 0))].map((_, i) => (
+                                                                <StarIcon key={i} size={14} style={{ color: "#32B768" }}  />
                                                             ))}
-                                                            <FaStar size={14} style={{ opacity: 0.3 }} />
-                                                            <span className="ms-1">{review?.reviewRating}</span>
+                                                            {review?.reviewRating % 1 !== 0 && review?.reviewRating <= 5 && (
+                                                                <StarHalfIcon key="half" size={14} style={{ color: "#32B768" }}  />
+                                                            )}
+                                                            {[...Array(Math.floor(5 - (review?.reviewRating || 0)))].map((_, i) => (
+                                                                <StarBorderIcon key={`empty-${i}`} size={14} style={{color:'#ccc' }} />
+                                                            ))}
+                                                            <span className="ms-1 pt-3">{review?.reviewRating || 0}</span>
                                                         </div>
                                                         <p className="mb-0 text-muted" style={{ maxWidth: "700px" }}>
                                                             {review?.reviewComment}
