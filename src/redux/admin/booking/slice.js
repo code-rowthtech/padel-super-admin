@@ -77,7 +77,6 @@ const BookingSlice = createSlice({
       state.updateBookingError = null;
     });
     builder.addCase(updateBookingStatus.fulfilled, (state, action) => {
-      console.log({ action, state });
       state.updateBookingLoading = false;
       state.updateBookingData = action.payload;
       state.updateBookingError = null;

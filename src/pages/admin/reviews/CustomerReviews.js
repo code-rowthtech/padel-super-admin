@@ -17,7 +17,6 @@ const CustomerReviews = () => {
   const { reviewsData, reviewsLoading } = useSelector(
     (state) => state?.reviews
   );
-  console.log({ reviewsData });
 
   // Rating distribution data
   const ratingDistribution = [

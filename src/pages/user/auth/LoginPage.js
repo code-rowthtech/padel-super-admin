@@ -12,7 +12,6 @@ const LoginPage = () => {
     const { error, user, otp, userAuthLoading } = useSelector((state) => state?.userAuth)
     const [showAlert, setShowAlert] = useState(false);
     const store = useSelector((state) => state?.userAuth)
-    console.log(store, '============================');
     const navigate = useNavigate();
     const dispatch = useDispatch()
 

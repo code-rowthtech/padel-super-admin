@@ -34,7 +34,6 @@ const ForgotPassword = () => {
       navigate('/admin/verify-otp', { state: { email } });
     } catch (error) {
       setApiError(error || 'Failed to send verification code. Please try again.');
-      console.log('Forgot Password Error:', error);
     }
   };
 

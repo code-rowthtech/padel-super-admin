@@ -501,7 +501,6 @@ const ClubUpdateForm = () => {
         typeof formData.businessHours === "object"
       ) {
         Object.values(formData.businessHours).forEach((hour, index) => {
-          console.log({ hour });
           apiFormData.append(
             `businessHoursUpdates[${index}][time]`,
             `${hour.start} - ${hour.end}`

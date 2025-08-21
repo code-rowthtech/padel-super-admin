@@ -16,7 +16,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
     const wrapperRef = useRef(null);
     const navigate = useNavigate()
     const user = getUserFromSession()
-    console.log(user,'pankajuser');
     // Close on outside click
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {

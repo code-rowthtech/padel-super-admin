@@ -18,7 +18,6 @@ export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initia
     const store = useSelector((state) => state);
     const getReviewData = store?.userClub?.getReviewData?.data;
     const addReviewLoading = store?.userClub?.reviewLoading;
-console.log({tableData});
     useEffect(() => {
         if (show) {
             if (reviewData) {

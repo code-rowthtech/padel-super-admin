@@ -221,7 +221,6 @@ const ManualBooking = () => {
       await dispatch(manualBookingByOwner(payload))
         .unwrap()
         .then((res) => {
-          console.log({ res });
           const id = res?.data?.[0]?._id;
           dispatch(getBookingDetailsById({ id }));
         });

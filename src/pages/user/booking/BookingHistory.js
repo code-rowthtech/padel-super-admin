@@ -66,7 +66,7 @@ const BookingHistory = () => {
     const handleChange = (event, newValue) => {
         setActiveTab(newValue);
         setCurrentPage(1);
-        setSearchDate(null); // Reset search date when switching tabs (optional, can be removed if you want to keep it)
+        setSearchDate(null); 
         dispatch(resetBooking());
         let type = "";
         if (newValue === "all") type = "";
@@ -113,21 +113,19 @@ const BookingHistory = () => {
         const status = booking?.bookingStatus;
         let statusMatch = false;
 
-        // Status matching based on active tab
         if (activeTab === "cancelled") {
             if (selectedOption === "Rejected") statusMatch = ["rejected"].includes(status);
             else if (selectedOption === "Accepted") statusMatch = ["refunded"].includes(status);
             else if (selectedOption === "Requested") statusMatch = ["in-progress"].includes(status);
             else if (selectedOption === "All") statusMatch = true;
         } else if (activeTab === "upcoming") {
-            statusMatch = status === "upcoming" || true; // Include all if no specific filter
+            statusMatch = status === "upcoming" || true; 
         } else if (activeTab === "completed") {
-            statusMatch = status === "confirmed" || true; // Include all if no specific filter
+            statusMatch = status === "confirmed" || true; 
         } else {
-            statusMatch = true; // 'all' tab includes all statuses
+            statusMatch = true; 
         }
 
-        // Date filtering (works across all tabs)
         let dateMatch = true;
         if (searchDate) {
             dateMatch = booking?.slot?.some((slotItem) => {
@@ -136,7 +134,6 @@ const BookingHistory = () => {
             });
         }
 
-        // Court name filtering (works across all tabs)
         let courtMatch = true;
         if (searchText.trim() !== "") {
             courtMatch = booking?.slot?.some((slotItem) =>
@@ -409,7 +406,6 @@ const BookingHistory = () => {
                                         )}
                                         {activeTab === "completed" && (
                                             <td>
-                                                {console.log(booking, "bookingbookingbooking")}
                                                 <span>
                                                     {booking?.customerReview?.reviewComment
                                                         ? booking?.customerReview?.reviewComment.charAt(0).toUpperCase() +
