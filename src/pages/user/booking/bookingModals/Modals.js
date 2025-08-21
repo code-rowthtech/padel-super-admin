@@ -21,7 +21,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const logo = JSON.parse(localStorage.getItem("logo"));
 
   const User = getUserFromSession()
-  console.log({ bookingStatusData });
+  console.log('bokingmodal',booking);
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
@@ -184,7 +184,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 Submit
               </Button>
             ) : (
-              tableData?.booking?.cancellationReason ? '' :
+              tableData?.booking?.cancellationReason || tableData?.booking?.customerReview?._id ? '' :
                 <Button
                   style={{ backgroundColor: '#3DBE64', fontWeight: '500', fontSize: '17px', border: '0' }}
                   onClick={() => setChangeContent(true)}

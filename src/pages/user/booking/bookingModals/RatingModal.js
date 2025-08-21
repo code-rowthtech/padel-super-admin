@@ -8,6 +8,7 @@ import StarIcon from "@mui/icons-material/Star";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { formatDate } from "../../../../helpers/Formatting";
+import { getBooking } from "../../../../redux/user/booking/thunk";
 
 export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initialRating, defaultMessage }) => {
     const [rating, setRating] = useState(0);
@@ -44,7 +45,7 @@ console.log({tableData});
                 setRating(0);
                 setReview("");
                 onHide();
-                dispatch(getReviewClub(club_id));
+                dispatch(getBooking({type:"completed"}));
             });
     };
 
@@ -189,7 +190,7 @@ console.log({tableData});
                 <img
                     src={modalSuccess}
                     alt="Success"
-                    className="mb-3"
+                    className="mb-3 animated-image"
                     style={{ width: "200px", marginBottom: "20px" }}
                 />
 

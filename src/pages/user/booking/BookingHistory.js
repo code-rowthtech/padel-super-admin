@@ -386,7 +386,7 @@ const BookingHistory = () => {
                                             <td className="text-center">
                                                 {[1, 2, 3, 4, 5].map((star) => {
                                                     const averageRating =
-                                                        getReviewData?.averageRating || 0;
+                                                        booking?.customerReview?.reviewRating || 0;
                                                     let iconClass = "bi-star";
                                                     if (star <= Math.floor(averageRating))
                                                         iconClass = "bi-star-fill";
@@ -415,32 +415,19 @@ const BookingHistory = () => {
                                                         fontFamily: "Poppins",
                                                     }}
                                                 >
-                                                    {getReviewData?.averageRating?.toFixed(1) ||
+                                                    {booking?.customerReview?.reviewRating?.toFixed(1) ||
                                                         "0.0"}{" "}
-                                                    {getRatingLabel(getReviewData?.averageRating)}
+                                                    {getRatingLabel(booking?.customerReview?.reviewRating)}
                                                 </span>
                                             </td>
                                         )}
                                         {activeTab === "completed" && (
                                             <td>
+                                                {console.log(booking, 'bookingbookingbooking')}
                                                 <span>
-                                                    {getReviewData?.reviews &&
-                                                        getReviewData.reviews.length > 0
-                                                        ? getReviewData.reviews[
-                                                            getReviewData.reviews
-                                                                .length - 1
-                                                        ].reviewComment
-                                                            ? getReviewData.reviews[
-                                                                getReviewData.reviews
-                                                                    .length - 1
-                                                            ].reviewComment.charAt(
-                                                                0
-                                                            ).toUpperCase() +
-                                                            getReviewData.reviews[
-                                                                getReviewData.reviews
-                                                                    .length - 1
-                                                            ].reviewComment.slice(1)
-                                                            : "No Message"
+                                                    {booking?.customerReview?.reviewComment
+                                                        ? booking?.customerReview?.reviewComment.charAt(0).toUpperCase() +
+                                                        booking?.customerReview?.reviewComment.slice(1)
                                                         : "No Message"}
                                                 </span>
                                             </td>
@@ -504,6 +491,17 @@ const BookingHistory = () => {
                                                 >
                                                     Accepted
                                                 </span>
+                                            ) : booking?.customerReview?._id ? (
+                                                <span
+                                                    style={{
+                                                        color: "green",
+                                                        fontSize: "12px",
+                                                        fontWeight: "500",
+                                                        fontFamily: "Poppins",
+                                                    }}
+                                                >
+                                                    Completed
+                                                </span>
                                             ) : booking?.bookingStatus === "rejected" ? (
                                                 <span
                                                     style={{
@@ -542,6 +540,9 @@ const BookingHistory = () => {
                                                         ) {
                                                             setAcceptedRejected(true);
                                                             setStatusData({ booking, slotItem });
+                                                        } else if (booking?.customerReview?._id) {
+                                                            setModalCancel(true);
+                                                            setCourtData({ slotItem, booking });
                                                         } else {
                                                             setModalCancel(true);
                                                             setCourtData({ slotItem, booking });
@@ -549,6 +550,11 @@ const BookingHistory = () => {
                                                     } else if (activeTab === "completed") {
                                                         setShowRatingModal(true);
                                                         setStatusData({ booking, slotItem });
+                                                    } else if (activeTab === "all") {
+                                                        if (booking?.customerReview?._id) {
+                                                            setModalCancel(true);
+                                                            setCourtData({ slotItem, booking });
+                                                        }
                                                     }
                                                 }}
                                                 style={{ cursor: "pointer" }}
