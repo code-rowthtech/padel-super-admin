@@ -41,7 +41,7 @@ export const getBookingByStatus = createAsyncThunk(
       const errorMessage =
         error?.response?.data?.message || ERROR_MESSAGES.NETWORK_ERROR;
       // showError(error);
-      return rejectWithValue(errorMessage);
+      // return rejectWithValue(errorMessage);
     }
   }
 );
@@ -65,7 +65,7 @@ export const getBookingDetailsById = createAsyncThunk(
       const errorMessage =
         error?.response?.data?.message || ERROR_MESSAGES.NETWORK_ERROR;
       showError(error);
-      return rejectWithValue(errorMessage);
+      // return rejectWithValue(errorMessage);
     }
   }
 );
@@ -79,7 +79,7 @@ export const updateBookingStatus = createAsyncThunk(
       return res?.data;
     } catch (error) {
       showError(error?.message);
-      return rejectWithValue(error);
+      // return rejectWithValue(error);
     }
   }
 );

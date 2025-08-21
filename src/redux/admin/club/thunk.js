@@ -17,7 +17,7 @@ export const registerClub = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      return rejectWithValue(error?.response?.data?.message || "Network error");
+      // return rejectWithValue(error?.response?.data?.message || "Network error");
     }
   }
 );
@@ -41,7 +41,7 @@ export const getSlots = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      return rejectWithValue(error?.response?.data?.message || "Network error");
+      // return rejectWithValue(error?.response?.data?.message || "Network error");
     }
   }
 );
@@ -59,7 +59,7 @@ export const updateRegisteredClub = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      return rejectWithValue(error?.response?.data?.message || "Network error");
+      // return rejectWithValue(error);
     }
   }
 );
@@ -78,7 +78,7 @@ export const createSlot = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      return rejectWithValue(error?.response?.data?.message || "Network error");
+      // return rejectWithValue(error);
     }
   }
 );
@@ -97,7 +97,7 @@ export const updatePrice = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      return rejectWithValue(error?.response?.data?.message || "Network error");
+      // return rejectWithValue(error);
     }
   }
 );

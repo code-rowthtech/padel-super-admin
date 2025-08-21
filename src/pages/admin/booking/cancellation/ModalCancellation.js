@@ -32,7 +32,7 @@ export const BookingCancellationModal = ({
 
       <div className="text-center">
         <h2
-          className="tabel-title py-4"
+          className="tabel-title py-2"
           style={{ fontFamily: "Poppins", fontWeight: "600" }}
         >
           {" "}
@@ -93,7 +93,10 @@ export const BookingCancellationModal = ({
                 fontFamily: "Poppins",
               }}
             >
-              {bookingDetails?.userId?.name || "N/A"}
+              {bookingDetails?.userId?.name
+                ?.slice(0, 1)
+                ?.toUpperCase()
+                ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
             </p>
             <p
               className="fw-bold mb-1"
@@ -123,6 +126,7 @@ export const BookingCancellationModal = ({
                 fontFamily: "Poppins",
               }}
             >
+              {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
               {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
             </p>
           </div>
@@ -246,216 +250,292 @@ export const BookingRefundModal = ({
   handleClose,
   onRefundSuccess,
   bookingDetails,
-}) => (
-  <Modal
-    show={show}
-    onHide={handleClose}
-    className="h-100"
-    centered
-    backdrop="static"
-  >
-    <Modal.Body className="text-center p-4 position-relative">
-      <button
-        onClick={handleClose}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "20px",
-          background: "none",
-          border: "none",
-          fontSize: "24px",
-          cursor: "pointer",
-          color: "red",
-        }}
-      >
-        ×
-      </button>
+  loading,
+}) => {
+  const [refundAmount, setRefundAmount] = useState("");
+  const [amountError, setAmountError] = useState("");
 
-      <div className="text-center">
-        <h2
-          className="tabel-title py-4"
-          style={{ fontFamily: "Poppins", fontWeight: "600" }}
-        >
-          {" "}
-          Cancellation Request
-        </h2>
-        <img
-          src={modalSuccess}
-          alt="Details"
-          className="mt-3"
-          style={{ width: "250px", marginBottom: "20px" }}
-        />
-        <h2
-          className="tabel-title mb-3"
-          style={{ fontFamily: "Poppins", fontSize: "15px", fontWeight: "600" }}
-        >
-          {" "}
-          Confirm Cancellation
-        </h2>
-        <div
-          className="d-flex justify-content-between border align-items-center rounded-3 mb-4"
-          style={{ backgroundColor: "#CBD6FF1A" }}
-        >
-          <div className="text-start  p-2 ps-3">
-            <p
-              className="text-muted mb-2"
-              style={{
-                fontSize: "12px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-              }}
-            >
-              Name
-            </p>
-            <p
-              className="text-muted mb-2"
-              style={{
-                fontSize: "12px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-              }}
-            >
-              Court Number
-            </p>
-            <p
-              className="text-muted mb-2"
-              style={{
-                fontSize: "12px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-              }}
-            >
-              Date
-            </p>
-            <p
-              className="text-muted mb-2"
-              style={{
-                fontSize: "12px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-              }}
-            >
-              Time
-            </p>
-          </div>
-          <div className="text-end p-2 pe-3">
-            <p
-              className="fw-bold mb-2"
-              style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                fontFamily: "Poppins",
-              }}
-            >
-              {bookingDetails?.userId?.name || "N/A"}
-            </p>
-            <p
-              className="fw-bold mb-2"
-              style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                fontFamily: "Poppins",
-              }}
-            >
-              {bookingDetails?.slot?.[0]?.courtName || "N/A"}
-            </p>
-            <p
-              className="fw-bold mb-2"
-              style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                fontFamily: "Poppins",
-              }}
-            >
-              {formatDate(bookingDetails?.bookingDate)}
-            </p>
-            <p
-              className="fw-bold mb-2"
-              style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                fontFamily: "Poppins",
-              }}
-            >
-              {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
-            </p>
-          </div>
-        </div>
-        <h2
-          className="tabel-title py-2 text-start"
+  const validateAmount = (amount) => {
+    if (!amount) return "Refund amount is required";
+    if (isNaN(amount) || parseFloat(amount) <= 0)
+      return "Please enter a valid amount";
+    if (parseFloat(amount) > parseFloat(bookingDetails?.totalAmount || 0)) {
+      return "Refund amount cannot exceed total amount";
+    }
+    return "";
+  };
+
+  const handleRefundClick = () => {
+    const error = validateAmount(refundAmount);
+    if (error) {
+      setAmountError(error);
+      return;
+    }
+    onRefundSuccess(parseFloat(refundAmount));
+  };
+
+  const handleAmountChange = (e) => {
+    const value = e.target.value;
+    setRefundAmount(value);
+    if (amountError) {
+      setAmountError(validateAmount(value));
+    }
+  };
+
+  return (
+    <Modal
+      show={show}
+      onHide={handleClose}
+      className="h-100"
+      centered
+      backdrop="static"
+    >
+      <Modal.Body className="text-center p-4 position-relative">
+        <button
+          onClick={handleClose}
           style={{
-            fontFamily: "Poppins",
-            fontSize: "17px",
-            fontWeight: "700",
-            color: "#374151",
+            position: "absolute",
+            top: "10px",
+            right: "20px",
+            background: "none",
+            border: "none",
+            fontSize: "24px",
+            cursor: "pointer",
+            color: "red",
           }}
         >
-          Payment Details
-        </h2>
-        <div className="d-flex justify-content-between mb-0">
+          ×
+        </button>
+
+        <div className="text-center">
           <h2
-            className="tabel-title py-2 text-start m-0 ps-1 text-muted"
-            style={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "500",
-            }}
+            className="tabel-title py-4"
+            style={{ fontFamily: "Poppins", fontWeight: "600" }}
           >
-            Payment Method
+            Cancellation Request
           </h2>
+          <img
+            src={modalSuccess}
+            alt="Details"
+            className="mt-3 animated-img"
+            style={{ width: "250px", marginBottom: "20px" }}
+          />
           <h2
-            className="tabel-title py-2 text-start m-0"
+            className="tabel-title mb-3"
             style={{
               fontFamily: "Poppins",
-              fontSize: "14px",
+              fontSize: "15px",
               fontWeight: "600",
-              color: "#374151",
             }}
           >
-            {bookingDetails?.bookingType}
+            Confirm Cancellation
           </h2>
-        </div>
-        <div className="d-flex justify-content-between">
-          <h2
-            className="tabel-title py-2 text-start ps-1 text-muted"
-            style={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "500",
-            }}
+          <div
+            className="d-flex justify-content-between border align-items-center rounded-3 mb-4"
+            style={{ backgroundColor: "#CBD6FF1A" }}
           >
-            Total payment
-          </h2>
+            <div className="text-start  p-2 ps-3">
+              <p
+                className="text-muted mb-2"
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                Name
+              </p>
+              <p
+                className="text-muted mb-2"
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                Court Number
+              </p>
+              <p
+                className="text-muted mb-2"
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                Date
+              </p>
+              <p
+                className="text-muted mb-2"
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                Time
+              </p>
+            </div>
+            <div className="text-end p-2 pe-3">
+              <p
+                className="fw-bold mb-2"
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  fontFamily: "Poppins",
+                }}
+              >
+                {bookingDetails?.userId?.name
+                  ?.slice(0, 1)
+                  ?.toUpperCase()
+                  ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
+              </p>
+              <p
+                className="fw-bold mb-2"
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  fontFamily: "Poppins",
+                }}
+              >
+                {bookingDetails?.slot?.[0]?.courtName || "N/A"}
+              </p>
+              <p
+                className="fw-bold mb-2"
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  fontFamily: "Poppins",
+                }}
+              >
+                {formatDate(bookingDetails?.bookingDate)}
+              </p>
+              <p
+                className="fw-bold mb-2"
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  fontFamily: "Poppins",
+                }}
+              >
+                {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
+                {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
+              </p>
+            </div>
+          </div>
           <h2
             className="tabel-title py-2 text-start"
             style={{
               fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "600",
+              fontSize: "17px",
+              fontWeight: "700",
               color: "#374151",
             }}
           >
-            ₹ {bookingDetails?.totalAmount}
+            Payment Details
           </h2>
-        </div>
+          <div className="d-flex justify-content-between mb-0">
+            <h2
+              className="tabel-title py-2 text-start m-0 ps-1 text-muted"
+              style={{
+                fontFamily: "Poppins",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              Payment Method
+            </h2>
+            <h2
+              className="tabel-title py-2 text-start m-0"
+              style={{
+                fontFamily: "Poppins",
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#374151",
+              }}
+            >
+              {bookingDetails?.bookingType}
+            </h2>
+          </div>
+          <div className="d-flex justify-content-between">
+            <h2
+              className="tabel-title py-2 text-start ps-1 text-muted"
+              style={{
+                fontFamily: "Poppins",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              Total payment
+            </h2>
+            <h2
+              className="tabel-title py-2 text-start"
+              style={{
+                fontFamily: "Poppins",
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#374151",
+              }}
+            >
+              ₹ {bookingDetails?.totalAmount}
+            </h2>
+          </div>
 
-        <div className="ps-3 pe-3 mt-3">
-          <Button
-            className=" py-2 border-0 rounded-pill w-100 "
-            onClick={onRefundSuccess}
-            style={{
-              backgroundColor: "#3DBE64",
-              fontSize: "17px",
-              fontWeight: "600",
-            }}
-          >
-            Process Refund
-          </Button>
+          {/* Refund Amount Field */}
+          <div className="mt-3">
+            <label
+              className="form-label text-start w-100 ps-1"
+              style={{
+                fontFamily: "Poppins",
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#374151",
+              }}
+            >
+              Refund Amount *
+            </label>
+            <input
+              type="number"
+              className={`form-control rounded-3 py-2 ${
+                amountError ? "is-invalid" : ""
+              }`}
+              placeholder="Enter refund amount"
+              value={refundAmount}
+              onChange={handleAmountChange}
+              style={{ backgroundColor: "#CBD6FF7A" }}
+              min="0"
+              max={bookingDetails?.totalAmount || 0}
+              step="0.01"
+            />
+            {amountError && (
+              <div
+                className="text-danger text-start ps-1 mt-1"
+                style={{ fontSize: "0.875rem" }}
+              >
+                {amountError}
+              </div>
+            )}
+          </div>
+
+          <div className="ps-3 pe-3 mt-3">
+            <Button
+              className="py-2 border-0 rounded-pill w-100"
+              onClick={handleRefundClick}
+              style={{
+                backgroundColor: "#3DBE64",
+                fontSize: "17px",
+                fontWeight: "600",
+              }}
+              disabled={loading}
+            >
+              {loading ? <ButtonLoading /> : "Process Refund"}
+            </Button>
+          </div>
         </div>
-      </div>
-    </Modal.Body>
-  </Modal>
-);
+      </Modal.Body>
+    </Modal>
+  );
+};
 
 export const RefundSuccessModal = ({ show, handleClose }) => (
   <Modal
@@ -486,7 +566,7 @@ export const RefundSuccessModal = ({ show, handleClose }) => (
         <img
           src={modalSuccess}
           alt="Details"
-          className="mt-3"
+          className="mt-3 animated-img"
           style={{ width: "250px", marginBottom: "20px" }}
         />
         <h2
@@ -581,7 +661,12 @@ export const CancelRequestModal = ({
             </div>
             <div className="text-end">
               <h6>
-                <strong>{bookingDetails?.userId?.name || "N/A"}</strong>
+                <strong>
+                  {bookingDetails?.userId?.name
+                    ?.slice(0, 1)
+                    ?.toUpperCase()
+                    ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
+                </strong>
               </h6>
               <p>
                 <strong>{bookingDetails?.slot?.[0]?.courtName || "N/A"}</strong>
@@ -591,6 +676,7 @@ export const CancelRequestModal = ({
               </p>
               <p>
                 <strong>
+                  {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
                   {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
                 </strong>
               </p>
@@ -716,7 +802,12 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
             </div>
             <div className=" text-end">
               <h6>
-                <strong>{bookingDetails?.userId?.name || "N/A"}</strong>{" "}
+                <strong>
+                  {bookingDetails?.userId?.name
+                    ?.slice(0, 1)
+                    ?.toUpperCase()
+                    ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
+                </strong>{" "}
               </h6>
               <p>
                 <strong>{bookingDetails?.slot?.[0]?.courtName || "N/A"}</strong>{" "}
@@ -726,6 +817,7 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
               </p>
               <p>
                 <strong>
+                  {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
                   {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
                 </strong>{" "}
               </p>
