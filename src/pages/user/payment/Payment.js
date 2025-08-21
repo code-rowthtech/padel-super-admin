@@ -25,10 +25,10 @@ const Payment = ({ className = "" }) => {
     const store = useSelector((state) => state?.userAuth)
     const bookingStatus = useSelector((state) => state?.userBooking)
     const userLoading = useSelector((state) => state?.userAuth)
-    const logo = useSelector((state) => state?.userAuth?.logo?.logo);
+    const logo = JSON.parse(localStorage.getItem("logo"));
     const [name, setName] = useState(user?.name || "");
     const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ? String(user.phoneNumber) : "");
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(user?.email || "");
     const [selectedPayment, setSelectedPayment] = useState("");
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -123,7 +123,7 @@ const Payment = ({ className = "" }) => {
                 phoneNumber,
                 email,
                 register_club_id,
-                // status:"upcoming",
+                bookingStatus:"upcoming",
                 ownerId: clubData?.ownerId,
                 slot: slotArray
             };
@@ -132,7 +132,7 @@ const Payment = ({ className = "" }) => {
                 if (user?.token) {
                     navigate('/booking-history');
                 } else {
-                    dispatch(loginUserNumber({ phoneNumber: phoneNumber }));
+                    dispatch(loginUserNumber({ phoneNumber: phoneNumber,name:name,email:email }));
                     navigate('/booking-history');
                 }
             });
@@ -241,7 +241,7 @@ const Payment = ({ className = "" }) => {
             date: courtData.date,
             day: courtData.day,
             time: timeSlot.time,
-            price: timeSlot.amount || 100,
+            price: timeSlot.amount ,
             court: courtData.court?.[0]?.name || 'Court'
         }));
         console.log({ courtData });
@@ -313,6 +313,7 @@ const Payment = ({ className = "" }) => {
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="form-control border-0 p-2"
                                         placeholder="Enter your email"
+                                        disabled={user?.email}
                                     />
                                 </div>
                             </div>
@@ -370,8 +371,8 @@ const Payment = ({ className = "" }) => {
                     <div className="border rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center " style={{ lineHeight: '90px' }}>
-                                {logo?.logo ?
-                                    <Avatar src={logo?.logo} alt="User Profile" /> :
+                                {logo ?
+                                    <Avatar src={logo} alt="User Profile" /> :
                                     <Avatar>
                                         {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                                     </Avatar>

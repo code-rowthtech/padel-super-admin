@@ -17,7 +17,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initia
     const store = useSelector((state) => state);
     const getReviewData = store?.userClub?.getReviewData?.data;
     const addReviewLoading = store?.userClub?.reviewLoading;
-
+console.log({tableData});
     useEffect(() => {
         if (show) {
             if (reviewData) {
@@ -36,6 +36,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initia
             reviewComment: review,
             reviewRating: rating,
             register_club_id: club_id,
+            bookingId : tableData?.booking?._id
         };
         dispatch(addReviewClub(payload))
             .unwrap()

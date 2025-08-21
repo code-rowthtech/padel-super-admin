@@ -18,7 +18,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const bookingStatusData = useSelector((state) => state?.userBooking)
   const store = useSelector((state) => state)
   const clubData = store?.userClub?.clubData?.data?.courts[0] || []
-  const logo = useSelector((state) => state?.userAuth?.logo?.logo);
+  const logo = JSON.parse(localStorage.getItem("logo"));
 
   const User = getUserFromSession()
   console.log({ bookingStatusData });
@@ -94,8 +94,8 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                 alt="Club Logo"
               /> */}
-              {logo?.logo ?
-                <Avatar src={logo?.logo} alt="User Profile" /> :
+              {logo ?
+                <Avatar src={logo} alt="User Profile" /> :
                 <Avatar>
                   {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                 </Avatar>
