@@ -2,13 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Modal, Form, Button, InputGroup } from "react-bootstrap";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { signupOwner, updateOwner } from "../../../../redux/thunks";
+import {
+  getSubOwner,
+  signupOwner,
+  updateSubOwner,
+} from "../../../../redux/thunks";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 
-const UserModal = ({ show, onHide, userData }) => {
+const SubOwnerModal = ({ show, onHide, userData }) => {
   const dispatch = useDispatch();
-  const { authLoading } = useSelector((state) => state.ownerAuth);
+  const { updateSubOwnerLoading } = useSelector((state) => state?.subOwner);
   const owner = getOwnerFromSession();
   const [form, setForm] = useState({
     name: "",
@@ -122,13 +126,18 @@ const UserModal = ({ show, onHide, userData }) => {
       try {
         if (userData?._id) {
           const payload = {
-            _id: userData._id,
+            userId: userData._id,
             name: form.name,
             phoneNumber: form.phoneNumber,
             email: form.email,
             ...(form.password ? { password: form.password } : {}),
           };
-          await dispatch(updateOwner(payload)).unwrap();
+          await dispatch(updateSubOwner(payload))
+            .unwrap()
+            .then(() => {
+              dispatch(getSubOwner({ page: 1, limit: 10 }));
+              handleClose();
+            });
         } else {
           const payload = {
             name: form.name,
@@ -137,9 +146,13 @@ const UserModal = ({ show, onHide, userData }) => {
             password: form.password,
             generatedBy: owner?._id,
           };
-          await dispatch(signupOwner(payload)).unwrap();
+          await dispatch(signupOwner(payload))
+            .unwrap()
+            .then(() => {
+              dispatch(getSubOwner({ page: 1, limit: 10 }));
+              handleClose();
+            });
         }
-        handleClose();
       } catch (err) {
         setErrors({ api: err || "Action failed. Try again." });
       }
@@ -147,12 +160,23 @@ const UserModal = ({ show, onHide, userData }) => {
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header
-        closeButton
-        className="border-0"
-        style={{ background: "#f9fafb" }}
+    <Modal show={show} onHide={handleClose} centered backdrop="static">
+      <button
+        onClick={handleClose}
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "20px",
+          background: "none",
+          border: "none",
+          fontSize: "30px",
+          cursor: "pointer",
+          color: "red",
+        }}
       >
+        ×
+      </button>
+      <Modal.Header className="border-0" style={{ background: "#f9fafb" }}>
         <Modal.Title className="fw-bold fs-5">
           {userData?._id ? "Edit User" : "Add User"}
         </Modal.Title>
@@ -272,14 +296,14 @@ const UserModal = ({ show, onHide, userData }) => {
 
           <Button
             type="submit"
-            disabled={authLoading}
+            disabled={updateSubOwnerLoading}
             className="w-100 rounded-pill py-2 fw-semibold"
             style={{
               background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
               border: "none",
             }}
           >
-            {authLoading ? (
+            {updateSubOwnerLoading ? (
               <ButtonLoading size={14} />
             ) : userData?._id ? (
               "Update User"
@@ -293,4 +317,4 @@ const UserModal = ({ show, onHide, userData }) => {
   );
 };
 
-export default UserModal;
+export default SubOwnerModal;

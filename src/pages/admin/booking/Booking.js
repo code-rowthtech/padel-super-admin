@@ -181,10 +181,10 @@ const Booking = () => {
                     <tr className="text-center">
                       <th>User</th>
                       <th>Contact</th>
-                      <th>Booking Type</th>
+                      <th>Booking</th>
                       <th>Court Name</th>
                       <th>Slot</th>
-                      <th>Booking Amount</th>
+                      <th>Amount</th>
                       <th>Date/Time</th>
                       <th>Booking Date</th>
                       <th>Action</th>
@@ -193,24 +193,26 @@ const Booking = () => {
                   <tbody>
                     {bookings?.map((item) => (
                       <tr key={item._id} className="table-data border-bottom">
-                        <td>{item?.userId?.name || "N/A"}</td>
+                        <td>
+                          {item?.userId?.name
+                            .slice(0, 1)
+                            .toUpperCase()
+                            .concat(item?.userId?.name.slice(1)) || "N/A"}
+                        </td>
                         <td>
                           {item?.userId?.countryCode || ""}{" "}
                           {item?.userId?.phoneNumber || "N/A"}
                         </td>
-                        <td>{item?.bookingType || "-"}</td>
+                        <td>
+                          {item?.bookingType
+                            .slice(0, 1)
+                            .toUpperCase()
+                            .concat(item?.bookingType.slice(1)) || "-"}
+                        </td>
                         <td>{item?.slot[0]?.courtName || "-"}</td>
                         <td>
-                          {/* <OverlayTrigger
-                            placement="left"
-                            overlay={
-                              <Tooltip>
-                                {renderSlotTimes(item?.slot[0]?.slotTimes)}
-                              </Tooltip>
-                            }
-                          > */}
-                          <b>{renderSlotTimes(item?.slot[0]?.slotTimes)}</b>
-                          {/* </OverlayTrigger> */}
+                          {item?.slot[0]?.businessHours?.[0]?.day || ""}{" "}
+                          {renderSlotTimes(item?.slot[0]?.slotTimes)}
                         </td>
                         <td>₹{item?.totalAmount}</td>
                         <td>

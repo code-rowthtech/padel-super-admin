@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import {
   FaTachometerAlt,
@@ -20,6 +20,7 @@ import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 const AdminSidebar = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const Owner = getOwnerFromSession();
   const { getLogoData, getLogoLoading } = useSelector((state) => state?.logo);
@@ -101,6 +102,9 @@ const AdminSidebar = () => {
                     width: "100px",
                     height: "100px",
                     objectFit: "cover",
+                  }}
+                  onClick={() => {
+                    navigate("/admin/dashboard");
                   }}
                 />
               ) : (

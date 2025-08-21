@@ -6,7 +6,7 @@ export * from "./admin/booking/thunk";
 export * from "./admin/packages/thunk";
 export * from "./admin/dashboard/thunk";
 export * from "./admin/reviews/thunk";
-export * from "./admin/users/thunk";
+export * from "./admin/subOwner/thunk";
 export * from "./admin/logo/thunk";
 
 //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_

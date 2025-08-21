@@ -7,7 +7,7 @@ import bookingReducer from "./admin/booking/slice";
 import packageReducer from "./admin/packages/slice";
 import dashboardReducer from "./admin/dashboard/slice";
 import reviewReducer from "./admin/reviews/slice";
-import userReducer from "./admin/users/slice";
+import subOwnerReducer from "./admin/subOwner/slice";
 import logoReducer from "./admin/logo/slice";
 //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 import userClubReducer from "./user/club/slice";
@@ -29,7 +29,7 @@ const store = configureStore({
     package: packageReducer,
     dashboard: dashboardReducer,
     reviews: reviewReducer,
-    users: userReducer,
+    subOwner: subOwnerReducer,
     logo: logoReducer,
     //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
     userAuth: userAuthReducer,

@@ -87,13 +87,56 @@ const Pricing = () => {
     setSelectAllChecked(allSelected);
   }, [formData.days]);
 
+  // const convertTo12HourFormat = (time) => {
+  //   const [hour, period] = time.split(" ");
+  //   if (period === "am") {
+  //     return hour === "12" ? "12:00 AM" : `${hour}:00 AM`;
+  //   } else {
+  //     return hour === "12" ? "12:00 PM" : `${parseInt(hour) + 12}:00 PM`;
+  //   }
+  // };
+
   const convertTo12HourFormat = (time) => {
-    const [hour, period] = time.split(" ");
-    if (period === "am") {
-      return hour === "12" ? "12:00 AM" : `${hour}:00 AM`;
-    } else {
-      return hour === "12" ? "12:00 PM" : `${parseInt(hour) + 12}:00 PM`;
+    if (!time) return "";
+
+    let hour, minute, period;
+
+    // Case 1: Input like "13:45" or "09:00"
+    if (
+      time.includes(":") &&
+      !time.toLowerCase().includes("am") &&
+      !time.toLowerCase().includes("pm")
+    ) {
+      [hour, minute] = time.split(":").map(Number);
+
+      period = hour >= 12 ? "PM" : "AM";
+      hour = hour % 12 || 12; // convert 0 -> 12, 13 -> 1, etc.
+
+      return `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")} ${period}`;
     }
+
+    // Case 2: Input like "6 AM", "12 pm"
+    if (
+      time.toLowerCase().includes("am") ||
+      time.toLowerCase().includes("pm")
+    ) {
+      [hour, period] = time.split(" ");
+      hour = parseInt(hour, 10);
+      minute = "00";
+
+      // Normalize hours (just in case input is invalid like 13 AM)
+      if (hour === 0) hour = 12;
+      if (hour > 12) hour = hour % 12;
+
+      return `${hour
+        .toString()
+        .padStart(2, "0")}:${minute} ${period.toUpperCase()}`;
+    }
+
+    // Fallback (if input is not recognized)
+    return time;
   };
 
   const handleChange = (field, value) => {
@@ -539,7 +582,6 @@ const Pricing = () => {
     const selectedDays = selectAllChecked
       ? Object.keys(formData.days) // All days when "Select All" is checked
       : Object.keys(formData.days).filter((day) => formData.days[day]);
-
     const selectedSlotType = selectAllChecked ? "All" : formData.selectedSlots;
 
     // Validate slot prices
