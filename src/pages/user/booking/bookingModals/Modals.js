@@ -19,7 +19,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const store = useSelector((state) => state)
   const clubData = store?.userClub?.clubData?.data?.courts[0] || []
   const logo = JSON.parse(localStorage.getItem("logo"));
-
+  console.log(tableData, 'statusbooki');
   const User = getUserFromSession()
   const dispatch = useDispatch()
   const handleClose = () => {
@@ -99,7 +99,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                   {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                 </Avatar>
               }
-              <p className='mt-3'>Your slots are successfully booked.</p>
+              <p className='mt-3'>{tableData?.booking?.bookingStatus === "in-progress" ? "Your cancellation request pending for action ." : "Your slots are successfully booked."}</p>
             </div>
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-start p-2 ps-3">
@@ -107,8 +107,12 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                   Court Name
                 </p>
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-                  Date
+                  Booking Date
                 </p>
+                {tableData?.booking?.bookingStatus === "in-progress" && <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+                  Cancellation Request Date
+                </p>
+                }
               </div>
               <div className="text-end p-2 pe-3">
                 <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
@@ -118,6 +122,11 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
                   {formatDate(tableData?.slotItem?.bookingDate) || '1N/A'}
                 </p>
+                {tableData?.booking?.bookingStatus === "in-progress" && <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                  {formatDate(tableData?.booking?.cancellationDate) || '1N/A'}
+                </p>
+                }
+
               </div>
             </div>
           </div>
@@ -237,7 +246,7 @@ export const BookingHistorySuccessModal = ({ show, onHide, bookingStatusData, on
         />
 
         <div className="rounded-3 mb-4">
-          <h3>Confirm Cancellation</h3>
+          <h3>Confirm Cancelled</h3>
           <p>You will receive your refund in your account.</p>
           {/* <a href="#" style={{ color: '#1A237E' }}>
             View Status
@@ -335,7 +344,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
   );
 };
 
-export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, selectedReason, otherReason }) => {
+export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, selectedOption, selectedReason, otherReason }) => {
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">
@@ -375,6 +384,9 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
               {formatDate(booking?.slotItem?.bookingDate)}
             </p>
+            {tableData?.booking?.bookingStatus === "refunded" && <p p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {formatDate(tableData?.booking?.refundDate)}
+            </p>}
           </div>
         </div>
 
@@ -388,6 +400,12 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
             <h6>Total Payment</h6>
             <h3 style={{ color: '#1A237E' }}>₹{booking?.booking?.totalAmount}</h3>
           </div>
+          {tableData?.booking?.bookingStatus === "refunded" &&
+            <div className="d-flex justify-content-between">
+              <h6>Refund Amount</h6>
+              <h3 style={{ color: '#1A237E' }}>₹{booking?.booking?.totalAmount}</h3>
+            </div>
+          }
         </div>
 
         <div className="mt-3 mb-3">
@@ -420,6 +438,6 @@ export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, s
 
         </div>
       </Modal.Body>
-    </Modal>
+    </Modal >
   );
 };
