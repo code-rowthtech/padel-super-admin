@@ -52,13 +52,11 @@ const Navbar = () => {
 
         window.addEventListener('storage', updateUserData);
 
-        // Cleanup listener on component unmount
         return () => {
             window.removeEventListener('storage', updateUserData);
         };
     }, [store?.user?.status, store?.user?.response?.user]); // Depend on Redux store changes
 
-    console.log({ store, userData });
 
     return (
         <nav className="navbar navbar-expand-lg bg-white py-1">

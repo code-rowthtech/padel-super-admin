@@ -21,7 +21,6 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const logo = JSON.parse(localStorage.getItem("logo"));
 
   const User = getUserFromSession()
-  console.log('bokingmodal',booking);
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
@@ -337,7 +336,6 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
 };
 
 export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, selectedReason, otherReason }) => {
-console.log(booking,'muskan0');
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">

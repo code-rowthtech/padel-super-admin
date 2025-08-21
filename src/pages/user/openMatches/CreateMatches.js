@@ -18,7 +18,6 @@ const CreateMatches = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = getUserFromSession();
-  console.log({user},'core session');
   const store = useSelector((state) => state);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTimes, setSelectedTimes] = useState([]);
@@ -32,7 +31,6 @@ const CreateMatches = () => {
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
-  console.log({ userMatches });
 
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -211,7 +209,6 @@ const CreateMatches = () => {
         players: user?._id ? [user?._id] : user?.id,
       };
 
-      console.log(JSON.stringify(formattedData, null, 2));
       dispatch(createMatches(formattedData)).unwrap().then(() => {
         setSelectedCourts([]);
         setSelectedDate([]);

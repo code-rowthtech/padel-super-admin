@@ -81,7 +81,6 @@ const VeiwMatch = ({ className = "" }) => {
     };
 
     const onClick = () => {
-        console.log("Button clicked!");
         alert("Button clicked! (would navigate to /payment)");
     };
 

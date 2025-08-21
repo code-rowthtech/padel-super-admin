@@ -81,7 +81,6 @@ const Payment = ({ className = "" }) => {
         height: "100%",
         paddingRight: `${circleRadius * 2}px`,
     };
-    console.log(clubData, 'clubDataclubData');
     const handlePayment = async () => {
         if (!name || !phoneNumber || !email || !selectedPayment) {
             setError("Please fill in all required fields and select a payment method.");
@@ -236,16 +235,6 @@ const Payment = ({ className = "" }) => {
 
     useEffect(() => {
         if (!courtData) return;
-
-        const formattedData = courtData?.time?.map((timeSlot) => ({
-            date: courtData.date,
-            day: courtData.day,
-            time: timeSlot.time,
-            price: timeSlot.amount ,
-            court: courtData.court?.[0]?.name || 'Court'
-        }));
-        console.log({ courtData });
-
         setSelectedCourts(seletctedCourt);
     }, [courtData]);
 
@@ -431,7 +420,7 @@ const Payment = ({ className = "" }) => {
                                         {court.time.length > 0 && (
                                             <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
                                                 <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
-                                                {court.time && <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots({court.time.length})</span>}
+                                                {court.time && <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {court.time.length}</span>}
                                                 <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
                                                     ₹ {court.time.reduce((total, t) => total + Number(t.amount || 0), 0)}
                                                 </span>
