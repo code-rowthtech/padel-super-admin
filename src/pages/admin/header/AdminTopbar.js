@@ -22,11 +22,11 @@ const AdminTopbar = () => {
 
   return (
     <header
-      className="d-flex justify-content-between align-items-center px-4 py-2"
+      className="d-flex justify-content-end align-items-center px-4 py-2"
       style={{ backgroundColor: "#fff" }}
     >
       {/* Search Bar */}
-      <div
+      {/* <div
         className="d-flex align-items-center px-3 py-2"
         style={{
           width: "400px",
@@ -50,7 +50,7 @@ const AdminTopbar = () => {
             onClick={handleClearSearch}
           />
         )}
-      </div>
+      </div> */}
 
       {/* User Dropdown + Bell Icon */}
       <div className="d-flex align-items-center gap-4">
@@ -65,7 +65,12 @@ const AdminTopbar = () => {
               <div className="fw-semibold">
                 {user?.name || "Danielle Campbell"}
               </div>
-              <div className="text-muted small">Owner</div>
+              <div className="text-muted small">
+                {user?.role
+                  .slice(0, 1)
+                  .toUpperCase()
+                  .concat(user?.role.slice(1)) || "Owner"}
+              </div>
             </div>
             {user?.profilePic ? (
               <img

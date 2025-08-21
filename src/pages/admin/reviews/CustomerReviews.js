@@ -6,47 +6,18 @@ import {
   getReviewsForOwner,
 } from "../../../redux/thunks";
 import { useSelector, useDispatch } from "react-redux";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
+import { format } from "date-fns";
+import { FaCircleUser } from "react-icons/fa6";
+import { DataLoading } from "../../../helpers/loading/Loaders";
 const CustomerReviews = () => {
   const dispatch = useDispatch();
-  const { reviewData } = useSelector((state) => state?.reviews);
-  const reviews = [
-    {
-      id: 1,
-      name: "Eleanor Pena",
-      rating: 4.5,
-      review:
-        "The service was exceptional! The team went above and beyond to ensure my needs were met. I particularly appreciated the attention to detail and quick response times.",
-      postDate: "July 22, 2025",
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    {
-      id: 2,
-      name: "Leslie Alexander",
-      rating: 5,
-      review:
-        "Absolutely outstanding experience from start to finish. The quality of service exceeded my expectations and I'll definitely be recommending to friends and colleagues.",
-      postDate: "July 21, 2025",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    },
-    {
-      id: 3,
-      name: "Courtney Henry",
-      rating: 4,
-      review:
-        "Very satisfied with the overall experience. There were a couple minor hiccups but the team resolved them quickly and professionally.",
-      postDate: "July 20, 2025",
-      avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-    },
-    {
-      id: 4,
-      name: "Devon Lane",
-      rating: 4.5,
-      review:
-        "Consistently great service. I've been a customer for several years now and they continue to impress with their reliability and quality.",
-      postDate: "July 18, 2025",
-      avatar: "https://randomuser.me/api/portraits/men/75.jpg",
-    },
-  ];
+  const Owner = getOwnerFromSession();
+  const ownerId = Owner?.generatedBy || Owner?._id;
+  const { reviewsData, reviewsLoading } = useSelector(
+    (state) => state?.reviews
+  );
+  console.log({ reviewsData });
 
   // Rating distribution data
   const ratingDistribution = [
@@ -77,79 +48,89 @@ const CustomerReviews = () => {
   };
 
   useEffect(() => {
-    dispatch(getOwnerRegisteredClub())
+    dispatch(getOwnerRegisteredClub({ ownerId }))
       .unwrap()
       .then((res) => {
         dispatch(getReviewsForOwner({ clubId: res?.[0]?._id }));
       });
-  }, []);
+  }, [dispatch]);
   return (
     <div className="container py-4" style={{ maxWidth: "1200px" }}>
-      {/* Overall Rating Section */}
-      <div className="card mb-4 border-0 shadow-sm">
-        <div className="card-body p-4">
-          <div className="row align-items-center">
-            <div className="col-md-5 text-center border-end pe-md-4">
-              <h2 className="display-4 fw-bold mb-1 text-dark">4.8</h2>
-              <div className="d-flex justify-content-center mb-2 fs-1">
-                {renderStars(4.8)}
-              </div>
-              <p className="text-muted mb-0">
-                Based on <span className="fw-semibold">2,550</span> reviews
-              </p>
-            </div>
-
-            {/* Rating Breakdown */}
-            <div className="col-md-7 ps-md-4 mt-3 mt-md-0">
-              <h5 className="fw-semibold mb-3">Rating Breakdown</h5>
-              {ratingDistribution.map((item, index) => (
-                <div key={index} className="mb-2">
-                  <div className="d-flex justify-content-between mb-1">
-                    <div className="d-flex align-items-center">
-                      <span className="me-2" style={{ minWidth: "100px" }}>
-                        {item.label}
-                      </span>
-                      <span className="text-muted">{item.count}</span>
-                    </div>
-                    <span className="text-muted">{item.percentage}%</span>
+      {reviewsLoading ? (
+        <DataLoading height="70vh" size={90} />
+      ) : (
+        <>
+          {/* Overall Rating Section */}
+          <div className="card mb-4 border-0 shadow-sm">
+            <div className="card-body p-4">
+              <div className="row align-items-center">
+                <div className="col-md-5 text-center border-end pe-md-4">
+                  <h2 className="display-4 fw-bold mb-1 text-dark">
+                    {reviewsData?.averageRating}
+                  </h2>
+                  <div className="d-flex justify-content-center mb-2 fs-1">
+                    {renderStars(reviewsData?.averageRating)}
                   </div>
-                  <div
-                    className="progress"
-                    style={{ height: "8px", borderRadius: "4px" }}
-                  >
-                    <div
-                      className="progress-bar"
-                      role="progressbar"
-                      style={{
-                        width: `${item.percentage}%`,
-                        backgroundColor: item.color,
-                        borderRadius: "4px",
-                      }}
-                    ></div>
-                  </div>
+                  <p className="text-muted mb-0">
+                    Based on{" "}
+                    <span className="fw-semibold">
+                      {reviewsData?.totalReviews}
+                    </span>{" "}
+                    reviews
+                  </p>
                 </div>
-              ))}
+
+                {/* Rating Breakdown */}
+                <div className="col-md-7 ps-md-4 mt-3 mt-md-0">
+                  <h5 className="fw-semibold mb-3">Rating Breakdown</h5>
+                  {ratingDistribution.map((item, index) => (
+                    <div key={index} className="mb-2">
+                      <div className="d-flex justify-content-between mb-1">
+                        <div className="d-flex align-items-center">
+                          <span className="me-2" style={{ minWidth: "100px" }}>
+                            {item.label}
+                          </span>
+                          <span className="text-muted">{item.count}</span>
+                        </div>
+                        <span className="text-muted">{item.percentage}%</span>
+                      </div>
+                      <div
+                        className="progress"
+                        style={{ height: "8px", borderRadius: "4px" }}
+                      >
+                        <div
+                          className="progress-bar"
+                          role="progressbar"
+                          style={{
+                            width: `${item.percentage}%`,
+                            backgroundColor: item.color,
+                            borderRadius: "4px",
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Customer Reviews Section */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="fw-bold mb-0">Customer Reviews</h4>
-        {/* <button className="btn btn-link text-primary p-0 fw-semibold d-flex align-items-center">
+          {/* Customer Reviews Section */}
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h4 className="fw-bold mb-0">Customer Reviews</h4>
+            {/* <button className="btn btn-link text-primary p-0 fw-semibold d-flex align-items-center">
           View all <IoIosArrowForward className="ms-1" />
         </button> */}
-      </div>
+          </div>
 
-      <div className="row g-4">
-        {reviews.map((review) => (
-          <div key={review.id} className="col-md-6">
-            <div className="card h-100 border-0 shadow-sm">
-              <div className="card-body p-4">
-                <div className="d-flex justify-content-between mb-3">
-                  <div className="d-flex align-items-center">
-                    <img
+          <div className="row g-4">
+            {reviewsData?.reviews?.map((review) => (
+              <div key={review.id} className="col-md-6">
+                <div className="card h-100 border-0 shadow-sm">
+                  <div className="card-body p-4">
+                    <div className="d-flex justify-content-between mb-3">
+                      <div className="d-flex align-items-center">
+                        {/* <img
                       src={review.avatar}
                       alt={review.name}
                       className="rounded-circle me-3"
@@ -158,21 +139,32 @@ const CustomerReviews = () => {
                         height: "48px",
                         objectFit: "cover",
                       }}
-                    />
-                    <div>
-                      <h6 className="mb-0 fw-semibold">{review.name}</h6>
-                      <div className="d-flex align-items-center">
-                        {renderStars(review.rating)}
-                        <span className="ms-2 text-muted small">
-                          {review.rating.toFixed(1)}
-                        </span>
+                    /> */}
+                        <FaCircleUser size={48} className="me-3" />
+                        <div>
+                          <h6 className="mb-0 fw-semibold">
+                            {review.userId?.name}
+                          </h6>
+                          <div className="d-flex align-items-center">
+                            {renderStars(review.reviewRating)}
+                            <span className="ms-2 text-muted small">
+                              {review.reviewRating?.toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
+                      <span className="text-muted small">
+                        {/* {format(new Date(review.createdAt), "dd/MM/yyyy")} */}
+                        {format(
+                          new Date(review?.createdAt),
+                          "dd/MM/yyyy | hh:mm a"
+                        )}
+                      </span>
                     </div>
-                  </div>
-                  <span className="text-muted small">{review.postDate}</span>
-                </div>
-                <p className="card-text text-dark mt-3">{review.review}</p>
-                {/* <div className="mt-3 pt-2 border-top">
+                    <p className="card-text text-dark mt-3">
+                      {review.reviewComment}
+                    </p>
+                    {/* <div className="mt-3 pt-2 border-top">
                   <button className="btn btn-sm btn-outline-primary me-2">
                     Helpful
                   </button>
@@ -180,18 +172,20 @@ const CustomerReviews = () => {
                     Comment
                   </button>
                 </div> */}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Load More Button */}
-      {/* <div className="text-center mt-5">
+          {/* Load More Button */}
+          {/* <div className="text-center mt-5">
         <button className="btn btn-primary px-4 py-2 fw-semibold">
           Load More Reviews
         </button>
       </div> */}
+        </>
+      )}
     </div>
   );
 };

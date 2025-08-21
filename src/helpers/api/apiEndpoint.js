@@ -58,7 +58,8 @@ export const GET_RECENT_BOOKING_DASHBOARD =
 export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
 
 //-----------------------------------------------U_S_E_R_S-----------------------------------//
-export const GET_USERS = "/api/owners/getusers";
+export const GET_SUBOWNER = "/api/owners/getusers";
+export const UPDATE_SUBOWNER = "/api/owners/updatesubowner";
 
 //-----------------------------------------------U_S_E_R_S-----------------------------------//
 export const GET_LOGO = "/api/logo/getLogo";

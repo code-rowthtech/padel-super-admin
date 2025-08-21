@@ -8,6 +8,7 @@ import StarIcon from "@mui/icons-material/Star";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { formatDate } from "../../../../helpers/Formatting";
+import { getBooking } from "../../../../redux/user/booking/thunk";
 
 export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initialRating, defaultMessage }) => {
     const [rating, setRating] = useState(0);
@@ -17,7 +18,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initia
     const store = useSelector((state) => state);
     const getReviewData = store?.userClub?.getReviewData?.data;
     const addReviewLoading = store?.userClub?.reviewLoading;
-
+console.log({tableData});
     useEffect(() => {
         if (show) {
             if (reviewData) {
@@ -36,6 +37,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initia
             reviewComment: review,
             reviewRating: rating,
             register_club_id: club_id,
+            bookingId : tableData?.booking?._id
         };
         dispatch(addReviewClub(payload))
             .unwrap()
@@ -43,7 +45,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initia
                 setRating(0);
                 setReview("");
                 onHide();
-                dispatch(getReviewClub(club_id));
+                dispatch(getBooking({type:"completed"}));
             });
     };
 
@@ -188,7 +190,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, reviewData, initia
                 <img
                     src={modalSuccess}
                     alt="Success"
-                    className="mb-3"
+                    className="mb-3 animated-image"
                     style={{ width: "200px", marginBottom: "20px" }}
                 />
 

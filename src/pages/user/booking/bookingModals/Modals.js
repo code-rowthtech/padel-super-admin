@@ -18,10 +18,10 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const bookingStatusData = useSelector((state) => state?.userBooking)
   const store = useSelector((state) => state)
   const clubData = store?.userClub?.clubData?.data?.courts[0] || []
-  const logo = useSelector((state) => state?.userAuth?.logo?.logo);
+  const logo = JSON.parse(localStorage.getItem("logo"));
 
   const User = getUserFromSession()
-  console.log({ bookingStatusData });
+  console.log('bokingmodal',booking);
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
@@ -94,8 +94,8 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                 alt="Club Logo"
               /> */}
-              {logo?.logo ?
-                <Avatar src={logo?.logo} alt="User Profile" /> :
+              {logo ?
+                <Avatar src={logo} alt="User Profile" /> :
                 <Avatar>
                   {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                 </Avatar>
@@ -184,7 +184,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 Submit
               </Button>
             ) : (
-              tableData?.booking?.cancellationReason ? '' :
+              tableData?.booking?.cancellationReason || tableData?.booking?.customerReview?._id ? '' :
                 <Button
                   style={{ backgroundColor: '#3DBE64', fontWeight: '500', fontSize: '17px', border: '0' }}
                   onClick={() => setChangeContent(true)}
@@ -337,8 +337,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
 };
 
 export const AcceptedRejectedModal = ({ show, onHide, booking, selectedOption, selectedReason, otherReason }) => {
-  const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
-
+console.log(booking,'muskan0');
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">

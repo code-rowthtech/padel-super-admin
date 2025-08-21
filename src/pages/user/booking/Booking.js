@@ -7,7 +7,8 @@ import { getUserSlot } from "../../../redux/user/slot/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders'
 import { getUserClub } from "../../../redux/user/club/thunk";
-import { Avatar } from "@mui/material";
+import { Avatar, Tooltip } from "@mui/material";
+import { OverlayTrigger } from "react-bootstrap";
 
 const Booking = ({
     className = ""
@@ -23,8 +24,7 @@ const Booking = ({
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
     const store = useSelector((state) => state)
     const clubData = store?.userClub?.clubData?.data?.courts[0]
-    const logo = useSelector((state) => state?.userAuth?.logo?.logo);
-
+    const logo = JSON.parse(localStorage.getItem("logo"));
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
             setIsOpen(false);
@@ -97,7 +97,7 @@ const Booking = ({
         const timeOnly = selectedTimes?.map(item => ({
             _id: item?._id,
             time: item?.time,
-            amount: item?.amount || 100
+            amount: item?.amount
         }));
 
         const newCourt = {
@@ -253,7 +253,7 @@ const Booking = ({
             const timeOnly = selectedTimes.map(item => ({
                 _id: item?._id,
                 time: item?.time,
-                amount: item?.amount || 100,
+                amount: item?.amount,
             }));
             setSelectedCourts(prev =>
                 prev.map(court => ({
@@ -423,42 +423,77 @@ const Booking = ({
 
                                             slotDate.setHours(hour, 0, 0, 0);
 
-                                            const now = new Date();
-                                            // Only mark as past if the selected date is today
+                                            const now = new Date(); // Current time is 11:31 AM IST on August 21, 2025
                                             const isToday = selectedDateObj.toDateString() === now.toDateString();
                                             const isPast = isToday && slotDate.getTime() < now.getTime();
                                             const isBooked = slot?.status === "booked";
-                                            const isSelected = selectedTimes.some(t => t._id === slot._id);
+                                            const isSelected = selectedTimes.some((t) => t._id === slot._id);
+                                            const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
+                                            const isLimitReached = selectedCourts[0]?.time?.length === 15 && !isSelected;
 
                                             return (
-                                                <button
+                                                <OverlayTrigger
                                                     key={i}
-                                                    className={`btn border-0 rounded-pill  px-4 ${isBooked
-                                                        ? "bg-danger text-white"
-                                                        : isPast
-                                                            ? "bg-secondary-subtle"
-                                                            : ""
-                                                        }`}
-                                                    onClick={() => !isPast && !isBooked && toggleTime(slot)}
-                                                    disabled={isPast || isBooked || (selectedCourts[0]?.time?.length === 15 && !isSelected)}
-                                                    style={{
-                                                        backgroundColor: isSelected ? "#374151" :
-                                                            isBooked ? "#b42424ff" :
-                                                                (selectedCourts[0]?.time?.length ?? 0) === 15 && !isSelected ? "#888888" :
-                                                                    isPast && !isBooked ? "#CBD6FF1A" : "#CBD6FF1A",
-                                                        color: isSelected ? "white" :
-                                                            isPast && !isBooked ? "#888888" :
-                                                                isBooked ? "white" : "#000000",
-                                                        cursor: (isPast || isBooked || (selectedCourts[0]?.time?.length ?? 0) === 15 && !isSelected) ? "not-allowed" : "pointer",
-                                                        opacity: (isPast || isBooked || (selectedCourts[0]?.time?.length ?? 0) === 15 && !isSelected) ? 0.6 : 1,
-                                                    }}
-
+                                                    placement="bottom"
+                                                    overlay={
+                                                        (isBooked || isPast || !hasAmount || isLimitReached || !isSelected) ? (
+                                                            <Tooltip
+                                                                id={`tooltip-${slot._id}`}
+                                                                className="border rounded p-1 text-white"
+                                                                style={{ fontFamily: "Poppins", fontWeight: "500", backgroundColor: "black" }}
+                                                            >
+                                                                {isBooked
+                                                                    ? "Booked"
+                                                                    : isPast
+                                                                        ? "Time out"
+                                                                        : !hasAmount
+                                                                            ? "Amount not available"
+                                                                            : isLimitReached
+                                                                                ? "limit Reached"
+                                                                                : "Book now"}
+                                                            </Tooltip>
+                                                        ) : (
+                                                            <></>
+                                                        )
+                                                    }
                                                 >
-                                                    {isBooked ? "Booked" : slot?.time}
-                                                </button>
+                                                    <button
+                                                        className={`btn border-0 rounded-pill px-4 ${isBooked
+                                                            ? "bg-danger text-white"
+                                                            : isPast
+                                                                ? "bg-secondary-subtle"
+                                                                : ""
+                                                            }`}
+                                                        onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
+                                                        // disabled={isPast || isBooked || !hasAmount || isLimitReached}
+                                                        style={{
+                                                            backgroundColor: isSelected
+                                                                ? "#374151"
+                                                                : isBooked
+                                                                    ? "#b42424ff"
+                                                                    : isLimitReached
+                                                                        ? "#888888"
+                                                                        : !hasAmount
+                                                                            ? "#fff7df"
+                                                                            : isPast && !isBooked
+                                                                                ? "#CBD6FF1A"
+                                                                                : "#7df97a3d",
+                                                            color: isSelected
+                                                                ? "white"
+                                                                : isPast && !isBooked
+                                                                    ? "#888888"
+                                                                    : isBooked
+                                                                        ? "white"
+                                                                        : "#000000",
+                                                            cursor: (isPast || isBooked || !hasAmount || isLimitReached) ? "not-allowed" : "pointer",
+                                                            opacity: (isPast || isBooked || !hasAmount || isLimitReached) ? 0.6 : 1,
+                                                        }}
+                                                    >
+                                                        {isBooked ? "Booked" : slot?.time}
+                                                    </button>
+                                                </OverlayTrigger>
                                             );
                                         })
-
                                     ) : (
                                         <div className="text-end">
                                             <p className="text-danger text-center fw-medium">No slots available for this date.</p>
@@ -591,8 +626,8 @@ const Booking = ({
                         <div className="border rounded px-3 py-5  border-0 " style={{ backgroundColor: " #CBD6FF1A" }}>
                             <div className="text-center mb-3">
                                 <div className="d-flex justify-content-center " style={{ lineHeight: '90px' }}>
-                                    {logo?.logo ?
-                                        <Avatar src={logo?.logo} alt="User Profile" /> :
+                                    {logo ?
+                                        <Avatar src={logo} alt="User Profile" /> :
                                         <Avatar>
                                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                                         </Avatar>
@@ -649,7 +684,7 @@ const Booking = ({
                                             {court.time.length > 0 && (
                                                 <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
                                                     <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
-                                                    {court.time && <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots({court.time.length})</span>}
+                                                    {court.time && <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {court.time.length}</span>}
                                                     <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
                                                         ₹ {court.time.reduce((total, t) => total + Number(t.amount || 0), 0)}
                                                     </span>

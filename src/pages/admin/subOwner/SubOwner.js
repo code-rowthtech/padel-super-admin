@@ -9,15 +9,15 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getUsers } from "../../../redux/thunks";
+import { getSubOwner } from "../../../redux/thunks";
 import { FaEdit } from "react-icons/fa";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import Pagination from "../../../helpers/Pagination";
-import UserModal from "./modal/UserModal";
 import { FaRegCircleUser } from "react-icons/fa6";
+import SubOwnerModal from "./modal/SubOwnerModal";
 
-const Users = () => {
+const SubOwner = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const Owner = getOwnerFromSession();
@@ -26,12 +26,14 @@ const Users = () => {
   // State
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const { getUserData, getUserLoading } = useSelector((state) => state?.users);
-  console.log({ getUserData });
-  const UserData = getUserData?.response;
+  const { getSubOwnerData, getSubOwnerLoading } = useSelector(
+    (state) => state?.subOwner
+  );
+  console.log({ getSubOwnerData });
+  const UserData = getSubOwnerData?.response;
 
   useEffect(() => {
-    dispatch(getUsers({ page: currentPage }));
+    dispatch(getSubOwner({ page: currentPage, limit: 10 }));
   }, [currentPage]);
 
   const totalRecords = UserData?.length || 1;
@@ -108,7 +110,7 @@ const Users = () => {
       <Row>
         <Col md={12}>
           <div className="bg-white rounded shadow-sm p-3">
-            {getUserLoading ? (
+            {getSubOwnerLoading ? (
               <DataLoading height="60vh" />
             ) : UserData?.length > 0 ? (
               <div className="custom-scroll-container">
@@ -167,7 +169,7 @@ const Users = () => {
       </Row>
 
       {/* Modals */}
-      <UserModal
+      <SubOwnerModal
         show={showUserModal}
         onHide={() => {
           setShowUserModal(false);
@@ -179,4 +181,4 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default SubOwner;

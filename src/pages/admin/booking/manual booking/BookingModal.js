@@ -9,7 +9,7 @@ import { FcCancel } from "react-icons/fc";
 
 export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
   <Modal show={show} onHide={handleClose} centered backdrop="static">
-    <Modal.Body className="text-center p-4 position-relative">
+    <Modal.Body className="text-center p-3 position-relative">
       <button
         onClick={handleClose}
         style={{
@@ -28,16 +28,16 @@ export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
       <img
         src={modalDetails}
         alt="Success"
-        className="py-4"
-        style={{ width: "250px", marginBottom: "20px" }}
+        className="py-2 animated-img"
+        style={{ width: "250px" }}
       />
-      <h4 className="table-heading py-1 mb-2 fw-bold">Booking Successful!</h4>
-      <p className="table-data mb-4 fw-bold text-dark">
+      <h4 className="table-heading py-1 mb-1 fw-bold">Booking Successful!</h4>
+      <p className="table-data mb-2 fw-bold text-dark">
         Your slot has been booked successfully.
       </p>
       <Button
-        onClick={handleClose}
-        className="mt-3"
+        onClick={openDetails}
+        className="my-3"
         style={{
           backgroundColor: "#34C759",
           border: "none",
@@ -49,7 +49,7 @@ export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
           maxWidth: "300px",
         }}
       >
-        Continue
+        View Details
       </Button>
       {/* <div>
         <button
@@ -105,7 +105,7 @@ export const BookingConfirmationModal = ({ show, handleClose }) => (
         <img
           src={modalSuccess}
           alt="Details"
-          className="py-4"
+          className="py-4 animated-img"
           style={{ width: "250px", marginBottom: "20px" }}
         />
         <div
@@ -263,7 +263,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
 
       <div className="text-center">
         <h2
-          className="tabel-title py-4"
+          className="tabel-title py-2"
           style={{ fontFamily: "Poppins", fontWeight: "600" }}
         >
           Booking Details
@@ -271,7 +271,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
         <img
           src={modalSuccess}
           alt="Details"
-          className="py-4"
+          className="py-2 animated-img"
           style={{ width: "200px", marginBottom: "20px" }}
         />
         <div
@@ -329,7 +329,10 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {bookingDetails?.userId?.name || "N/A"}
+              {bookingDetails?.userId?.name
+                .slice(0, 1)
+                .toUpperCase()
+                .concat(bookingDetails?.userId?.name.slice(1)) || "N/A"}
             </p>
             <p
               className="fw-bold mb-1"
@@ -359,6 +362,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
+              {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
               {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
             </p>
           </div>
@@ -533,7 +537,10 @@ export const BookingCancelModal = ({
                 className="fw-bold mb-1"
                 style={{ fontSize: "14px", fontFamily: "Poppins" }}
               >
-                {bookingDetails?.userId?.name || "N/A"}
+                {bookingDetails?.userId?.name
+                  .slice(0, 1)
+                  .toUpperCase()
+                  .concat(bookingDetails?.userId?.name.slice(1)) || "N/A"}
               </p>
               <p
                 className="fw-bold mb-1"
