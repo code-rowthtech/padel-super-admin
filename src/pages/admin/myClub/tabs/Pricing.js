@@ -126,7 +126,7 @@ const Pricing = () => {
         }));
       }
     }
-  }, [PricingData, formData.selectedSlots, convertTo12HourFormat]);
+  }, [PricingData, formData.selectedSlots]);
 
   /** Fetch slots when days/slots change */
   const selectedDays = Object.keys(formData.days).filter(

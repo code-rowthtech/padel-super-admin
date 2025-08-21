@@ -330,9 +330,9 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
               }}
             >
               {bookingDetails?.userId?.name
-                .slice(0, 1)
-                .toUpperCase()
-                .concat(bookingDetails?.userId?.name.slice(1)) || "N/A"}
+                ?.slice(0, 1)
+                ?.toUpperCase()
+                ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
             </p>
             <p
               className="fw-bold mb-1"
@@ -402,6 +402,34 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
               ? `₹ ${bookingDetails?.totalAmount}`
               : "N/A"}
           </h2>
+          {bookingDetails?.refundAmount && (
+            <>
+              |
+              <h2
+                className="tabel-title py-2 text-start text-muted"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Refund Amount
+              </h2>
+              <h2
+                className="tabel-title py-2 text-start"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                {bookingDetails?.refundAmount
+                  ? `₹ ${bookingDetails?.refundAmount}`
+                  : "N/A"}
+              </h2>
+            </>
+          )}
         </div>
       </div>
     </Modal.Body>
@@ -538,9 +566,9 @@ export const BookingCancelModal = ({
                 style={{ fontSize: "14px", fontFamily: "Poppins" }}
               >
                 {bookingDetails?.userId?.name
-                  .slice(0, 1)
-                  .toUpperCase()
-                  .concat(bookingDetails?.userId?.name.slice(1)) || "N/A"}
+                  ?.slice(0, 1)
+                  ?.toUpperCase()
+                  ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
               </p>
               <p
                 className="fw-bold mb-1"
