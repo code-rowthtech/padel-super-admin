@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import { Container, Row, Col, Table, Button, Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Container, Row, Col, Table, Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Tab, Tabs } from '@mui/material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaCalendarAlt, FaSearch, FaTimes } from 'react-icons/fa'; // Added FaTimes for cancel icon
-import { MdOutlineCancel } from "react-icons/md";
-import { FiEye } from "react-icons/fi";
+import { FaCalendarAlt, FaSearch, FaTimes } from 'react-icons/fa';
+import { MdOutlineCancel } from 'react-icons/md';
+import { FiEye } from 'react-icons/fi';
 import { AcceptedRejectedModal, BookingHistoryCancelModal, CancellationConfirmationModal } from './bookingModals/Modals';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { BookingRatingModal } from './bookingModals/RatingModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { getBooking } from '../../../redux/user/booking/thunk';
-import { DataLoading, Loading } from '../../../helpers/loading/Loaders';
+import { DataLoading } from '../../../helpers/loading/Loaders';
 import { resetBooking } from '../../../redux/user/booking/slice';
-import { formatDate } from '../../../helpers/Formatting';
 import { getReviewClub } from '../../../redux/user/club/thunk';
 import { getUserFromSession } from '../../../helpers/api/apiCore';
-import Pagination from '../../../helpers/Pagination'
+import Pagination from '../../../helpers/Pagination';
+import { formatDate } from '../../../helpers/Formatting';
+
 const BookingHistory = () => {
     const store = useSelector((state) => state);
     const dispatch = useDispatch();
@@ -44,28 +45,22 @@ const BookingHistory = () => {
     const renderSlotTimes = (slotTimes) =>
         slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
 
-    function a11yProps(index) {
-        return {
-            id: `full-width-tab-${index}`,
-            'aria-controls': `full-width-tabpanel-${index}`,
-        };
-    }
+    const a11yProps = (index) => ({
+        id: `full-width-tab-${index}`,
+        'aria-controls': `full-width-tabpanel-${index}`,
+    });
 
     const handleChange = (event, newValue) => {
         setActiveTab(newValue);
         setCurrentPage(1);
-        setSearchDate(null); // Reset date when tab changes
+        setSearchDate(null);
         dispatch(resetBooking());
         let type = "";
-        if (newValue === "all") {
-            type = "";
-        } else if (newValue === "cancelled") {
-            type = "cancelled";
-        } else if (newValue === "upcoming") {
-            type = "upcoming";
-        } else if (newValue === "completed") {
-            type = "completed";
-        }
+        if (newValue === "all") type = "";
+        else if (newValue === "cancelled") type = "cancelled";
+        else if (newValue === "requested") type = "in-progress";
+        else if (newValue === "upcoming") type = "upcoming";
+        else if (newValue === "completed") type = "completed";
         dispatch(getBooking({ type, page: 1 }));
     };
 
@@ -78,54 +73,54 @@ const BookingHistory = () => {
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
         let type = "";
-        if (activeTab === "cancelled") {
-            type = "cancelled";
-        } else if (activeTab === "upcoming") {
-            type = "upcoming";
-        } else if (activeTab === "completed") {
-            type = "completed";
-        }
+        if (activeTab === "cancelled") type = "cancelled";
+        else if (activeTab === "requested") type = "in-progress";
+        else if (activeTab === "upcoming") type = "upcoming";
+        else if (activeTab === "completed") type = "completed";
         dispatch(getBooking({ type, page: pageNumber }));
     };
 
-    const handleClearDate = () => {
-        setSearchDate(null);
-    };
+    const handleClearDate = () => setSearchDate(null);
 
     const getRatingLabel = (currentRating) => {
-        if (currentRating >= 4.5);
-        if (currentRating >= 3.5);
-        if (currentRating >= 2.5);
-        if (currentRating >= 1.5);
-        if (currentRating >= 0.5);
+        if (currentRating >= 4.5) return "Excellent";
+        if (currentRating >= 3.5) return "Good";
+        if (currentRating >= 2.5) return "Average";
+        if (currentRating >= 1.5) return "Below Average";
+        if (currentRating >= 0.5) return "Poor";
         return "";
     };
 
     const club_id = localStorage.getItem("register_club_id");
 
     useEffect(() => {
-        if (User?.token) {
-            dispatch(getBooking({ type: "", page: 1 }));
-        }
-        if (club_id) {
-            dispatch(getReviewClub(club_id));
-        }
+        if (User?.token) dispatch(getBooking({ type: "", page: 1 }));
+        if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
         const status = booking?.bookingStatus;
-
-        // Status filter
         let statusMatch = false;
-        if (selectedOption === "Rejected") {
-            statusMatch = ["in-progress", "rejected"].includes(status);
-        } else if (selectedOption === "Accepted") {
-            statusMatch = ["refunded"].includes(status);
-        } else if (selectedOption === "All") {
+
+        // Requested टैब के लिए केवल in-progress बुकिंग्स
+        if (activeTab === "requested") {
+            statusMatch = status === "in-progress";
+        }
+        // Cancelled टैब के लिए स्टेटस फिल्टर
+        else if (activeTab === "cancelled") {
+            if (selectedOption === "Rejected") statusMatch = ["rejected"].includes(status);
+            else if (selectedOption === "Accepted") statusMatch = ["refunded"].includes(status);
+            else if (selectedOption === "All") statusMatch = true;
+        }
+        // Upcoming टैब के लिए सभी बुकिंग्स (confirmed भी शामिल)
+        else if (activeTab === "upcoming") {
+            statusMatch = true;
+        }
+        // अन्य टैब्स (All, Complete) के लिए सभी बुकिंग्स
+        else {
             statusMatch = true;
         }
 
-        // Date filter
         let dateMatch = true;
         if (searchDate) {
             dateMatch = booking?.slot?.some((slotItem) => {
@@ -134,7 +129,6 @@ const BookingHistory = () => {
             });
         }
 
-        // Court name filter (case insensitive)
         let courtMatch = true;
         if (searchText.trim() !== "") {
             courtMatch = booking?.slot?.some((slotItem) =>
@@ -146,18 +140,6 @@ const BookingHistory = () => {
     });
 
     const totalRecords = getBookingData?.bookingData?.total || 1;
-    // const paginationItems = [];
-    // for (let number = 1; number <= totalPages; number++) {
-    //     paginationItems.push(
-    //         <Pagination.Item
-    //             key={number}
-    //             active={number === currentPage}
-    //             onClick={() => handlePageChange(number)}
-    //         >
-    //             {number}
-    //         </Pagination.Item>
-    //     );
-    // }
 
     return (
         <Container>
@@ -176,7 +158,7 @@ const BookingHistory = () => {
                         aria-label="booking history tabs"
                         TabIndicatorProps={{ style: { display: 'none' } }}
                     >
-                        {['all', 'upcoming', 'cancelled', 'completed'].map((tab, i) => (
+                        {['all', 'upcoming', 'requested', 'cancelled', 'completed'].map((tab, i) => (
                             <Tab
                                 key={tab}
                                 label={tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -202,9 +184,7 @@ const BookingHistory = () => {
                     <h2 className="tabel-title mt-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking</h2>
                 </Col>
                 <Col md={6} className="d-flex gap-2 justify-content-end align-items-center">
-                    <InputGroup
-                        className="rounded bg-light p-1 align-items-center"
-                    >
+                    <InputGroup className="rounded bg-light p-1 align-items-center">
                         <InputGroup.Text className="bg-light border-0 px-3">
                             <FaCalendarAlt className="text-muted" />
                         </InputGroup.Text>
@@ -217,11 +197,7 @@ const BookingHistory = () => {
                             className="form-control border-0 bg-light shadow-none custom-datepicker-input"
                         />
                         {searchDate && (
-                            <InputGroup.Text
-                                className="bg-light border-0 px-3"
-                                onClick={handleClearDate}
-                                style={{ cursor: 'pointer' }}
-                            >
+                            <InputGroup.Text className="bg-light border-0 px-3" onClick={handleClearDate} style={{ cursor: 'pointer' }}>
                                 <FaTimes className="text-danger" />
                             </InputGroup.Text>
                         )}
@@ -242,56 +218,51 @@ const BookingHistory = () => {
                     </InputGroup>
                 </Col>
             </Row>
-            {/* D0D6EA */}
+
             <div className="custom-scroll-container">
-                <Table responsive borderless size="sm" className="custom-table">
+                <Table  borderless size="sm" className="custom-table position-relative">
                     <thead>
                         <tr className=''>
-                            <th className='' >Date</th>
-                            <th >Time</th>
-                            <th >Court Name</th>
-                            <th >Booking Type</th>
+                            <th>Date/Time</th>
+                            <th>Slot</th>
+                            <th>Court Name</th>
+                            <th>Booking Type</th>
+                            <th>Booking Date</th>
+                            {activeTab === 'cancelled' && <th>Reason</th>}
+                            {activeTab === 'completed' && <th>Rating</th>}
+                            {activeTab === 'completed' && <th>Message</th>}
+                            <th>Amount</th>
                             {activeTab === 'cancelled' && (
-                                <th >Reason</th>
-                            )}
-                            {activeTab === 'completed' && (
-                                <th >Rating</th>
-                            )}
-                            {activeTab === 'completed' && (
-                                <th >Message</th>
-                            )}
-                            <th  >Amount</th>
-                            {activeTab === 'cancelled' && (
-                                <th >
+                                <th>
                                     <div className="dropdown-wrapper">
                                         <div className="dropdown-header" onClick={() => setIsOpen(!isOpen)}>
                                             Status <b className="arrow"><i className="bi bi-chevron-down text-dark fw-bold"></i></b>
                                         </div>
                                         {isOpen && (
-                                            <div className="dropdown-list">
-                                                <div onClick={() => handleSelect("All")}>All</div>
-                                                <div onClick={() => handleSelect("Accepted")}>Accepted</div>
-                                                <div onClick={() => handleSelect("Rejected")}>Rejected</div>
+                                            <div className="dropdown-list text-start">
+                                                <div className='mb-0' onClick={() => handleSelect("All")}>All</div>
+                                                <div className='mb-0' onClick={() => handleSelect("Accepted")}>Accepted</div>
+                                                <div className='mb-0' onClick={() => handleSelect("Rejected")}>Rejected</div>
                                             </div>
                                         )}
                                     </div>
                                 </th>
                             )}
-                            <th >Action</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     {getBookingData?.bookingLoading ? (
                         <tbody>
                             <tr>
-                                <td colSpan={7} style={{ height: "60vh", verticalAlign: "middle" }} className="text-center">
+                                <td colSpan={8} style={{ height: "60vh", verticalAlign: "middle" }} className="text-center">
                                     <DataLoading height={100} />
                                 </td>
                             </tr>
                         </tbody>
-                    ) : searchDate && filterStatus?.length === 0 ? (
+                    ) : getBookingData?.bookingData?.data?.length === 0 || (activeTab === "requested" && filterStatus?.length === 0) ? (
                         <tbody>
                             <tr>
-                                <td colSpan={7} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
+                                <td colSpan={8} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
                                     <p className="table-data text-danger">No bookings found.</p>
                                 </td>
                             </tr>
@@ -301,17 +272,11 @@ const BookingHistory = () => {
                             {filterStatus?.map((booking, i) =>
                                 booking?.slot?.map((slotItem, index) => (
                                     <tr key={`${i}-${index}`} className="table-data border-bottom">
+                                        <td>{format(new Date(booking?.createdAt), 'dd/MM/yyyy | hh:mm a')}</td>
                                         <td>
-                                            {formatDate(slotItem?.bookingDate)}
-                                        </td>
-                                        <td >
                                             <OverlayTrigger
                                                 placement="top"
-                                                overlay={
-                                                    <Tooltip id={`slot-tooltip-${slotItem?.id}`}>
-                                                        {renderSlotTimes(slotItem?.slotTimes)}
-                                                    </Tooltip>
-                                                }
+                                                overlay={<Tooltip id={`slot-tooltip-${slotItem?.id}`}>{renderSlotTimes(slotItem?.slotTimes)}</Tooltip>}
                                             >
                                                 <span>
                                                     {(() => {
@@ -322,59 +287,31 @@ const BookingHistory = () => {
                                                 </span>
                                             </OverlayTrigger>
                                         </td>
-                                        <td className="table-data">
-                                            {slotItem?.courtName || 'N/A'}
-                                        </td>
-                                        <td className="table-data">
-                                            {booking?.bookingType || 'N/A'}
-                                        </td>
+                                        <td className="table-data">{slotItem?.courtName || 'N/A'}</td>
+                                        <td className="table-data">{booking?.bookingType || 'N/A'}</td>
+                                        <td className="table-data">{formatDate(new Date(slotItem?.bookingDate))}</td>
                                         {activeTab === 'cancelled' && (
-                                            <td>
-                                                {booking?.cancellationReason?.charAt(0).toUpperCase(1) + booking?.cancellationReason?.slice(1)}
-                                            </td>
+                                            <td>{booking?.cancellationReason?.charAt(0).toUpperCase() + (booking?.cancellationReason?.slice(1) || '')}</td>
                                         )}
                                         {activeTab === 'completed' && (
                                             <td className="text-center">
                                                 {[1, 2, 3, 4, 5].map((star) => {
                                                     const averageRating = getReviewData?.averageRating || 0;
                                                     let iconClass = "bi-star";
-                                                    if (star <= Math.floor(averageRating)) {
-                                                        iconClass = "bi-star-fill";
-                                                    } else if (star - averageRating <= 0.5 && star - averageRating > 0) {
-                                                        iconClass = "bi-star-half";
-                                                    }
-                                                    return (
-                                                        <>
-                                                            <i
-                                                                key={star}
-                                                                className={`bi ${iconClass} ms-2`}
-                                                                style={{
-                                                                    color: "#3DBE64",
-                                                                    fontSize: "18px",
-                                                                }}
-                                                            ></i>
-                                                        </>
-                                                    );
-
+                                                    if (star <= Math.floor(averageRating)) iconClass = "bi-star-fill";
+                                                    else if (star - averageRating <= 0.5 && star - averageRating > 0) iconClass = "bi-star-half";
+                                                    return <i key={star} className={`bi ${iconClass} ms-2`} style={{ color: "#3DBE64", fontSize: "18px" }} />;
                                                 })}
-                                                <span
-                                                    className="ms-2"
-                                                    style={{
-                                                        fontSize: "15px",
-                                                        fontWeight: "500",
-                                                        color: "#374151",
-                                                        fontFamily: "Poppins",
-                                                    }}
-                                                >
-                                                    {getReviewData.averageRating.toFixed(1)}{" "}
-                                                    {getRatingLabel(getReviewData.averageRating)}
+                                                <span className="ms-2" style={{ fontSize: "15px", fontWeight: "500", color: "#374151", fontFamily: "Poppins" }}>
+                                                    {getReviewData?.averageRating?.toFixed(1) || '0.0'} {getRatingLabel(getReviewData?.averageRating)}
                                                 </span>
                                             </td>
                                         )}
                                         {activeTab === "completed" && (
                                             <td>
                                                 <span>
-                                                    {getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.charAt(0).toUpperCase(1) + getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.slice(1) || "No comment"}
+                                                    {getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.charAt(0).toUpperCase() +
+                                                        (getReviewData?.reviews?.[getReviewData?.reviews?.length - 1]?.reviewComment?.slice(1) || '') || "No comment"}
                                                 </span>
                                             </td>
                                         )}
@@ -382,41 +319,26 @@ const BookingHistory = () => {
                                             ₹{booking?.totalAmount || 'N/A'}
                                         </td>
                                         {activeTab === 'cancelled' && (
-                                            <td
-                                                style={{
-                                                    color: booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected'
-                                                        ? "red"
-                                                        : "green",
-                                                    fontSize: "16px",
-                                                    fontFamily: "Poppins",
-                                                    fontWeight: "500"
-                                                }}
-                                            >
-                                                {booking?.bookingStatus === 'in-progress' || booking?.bookingStatus === 'rejected' ? "Rejected" : "Accepted"}
+                                            <td style={{ color: booking?.bookingStatus === 'rejected' ? "red" : booking?.bookingStatus === 'refunded' ? "green" : "#F29410", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                                {booking?.bookingStatus === 'rejected' ? "Rejected" : booking?.bookingStatus === 'refunded' ? "Accepted" : "Request for calcallation"}
                                             </td>
                                         )}
                                         <td className="text-center">
                                             {activeTab === 'cancelled' || activeTab === 'completed' ? (
                                                 ''
-                                            ) : booking?.cancellationReason ? (
-                                                <span
-                                                    className="d-inline-block"
-                                                    style={{
-                                                        color: "#F29410",
-                                                        fontSize: "12px",
-                                                        fontWeight: "500",
-                                                        fontFamily: "Poppins"
-                                                    }}
-                                                >
-                                                    Request For Cancellation
-                                                </span>
+                                            ) : booking?.bookingStatus === 'in-progress' ? (
+                                                <span style={{ color: "#F29410", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>Request For Cancellation</span>
+                                            ) : booking?.bookingStatus === 'refunded' ? (
+                                                <span style={{ color: "green", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>Accepted</span>
+                                            ) : booking?.bookingStatus === 'rejected' ? (
+                                                <span style={{ color: "red", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>Rejected</span>
                                             ) : (
                                                 <MdOutlineCancel
                                                     size={20}
                                                     onClick={() => {
                                                         setSelectedBooking(booking);
                                                         setChangeCancelShow(true);
-                                                        setCourtData({ slotItem: slotItem, booking: booking });
+                                                        setCourtData({ slotItem, booking });
                                                         setModalCancel(true);
                                                     }}
                                                     className="text-danger"
@@ -429,13 +351,19 @@ const BookingHistory = () => {
                                                 onClick={() => {
                                                     if (activeTab === "cancelled") {
                                                         setAcceptedRejected(true);
-                                                        setStatusData({ booking: booking, slotItem: slotItem });
-                                                    } else if (["all", "upcoming"].includes(activeTab)) {
-                                                        setModalCancel(true);
-                                                        setCourtData({ slotItem: slotItem, booking: booking });
+                                                        setStatusData({ booking, slotItem });
+                                                    } else if (["all", "requested", "upcoming"].includes(activeTab)) {
+                                                        if (booking?.bookingStatus === 'refunded' || booking?.bookingStatus === 'rejected') {
+                                                            setAcceptedRejected(true);
+                                                            setStatusData({ booking, slotItem });
+                                                        } else {
+                                                            setModalCancel(true);
+                                                            setCourtData({ slotItem, booking });
+                                                        }
+
                                                     } else if (activeTab === "completed") {
                                                         setShowRatingModal(true);
-                                                        setStatusData({ booking: booking, slotItem: slotItem });
+                                                        setStatusData({ booking, slotItem });
                                                     }
                                                 }}
                                                 style={{ cursor: "pointer" }}
@@ -448,7 +376,7 @@ const BookingHistory = () => {
                     ) : (
                         <tbody>
                             <tr>
-                                <td colSpan={7} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
+                                <td colSpan={8} className="text-center" style={{ height: "60vh", verticalAlign: "middle" }}>
                                     <p className="table-data text-danger">No bookings found.</p>
                                 </td>
                             </tr>
@@ -457,7 +385,6 @@ const BookingHistory = () => {
                 </Table>
             </div>
 
-            {/* {getBookingData?.bookingData?.totalPages > 1 && ( */}
             <Row className="mt-3">
                 <Col className="d-flex justify-content-center">
                     <Pagination
@@ -468,7 +395,6 @@ const BookingHistory = () => {
                     />
                 </Col>
             </Row>
-            {/* )} */}
 
             <BookingHistoryCancelModal
                 show={modalCancel}
@@ -489,10 +415,7 @@ const BookingHistory = () => {
                     setRatingBookingIndex(null);
                 }}
                 onSubmit={({ rating, review }) => {
-                    setRatings((prev) => ({
-                        ...prev,
-                        [ratingBookingIndex]: { rating, review }
-                    }));
+                    setRatings((prev) => ({ ...prev, [ratingBookingIndex]: { rating, review } }));
                     setShowRatingModal(false);
                     setRatingBookingIndex(null);
                 }}
@@ -500,7 +423,12 @@ const BookingHistory = () => {
                 defaultMessage={ratingBookingIndex !== null ? ratings[ratingBookingIndex]?.review : ''}
             />
             <CancellationConfirmationModal />
-            <AcceptedRejectedModal booking={statusData} selectedOption={selectedOption} onHide={() => setAcceptedRejected(false)} show={acceptedRejected} />
+            <AcceptedRejectedModal
+                booking={statusData}
+                selectedOption={selectedOption}
+                onHide={() => setAcceptedRejected(false)}
+                show={acceptedRejected}
+            />
         </Container>
     );
 };

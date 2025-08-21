@@ -449,3 +449,20 @@ h1.display-5 {
 .img-container:hover .preview {
   display: block;
 }
+
+
+.animated-image {
+  animation: scaleAnimation 2s infinite ease-in-out;
+}
+
+@keyframes scaleAnimation {
+  0% {
+    transform: scale(0.8); /* शुरू में छोटा */
+  }
+  50% {
+    transform: scale(1.2); /* बीच में बड़ा */
+  }
+  100% {
+    transform: scale(0.8); /* फिर वापस छोटा */
+  }
+}

@@ -105,10 +105,12 @@ const CreateMatches = () => {
         getUserSlot({
           register_club_id: savedClubId,
           day: selectedDate.day,
+          courtId: selectedCourts[0]?._id
         })
       );
     }
-  }, [savedClubId, selectedDate?.fullDate, selectedDate?.day, dispatch]);
+  }, [savedClubId, selectedCourts?._id, selectedDate?.fullDate, selectedDate?.day, dispatch]);
+
 
   const handleCourtSelect = (court) => {
     const timeOnly = selectedTimes?.map(item => ({
@@ -196,6 +198,7 @@ const CreateMatches = () => {
               amount: timeSlot?.amount || 2000,
             }],
             courtName: selectedCourt?.courtName ,
+            courtId : selectedCourt?._id,
             bookingDate: new Date(selectedDate.fullDate).toISOString(),
           };
         }),
