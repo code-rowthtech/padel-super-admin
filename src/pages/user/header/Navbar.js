@@ -15,8 +15,7 @@ const Navbar = () => {
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
-    const logo = useSelector((state) => state?.userAuth?.logo?.logo);
-    console.log(logo, 'logoooooooooooooooooo');
+    const logo = JSON.parse(localStorage.getItem("logo"));
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
             setUserData(store.user.response.user);
@@ -66,8 +65,8 @@ const Navbar = () => {
             <div className="container">
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
-                    {logo?.logo ?
-                        <Avatar src={logo?.logo} alt="User Profile" /> :
+                    {logo ?
+                        <Avatar src={logo} alt="User Profile" /> :
                         <Avatar>
                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                         </Avatar>
@@ -190,6 +189,7 @@ const Navbar = () => {
                                         onClick={() => {
                                             dispatch(logoutUser());
                                             localStorage.removeItem('padel_user');
+                                            localStorage.removeItem('logo');
                                             setUserData(null);
                                             navigate('/home');
                                         }}

@@ -11,6 +11,7 @@ import {
 import {
   setLoggedInUser,
   getUserFromSession,
+  updateSessionData,
 } from "../../../helpers/api/apiCore";
 
 const initialState = {
@@ -147,6 +148,7 @@ const authSlice = createSlice({
       .addCase(getLogo.fulfilled, (state, action) => {
         state.logoLoading = false;
         state.logo = action.payload;
+        localStorage.setItem("logo", JSON.stringify(action.payload?.logo?.logo));
       })
       .addCase(getLogo.rejected, (state, action) => {
         state.logoLoading = false;
