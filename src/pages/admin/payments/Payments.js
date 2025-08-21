@@ -186,7 +186,7 @@ const Payments = () => {
                 selected={startDate}
                 onChange={(date) => {
                   setStartDate(date);
-                  if (!date) setEndDate(null); // reset end date if start cleared
+                  if (!date) setEndDate(null);
                 }}
                 selectsStart
                 startDate={startDate}
