@@ -128,7 +128,7 @@ const Payment = ({ className = "" }) => {
             };
 
             dispatch(createBooking(payload)).unwrap().then(() => {
-                if (user?.token) {
+                if (user?.token && user?.name) {
                     navigate('/booking-history');
                 } else {
                     dispatch(loginUserNumber({ phoneNumber: phoneNumber,name:name,email:email }));
