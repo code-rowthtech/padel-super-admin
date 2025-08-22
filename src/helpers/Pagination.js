@@ -41,7 +41,7 @@ const Pagination = ({
   }
 
   return (
-    <div className="row py-3 w-100 d-flex algn-items-center">
+    <div className="row  w-100 d-flex algn-items-center">
       <div className="col-md-2 col-12 d-flex align-items-center justify-content-center justify-content-md-start mt-2 text-nowrap">
         <span className="ms-2 border p-1 ms-3 border-0 fw-bold">
           Total Records: {totalRecords}

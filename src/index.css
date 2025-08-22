@@ -254,10 +254,19 @@ h1.display-5 {
 
 /* Custom Table */
 
+.custom-scroll-container {
+  max-height: 100vh;
+  width: 100%;
+  margin-bottom: 0px;
+}
+
 .custom-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  table-layout: auto;
+  min-width: 1000px;
+  /* Ensures table is wide enough to require horizontal scroll on smaller screens */
 }
 
 .custom-table thead th {
@@ -265,6 +274,9 @@ h1.display-5 {
   font-weight: 700;
   text-align: center;
   padding: 0.45rem 0.7rem;
+  /* position: sticky; */
+  top: 0;
+  z-index: 1;
 }
 
 .custom-table td {
@@ -272,6 +284,8 @@ h1.display-5 {
   text-align: center;
   font-weight: 500;
   vertical-align: middle;
+  white-space: nowrap;
+  /* Prevents text wrapping in cells */
 }
 
 .custom-table .table-data {
@@ -441,7 +455,8 @@ h1.display-5 {
 }
 
 .preview img {
-  width: 150px; /* Big size preview */
+  width: 150px;
+  /* Big size preview */
   height: 150px;
   border-radius: 8px;
   object-fit: cover;
@@ -457,13 +472,18 @@ h1.display-5 {
 
 @keyframes scaleAnimation {
   0% {
-    transform: scale(0.8); /* शुरू में छोटा */
+    transform: scale(0.8);
+    /* शुरू में छोटा */
   }
+
   50% {
-    transform: scale(1.2); /* बीच में बड़ा */
+    transform: scale(1.2);
+    /* बीच में बड़ा */
   }
+
   100% {
-    transform: scale(0.8); /* फिर वापस छोटा */
+    transform: scale(0.8);
+    /* फिर वापस छोटा */
   }
 }
 
@@ -477,13 +497,16 @@ h1.display-5 {
     transform: scale(0.5);
     opacity: 0;
   }
+
   60% {
     transform: scale(1.1);
     opacity: 1;
   }
+
   80% {
     transform: scale(0.9);
   }
+
   100% {
     transform: scale(1);
   }
