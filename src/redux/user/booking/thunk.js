@@ -37,7 +37,7 @@ export const bookingStatus = createAsyncThunk(
       const res = await userApi.put(`${Url.BOOKING_STATUS_CHANGE}`, data);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
+      showError(error);
       return rejectWithValue(error);
     }
   }
