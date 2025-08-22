@@ -5,16 +5,17 @@ import * as Url from "../../../helpers/api/apiEndpoint";
 
 export const getUserSlot = createAsyncThunk(
   "club/getUserSlot",
-  async ({ register_club_id, day,courtId }, { rejectWithValue }) => {
+  async ({ register_club_id, day,courtId ,date}, { rejectWithValue }) => {
     try {
       // Early validation
-      if (!register_club_id || !day ) {
+      if (!register_club_id || !day  || !date) {
         throw new Error("Missing required parameters: register_club_id or day");
       }
 
       const queryParams = new URLSearchParams({
         register_club_id,
         day,
+        date,
       }).toString();
 
       const response = await userApi.get(`${Url.GET_SLOT_API}?${queryParams}&courtId=${courtId || ''}`);

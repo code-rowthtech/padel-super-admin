@@ -176,6 +176,7 @@ const Booking = ({
             getUserSlot({
                 register_club_id: savedClubId,
                 day: selectedDate?.day,
+                date:selectedDate?.fullDate,
                 courtId: selectedCourts[0]?._id,
             })
         );
@@ -187,6 +188,7 @@ const Booking = ({
                 getUserSlot({
                     register_club_id: savedClubId,
                     day: selectedDate?.day,
+                    date:selectedDate?.fullDate,
                     courtId: selectedCourts[0]?._id,
                 })
             );
@@ -240,6 +242,7 @@ const Booking = ({
                 getUserSlot({
                     register_club_id: savedClubId,
                     day: selectedDate?.day,
+                    date:selectedDate?.fullDate,
                     courtId: firstCourt?._id,
                 })
             );
