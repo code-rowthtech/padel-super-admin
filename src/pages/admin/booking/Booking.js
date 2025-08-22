@@ -179,14 +179,14 @@ const Booking = () => {
                 <Table responsive borderless size="sm" className="custom-table">
                   <thead>
                     <tr className="text-center">
-                      <th>User</th>
-                      <th>Contact</th>
-                      <th>Booking</th>
-                      <th>Court Name</th>
-                      <th>Slot</th>
-                      <th>Amount</th>
-                      <th>Date/Time</th>
+                      <th>User Name</th>
                       <th>Booking Date</th>
+                      {/* <th>Contact</th> */}
+                      {/* <th>Booking</th> */}
+                      <th>Court No</th>
+                      {/* <th>Slot</th>
+                      <th>Amount</th> */}
+                      {/* <th>Date/Time</th> */}
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -199,29 +199,30 @@ const Booking = () => {
                             ?.toUpperCase()
                             ?.concat(item?.userId?.name?.slice(1)) || "N/A"}
                         </td>
-                        <td>
+                        <td>{formatDate(item?.bookingDate)}</td>
+
+                        {/* <td>
                           {item?.userId?.countryCode || ""}{" "}
                           {item?.userId?.phoneNumber || "N/A"}
-                        </td>
-                        <td>
+                        </td> */}
+                        {/* <td>
                           {item?.bookingType
                             ?.slice(0, 1)
                             ?.toUpperCase()
                             ?.concat(item?.bookingType?.slice(1)) || "-"}
-                        </td>
+                        </td> */}
                         <td>{item?.slot?.[0]?.courtName || "-"}</td>
-                        <td>
+                        {/* <td>
                           {item?.slot[0]?.businessHours?.[0]?.day || ""}{" "}
                           {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
                         </td>
-                        <td>₹{item?.totalAmount}</td>
-                        <td>
+                        <td>₹{item?.totalAmount}</td> */}
+                        {/* <td>
                           {format(
                             new Date(item?.createdAt),
                             "dd/MM/yyyy | hh:mm a"
                           )}
-                        </td>
-                        <td>{formatDate(item?.bookingDate)}</td>
+                        </td> */}
                         <td style={{ cursor: "pointer" }}>
                           {loadingBookingId === item?._id ? (
                             <ButtonLoading color="blue" size={7} />

@@ -51,6 +51,7 @@ export const updateRegisteredClub = createAsyncThunk(
     try {
       const res = await ownerApi.put(Url.UPDATE_REGISTERED_CLUB, data);
       if (res?.status === 200) {
+        showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to update club");
@@ -88,7 +89,7 @@ export const updatePrice = createAsyncThunk(
     try {
       const res = await ownerApi.put(Url.UPDATE_PRICE, data);
       if (res?.status === 200) {
-        showSuccess(res?.data?.message);
+        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to create slot");

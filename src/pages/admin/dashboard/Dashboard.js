@@ -324,12 +324,9 @@ const AdminDashboard = () => {
                       >
                         <thead>
                           <tr className="text-center">
-                            <th>User</th>
-                            <th>Contact</th>
-                            <th>Booking</th>
-                            <th>Court</th>
-                            <th>Amount</th>
+                            <th>User Name</th>
                             <th>Date</th>
+                            <th>Court No</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -339,15 +336,15 @@ const AdminDashboard = () => {
                               key={item?._id}
                               className="table-data border-bottom"
                             >
-                              <td>{item?.userId?.name || "N/A"}</td>
                               <td>
-                                {item?.userId?.countryCode || ""}{" "}
-                                {item?.userId?.phoneNumber || "N/A"}
-                              </td>
-                              <td>{item?.bookingType || "-"}</td>
-                              <td>{item?.slot[0]?.courtName || "-"}</td>
-                              <td>₹{item?.totalAmount}</td>
+                                {item?.userId?.name
+                                  ?.slice(0, 1)
+                                  ?.toUpperCase()
+                                  ?.concat(item?.userId?.name?.slice(1)) ||
+                                  "N/A"}
+                              </td>{" "}
                               <td>{formatDate(item?.bookingDate)}</td>
+                              <td>{item?.slot[0]?.courtName || "-"}</td>
                               <td style={{ cursor: "pointer" }}>
                                 {loadingById === item?._id ? (
                                   <ButtonLoading color="blue" size={7} />
@@ -407,13 +404,9 @@ const AdminDashboard = () => {
                       >
                         <thead>
                           <tr className="text-center">
-                            <th>User</th>
-                            <th>Contact</th>
-                            <th>Booking Type</th>
-                            <th>Court Name</th>
-                            <th>Slot Time</th>
-                            <th>Booking Amount</th>
-                            <th>Booking Date</th>
+                            <th>User Name</th>
+                            <th>Date</th>
+                            <th>Court No</th>
                             <th>Action</th>
                           </tr>
                         </thead>
@@ -423,33 +416,15 @@ const AdminDashboard = () => {
                               key={item._id}
                               className="table-data border-bottom"
                             >
-                              <td>{item?.userId?.name || "N/A"}</td>
                               <td>
-                                {item?.userId?.countryCode || ""}{" "}
-                                {item?.userId?.phoneNumber || "N/A"}
-                              </td>
-                              <td>{item?.bookingType || "-"}</td>
-                              <td>{item?.slot[0]?.courtName || "-"}</td>
-                              <td>
-                                <OverlayTrigger
-                                  placement="left"
-                                  overlay={
-                                    <BootstrapTooltip>
-                                      {renderSlotTimes(
-                                        item?.slot[0]?.slotTimes
-                                      )}
-                                    </BootstrapTooltip>
-                                  }
-                                >
-                                  <b>
-                                    {renderSlotTimes(
-                                      item?.slot[0]?.slotTimes.slice(0, 4)
-                                    )}
-                                  </b>
-                                </OverlayTrigger>
-                              </td>
-                              <td>₹{item?.totalAmount}</td>
+                                {item?.userId?.name
+                                  ?.slice(0, 1)
+                                  ?.toUpperCase()
+                                  ?.concat(item?.userId?.name?.slice(1)) ||
+                                  "N/A"}
+                              </td>{" "}
                               <td>{formatDate(item?.bookingDate)}</td>
+                              <td>{item?.slot[0]?.courtName || "-"}</td>
                               <td style={{ cursor: "pointer" }}>
                                 {loadingById === item?._id ? (
                                   <ButtonLoading color="blue" size={7} />

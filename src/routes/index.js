@@ -72,7 +72,7 @@ const Packages = React.lazy(() => import("../pages/admin/packages/Packages"));
 const PackageDetails = React.lazy(() =>
   import("../pages/admin/packages/PackageDetails")
 );
-const MyClub = React.lazy(() => import("../pages/admin/myClub/MyClub"));
+const MyClub = React.lazy(() => import("../pages/admin/myClub/ClubUpdateForm"));
 const Americano = React.lazy(() =>
   import("../pages/admin/americano/Americano")
 );
