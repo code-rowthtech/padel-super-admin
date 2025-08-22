@@ -63,7 +63,6 @@ const clubSlice = createSlice({
                 state.getReviewError = null;
             })
             .addCase(getReviewClub.fulfilled, (state, action) => {
-                console.log(action,'actionaction');
                 state.getReviewError = false;
                 state.getReviewData = action.payload;
             })

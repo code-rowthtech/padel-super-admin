@@ -54,13 +54,11 @@ const authSlice = createSlice({
         state.userAuthLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
-        console.log(action.payload, 'responseresponse');
         const user = { ...response.user, token: response.token };
         setLoggedInUser(user);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.userAuthLoading = false;
-        console.log(action.payload, 'responseresponse');
         state.error = action.payload;
       })
 
@@ -73,7 +71,6 @@ const authSlice = createSlice({
         state.userAuthLoading = false;
         state.user = action.payload;
         const { response } = action.payload;
-        console.log({ response }, action.payload, "auth Slice", response.token);
         const user = { ...response.user, token: response.token };
         setLoggedInUser(user);
       })
@@ -89,7 +86,6 @@ const authSlice = createSlice({
       })
       .addCase(sendOtp.fulfilled, (state, action) => {
         state.userAuthLoading = false;
-        console.log(action, action.payload, 'slice');
         state.otp = action.payload;
       })
       .addCase(sendOtp.rejected, (state, action) => {

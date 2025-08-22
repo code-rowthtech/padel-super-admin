@@ -31,7 +31,6 @@ export const getSlots = createAsyncThunk(
           data?.day
         }&time=${data?.time || ""}`
       );
-      console.log({ res });
       if (res?.status === 200) {
         // showSuccess(res?.data?.message);
         return res?.data;

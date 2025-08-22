@@ -11,6 +11,7 @@ import authImg from './images/auth.png'
 import registerClubBG from './images/registerClubBg.png'
 import modalSuccess from './images/Success.png'
 import modalDetails from './images/image 25.png'
+import complete_img from './images/complete-img-removebg-preview.png'
 
 export {
     twoball,
@@ -25,5 +26,6 @@ export {
     authImg,
     registerClubBG,
     modalDetails,
-    modalSuccess
+    modalSuccess,
+    complete_img
 }

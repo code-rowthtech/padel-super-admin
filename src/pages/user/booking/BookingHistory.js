@@ -36,7 +36,7 @@ import { formatDate } from "../../../helpers/Formatting";
 const BookingHistory = () => {
     const store = useSelector((state) => state);
     const dispatch = useDispatch();
-    const [activeTab, setActiveTab] = useState("all");
+    const [activeTab, setActiveTab] = useState("upcoming");
     const [searchDate, setSearchDate] = useState(null);
     const [searchText, setSearchText] = useState("");
     const [modalCancel, setModalCancel] = useState(false);
@@ -52,7 +52,6 @@ const BookingHistory = () => {
     const [statusData, setStatusData] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const getBookingData = useSelector((state) => state?.userBooking);
-    const getReviewData = store?.userClub?.getReviewData?.data;
     const User = getUserFromSession();
 
     const renderSlotTimes = (slotTimes) =>
@@ -66,11 +65,10 @@ const BookingHistory = () => {
     const handleChange = (event, newValue) => {
         setActiveTab(newValue);
         setCurrentPage(1);
-        setSearchDate(null); // Reset search date when switching tabs (optional, can be removed if you want to keep it)
+        setSearchDate(null);
         dispatch(resetBooking());
         let type = "";
-        if (newValue === "all") type = "";
-        else if (newValue === "cancelled") type = "cancelled";
+        if (newValue === "cancelled") type = "cancelled";
         else if (newValue === "upcoming") type = "upcoming";
         else if (newValue === "completed") type = "completed";
         dispatch(getBooking({ type, page: 1 }));
@@ -93,41 +91,47 @@ const BookingHistory = () => {
 
     const handleClearDate = () => setSearchDate(null);
 
-    const getRatingLabel = (currentRating) => {
-        if (currentRating >= 4.5) return "Excellent";
-        if (currentRating >= 3.5) return "Good";
-        if (currentRating >= 2.5) return "Average";
-        if (currentRating >= 1.5) return "Below Average";
-        if (currentRating >= 0.5) return "Poor";
-        return "";
-    };
+    // const getRatingLabel = (currentRating) => {
+    //     if (currentRating >= 4.5) return "";
+    //     if (currentRating >= 3.5) return "";
+    //     if (currentRating >= 2.5) return "";
+    //     if (currentRating >= 1.5) return "";
+    //     if (currentRating >= 0.5) return "";
+    //     return "";
+    // };
 
     const club_id = localStorage.getItem("register_club_id");
 
     useEffect(() => {
-        if (User?.token) dispatch(getBooking({ type: "", page: 1 }));
+        if (User?.token) dispatch(getBooking({ type: 'upcoming', page: 1 }));
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
-        const status = booking?.bookingStatus;
+        const status = booking?.bookingStatus?.toLowerCase(); // safety lowercase
         let statusMatch = false;
 
-        // Status matching based on active tab
         if (activeTab === "cancelled") {
-            if (selectedOption === "Rejected") statusMatch = ["rejected"].includes(status);
-            else if (selectedOption === "Accepted") statusMatch = ["refunded"].includes(status);
-            else if (selectedOption === "Requested") statusMatch = ["in-progress"].includes(status);
-            else if (selectedOption === "All") statusMatch = true;
+            if (selectedOption === "Rejected") {
+                statusMatch = status === "rejected";
+            } else if (selectedOption === "Accepted") {
+                statusMatch = status === "refunded";
+            } else if (selectedOption === "Requested") {
+                statusMatch = status === "in-progress";
+            } else {
+                statusMatch = ["in-progress", "refunded", "rejected"].includes(status);
+            }
         } else if (activeTab === "upcoming") {
-            statusMatch = status === "upcoming" || true; // Include all if no specific filter
+            // upcoming tab => upcoming + in-progress
+            statusMatch = ["upcoming", "in-progress"].includes(status);
         } else if (activeTab === "completed") {
-            statusMatch = status === "confirmed" || true; // Include all if no specific filter
+            // completed tab => only completed
+            statusMatch = status === "completed";
         } else {
-            statusMatch = true; // 'all' tab includes all statuses
+            // other tabs => show all
+            statusMatch = true;
         }
 
-        // Date filtering (works across all tabs)
         let dateMatch = true;
         if (searchDate) {
             dateMatch = booking?.slot?.some((slotItem) => {
@@ -136,7 +140,6 @@ const BookingHistory = () => {
             });
         }
 
-        // Court name filtering (works across all tabs)
         let courtMatch = true;
         if (searchText.trim() !== "") {
             courtMatch = booking?.slot?.some((slotItem) =>
@@ -147,8 +150,8 @@ const BookingHistory = () => {
         return statusMatch && dateMatch && courtMatch;
     });
 
-    const totalRecords = getBookingData?.bookingData?.total || 1;
-
+    const totalRecords = getBookingData?.bookingData?.total || getBookingData?.bookingData?.length;
+    console.log({ totalRecords });
     return (
         <Container>
             <Row className="mb-3 mt-5">
@@ -171,7 +174,7 @@ const BookingHistory = () => {
                         aria-label="booking history tabs"
                         TabIndicatorProps={{ style: { display: "none" } }}
                     >
-                        {["all", "upcoming", "cancelled", "completed"].map((tab, i) => (
+                        {["upcoming", "cancelled", "completed"].map((tab, i) => (
                             <Tab
                                 key={tab}
                                 label={tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -247,332 +250,362 @@ const BookingHistory = () => {
                 </Col>
             </Row>
 
-            <div className="custom-scroll-container">
-                <Table borderless size="sm" className="custom-table position-relative">
-                    <thead>
-                        <tr className="">
-                            <th>Date/Time</th>
-                            <th>Slot</th>
-                            <th>Court Name</th>
-                            <th>Booking Type</th>
-                            <th>Booking Date</th>
-                            {activeTab === "cancelled" && <th>Reason</th>}
-                            {activeTab === "completed" && <th>Rating</th>}
-                            {activeTab === "completed" && <th>Message</th>}
-                            <th>Amount</th>
-                            {activeTab === "cancelled" && (
-                                <th>
-                                    <div className="dropdown-wrapper">
-                                        <div
-                                            className="dropdown-header"
-                                            onClick={() => setIsOpen(!isOpen)}
-                                        >
-                                            Status{" "}
-                                            <b className="arrow">
-                                                <i className="bi bi-chevron-down text-dark fw-bold"></i>
-                                            </b>
-                                        </div>
-                                        {isOpen && (
-                                            <div className="dropdown-list text-start">
-                                                <div className="mb-0" onClick={() => handleSelect("All")}>
-                                                    All
-                                                </div>
+            <Row>
+                <Col md={12}>
+                    <div className="custom-scroll-container">
+                        <Table borderless size="sm" className="custom-table position-relative">
+                            <thead>
+                                <tr className="">
+                                    <th>Date/Time</th>
+                                    <th>Slot</th>
+                                    <th>Court Name</th>
+                                    <th>Booking Type</th>
+                                    <th>Booking Date</th>
+                                    {activeTab === "cancelled" && <th>Reason</th>}
+                                    {activeTab === "completed" && <th>Rating</th>}
+                                    {activeTab === "completed" && <th>Message</th>}
+                                    <th>Amount</th>
+                                    {activeTab === "cancelled" && (
+                                        <th>
+                                            <div className="dropdown-wrapper">
                                                 <div
-                                                    className="mb-0"
-                                                    onClick={() => handleSelect("Accepted")}
+                                                    className="dropdown-header"
+                                                    onClick={() => setIsOpen(!isOpen)}
                                                 >
-                                                    Accepted
+                                                    Status{" "}
+                                                    <b className="arrow">
+                                                        <i className="bi bi-chevron-down text-dark fw-bold"></i>
+                                                    </b>
                                                 </div>
-                                                <div
-                                                    className="mb-0"
-                                                    onClick={() => handleSelect("Rejected")}
-                                                >
-                                                    Rejected
-                                                </div>
-                                                <div
-                                                    className="mb-0"
-                                                    onClick={() => handleSelect("Requested")}
-                                                >
-                                                    Requested
-                                                </div>
+                                                {isOpen && (
+                                                    <div className="dropdown-list text-start">
+                                                        <div className="mb-0" onClick={() => handleSelect("All")}>
+                                                            All
+                                                        </div>
+                                                        <div
+                                                            className="mb-0"
+                                                            onClick={() => handleSelect("Accepted")}
+                                                        >
+                                                            Accepted
+                                                        </div>
+                                                        <div
+                                                            className="mb-0"
+                                                            onClick={() => handleSelect("Rejected")}
+                                                        >
+                                                            Rejected
+                                                        </div>
+                                                        <div
+                                                            className="mb-0"
+                                                            onClick={() => handleSelect("Requested")}
+                                                        >
+                                                            Requested
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                </th>
-                            )}
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    {getBookingData?.bookingLoading ? (
-                        <tbody>
-                            <tr>
-                                <td
-                                    colSpan={8}
-                                    style={{ height: "60vh", verticalAlign: "middle" }}
-                                    className="text-center"
-                                >
-                                    <DataLoading height={100} />
-                                </td>
-                            </tr>
-                        </tbody>
-                    ) : filterStatus?.length > 0 ? (
-                        <tbody className="border">
-                            {filterStatus?.map((booking, i) =>
-                                booking?.slot?.map((slotItem, index) => (
-                                    <tr
-                                        key={`${i}-${index}`}
-                                        className="table-data border-bottom"
-                                    >
-                                        <td>
-                                            {format(
-                                                new Date(booking?.createdAt),
-                                                "dd/MM/yyyy | hh:mm a"
-                                            )}
-                                        </td>
-                                        <td>
-                                            <OverlayTrigger
-                                                placement="top"
-                                                overlay={
-                                                    <Tooltip id={`slot-tooltip-${slotItem?.id}`}>
-                                                        {renderSlotTimes(slotItem?.slotTimes)}
-                                                    </Tooltip>
-                                                }
-                                            >
-                                                <span>
-                                                    {(() => {
-                                                        const times =
-                                                            slotItem?.slotTimes?.map(
-                                                                (slot) => slot?.time
-                                                            ) || [];
-                                                        const displayed =
-                                                            times?.slice(0, 5).join(", ");
-                                                        return times?.length > 5
-                                                            ? `${displayed} ...`
-                                                            : displayed;
-                                                    })()}
-                                                </span>
-                                            </OverlayTrigger>
-                                        </td>
-                                        <td className="table-data">
-                                            {slotItem?.courtName || "N/A"}
-                                        </td>
-                                        <td className="table-data">
-                                            {booking?.bookingType || "N/A"}
-                                        </td>
-                                        <td className="table-data">
-                                            {formatDate(new Date(slotItem?.bookingDate))}
-                                        </td>
-                                        {activeTab === "cancelled" && (
-                                            <td>
-                                                {booking?.cancellationReason?.charAt(0).toUpperCase() +
-                                                    (booking?.cancellationReason?.slice(1) || "")}
-                                            </td>
-                                        )}
-                                        {activeTab === "completed" && (
-                                            <td className="text-center">
-                                                {[1, 2, 3, 4, 5].map((star) => {
-                                                    const averageRating =
-                                                        booking?.customerReview?.reviewRating || 0;
-                                                    let iconClass = "bi-star";
-                                                    if (star <= Math.floor(averageRating))
-                                                        iconClass = "bi-star-fill";
-                                                    else if (
-                                                        star - averageRating <= 0.5 &&
-                                                        star - averageRating > 0
-                                                    )
-                                                        iconClass = "bi-star-half";
-                                                    return (
-                                                        <i
-                                                            key={star}
-                                                            className={`bi ${iconClass} ms-2`}
-                                                            style={{
-                                                                color: "#3DBE64",
-                                                                fontSize: "18px",
-                                                            }}
-                                                        />
-                                                    );
-                                                })}
-                                                <span
-                                                    className="ms-2"
-                                                    style={{
-                                                        fontSize: "15px",
-                                                        fontWeight: "500",
-                                                        color: "#374151",
-                                                        fontFamily: "Poppins",
-                                                    }}
-                                                >
-                                                    {booking?.customerReview?.reviewRating?.toFixed(1) ||
-                                                        "0.0"}{" "}
-                                                    {getRatingLabel(booking?.customerReview?.reviewRating)}
-                                                </span>
-                                            </td>
-                                        )}
-                                        {activeTab === "completed" && (
-                                            <td>
-                                                {console.log(booking, "bookingbookingbooking")}
-                                                <span>
-                                                    {booking?.customerReview?.reviewComment
-                                                        ? booking?.customerReview?.reviewComment.charAt(0).toUpperCase() +
-                                                        booking?.customerReview?.reviewComment.slice(1)
-                                                        : "No Message"}
-                                                </span>
-                                            </td>
-                                        )}
+                                        </th>
+                                    )}
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            {getBookingData?.bookingLoading ? (
+                                <tbody>
+                                    <tr>
                                         <td
-                                            style={{
-                                                color: "#1A237E",
-                                                fontSize: "16px",
-                                                fontFamily: "Poppins",
-                                                fontWeight: "500",
-                                            }}
+                                            colSpan={8}
+                                            style={{ height: "60vh", verticalAlign: "middle" }}
+                                            className="text-center"
                                         >
-                                            ₹{booking?.totalAmount || "N/A"}
-                                        </td>
-                                        {activeTab === "cancelled" && (
-                                            <td
-                                                style={{
-                                                    color:
-                                                        booking?.bookingStatus === "rejected"
-                                                            ? "red"
-                                                            : booking?.bookingStatus === "refunded"
-                                                                ? "green"
-                                                                : "#F29410",
-                                                    fontSize: "16px",
-                                                    fontFamily: "Poppins",
-                                                    fontWeight: "500",
-                                                }}
-                                            >
-                                                {booking?.bookingStatus === "rejected"
-                                                    ? "Rejected"
-                                                    : booking?.bookingStatus === "refunded"
-                                                        ? "Accepted"
-                                                        : "Requested"}
-                                            </td>
-                                        )}
-                                        <td className="text-center">
-                                            {activeTab === "completed" ? (
-                                                ""
-                                            ) : ["all", "upcoming", "cancelled"].includes(
-                                                activeTab
-                                            ) &&
-                                                booking?.bookingStatus === "in-progress" ? (
-                                                <span
-                                                    style={{
-                                                        color: "#F29410",
-                                                        fontSize: "12px",
-                                                        fontWeight: "500",
-                                                        fontFamily: "Poppins",
-                                                    }}
-                                                >
-                                                    Request For Cancellation
-                                                </span>
-                                            ) : booking?.bookingStatus === "refunded" ? (
-                                                <span
-                                                    style={{
-                                                        color: "green",
-                                                        fontSize: "12px",
-                                                        fontWeight: "500",
-                                                        fontFamily: "Poppins",
-                                                    }}
-                                                >
-                                                    Accepted
-                                                </span>
-                                            ) : booking?.customerReview?._id ? (
-                                                <span
-                                                    style={{
-                                                        color: "green",
-                                                        fontSize: "12px",
-                                                        fontWeight: "500",
-                                                        fontFamily: "Poppins",
-                                                    }}
-                                                >
-                                                    Completed
-                                                </span>
-                                            ) : booking?.bookingStatus === "rejected" ? (
-                                                <span
-                                                    style={{
-                                                        color: "red",
-                                                        fontSize: "12px",
-                                                        fontWeight: "500",
-                                                        fontFamily: "Poppins",
-                                                    }}
-                                                >
-                                                    Rejected
-                                                </span>
-                                            ) : (
-                                                <MdOutlineCancel
-                                                    size={20}
-                                                    onClick={() => {
-                                                        setSelectedBooking(booking);
-                                                        setChangeCancelShow(true);
-                                                        setCourtData({ slotItem, booking });
-                                                        setModalCancel(true);
-                                                    }}
-                                                    className="text-danger"
-                                                    style={{ cursor: "pointer" }}
-                                                />
-                                            )}
-                                            <FiEye
-                                                size={20}
-                                                className="text-muted ms-2"
-                                                onClick={() => {
-                                                    if (activeTab === "cancelled") {
-                                                        if (booking?.bookingStatus === "in-progress") {
-                                                            setModalCancel(true);
-                                                            setCourtData({ slotItem, booking });
-                                                        } else {
-                                                            setAcceptedRejected(true);
-                                                            setStatusData({ booking, slotItem });
-                                                        }
-                                                    } else if (["all", "upcoming"].includes(activeTab)) {
-                                                        if (
-                                                            booking?.bookingStatus === "refunded" ||
-                                                            booking?.bookingStatus === "rejected"
-                                                        ) {
-                                                            setAcceptedRejected(true);
-                                                            setStatusData({ booking, slotItem });
-                                                        } else if (booking?.customerReview?._id) {
-                                                            setModalCancel(true);
-                                                            setCourtData({ slotItem, booking });
-                                                        } else {
-                                                            setModalCancel(true);
-                                                            setCourtData({ slotItem, booking });
-                                                        }
-                                                    } else if (activeTab === "completed") {
-                                                        setShowRatingModal(true);
-                                                        setStatusData({ booking, slotItem });
-                                                    } else if (activeTab === "all") {
-                                                        if (booking?.customerReview?._id) {
-                                                            setModalCancel(true);
-                                                            setCourtData({ slotItem, booking });
-                                                        }
-                                                    }
-                                                }}
-                                                style={{ cursor: "pointer" }}
-                                            />
+                                            <DataLoading height={100} />
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    ) : (
-                        <tbody>
-                            <tr>
-                                <td
-                                    colSpan={8}
-                                    className="text-center"
-                                    style={{ height: "60vh", verticalAlign: "middle" }}
-                                >
-                                    <p className="table-data text-danger">No bookings found.</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    )}
-                </Table>
-            </div>
+                                </tbody>
+                            ) : filterStatus?.length > 0 ? (
+                                <tbody className="border">
+                                    {filterStatus?.map((booking, i) =>
+                                        booking?.slot?.map((slotItem, index) => (
+                                            <tr
+                                                key={`${i}-${index}`}
+                                                className="table-data border-bottom"
+                                            >
+                                                <td>
+                                                    {format(
+                                                        new Date(booking?.createdAt),
+                                                        "dd/MM/yyyy | hh:mm a"
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <OverlayTrigger
+                                                        placement="top"
+                                                        overlay={
+                                                            <Tooltip id={`slot-tooltip-${slotItem?.id}`}>
+                                                                {renderSlotTimes(slotItem?.slotTimes)}
+                                                            </Tooltip>
+                                                        }
+                                                    >
+                                                        <span>
+                                                            {(() => {
+                                                                const times =
+                                                                    slotItem?.slotTimes?.map(
+                                                                        (slot) => slot?.time
+                                                                    ) || [];
+                                                                const displayed =
+                                                                    times?.slice(0, 5).join(", ");
+                                                                return times?.length > 5
+                                                                    ? `${displayed} ...`
+                                                                    : displayed;
+                                                            })()}
+                                                        </span>
+                                                    </OverlayTrigger>
+                                                </td>
+                                                <td className="table-data">
+                                                    {slotItem?.courtName || "N/A"}
+                                                </td>
+                                                <td className="table-data">
+                                                    {booking?.bookingType || "N/A"}
+                                                </td>
+                                                <td className="table-data">
+                                                    {formatDate(new Date(slotItem?.bookingDate))}
+                                                </td>
+                                                {activeTab === "cancelled" && (
+                                                    <td>
+                                                        {booking?.cancellationReason?.charAt(0).toUpperCase() +
+                                                            (booking?.cancellationReason?.slice(1) || "")}
+                                                    </td>
+                                                )}
+                                                {activeTab === "completed" && (
+                                                    <td className="text-center">
+                                                        {[1, 2, 3, 4, 5].map((star) => {
+                                                            const averageRating =
+                                                                booking?.customerReview?.reviewRating || 0;
+                                                            let iconClass = "bi-star";
+                                                            if (star <= Math.floor(averageRating))
+                                                                iconClass = "bi-star-fill";
+                                                            else if (
+                                                                star - averageRating <= 0.5 &&
+                                                                star - averageRating > 0
+                                                            )
+                                                                iconClass = "bi-star-half";
+                                                            return (
+                                                                <i
+                                                                    key={star}
+                                                                    className={`bi ${iconClass} ms-2`}
+                                                                    style={{
+                                                                        color: "#3DBE64",
+                                                                        fontSize: "18px",
+                                                                    }}
+                                                                />
+                                                            );
+                                                        })}
+                                                        {/* <span
+                                                            className="ms-2"
+                                                            style={{
+                                                                fontSize: "15px",
+                                                                fontWeight: "500",
+                                                                color: "#374151",
+                                                                fontFamily: "Poppins",
+                                                            }}
+                                                        >
+                                                            {booking?.customerReview?.reviewRating?.toFixed(1) ||
+                                                                "0.0"}{" "}
+                                                            {getRatingLabel(booking?.customerReview?.reviewRating)}
+                                                        </span> */}
+                                                    </td>
+                                                )}
+                                                {activeTab === "completed" && (
+                                                    <td>
+                                                        <OverlayTrigger
+                                                            placement="top"
+                                                            overlay={
+                                                                <Tooltip id="review-tooltip">
+                                                                    {booking?.customerReview?.reviewComment?.charAt(0).toUpperCase() +
+                                                                        booking?.customerReview?.reviewComment?.slice(1)}
+                                                                </Tooltip>
+                                                            }
+                                                        >
+                                                            <span>
+                                                                {(() => {
+                                                                    const comment = booking?.customerReview?.reviewComment || "";
 
-            <Row className="mt-3">
-                <Col className="d-flex justify-content-center">
+                                                                    if (comment.length === 0) return "";
+
+                                                                    if (comment.length <= 20) {
+                                                                        return comment.charAt(0).toUpperCase() + comment.slice(1);
+                                                                    } else if (comment.length < 200) {
+                                                                        return (
+                                                                            comment.charAt(0).toUpperCase() +
+                                                                            comment.slice(1, 20) +
+                                                                            "...."
+                                                                        );
+                                                                    } else {
+                                                                        return comment.charAt(0).toUpperCase() + comment.slice(1);
+                                                                    }
+                                                                })()}
+                                                            </span>
+                                                        </OverlayTrigger>
+
+                                                    </td>
+                                                )}
+                                                <td
+                                                    style={{
+                                                        color: "#1A237E",
+                                                        fontSize: "16px",
+                                                        fontFamily: "Poppins",
+                                                        fontWeight: "500",
+                                                    }}
+                                                >
+                                                    ₹{booking?.totalAmount || "N/A"}
+                                                </td>
+                                                {activeTab === "cancelled" && (
+                                                    <td
+                                                        style={{
+                                                            color:
+                                                                booking?.bookingStatus === "rejected"
+                                                                    ? "red"
+                                                                    : booking?.bookingStatus === "refunded"
+                                                                        ? "green"
+                                                                        : "#F29410",
+                                                            fontSize: "16px",
+                                                            fontFamily: "Poppins",
+                                                            fontWeight: "500",
+                                                        }}
+                                                    >
+                                                        {booking?.bookingStatus === "rejected"
+                                                            ? "Rejected"
+                                                            : booking?.bookingStatus === "refunded"
+                                                                ? "Accepted"
+                                                                : "Requested"}
+                                                    </td>
+                                                )}
+                                                <td className="text-center">
+                                                    {activeTab === "completed" ? (
+                                                        ""
+                                                    ) : ["upcoming", "cancelled"].includes(
+                                                        activeTab
+                                                    ) &&
+                                                        booking?.bookingStatus === "in-progress" ? (
+                                                        <span
+                                                            style={{
+                                                                color: "#F29410",
+                                                                fontSize: "12px",
+                                                                fontWeight: "500",
+                                                                fontFamily: "Poppins",
+                                                            }}
+                                                        >
+                                                            Request For Cancellation
+                                                        </span>
+                                                    ) : booking?.bookingStatus === "refunded" ? (
+                                                        <span
+                                                            style={{
+                                                                color: "green",
+                                                                fontSize: "12px",
+                                                                fontWeight: "500",
+                                                                fontFamily: "Poppins",
+                                                            }}
+                                                        >
+                                                            Cancelled
+                                                        </span>
+                                                    ) : booking?.customerReview?._id ? (
+                                                        <span
+                                                            style={{
+                                                                color: "green",
+                                                                fontSize: "12px",
+                                                                fontWeight: "500",
+                                                                fontFamily: "Poppins",
+                                                            }}
+                                                        >
+                                                            Completed
+                                                        </span>
+                                                    ) : booking?.bookingStatus === "rejected" ? (
+                                                        <span
+                                                            style={{
+                                                                color: "red",
+                                                                fontSize: "12px",
+                                                                fontWeight: "500",
+                                                                fontFamily: "Poppins",
+                                                            }}
+                                                        >
+                                                            Rejected
+                                                        </span>
+                                                    ) : (
+                                                        <MdOutlineCancel
+                                                            size={20}
+                                                            onClick={() => {
+                                                                setSelectedBooking(booking);
+                                                                setChangeCancelShow(true);
+                                                                setCourtData({ slotItem, booking });
+                                                                setModalCancel(true);
+                                                            }}
+                                                            className="text-danger"
+                                                            style={{ cursor: "pointer" }}
+                                                        />
+                                                    )}
+                                                    <FiEye
+                                                        size={20}
+                                                        className="text-muted ms-2"
+                                                        onClick={() => {
+                                                            if (activeTab === "cancelled") {
+                                                                if (booking?.bookingStatus === "in-progress") {
+                                                                    setModalCancel(true);
+                                                                    setCourtData({ slotItem, booking });
+                                                                } else if (booking?.bookingStatus === "refunded") {
+                                                                    setAcceptedRejected(true);
+                                                                    setStatusData({ booking, slotItem });
+                                                                } else {
+                                                                    setAcceptedRejected(true);
+                                                                    setStatusData({ booking, slotItem });
+                                                                }
+                                                            } else if (["upcoming", "cancelled"].includes(activeTab)) {
+                                                                if (
+                                                                    booking?.bookingStatus === "refunded" ||
+                                                                    booking?.bookingStatus === "rejected"
+                                                                ) {
+                                                                    setAcceptedRejected(true);
+                                                                    setStatusData({ booking, slotItem });
+                                                                } else if (booking?.customerReview?._id) {
+                                                                    setModalCancel(true);
+                                                                    setCourtData({ slotItem, booking });
+                                                                } else {
+                                                                    setModalCancel(true);
+                                                                    setCourtData({ slotItem, booking });
+                                                                }
+                                                            } else if (activeTab === "completed") {
+                                                                setShowRatingModal(true);
+                                                                setStatusData({ booking, slotItem });
+                                                            } else if (activeTab === "all") {
+                                                                if (booking?.customerReview?._id) {
+                                                                    setModalCancel(true);
+                                                                    setCourtData({ slotItem, booking });
+                                                                }
+                                                            }
+                                                        }}
+                                                        style={{ cursor: "pointer" }}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            ) : (
+                                <tbody>
+                                    <tr>
+                                        <td
+                                            colSpan={8}
+                                            className="text-center"
+                                            style={{ height: "60vh", verticalAlign: "middle" }}
+                                        >
+                                            <p className="table-data text-danger">No bookings found.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            )}
+                        </Table>
+                    </div>
+                </Col>
+            </Row>
+
+            <Row className=" mb-5">
+                <Col className="d-flex mb-3 justify-content-center">
                     <Pagination
                         totalRecords={totalRecords}
                         defaultLimit={10}
@@ -594,7 +627,6 @@ const BookingHistory = () => {
             />
             <BookingRatingModal
                 show={showRatingModal}
-                reviewData={getReviewData}
                 tableData={statusData}
                 onHide={() => {
                     setShowRatingModal(false);
@@ -625,6 +657,7 @@ const BookingHistory = () => {
                 selectedOption={selectedOption}
                 onHide={() => setAcceptedRejected(false)}
                 show={acceptedRejected}
+                tableData={tableData}
             />
         </Container>
     );

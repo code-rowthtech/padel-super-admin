@@ -12,7 +12,6 @@ const LoginPage = () => {
     const { error, user, otp, userAuthLoading } = useSelector((state) => state?.userAuth)
     const [showAlert, setShowAlert] = useState(false);
     const store = useSelector((state) => state?.userAuth)
-    console.log(store, '============================');
     const navigate = useNavigate();
     const dispatch = useDispatch()
 
@@ -49,7 +48,7 @@ const LoginPage = () => {
                     >
                         <div className="w-100" style={{ maxWidth: '400px' }}>
                             <h2 className="fw-bold mb-2">WELCOME BACK</h2>
-                            <p className="text-muted mb-4">Welcome back! Please enter your details.</p>
+                            <p className="text-muted mb-4" style={{ fontSize: "16px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}>Welcome back! Please enter your details.</p>
 
                             <Form onSubmit={handleSubmit}>
                                 {showAlert && <Alert variant="danger">{error}</Alert>}
@@ -60,7 +59,8 @@ const LoginPage = () => {
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
-                                        className="rounded form-control py-2"
+                                        className=" form-control py-3"
+                                        style={{ borderRadius: "15px", fontSize: "16px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}
                                         value={phone}
                                         minLength={10}
                                         maxLength={10}
@@ -75,12 +75,12 @@ const LoginPage = () => {
                                 </Form.Group>
 
                                 <Button
-                                    style={{
-                                        backgroundColor: '#4CAF50',
-                                    }}
+                                  
                                     type="submit"
-                                    className="w-100 rounded-pill border-0 py-2 fw-semibold"
+                                    className="w-100 text-white  border-0 py-3 "
                                     disabled={userAuthLoading}
+                                    style={{backgroundColor: '#4CAF50', borderRadius: "15px", fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364" }}
+
                                 >
                                     {userAuthLoading ? <ButtonLoading size="sm" animation="border" /> : 'Get OTP'}
                                 </Button>

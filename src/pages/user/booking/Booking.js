@@ -40,7 +40,6 @@ const Booking = ({
     const [selectedTimes, setSelectedTimes] = useState([]);
     const [selectedBuisness, setSelectedBuisness] = useState([]);
     const [selectedCourts, setSelectedCourts] = useState([]);
-    console.log(selectedCourts, 'selectedBuisnessselectedBuisness');
     const [selectedDate, setSelectedDate] = useState({
         fullDate: new Date(),
         day: new Date().toLocaleDateString("en-US", { weekday: "long" })
@@ -172,12 +171,12 @@ const Booking = ({
     };
 
     const savedClubId = localStorage.getItem("register_club_id");
-    console.log(selectedCourts, '==================');
     useEffect(() => {
         dispatch(
             getUserSlot({
                 register_club_id: savedClubId,
                 day: selectedDate?.day,
+                date:selectedDate?.fullDate,
                 courtId: selectedCourts[0]?._id,
             })
         );
@@ -189,6 +188,7 @@ const Booking = ({
                 getUserSlot({
                     register_club_id: savedClubId,
                     day: selectedDate?.day,
+                    date:selectedDate?.fullDate,
                     courtId: selectedCourts[0]?._id,
                 })
             );
@@ -242,6 +242,7 @@ const Booking = ({
                 getUserSlot({
                     register_club_id: savedClubId,
                     day: selectedDate?.day,
+                    date:selectedDate?.fullDate,
                     courtId: firstCourt?._id,
                 })
             );
@@ -350,7 +351,6 @@ const Booking = ({
                                             return date.toISOString().split("T")[0];
                                         };
                                         const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
-                                        console.log(isSelected, selectedDate, d.fullDate, 'isSelected');
 
                                         return (
                                             <button
@@ -423,7 +423,7 @@ const Booking = ({
 
                                             slotDate.setHours(hour, 0, 0, 0);
 
-                                            const now = new Date(); // Current time is 11:31 AM IST on August 21, 2025
+                                            const now = new Date(); 
                                             const isToday = selectedDateObj.toDateString() === now.toDateString();
                                             const isPast = isToday && slotDate.getTime() < now.getTime();
                                             const isBooked = slot?.status === "booked";
@@ -433,14 +433,14 @@ const Booking = ({
 
                                             return (
                                                 <OverlayTrigger
-                                                    key={i}
+                                                    key={slot._id}
                                                     placement="bottom"
                                                     overlay={
                                                         (isBooked || isPast || !hasAmount || isLimitReached || !isSelected) ? (
                                                             <Tooltip
                                                                 id={`tooltip-${slot._id}`}
-                                                                className="border rounded p-1 text-white"
-                                                                style={{ fontFamily: "Poppins", fontWeight: "500", backgroundColor: "black" }}
+                                                                className="border rounded p-1 ps-2 pe-2 mt-1 text-white"
+                                                                style={{ fontFamily: "Poppins", fontWeight: "300",fontSize:"13px", backgroundColor: "#302c2cff" }}
                                                             >
                                                                 {isBooked
                                                                     ? "Booked"
@@ -581,7 +581,6 @@ const Booking = ({
                                                         ? "bg-success-subtle rounded-pill"
                                                         : ""
                                                         }`}>
-                                                    {console.log(selectedCourts, court?._id, selectedCourts?._id === court?._id, 'selectedCourts?._id===court?._id')}
                                                     <div className="d-flex align-items-center gap-3">
                                                         <img
                                                             src='https://www.brookstreet.co.uk/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBMEZCVXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--4accdb1f96a306357a7fdeec518b142d3d50f1f2/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJYW5CbkJqb0dSVlE2QzNKbGMybDZaVWtpRFRnd01IZzJOVEE4QmpzR1ZBPT0iLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--bcd925903d97179ca0141ad2735607ce8eed3d71/bs_court-ushers_800.jpg'

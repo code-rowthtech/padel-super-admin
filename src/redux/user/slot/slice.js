@@ -25,7 +25,6 @@ const slotSlice = createSlice({
                 state.slotError = null;
             })
             .addCase(getUserSlot.fulfilled, (state, action) => {
-                console.log(action,'action');
                 state.slotLoading = false;
                 state.slotData = action.payload;
             })

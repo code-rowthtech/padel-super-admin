@@ -75,7 +75,7 @@ const VerifyOTP = () => {
       <Col
         md={6}
         style={{
-          backgroundColor: '#fff',
+          backgroundColor: '#F8F8F8',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -109,7 +109,8 @@ const VerifyOTP = () => {
                   fontSize: 24,
                   textAlign: 'center',
                   borderRadius: 8,
-                  border: '1px solid #ccc',
+                  boxShadow:' 0px 1px 6.5px 0px #0000001F inset',
+
                 }}
               />
             ))}
@@ -121,15 +122,8 @@ const VerifyOTP = () => {
 
           <Button
             onClick={handleSubmit}
-            style={{
-              width: '100%',
-              padding: '10px 0',
-              borderRadius: 20,
-              backgroundColor: '#4CAF50',
-              border: 'none',
-              fontWeight: 'bold',
-              fontSize: 16,
-            }}
+            style={{ backgroundColor: '#4CAF50', borderRadius: "15px", fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364" }}
+            className="w-100 text-white  border-0 py-3 "
           >
             Verification Code
           </Button>

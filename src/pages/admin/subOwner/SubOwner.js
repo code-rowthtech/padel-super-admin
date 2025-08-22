@@ -30,7 +30,6 @@ const SubOwner = () => {
   const { getSubOwnerData, getSubOwnerLoading } = useSelector(
     (state) => state?.subOwner
   );
-  console.log({ getSubOwnerData });
   const UserData = getSubOwnerData?.response;
 
   useEffect(() => {
@@ -46,7 +45,6 @@ const SubOwner = () => {
     setShowUserModal(true);
     setSelectedUser(item);
   };
-  console.log({ selectedUser });
   return (
     <Container fluid className="px-4">
       <Row className="mb-3">
