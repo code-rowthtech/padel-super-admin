@@ -192,12 +192,12 @@ const Booking = () => {
                   </thead>
                   <tbody>
                     {bookings?.map((item) => (
-                      <tr key={item._id} className="table-data border-bottom">
+                      <tr key={item?._id} className="table-data border-bottom">
                         <td>
                           {item?.userId?.name
-                            .slice(0, 1)
-                            .toUpperCase()
-                            .concat(item?.userId?.name.slice(1)) || "N/A"}
+                            ?.slice(0, 1)
+                            ?.toUpperCase()
+                            ?.concat(item?.userId?.name?.slice(1)) || "N/A"}
                         </td>
                         <td>
                           {item?.userId?.countryCode || ""}{" "}
@@ -205,14 +205,14 @@ const Booking = () => {
                         </td>
                         <td>
                           {item?.bookingType
-                            .slice(0, 1)
-                            .toUpperCase()
-                            .concat(item?.bookingType.slice(1)) || "-"}
+                            ?.slice(0, 1)
+                            ?.toUpperCase()
+                            ?.concat(item?.bookingType?.slice(1)) || "-"}
                         </td>
-                        <td>{item?.slot[0]?.courtName || "-"}</td>
+                        <td>{item?.slot?.[0]?.courtName || "-"}</td>
                         <td>
                           {item?.slot[0]?.businessHours?.[0]?.day || ""}{" "}
-                          {renderSlotTimes(item?.slot[0]?.slotTimes)}
+                          {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
                         </td>
                         <td>₹{item?.totalAmount}</td>
                         <td>

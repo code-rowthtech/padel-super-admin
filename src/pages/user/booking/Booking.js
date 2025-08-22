@@ -420,7 +420,7 @@ const Booking = ({
 
                                             slotDate.setHours(hour, 0, 0, 0);
 
-                                            const now = new Date(); // Current time is 11:31 AM IST on August 21, 2025
+                                            const now = new Date(); 
                                             const isToday = selectedDateObj.toDateString() === now.toDateString();
                                             const isPast = isToday && slotDate.getTime() < now.getTime();
                                             const isBooked = slot?.status === "booked";
@@ -430,14 +430,14 @@ const Booking = ({
 
                                             return (
                                                 <OverlayTrigger
-                                                    key={i}
+                                                    key={slot._id}
                                                     placement="bottom"
                                                     overlay={
                                                         (isBooked || isPast || !hasAmount || isLimitReached || !isSelected) ? (
                                                             <Tooltip
                                                                 id={`tooltip-${slot._id}`}
-                                                                className="border rounded p-1 text-white"
-                                                                style={{ fontFamily: "Poppins", fontWeight: "500", backgroundColor: "black" }}
+                                                                className="border rounded p-1 ps-2 pe-2 mt-1 text-white"
+                                                                style={{ fontFamily: "Poppins", fontWeight: "300",fontSize:"13px", backgroundColor: "#302c2cff" }}
                                                             >
                                                                 {isBooked
                                                                     ? "Booked"

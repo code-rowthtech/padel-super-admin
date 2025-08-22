@@ -253,12 +253,12 @@ const Payments = () => {
                       </thead>
                       <tbody>
                         {payments?.map((item, index) => (
-                          <tr key={index}>
+                          <tr key={item?._id}>
                             <td>
                               {item?.userId?.name
-                                .slice(0, 1)
-                                .toUpperCase()
-                                .concat(item?.userId?.name.slice(1)) || "N/A"}
+                                ?.slice(0, 1)
+                                ?.toUpperCase()
+                                ?.concat(item?.userId?.name?.slice(1)) || "N/A"}
                             </td>
                             <td className="table-data border-bottom">
                               {item?.userId?.countryCode || ""}
@@ -266,16 +266,16 @@ const Payments = () => {
                             </td>
                             <td>
                               {item?.bookingType
-                                .slice(0, 1)
-                                .toUpperCase()
-                                .concat(item?.bookingType.slice(1)) || "-"}
+                                ?.slice(0, 1)
+                                ?.toUpperCase()
+                                ?.concat(item?.bookingType?.slice(1)) || "-"}
                             </td>
                             <td>
-                              {item?.slot[0]?.businessHours?.[0]?.day || ""}{" "}
-                              {renderSlotTimes(item?.slot[0]?.slotTimes)}
+                              {item?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
+                              {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
                             </td>
                             <td className="table-data border-bottom">
-                              {item?.slot[0]?.courtName || "-"}
+                              {item?.slot?.[0]?.courtName || "-"}
                             </td>
                             <td className="table-data border-bottom">
                               ₹{item?.totalAmount}

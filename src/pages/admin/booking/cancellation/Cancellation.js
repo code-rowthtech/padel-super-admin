@@ -35,6 +35,7 @@ import {
 import { resetBookingData } from "../../../../redux/admin/booking/slice";
 import Pagination from "../../../../helpers/Pagination";
 import { format } from "date-fns";
+import { BookingDetailsModal } from "../manual booking/BookingModal";
 const Cancellation = () => {
   const dispatch = useDispatch();
   const ownerId = getOwnerFromSession()?._id;
@@ -48,6 +49,7 @@ const Cancellation = () => {
   const status = ["in-progress", "refunded", "rejected"][tab];
 
   // Modal state
+  const [showDetails, setShowDetails] = useState(false);
   const [showCancellation, setShowCancellation] = useState(false);
   const [showRefund, setShowRefund] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -82,7 +84,7 @@ const Cancellation = () => {
     try {
       await dispatch(getBookingDetailsById({ id })).unwrap();
       if (tab === 0) setShowCancellation(true);
-      if (tab === 1) setShowRefund(true);
+      if (tab === 1) setShowDetails(true);
       if (tab === 2) setShowRequestSuccess(true);
     } catch (err) {
       console.error("Failed to fetch booking details:", err);
@@ -130,7 +132,7 @@ const Cancellation = () => {
                 }}
               >
                 <Tab label="Request" />
-                <Tab label="Accepted" />
+                <Tab label="Cancelled" />
                 <Tab label="Rejected" />
               </Tabs>
             </AppBar>
@@ -175,7 +177,13 @@ const Cancellation = () => {
         <Col md={12}>
           <div className="bg-white rounded shadow-sm p-3">
             <h6 className="mb-3 tabel-title">
-              {["Requested", "Accepted", "Rejected"][tab]} Cancellations
+              {
+                [
+                  "Requested Cancellations",
+                  "Cancelled Requests",
+                  "Rejected Cancellations",
+                ][tab]
+              }
             </h6>
 
             {getBookingLoading ? (
@@ -190,20 +198,21 @@ const Cancellation = () => {
                       <th>Booking</th>
                       <th>Slot</th>
                       <th>Amount</th>
+                      {tab === 1 && <th>Refund Amount</th>}
                       <th>Date/Time</th>
                       <th>Booking Date</th>
                       <th>Cancellation Reason</th>
-                      {tab !== 1 && <th>Action</th>}
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {bookings?.map((item) => (
-                      <tr key={item._id} className="table-data border-bottom">
+                      <tr key={item?._id} className="table-data border-bottom">
                         <td>
                           {item?.userId?.name
-                            .slice(0, 1)
-                            .toUpperCase()
-                            .concat(item?.userId?.name.slice(1)) || "N/A"}
+                            ?.slice(0, 1)
+                            ?.toUpperCase()
+                            ?.concat(item?.userId?.name?.slice(1)) || "N/A"}
                         </td>
                         <td>
                           {item?.userId?.countryCode || ""}{" "}
@@ -211,15 +220,16 @@ const Cancellation = () => {
                         </td>
                         <td>
                           {item?.bookingType
-                            .slice(0, 1)
-                            .toUpperCase()
-                            .concat(item?.bookingType.slice(1)) || "-"}
+                            ?.slice(0, 1)
+                            ?.toUpperCase()
+                            ?.concat(item?.bookingType?.slice(1)) || "-"}
                         </td>
                         <td>
                           {item?.slot[0]?.businessHours?.[0]?.day || ""}{" "}
                           {renderSlotTimes(item?.slot[0]?.slotTimes)}
                         </td>
                         <td>₹{item?.totalAmount}</td>
+                        {tab === 1 && <td>₹{item?.refundAmount}</td>}
                         <td>
                           {format(
                             new Date(item?.createdAt),
@@ -238,20 +248,20 @@ const Cancellation = () => {
                           >
                             <span style={{ cursor: "default" }}>
                               {item?.cancellationReason
-                                ? `${item.cancellationReason.slice(0, 50)}...`
+                                ? `${item.cancellationReason?.slice(0, 50)}...`
                                 : "N/A"}
                             </span>
                           </OverlayTrigger>
                         </td>
-                        {tab !== 1 && (
-                          <td onClick={() => handleBookingDetails(item._id)}>
-                            {loadingBookingId === item._id ? (
-                              <ButtonLoading color="blue" size={7} />
-                            ) : (
-                              <FaEye className="text-primary" />
-                            )}
-                          </td>
-                        )}
+                        {/* {tab !== 1 && ( */}
+                        <td onClick={() => handleBookingDetails(item._id)}>
+                          {loadingBookingId === item._id ? (
+                            <ButtonLoading color="blue" size={7} />
+                          ) : (
+                            <FaEye className="text-primary" />
+                          )}
+                        </td>
+                        {/* )} */}
                       </tr>
                     ))}
                   </tbody>
@@ -262,7 +272,14 @@ const Cancellation = () => {
                 className="d-flex text-danger justify-content-center align-items-center"
                 style={{ height: "60vh" }}
               >
-                No {["Requested", "Accepted", "Rejected"][tab]} Cancellations
+                No{" "}
+                {
+                  [
+                    "Requested Cancellations ",
+                    "Cancelled Requests ",
+                    "Rejected Cancellations ",
+                  ][tab]
+                }
                 found!
               </div>
             )}
@@ -284,14 +301,16 @@ const Cancellation = () => {
         show={showCancellation}
         handleClose={() => setShowCancellation(false)}
         updateStatus={() => {
-          dispatch(
-            updateBookingStatus({ id: bookingDetails._id, status: "refunded" })
-          )
-            .unwrap()
-            .then(() => {
-              setShowCancellation(false);
-              dispatch(getBookingByStatus({ status, ownerId }));
-            });
+          setShowRefund(true);
+          setShowCancellation(false);
+          // dispatch(
+          //   updateBookingStatus({ id: bookingDetails._id, status: "refunded" })
+          // )
+          //   .unwrap()
+          //   .then(() => {
+          //     setShowCancellation(false);
+          //     dispatch(getBookingByStatus({ status, ownerId }));
+          //   });
         }}
         openRejection={() => {
           setShowCancellation(false);
@@ -331,11 +350,12 @@ const Cancellation = () => {
       <BookingRefundModal
         show={showRefund}
         handleClose={() => setShowRefund(false)}
-        onRefundSuccess={() => {
+        onRefundSuccess={(refundAmount) => {
           dispatch(
             updateBookingStatus({
               id: bookingDetails._id,
               status: "refunded",
+              refundAmount,
             })
           )
             .unwrap()
@@ -345,12 +365,20 @@ const Cancellation = () => {
               setTimeout(() => setShowSuccess(true), 300);
             });
         }}
+        loading={updateBookingLoading}
         bookingDetails={bookingDetails}
       />
-
+      <BookingDetailsModal
+        show={showDetails}
+        handleClose={() => setShowDetails(false)}
+        bookingDetails={bookingDetails}
+      />
       <RefundSuccessModal
         show={showSuccess}
-        handleClose={() => setShowSuccess(false)}
+        handleClose={() => {
+          setShowSuccess(false);
+          setTab(1);
+        }}
       />
     </Container>
   );

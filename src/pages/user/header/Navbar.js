@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
 import { IoTennisballOutline } from 'react-icons/io5';
 import { Avatar } from '@mui/material';
+import { getUserFromSession } from '../../../helpers/api/apiCore';
 
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -15,6 +16,8 @@ const Navbar = () => {
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
+    const User = getUserFromSession()
+    console.log(User,'user00');
     const logo = JSON.parse(localStorage.getItem("logo"));
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {

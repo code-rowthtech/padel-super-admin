@@ -349,41 +349,40 @@ const Home = () => {
                                             <div className="col-7 px-4 border-start d-flex align-items-center">
                                                 <div className="w-100">
                                                     {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
-                                                        let width = 0;
+                                                        let width = "0%";
+                                                        let percent = 0;
+
                                                         if (label === getReviewData?.ratingCategory) {
-                                                            const rating = getReviewData.averageRating || 0;
-                                                            width = Math.min(100, (rating / 5) * 100) + "%"; // Scale 0-5 to 0-100%
+                                                            const rating = getReviewData?.averageRating || 0;
+                                                            percent = Math.round(rating * 20); // Convert 0-5 rating to percentage
+                                                            width = `${percent}%`;
                                                         }
+
                                                         return (
-                                                            <div className="d-flex align-items-center mb-1 w-100" key={idx}>
+                                                            <div className="d-flex align-items-center justify-content-between mb-1 w-100" key={idx}>
                                                                 <div className="me-2" style={{ width: "100px" }}>
                                                                     {label}
                                                                 </div>
-                                                                <div className="progress w-100" style={{ height: "8px", position: "relative" }}>
+                                                                <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
                                                                     <div
-                                                                        className={`progress-bar bg-${idx === 0 ? "success" : idx === 1 ? "info" : idx === 2 ? "warning" : idx === 3 ? "danger" : "dark"}`}
+                                                                        className={`progress-bar bg-${idx === 0 ? "success" : idx === 1 ? "info" : idx === 2 ? "warning" : idx === 3 ? "danger" : "dark"
+                                                                            }`}
                                                                         style={{ width }}
                                                                     ></div>
-                                                                    {label === getReviewData?.ratingCategory && (
-                                                                        <span
-                                                                            style={{
-                                                                                position: "absolute",
-                                                                                right: "0px",
-                                                                                color: "#000",
-                                                                                top: "50%",
-                                                                                transform: "translateY(-50%)",
-                                                                                fontSize: "12px",
-                                                                                backgroundColor: "rgba(255, 255, 255, 0.7)",
-                                                                                padding: "0 5px",
-                                                                            }}
-                                                                        >
-                                                                            {Math.round(getReviewData.averageRating * 20)}%
-                                                                        </span>
-                                                                    )}
+                                                                </div>
+                                                                <div className=''
+                                                                    style={{
+                                                                        color: "#000",
+                                                                        fontSize: "12px",
+                                                                        backgroundColor: "rgba(255, 255, 255, 0.7)",
+                                                                    }}
+                                                                >
+                                                                    {percent}%
                                                                 </div>
                                                             </div>
                                                         );
                                                     })}
+
                                                 </div>
                                             </div>
                                         </div>
@@ -486,13 +485,13 @@ const Home = () => {
                                                         <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500" }}>{review?.userId?.name || review?.userId?.email}</h6>
                                                         <div className=" mb-2">
                                                             {[...Array(Math.floor(review?.reviewRating || 0))].map((_, i) => (
-                                                                <StarIcon key={i} size={14} style={{ color: "#32B768" }}  />
+                                                                <StarIcon key={i} size={14} style={{ color: "#32B768" }} />
                                                             ))}
                                                             {review?.reviewRating % 1 !== 0 && review?.reviewRating <= 5 && (
-                                                                <StarHalfIcon key="half" size={14} style={{ color: "#32B768" }}  />
+                                                                <StarHalfIcon key="half" size={14} style={{ color: "#32B768" }} />
                                                             )}
                                                             {[...Array(Math.floor(5 - (review?.reviewRating || 0)))].map((_, i) => (
-                                                                <StarBorderIcon key={`empty-${i}`} size={14} style={{color:'#ccc' }} />
+                                                                <StarBorderIcon key={`empty-${i}`} size={14} style={{ color: '#ccc' }} />
                                                             ))}
                                                             <span className="ms-1 pt-3">{review?.reviewRating || 0}</span>
                                                         </div>

@@ -631,27 +631,6 @@ const ClubUpdateForm = () => {
             </Row>
           );
         })}
-
-        <Row className="justify-content-end mt-3">
-          <Col md="auto">
-            <button
-              type="button"
-              onClick={applyToAll}
-              disabled={!hasChanged}
-              style={{
-                backgroundColor: hasChanged ? "#22c55e" : "#ccc",
-                color: "#fff",
-                padding: "6px 14px",
-                borderRadius: "6px",
-                fontSize: "14px",
-                border: "none",
-                cursor: hasChanged ? "pointer" : "not-allowed",
-              }}
-            >
-              Apply to All
-            </button>
-          </Col>
-        </Row>
       </>
     );
   }, [
@@ -851,7 +830,31 @@ const ClubUpdateForm = () => {
           )}
 
           <div className="mt-4">
-            <h5 className="fw-bold text-gray-800 mb-3">Business Hours</h5>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="fw-bold">Business Hours</h5>
+              <h6 className="fw-bold">Start Time</h6>
+              <h6 className="fw-bold">Closing Time</h6>
+              <Row className="justify-content-end ">
+                <Col md="auto">
+                  <button
+                    type="button"
+                    onClick={applyToAll}
+                    disabled={!hasChanged}
+                    style={{
+                      backgroundColor: hasChanged ? "#22c55e" : "#ccc",
+                      color: "#fff",
+                      padding: "6px 14px",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                      border: "none",
+                      cursor: hasChanged ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    Apply to All
+                  </button>
+                </Col>
+              </Row>
+            </div>
             {renderBusinessHours()}
           </div>
           <div className="d-flex justify-content-end gap-2 mt-4">
