@@ -123,11 +123,12 @@ const ManualBooking = () => {
         getActiveCourts({
           register_club_id: ownerClubData?.[0]?._id,
           day: selectedDay,
+          date: selectedDate,
           courtId: selectedCourts?.[0],
         })
       );
     }
-  }, [selectedDay, ownerClubData?.[0]?._id, selectedCourts]);
+  }, [selectedDay, selectedDate, ownerClubData?.[0]?._id, selectedCourts]);
 
   useEffect(() => {
     if (selectedButtonRef.current && scrollRef.current) {

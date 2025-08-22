@@ -13,6 +13,7 @@ const initialState = {
   clubError: null,
 
   updateClubData: null,
+  updateCourtData: null,
   updateClubLoading: false,
   updateClubError: null,
 };
@@ -27,6 +28,7 @@ const clubSlice = createSlice({
       state.clubError = null;
 
       state.updateClubData = null;
+      state.updateCourtData = null;
       state.updateClubLoading = false;
       state.updateClubError = null;
     },
@@ -73,14 +75,14 @@ const clubSlice = createSlice({
       state.clubLoading = false;
       state.clubError = action.payload;
     });
-    //  -----------------------------------------------------//---- update price
+    //  -----------------------------------------------------//---- update court price
     builder.addCase(updatePrice.pending, (state) => {
       state.updateClubLoading = true;
       state.updateClubError = null;
     });
     builder.addCase(updatePrice.fulfilled, (state, action) => {
       state.updateClubLoading = false;
-      state.updateClubData = action.payload;
+      state.updateCourtData = action.payload;
     });
     builder.addCase(updatePrice.rejected, (state, action) => {
       state.updateClubLoading = false;

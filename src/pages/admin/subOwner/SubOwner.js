@@ -21,6 +21,7 @@ const SubOwner = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const Owner = getOwnerFromSession();
+  const ownerId = Owner?.generatedBy || Owner?._id;
   const [currentPage, setCurrentPage] = useState(1);
   const [showUserModal, setShowUserModal] = useState(false);
   // State
@@ -33,7 +34,7 @@ const SubOwner = () => {
   const UserData = getSubOwnerData?.response;
 
   useEffect(() => {
-    dispatch(getSubOwner({ page: currentPage, limit: 10 }));
+    dispatch(getSubOwner({ ownerId, page: currentPage, limit: 10 }));
   }, [currentPage]);
 
   const totalRecords = UserData?.length || 1;

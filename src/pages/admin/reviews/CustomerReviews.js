@@ -17,7 +17,6 @@ const CustomerReviews = () => {
   const { reviewsData, reviewsLoading } = useSelector(
     (state) => state?.reviews
   );
-  console.log({ reviewsData });
 
   // Rating distribution data
   const ratingDistribution = [
@@ -72,10 +71,10 @@ const CustomerReviews = () => {
                     {renderStars(reviewsData?.averageRating)}
                   </div>
                   <p className="text-muted mb-0">
-                    Based on{" "}
+                    Based on
                     <span className="fw-semibold">
                       {reviewsData?.totalReviews}
-                    </span>{" "}
+                    </span>
                     reviews
                   </p>
                 </div>
