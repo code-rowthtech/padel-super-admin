@@ -111,7 +111,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                         </span>
                     );
                 })}
-                <span className="ms-2" style={{ fontFamily: "Poppins", fontWeight: "500", fontSize: "15px" }}>
+                <span className="ms-2 mt-3 mb-2" style={{ fontFamily: "Poppins", fontWeight: "500", fontSize: "15px" }}>
                     {rating} {getRatingLabel(rating)}
                 </span>
             </div>
