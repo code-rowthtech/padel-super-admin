@@ -93,23 +93,37 @@ const Booking = () => {
           md={12}
           className="d-flex justify-content-between align-items-center"
         >
-          <Box sx={{ bgcolor: "white" }}>
+          <Box sx={{ bgcolor: "white", borderBottom: 1, borderColor: "divider", paddingRight: 5, paddingLeft: 5 }}>
             <AppBar
               position="static"
               color="default"
-              className="bg-white border-bottom border-light"
               elevation={0}
+              sx={{ bgcolor: "white" }}
             >
               <Tabs
                 value={tab}
-                onChange={(_, v) => {
-                  setTab(v);
-                }}
-                indicatorColor="primary"
+                onChange={(_, v) => setTab(v)}
                 textColor="primary"
+                indicatorColor="primary"
+                sx={{
+                  "& .MuiTab-root": {
+                    fontWeight: 500,
+                    textTransform: "none",
+                    fontSize: "15px",
+                    color: "#555", // inactive tab color
+                  },
+                  "& .Mui-selected": {
+                    color: "#1a4ed8", // active tab color
+                  },
+                  "& .MuiTabs-indicator": {
+                    backgroundColor: "#1a4ed8",
+                    height: "3px",
+                    borderRadius: "2px",
+                  },
+                }}
               >
-                <Tab className="fw-medium table-data" label="Upcoming" />
-                <Tab className="fw-medium table-data" label="Completed" />
+                <Tab label="Upcoming" style={{ width: "150px" }} />
+                <Tab label="Completed" style={{ width: "150px" }} />
               </Tabs>
             </AppBar>
           </Box>
@@ -140,20 +154,22 @@ const Booking = () => {
               <div
                 className="d-flex justify-content-center align-items-center text-white fw-bold"
                 style={{
-                  backgroundColor: "#194DD5",
+                  backgroundColor: "#1F41BB",
                   width: "36px",
                   height: "36px",
                   borderRadius: "50%",
                   fontSize: "20px",
                 }}
               >
-                +
+                <span className="mb-1">
+                  +
+                </span>
               </div>
             </div>
             <div
-              className="d-flex align-items-center text-white fw-medium"
+              className="d-flex align-items-center text-white fw-medium rounded-end-3"
               style={{
-                backgroundColor: "#194DD5",
+                backgroundColor: "#1F41BB",
                 padding: "0 16px",
                 height: "36px",
                 fontSize: "14px",

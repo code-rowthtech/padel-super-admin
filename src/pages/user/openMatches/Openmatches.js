@@ -54,16 +54,22 @@ const Openmatches = ({ width = 370, height = 70 }) => {
     };
     const scrollRef = useRef(null);
 
+    const [startIndex, setStartIndex] = useState(0); // which day to start from
+    const visibleDays = 7; // only show 7 at a time
+
+    const formatDate = (date) => date.toISOString().split("T")[0];
+
     const scroll = (direction) => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollBy({
-                left: direction === "left" ? -120 : 120,
-                behavior: "smooth",
-            });
+        if (direction === "left" && startIndex > 0) {
+            setStartIndex(startIndex - 1); // move back one day
+        }
+        if (direction === "right" && startIndex < dates.length - visibleDays) {
+            setStartIndex(startIndex + 1); // move forward one day
         }
     };
     const matchData = [
         {
+
             level: "Beginner",
             teamInfo: "Team A",
             players: [
@@ -170,28 +176,34 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                 </div>
                             </div>
                             <div className="d-flex align-items-center gap-2 mb-3">
-                                <button className="btn btn-light p-0" onClick={() => scroll("left")}>
+                                {/* Left button */}
+                                 <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                                     <i className="bi bi-chevron-left"></i>
                                 </button>
-                                <div
-                                    ref={scrollRef}
-                                    className="d-flex gap-2 w-100 overflow-auto no-scrollbar"
+
+                                {/* 7-day window */}
+                                <div 
+                                  className="d-flex gap-2 overflow-auto no-scrollbar"
                                     style={{
                                         scrollBehavior: "smooth",
                                         whiteSpace: "nowrap",
-                                        maxWidth: "820px",
-                                    }}
-                                >
-                                    {dates?.map((d, i) => {
-                                        const isSelected = selectedDate?.fullDate ? formatDate(new Date(selectedDate.fullDate)) === d.fullDate : false;
+                                        maxWidth: "620px", // fits ~7 buttons
+                                    }}>
+                                    {dates.slice(startIndex, startIndex + visibleDays).map((d, i) => {
+                                        const isSelected =
+                                            selectedDate?.fullDate &&
+                                            formatDate(new Date(selectedDate.fullDate)) === d.fullDate;
+
                                         return (
                                             <button
-                                                ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
                                                 key={i}
-                                                className={`calendar-day-btn px-3 py-2 rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                                                className={`calendar-day-btn px-3 py-0 rounded border ${isSelected ? "text-white shadow" : "bg-light text-dark"
+                                                    }`}
                                                 style={{
                                                     backgroundColor: isSelected ? "#374151" : undefined,
                                                     border: "none",
+                                                    minWidth: "85px", // fixed size for consistent scroll
                                                 }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d.fullDate, day: d.day });
@@ -200,7 +212,9 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                                 }}
                                             >
                                                 <div className="text-center">
-                                                    <div style={{ fontSize: "14px", fontWeight: "400" }}>{dayShortMap[d.day]}</div>
+                                                    <div style={{ fontSize: "14px", fontWeight: "400" }}>
+                                                        {dayShortMap[d.day]}
+                                                    </div>
                                                     <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
                                                     <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
                                                 </div>
@@ -208,7 +222,13 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                         );
                                     })}
                                 </div>
-                                <button className="btn btn-light p-0" onClick={() => scroll("right")}>
+
+                                {/* Right button */}
+                                <button
+                                    className="btn btn-light p-0"
+                                    onClick={() => scroll("right")}
+                                    disabled={startIndex >= dates.length - visibleDays}
+                                >
                                     <i className="bi bi-chevron-right"></i>
                                 </button>
                             </div>
@@ -302,7 +322,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
 
                                                                         }}
                                                                     >
-                                                                        <span className="">+</span>
+                                                                        <span className="d-flex align-itmes-center mb-1">+</span>
                                                                     </div>
 
                                                                     {/* Text Content */}
