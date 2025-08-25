@@ -149,7 +149,7 @@ const Navbar = () => {
                                     className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
                                 >
                                     <img
-                                        src={userData?.profilePic || 'https://i.pravatar.cc/40'}
+                                        src={userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                         alt="user"
                                         className="rounded-circle"
                                         width="40"

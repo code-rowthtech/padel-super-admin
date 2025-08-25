@@ -20,7 +20,7 @@ export const getUserClub = createAsyncThunk(
       const res = await userApi.get(`${Url.GET_CLUB_API}?${buildQuery(data)}`);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
+      showError(error?.message || error);
       return rejectWithValue(error);
     }
   }
@@ -33,7 +33,7 @@ export const addReviewClub = createAsyncThunk(
       const res = await userApi.post(Url.ADD_REVIEW_CLUB, data);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
+      showError(error?.message || error);
       return rejectWithValue(error);
     }
   }

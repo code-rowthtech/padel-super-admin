@@ -9,6 +9,7 @@ import StarHalfIcon from "@mui/icons-material/StarHalf";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { formatDate } from "../../../../helpers/Formatting";
 import { getBooking } from "../../../../redux/user/booking/thunk";
+import { format, isValid } from "date-fns";
 
 export const BookingRatingModal = ({ show, tableData, onHide, initialRating, defaultMessage }) => {
     const [rating, setRating] = useState(0);
@@ -17,9 +18,13 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
     const dispatch = useDispatch();
     const store = useSelector((state) => state);
     const addReviewLoading = store?.userClub?.reviewLoading;
-
+console.log({tableData});
     const hasReview = !!tableData?.booking?.customerReview;
-
+    const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
+        if (!dateValue) return fallback; // Handle null or undefined
+        const date = new Date(dateValue);
+        return isValid(date) ? format(date, formatString) : fallback;
+    };
     useEffect(() => {
         if (show) {
             if (hasReview) {
@@ -39,7 +44,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
             reviewComment: review,
             reviewRating: rating,
             register_club_id: club_id,
-            bookingId : tableData?.booking?._id
+            bookingId: tableData?.booking?._id
         };
         dispatch(addReviewClub(payload))
             .unwrap()
@@ -146,14 +151,17 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                     <div className="d-flex p-0 justify-content-between">
                         <div className="text-start">
                             <p className="text-muted mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>Court</p>
-                            <p className="text-muted mb-0" style={{ fontSize: "13px", fontWeight: "500" }}>Booking Date</p>
+                            <p className="text-muted mb-0" style={{ fontSize: "13px", fontWeight: "500" }}>Data/Time</p>
                         </div>
                         <div className="text-end">
                             <p className="fw-bold mb-1" style={{ fontSize: "14px", color: "#111827" }}>
                                 {tableData?.slotItem?.courtName || "N/A"}
                             </p>
                             <p className="fw-bold mb-0" style={{ fontSize: "14px", color: "#111827" }}>
-                                {formatDate(tableData?.slotItem?.bookingDate) || "N/A"}
+                                {safeFormatDate(
+                                    new Date(tableData?.slotItem?.bookingDate),
+                                    "dd/MM/yyyy | hh:mm a"
+                                )}
                             </p>
                         </div>
                     </div>
@@ -164,7 +172,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                     <h5 className="fw-bold mb-2">Payment Details</h5>
                     <div className="d-flex justify-content-between">
                         <span className="text-muted">Payment Method</span>
-                        <span>Gpay</span>
+                        <span>{tableData?.booking?.paymentMethod || "N/A"}</span>
                     </div>
                     <div className="d-flex justify-content-between">
                         <span className="text-muted">Total Payment</span>

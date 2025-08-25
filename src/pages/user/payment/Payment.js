@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
-import axios from "axios";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
+import { Alert, Button, Modal } from "react-bootstrap";
+import { booking_success_img } from "../../../assets/files";
 
 // Load Razorpay Checkout
 const loadRazorpay = (callback) => {
@@ -20,21 +21,164 @@ const loadRazorpay = (callback) => {
 const Payment = ({ className = "" }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { courtData, clubData, seletctedCourt } = location.state || {};
-    const user = getUserFromSession()
-    const store = useSelector((state) => state?.userAuth)
-    const bookingStatus = useSelector((state) => state?.userBooking)
-    const userLoading = useSelector((state) => state?.userAuth)
+    const { courtData, clubData, selectedCourts, selectedDate, grandTotal, totalSlots, currentCourtId } = location.state || {};
+    const user = getUserFromSession();
+    const bookingStatus = useSelector((state) => state?.userBooking);
+    const userLoading = useSelector((state) => state?.userAuth);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const [name, setName] = useState(user?.name || "");
-    const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ? String(user.phoneNumber) : "");
+    const [phoneNumber, setPhoneNumber] = useState(
+        user?.phoneNumber
+    );
     const [email, setEmail] = useState(user?.email || "");
     const [selectedPayment, setSelectedPayment] = useState("");
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [errorShow, setErrorShow] = useState(false);
+    const [modal, setModal] = useState(false)
     const dispatch = useDispatch();
-    const [selectedCourts, setSelectedCourts] = useState([]);
-    const isFormValid = name.trim() && phoneNumber.trim().length === 10 && email.trim() && selectedPayment;
+    const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
+    const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
+    const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
+
+    const dayMap = {
+        sunday: "Sun",
+        monday: "Mon",
+        tuesday: "Tue",
+        wednesday: "Wed",
+        thursday: "Thu",
+        friday: "Fri",
+        saturday: "Sat",
+    };
+
+    // Update localGrandTotal and localTotalSlots when localSelectedCourts changes
+    useEffect(() => {
+        const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);
+        const newGrandTotal = localSelectedCourts.reduce(
+            (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 2000), 0),
+            0
+        );
+        setLocalTotalSlots(newTotalSlots);
+        setLocalGrandTotal(newGrandTotal);
+    }, [localSelectedCourts]);
+
+    // Redirect if no courtData
+    useEffect(() => {
+        if (!courtData) {
+            navigate("/booking");
+            return;
+        }
+        setLocalSelectedCourts(selectedCourts || []);
+    }, [courtData, selectedCourts, navigate]);
+
+    // Clear error after 2 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setErrorShow(false);
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, [error, errorShow]);
+
+    const handleDeleteSlot = (courtIndex, slotIndex) => {
+        const removedSlotId = localSelectedCourts[courtIndex]?.time[slotIndex]?._id;
+        if (!removedSlotId) {
+            console.error("Removed slot ID is undefined");
+            return;
+        }
+
+        setLocalSelectedCourts((prev) => {
+            let updated = [...prev];
+            if (updated[courtIndex]?.time) {
+                updated[courtIndex].time = updated[courtIndex].time.filter((_, i) => i !== slotIndex);
+                // Do not remove the court, even if time array is empty
+            }
+            return updated;
+        });
+    };
+
+    const handlePayment = async () => {
+        const errors = [];
+        if (!name) errors.push("Name is required");
+        if (!phoneNumber) {
+            errors.push("Phone number must be 10 digits starting with 6, 7, 8, or 9");
+        }
+        if (!email) errors.push("Email is required");
+        if (!selectedPayment) errors.push("Payment method is required");
+
+        if (errors.length > 0) {
+            setError(errors.join(", "));
+            setErrorShow(true);
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+        setErrorShow(false);
+
+        try {
+            const register_club_id = localStorage.getItem("register_club_id");
+            const owner_id = localStorage.getItem("owner_id");
+            if (!register_club_id || !owner_id) {
+                throw new Error("Club information is missing. Please select a club first.");
+            }
+
+            const slotTimesData = courtData?.slot?.[0]?.slotTimes || [];
+
+            const slotArray = localSelectedCourts.flatMap((court) => {
+                return court.time.map((timeSlot) => {
+                    const matchingSlot = slotTimesData.find((slot) => slot.time === timeSlot.time);
+                    return {
+                        slotId: matchingSlot?._id || courtData?.slot?.[0]?._id,
+                        businessHours:
+                            courtData?.slot?.[0]?.businessHours?.map((t) => ({
+                                time: t?.time,
+                                day: t?.day,
+                            })) || [
+                                {
+                                    time: "6:00 AM To 11:00 PM",
+                                    day: "Monday",
+                                },
+                            ],
+                        slotTimes: [
+                            {
+                                time: timeSlot?.time,
+                                amount: timeSlot?.amount ?? 2000,
+                            },
+                        ],
+                        courtName: court?.courtName,
+                        courtId: court?._id,
+                        bookingDate: court?.date,
+                    };
+                });
+            });
+
+            const payload = {
+                name,
+                phoneNumber,
+                email,
+                register_club_id,
+                bookingStatus: "upcoming",
+                ownerId: owner_id,
+                slot: slotArray,
+                paymentMethod: selectedPayment,
+            };
+
+            await dispatch(createBooking(payload)).unwrap();
+            if (user?.token && user?.name) {
+                // navigate("/booking-history");
+                setModal(true)
+            } else {
+                await dispatch(loginUserNumber({ phoneNumber, name, email }));
+                setModal(true)
+            }
+        } catch (err) {
+            console.error("Payment Error:", err);
+            setError(err.message || "An error occurred during payment processing.");
+            setErrorShow(true);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Button styling
     const width = 370;
@@ -81,168 +225,6 @@ const Payment = ({ className = "" }) => {
         height: "100%",
         paddingRight: `${circleRadius * 2}px`,
     };
-    const handlePayment = async () => {
-        if (!name || !phoneNumber || !email || !selectedPayment) {
-            setError("Please fill in all required fields and select a payment method.");
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-        try {
-            const register_club_id = localStorage.getItem('register_club_id');
-            const selectedTimeArray = courtData?.time || [];
-            const bookingDate = courtData?.date;
-            const courtName = courtData?.court?.[0]?.courtName;
-            const slotTimesData = courtData?.slot?.[0]?.slotTimes || [];
-
-            const slotArray = selectedTimeArray?.map((timeSlot) => {
-                const matchingSlot = slotTimesData.find(slot => slot.time === timeSlot.time);
-                return {
-                    slotId: matchingSlot?._id || courtData?.slot?.[0]?._id,
-                    businessHours: courtData?.slot?.[0]?.businessHours?.map(t => ({
-                        time: t?.time,
-                        day: t?.day
-                    })) || [{
-                        time: "6:00 AM To 11:00 PM",
-                        day: "Monday"
-                    }],
-                    slotTimes: [{
-                        time: timeSlot?.time,
-                        amount: timeSlot?.amount ?? 2000
-                    }],
-                    courtName: courtName,
-                    courtId: courtData?.court?.[0]?._id,
-                    bookingDate: bookingDate
-                };
-            });
-
-            const payload = {
-                name,
-                phoneNumber,
-                email,
-                register_club_id,
-                bookingStatus:"upcoming",
-                ownerId: clubData?.ownerId,
-                slot: slotArray
-            };
-
-            dispatch(createBooking(payload)).unwrap().then(() => {
-                if (user?.token && user?.name) {
-                    navigate('/booking-history');
-                } else {
-                    dispatch(loginUserNumber({ phoneNumber: phoneNumber,name:name,email:email }));
-                    navigate('/booking-history');
-                }
-            });
-            // http://103.185.212.117:7600/api/booking/createOrde
-
-            // const response = await axios.post("", {
-            //     amount: totalAmount || 100,
-            //     currency: "INR",
-            // }, {
-            //     headers: {
-            //         "Content-Type": "application/json",
-            //     },
-            // });
-
-            // console.log("API Response:", response.data);
-
-            // const { id } = response.data || {};
-            // if (!id) {
-            //     throw new Error("Invalid response from server: paymentIntentId or clientSecret missing.");
-            // }
-
-            // setPaymentId(id);
-
-            // loadRazorpay(() => {
-            //     const options = {
-            //         key: 'rzp_test_c5wVsgpbPYa9uX',
-            //         amount: totalAmount || 100,
-            //         currency: 'INR',
-            //         name: "padel fe",
-            //         description: "payment to padel fe",
-            //         image: "https://papayacoders.com/demo.png",
-            //         order_id: paymentId,
-            //         handler: async function (response) {
-            //             const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
-            //             // await verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature);
-            //         },
-            //         prefill: {
-            //             name: "padel fe",
-            //             email: "padelfe@gmail.com",
-            //             contact: phoneNumber
-            //         },
-            //         theme: {
-            //             color: "#F4C430"
-            //         },
-            //         modal: {
-            //             ondismiss: function () {
-            //                 setError("Payment was cancelled.");
-            //                 setIsLoading(false);
-            //             }
-            //         },
-            //         payment_method: {
-            //             upi: selectedPayment === "google" ? true : null,
-            //             card: selectedPayment === "card" ? true : null,
-            //             wallet: selectedPayment === "google" || selectedPayment === "apple" ? true : null
-            //         }
-            //     };
-
-            //     const paymentObject = new window.Razorpay(options);
-            //     paymentObject.on('payment.failed', function (response) {
-            //         console.error("Payment Failed:", response.error);
-            //         setError(response.error.description || "Payment failed. Please try again.");
-            //         setIsLoading(false);
-            //     });
-            //     paymentObject.open();
-            // });
-        } catch (err) {
-            console.error("Payment Error:", err);
-            setError(err.message || "An error occurred during payment processing.");
-        } finally {
-            setIsLoading(false);
-        }
-
-
-    };
-
-    // const verifyPayment = async (order_id, payment_id, signature) => {
-    //     try {
-    //         const response = await axios.post("http://103.185.212.117:7600/api/booking/verify-payment", {
-    //             order_id,
-    //             payment_id,
-    //             signature,
-    //         }, {
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //             },
-    //         });
-
-    //         if (response.data.success) {
-    //             setSuccess(true);
-    //             console.log("Payment Verified:", response.data);
-    //         } else {
-    //             throw new Error(response.data.message || "Payment verification failed.");
-    //         }
-    //     } catch (err) {
-    //         console.error("Verification Error:", err);
-    //         setError(err.message || "An error occurred during payment verification.");
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-
-    useEffect(() => {
-        if (!courtData) return;
-        setSelectedCourts(seletctedCourt);
-    }, [courtData]);
-
-    // const handleDelete = (index) => {
-    //     const updatedCourts = [...selectedCourts];
-    //     updatedCourts.splice(index, 1);
-    //     setSelectedCourts(updatedCourts);
-    // };
 
     return (
         <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
@@ -256,37 +238,58 @@ const Payment = ({ className = "" }) => {
                             </h6>
                             <div className="row">
                                 <div className="col-md-4 mb-3 p-1">
-                                    <label className="form-label">Name <span className="text-danger">*</span></label>
+                                    <label className="form-label">
+                                        Name <span className="text-danger">*</span>
+                                    </label>
                                     <input
                                         type="text"
                                         value={name}
                                         style={{ boxShadow: "none" }}
-                                        onChange={(e) => setName(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+                                                if (value.length === 0 && value.trim() === "") {
+                                                    setName("");
+                                                    return;
+                                                }
+                                                const formattedValue = value
+                                                    .trimStart()
+                                                    .replace(/\s+/g, " ")
+                                                    .toLowerCase()
+                                                    .replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
+                                                setName(formattedValue);
+                                            }
+                                        }}
                                         className="form-control border-0 p-2"
                                         placeholder="Enter your name"
+                                        pattern="[A-Za-z\s]+"
+                                        title="Name can only contain letters and single spaces between words"
+                                        aria-label="Name"
                                         disabled={user?.name}
                                     />
                                 </div>
                                 <div className="col-md-4 mb-3 p-1">
-                                    <label className="form-label">Phone No <span className="text-danger">*</span></label>
+                                    <label className="form-label">
+                                        Phone No <span className="text-danger">*</span>
+                                    </label>
                                     <div className="input-group">
                                         <span className="input-group-text border-0 p-2">
                                             <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
+                                            <span>+91</span>
                                         </span>
                                         <input
                                             type="text"
-                                            maxLength={10}
-                                            minLength={10}
+                                            maxLength={10} // Restrict to 10 digits
                                             value={phoneNumber}
                                             style={{ boxShadow: "none" }}
                                             onChange={(e) => {
-                                                const value = e.target.value;
-                                                if (value === '' || /^[6-9][0-9]{0,9}$/.test(value)) {
-                                                    setPhoneNumber(value);
+                                                const value = e.target.value.replace(/[^0-9]/g, ''); // Allow only digits
+                                                if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
+                                                    setPhoneNumber(value); // Store only the digits
                                                 }
                                             }}
                                             className="form-control border-0 p-2"
-                                            placeholder="91+"
+                                            placeholder="Enter phone number"
                                             pattern="[6-9][0-9]{9}"
                                             title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
                                             disabled={user?.phoneNumber}
@@ -294,12 +297,30 @@ const Payment = ({ className = "" }) => {
                                     </div>
                                 </div>
                                 <div className="col-md-4 mb-3 p-1">
-                                    <label className="form-label">Email <span className="text-danger">*</span></label>
+                                    <label className="form-label">
+                                        Email <span className="text-danger">*</span>
+                                    </label>
                                     <input
                                         type="email"
                                         value={email}
                                         style={{ boxShadow: "none" }}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // Allow letters, numbers, @, and .; prevent spaces
+                                            if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
+                                                if (value.length === 0) {
+                                                    setEmail("");
+                                                    return;
+                                                }
+                                                // Capitalize first letter before @, remove spaces
+                                                const formattedValue = value
+                                                    .replace(/\s+/g, "") // Remove all spaces
+                                                    .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
+                                                        return first.toUpperCase() + rest.toLowerCase() + domain;
+                                                    });
+                                                setEmail(formattedValue);
+                                            }
+                                        }}
                                         className="form-control border-0 p-2"
                                         placeholder="Enter your email"
                                         disabled={user?.email}
@@ -315,9 +336,9 @@ const Payment = ({ className = "" }) => {
                             </h6>
                             <div className="d-flex flex-column gap-3">
                                 {[
-                                    { id: "google", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
-                                    { id: "apple", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
-                                    { id: "paypal", name: "Paypal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
+                                    { id: "Gpay", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
+                                    { id: "Apple Pay", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
+                                    { id: "Paypal", name: "Paypal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
                                 ].map((method) => (
                                     <label
                                         key={method.id}
@@ -333,25 +354,14 @@ const Payment = ({ className = "" }) => {
                                             value={method.id}
                                             className="form-check-input"
                                             checked={selectedPayment === method.id}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                setSelectedPayment(value);
-                                            }}
-
+                                            onChange={(e) => setSelectedPayment(e.target.value)}
                                         />
                                     </label>
                                 ))}
                             </div>
-
                         </div>
 
-                        {/* Error and Success Messages */}
-                        {/* {error && <div className="alert alert-danger mt-3">{error}</div>}
-                        {success && (
-                            <div className="alert alert-success mt-3">
-                                Payment successful! Payment ID: {paymentId}
-                            </div>
-                        )} */}
+                        {/* {errorShow && <Alert variant="danger">{error}</Alert>} */}
                     </div>
                 </div>
 
@@ -359,101 +369,115 @@ const Payment = ({ className = "" }) => {
                 <div className="col-5">
                     <div className="border rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="text-center mb-3">
-                            <div className="d-flex justify-content-center " style={{ lineHeight: '90px' }}>
-                                {logo ?
-                                    <Avatar src={logo} alt="User Profile" /> :
-                                    <Avatar>
-                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
-                                    </Avatar>
-                                }
+                            <div className="d-flex justify-content-center" style={{ lineHeight: "90px" }}>
+                                {logo ? (
+                                    <Avatar src={logo} alt="User Profile" />
+                                ) : (
+                                    <Avatar>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>
+                                )}
                             </div>
-                            <p className=" mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
-                            <p className="small mb-0"> {clubData?.clubName}
-                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
-                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
-                                    .filter(Boolean)
-                                    .join(', ')}  </p>
+                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>
+                                {clubData?.clubName}
+                            </p>
+                            <p className="small mb-0">
+                                {clubData?.clubName}
+                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ", " : ""}
+                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode].filter(Boolean).join(", ")}
+                            </p>
                         </div>
 
                         <h6 className="border-top p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
                             Booking Summary
                         </h6>
-                        <div style={{ maxHeight: "240px" }}>
-                            {selectedCourts.length > 0 ? (
-                                selectedCourts.map((court, index) => (
-                                    <div key={index}>
-                                        <div className="row  mb-3">
-                                            <div className="col-5">
-                                                <div>
-                                                    <span style={{ fontWeight: "600" }}>{court?.courtName}</span>
+                        <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
+                            {localSelectedCourts?.length > 0 ? (
+                                localSelectedCourts?.map((court, index) => (
+                                    <React.Fragment key={`${index}`}>
+                                        {court?.time?.map((timeSlot, timeIndex) => (
+                                            <div key={`${index}-${timeIndex}`} className="row mb-2">
+                                                <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                                                    <div className="d-flex">
+                                                        <span style={{ fontWeight: "600" }}>
+                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""},
+                                                        </span>
+                                                        <span className="ps-2" style={{ fontWeight: "600" }}>
+                                                            {(() => {
+                                                                if (!court?.date) return "";
+                                                                const date = new Date(court.date);
+                                                                const day = date.toLocaleString("en-US", { day: "2-digit" });
+                                                                const month = date.toLocaleString("en-US", { month: "short" });
+                                                                return `${day} ${month}`;
+                                                            })()}
+                                                        </span>
+                                                        <span className="ps-2" style={{ fontWeight: "600" }}>
+                                                            {timeSlot?.time} (60)
+                                                        </span>
+                                                        <span className="ps-2" style={{ fontWeight: "400" }}>
+                                                            {court?.courtName}
+                                                        </span>
+                                                    </div>
+                                                    <div className="d-flex">
+                                                        <span className="ps-2" style={{ fontWeight: "600", color: "#1A237E" }}>
+                                                            ₹{timeSlot?.amount || 2000}
+                                                        </span>
+                                                        <button
+                                                            className="btn btn-sm text-danger delete-btn ms-auto"
+                                                            onClick={() => handleDeleteSlot(index, timeIndex)}
+                                                        >
+                                                            <i className="bi bi-trash-fill pt-1"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <span style={{ fontWeight: "500" }}>
-                                                    {(() => {
-                                                        const date = new Date(court.date);
-                                                        const day = date.toLocaleString('en-US', { day: '2-digit' });
-                                                        const month = date.toLocaleString('en-US', { month: 'short' });
-                                                        return `${day} ${month}`;
-                                                    })()}
-                                                </span>
                                             </div>
-                                            <div className="col-7 d-flex justify-content-end gap-2">
-                                                {/* <button
-                                                    className="btn btn-sm text-danger delete-btn"
-                                                    onClick={() => handleDelete(index)}
-                                                >
-                                                    <i className="bi bi-trash-fill pt-1"></i>
-                                                </button> */}
-                                                <div className="d-flex justify-conent-end align-items-center" >
-                                                    <span className="mb-1">
-                                                        {court.time.length > 0
-                                                            ? court.time.map((t, i) => (
-                                                                <span key={i} style={{ marginRight: "10px" }}>
-                                                                    {t.time}
-                                                                    {i < court.time.length - 1 ? " | " : ""}
-                                                                </span>
-                                                            ))
-                                                            : <span >No time selected</span>}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {court.time.length > 0 && (
-                                            <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
-                                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
-                                                {court.time && <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {court.time.length}</span>}
-                                                <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
-                                                    ₹ {court.time.reduce((total, t) => total + Number(t.amount || 0), 0)}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
+                                        ))}
+                                    </React.Fragment>
                                 ))
                             ) : (
-                                <div className="text-center py-4 text-muted">No court selected</div>
+                                <div
+                                    className="d-flex justify-content-center align-items-center text-muted"
+                                    style={{ height: "25vh" }}
+                                >
+                                    <p
+                                        className="text-danger"
+                                        style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "600" }}
+                                    >
+                                        No court selected
+                                    </p>
+                                </div>
                             )}
                         </div>
+                        {localTotalSlots > 0 && (
+                            <div
+                                className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold"
+                                style={{ overflowX: "hidden" }}
+                            >
+                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
+                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {localTotalSlots}</span>
+                                <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
+                                    ₹ {localGrandTotal}
+                                </span>
+                            </div>
+                        )}
+                        {errorShow && <Alert variant="danger">{error}</Alert>}
 
                         <div className="d-flex justify-content-center mt-3">
                             <button
                                 style={{
                                     ...buttonStyle,
-                                    opacity: isFormValid && selectedCourts.length > 0 ? 1 : 0.6,
-                                    cursor: isFormValid && selectedCourts.length > 0 ? "pointer" : "not-allowed"
+                                    opacity: localSelectedCourts?.length > 0 && localTotalSlots > 0 ? 1 : 0.6,
+                                    cursor:
+                                        localSelectedCourts?.length > 0 && localTotalSlots > 0 ? "pointer" : "not-allowed",
                                 }}
                                 onClick={handlePayment}
                                 className={className}
-                                disabled={!isFormValid || isLoading || selectedCourts.length === 0}
+                                disabled={isLoading || localSelectedCourts?.length === 0 || localTotalSlots === 0}
                             >
-                                <svg
-                                    style={svgStyle}
-                                    viewBox={`0 0 ${width} ${height}`}
-                                    preserveAspectRatio="none"
-                                >
+                                <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                     <defs>
                                         <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
                                             <stop offset="0%" stopColor="#3DBE64" />
-                                            <stop offset="50%" stopColor="#1F41BB" />
-                                            <stop offset="100%" stopColor="#1F41BB" />
+                                            <stop offset="50%" stopColor="#3DBE64" />
+                                            <stop offset="100%" stopColor="#3DBE64" />
                                         </linearGradient>
                                     </defs>
                                     <path
@@ -476,17 +500,63 @@ const Payment = ({ className = "" }) => {
                                     />
                                     <circle cx={circleX} cy={circleY} r={circleRadius} fill="#3DBE64" />
                                     <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
-                                        <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
-                                        <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
+                                        <path
+                                            d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`}
+                                        />
+                                        <path
+                                            d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`}
+                                        />
+                                        <path
+                                            d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`}
+                                        />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{bookingStatus?.bookingLoading || isLoading || userLoading?.userAuthLoading ? <ButtonLoading /> : "Book Now"}</div>
+                                <div style={contentStyle}>
+                                    {bookingStatus?.bookingLoading || isLoading || userLoading?.userAuthLoading ? (
+                                        <ButtonLoading />
+                                    ) : (
+                                        "Book Now"
+                                    )}
+                                </div>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <Modal show={modal} onHide={() => setModal(false)} centered>
+                <div className="p-4 text-center">
+                    {/* Illustration */}
+                    <img
+                        src={booking_success_img}
+                        alt="Booking Success"
+                        style={{ width: "190px", height: "190px", marginBottom: "20px" }}
+                    />
+
+                    {/* Title */}
+                    <h4 className="tabel-title">Booking Successful!</h4>
+                    <p className="text-dark fw-medium">Your slot has been booked successfully.</p>
+
+                    {/* Continue Button */}
+                    <Button
+                        onClick={() => { setModal(false); navigate("/booking"); }}
+                        className="w-100 rounded-pill border-0 text-white py-3 mt-3"
+                        style={{ backgroundColor: "#3DBE64", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
+                    >
+                        Continue
+                    </Button>
+
+                    {/* Reminder Note */}
+                    <p className="text-dark fw-medium mt-3" style={{ fontSize: "14px" }}>
+                        You’ll receive a reminder before it starts.
+                    </p>
+
+                    {/* Link */}
+                    <Link to="/booking-history" className="text-primary fw-semibold">
+                        View Booking Details
+                    </Link>
+                </div>
+            </Modal>
         </div>
     );
 };

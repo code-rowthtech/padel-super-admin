@@ -11,7 +11,7 @@ export const createBooking = createAsyncThunk(
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
+      showError(error?.message || error);
       return rejectWithValue(error);
     }
   }
@@ -24,7 +24,7 @@ export const getBooking = createAsyncThunk(
       const res = await userApi.get(`${Url.GET_BOOKING_API}`, data);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
+      showError(error?.message || error);
       return rejectWithValue(error);
     }
   }
@@ -37,7 +37,7 @@ export const bookingStatus = createAsyncThunk(
       const res = await userApi.put(`${Url.BOOKING_STATUS_CHANGE}`, data);
       return res?.data;
     } catch (error) {
-      showError(error);
+      showError(error?.message || error);
       return rejectWithValue(error);
     }
   }
