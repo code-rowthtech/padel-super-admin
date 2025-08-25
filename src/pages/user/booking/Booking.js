@@ -231,7 +231,7 @@ const Booking = ({ className = "" }) => {
             getUserSlot({
                 day: selectedDate.day,
                 date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-                courtId: "", 
+                courtId: "",
                 register_club_id: clubId || "",
             })
         );
@@ -545,66 +545,82 @@ const Booking = ({ className = "" }) => {
                         ) : (
                             <>
                                 <div className="d-flex flex-wrap gap-2 mb-4">
-                                    {slotData?.data?.length > 0 &&
-                                        slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                                        slotData?.data?.[0]?.slot?.[0]?.slotTimes
-                                            .filter(slot => showUnavailable ? slot.status === "booked" || new Date(selectedDate?.fullDate) && new Date(selectedDate?.fullDate).getTime() < new Date().getTime() : true)
-                                            .map((slot, i) => {
-                                                const selectedDateObj = new Date(selectedDate?.fullDate);
-                                                const slotDate = new Date(selectedDateObj);
-                                                const [hourString, period] = slot?.time?.toLowerCase().split(" ");
-                                                let hour = parseInt(hourString);
-                                                if (period === "pm" && hour !== 12) hour += 12;
-                                                if (period === "am" && hour === 12) hour = 0;
-                                                slotDate.setHours(hour, 0, 0, 0);
-                                                const now = new Date();
-                                                const isToday = selectedDateObj.toDateString() === now.toDateString();
-                                                const isPast = isToday && slotDate.getTime() < now.getTime();
-                                                const isBooked = slot?.status === "booked";
-                                                const isSelected = selectedTimes.some((t) => t._id === slot._id);
-                                                const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
-                                                const currentCourt = selectedCourts.find(c => c._id === currentCourtId);
-                                                const currentSlots = currentCourt ? currentCourt.time.length : 0;
-                                                const isLimitReached = currentSlots === 15 && !isSelected;
-                                                return (
-                                                    <button
-                                                        key={i}
-                                                        className={`btn border-0 rounded-pill px-4 ${isBooked ? "bg-danger text-white" : isPast ? "bg-secondary-subtle" : ""}`}
-                                                        onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
-                                                        style={{
-                                                            backgroundColor: isSelected
-                                                                ? "#374151"
-                                                                : isBooked
-                                                                    ? "#b42424ff"
-                                                                    : isLimitReached
-                                                                        ? "#888888"
-                                                                        : !hasAmount
-                                                                            ? "#fff7df"
-                                                                            : isPast && !isBooked
-                                                                                ? "#CBD6FF1A"
-                                                                                : "#FAFBFF",
-                                                            color: isSelected
-                                                                ? "white"
-                                                                : isPast && !isBooked
-                                                                    ? "#888888"
+                                    {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                                        (() => {
+                                            const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter(
+                                                slot =>
+                                                    showUnavailable
+                                                        ? slot.status === "booked" ||
+                                                        (new Date(selectedDate?.fullDate) && new Date(selectedDate?.fullDate).getTime() < new Date().getTime())
+                                                        : true
+                                            );
+                                            return filteredSlots.length > 0 ? (
+                                                filteredSlots.map((slot, i) => {
+                                                    const selectedDateObj = new Date(selectedDate?.fullDate);
+                                                    const slotDate = new Date(selectedDateObj);
+                                                    const [hourString, period] = slot?.time?.toLowerCase().split(" ");
+                                                    let hour = parseInt(hourString);
+                                                    if (period === "pm" && hour !== 12) hour += 12;
+                                                    if (period === "am" && hour === 12) hour = 0;
+                                                    slotDate.setHours(hour, 0, 0, 0);
+                                                    const now = new Date();
+                                                    const isToday = selectedDateObj.toDateString() === now.toDateString();
+                                                    const isPast = isToday && slotDate.getTime() < now.getTime();
+                                                    const isBooked = slot?.status === "booked";
+                                                    const isSelected = selectedTimes.some(t => t._id === slot._id);
+                                                    const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
+                                                    const currentCourt = selectedCourts.find(c => c._id === currentCourtId);
+                                                    const currentSlots = currentCourt ? currentCourt.time.length : 0;
+                                                    const isLimitReached = currentSlots === 15 && !isSelected;
+                                                    return (
+                                                        <button
+                                                            key={i}
+                                                            className={`btn border-0 rounded-pill px-4 ${isBooked ? "bg-danger text-white" : isPast ? "bg-secondary-subtle" : ""}`}
+                                                            onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
+                                                            style={{
+                                                                backgroundColor: isSelected
+                                                                    ? "#374151"
                                                                     : isBooked
-                                                                        ? "white"
-                                                                        : "#000000",
-                                                            cursor: (isPast || isBooked || !hasAmount || isLimitReached) ? "not-allowed" : "pointer",
-                                                            opacity: (isPast || isBooked || !hasAmount || isLimitReached) ? 0.6 : 1,
-                                                            border: '1px solid #CBD6FF1A'
-                                                        }}
-                                                    >
-                                                        {isBooked ? "Booked" : formatTime(slot?.time)}
-                                                    </button>
-                                                );
-                                            })
+                                                                        ? "#b42424ff"
+                                                                        : isLimitReached
+                                                                            ? "#888888"
+                                                                            : !hasAmount
+                                                                                ? "#fff7df"
+                                                                                : isPast && !isBooked
+                                                                                    ? "#CBD6FF1A"
+                                                                                    : "#FAFBFF",
+                                                                color: isSelected
+                                                                    ? "white"
+                                                                    : isPast && !isBooked
+                                                                        ? "#888888"
+                                                                        : isBooked
+                                                                            ? "white"
+                                                                            : "#000000",
+                                                                cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
+                                                                opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
+                                                                border: "1px solid #CBD6FF1A",
+                                                            }}
+                                                        >
+                                                            {isBooked ? "Booked" : formatTime(slot?.time)}
+                                                        </button>
+                                                    );
+                                                })
+                                            ) : showUnavailable ? (
+                                                <div className="text-center " >
+                                                    <p className="text-danger text-center fw-medium">No unavailable slots.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="text-end">
+                                                    <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                                                </div>
+                                            );
+                                        })()
                                     ) : showUnavailable ? (
-                                        <div className="text-end">
+                                        <div className="text-center " >
                                             <p className="text-danger text-center fw-medium">No unavailable slots.</p>
                                         </div>
                                     ) : (
-                                        <div className="text-end">
+                                        <div className="text-center">
                                             <p className="text-danger text-center fw-medium">No slots available for this date.</p>
                                         </div>
                                     )}
