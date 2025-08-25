@@ -92,16 +92,14 @@ const BookingHistory = () => {
     };
 
     const handleClearDate = () => setSearchDate(null);
-
     const club_id = localStorage.getItem("register_club_id");
-
     useEffect(() => {
         if (User?.token) dispatch(getBooking({ page: 1 }));
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
-        const status = booking?.bookingStatus?.toLowerCase(); // safety lowercase
+        const status = booking?.bookingStatus?.toLowerCase(); 
         let statusMatch = false;
 
         if (activeTab === "cancelled") {
