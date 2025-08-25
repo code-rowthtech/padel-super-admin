@@ -205,7 +205,9 @@ const Home = () => {
                             Join the community, feel the energy, and experience the good vibes!<br />
                             #theGoodPeople
                         </p>
-
+                        <p style={{ fontSize: "16px", fontFamily: "600" ,margin:"0px"}}>Join the Padel community group on WhatsApp </p>
+                       <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
+                       <p className='mt-4'><a className='mt-4'  href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
 
 
 
@@ -215,7 +217,7 @@ const Home = () => {
                     <div className="col-lg-4">
                         <div className="bg-white p-4">
                             <div className="d-flex justify-content-center mb-4">
-                                <strong className='me-2'>
+                                <strong className='me-2'style={{fontWeight:"500"}} >
                                     <i className="bi bi-alarm-fill"></i> Close Now
                                 </strong>
                                 <span>{clubData?.businessHours?.[adjustedIndex]?.time}</span>
@@ -231,7 +233,7 @@ const Home = () => {
                                 </div>
                             ))}
 
-                            <p className="mt-3 text-center fw-bold">Time zone (India Standard Time)</p>
+                            <p className="mt-3 text-center " style={{fontWeight:"500"}}>Time zone (India Standard Time)</p>
                             <div className='text-center'>
                                 <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp">
                                     Court Book <i className="bi bi-arrow-right"></i>
@@ -465,8 +467,8 @@ const Home = () => {
 
                                 {/* Customer Reviews */}
                                 <div className="mt-2">
-                                    <h4 className=" mb-4" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
-                                    <div className='border-top border-start border-end bg-white rounded-3 '
+                                    <h4 className=" mb-3" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
+                                    <div className='  rounded-3 '
                                         style={{
                                             maxHeight: getReviewData?.reviews?.length >= 4 ? "500px" : "auto",
                                             overflowY: getReviewData?.reviews?.length >= 4 ? "auto" : "visible"
@@ -474,7 +476,7 @@ const Home = () => {
                                     >
 
                                         {getReviewData?.reviews?.map((review, i) => (
-                                            <div div className='p-3 border-bottom mb-2 d-flex justify-content-between align-items-start flex-wrap'>
+                                            <div div className='p-3 bg-white mb-2 d-flex justify-content-between align-items-start flex-wrap'>
                                                 <div key={i} className="d-flex align-items-start">
                                                     <img
                                                         src={review.avatar || 'https://t4.ftcdn.net/jpg/15/13/35/75/360_F_1513357508_F3lTOCrYHHjBB8Lb3K9IBfS4IPLyNcrJ.jpg'}
@@ -487,13 +489,13 @@ const Home = () => {
                                                         <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500" }}>{review?.userId?.name || review?.userId?.email}</h6>
                                                         <div className=" mb-2">
                                                             {[...Array(Math.floor(review?.reviewRating || 0))].map((_, i) => (
-                                                                <StarIcon key={i} size={14} style={{ color: "#32B768" }} />
+                                                                <StarIcon key={i} size={5} style={{ color: "#32B768" }} />
                                                             ))}
                                                             {review?.reviewRating % 1 !== 0 && review?.reviewRating <= 5 && (
-                                                                <StarHalfIcon key="half" size={14} style={{ color: "#32B768" }} />
+                                                                <StarHalfIcon key="half" size={5} style={{ color: "#32B768" }} />
                                                             )}
                                                             {[...Array(Math.floor(5 - (review?.reviewRating || 0)))].map((_, i) => (
-                                                                <StarBorderIcon key={`empty-${i}`} size={14} style={{ color: '#ccc' }} />
+                                                                <StarBorderIcon key={`empty-${i}`} size={5} style={{ color: '#ccc' }} />
                                                             ))}
                                                             <span className="ms-1 pt-3">{review?.reviewRating || 0}</span>
                                                         </div>

@@ -78,8 +78,9 @@ const Booking = ({ className = "" }) => {
 
     const scroll = (direction) => {
         if (scrollRef.current) {
+            const buttonWidth = 90; // width of one day button (adjust if needed)
             scrollRef.current.scrollBy({
-                left: direction === "left" ? -120 : 120,
+                left: direction === "left" ? -buttonWidth : buttonWidth,
                 behavior: "smooth",
             });
         }
@@ -483,6 +484,7 @@ const Booking = ({ className = "" }) => {
                                 <div
                                     ref={scrollRef}
                                     className="d-flex gap-2 overflow-auto no-scrollbar"
+                                    className="d-flex gap-2 overflow-auto no-scrollbar"
                                     style={{
                                         scrollBehavior: "smooth",
                                         whiteSpace: "nowrap",
@@ -502,6 +504,7 @@ const Booking = ({ className = "" }) => {
                                                 style={{
                                                     backgroundColor: isSelected ? "#374151" : undefined,
                                                     border: "none",
+                                                    minWidth: "85px", // fixed size for consistent scroll
                                                 }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
@@ -747,8 +750,8 @@ const Booking = ({ className = "" }) => {
                             </div>
                             <h6 className="border-top p-2 mb-1 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>Booking summary</h6>
                             <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
-                                {selectedCourts?.length > 0 ? (
-                                    selectedCourts?.map((court, index) => (
+                                {selectedCourts?.length && selectedCourts.some(court => court?.time?.length > 0) ? (
+                                    selectedCourts.map((court, index) => (
                                         <>
                                             {court?.time?.map((timeSlot, timeIndex) => (
                                                 <div key={`${index}-${timeIndex}`} className="row mb-2">
@@ -773,15 +776,15 @@ const Booking = ({ className = "" }) => {
                                                                 {court?.courtName}
                                                             </span>
                                                         </div>
-                                                        <div className="d-flex">
-                                                            <span className="ps-2 " style={{ fontWeight: "600", color: "#1A237E" }}>
+                                                        <div className="d-flex align-items-center">
+                                                            <span className="ps-2" style={{ fontWeight: "600", color: "#1A237E" }}>
                                                                 ₹{timeSlot?.amount || 2000}
                                                             </span>
                                                             <button
-                                                                className="btn btn-sm text-danger delete-btn ms-auto"
+                                                                className="btn btn-sm  text-danger delete-btn "
                                                                 onClick={() => handleDeleteSlot(index, timeIndex)}
                                                             >
-                                                                <i className="bi bi-trash-fill pt-1"></i>
+                                                                <i className="bi bi-trash-fill mb-2 "></i>
                                                             </button>
                                                         </div>
                                                     </div>
@@ -790,8 +793,10 @@ const Booking = ({ className = "" }) => {
                                         </>
                                     ))
                                 ) : (
-                                    <div className="d-flex justify-content-center align-items-center  text-muted" style={{ height: "25vh" }}>
-                                        <p className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: '600' }}>No court selected</p>
+                                    <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: "25vh" }}>
+                                        <p className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: '600' }}>
+                                            No slot selected
+                                        </p>
                                     </div>
                                 )}
 

@@ -96,7 +96,7 @@ const BookingHistory = () => {
     const club_id = localStorage.getItem("register_club_id");
 
     useEffect(() => {
-        if (User?.token) dispatch(getBooking({ type: 'upcoming', page: 1 }));
+        if (User?.token) dispatch(getBooking({ page: 1 }));
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 

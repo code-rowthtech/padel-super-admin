@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
@@ -245,9 +245,26 @@ const Payment = ({ className = "" }) => {
                                         type="text"
                                         value={name}
                                         style={{ boxShadow: "none" }}
-                                        onChange={(e) => setName(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+                                                if (value.length === 0 && value.trim() === "") {
+                                                    setName("");
+                                                    return;
+                                                }
+                                                const formattedValue = value
+                                                    .trimStart()
+                                                    .replace(/\s+/g, " ")
+                                                    .toLowerCase()
+                                                    .replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
+                                                setName(formattedValue);
+                                            }
+                                        }}
                                         className="form-control border-0 p-2"
                                         placeholder="Enter your name"
+                                        pattern="[A-Za-z\s]+"
+                                        title="Name can only contain letters and single spaces between words"
+                                        aria-label="Name"
                                         disabled={user?.name}
                                     />
                                 </div>
@@ -258,21 +275,22 @@ const Payment = ({ className = "" }) => {
                                     <div className="input-group">
                                         <span className="input-group-text border-0 p-2">
                                             <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
+                                            <span>+91</span>
                                         </span>
                                         <input
                                             type="text"
-                                            maxLength={13}
+                                            maxLength={10} // Restrict to 10 digits
                                             value={phoneNumber}
                                             style={{ boxShadow: "none" }}
                                             onChange={(e) => {
-                                                const value = e.target.value;
-                                                if (value === "" || /^\+91[6-9]?[0-9]{0,9}$/.test(value)) {
-                                                    setPhoneNumber(value);
+                                                const value = e.target.value.replace(/[^0-9]/g, ''); // Allow only digits
+                                                if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
+                                                    setPhoneNumber(value); // Store only the digits
                                                 }
                                             }}
                                             className="form-control border-0 p-2"
-                                            placeholder="+91"
-                                            pattern="\+91[6-9][0-9]{9}"
+                                            placeholder="Enter phone number"
+                                            pattern="[6-9][0-9]{9}"
                                             title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
                                             disabled={user?.phoneNumber}
                                         />
@@ -286,7 +304,23 @@ const Payment = ({ className = "" }) => {
                                         type="email"
                                         value={email}
                                         style={{ boxShadow: "none" }}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // Allow letters, numbers, @, and .; prevent spaces
+                                            if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
+                                                if (value.length === 0) {
+                                                    setEmail("");
+                                                    return;
+                                                }
+                                                // Capitalize first letter before @, remove spaces
+                                                const formattedValue = value
+                                                    .replace(/\s+/g, "") // Remove all spaces
+                                                    .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
+                                                        return first.toUpperCase() + rest.toLowerCase() + domain;
+                                                    });
+                                                setEmail(formattedValue);
+                                            }
+                                        }}
                                         className="form-control border-0 p-2"
                                         placeholder="Enter your email"
                                         disabled={user?.email}
@@ -490,13 +524,13 @@ const Payment = ({ className = "" }) => {
                 </div>
             </div>
 
-            <Modal show={modal}  onHide={()=>setModal(false)} centered>
+            <Modal show={modal} onHide={() => setModal(false)} centered>
                 <div className="p-4 text-center">
                     {/* Illustration */}
                     <img
                         src={booking_success_img}
                         alt="Booking Success"
-                        style={{ width: "190px",height:"190px", marginBottom: "20px" }}
+                        style={{ width: "190px", height: "190px", marginBottom: "20px" }}
                     />
 
                     {/* Title */}
@@ -505,9 +539,9 @@ const Payment = ({ className = "" }) => {
 
                     {/* Continue Button */}
                     <Button
-                        onClick={()=>{setModal(false); navigate("/booking");}}
+                        onClick={() => { setModal(false); navigate("/booking"); }}
                         className="w-100 rounded-pill border-0 text-white py-3 mt-3"
-                        style={{backgroundColor:"#3DBE64",boxShadow:"none",fontSize:"14px",fontFamily:"Poppins",fontWeight:"600"}}
+                        style={{ backgroundColor: "#3DBE64", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
                     >
                         Continue
                     </Button>
@@ -518,9 +552,9 @@ const Payment = ({ className = "" }) => {
                     </p>
 
                     {/* Link */}
-                    <a href="/booking-history" className="text-primary fw-semibold">
+                    <Link to="/booking-history" className="text-primary fw-semibold">
                         View Booking Details
-                    </a>
+                    </Link>
                 </div>
             </Modal>
         </div>
