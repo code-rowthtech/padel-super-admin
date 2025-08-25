@@ -36,7 +36,7 @@ import { formatDate } from "../../../helpers/Formatting";
 const BookingHistory = () => {
     const store = useSelector((state) => state);
     const dispatch = useDispatch();
-    const [activeTab, setActiveTab] = useState("upcoming");
+    const [activeTab, setActiveTab] = useState("all");
     const [searchDate, setSearchDate] = useState(null);
     const [searchText, setSearchText] = useState("");
     const [modalCancel, setModalCancel] = useState(false);
@@ -71,6 +71,7 @@ const BookingHistory = () => {
         if (newValue === "cancelled") type = "cancelled";
         else if (newValue === "upcoming") type = "upcoming";
         else if (newValue === "completed") type = "completed";
+        else if (newValue === "all") type = "all";
         dispatch(getBooking({ type, page: 1 }));
     };
 
@@ -86,29 +87,19 @@ const BookingHistory = () => {
         if (activeTab === "cancelled") type = "cancelled";
         else if (activeTab === "upcoming") type = "upcoming";
         else if (activeTab === "completed") type = "completed";
+        else if (activeTab === "all") type = "all";
         dispatch(getBooking({ type, page: pageNumber }));
     };
 
     const handleClearDate = () => setSearchDate(null);
-
-    // const getRatingLabel = (currentRating) => {
-    //     if (currentRating >= 4.5) return "";
-    //     if (currentRating >= 3.5) return "";
-    //     if (currentRating >= 2.5) return "";
-    //     if (currentRating >= 1.5) return "";
-    //     if (currentRating >= 0.5) return "";
-    //     return "";
-    // };
-
     const club_id = localStorage.getItem("register_club_id");
-
     useEffect(() => {
-        if (User?.token) dispatch(getBooking({ type: 'upcoming', page: 1 }));
+        if (User?.token) dispatch(getBooking({ page: 1 }));
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
-        const status = booking?.bookingStatus?.toLowerCase(); // safety lowercase
+        const status = booking?.bookingStatus?.toLowerCase(); 
         let statusMatch = false;
 
         if (activeTab === "cancelled") {
@@ -127,6 +118,8 @@ const BookingHistory = () => {
         } else if (activeTab === "completed") {
             // completed tab => only completed
             statusMatch = status === "completed";
+        } else if (activeTab === "all") {
+            statusMatch = true;
         } else {
             // other tabs => show all
             statusMatch = true;
@@ -156,7 +149,7 @@ const BookingHistory = () => {
         <Container>
             <Row className="mb-3 mt-5">
                 <Col md={6}>
-                    <h2 className="manual-heading">Booking History</h2>
+                    <h2 className="manual-heading" style={{ fontWeight: "700", fontSize: "36px" }}>Booking History</h2>
                 </Col>
             </Row>
 
@@ -173,34 +166,47 @@ const BookingHistory = () => {
                         textColor="primary"
                         aria-label="booking history tabs"
                         TabIndicatorProps={{ style: { display: "none" } }}
+                        sx={{
+                            "& .MuiTabs-flexContainer": {
+                                justifyContent: "start",
+                            },
+                        }}
                     >
-                        {["upcoming", "cancelled", "completed"].map((tab, i) => (
+                        {["all", "upcoming", "cancelled", "completed"].map((tab, i) => (
                             <Tab
                                 key={tab}
                                 label={tab.charAt(0).toUpperCase() + tab.slice(1)}
                                 value={tab}
                                 {...a11yProps(i)}
-                                className="fw-medium table-data rounded-pill"
+                                className="fw-medium table-data me-1 ms-0"
                                 sx={{
+                                    textTransform: "capitalize",
+                                    borderRadius: "50px",
+                                    px: 3, // horizontal padding
+                                    py: 0, // vertical padding
+                                    mx: 0.5, // margin between tabs
+                                    fontSize: "16px",
+                                    fontWeight: 500,
+                                    fontFamily: "Poppins",
                                     "&.Mui-selected": {
                                         backgroundColor: "#CBD6FFA1",
                                         color: "primary.main",
                                     },
-                                    borderRadius: "20px",
-                                    margin: "0 4px",
-                                    fontSize: "18px",
-                                    fontWeight: "500",
-                                    fontFamily: "Poppins",
+                                    "&:hover": {
+                                        backgroundColor: "#E8EDFF",
+                                    },
                                 }}
                             />
                         ))}
                     </Tabs>
+
+
                 </AppBar>
             </Box>
 
             <Row className="mb-3">
                 <Col md={6}>
-                    <h2 className="tabel-title mt-2">
+                    <h2 className="tabel-title mt-2" style={{ fontWeight: "600", fontSize: "24px" }}>
                         {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking
                     </h2>
                 </Col>
@@ -208,7 +214,7 @@ const BookingHistory = () => {
                     md={6}
                     className="d-flex gap-2 justify-content-end align-items-center"
                 >
-                    <InputGroup className="rounded bg-light p-1 align-items-center">
+                    <InputGroup className="rounded  p-1 align-items-center" style={{ backgroundColor: "#FAFBFF" }}>
                         <InputGroup.Text className="bg-light border-0 px-3">
                             <FaCalendarAlt className="text-muted" />
                         </InputGroup.Text>
@@ -218,7 +224,8 @@ const BookingHistory = () => {
                             dateFormat="dd/MM/yy"
                             placeholderText="dd/mm/yy"
                             calendarClassName="custom-calendar"
-                            className="form-control border-0 bg-light shadow-none custom-datepicker-input"
+                            className="form-control border-0 bg-transparent  shadow-none custom-datepicker-input"
+                           
                         />
                         {searchDate && (
                             <InputGroup.Text
@@ -256,11 +263,10 @@ const BookingHistory = () => {
                         <Table borderless size="sm" className="custom-table position-relative">
                             <thead>
                                 <tr className="">
-                                    <th>Date/Time</th>
+                                    <th>Booking Date</th>
                                     <th>Slot</th>
                                     <th>Court Name</th>
                                     <th>Booking Type</th>
-                                    <th>Booking Date</th>
                                     {activeTab === "cancelled" && <th>Reason</th>}
                                     {activeTab === "completed" && <th>Rating</th>}
                                     {activeTab === "completed" && <th>Message</th>}
@@ -327,12 +333,9 @@ const BookingHistory = () => {
                                             <tr
                                                 key={`${i}-${index}`}
                                                 className="table-data border-bottom"
-                                            >
-                                                <td>
-                                                    {format(
-                                                        new Date(booking?.createdAt),
-                                                        "dd/MM/yyyy | hh:mm a"
-                                                    )}
+                                            >                                             
+                                                  <td className="table-data">
+                                                    {formatDate(new Date(slotItem?.bookingDate))}
                                                 </td>
                                                 <td>
                                                     <OverlayTrigger
@@ -364,9 +367,7 @@ const BookingHistory = () => {
                                                 <td className="table-data">
                                                     {booking?.bookingType || "N/A"}
                                                 </td>
-                                                <td className="table-data">
-                                                    {formatDate(new Date(slotItem?.bookingDate))}
-                                                </td>
+                                              
                                                 {activeTab === "cancelled" && (
                                                     <td>
                                                         {booking?.cancellationReason?.charAt(0).toUpperCase() +
@@ -397,19 +398,6 @@ const BookingHistory = () => {
                                                                 />
                                                             );
                                                         })}
-                                                        {/* <span
-                                                            className="ms-2"
-                                                            style={{
-                                                                fontSize: "15px",
-                                                                fontWeight: "500",
-                                                                color: "#374151",
-                                                                fontFamily: "Poppins",
-                                                            }}
-                                                        >
-                                                            {booking?.customerReview?.reviewRating?.toFixed(1) ||
-                                                                "0.0"}{" "}
-                                                            {getRatingLabel(booking?.customerReview?.reviewRating)}
-                                                        </span> */}
                                                     </td>
                                                 )}
                                                 {activeTab === "completed" && (
@@ -425,7 +413,7 @@ const BookingHistory = () => {
                                                         >
                                                             <span>
                                                                 {(() => {
-                                                                    const comment = booking?.customerReview?.reviewComment || "";
+                                                                    const comment = booking?.customerReview?.reviewComment || "No Message";
 
                                                                     if (comment.length === 0) return "";
 
@@ -478,67 +466,75 @@ const BookingHistory = () => {
                                                     </td>
                                                 )}
                                                 <td className="text-center">
-                                                    {activeTab === "completed" ? (
-                                                        ""
-                                                    ) : ["upcoming", "cancelled"].includes(
-                                                        activeTab
-                                                    ) &&
-                                                        booking?.bookingStatus === "in-progress" ? (
-                                                        <span
-                                                            style={{
-                                                                color: "#F29410",
-                                                                fontSize: "12px",
-                                                                fontWeight: "500",
-                                                                fontFamily: "Poppins",
-                                                            }}
-                                                        >
-                                                            Request For Cancellation
-                                                        </span>
-                                                    ) : booking?.bookingStatus === "refunded" ? (
-                                                        <span
-                                                            style={{
-                                                                color: "green",
-                                                                fontSize: "12px",
-                                                                fontWeight: "500",
-                                                                fontFamily: "Poppins",
-                                                            }}
-                                                        >
-                                                            Cancelled
-                                                        </span>
-                                                    ) : booking?.customerReview?._id ? (
-                                                        <span
-                                                            style={{
-                                                                color: "green",
-                                                                fontSize: "12px",
-                                                                fontWeight: "500",
-                                                                fontFamily: "Poppins",
-                                                            }}
-                                                        >
-                                                            Completed
-                                                        </span>
-                                                    ) : booking?.bookingStatus === "rejected" ? (
-                                                        <span
-                                                            style={{
-                                                                color: "red",
-                                                                fontSize: "12px",
-                                                                fontWeight: "500",
-                                                                fontFamily: "Poppins",
-                                                            }}
-                                                        >
-                                                            Rejected
-                                                        </span>
-                                                    ) : (
-                                                        <MdOutlineCancel
-                                                            size={20}
-                                                            onClick={() => {
-                                                                setSelectedBooking(booking);
-                                                                setChangeCancelShow(true);
-                                                                setCourtData({ slotItem, booking });
-                                                                setModalCancel(true);
-                                                            }}
-                                                            className="text-danger"
-                                                            style={{ cursor: "pointer" }}
-                                                        />
+                                                    {activeTab === "completed" ? null : (
+                                                        <>
+                                                            {booking?.bookingStatus === "in-progress" ? (
+                                                                <span
+                                                                    style={{
+                                                                        color: "#F29410",
+                                                                        fontSize: "12px",
+                                                                        fontWeight: "500",
+                                                                        fontFamily: "Poppins",
+                                                                    }}
+                                                                >
+                                                                    Request For Cancellation
+                                                                </span>
+                                                            ) : booking?.bookingStatus === "refunded" ? (
+                                                                <span
+                                                                    style={{
+                                                                        color: "darkcyan",
+                                                                        fontSize: "12px",
+                                                                        fontWeight: "600",
+                                                                        fontFamily: "Poppins",
+                                                                    }}
+                                                                >
+                                                                    Cancelled
+                                                                </span>
+                                                            ) : booking?.bookingStatus === "rejected" ? (
+                                                                <span
+                                                                    style={{
+                                                                        color: "red",
+                                                                        fontSize: "12px",
+                                                                        fontWeight: "600",
+                                                                        fontFamily: "Poppins",
+                                                                    }}
+                                                                >
+                                                                    Rejected
+                                                                </span>
+                                                            ) : booking?.bookingStatus === "completed" ? (
+                                                                <span className="text-success"
+                                                                    style={{
+                                                                        fontSize: "12px",
+                                                                        fontWeight: "600",
+                                                                        fontFamily: "Poppins",
+                                                                    }}
+                                                                >
+                                                                    Completed
+                                                                </span>
+                                                            ): booking?.bookingStatus === "upcoming" ? (
+                                                                <span className="text-info"
+                                                                    style={{
+                                                                        fontSize: "12px",
+                                                                        fontWeight: "600",
+                                                                        fontFamily: "Poppins",
+                                                                    }}
+                                                                >
+                                                                    Upcoming
+                                                                </span>
+                                                            ) : (
+                                                                <MdOutlineCancel
+                                                                    size={20}
+                                                                    onClick={() => {
+                                                                        setSelectedBooking(booking);
+                                                                        setChangeCancelShow(true);
+                                                                        setCourtData({ slotItem, booking });
+                                                                        setModalCancel(true);
+                                                                    }}
+                                                                    className="text-danger"
+                                                                    style={{ cursor: "pointer" }}
+                                                                />
+                                                            )}
+                                                        </>
                                                     )}
                                                     <FiEye
                                                         size={20}
@@ -574,6 +570,21 @@ const BookingHistory = () => {
                                                                 setStatusData({ booking, slotItem });
                                                             } else if (activeTab === "all") {
                                                                 if (booking?.customerReview?._id) {
+                                                                    setModalCancel(true);
+                                                                    setCourtData({ slotItem, booking });
+                                                                } else if (booking?.bookingStatus === "completed") {
+                                                                    setShowRatingModal(true);
+                                                                    setStatusData({ booking, slotItem });
+                                                                } else if (
+                                                                    booking?.bookingStatus === "refunded" ||
+                                                                    booking?.bookingStatus === "rejected"
+                                                                ) {
+                                                                    setAcceptedRejected(true);
+                                                                    setStatusData({ booking, slotItem });
+                                                                } else if (booking?.bookingStatus === "in-progress") {
+                                                                    setModalCancel(true);
+                                                                    setCourtData({ slotItem, booking });
+                                                                } else {
                                                                     setModalCancel(true);
                                                                     setCourtData({ slotItem, booking });
                                                                 }

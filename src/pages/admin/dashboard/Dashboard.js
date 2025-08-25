@@ -128,8 +128,8 @@ const AdminDashboard = () => {
       type === "details"
         ? setShowBookingDetails(true)
         : type === "cancel"
-        ? setShowBookingCancel(true)
-        : setShowCancellation(true);
+          ? setShowBookingCancel(true)
+          : setShowCancellation(true);
     } catch (error) {
       console.error("Failed to fetch booking details:", error);
     } finally {
@@ -159,7 +159,7 @@ const AdminDashboard = () => {
           <Row className="mb-4">
             {summaryCards.map((card, index) => (
               <Col key={index} md={3} className="mb-3">
-                <Card className="shadow-sm border-0 rounded-4 h-100">
+                <Card className="shadow border-0 rounded-0 h-100">
                   <Card.Body className="d-flex justify-content-between">
                     <div className="mt-2">
                       <div className="table-data">{card.title}</div>
@@ -167,18 +167,30 @@ const AdminDashboard = () => {
                       <div
                         className={`d-flex align-items-center gap-1 text-${card.color} fw-semibold`}
                       >
-                        <span
+                        <div className="d-flex align-items-center justify-content-center"
                           style={{
-                            display: "inline-block",
-                            transform:
-                              card.color === "danger"
-                                ? "rotate(45deg)"
-                                : "rotate(-45deg)",
-                            transition: "transform 0.3s",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            paddingLeft: "6px",
+                            paddingRight: "6px",
+                            paddingTop: "4px",
+                            paddingBottom: "4px",
+                            borderRadius: "50%",
+                            backgroundColor: card.color === "danger" ? "#FFD9D7" : "#B5FFCE", // red vs blue background
                           }}
                         >
-                          {card.icon}
-                        </span>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              transform: card.color === "danger" ? "rotate(45deg)" : "rotate(-45deg)",
+                              transition: "transform 0.3s ease",
+                            }}
+                          >
+                            {card.icon}
+                          </span>
+                        </div>
+
                         <span className="small">{card.percent}</span>
                       </div>
                     </div>
@@ -198,39 +210,40 @@ const AdminDashboard = () => {
 
           <Row className="mb-4">
             <Col md={7}>
-              <Card className="shadow-sm border-0">
+              <Card className="shadow-sm border-0 rounded-0">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h6
                       className="mb-0"
-                      style={{ fontSize: "1.1rem", fontWeight: "600" }}
+                      style={{ fontSize: "20px", fontWeight: "600" }}
                     >
-                      Revenue Performance
+                      Total Revenue
                     </h6>
                     <div className="d-flex">
+
                       <div className="d-flex align-items-center me-3">
                         <div
                           style={{
                             width: "12px",
                             height: "12px",
-                            backgroundColor: "#4f46e5",
-                            borderRadius: "2px",
+                            backgroundColor: "#ef4444",
+                            borderRadius: "50%",
                             marginRight: "6px",
                           }}
                         ></div>
-                        <span style={{ fontSize: "0.85rem" }}>Profit</span>
+                        <span style={{ fontSize: "0.85rem", color: "#ef4444" }}>Loss</span>
                       </div>
-                      <div className="d-flex align-items-center">
+                      <div className="d-flex align-items-center ">
                         <div
                           style={{
                             width: "12px",
                             height: "12px",
-                            backgroundColor: "#ef4444",
-                            borderRadius: "2px",
+                            backgroundColor: "#4f46e5",
+                            borderRadius: "50%",
                             marginRight: "6px",
                           }}
                         ></div>
-                        <span style={{ fontSize: "0.85rem" }}>Loss</span>
+                        <span style={{ fontSize: "0.85rem", color: "#4f46e5" }}>Profit</span>
                       </div>
                     </div>
                   </div>
@@ -300,7 +313,8 @@ const AdminDashboard = () => {
               <Card className="shadow-sm border-0">
                 <Card.Body>
                   <div className="d-flex justify-content-between mb-2">
-                    <h6 className="tabel-title">Today Cancellation</h6>
+                    <h6 className="mb-3"
+                      style={{ fontSize: "20px", fontWeight: "600" }}>Today Cancellation</h6>
                     <Link
                       to="/admin/cancellation"
                       className="dashboard-viewmore"
@@ -389,7 +403,8 @@ const AdminDashboard = () => {
               <Card className="shadow-sm border-0">
                 <Card.Body>
                   <div className="d-flex justify-content-between mb-2">
-                    <h6 className="tabel-title">Recent Bookings</h6>
+                    <h6 className="mb-3"
+                      style={{ fontSize: "20px", fontWeight: "600" }}>Recent Bookings</h6>
                     <Link to="/admin/booking" className="dashboard-viewmore">
                       View More
                     </Link>

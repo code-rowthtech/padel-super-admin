@@ -8,6 +8,7 @@ import { bookingStatus, getBooking } from '../../../../redux/user/booking/thunk'
 import { ButtonLoading } from '../../../../helpers/loading/Loaders';
 import { getUserFromSession } from '../../../../helpers/api/apiCore';
 import { Avatar } from '@mui/material';
+import { format, isValid } from 'date-fns';
 
 export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
@@ -21,6 +22,11 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const logo = JSON.parse(localStorage.getItem("logo"));
   console.log(tableData, 'statusbooki');
   const User = getUserFromSession()
+  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
+    if (!dateValue) return fallback; // Handle null or undefined
+    const date = new Date(dateValue);
+    return isValid(date) ? format(date, formatString) : fallback;
+  };
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
@@ -48,19 +54,22 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const handleContinue = () => {
     dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason }))
   };
-
+  console.log(bookingStatusData?.bookingStatusData, 'bookingStatusData?.bookingStatusData');
   useEffect(() => {
-    if (bookingStatusData?.bookingStatusData?.status === "200") {
+    if (bookingStatusData?.bookingStatusData?.status === "200" && bookingStatusData?.bookingStatusData?.message) {
       setShowSuccessModal(false);
       // setShowConfirmationModal(true);
       handleClose();
     }
-    if (activeTab === "upcoming" && User?.token) {
-      dispatch(getBooking({ type: "upcoming" }));
+    if (!activeTab === 'all' && User?.token) {
+      dispatch(getBooking({ type: activeTab }));
     } else if (User?.token) {
       dispatch(getBooking());
     }
-  }, [bookingStatusData?.bookingStatusData?.status])
+  }, [bookingStatusData?.bookingStatusData?.status, bookingStatusData?.bookingStatusData?.message])
+
+  const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
+
 
   return (
     <>
@@ -112,7 +121,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                   Court Name
                 </p>
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-                  Booking Date
+                  Date/Time
                 </p>
                 {tableData?.booking?.bookingStatus === "in-progress" && <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   Cancellation Request Date
@@ -125,12 +134,16 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 </p>
 
                 <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-                  {formatDate(
-                    new Date(tableData?.slotItem?.bookingDate)
+                  {safeFormatDate(
+                    new Date(tableData?.booking?.createdAt),
+                    "dd/MM/yyyy | hh:mm a" || "N/A"
                   )}
                 </p>
                 {tableData?.booking?.bookingStatus === "in-progress" && <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-                  {formatDate(tableData?.booking?.cancellationDate) || '1N/A'}
+                  {safeFormatDate(
+                    new Date(tableData?.booking?.cancellationDate),
+                    "dd/MM/yyyy | hh:mm a" || "N/A"
+                  )}
                 </p>
                 }
 
@@ -142,13 +155,30 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
             <h5>Payment Details</h5>
             <div className="d-flex justify-content-between">
               <h6>Payment Method</h6>
-              <h6>{booking?.paymentMethod || 'Gpay'}</h6>
+              <h6>{tableData?.booking?.paymentMethod || 'N/A'}</h6>
             </div>
             <div className="d-flex justify-content-between">
               <h6>Total Payment</h6>
               <h3 style={{ color: '#1A237E' }}>₹{tableData?.booking?.totalAmount || "N/A"}</h3>
             </div>
           </div>
+
+          {tableData?.booking?.bookingStatus === "in-progress" ? (
+            <div className="mt-1">
+              <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
+                What’s your reason to cancel this slot
+              </h5>
+              <Form.Select
+                as="select"
+                value={tableData?.booking?.cancellationReason}
+                disabled
+                aria-label="Cancellation reason"
+                style={{ boxShadow: 'none' }}
+              >
+                <option value={tableData?.booking?.cancellationReason}>{tableData?.booking?.cancellationReason}</option>
+              </Form.Select>
+            </div>
+          ) : null}
 
           {changeContent && (
             <div className="mt-4 text-start px-2">
@@ -218,6 +248,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
         onHide={handleClose}
         onContinue={handleContinue}
         bookingStatusData={bookingStatusData}
+        safeFormatDate={safeFormatDate}
       />
 
       <CancellationConfirmationModal
@@ -225,13 +256,14 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
         onHide={handleClose}
         selectedReason={selectedReason}
         otherReason={otherReason}
+        safeFormatDate={safeFormatDate}
         tableData={tableData}
       />
     </>
   );
 };
 
-export const BookingHistorySuccessModal = ({ show, onHide, bookingStatusData, onContinue }) => {
+export const BookingHistorySuccessModal = ({ show, onHide, safeFormatDate, bookingStatusData, onContinue }) => {
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">
@@ -276,7 +308,11 @@ export const BookingHistorySuccessModal = ({ show, onHide, bookingStatusData, on
 
 export const CancellationConfirmationModal = ({ tableData, show, onHide, selectedReason, otherReason }) => {
   const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
-
+  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
+    if (!dateValue) return fallback; // Handle null or undefined
+    const date = new Date(dateValue);
+    return isValid(date) ? format(date, formatString) : fallback;
+  };
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">
@@ -297,7 +333,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
             </p>
 
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Booking  Date
+              Date/Time
             </p>
           </div>
           <div className="text-end p-2 pe-3">
@@ -305,7 +341,10 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
               {tableData?.slotItem?.courtName}
             </p>
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-              {formatDate(tableData?.slotItem?.bookingDate)}
+              {safeFormatDate(
+                new Date(tableData?.slotItem?.createdAt),
+                "dd/MM/yyyy | hh:mm a" || "N/A"
+              )}
             </p>
           </div>
         </div>
@@ -314,7 +353,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
           <h5 className="tabel-title">Payment Details</h5>
           <div className="d-flex justify-content-between">
             <h6>Payment Method</h6>
-            <h6>{'Gpay'}</h6>
+            <h6>{tableData?.slotItem?.paymentMethod || "N/A"}</h6>
           </div>
           <div className="d-flex justify-content-between">
             <h6>Total Payment</h6>
@@ -352,7 +391,11 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
 };
 
 export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, selectedOption, selectedReason, otherReason }) => {
-  console.log(booking?.booking, 'tableDatatableDatatableData');
+  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
+    if (!dateValue) return fallback; // Handle null or undefined
+    const date = new Date(dateValue);
+    return isValid(date) ? format(date, formatString) : fallback;
+  };
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
       <Modal.Body className="text-center p-4">
@@ -381,9 +424,9 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               Court Name
             </p>
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Booking Date
+              Date/Time
             </p>
-            {booking?.booking?.bookingStatus === "in-progress" && (
+            {(booking?.booking?.bookingStatus === "in-progress" || booking?.booking?.bookingStatus === "refunded" || booking?.booking?.bookingStatus === "rejected") && (
               <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                 Cancelled Date
               </p>
@@ -404,23 +447,33 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               {booking?.slotItem?.courtName}
             </p>
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-              {formatDate(
-                new Date(booking?.slotItem?.bookingDate)
+              {safeFormatDate(
+                new Date(booking?.booking?.createdAt),
+                "dd/MM/yyyy | hh:mm a"
               )}
             </p>
-            {booking?.booking?.bookingStatus === "in-progress" && (
+            {(booking?.booking?.bookingStatus === "in-progress" || booking?.booking?.bookingStatus === "refunded" || booking?.booking?.bookingStatus === "rejected") && (
               <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-                {formatDate(booking?.booking?.cancellationDate)}
+                {safeFormatDate(
+                  new Date(booking?.booking?.cancellationDate),
+                  "dd/MM/yyyy | hh:mm a"
+                )}
               </p>
             )}
             {booking?.booking?.bookingStatus === "refunded" && (
               <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-                {formatDate(booking?.booking?.refundDate)}
+                {safeFormatDate(
+                  new Date(booking?.booking?.refundDate),
+                  "dd/MM/yyyy | hh:mm a"
+                )}
               </p>
             )}
             {booking?.booking?.bookingStatus === "rejected" && (
               <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
-                {formatDate(booking?.booking?.rejectedDate)}
+                {safeFormatDate(
+                  new Date(booking?.booking?.rejectedDate),
+                  "dd/MM/yyyy | hh:mm a"
+                )}
               </p>
             )}
           </div>
@@ -430,7 +483,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           <h5 className="tabel-title">Payment Details</h5>
           <div className="d-flex justify-content-between">
             <h6>Payment Method</h6>
-            <h6>{'Gpay'}</h6>
+            <h6>{booking?.booking?.paymentMethod || "N/A"}</h6>
           </div>
           <div className="d-flex justify-content-between">
             <h6>Total Payment</h6>

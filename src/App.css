@@ -11,11 +11,20 @@ body {
   height: 40vmin;
   pointer-events: none;
 }
+.active-court {
+  background-color: red !important;
+  border-radius: 50rem; /* same as rounded-pill */
+}
+
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+
+.active-link {
+  background-color: #333B48 !important;
 }
 
 .App-header {

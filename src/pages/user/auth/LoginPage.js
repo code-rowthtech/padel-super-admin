@@ -82,7 +82,7 @@ const LoginPage = () => {
                                     style={{backgroundColor: '#4CAF50', borderRadius: "15px", fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364" }}
 
                                 >
-                                    {userAuthLoading ? <ButtonLoading size="sm" animation="border" /> : 'Get OTP'}
+                                    {userAuthLoading ? <ButtonLoading /> : 'Get OTP'}
                                 </Button>
 
                                 <div className="text-center mt-3">
