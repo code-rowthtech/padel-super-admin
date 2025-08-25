@@ -203,7 +203,9 @@ const Home = () => {
                             Join the community, feel the energy, and experience the good vibes!<br />
                             #theGoodPeople
                         </p>
-
+                        <p style={{ fontSize: "16px", fontFamily: "600" ,margin:"0px"}}>Join the Padel community group on WhatsApp </p>
+                       <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
+                       <p className='mt-4'><a className='mt-4'  href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
 
 
 
@@ -213,7 +215,7 @@ const Home = () => {
                     <div className="col-lg-4">
                         <div className="bg-white p-4">
                             <div className="d-flex justify-content-center mb-4">
-                                <strong className='me-2'>
+                                <strong className='me-2'style={{fontWeight:"500"}} >
                                     <i className="bi bi-alarm-fill"></i> Close Now
                                 </strong>
                                 <span>{clubData?.businessHours?.[adjustedIndex]?.time}</span>
@@ -229,7 +231,7 @@ const Home = () => {
                                 </div>
                             ))}
 
-                            <p className="mt-3 text-center fw-bold">Time zone (India Standard Time)</p>
+                            <p className="mt-3 text-center " style={{fontWeight:"500"}}>Time zone (India Standard Time)</p>
                             <div className='text-center'>
                                 <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp">
                                     Court Book <i className="bi bi-arrow-right"></i>
