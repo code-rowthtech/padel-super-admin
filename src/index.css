@@ -120,18 +120,8 @@ h1.display-5 {
   top: 10px;
 }
 
-.calendar-day-btn {
-  border: none;
-  background: transparent;
-  padding: 10px;
-  border-radius: 8px;
-  transition: 0.3s;
-}
 
-.calendar-day-btn.selected {
-  background-color: #0d6efd;
-  color: white;
-}
+
 
 /* Hide scrollbar for all browsers */
 .no-scrollbar {
@@ -193,9 +183,14 @@ h1.display-5 {
 }
 
 .calendar-day-btn {
-  width: 90px !important;
-  height: 92px !important;
+  flex: 0 0 91px !important;   /* width fix */
+  height: 95px !important;      /* height fix */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+
 
 .court-row .delete-btn {
   visibility: hidden;

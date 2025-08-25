@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginUserNumber, sendOtp, verifyOtp } from '../../../redux/user/auth/authThunk';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { resetAuth } from '../../../redux/user/auth/authSlice';
+import { ButtonLoading, Loading } from '../../../helpers/loading/Loaders';
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '']);
@@ -109,7 +110,7 @@ const VerifyOTP = () => {
                   fontSize: 24,
                   textAlign: 'center',
                   borderRadius: 8,
-                  boxShadow:' 0px 1px 6.5px 0px #0000001F inset',
+                  boxShadow: ' 0px 1px 6.5px 0px #0000001F inset',
 
                 }}
               />
@@ -125,7 +126,7 @@ const VerifyOTP = () => {
             style={{ backgroundColor: '#4CAF50', borderRadius: "15px", fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364" }}
             className="w-100 text-white  border-0 py-3 "
           >
-            Verification Code
+            {userAuthLoading ? <ButtonLoading /> : 'Verification Code'}
           </Button>
 
           {timer === 0 && (

@@ -40,6 +40,7 @@ const Home = () => {
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
+    console.log(clubData,'clubDataclubDataclubData');
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
@@ -52,7 +53,8 @@ const Home = () => {
 
     useEffect(() => {
         if (clubData && clubData._id) {
-            localStorage.setItem("register_club_id", clubData._id);
+            localStorage.setItem("register_club_id", clubData?._id);
+            localStorage.setItem("owner_id", clubData?.ownerId);
             dispatch(getLogo(clubData?.ownerId))
         }
     }, [clubData]);
