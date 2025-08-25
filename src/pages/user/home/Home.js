@@ -465,8 +465,8 @@ const Home = () => {
 
                                 {/* Customer Reviews */}
                                 <div className="mt-2">
-                                    <h4 className=" mb-4" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
-                                    <div className='border-top border-start border-end bg-white rounded-3 '
+                                    <h4 className=" mb-3" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
+                                    <div className='  rounded-3 '
                                         style={{
                                             maxHeight: getReviewData?.reviews?.length >= 4 ? "500px" : "auto",
                                             overflowY: getReviewData?.reviews?.length >= 4 ? "auto" : "visible"
@@ -474,7 +474,7 @@ const Home = () => {
                                     >
 
                                         {getReviewData?.reviews?.map((review, i) => (
-                                            <div div className='p-3 border-bottom mb-2 d-flex justify-content-between align-items-start flex-wrap'>
+                                            <div div className='p-3 bg-white mb-2 d-flex justify-content-between align-items-start flex-wrap'>
                                                 <div key={i} className="d-flex align-items-start">
                                                     <img
                                                         src={review.avatar || 'https://t4.ftcdn.net/jpg/15/13/35/75/360_F_1513357508_F3lTOCrYHHjBB8Lb3K9IBfS4IPLyNcrJ.jpg'}
@@ -487,13 +487,13 @@ const Home = () => {
                                                         <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500" }}>{review?.userId?.name || review?.userId?.email}</h6>
                                                         <div className=" mb-2">
                                                             {[...Array(Math.floor(review?.reviewRating || 0))].map((_, i) => (
-                                                                <StarIcon key={i} size={14} style={{ color: "#32B768" }} />
+                                                                <StarIcon key={i} size={5} style={{ color: "#32B768" }} />
                                                             ))}
                                                             {review?.reviewRating % 1 !== 0 && review?.reviewRating <= 5 && (
-                                                                <StarHalfIcon key="half" size={14} style={{ color: "#32B768" }} />
+                                                                <StarHalfIcon key="half" size={5} style={{ color: "#32B768" }} />
                                                             )}
                                                             {[...Array(Math.floor(5 - (review?.reviewRating || 0)))].map((_, i) => (
-                                                                <StarBorderIcon key={`empty-${i}`} size={14} style={{ color: '#ccc' }} />
+                                                                <StarBorderIcon key={`empty-${i}`} size={5} style={{ color: '#ccc' }} />
                                                             ))}
                                                             <span className="ms-1 pt-3">{review?.reviewRating || 0}</span>
                                                         </div>

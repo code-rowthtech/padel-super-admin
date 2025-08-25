@@ -91,14 +91,14 @@ const BookingHistory = () => {
 
     const handleClearDate = () => setSearchDate(null);
 
-    const getRatingLabel = (currentRating) => {
-        if (currentRating >= 4.5) return "Excellent";
-        if (currentRating >= 3.5) return "Good";
-        if (currentRating >= 2.5) return "Average";
-        if (currentRating >= 1.5) return "Below Average";
-        if (currentRating >= 0.5) return "Poor";
-        return "";
-    };
+    // const getRatingLabel = (currentRating) => {
+    //     if (currentRating >= 4.5) return "";
+    //     if (currentRating >= 3.5) return "";
+    //     if (currentRating >= 2.5) return "";
+    //     if (currentRating >= 1.5) return "";
+    //     if (currentRating >= 0.5) return "";
+    //     return "";
+    // };
 
     const club_id = localStorage.getItem("register_club_id");
 
@@ -397,7 +397,7 @@ const BookingHistory = () => {
                                                                 />
                                                             );
                                                         })}
-                                                        <span
+                                                        {/* <span
                                                             className="ms-2"
                                                             style={{
                                                                 fontSize: "15px",
@@ -409,7 +409,7 @@ const BookingHistory = () => {
                                                             {booking?.customerReview?.reviewRating?.toFixed(1) ||
                                                                 "0.0"}{" "}
                                                             {getRatingLabel(booking?.customerReview?.reviewRating)}
-                                                        </span>
+                                                        </span> */}
                                                     </td>
                                                 )}
                                                 {activeTab === "completed" && (

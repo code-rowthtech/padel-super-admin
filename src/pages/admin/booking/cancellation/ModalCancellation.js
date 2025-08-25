@@ -198,7 +198,7 @@ export const BookingCancellationModal = ({
             color: "#374151",
           }}
         >
-          What’s your reason to cancel this slot
+          User's reason to cancel this slot
         </h2>
         <div
           className="d-flex justify-content-between p-2 rounded-3"

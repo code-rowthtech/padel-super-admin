@@ -11,6 +11,11 @@ body {
   height: 40vmin;
   pointer-events: none;
 }
+.active-court {
+  background-color: red !important;
+  border-radius: 50rem; /* same as rounded-pill */
+}
+
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
