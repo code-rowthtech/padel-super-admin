@@ -65,7 +65,7 @@ const Booking = ({ className = "" }) => {
         Sunday: "Sun"
     };
     const today = new Date();
-    const dates = Array.from({ length: 7 }).map((_, i) => {
+    const dates = Array.from({ length: 40 }).map((_, i) => {
         const date = new Date();
         date.setDate(today.getDate() + i);
         return {
@@ -170,16 +170,12 @@ const Booking = ({ className = "" }) => {
             return updated;
         });
 
-        // Update selectedBuisness by removing the slot
         setSelectedBuisness(prev => prev.filter(t => t._id !== removedSlotId));
-
-        // If this is the current court/date, update selectedTimes
         const isCurrent = selectedCourts[courtIndex]._id === currentCourtId && selectedCourts[courtIndex].date === selectedDate.fullDate;
         if (isCurrent) {
             setSelectedTimes(prevTimes => prevTimes.filter((_, i) => i !== slotIndex));
         }
     };
-    // Mock props for demonstration
     const width = 370;
     const height = 75;
     const circleRadius = height * 0.3;
@@ -226,19 +222,16 @@ const Booking = ({ className = "" }) => {
     };
 
     const maxSelectableDate = new Date();
-    maxSelectableDate.setDate(maxSelectableDate.getDate() + 6);
+    maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
 
-    // Initial API call and default court selection
     useEffect(() => {
         const clubId = localStorage.getItem("register_club_id");
         dispatch(getUserClub({ search: "" }))
-
-        // Call getUserSlot with default date and no courtId initially
         dispatch(
             getUserSlot({
                 day: selectedDate.day,
                 date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-                courtId: "", // Initially fetch all courts
+                courtId: "", 
                 register_club_id: clubId || "",
             })
         );
@@ -247,7 +240,6 @@ const Booking = ({ className = "" }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Handle default court selection once slotData is available
     useEffect(() => {
         const clubId = localStorage.getItem("register_club_id");
 
@@ -483,7 +475,6 @@ const Booking = ({ className = "" }) => {
                                 </button>
                                 <div
                                     ref={scrollRef}
-                                    className="d-flex gap-2 overflow-auto no-scrollbar"
                                     className="d-flex gap-2 overflow-auto no-scrollbar"
                                     style={{
                                         scrollBehavior: "smooth",
