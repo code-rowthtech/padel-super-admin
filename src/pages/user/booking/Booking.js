@@ -61,12 +61,15 @@ const Booking = ({
 
     const scroll = (direction) => {
         if (scrollRef.current) {
+            const buttonWidth = 90; // width of one day button (adjust if needed)
             scrollRef.current.scrollBy({
-                left: direction === "left" ? -120 : 120,
+                left: direction === "left" ? -buttonWidth : buttonWidth,
                 behavior: "smooth",
             });
         }
     };
+
+
     const toggleTime = (time) => {
         const isAlreadySelected = selectedTimes.some(t => t._id === time._id);
 
@@ -78,6 +81,8 @@ const Booking = ({
             setSelectedBuisness([...selectedBuisness, time])
         }
     };
+    const [startIndex, setStartIndex] = useState(0); // current visible window start
+    const visibleDays = 7; // show only 7 days
 
 
 
@@ -176,7 +181,7 @@ const Booking = ({
             getUserSlot({
                 register_club_id: savedClubId,
                 day: selectedDate?.day,
-                date:selectedDate?.fullDate,
+                date: selectedDate?.fullDate,
                 courtId: selectedCourts[0]?._id,
             })
         );
@@ -188,7 +193,7 @@ const Booking = ({
                 getUserSlot({
                     register_club_id: savedClubId,
                     day: selectedDate?.day,
-                    date:selectedDate?.fullDate,
+                    date: selectedDate?.fullDate,
                     courtId: selectedCourts[0]?._id,
                 })
             );
@@ -242,7 +247,7 @@ const Booking = ({
                 getUserSlot({
                     register_club_id: savedClubId,
                     day: selectedDate?.day,
-                    date:selectedDate?.fullDate,
+                    date: selectedDate?.fullDate,
                     courtId: firstCourt?._id,
                 })
             );
@@ -332,34 +337,37 @@ const Booking = ({
                                     </div>
                                 )}
                             </div></div>
-                            <div className="d-flex  align-items-center gap-2 mb-3">
+                            <div className="d-flex align-items-center gap-2 mb-3">
+                                {/* Left Button */}
                                 <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                                     <i className="bi bi-chevron-left"></i>
                                 </button>
 
+                                {/* Scrollable container */}
                                 <div
                                     ref={scrollRef}
-                                    className="d-flex gap-2  w-100 overflow-auto no-scrollbar"
+                                    className="d-flex gap-2 overflow-auto no-scrollbar"
                                     style={{
                                         scrollBehavior: "smooth",
                                         whiteSpace: "nowrap",
-                                        maxWidth: "620px", // Enough space for 7 buttons ~88px each
+                                        maxWidth: "620px", // fits ~7 buttons
                                     }}
                                 >
                                     {dates?.map((d, i) => {
-                                        const formatDate = (date) => {
-                                            return date.toISOString().split("T")[0];
-                                        };
-                                        const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                                        const formatDate = (date) => date.toISOString().split("T")[0];
+                                        const isSelected =
+                                            formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
 
                                         return (
                                             <button
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
                                                 key={i}
-                                                className={`calendar-day-btn px-3 py-2 rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                                                className={`calendar-day-btn px-3 py-0 rounded border ${isSelected ? "text-white shadow" : "bg-light text-dark"
+                                                    }`}
                                                 style={{
                                                     backgroundColor: isSelected ? "#374151" : undefined,
                                                     border: "none",
+                                                    minWidth: "85px", // fixed size for consistent scroll
                                                 }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d.fullDate, day: d.day });
@@ -368,7 +376,9 @@ const Booking = ({
                                                 }}
                                             >
                                                 <div className="text-center">
-                                                    <div style={{ fontSize: "14px", fontWeight: "400" }}>{dayShortMap[d.day]}</div>
+                                                    <div style={{ fontSize: "14px", fontWeight: "400" }}>
+                                                        {dayShortMap[d.day]}
+                                                    </div>
                                                     <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
                                                     <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
                                                 </div>
@@ -377,10 +387,13 @@ const Booking = ({
                                     })}
                                 </div>
 
+                                {/* Right Button */}
                                 <button className="btn btn-light p-0" onClick={() => scroll("right")}>
                                     <i className="bi bi-chevron-right"></i>
                                 </button>
                             </div>
+
+
                         </div>
 
                         {/* Time Selector */}
@@ -423,7 +436,7 @@ const Booking = ({
 
                                             slotDate.setHours(hour, 0, 0, 0);
 
-                                            const now = new Date(); 
+                                            const now = new Date();
                                             const isToday = selectedDateObj.toDateString() === now.toDateString();
                                             const isPast = isToday && slotDate.getTime() < now.getTime();
                                             const isBooked = slot?.status === "booked";
@@ -440,7 +453,7 @@ const Booking = ({
                                                             <Tooltip
                                                                 id={`tooltip-${slot._id}`}
                                                                 className="border rounded p-1 ps-2 pe-2 mt-1 text-white"
-                                                                style={{ fontFamily: "Poppins", fontWeight: "300",fontSize:"13px", backgroundColor: "#302c2cff" }}
+                                                                style={{ fontFamily: "Poppins", fontWeight: "300", fontSize: "13px", backgroundColor: "#302c2cff" }}
                                                             >
                                                                 {isBooked
                                                                     ? "Booked"
@@ -477,7 +490,7 @@ const Booking = ({
                                                                             ? "#fff7df"
                                                                             : isPast && !isBooked
                                                                                 ? "#CBD6FF1A"
-                                                                                : "#7df97a3d",
+                                                                                : "#CBD6FF1A",
                                                             color: isSelected
                                                                 ? "white"
                                                                 : isPast && !isBooked
@@ -576,11 +589,16 @@ const Booking = ({
                                                 <div
                                                     key={court?._id}
                                                     onClick={() => handleCourtSelect(court)}
-                                                    style={{ cursor: "pointer" }}
-                                                    className={`d-flex p-4 justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${selectedCourts.some(selCourt => selCourt._id === court._id)
-                                                        ? "bg-success-subtle rounded-pill"
-                                                        : ""
-                                                        }`}>
+                                                    style={{
+                                                        cursor: "pointer",
+                                                        backgroundColor: selectedCourts.some(selCourt => selCourt._id === court._id)
+                                                            ? "#CBD6FF1A"
+                                                            : "transparent",
+                                                        borderRadius: selectedCourts.some(selCourt => selCourt._id === court._id) ? "0.5rem" : "",
+                                                        boxShadow: selectedCourts.some(selCourt => selCourt._id === court._id) ? "0 0 10px rgba(0, 0, 0, 0.1)" : "",
+                                                    }}
+                                                    className="d-flex p-4 justify-content-between align-items-center border-bottom py-3 mb-1 px-2"
+                                                >
                                                     <div className="d-flex align-items-center gap-3">
                                                         <img
                                                             src='https://www.brookstreet.co.uk/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBMEZCVXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--4accdb1f96a306357a7fdeec518b142d3d50f1f2/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJYW5CbkJqb0dSVlE2QzNKbGMybDZaVWtpRFRnd01IZzJOVEE4QmpzR1ZBPT0iLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--bcd925903d97179ca0141ad2735607ce8eed3d71/bs_court-ushers_800.jpg'
@@ -625,12 +643,14 @@ const Booking = ({
                         <div className="border rounded px-3 py-5  border-0 " style={{ backgroundColor: " #CBD6FF1A" }}>
                             <div className="text-center mb-3">
                                 <div className="d-flex justify-content-center " style={{ lineHeight: '90px' }}>
-                                    {logo ?
+                                   <div className="p-3 shadow rounded-circle">
+                                     {logo ?
                                         <Avatar src={logo} alt="User Profile" /> :
                                         <Avatar>
                                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                                         </Avatar>
                                     }
+                                   </div>
                                 </div>
                                 <p className=" mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
                                 <p className="small mb-0"> {clubData?.clubName}
@@ -724,8 +744,8 @@ const Booking = ({
                                             <defs>
                                                 <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
                                                     <stop offset="0%" stopColor="#3DBE64" />
-                                                    <stop offset="50%" stopColor="#1F41BB" />
-                                                    <stop offset="100%" stopColor="#1F41BB" />
+                                                    {/* <stop offset="50%" stopColor="#1F41BB" />
+                                                    <stop offset="100%" stopColor="#1F41BB" /> */}
                                                 </linearGradient>
                                             </defs>
 
