@@ -23,6 +23,10 @@ body {
   }
 }
 
+.active-link {
+  background-color: #333B48 !important;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

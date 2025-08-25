@@ -151,7 +151,7 @@ const BookingHistory = () => {
         <Container>
             <Row className="mb-3 mt-5">
                 <Col md={6}>
-                    <h2 className="manual-heading">Booking History</h2>
+                    <h2 className="manual-heading" style={{ fontWeight: "700", fontSize: "36px" }}>Booking History</h2>
                 </Col>
             </Row>
 
@@ -168,6 +168,11 @@ const BookingHistory = () => {
                         textColor="primary"
                         aria-label="booking history tabs"
                         TabIndicatorProps={{ style: { display: "none" } }}
+                        sx={{
+                            "& .MuiTabs-flexContainer": {
+                                justifyContent: "start",
+                            },
+                        }}
                     >
                         {["all", "upcoming", "cancelled", "completed"].map((tab, i) => (
                             <Tab
@@ -175,27 +180,35 @@ const BookingHistory = () => {
                                 label={tab.charAt(0).toUpperCase() + tab.slice(1)}
                                 value={tab}
                                 {...a11yProps(i)}
-                                className="fw-medium table-data rounded-pill"
+                                className="fw-medium table-data me-1 ms-0"
                                 sx={{
+                                    textTransform: "capitalize",
+                                    borderRadius: "50px",
+                                    px: 3, // horizontal padding
+                                    py: 0, // vertical padding
+                                    mx: 0.5, // margin between tabs
+                                    fontSize: "16px",
+                                    fontWeight: 500,
+                                    fontFamily: "Poppins",
                                     "&.Mui-selected": {
                                         backgroundColor: "#CBD6FFA1",
                                         color: "primary.main",
                                     },
-                                    borderRadius: "20px",
-                                    margin: "0 4px",
-                                    fontSize: "18px",
-                                    fontWeight: "500",
-                                    fontFamily: "Poppins",
+                                    "&:hover": {
+                                        backgroundColor: "#E8EDFF",
+                                    },
                                 }}
                             />
                         ))}
                     </Tabs>
+
+
                 </AppBar>
             </Box>
 
             <Row className="mb-3">
                 <Col md={6}>
-                    <h2 className="tabel-title mt-2">
+                    <h2 className="tabel-title mt-2" style={{ fontWeight: "600", fontSize: "24px" }}>
                         {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking
                     </h2>
                 </Col>
@@ -203,7 +216,7 @@ const BookingHistory = () => {
                     md={6}
                     className="d-flex gap-2 justify-content-end align-items-center"
                 >
-                    <InputGroup className="rounded bg-light p-1 align-items-center">
+                    <InputGroup className="rounded  p-1 align-items-center" style={{ backgroundColor: "#FAFBFF" }}>
                         <InputGroup.Text className="bg-light border-0 px-3">
                             <FaCalendarAlt className="text-muted" />
                         </InputGroup.Text>
@@ -213,7 +226,8 @@ const BookingHistory = () => {
                             dateFormat="dd/MM/yy"
                             placeholderText="dd/mm/yy"
                             calendarClassName="custom-calendar"
-                            className="form-control border-0 bg-light shadow-none custom-datepicker-input"
+                            className="form-control border-0 bg-transparent  shadow-none custom-datepicker-input"
+                           
                         />
                         {searchDate && (
                             <InputGroup.Text

@@ -66,12 +66,17 @@ const CreateMatches = () => {
   };
 
   const scrollRef = useRef(null);
+  const [startIndex, setStartIndex] = useState(0); // which day to start from
+  const visibleDays = 7; // only show 7 at a time
+
+  const formatDate = (date) => date.toISOString().split("T")[0];
+
   const scroll = (direction) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -120 : 120,
-        behavior: "smooth",
-      });
+    if (direction === "left" && startIndex > 0) {
+      setStartIndex(startIndex - 1); // move back one day
+    }
+    if (direction === "right" && startIndex < dates.length - visibleDays) {
+      setStartIndex(startIndex + 1); // move forward one day
     }
   };
 
@@ -128,10 +133,10 @@ const CreateMatches = () => {
     );
   };
 
-  const formatDate = (date) => {
-    if (!date || isNaN(date.getTime())) return null;
-    return date.toISOString().split("T")[0];
-  };
+  // const formatDate = (date) => {
+  //   if (!date || isNaN(date.getTime())) return null;
+  //   return date.toISOString().split("T")[0];
+  // };
 
   const steps = [
     {
@@ -169,61 +174,78 @@ const CreateMatches = () => {
     },
   ];
 
+  // const handleNext = () => {
+  //   if (selectedLevel && currentStep < steps.length - 1) {
+  //     setSkillDetails(prev => {
+  //       const newDetails = [...prev];
+  //       newDetails[currentStep] = selectedLevel;
+  //       return newDetails;
+  //     });
+  //     setCurrentStep(currentStep + 1);
+  //     setSelectedLevel('');
+  //   } else if (currentStep === steps.length - 1 && selectedLevel) {
+  //     const finalSkillDetails = [...skillDetails];
+  //     finalSkillDetails[currentStep] = selectedLevel;
+
+  //     const formattedData = {
+  //       slot: selectedTimes.map(timeSlot => {
+  //         const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
+  //         return {
+  //           slotId: timeSlot?._id,
+  //           businessHours: [{
+  //             time: "6:00 AM To 11:00 PM",
+  //             day: selectedDate.day,
+  //           }],
+  //           slotTimes: [{
+  //             time: timeSlot?.time,
+  //             amount: timeSlot?.amount || 2000,
+  //           }],
+  //           courtName: selectedCourt?.courtName,
+  //           courtId: selectedCourt?._id,
+  //           bookingDate: new Date(selectedDate.fullDate).toISOString(),
+  //         };
+  //       }),
+  //       clubId: savedClubId,
+  //       matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
+  //       skillLevel: finalSkillDetails[0]?.toLowerCase(),
+  //       skillDetails: finalSkillDetails?.slice(1),
+  //       matchStatus: "open",
+  //       matchTime: selectedTimes.map(time => time.time).join(","),
+  //       players: user?._id ? [user?._id] : user?.id,
+  //     };
+
+  //     dispatch(createMatches(formattedData)).unwrap().then(() => {
+  //       setSelectedCourts([]);
+  //       setSelectedDate([]);
+  //       setSelectedTimes([]);
+  //       setSelectedLevel('');
+  //       setSkillDetails([]);
+  //       navigate('/view-match');
+  //     });
+  //   }
+  // };
+
+  // const handleBack = () => {
+  //   if (currentStep > 0) {
+  //     setCurrentStep(currentStep - 1);
+  //     setSelectedLevel(skillDetails[currentStep - 1] || '');
+  //   }
+  // };
+
+
+  const [selectedOption, setSelectedOption] = useState("");
+
   const handleNext = () => {
-    if (selectedLevel && currentStep < steps.length - 1) {
-      setSkillDetails(prev => {
-        const newDetails = [...prev];
-        newDetails[currentStep] = selectedLevel;
-        return newDetails;
-      });
-      setCurrentStep(currentStep + 1);
-      setSelectedLevel('');
-    } else if (currentStep === steps.length - 1 && selectedLevel) {
-      const finalSkillDetails = [...skillDetails];
-      finalSkillDetails[currentStep] = selectedLevel;
-
-      const formattedData = {
-        slot: selectedTimes.map(timeSlot => {
-          const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
-          return {
-            slotId: timeSlot?._id ,
-            businessHours: [{
-              time: "6:00 AM To 11:00 PM",
-              day: selectedDate.day,
-            }],
-            slotTimes: [{
-              time: timeSlot?.time,
-              amount: timeSlot?.amount || 2000,
-            }],
-            courtName: selectedCourt?.courtName ,
-            courtId : selectedCourt?._id,
-            bookingDate: new Date(selectedDate.fullDate).toISOString(),
-          };
-        }),
-        clubId: savedClubId ,
-        matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
-        skillLevel: finalSkillDetails[0]?.toLowerCase() ,
-        skillDetails: finalSkillDetails?.slice(1) ,
-        matchStatus: "open",
-        matchTime: selectedTimes.map(time => time.time).join(","),
-        players: user?._id ? [user?._id] : user?.id,
-      };
-
-      dispatch(createMatches(formattedData)).unwrap().then(() => {
-        setSelectedCourts([]);
-        setSelectedDate([]);
-        setSelectedTimes([]);
-        setSelectedLevel('');
-        setSkillDetails([]);
-        navigate('/view-match');
-      });
+    if (currentStep < steps.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+      setSelectedOption(""); // reset selection for next step
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      setSelectedLevel(skillDetails[currentStep - 1] || '');
+      setCurrentStep((prev) => prev - 1);
+      setSelectedOption(""); // reset selection for prev step
     }
   };
 
@@ -289,28 +311,38 @@ const CreateMatches = () => {
               </div>
             </div>
             <div className="d-flex align-items-center gap-2 mb-3">
-              <button className="btn btn-light p-0" onClick={() => scroll("left")}>
+              {/* Left button */}
+              <button
+                className="btn btn-light p-0"
+                onClick={() => scroll("left")}
+                disabled={startIndex === 0} // disable at start
+              >
                 <i className="bi bi-chevron-left"></i>
               </button>
+
+              {/* 7-day window */}
               <div
-                ref={scrollRef}
-                className="d-flex gap-2 w-100 overflow-auto no-scrollbar"
+                className="d-flex gap-2 overflow-hidden no-scrollbar"
                 style={{
                   scrollBehavior: "smooth",
                   whiteSpace: "nowrap",
-                  maxWidth: "820px",
+                  maxWidth: "620px", // fits ~7 buttons
                 }}
               >
-                {dates?.map((d, i) => {
-                  const isSelected = selectedDate?.fullDate ? formatDate(new Date(selectedDate.fullDate)) === d.fullDate : false;
+                {dates?.slice(startIndex, startIndex + visibleDays).map((d, i) => {
+                  const isSelected = selectedDate?.fullDate
+                    ? formatDate(new Date(selectedDate.fullDate)) === d.fullDate
+                    : false;
+
                   return (
                     <button
-                      ref={(el) => (dateRefs.current[d.fullDate] = el)}
                       key={i}
-                      className={`calendar-day-btn px-3 py-2 rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                      className={`calendar-day-btn px-3 py-0 rounded border ${isSelected ? "text-white shadow" : "bg-light text-dark"
+                        }`}
                       style={{
                         backgroundColor: isSelected ? "#374151" : undefined,
                         border: "none",
+                        minWidth: "85px", // fixed size for consistent scroll
                       }}
                       onClick={() => {
                         setSelectedDate({ fullDate: d.fullDate, day: d.day });
@@ -319,7 +351,9 @@ const CreateMatches = () => {
                       }}
                     >
                       <div className="text-center">
-                        <div style={{ fontSize: "14px", fontWeight: "400" }}>{dayShortMap[d.day]}</div>
+                        <div style={{ fontSize: "14px", fontWeight: "400" }}>
+                          {dayShortMap[d.day]}
+                        </div>
                         <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
                         <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
                       </div>
@@ -327,7 +361,13 @@ const CreateMatches = () => {
                   );
                 })}
               </div>
-              <button className="btn btn-light p-0" onClick={() => scroll("right")}>
+
+              {/* Right button */}
+              <button
+                className="btn btn-light p-0"
+                onClick={() => scroll("right")}
+                disabled={startIndex >= dates.length - visibleDays} // disable at end
+              >
                 <i className="bi bi-chevron-right"></i>
               </button>
             </div>
@@ -469,60 +509,116 @@ const CreateMatches = () => {
         </Col>
         {/* RIGHT PANEL */}
         <Col md={5}>
-          <ProgressBar
-            now={(currentStep / (steps.length - 1)) * 100}
-            className="mb-4"
-            style={{ height: '6px', backgroundColor: '#e0e7ff', color: "#1F41BB" }}
-            variant="info"
-          />
-          <Card className="p-4" style={{ backgroundColor: '#f9faff', border: 'none', borderRadius: '8px' }}>
-            <h5 className="mb-4" style={{ color: '#4b5563' }}>
-              {steps[currentStep].question}
-            </h5>
-            <Form>
-              {steps[currentStep].options.map((option, i) => (
-                <Form.Check
-                  key={i}
-                  type="radio"
-                  label={option}
-                  name="level"
-                  id={`level-${currentStep}-${i}`}
-                  value={option}
-                  checked={selectedLevel === option}
-                  onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="mb-3 ps-5 shadow-sm border rounded px-3 py-2"
-                  style={{
-                    backgroundColor: selectedLevel === option ? '#e0f2fe' : '#FFFFFF',
-                    borderColor: '#d1d5db',
-                    borderRadius: '4px',
-                  }}
-                />
-              ))}
-              <div className="d-flex justify-content-between align-items-center">
-                {currentStep > 0 && (
-                  <Button
-                    className="mt-3 btn rounded-pill px-4"
-                    style={{ backgroundColor: '#374151', border: 'none', borderRadius: '4px', color: '#ffffff' }}
-                    onClick={handleBack}
-                  >
-                    Back
-                  </Button>
-                )}
-                <Button
-                  className="mt-3 btn rounded-pill px-4"
-                  style={{
-                    backgroundColor: currentStep === steps.length - 1 ? '#3DBE64' : '#10b981',
-                    border: 'none',
-                    borderRadius: '4px',
-                  }}
-                  disabled={!selectedLevel || selectedTimes.length === 0 || selectedCourts.length === 0}
-                  onClick={handleNext}
-                >
-                  {currentStep === steps.length - 1 ? userMatches?.matchesLoading ? <ButtonLoading /> : 'Submit' : 'Next'}
-                </Button>
+
+          <div
+            style={{
+              backgroundColor: "#f5f7ff",
+              border: "none",
+              borderRadius: "12px",
+              maxWidth: "100%",
+              height: "820px"
+
+            }}>
+
+            <Card
+              style={{
+                backgroundColor: "#f5f7ff",
+                border: "none",
+                borderRadius: "12px",
+                maxWidth: "100%",
+                height: "820px"
+
+              }}
+            >
+              {/* Progress Bar */}
+              <div className="d-flex gap-2 mb-4 pt-4">
+                {steps.map((_, index) => (
+                  <div
+                    key={index}
+                    className="step-bar"
+                    style={{
+                      flex: 1,
+                      height: "8px",
+                      borderRadius: "0px",
+                      backgroundColor: index <= currentStep ? "#1d4ed8" : "#c7d2fe",
+                    }}
+                  ></div>
+                ))}
               </div>
-            </Form>
-          </Card>
+
+
+
+              <div className='p-4'>
+                {/* Question */}
+                <h6 className="mb-4 fw-semibold" style={{ color: "#374151", fontSize: "24px" }}>
+                  {steps[currentStep].question}
+                </h6>
+
+                {/* Options */}
+                <Form style={{ height: "530px"}}>
+                  {steps[currentStep].options.map((option, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setSelectedOption(option)}
+                      className={`d-flex align-items-center justify-content-between mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
+                      style={{
+                        backgroundColor: selectedOption === option ? "#eef2ff" : "#fff",
+                        borderColor: selectedOption === option ? "#4f46e5" : "#e5e7eb",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Form.Check
+                        type="radio"
+                        label={option}
+                        name={`step-${currentStep}`}
+                        id={`option-${currentStep}-${i}`}
+                        value={option}
+                        checked={selectedOption === option}
+                        onChange={(e) => setSelectedOption(e.target.value)}
+                        className="fw-semibold"
+                      />
+
+                    </div>
+                  ))}
+
+
+                  {/* Buttons */}
+
+                </Form>
+
+
+                
+              </div>
+              <div className="d-flex justify-content-end align-items-center mt-3 p-3  ">
+                  {currentStep > 0 && (
+                    <Button
+                      className="rounded-pill px-4 me-2"
+                      style={{
+                        backgroundColor: "#374151",
+                        border: "none",
+                        color: "#fff",
+                      }}
+                      onClick={handleBack}
+                    >
+                      Back
+                    </Button>
+                  )}
+                  <Button
+                    className="rounded-pill px-4"
+                    style={{
+                      backgroundColor:
+                        currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
+                      border: "none",
+                      color: "#fff",
+                    }}
+                    disabled={!selectedOption}
+                    onClick={handleNext}
+                  >
+                    {currentStep === steps.length - 1 ? "Submit" : "Next"}
+                  </Button>
+                </div>
+            </Card>
+          </div>
         </Col>
       </Row>
     </Container>

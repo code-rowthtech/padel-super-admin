@@ -37,10 +37,11 @@ const AdminSidebar = () => {
   }, [location.pathname]);
 
   // Utility function for active link styling
-  const linkClasses = ({ isActive }) =>
-    `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${
-      isActive ? "bg-secondary" : "bg-transparent"
-    } hover-bg-dark`;
+const linkClasses = ({ isActive }) =>
+  `d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2 cursor-pointer ${
+    isActive ? "" : "bg-transparent"
+  } hover-bg-dark`;
+
 
   const isDropdownActive = bookingPaths.includes(location.pathname);
   const isActiveLink =
@@ -81,11 +82,11 @@ const AdminSidebar = () => {
   }, [getLogoData?.logo?._id]);
   return (
     <aside
-      className="bg-dark text-white vh-100 d-flex flex-column"
-      style={{ width: "250px" }}
+      className=" text-white vh-100 d-flex flex-column"
+      style={{ width: "250px", backgroundColor: "#1C2434" }}
     >
       <div
-        className="d-flex align-items-center justify-content-center border-bottom pb-2"
+        className="d-flex align-items-center justify-content-center mb-2 pb-2"
         style={{ marginTop: "10px" }}
       >
         <div className="position-relative me-3">
@@ -97,7 +98,7 @@ const AdminSidebar = () => {
                 <img
                   src={clubLogo}
                   alt="Profile"
-                  className="rounded-circle border"
+                  className="rounded-circle "
                   style={{
                     width: "100px",
                     height: "100px",
@@ -141,41 +142,48 @@ const AdminSidebar = () => {
           onChange={handleLogoChange}
         />
       </div>
+
       <nav className="flex-grow-1 mt-2">
-        <NavLink to="/admin/dashboard" className={linkClasses}>
-          <FaTachometerAlt className="me-2" />
+        <p className="px-4 py-0 mb-1" style={{color:"#8A99AF"}}>MENU</p>
+        <NavLink to="/admin/dashboard" className={linkClasses}
+          style={({ isActive }) => ({
+    backgroundColor: isActive ? "#333B48" : "transparent",
+    fontWeight:  "600" ,
+  })}>
+          <FaTachometerAlt className="me-4" />
           Dashboard
         </NavLink>
 
         <button
           onClick={() => setBookingOpen((prev) => !prev)}
-          className={`btn d-flex justify-content-between align-items-center w-100 px-4 py-2 text-white text-start border-0 ${
-            isDropdownActive ? "bg-secondary" : "bg-transparent"
-          }`}
+          className={`btn w-75  d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2 ${isDropdownActive ? "#333B48" : "bg-transparent"
+            }`}
+            
         >
-          <div className="d-flex align-items-center">
-            <FaCalendarAlt className="me-2" />
+          <div className="d-flex align-items-center w-100" style={{   fontWeight:  "600" ,}}>
+            <FaCalendarAlt className="me-4" />
             Booking
           </div>
           {isBookingOpen ? <FaChevronUp /> : <FaChevronDown />}
         </button>
 
         {isBookingOpen && (
-          <div className="ms-4 d-flex flex-column">
+          <div className="ms-4 d-flex flex-column me-2">
             <NavLink
               to="/admin/booking"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${
-                  isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) =>
                 isActiveLink
                   ? {
-                      backgroundColor: "#6c757da8",
-                      color: "#fff",
-                      borderRadius: "4px",
-                    }
+                    backgroundColor: "#333B48",
+                    color: "#fff",
+                    borderRadius: "4px",
+                       fontWeight:  "600" ,
+                  }
+                  
                   : {}
               }
             >
@@ -185,17 +193,17 @@ const AdminSidebar = () => {
             <NavLink
               to="/admin/cancellation"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${
-                  isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) =>
                 isActive
                   ? {
-                      backgroundColor: "#6c757da8",
-                      color: "#fff",
-                      borderRadius: "4px",
-                    }
+                    backgroundColor: "#333B48",
+                    color: "#fff",
+                    borderRadius: "4px",
+                       fontWeight:  "600" ,
+                  }
                   : {}
               }
             >
@@ -204,36 +212,48 @@ const AdminSidebar = () => {
           </div>
         )}
 
-        <NavLink to="/admin/open-matches" className={linkClasses}>
-          <LuSwords className="me-2" />
+        <NavLink to="/admin/open-matches" className={linkClasses}   style={({ isActive }) => ({
+    backgroundColor: isActive ? "#333B48" : "transparent",   fontWeight:  "600" ,
+  })}>
+          <LuSwords className="me-4" />
           Open Matches
         </NavLink>
 
-        <NavLink to="/admin/americano" className={linkClasses}>
-          <FaRankingStar className="me-2" />
+        <NavLink to="/admin/americano" className={linkClasses}   style={({ isActive }) => ({
+    backgroundColor: isActive ? "#333B48" : "transparent",   fontWeight:  "600" ,
+  })}>
+          <FaRankingStar className="me-4" />
           Americano
         </NavLink>
 
-        <NavLink to="/admin/packages" className={linkClasses}>
-          <LiaFileInvoiceDollarSolid className="me-2" />
+        <NavLink to="/admin/packages" className={linkClasses}   style={({ isActive }) => ({
+    backgroundColor: isActive ? "#333B48" : "transparent",   fontWeight:  "600" ,
+  })}>
+          <LiaFileInvoiceDollarSolid className="me-4" />
           Packages
         </NavLink>
 
-        <NavLink to="/admin/users" className={linkClasses}>
-          <FaUsersCog className="me-2" />
+        <NavLink to="/admin/users" className={linkClasses}   style={({ isActive }) => ({
+    backgroundColor: isActive ? "#333B48" : "transparent",   fontWeight:  "600" ,
+  })}>
+          <FaUsersCog className="me-4" />
           Users
         </NavLink>
-        <NavLink to="/admin/payments" className={linkClasses}>
-          <RiWallet3Line className="me-2" />
+        <NavLink to="/admin/payments" className={linkClasses}   style={({ isActive }) => ({
+    backgroundColor: isActive ? "#333B48" : "transparent",   fontWeight:  "600" ,
+  })}>
+          <RiWallet3Line className="me-4" />
           Payment
         </NavLink>
 
         <NavLink
           to="/admin/login"
-          className={linkClasses}
+          className={linkClasses}   style={({ isActive }) => ({
+    backgroundColor: isActive ? "#333B48" : "transparent",    fontWeight:  "600" ,
+  })}
           onClick={() => dispatch(logout())}
         >
-          <RiLogoutCircleLine className="me-2" />
+          <RiLogoutCircleLine className="me-4" />
           Log out
         </NavLink>
       </nav>
