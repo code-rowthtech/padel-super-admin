@@ -97,7 +97,10 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {paymentDetails?.userId?.name || "N/A"}
+              {paymentDetails?.userId?.name
+                ?.slice(0, 1)
+                ?.toUpperCase()
+                ?.concat(paymentDetails?.userId?.name?.slice(1)) || "N/A"}
             </p>
             <p
               className="fw-bold mb-1"
@@ -127,7 +130,8 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {paymentDetails?.slot?.[0]?.slotTimes?.[0]?.time}
+              {paymentDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
+              {paymentDetails?.slot?.[0]?.slotTimes?.[0]?.time}{" "}
             </p>
           </div>
         </div>

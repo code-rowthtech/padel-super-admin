@@ -1,9 +1,8 @@
 // BookingModals.js
-import React, { useState } from "react";
+import { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { modalDetails, modalSuccess } from "../../../../assets/files";
 import { formatDate } from "../../../../helpers/Formatting";
-import { set } from "date-fns";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { FcCancel } from "react-icons/fc";
 
@@ -275,7 +274,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
           style={{ width: "200px", marginBottom: "20px" }}
         />
         <div
-          className="d-flex justify-content-between border align-items-center rounded-3 mb-4"
+          className="d-flex justify-content-between border align-items-center rounded-3 mb-2"
           style={{ backgroundColor: "#CBD6FF1A" }}
         >
           <div className="text-start  p-2 ps-3">
@@ -297,7 +296,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              Court Number
+              Court
             </p>
             <p
               className="text-muted mb-1"
@@ -307,7 +306,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              Date
+              Slot Time
             </p>
             <p
               className="text-muted mb-1"
@@ -317,15 +316,51 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              Time
+              Booking Date
             </p>
+            {bookingDetails?.cancellationDate && (
+              <p
+                className="text-muted mb-1"
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                Cancellation Date
+              </p>
+            )}
+            {bookingDetails?.cancellationDate && (
+              <p
+                className="text-muted mb-1"
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                Cancellation Reason
+              </p>
+            )}
+            {bookingDetails?.refundDate && (
+              <p
+                className="text-muted mb-1"
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                Refund Date
+              </p>
+            )}
           </div>
           <div className="text-end p-2 pe-3">
             <p
               className="fw-bold mb-1"
               style={{
-                fontSize: "14px",
-                fontWeight: "600",
+                fontSize: "12.5px",
+                fontWeight: "500",
                 fontFamily: "Poppins",
               }}
             >
@@ -337,8 +372,8 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             <p
               className="fw-bold mb-1"
               style={{
-                fontSize: "14px",
-                fontWeight: "600",
+                fontSize: "12.5px",
+                fontWeight: "500",
                 fontFamily: "Poppins",
               }}
             >
@@ -347,24 +382,60 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             <p
               className="fw-bold mb-1"
               style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                fontFamily: "Poppins",
-              }}
-            >
-              {formatDate(bookingDetails?.bookingDate)}
-            </p>
-            <p
-              className="fw-bold mb-1"
-              style={{
-                fontSize: "14px",
-                fontWeight: "600",
+                fontSize: "12.5px",
+                fontWeight: "500",
                 fontFamily: "Poppins",
               }}
             >
               {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
               {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
             </p>
+            <p
+              className="fw-bold mb-1"
+              style={{
+                fontSize: "12.5px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
+              {formatDate(bookingDetails?.bookingDate)}
+            </p>
+            {bookingDetails?.cancellationDate && (
+              <p
+                className="fw-bold mb-1"
+                style={{
+                  fontSize: "12.5px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                {formatDate(bookingDetails?.cancellationDate)}
+              </p>
+            )}
+            {bookingDetails?.cancellationReason && (
+              <p
+                className="fw-bold mb-1"
+                style={{
+                  fontSize: "12.5px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                {bookingDetails?.cancellationReason}
+              </p>
+            )}
+            {bookingDetails?.refundDate && (
+              <p
+                className="fw-bold mb-1"
+                style={{
+                  fontSize: "12.5px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                }}
+              >
+                {formatDate(bookingDetails?.refundDate)}
+              </p>
+            )}
           </div>
         </div>
         <h2
@@ -444,6 +515,7 @@ export const BookingCancelModal = ({
 }) => {
   const [changeContent, setChangeContent] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [otherReason, setOtherReason] = useState("");
   const [error, setError] = useState("");
 
   const closeModal = () => {
@@ -451,27 +523,32 @@ export const BookingCancelModal = ({
     setTimeout(() => {
       setChangeContent(false);
       setCancelReason("");
+      setOtherReason("");
       setError("");
     }, 500);
   };
 
   const handleSubmit = () => {
+    // Validate reason selection
     if (!cancelReason) {
       setError("Please select a reason for cancellation.");
       return;
     }
-    setError("");
-    cancelBooking(cancelReason);
-    closeModal();
-  };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+    // Validate other reason text if "Other" is selected
+    if (cancelReason === "other" && !otherReason.trim()) {
+      setError("Please describe your reason for cancellation.");
+      return;
+    }
+
+    setError("");
+
+    // Prepare the reason to send - if "Other", use the text area content
+    const finalReason =
+      cancelReason === "other" ? otherReason.trim() : cancelReason;
+
+    cancelBooking(finalReason);
+    closeModal();
   };
 
   return (
@@ -506,14 +583,7 @@ export const BookingCancelModal = ({
           >
             Cancel Booking
           </h2>
-
-          {/* <img
-            src={modalSuccess} // Make sure this is imported or defined
-            alt="Booking Confirmation"
-            style={{ width: "200px", marginBottom: "20px" }}
-          /> */}
           <FcCancel size={150} />
-          {/* Booking Info Grid */}
           <div
             className="d-flex justify-content-between align-items-center border rounded-3 p-3 mb-4"
             style={{ backgroundColor: "#CBD6FF1A" }}
@@ -631,9 +701,10 @@ export const BookingCancelModal = ({
                 value={cancelReason}
                 onChange={(e) => {
                   setCancelReason(e.target.value);
+                  setOtherReason(""); // Clear other reason when changing selection
                   if (error) setError("");
                 }}
-                isInvalid={!!error}
+                isInvalid={!!error && !cancelReason}
                 className="mt-2"
                 style={{ fontFamily: "Poppins" }}
               >
@@ -643,6 +714,34 @@ export const BookingCancelModal = ({
                 <option value="double-booked">Double Booked</option>
                 <option value="other">Other</option>
               </Form.Select>
+
+              {/* Text area for "Other" reason */}
+              {cancelReason === "other" && (
+                <Form.Group className="mt-3">
+                  <Form.Label style={{ fontSize: "14px", fontWeight: "500" }}>
+                    Please describe your reason *
+                  </Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    value={otherReason}
+                    onChange={(e) => {
+                      setOtherReason(e.target.value);
+                      if (error) setError("");
+                    }}
+                    isInvalid={
+                      !!error && cancelReason === "other" && !otherReason.trim()
+                    }
+                    placeholder="Please describe why you are cancelling this booking..."
+                    style={{
+                      resize: "vertical",
+                      fontFamily: "Poppins",
+                      fontSize: "14px",
+                    }}
+                  />
+                </Form.Group>
+              )}
+
               <Form.Control.Feedback
                 type="invalid"
                 style={{ display: "block" }}

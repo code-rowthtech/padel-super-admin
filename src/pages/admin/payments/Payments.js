@@ -241,13 +241,13 @@ const Payments = () => {
                     >
                       <thead>
                         <tr>
-                          <th>User</th>
-                          <th>Contact</th>
-                          <th>Booking</th>
-                          <th>Slot</th>
-                          <th>Court</th>
+                          <th>User Name</th>
+                          <th>Date</th>
+                          {/* <th>Contact</th> */}
+                          <th>Payment Method</th>
+                          {/* <th>Slot</th> */}
+                          {/* <th>Court No</th> */}
                           <th>Amount</th>
-                          <th>Date/Time</th>
                           <th>Action</th>
                         </tr>
                       </thead>
@@ -260,9 +260,12 @@ const Payments = () => {
                                 ?.toUpperCase()
                                 ?.concat(item?.userId?.name?.slice(1)) || "N/A"}
                             </td>
-                            <td className="table-data border-bottom">
+                            {/* <td className="table-data border-bottom">
                               {item?.userId?.countryCode || ""}
                               {item?.userId?.phoneNumber || "N/A"}
+                            </td> */}
+                            <td className="table-data border-bottom">
+                              {formatDate(item?.bookingDate)}
                             </td>
                             <td>
                               {item?.bookingType
@@ -270,22 +273,17 @@ const Payments = () => {
                                 ?.toUpperCase()
                                 ?.concat(item?.bookingType?.slice(1)) || "-"}
                             </td>
-                            <td>
+                            {/* <td>
                               {item?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
                               {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
-                            </td>
-                            <td className="table-data border-bottom">
+                            </td> */}
+                            {/* <td className="table-data border-bottom">
                               {item?.slot?.[0]?.courtName || "-"}
-                            </td>
+                            </td> */}
                             <td className="table-data border-bottom">
                               ₹{item?.totalAmount}
                             </td>
-                            <td className="table-data border-bottom">
-                              {format(
-                                new Date(item?.createdAt),
-                                "dd/MM/yyyy | hh:mm a"
-                              )}
-                            </td>
+
                             <td
                               className="table-data border-bottom"
                               style={{ cursor: "pointer" }}

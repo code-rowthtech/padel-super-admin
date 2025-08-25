@@ -8,19 +8,17 @@ import {
   Tooltip,
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { getSubOwner } from "../../../redux/thunks";
 import { FaEdit } from "react-icons/fa";
-import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import { DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import Pagination from "../../../helpers/Pagination";
-import { FaRegCircleUser } from "react-icons/fa6";
 import SubOwnerModal from "./modal/SubOwnerModal";
 
 const SubOwner = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const Owner = getOwnerFromSession();
+  const ownerId = Owner?.generatedBy || Owner?._id;
   const [currentPage, setCurrentPage] = useState(1);
   const [showUserModal, setShowUserModal] = useState(false);
   // State
@@ -32,7 +30,7 @@ const SubOwner = () => {
   const UserData = getSubOwnerData?.response;
 
   useEffect(() => {
-    dispatch(getSubOwner({ page: currentPage, limit: 10 }));
+    dispatch(getSubOwner({ ownerId, page: currentPage, limit: 10 }));
   }, [currentPage]);
 
   const totalRecords = UserData?.length || 1;

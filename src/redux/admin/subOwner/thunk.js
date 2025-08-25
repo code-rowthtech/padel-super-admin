@@ -12,6 +12,7 @@ export const getSubOwner = createAsyncThunk(
 
         if (params?.page) query.append("page", params?.page);
         if (params?.limit) query.append("limit", params?.limit);
+        if (params?.ownerId) query.append("ownerId", params?.ownerId);
 
         return query.toString();
       };
