@@ -99,7 +99,7 @@ const BookingHistory = () => {
     }, [User?.token, club_id]);
 
     const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
-        const status = booking?.bookingStatus?.toLowerCase(); 
+        const status = booking?.bookingStatus?.toLowerCase();
         let statusMatch = false;
 
         if (activeTab === "cancelled") {
@@ -225,7 +225,7 @@ const BookingHistory = () => {
                             placeholderText="dd/mm/yy"
                             calendarClassName="custom-calendar"
                             className="form-control border-0 bg-transparent  shadow-none custom-datepicker-input"
-                           
+
                         />
                         {searchDate && (
                             <InputGroup.Text
@@ -333,8 +333,8 @@ const BookingHistory = () => {
                                             <tr
                                                 key={`${i}-${index}`}
                                                 className="table-data border-bottom"
-                                            >                                             
-                                                  <td className="table-data">
+                                            >
+                                                <td className="table-data">
                                                     {formatDate(new Date(slotItem?.bookingDate))}
                                                 </td>
                                                 <td>
@@ -367,7 +367,7 @@ const BookingHistory = () => {
                                                 <td className="table-data">
                                                     {booking?.bookingType || "N/A"}
                                                 </td>
-                                              
+
                                                 {activeTab === "cancelled" && (
                                                     <td>
                                                         {booking?.cancellationReason?.charAt(0).toUpperCase() +
@@ -502,7 +502,8 @@ const BookingHistory = () => {
                                                                     Rejected
                                                                 </span>
                                                             ) : booking?.bookingStatus === "completed" ? (
-                                                                <span className="text-success"
+                                                                <span
+                                                                    className="text-success"
                                                                     style={{
                                                                         fontSize: "12px",
                                                                         fontWeight: "600",
@@ -511,8 +512,9 @@ const BookingHistory = () => {
                                                                 >
                                                                     Completed
                                                                 </span>
-                                                            ): booking?.bookingStatus === "upcoming" ? (
-                                                                <span className="text-info"
+                                                            ) : booking?.bookingStatus === "upcoming" && activeTab !== "upcoming" ? (
+                                                                <span
+                                                                    className="text-info"
                                                                     style={{
                                                                         fontSize: "12px",
                                                                         fontWeight: "600",
