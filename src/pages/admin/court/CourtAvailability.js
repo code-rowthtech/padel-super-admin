@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import {
   Button,
   Col,
@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import {
   getOwnerRegisteredClub,
   getActiveCourts,
-  updatePrice,
+  updateCourt,
 } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -23,24 +23,26 @@ import {
   Loading,
 } from "../../../helpers/loading/Loaders";
 import { showError, showInfo } from "../../../helpers/Toast";
-import { getOwnerFromSession } from "../../../helpers/api/apiCore";
-import { format } from "date-fns";
+
 import "react-datepicker/dist/react-datepicker.css";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 
 const CourtAvailability = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
   const ownerId = Owner?.generatedBy ? Owner?.generatedBy : Owner?._id;
   const {
-    manualBookingLoading,
     ownerClubLoading,
     ownerClubData,
     activeCourtsLoading,
     activeCourtsData,
   } = useSelector((state) => state.manualBooking);
+  const { updateClubLoading } = useSelector((state) => state.club);
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
+  const scrollRef = useRef(null);
+  const selectedButtonRef = useRef(null);
   const navigate = useNavigate();
   const [showUnavailable, setShowUnavailable] = useState(false);
 
@@ -62,14 +64,27 @@ const CourtAvailability = () => {
   const [selectedDay, setSelectedDay] = useState(
     dayFullNames[new Date().toLocaleDateString("en-US", { weekday: "short" })]
   );
-  const scrollRef = useRef(null);
-  const selectedButtonRef = useRef(null);
 
   // Available status options
-  const statusOptions = ["available", "booked", "maintenance", "closed"];
+  const statusOptions = [
+    "available",
+    "booked",
+    "maintenance",
+    "weather conditions",
+    "staff unavailability",
+  ];
 
   // State for common status apply
   const [commonStatus, setCommonStatus] = useState("");
+
+  // Status to background color mapping
+  const statusColorMap = {
+    available: "#7df97a3d",
+    booked: "bg-danger text-white",
+    maintenance: "bg-warning-subtle",
+    "weather conditions": "bg-info-subtle",
+    "staff unavailability": "bg-secondary text-white",
+  };
 
   // Close on outside click
   const handleClickOutside = (e) => {
@@ -134,7 +149,10 @@ const CourtAvailability = () => {
     if (exists) {
       newCourtSlots = courtSlots.filter((t) => t.slot._id !== slot._id);
     } else {
-      newCourtSlots = [...courtSlots, { slot, status: "available" }]; // Default status
+      newCourtSlots = [
+        ...courtSlots,
+        { slot, status: slot.availabilityStatus || "available" },
+      ]; // Use availabilityStatus
     }
 
     let newSelectedSlots;
@@ -274,12 +292,11 @@ const CourtAvailability = () => {
             courtId: slot?.courtId,
           }))
         ),
-        // courtId: selectedCourts[0],
         ownerId: Owner?._id,
       };
 
       console.log({ payload });
-      await dispatch(updatePrice(payload)).unwrap();
+      await dispatch(updateCourt(payload)).unwrap();
       setSelectedSlots({});
       setSelectedCourts([]);
     } catch (error) {
@@ -310,7 +327,7 @@ const CourtAvailability = () => {
             <Col md={6} className="text-end">
               <Button
                 className="bg-transparent border-0"
-                onClick={() => navigate("/admin/booking")}
+                onClick={() => navigate(-1)}
                 style={{
                   color: "#1F41BB",
                   fontSize: "18px",
@@ -385,13 +402,18 @@ const CourtAvailability = () => {
                     ref={wrapperRef}
                   >
                     <span
-                      className="rounded-circle p-2 ms-2 shadow-sm bg-light"
-                      style={{ cursor: "pointer" }}
+                      className="rounded px-1 ms-2 shadow-sm"
+                      style={{
+                        cursor: "pointer",
+                        width: "26px",
+                        height: "26px",
+                        backgroundColor: "rgb(229, 233, 236)",
+                      }}
                       onClick={() => setIsOpen(!isOpen)}
                     >
                       <i
                         className="bi bi-calendar2-week"
-                        style={{ fontSize: "18px" }}
+                        style={{ width: "14px", height: "16px" }}
                       ></i>
                     </span>
                     {isOpen && (
@@ -537,7 +559,28 @@ const CourtAvailability = () => {
                   ) : (
                     <>
                       {slotTimes
-                        .map((slot) => {
+                        .filter((slot) => {
+                          const slotDate = new Date(selectedDate);
+                          const [hourString, period] = slot?.time
+                            ?.toLowerCase()
+                            .split(" ");
+                          let hour = parseInt(hourString);
+                          if (period === "pm" && hour !== 12) hour += 12;
+                          if (period === "am" && hour === 12) hour = 0;
+                          slotDate.setHours(hour, 0, 0, 0);
+
+                          const now = new Date();
+                          const isSameDay =
+                            slotDate.toDateString() === now.toDateString();
+                          const isPast =
+                            isSameDay && slotDate.getTime() < now.getTime();
+                          const isAvailable =
+                            slot?.availabilityStatus === "available" &&
+                            slot?.status !== "booked";
+
+                          return showUnavailable || (isAvailable && !isPast);
+                        })
+                        .map((slot, i) => {
                           const slotDate = new Date(selectedDate);
                           const [hourString, period] = slot?.time
                             ?.toLowerCase()
@@ -557,92 +600,67 @@ const CourtAvailability = () => {
                           const isSelected = courtSelectedSlots.some(
                             (t) => t.slot._id === slot._id
                           );
+                          const status =
+                            slot?.availabilityStatus || "available";
                           const isBooked = slot?.status === "booked";
-                          const isAvailable =
-                            slot?.availabilityStatus === "available";
-                          const hasAmount = slot?.amount && slot?.amount !== 0;
+                          const isDisabled = isPast || isBooked;
 
-                          return {
-                            slot,
-                            isPast,
-                            isSelected,
-                            isBooked,
-                            isAvailable,
-                            hasAmount,
-                          };
-                        })
-                        .filter(
-                          ({ isPast, isBooked, isAvailable, hasAmount }) => {
-                            return (
-                              showUnavailable ||
-                              (isAvailable && hasAmount && !isBooked && !isPast)
-                            );
-                          }
-                        )
-                        .map(
-                          (
-                            {
-                              slot,
-                              isPast,
-                              isSelected,
-                              isBooked,
-                              isAvailable,
-                              hasAmount,
-                            },
-                            i
-                          ) => {
-                            let tooltipText = "";
-                            if (!hasAmount)
-                              tooltipText = "Amount not available";
-                            else if (isBooked) tooltipText = "Booked";
-                            else if (isPast)
-                              tooltipText = "Cannot book slot in past hours";
-                            else if (!isAvailable) tooltipText = "Unavailable";
-                            else tooltipText = "Book Now";
+                          const tooltipText =
+                            status.charAt(0).toUpperCase() + status.slice(1);
 
-                            const buttonEl = (
-                              <span className="d-inline-block">
-                                <button
-                                  className={`btn border-0 rounded-pill table-data px-4 py-1 shadow-sm ${
-                                    isBooked
-                                      ? "bg-danger text-white"
-                                      : isPast
-                                      ? "bg-secondary-subtle"
-                                      : !isAvailable || !hasAmount
-                                      ? "bg-warning-subtle"
-                                      : ""
-                                  }`}
-                                  onClick={() => toggleTime(slot)}
-                                  disabled={isPast || isBooked || !hasAmount}
-                                  style={{
-                                    backgroundColor: isSelected
-                                      ? "#374151"
-                                      : "#7df97a3d",
-                                    color: isSelected ? "white" : "#000000",
-                                    cursor: !hasAmount
-                                      ? "not-allowed"
-                                      : "pointer",
-                                    fontFamily: "Poppins",
-                                    fontSize: "14px",
-                                    transition: "all 0.2s ease",
-                                  }}
-                                >
-                                  {isBooked ? "Booked" : slot?.time}
-                                </button>
-                              </span>
-                            );
-
-                            return (
-                              <OverlayTrigger
-                                key={i}
-                                placement="top"
-                                overlay={<Tooltip>{tooltipText}</Tooltip>}
+                          const buttonEl = (
+                            <span className="d-inline-block">
+                              <button
+                                className={`btn border-0 rounded-pill table-data px-4 py-1 shadow-sm ${
+                                  isSelected
+                                    ? "bg-dark text-white"
+                                    : isPast
+                                    ? "bg-secondary-subtle"
+                                    : isBooked
+                                    ? "bg-danger text-white"
+                                    : statusColorMap[status] || "bg-light"
+                                }`}
+                                onClick={() => toggleTime(slot)}
+                                disabled={isDisabled}
+                                style={{
+                                  backgroundColor: isSelected
+                                    ? "#374151"
+                                    : isPast || isBooked
+                                    ? undefined
+                                    : statusColorMap[status],
+                                  color: isSelected
+                                    ? "white"
+                                    : isPast ||
+                                      status === "available" ||
+                                      status === "maintenance" ||
+                                      status === "weather conditions"
+                                    ? "black"
+                                    : undefined,
+                                  cursor: isDisabled
+                                    ? "not-allowed"
+                                    : "pointer",
+                                  fontFamily: "Poppins",
+                                  fontSize: "14px",
+                                  transition: "all 0.2s ease",
+                                }}
                               >
-                                {buttonEl}
-                              </OverlayTrigger>
-                            );
-                          }
-                        )}
+                                {isBooked ? "Booked" : slot?.time}
+                              </button>
+                            </span>
+                          );
+
+                          return isDisabled ? (
+                            buttonEl
+                          ) : (
+                            <OverlayTrigger
+                              key={i}
+                              placement="top"
+                              overlay={<Tooltip>{tooltipText}</Tooltip>}
+                            >
+                              {buttonEl}
+                            </OverlayTrigger>
+                          );
+                        })}
                     </>
                   )}
                 </div>
@@ -664,48 +682,54 @@ const CourtAvailability = () => {
                     Selected Slots
                   </h6>
                   {/* Apply to All Section */}
-                  <div className="d-flex align-items-center gap-2 mb-3">
-                    <Form.Select
-                      value={commonStatus}
-                      onChange={(e) => setCommonStatus(e.target.value)}
-                      style={{
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                    >
-                      <option value="">Select Status</option>
-                      {statusOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option.charAt(0).toUpperCase() + option.slice(1)}
-                        </option>
-                      ))}
-                    </Form.Select>
-                    <Button
-                      variant="outline-primary"
-                      className="rounded-pill px-3 py-1 text-nowrap"
-                      onClick={handleApplyToAll}
-                      style={{
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                      }}
-                    >
-                      Apply to All
-                    </Button>
-                  </div>
+                  {Object.entries(selectedSlots).length > 0 && (
+                    <div className="d-flex align-items-center gap-2 mb-3">
+                      <Form.Select
+                        value={commonStatus}
+                        onChange={(e) => setCommonStatus(e.target.value)}
+                        style={{
+                          fontFamily: "Poppins",
+                          fontSize: "14px",
+                        }}
+                      >
+                        <option value="">Select Status</option>
+                        {statusOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option.charAt(0).toUpperCase() + option.slice(1)}
+                          </option>
+                        ))}
+                      </Form.Select>
+                      <Button
+                        variant="outline-primary"
+                        className="rounded-pill px-3 py-1 text-nowrap"
+                        onClick={handleApplyToAll}
+                        style={{
+                          fontFamily: "Poppins",
+                          fontSize: "14px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Apply to All
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Selected Slots List */}
                   <div
                     style={{
-                      maxHeight: "calc(50vh - 150px)",
+                      height: "33vh",
                       overflowY: "auto",
                       paddingRight: "10px",
                     }}
                   >
                     {Object.entries(selectedSlots).length === 0 ? (
                       <div
-                        className="text-muted text-center py-3"
-                        style={{ fontFamily: "Poppins", fontSize: "14px" }}
+                        className="text-muted d-flex align-items-center justify-content-center py-3"
+                        style={{
+                          fontFamily: "Poppins",
+                          fontSize: "14px",
+                          height: "33vh",
+                        }}
                       >
                         No slots selected
                       </div>
@@ -754,7 +778,7 @@ const CourtAvailability = () => {
                                       )
                                     }
                                     style={{
-                                      width: "150px",
+                                      width: "190px",
                                       fontFamily: "Poppins",
                                       fontSize: "14px",
                                       marginRight: "10px",
@@ -787,37 +811,39 @@ const CourtAvailability = () => {
                       )
                     )}
                   </div>
-                  <div className="d-flex justify-content-end gap-3 align-items-end mt-4">
-                    <button
-                      className="btn btn-secondary rounded-pill px-4 py-2 shadow-sm"
-                      style={{
-                        minWidth: "120px",
-                        fontWeight: "500",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                      onClick={() => navigate(-1)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="btn text-white rounded-pill px-4 py-2 shadow-sm"
-                      style={{
-                        minWidth: "120px",
-                        fontWeight: "500",
-                        backgroundColor: "#22c55e",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                      onClick={handleConfirm}
-                    >
-                      {manualBookingLoading ? (
-                        <ButtonLoading size={12} />
-                      ) : (
-                        "Confirm"
-                      )}
-                    </button>
-                  </div>
+                  {Object.entries(selectedSlots).length > 0 && (
+                    <div className="d-flex justify-content-end gap-3 align-items-end mt-2">
+                      <button
+                        className="btn btn-secondary rounded-pill px-4 py-2 shadow-sm"
+                        style={{
+                          minWidth: "120px",
+                          fontWeight: "500",
+                          fontFamily: "Poppins",
+                          fontSize: "14px",
+                        }}
+                        onClick={() => navigate(-1)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn text-white rounded-pill px-4 py-2 shadow-sm"
+                        style={{
+                          minWidth: "120px",
+                          fontWeight: "500",
+                          backgroundColor: "#22c55e",
+                          fontFamily: "Poppins",
+                          fontSize: "14px",
+                        }}
+                        onClick={handleConfirm}
+                      >
+                        {updateClubLoading ? (
+                          <ButtonLoading color="white" size={12} />
+                        ) : (
+                          "Confirm"
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </Col>

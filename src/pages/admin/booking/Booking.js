@@ -26,7 +26,6 @@ import { formatDate } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
-import { format } from "date-fns";
 const Booking = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -93,7 +92,15 @@ const Booking = () => {
           md={12}
           className="d-flex justify-content-between align-items-center"
         >
-          <Box sx={{ bgcolor: "white", borderBottom: 1, borderColor: "divider", paddingRight: 5, paddingLeft: 5 }}>
+          <Box
+            sx={{
+              bgcolor: "white",
+              borderBottom: 1,
+              borderColor: "divider",
+              paddingRight: 5,
+              paddingLeft: 5,
+            }}
+          >
             <AppBar
               position="static"
               color="default"
@@ -161,9 +168,7 @@ const Booking = () => {
                   fontSize: "20px",
                 }}
               >
-                <span className="mb-1">
-                  +
-                </span>
+                <span className="mb-1">+</span>
               </div>
             </div>
             <div

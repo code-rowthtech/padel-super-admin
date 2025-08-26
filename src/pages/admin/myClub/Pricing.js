@@ -8,7 +8,7 @@ import {
   FormControl,
   Dropdown,
 } from "react-bootstrap";
-import { getSlots, updatePrice } from "../../../redux/thunks";
+import { getSlots, updateCourt } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { resetClub } from "../../../redux/admin/club/slice";
@@ -535,7 +535,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
       businessHoursUpdates: selectedBusinessHours,
       slotTimesUpdates: filledSlotTimes,
     };
-    dispatch(updatePrice(payload))
+    dispatch(updateCourt(payload))
       .unwrap()
       .then(() => {
         dispatch(resetClub());

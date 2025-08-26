@@ -179,7 +179,7 @@ const LoginPage = () => {
               fontSize: "16px",
             }}
           >
-            {authLoading ? <ButtonLoading /> : "Sign in"}
+            {authLoading ? <ButtonLoading color="white" /> : "Sign in"}
           </Button>
         </Form>
 

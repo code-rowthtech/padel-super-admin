@@ -436,13 +436,18 @@ const ManualBooking = () => {
                     ref={wrapperRef}
                   >
                     <span
-                      className="rounded-circle p-2 ms-2 shadow-sm bg-light"
-                      style={{ cursor: "pointer" }}
+                      className="rounded px-1 ms-2 shadow-sm"
+                      style={{
+                        cursor: "pointer",
+                        width: "26px",
+                        height: "26px",
+                        backgroundColor: "rgb(229, 233, 236)",
+                      }}
                       onClick={() => setIsOpen(!isOpen)}
                     >
                       <i
                         className="bi bi-calendar2-week"
-                        style={{ fontSize: "18px" }}
+                        style={{ width: "14px", height: "16px" }}
                       ></i>
                     </span>
                     {isOpen && (
@@ -679,7 +684,12 @@ const ManualBooking = () => {
                                       : ""
                                   }`}
                                   onClick={() => toggleTime(slot)}
-                                  disabled={isPast || isBooked || !hasAmount}
+                                  disabled={
+                                    isPast ||
+                                    isBooked ||
+                                    !hasAmount ||
+                                    !isAvailable
+                                  }
                                   style={{
                                     backgroundColor: isSelected
                                       ? "#374151"
@@ -745,15 +755,18 @@ const ManualBooking = () => {
                     </Button>
                   )}
                 </div>
-                <div style={{ maxHeight: "25vh", overflowY: "auto" }}>
+                <div
+                  style={{
+                    height: "26vh",
+                    overflowY: "auto",
+                    fontFamily: "Poppins",
+                    fontSize: "14px",
+                  }}
+                >
                   {Object.entries(selectedSlots).length === 0 ? (
                     <div
-                      className="d-flex text-muted justify-content-center align-items-center w-100"
-                      style={{
-                        height: "20vh",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
+                      className="d-flex text-muted justify-content-center align-items-center"
+                      style={{ height: "26vh" }}
                     >
                       No selections yet
                     </div>
@@ -842,120 +855,123 @@ const ManualBooking = () => {
                         {Object.values(selectedSlots).flat().length} Slots
                       </span>
                     </div>
+                    <div className="mt-2">
+                      <p
+                        className="mb-2 tabel-title"
+                        style={{
+                          fontFamily: "Poppins",
+                          fontWeight: "600",
+                          color: "#374151",
+                        }}
+                      >
+                        User Information
+                      </p>
+                      <div className="d-flex gap-3 mb-3">
+                        <input
+                          type="text"
+                          className="form-control rounded-3 py-2 shadow-sm"
+                          placeholder="Name"
+                          style={{
+                            backgroundColor: "#CBD6FF7A",
+                            fontFamily: "Poppins",
+                            fontSize: "14px",
+                          }}
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                        />
+                        <input
+                          type="tel"
+                          className="form-control rounded-3 py-2 shadow-sm"
+                          placeholder="Phone Number"
+                          style={{
+                            backgroundColor: "#CBD6FF7A",
+                            fontFamily: "Poppins",
+                            fontSize: "14px",
+                          }}
+                          value={phone}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (
+                              value === "" ||
+                              /^[6-9][0-9]{0,9}$/.test(value)
+                            ) {
+                              setPhone(value);
+                            }
+                          }}
+                          maxLength={10}
+                          onKeyDown={(e) => {
+                            const allowedKeys = [
+                              "Backspace",
+                              "Tab",
+                              "ArrowLeft",
+                              "ArrowRight",
+                              "Delete",
+                            ];
+                            if (
+                              !allowedKeys.includes(e.key) &&
+                              !/^\d$/.test(e.key)
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="d-flex justify-content-end gap-3 align-items-end">
+                        <button
+                          className="btn btn-secondary rounded-pill p-2 shadow-sm"
+                          style={{
+                            minWidth: "120px",
+                            fontWeight: "500",
+                            fontFamily: "Poppins",
+                            fontSize: "14px",
+                          }}
+                          onClick={() => {
+                            setName("");
+                            setPhone("");
+                            setShowSuccess(false);
+                            clearLocalStorage();
+                            navigate(-1);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="btn text-white rounded-pill p-2 shadow-sm"
+                          style={{
+                            minWidth: "120px",
+                            fontWeight: "500",
+                            backgroundColor: "#22c55e",
+                            fontFamily: "Poppins",
+                            fontSize: "14px",
+                          }}
+                          onClick={handleConfirm}
+                        >
+                          {manualBookingLoading ? (
+                            <ButtonLoading color="white" size={12} />
+                          ) : (
+                            "Confirm"
+                          )}
+                        </button>
+                        <BookingSuccessModal
+                          show={showSuccess}
+                          handleClose={() => {
+                            setShowSuccess(false);
+                            clearLocalStorage();
+                          }}
+                          openDetails={() => {
+                            setShowSuccess(false);
+                            setShowDetails(true);
+                          }}
+                        />
+                        <BookingDetailsModal
+                          show={showDetails}
+                          handleClose={() => setShowDetails(false)}
+                          bookingDetails={bookingDetails}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
-                <div className="mt-2">
-                  <p
-                    className="mb-2 tabel-title"
-                    style={{
-                      fontFamily: "Poppins",
-                      fontWeight: "600",
-                      color: "#374151",
-                    }}
-                  >
-                    User Information
-                  </p>
-                  <div className="d-flex gap-3 mb-3">
-                    <input
-                      type="text"
-                      className="form-control rounded-3 py-2 shadow-sm"
-                      placeholder="Name"
-                      style={{
-                        backgroundColor: "#CBD6FF7A",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                    <input
-                      type="tel"
-                      className="form-control rounded-3 py-2 shadow-sm"
-                      placeholder="Phone Number"
-                      style={{
-                        backgroundColor: "#CBD6FF7A",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                      value={phone}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                          setPhone(value);
-                        }
-                      }}
-                      maxLength={10}
-                      onKeyDown={(e) => {
-                        const allowedKeys = [
-                          "Backspace",
-                          "Tab",
-                          "ArrowLeft",
-                          "ArrowRight",
-                          "Delete",
-                        ];
-                        if (
-                          !allowedKeys.includes(e.key) &&
-                          !/^\d$/.test(e.key)
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="d-flex justify-content-end gap-3 align-items-end">
-                    <button
-                      className="btn btn-secondary rounded-pill px-4 py-2 shadow-sm"
-                      style={{
-                        minWidth: "120px",
-                        fontWeight: "500",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                      onClick={() => {
-                        setName("");
-                        setPhone("");
-                        setShowSuccess(false);
-                        clearLocalStorage();
-                        navigate(-1);
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="btn text-white rounded-pill px-4 py-2 shadow-sm"
-                      style={{
-                        minWidth: "120px",
-                        fontWeight: "500",
-                        backgroundColor: "#22c55e",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                      onClick={handleConfirm}
-                    >
-                      {manualBookingLoading ? (
-                        <ButtonLoading size={12} />
-                      ) : (
-                        "Confirm"
-                      )}
-                    </button>
-                    <BookingSuccessModal
-                      show={showSuccess}
-                      handleClose={() => {
-                        setShowSuccess(false);
-                        clearLocalStorage();
-                      }}
-                      openDetails={() => {
-                        setShowSuccess(false);
-                        setShowDetails(true);
-                      }}
-                    />
-                    <BookingDetailsModal
-                      show={showDetails}
-                      handleClose={() => setShowDetails(false)}
-                      bookingDetails={bookingDetails}
-                    />
-                  </div>
-                </div>
               </div>
             </Col>
           </Row>
