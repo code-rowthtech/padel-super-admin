@@ -3,12 +3,14 @@ import {
   Button,
   Col,
   Container,
+  Form,
+  ListGroup,
   OverlayTrigger,
   Row,
   Tooltip,
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaArrowLeft, FaShoppingCart } from "react-icons/fa";
+import { FaArrowLeft, FaTrash, FaTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { BookingDetailsModal, BookingSuccessModal } from "./BookingModal";
 import {
@@ -25,6 +27,9 @@ import {
 } from "../../../../helpers/loading/Loaders";
 import { showError, showInfo } from "../../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
+import { format } from "date-fns";
+import "react-datepicker/dist/react-datepicker.css";
+
 const ManualBooking = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
@@ -36,8 +41,6 @@ const ManualBooking = () => {
     activeCourtsLoading,
     activeCourtsData,
   } = useSelector((state) => state.manualBooking);
-  const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
-  const courts = activeCourtsData?.[0]?.courts || [];
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -46,6 +49,8 @@ const ManualBooking = () => {
   const [phone, setPhone] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showUnavailable, setShowUnavailable] = useState(false);
+
   // Close on outside click
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -59,16 +64,14 @@ const ManualBooking = () => {
   }, []);
 
   const today = new Date();
-
   const dates = Array.from({ length: 41 }).map((_, i) => {
-    const date = new Date(today); // 🧠 create a fresh copy of today's date
-    date.setDate(date.getDate() + i); // ✅ safely add days
-
+    const date = new Date(today);
+    date.setDate(date.getDate() + i);
     return {
       day: date.toLocaleDateString("en-US", { weekday: "short" }),
       date: date.getDate(),
       month: date.toLocaleDateString("en-US", { month: "short" }),
-      fullDate: date.toISOString().split("T")[0], // e.g., 2025-08-05
+      fullDate: date.toISOString().split("T")[0],
     };
   });
 
@@ -81,15 +84,13 @@ const ManualBooking = () => {
     Fri: "Friday",
     Sat: "Saturday",
   };
-  const [selectedTimes, setSelectedTimes] = useState([]);
 
   const [selectedCourts, setSelectedCourts] = useState([]);
-
+  const [selectedSlots, setSelectedSlots] = useState({});
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [selectedDay, setSelectedDay] = useState(dayFullNames[dates[0]?.day]);
-
   const scrollRef = useRef(null);
   const selectedButtonRef = useRef(null);
 
@@ -101,19 +102,88 @@ const ManualBooking = () => {
       });
     }
   };
-  const toggleTime = (slot) => {
-    const exists = selectedTimes.some((t) => t._id === slot._id);
 
+  const courts = activeCourtsData?.[0]?.courts || [];
+  const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
+
+  const handleCourtSelect = (courtId) => {
+    setSelectedCourts(courtId ? [courtId] : []);
+  };
+
+  const toggleTime = (slot) => {
+    if (!selectedCourts[0]) {
+      showInfo("Please select a court first.");
+      return;
+    }
+
+    const courtId = selectedCourts[0];
+    const courtSlots = selectedSlots[courtId] || [];
+    const exists = courtSlots.some((t) => t._id === slot._id);
+
+    if (!exists) {
+      const totalSlots = Object.values(selectedSlots).flat().length;
+      if (totalSlots >= 15) {
+        showInfo("Maximum 15 slots can be selected at a time.");
+        return;
+      }
+    }
+
+    let newCourtSlots;
     if (exists) {
-      // Remove
-      setSelectedTimes(selectedTimes.filter((t) => t._id !== slot._id));
+      newCourtSlots = courtSlots.filter((t) => t._id !== slot._id);
     } else {
-      // Add
-      setSelectedTimes([...selectedTimes, slot]);
+      newCourtSlots = [...courtSlots, slot];
+    }
+
+    let newSelectedSlots;
+    if (newCourtSlots.length === 0) {
+      const { [courtId]: _, ...rest } = selectedSlots;
+      newSelectedSlots = rest;
+    } else {
+      newSelectedSlots = { ...selectedSlots, [courtId]: newCourtSlots };
+    }
+
+    setSelectedSlots(newSelectedSlots);
+  };
+
+  const removeSlot = (courtId, slotId) => {
+    const courtSlots = selectedSlots[courtId] || [];
+    const newCourtSlots = courtSlots.filter((t) => t._id !== slotId);
+
+    let newSelectedSlots;
+    if (newCourtSlots.length === 0) {
+      const { [courtId]: _, ...rest } = selectedSlots;
+      newSelectedSlots = rest;
+    } else {
+      newSelectedSlots = { ...selectedSlots, [courtId]: newCourtSlots };
+    }
+
+    setSelectedSlots(newSelectedSlots);
+  };
+
+  const clearLocalStorage = () => {
+    const key = `manual-booking-slots-${selectedDate}`;
+    localStorage.removeItem(key);
+    setSelectedSlots({});
+    setSelectedCourts([]);
+  };
+
+  const cleanOldLocalStorage = () => {
+    const today = new Date().setHours(0, 0, 0, 0);
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("manual-booking-slots-")) {
+        const dateStr = key.split("manual-booking-slots-")[1];
+        const itemDate = new Date(dateStr).setHours(0, 0, 0, 0);
+        if (itemDate <= today) {
+          localStorage.removeItem(key);
+        }
+      }
     }
   };
 
   useEffect(() => {
+    cleanOldLocalStorage();
     dispatch(getOwnerRegisteredClub({ ownerId: ownerId })).unwrap();
   }, []);
 
@@ -124,11 +194,63 @@ const ManualBooking = () => {
           register_club_id: ownerClubData?.[0]?._id,
           day: selectedDay,
           date: selectedDate,
-          courtId: selectedCourts?.[0],
+          courtId: selectedCourts[0],
         })
       );
     }
   }, [selectedDay, selectedDate, ownerClubData?.[0]?._id, selectedCourts]);
+
+  useEffect(() => {
+    if (courts?.length > 0 && selectedCourts.length === 0) {
+      setSelectedCourts([courts[0]._id]);
+    }
+  }, [courts]);
+
+  useEffect(() => {
+    const key = `manual-booking-slots-${selectedDate}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      const parsedSlots = JSON.parse(saved);
+      const totalSlots = Object.values(parsedSlots).flat().length;
+      if (totalSlots <= 15) {
+        setSelectedSlots(parsedSlots);
+      } else {
+        showInfo(
+          "Loaded slots exceed maximum limit of 15. Truncating selection."
+        );
+        const truncatedSlots = {};
+        let count = 0;
+        for (const [courtId, slots] of Object.entries(parsedSlots)) {
+          if (count >= 15) break;
+          const slotsToAdd = slots.slice(0, 15 - count);
+          if (slotsToAdd.length > 0) {
+            truncatedSlots[courtId] = slotsToAdd;
+            count += slotsToAdd.length;
+          }
+        }
+        setSelectedSlots(truncatedSlots);
+        localStorage.setItem(key, JSON.stringify(truncatedSlots));
+      }
+    } else {
+      setSelectedSlots({});
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    const key = `manual-booking-slots-${selectedDate}`;
+    localStorage.setItem(key, JSON.stringify(selectedSlots));
+  }, [selectedSlots, selectedDate]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      cleanOldLocalStorage();
+      const key = `manual-booking-slots-${selectedDate}`;
+      localStorage.removeItem(key);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [selectedDate]);
 
   useEffect(() => {
     if (selectedButtonRef.current && scrollRef.current) {
@@ -137,39 +259,15 @@ const ManualBooking = () => {
       const offsetLeft = selected.offsetLeft;
       const scrollWidth = container.clientWidth;
 
-      // Scroll so selected button is centered
       container.scrollTo({
         left: offsetLeft - scrollWidth / 1 + selected.offsetWidth / 2,
         behavior: "smooth",
       });
     }
-  }, [selectedDate]); // 👈 when selectedDate changes (calendar or click)
+  }, [selectedDate]);
 
-  // Allow only 40 days ahead from today
   const maxSelectableDate = new Date();
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
-
-  //   const handleCourtSelect = (courtId) => {
-  //     setSelectedCourts((prev) =>
-  //       prev.includes(courtId)
-  //         ? prev.filter((id) => id !== courtId)
-  //         : [...prev, courtId]
-  //     );
-  //   };
-  // const handleCourtSelect = (courtId) => {
-  //   setSelectedCourts((prev) => (prev.includes(courtId) ? [] : [courtId]));
-  // };
-  useEffect(() => {
-    if (courts?.length > 0 && selectedCourts.length === 0) {
-      setSelectedCourts([courts[0]._id]);
-    }
-  }, [courts, selectedCourts]);
-
-  // Handler
-  const handleCourtSelect = (courtId) => {
-    setSelectedCourts((prev) => (prev.includes(courtId) ? [] : [courtId]));
-  };
-  const court = courts?.find((c) => c._id === selectedCourts?.[0]);
 
   const handleConfirm = async () => {
     if (!name || !phone) {
@@ -177,26 +275,18 @@ const ManualBooking = () => {
       return;
     }
 
-    if (selectedCourts.length === 0) {
-      showInfo("Please select at least one court.");
-      return;
-    }
+    const slotsPayload = [];
+    Object.entries(selectedSlots).forEach(([courtId, times]) => {
+      const court = courts.find((c) => c._id === courtId);
+      const slotData = court?.slot?.[0];
+      const formattedBusinessHours =
+        slotData?.businessHours?.map((bh) => ({
+          time: bh.time,
+          day: bh.day,
+        })) || [];
 
-    if (selectedTimes.length === 0) {
-      showInfo("Please select at least one time slot.");
-      return;
-    }
-
-    try {
-      const slotsPayload = selectedTimes?.map((timeSlot) => {
-        const slotData = activeCourtsData?.[0]?.slot?.[0];
-        const formattedBusinessHours =
-          slotData?.businessHours?.map((bh) => ({
-            time: bh.time,
-            day: bh.day,
-          })) || [];
-
-        return {
+      times.forEach((timeSlot) => {
+        slotsPayload.push({
           slotId: timeSlot?._id,
           businessHours: formattedBusinessHours,
           slotTimes: [
@@ -206,11 +296,18 @@ const ManualBooking = () => {
             },
           ],
           courtName: court?.courtName,
-          courtId: court?._id || selectedCourts?.[0],
+          courtId: court?._id,
           bookingDate: new Date(selectedDate).toISOString(),
-        };
+        });
       });
+    });
 
+    if (slotsPayload.length === 0) {
+      showInfo("Please select at least one time slot for a court.");
+      return;
+    }
+
+    try {
       const payload = {
         slot: slotsPayload,
         register_club_id: ownerClubData?.[0]?._id,
@@ -218,7 +315,6 @@ const ManualBooking = () => {
         name: name,
         ownerId: Owner?._id,
       };
-      // Dispatch the API call
       await dispatch(manualBookingByOwner(payload))
         .unwrap()
         .then((res) => {
@@ -226,12 +322,12 @@ const ManualBooking = () => {
           dispatch(getBookingDetailsById({ id }));
         });
 
-      // On success
       setShowSuccess(true);
       setName("");
       setPhone("");
+      setSelectedSlots({});
       setSelectedCourts([]);
-      setSelectedTimes([]);
+      localStorage.removeItem(`manual-booking-slots-${selectedDate}`);
     } catch (error) {
       console.log("Booking failed:", error);
     }
@@ -246,11 +342,15 @@ const ManualBooking = () => {
         <Loading />
       ) : (
         <Container className="p-0" fluid>
-          <Row>
+          <Row className="mb-3">
             <Col md={6}>
               <h5
                 className="manual-heading"
-                style={{ fontFamily: "Poppins", fontWeight: "600" }}
+                style={{
+                  fontFamily: "Poppins",
+                  fontWeight: "700",
+                  color: "#374151",
+                }}
               >
                 Manual Booking
               </h5>
@@ -258,23 +358,70 @@ const ManualBooking = () => {
             <Col md={6} className="text-end">
               <Button
                 className="bg-transparent border-0"
-                onClick={() => navigate("/admin/booking")}
+                onClick={() => {
+                  clearLocalStorage();
+                  navigate("/admin/booking");
+                }}
                 style={{
                   color: "#1F41BB",
-                  fontSize: "20px",
+                  fontSize: "18px",
                   fontWeight: "600",
                   fontFamily: "Poppins",
                 }}
               >
-                {" "}
-                <FaArrowLeft /> Back
+                <FaArrowLeft className="me-2" /> Back
               </Button>
             </Col>
           </Row>
-          <Row className="mx-auto bg-white">
-            <Col md={8} className="pt-3 rounded-3 px-4">
+          <Row className="mx-auto bg-white shadow-sm rounded-3">
+            <Col md={8} className="pt-4 px-4">
+              {/* Court Selector */}
+              <div className="mb-4">
+                <div
+                  className="tabel-title mb-2"
+                  style={{
+                    fontFamily: "Poppins",
+                    fontWeight: "600",
+                    color: "#374151",
+                  }}
+                >
+                  Select Court
+                </div>
+                <div className="d-flex flex-wrap gap-2 mb-3">
+                  {courts?.map((court) => (
+                    <button
+                      key={court._id}
+                      type="button"
+                      onClick={() => handleCourtSelect(court._id)}
+                      className="btn py-2 shadow-sm"
+                      style={{
+                        borderRadius: "12px",
+                        minWidth: "110px",
+                        transition: "all 0.2s ease-in-out",
+                        backgroundColor: selectedCourts?.includes(court._id)
+                          ? "#374151"
+                          : "#F3F4F6",
+                        color: selectedCourts?.includes(court._id)
+                          ? "#FFFFFF"
+                          : "#000000",
+                        fontWeight: selectedCourts?.includes(court._id)
+                          ? "600"
+                          : "400",
+                        border: selectedCourts?.includes(court._id)
+                          ? "2px solid #374151"
+                          : "1px solid #ccd2d9ff",
+                        fontFamily: "Poppins",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {court.courtName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Date Selector */}
-              <div className="calendar-strip ">
+              <div className="calendar-strip">
                 <div
                   className="tabel-title mb-3"
                   style={{
@@ -283,23 +430,26 @@ const ManualBooking = () => {
                     color: "#374151",
                   }}
                 >
-                  Select Date{" "}
+                  Select Date
                   <div
                     className="position-relative d-inline-block"
                     ref={wrapperRef}
                   >
                     <span
-                      className="rounded-circle p-2 ms-2 shadow-sm bg-light"
-                      style={{ cursor: "pointer" }}
+                      className="rounded px-1 ms-2 shadow-sm"
+                      style={{
+                        cursor: "pointer",
+                        width: "26px",
+                        height: "26px",
+                        backgroundColor: "rgb(229, 233, 236)",
+                      }}
                       onClick={() => setIsOpen(!isOpen)}
                     >
                       <i
                         className="bi bi-calendar2-week"
-                        style={{ fontSize: "18px" }}
+                        style={{ width: "14px", height: "16px" }}
                       ></i>
                     </span>
-
-                    {/* Calendar */}
                     {isOpen && (
                       <div
                         className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
@@ -309,23 +459,17 @@ const ManualBooking = () => {
                           selected={startDate}
                           onChange={(date) => {
                             setStartDate(date);
-
                             const iso = date.toISOString().split("T")[0];
                             setSelectedDate(iso);
-
                             const dayName = date.toLocaleDateString("en-US", {
                               weekday: "short",
                             });
                             setSelectedDay(dayFullNames[dayName]);
-
                             setIsOpen(false);
-                            setSelectedTimes([]); // clear selected slots
                           }}
                           minDate={new Date()}
                           maxDate={maxSelectableDate}
                           inline
-                          // showMonthDropdown
-                          // showYearDropdown
                           dropdownMode="select"
                           calendarClassName="custom-calendar w-100 shadow-sm"
                         />
@@ -333,15 +477,13 @@ const ManualBooking = () => {
                     )}
                   </div>
                 </div>
-                {/* DATE HORIZONTAL SCROLLER */}
-                <div className="d-flex align-items-center w-100 p-0 gap-2 mb-3">
+                <div className="d-flex align-items-center w-100 p-0 gap-2 mb-4">
                   <button
-                    className="btn btn-light p-0"
+                    className="btn btn-light p-2 shadow-sm"
                     onClick={() => scroll("left")}
                   >
                     <i className="bi bi-chevron-left"></i>
                   </button>
-
                   <div
                     ref={scrollRef}
                     className="d-flex gap-2"
@@ -354,33 +496,33 @@ const ManualBooking = () => {
                   >
                     {dates?.map((d, i) => {
                       const isSelected = selectedDate === d.fullDate;
-
                       return (
                         <button
                           key={i}
                           ref={isSelected ? selectedButtonRef : null}
-                          className={`calendar-day-btn border px-3 py-2 rounded ${
+                          className={`calendar-day-btn border px-3 py-2 rounded shadow-sm ${
                             isSelected ? "text-white" : "bg-light text-dark"
                           }`}
                           style={{
                             backgroundColor: isSelected ? "#374151" : undefined,
                             border: "none",
                             minWidth: "85px",
+                            transition: "all 0.2s ease",
+                            fontFamily: "Poppins",
                           }}
                           onClick={() => {
                             setSelectedDate(d.fullDate);
                             setSelectedDay(dayFullNames[d.day]);
-                            setSelectedTimes([]);
                           }}
                         >
-                          <div className="text-center pb-3">
+                          <div className="text-center pb-2">
                             <div
                               style={{ fontSize: "14px", fontWeight: "400" }}
                             >
                               {d.day}
                             </div>
                             <div
-                              style={{ fontSize: "26px", fontWeight: "500" }}
+                              style={{ fontSize: "24px", fontWeight: "600" }}
                             >
                               {d.date}
                             </div>
@@ -394,9 +536,8 @@ const ManualBooking = () => {
                       );
                     })}
                   </div>
-
                   <button
-                    className="btn btn-light p-0"
+                    className="btn btn-light p-2 shadow-sm"
                     onClick={() => scroll("right")}
                   >
                     <i className="bi bi-chevron-right"></i>
@@ -405,7 +546,6 @@ const ManualBooking = () => {
               </div>
 
               {/* Time Selector */}
-
               <div className="d-flex justify-content-between align-items-center py-2">
                 <p
                   className="mb-3 tabel-title"
@@ -416,24 +556,26 @@ const ManualBooking = () => {
                   }}
                 >
                   Available Slots
-                  {/* <span className="fs-6">(60m)</span> */}
+                  <span className="fs-6 text-muted">(60m)</span>
                 </p>
-                {/* <div className="form-switch d-flex align-items-center gap-2 p-0">
+                <div className="form-switch d-flex align-items-center gap-2 p-0">
                   <input
                     className="form-check-input fs-5 mb-1"
                     type="checkbox"
                     role="switch"
                     id="flexSwitchCheckDefault"
                     style={{ boxShadow: "none" }}
+                    checked={showUnavailable}
+                    onChange={(e) => setShowUnavailable(e.target.checked)}
                   />
                   <label
                     className="table-data text-dark mb-0"
                     htmlFor="flexSwitchCheckDefault"
-                    style={{ whiteSpace: "nowrap" }}
+                    style={{ whiteSpace: "nowrap", fontSize: "14px" }}
                   >
                     Show Unavailable Slots
                   </label>
-                </div> */}
+                </div>
               </div>
               {activeCourtsLoading ? (
                 <DataLoading height="10vh" />
@@ -442,258 +584,394 @@ const ManualBooking = () => {
                   {slotTimes?.length === 0 ? (
                     <div
                       className="d-flex text-danger justify-content-center align-items-center w-100"
-                      style={{ height: "20vh" }}
+                      style={{ height: "20vh", fontFamily: "Poppins" }}
                     >
                       No slots available
                     </div>
                   ) : (
                     <>
-                      {slotTimes?.map((slot, i) => {
-                        const slotDate = new Date(selectedDate);
-                        const [hourString, period] = slot?.time
-                          ?.toLowerCase()
-                          .split(" ");
-                        let hour = parseInt(hourString);
+                      {(() => {
+                        const filteredSlots = slotTimes
+                          .map((slot) => {
+                            const slotDate = new Date(selectedDate);
+                            const [hourString, period] = slot?.time
+                              ?.toLowerCase()
+                              .split(" ");
+                            let hour = parseInt(hourString);
+                            if (period === "pm" && hour !== 12) hour += 12;
+                            if (period === "am" && hour === 12) hour = 0;
+                            slotDate.setHours(hour, 0, 0, 0);
 
-                        if (period === "pm" && hour !== 12) hour += 12;
-                        if (period === "am" && hour === 12) hour = 0;
-                        slotDate.setHours(hour, 0, 0, 0);
+                            const now = new Date();
+                            const isSameDay =
+                              slotDate.toDateString() === now.toDateString();
+                            const isPast =
+                              isSameDay && slotDate.getTime() < now.getTime();
+                            const courtSelectedSlots =
+                              selectedSlots[selectedCourts[0]] || [];
+                            const isSelected = courtSelectedSlots.some(
+                              (t) => t._id === slot._id
+                            );
+                            const isBooked = slot?.status === "booked";
+                            const isAvailable =
+                              slot?.availabilityStatus === "available";
+                            const hasAmount =
+                              slot?.amount && slot?.amount !== 0;
 
-                        const now = new Date();
-                        const isSameDay =
-                          slotDate.toDateString() === now.toDateString();
-                        const isPast =
-                          isSameDay && slotDate.getTime() < now.getTime();
+                            return {
+                              slot,
+                              isPast,
+                              isSelected,
+                              isBooked,
+                              isAvailable,
+                              hasAmount,
+                            };
+                          })
+                          .filter(
+                            ({ isPast, isBooked, isAvailable, hasAmount }) => {
+                              return (
+                                showUnavailable ||
+                                (isAvailable &&
+                                  hasAmount &&
+                                  !isBooked &&
+                                  !isPast)
+                              );
+                            }
+                          );
 
-                        const isSelected = selectedTimes.some(
-                          (t) => t._id === slot._id
-                        );
-                        const isBooked = slot?.status === "booked";
-                        const isAvailable =
-                          slot?.availabilityStatus === "available";
-                        const hasAmount = slot?.amount && slot?.amount !== 0;
+                        if (filteredSlots.length === 0) {
+                          return (
+                            <div
+                              className="d-flex text-danger justify-content-center align-items-center w-100"
+                              style={{ height: "20vh", fontFamily: "Poppins" }}
+                            >
+                              No slots available
+                            </div>
+                          );
+                        }
 
-                        // ✅ Decide tooltip text
-                        let tooltipText = "";
-                        if (!hasAmount) tooltipText = "Amount not available";
-                        else if (isBooked) tooltipText = "Booked";
-                        else if (isPast)
-                          tooltipText = "Cannot book slot in past hours";
-                        else if (!isAvailable) tooltipText = "Unavailable";
-                        else tooltipText = "Book Now";
+                        return filteredSlots.map(
+                          (
+                            {
+                              slot,
+                              isPast,
+                              isSelected,
+                              isBooked,
+                              isAvailable,
+                              hasAmount,
+                            },
+                            i
+                          ) => {
+                            let tooltipText = "";
+                            if (!hasAmount)
+                              tooltipText = "Amount not available";
+                            else if (isBooked) tooltipText = "Booked";
+                            else if (isPast)
+                              tooltipText = "Cannot book slot in past hours";
+                            else if (!isAvailable) tooltipText = "Unavailable";
+                            else tooltipText = "Book Now";
 
-                        return (
-                          <OverlayTrigger
-                            key={i}
-                            placement="top"
-                            overlay={<Tooltip>{tooltipText}</Tooltip>}
-                          >
-                            <span className="d-inline-block">
-                              <button
-                                className={`btn border-0 rounded-pill table-data px-4 ${
-                                  isBooked
-                                    ? "bg-danger text-white"
-                                    : isPast
-                                    ? "bg-secondary-subtle"
-                                    : !isAvailable || !hasAmount
-                                    ? "bg-warning-subtle"
-                                    : ""
-                                }`}
-                                onClick={() => toggleTime(slot)}
-                                disabled={isPast || isBooked || !hasAmount}
-                                style={{
-                                  backgroundColor: isSelected
-                                    ? "#374151"
-                                    : "#7df97a3d",
-                                  color: isSelected ? "white" : "#000000",
-                                  cursor: !hasAmount
-                                    ? "not-allowed"
-                                    : "pointer",
-                                }}
+                            const buttonEl = (
+                              <span className="d-inline-block">
+                                <button
+                                  className={`btn border-0 rounded-pill table-data px-4 py-1 shadow-sm ${
+                                    isBooked
+                                      ? "bg-danger text-white"
+                                      : isPast
+                                      ? "bg-secondary-subtle"
+                                      : !isAvailable || !hasAmount
+                                      ? "bg-warning-subtle"
+                                      : ""
+                                  }`}
+                                  onClick={() => toggleTime(slot)}
+                                  disabled={
+                                    isPast ||
+                                    isBooked ||
+                                    !hasAmount ||
+                                    !isAvailable
+                                  }
+                                  style={{
+                                    backgroundColor: isSelected
+                                      ? "#374151"
+                                      : "#7df97a3d",
+                                    color: isSelected ? "white" : "#000000",
+                                    cursor: !hasAmount
+                                      ? "not-allowed"
+                                      : "pointer",
+                                    fontFamily: "Poppins",
+                                    fontSize: "14px",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                >
+                                  {isBooked ? "Booked" : slot?.time}
+                                </button>
+                              </span>
+                            );
+
+                            if (isSelected || isBooked) {
+                              return <div key={i}>{buttonEl}</div>;
+                            }
+
+                            return (
+                              <OverlayTrigger
+                                key={i}
+                                placement="top"
+                                overlay={<Tooltip>{tooltipText}</Tooltip>}
                               >
-                                {isBooked ? "Booked" : slot?.time}
-                              </button>
-                            </span>
-                          </OverlayTrigger>
+                                {buttonEl}
+                              </OverlayTrigger>
+                            );
+                          }
                         );
-                      })}
+                      })()}
                     </>
                   )}
                 </div>
               )}
             </Col>
-            <Col md={4}>
+            <Col md={4} className="p-4">
               <div
-                className="mt-4 tabel-title"
-                style={{
-                  fontFamily: "Poppins",
-                  fontWeight: "600",
-                  color: "#374151",
-                }}
+                className="shadow rounded-3 p-3 bg-white"
+                style={{ minHeight: "50vh" }}
               >
-                Available Court
-              </div>
-              <div style={{ maxHeight: "30vh", overflow: "auto" }}>
-                <div className="d-flex justify-content-between align-items-center pt-3"></div>
-                <div className="bg-white px-3">
-                  {/* {activeCourtsLoading ? (
-                    <DataLoading height="30vh" />
-                  ) : (
-                    <></>
-                  )} */}
-                  {courts?.length === 0 ? (
-                    <div
-                      className="d-flex text-danger justify-content-center align-items-center w-100"
-                      style={{ height: "20vh" }}
-                    >
-                      No courts available
-                    </div>
-                  ) : (
-                    <>
-                      {courts?.map((court) => (
-                        <div
-                          key={court._id}
-                          className={`d-flex justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
-                            selectedCourts?.includes(court?._id)
-                              ? "bg-success-subtle rounded-pill"
-                              : ""
-                          }`}
-                          onClick={() => handleCourtSelect(court?._id)}
-                        >
-                          {/* Left Image & Text */}
-                          <div className="d-flex align-items-center gap-3">
-                            {/* <img
-                                                src={court.image}
-                                                alt={court.courtName}
-                                                style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover" }}
-                                            /> */}
-                            <div>
-                              <div className="fw-semibold">
-                                {court.courtName}
-                              </div>
-                              {/* <small className="text-muted">{court.type}</small> */}
-                            </div>
-                          </div>
-
-                          {/* Price and Cart Icon */}
-                          <div className="d-flex align-items-center gap-3">
-                            <div
-                              className="fw-semibold"
-                              style={{ fontSize: "20px", fontWeight: "500" }}
-                            >
-                              {/* ₹{court.price} */}
-                            </div>
-                            <button
-                              className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
-                              style={{ width: "32px", height: "32px" }}
-                            >
-                              <FaShoppingCart size={14} color="white" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
-              </div>
-              <div className="mt-3 p-3">
-                <p
-                  className="mb-2 tabel-title"
+                <div
+                  className="tabel-title d-flex justify-content-between align-items-center mb-3"
                   style={{
                     fontFamily: "Poppins",
                     fontWeight: "600",
                     color: "#374151",
                   }}
                 >
-                  User Information
-                </p>
-                <div className="d-flex gap-3 mb-3">
-                  <input
-                    type="text"
-                    className="form-control rounded-3 py-2"
-                    placeholder="Name"
-                    style={{ backgroundColor: "#CBD6FF7A" }}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <input
-                    type="tel"
-                    className="form-control rounded-3 py-2"
-                    placeholder="Phone Number"
-                    style={{ backgroundColor: "#CBD6FF7A" }}
-                    value={phone}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                        setPhone(value);
-                      }
-                    }}
-                    maxLength={10}
-                    onKeyDown={(e) => {
-                      const allowedKeys = [
-                        "Backspace",
-                        "Tab",
-                        "ArrowLeft",
-                        "ArrowRight",
-                        "Delete", // control keys
-                      ];
-                      if (
-                        !allowedKeys.includes(e.key) &&
-                        !/^\d$/.test(e.key) // allow only 0–9 digits
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                  />
+                  Selected Bookings
+                  {Object.entries(selectedSlots).length > 0 && (
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      className="rounded-pill"
+                      onClick={clearLocalStorage}
+                      style={{ fontSize: "12px", padding: "4px 10px" }}
+                    >
+                      Clear Cart
+                    </Button>
+                  )}
                 </div>
-
-                <div className="d-flex justify-content-end gap-4 align-items-end">
-                  <button
-                    className="btn btn-secondary rounded-pill px-4 py-2"
-                    style={{ minWidth: "120px", fontWeight: "500" }}
-                    onClick={() => {
-                      setName("");
-                      setPhone("");
-                      setShowSuccess(false);
-                      navigate(-1);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="btn text-white rounded-pill px-4 py-2"
-                    style={{
-                      minWidth: "120px",
-                      fontWeight: "500",
-                      backgroundColor: "#22c55e",
-                    }}
-                    onClick={handleConfirm}
-                  >
-                    {manualBookingLoading ? (
-                      <ButtonLoading size={12} />
-                    ) : (
-                      "Confirm"
-                    )}
-                  </button>
-
-                  <BookingSuccessModal
-                    show={showSuccess}
-                    handleClose={() => {
-                      setShowSuccess(false);
-                      // navigate(-1);
-                    }}
-                    openDetails={() => {
-                      setShowSuccess(false);
-                      setShowDetails(true);
-                    }}
-                  />
-
-                  <BookingDetailsModal
-                    show={showDetails}
-                    handleClose={() => setShowDetails(false)}
-                    bookingDetails={bookingDetails}
-                  />
+                <div
+                  style={{
+                    height: "26vh",
+                    overflowY: "auto",
+                    fontFamily: "Poppins",
+                    fontSize: "14px",
+                  }}
+                >
+                  {Object.entries(selectedSlots).length === 0 ? (
+                    <div
+                      className="d-flex text-muted justify-content-center align-items-center"
+                      style={{ height: "26vh" }}
+                    >
+                      No selections yet
+                    </div>
+                  ) : (
+                    <ListGroup variant="flush">
+                      {Object.entries(selectedSlots).map(([courtId, slots]) => {
+                        const court = courts.find((c) => c._id === courtId);
+                        return (
+                          <React.Fragment key={courtId}>
+                            <ListGroup.Item
+                              variant="secondary"
+                              className="fw-bold fs-6 py-1 bg-light rounded-top"
+                              style={{ fontFamily: "Poppins" }}
+                            >
+                              <div className="d-flex justify-content-between">
+                                <span>{court?.courtName}</span>
+                                <span>
+                                  {format(
+                                    new Date(selectedDate),
+                                    "EEE, dd/MM/yyyy"
+                                  )}
+                                </span>
+                              </div>
+                            </ListGroup.Item>
+                            {slots.map((slot) => (
+                              <ListGroup.Item
+                                key={slot._id}
+                                className="d-flex justify-content-between align-items-center py-1 px-2 fs-6"
+                                style={{
+                                  fontFamily: "Poppins",
+                                  transition: "all 0.2s ease",
+                                }}
+                              >
+                                <span style={{ fontSize: "14px" }}>
+                                  {slot.time}
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                  }}
+                                >
+                                  ₹{slot.amount}
+                                </span>
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  className="px-1 py-0 border-0"
+                                  onClick={() => removeSlot(courtId, slot._id)}
+                                >
+                                  <FaTrash size={12} />
+                                </Button>
+                              </ListGroup.Item>
+                            ))}
+                          </React.Fragment>
+                        );
+                      })}
+                    </ListGroup>
+                  )}
                 </div>
+                {Object.values(selectedSlots).flat().length > 0 && (
+                  <div className="mt-2 p-2 rounded shadow-sm bg-light">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span
+                        style={{
+                          fontWeight: "600",
+                          fontFamily: "Poppins",
+                          fontSize: "15px",
+                        }}
+                      >
+                        Total Amount
+                      </span>
+                      <span
+                        style={{
+                          fontWeight: "700",
+                          fontSize: "16px",
+                          color: "#1F41BB",
+                        }}
+                      >
+                        ₹
+                        {Object.values(selectedSlots)
+                          .flat()
+                          .reduce((acc, s) => acc + (s.amount || 0), 0)}
+                      </span>
+                      <span style={{ fontSize: "14px", color: "#374151" }}>
+                        {Object.values(selectedSlots).flat().length} Slots
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <p
+                        className="mb-2 tabel-title"
+                        style={{
+                          fontFamily: "Poppins",
+                          fontWeight: "600",
+                          color: "#374151",
+                        }}
+                      >
+                        User Information
+                      </p>
+                      <div className="d-flex gap-3 mb-3">
+                        <input
+                          type="text"
+                          className="form-control rounded-3 py-2 shadow-sm"
+                          placeholder="Name"
+                          style={{
+                            backgroundColor: "#CBD6FF7A",
+                            fontFamily: "Poppins",
+                            fontSize: "14px",
+                          }}
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                        />
+                        <input
+                          type="tel"
+                          className="form-control rounded-3 py-2 shadow-sm"
+                          placeholder="Phone Number"
+                          style={{
+                            backgroundColor: "#CBD6FF7A",
+                            fontFamily: "Poppins",
+                            fontSize: "14px",
+                          }}
+                          value={phone}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (
+                              value === "" ||
+                              /^[6-9][0-9]{0,9}$/.test(value)
+                            ) {
+                              setPhone(value);
+                            }
+                          }}
+                          maxLength={10}
+                          onKeyDown={(e) => {
+                            const allowedKeys = [
+                              "Backspace",
+                              "Tab",
+                              "ArrowLeft",
+                              "ArrowRight",
+                              "Delete",
+                            ];
+                            if (
+                              !allowedKeys.includes(e.key) &&
+                              !/^\d$/.test(e.key)
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="d-flex justify-content-end gap-3 align-items-end">
+                        <button
+                          className="btn btn-secondary rounded-pill p-2 shadow-sm"
+                          style={{
+                            minWidth: "120px",
+                            fontWeight: "500",
+                            fontFamily: "Poppins",
+                            fontSize: "14px",
+                          }}
+                          onClick={() => {
+                            setName("");
+                            setPhone("");
+                            setShowSuccess(false);
+                            clearLocalStorage();
+                            navigate(-1);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="btn text-white rounded-pill p-2 shadow-sm"
+                          style={{
+                            minWidth: "120px",
+                            fontWeight: "500",
+                            backgroundColor: "#22c55e",
+                            fontFamily: "Poppins",
+                            fontSize: "14px",
+                          }}
+                          onClick={handleConfirm}
+                        >
+                          {manualBookingLoading ? (
+                            <ButtonLoading color="white" size={12} />
+                          ) : (
+                            "Confirm"
+                          )}
+                        </button>
+                        <BookingSuccessModal
+                          show={showSuccess}
+                          handleClose={() => {
+                            setShowSuccess(false);
+                            clearLocalStorage();
+                          }}
+                          openDetails={() => {
+                            setShowSuccess(false);
+                            setShowDetails(true);
+                          }}
+                        />
+                        <BookingDetailsModal
+                          show={showDetails}
+                          handleClose={() => setShowDetails(false)}
+                          bookingDetails={bookingDetails}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </Col>
           </Row>

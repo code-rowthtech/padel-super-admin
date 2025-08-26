@@ -3,7 +3,7 @@ import {
   createSlot,
   getSlots,
   registerClub,
-  updatePrice,
+  updateCourt,
   updateRegisteredClub,
 } from "./thunk";
 
@@ -75,15 +75,15 @@ const clubSlice = createSlice({
       state.clubError = action.payload;
     });
     //  -----------------------------------------------------//---- update court price
-    builder.addCase(updatePrice.pending, (state) => {
+    builder.addCase(updateCourt.pending, (state) => {
       state.updateClubLoading = true;
       state.updateClubError = null;
     });
-    builder.addCase(updatePrice.fulfilled, (state, action) => {
+    builder.addCase(updateCourt.fulfilled, (state, action) => {
       state.updateClubLoading = false;
       state.updateCourtData = action.payload;
     });
-    builder.addCase(updatePrice.rejected, (state, action) => {
+    builder.addCase(updateCourt.rejected, (state, action) => {
       state.updateClubLoading = false;
       state.updateClubError = action.payload;
     });

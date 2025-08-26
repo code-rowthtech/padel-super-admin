@@ -219,7 +219,11 @@ const SignUpPage = () => {
               fontSize: "16px",
             }}
           >
-            {authLoading ? <ButtonLoading size={12} /> : "Create Account"}
+            {authLoading ? (
+              <ButtonLoading color="white" size={12} />
+            ) : (
+              "Create Account"
+            )}
           </Button>
         </Form>
 
