@@ -1,14 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import { Link } from "react-router-dom";
-import { logo, player, padal, club } from "../../../assets/files";
+import { player, padal, club } from "../../../assets/files"; // Assuming padal is for padel icon
+import { useDispatch, useSelector } from "react-redux";
+import { getMatchesUser } from "../../../redux/user/matches/thunk";
+import { DataLoading } from "../../../helpers/loading/Loaders";
+import { Avatar } from "@mui/material";
+import { getUserClub } from "../../../redux/user/club/thunk";
+import { MdOutlineDateRange } from "react-icons/md";
+import { NewPlayers } from "./NewPlayers";
 
-const VeiwMatch = ({ className = "" }) => {
-    const [selectedTime, setSelectedTime] = useState("09:00am");
+const ViewMatch = ({ className = "" }) => {
+    const [selectedTime, setSelectedTime] = useState("8:00am");
     const [selectedCourts, setSelectedCourts] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState("22 Jun");
     const [selectedPayment, setSelectedPayment] = useState("");
-
+    const [showAddMeForm, setShowAddMeForm] = useState(false);
+    const [activeSlot, setActiveSlot] = useState(null);
+    const dispatch = useDispatch();
+    const matchesData = useSelector((state) => state.userMatches?.usersData);
+    const userLoading = useSelector((state) => state.userMatches?.usersLoading);
+    const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || []);
+    const logo = JSON.parse(localStorage.getItem("logo"));
     const today = new Date();
     const dates = Array.from({ length: 7 }).map((_, i) => {
         const date = new Date();
@@ -91,8 +104,26 @@ const VeiwMatch = ({ className = "" }) => {
         date: "22 Jun",
     };
 
+    useEffect(() => {
+        dispatch(getMatchesUser())
+        dispatch(getUserClub({ search: "" }))
+    }, [dispatch])
+
+
+    const skillLabels = ["A/B", "B/C", "C/D", "D/E"];
+
+    const handleAddMeClick = (slot) => {
+        if (activeSlot === slot && showAddMeForm) {
+            setShowAddMeForm(false);
+            setActiveSlot(null);
+        } else {
+            setShowAddMeForm(true);
+            setActiveSlot(slot);
+        }
+    };
+
     return (
-        <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
+        <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
             <div className="row w-100">
                 {/* Left Section */}
                 <div
@@ -138,7 +169,7 @@ const VeiwMatch = ({ className = "" }) => {
                                 className="text-muted"
                                 style={{ fontWeight: "500" }}
                             >
-                                21 June | 9:00am – 10:00am
+                                22 June | 8:00am – 10:00am
                             </small>
                         </div>
                         <div className="row text-center border-top">
@@ -148,7 +179,7 @@ const VeiwMatch = ({ className = "" }) => {
                             </div>
                             <div className="col border-start border-end py-3">
                                 <p className="mb-1 text-muted small">Level</p>
-                                <p className="mb-0 fw-semibold">0.92–0.132</p>
+                                <p className="mb-0 fw-semibold">Open Match</p>
                             </div>
                             <div className="col py-3">
                                 <p className="mb-1 text-muted small">Price</p>
@@ -182,73 +213,151 @@ const VeiwMatch = ({ className = "" }) => {
                         >
                             Players
                         </h6>
-                        <div className="d-flex justify-content-between align-items-start">
-                            <div className="col-6 d-flex gap-3 align-items-center justify-content-center">
-                                <div className="text-center mx-auto">
-                                    <img
-                                        src="https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80"
-                                        className="rounded-circle border"
-                                        style={{ width: 80, height: 80 }}
-                                        alt="Courtney"
-                                    />
-                                    <p className="mb-0 mt-2 fw-semibold">Courtney Henry</p>
-                                    <span className="badge bg-success-subtle text-success">
-                                        A/B
-                                    </span>
-                                </div>
-                                <div className="d-flex flex-column align-items-center justify-content-center mx-auto">
-                                    <div
-                                        className="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center"
-                                        style={{ width: 80, height: 80 }}
-                                    >
-                                        <span>DL</span>
+
+                        {userLoading ? <DataLoading /> : (
+                            <>
+                                <div className="row mx-auto">
+
+                                    {/* Team A */}
+                                    <div className="col-6 d-flex gap-3  justify-content-center">
+                                        {(() => {
+                                            const players = matchesData?.data?.flatMap((m) => m.players || []) || [];
+
+                                            // पहले 2 Player Team A में
+                                            const leftPlayers = players.slice(0, 2);
+                                            const leftComponents = [];
+
+                                            leftPlayers.forEach((player, idx) => {
+                                                leftComponents.push(
+                                                    <div key={`left-${idx}`} className="text-center mx-auto mb-3">
+                                                        <div
+                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: 80, height: 80,
+                                                                backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
+                                                                overflow: "hidden"
+                                                            }}
+                                                        >
+                                                            {player.profilePic ? (
+                                                                <img src={player.profilePic} alt="player"
+                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                            ) : (
+                                                                <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
+                                                                    {player.userId?.name ? player.userId.name.charAt(0).toUpperCase() : "U"}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold">{player.userId?.name.charAt().toUpperCase(1) + player?.userId?.name?.slice(1) || "Unknown"}</p>
+                                                        <span className="badge bg-success-subtle text-success">
+                                                            {skillLabels[idx]}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            });
+
+                                            // अगर player 2 से कम हैं तो "Add Me" दिखाना
+                                            while (leftComponents.length < 2) {
+                                                leftComponents.push(
+                                                    <div key={`left-add-${leftComponents.length}`} className="text-center mx-auto"
+                                                        onClick={() => handleAddMeClick("slot-1")}
+                                                        style={{ cursor: "pointer" }}>
+                                                        <div
+                                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                                            style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
+                                                        >
+                                                            <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>Add Me</p>
+                                                    </div>
+                                                );
+                                            }
+
+                                            return leftComponents;
+                                        })()}
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold">Devon Lane</p>
-                                    <span className="badge bg-success-subtle text-success">
-                                        B/C
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="col-6 d-flex gap-3 align-items-start justify-content-center border-start">
-                                <div className="text-center mx-auto">
-                                    <div
-                                        className="rounded-circle d-flex align-items-center justify-content-center"
-                                        style={{ width: 80, height: 80, border: "1px solid #1F41BB", cursor: "pointer" }}
-                                    >
-                                        <span className="fs-3" style={{ color: "#1F41BB" }}>
-                                            +
-                                        </span>
+
+                                    {/* Team B */}
+                                    <div className="col-6 d-flex gap-3 align-items-start justify-content-center border-start">
+                                        {(() => {
+                                            const players = matchesData?.data?.flatMap((m) => m.players || []) || [];
+
+                                            // 3rd और 4th player Team B में
+                                            const rightPlayers = players.slice(2, 4);
+                                            const rightComponents = [];
+
+                                            rightPlayers.forEach((player, idx) => {
+                                                rightComponents.push(
+                                                    <div key={`right-${idx}`} className="text-center mx-auto mb-3">
+                                                        <div
+                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: 80, height: 80,
+                                                                backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
+                                                                overflow: "hidden"
+                                                            }}
+                                                        >
+                                                            {player.profilePic ? (
+                                                                <img src={player.profilePic} alt="player"
+                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                            ) : (
+                                                                <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
+                                                                    {player.userId?.name ? player.userId.name.charAt(0).toUpperCase() : "U"}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold">{player.userId?.name.charAt().toUpperCase(1) + player?.userId?.name?.slice(1) || "Unknown"}</p>
+                                                        <span className="badge bg-success-subtle text-success">
+                                                            {skillLabels[idx + 2]}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            });
+
+                                            // बचे हुए slots भरना
+                                            const remaining = 2 - rightPlayers.length;
+                                            if (remaining > 0) {
+                                                rightComponents.push(
+                                                    <div key="right-add" className="text-center mx-auto"
+                                                        onClick={() => handleAddMeClick("slot-1")}
+                                                        style={{ cursor: "pointer" }}>
+                                                        <div
+                                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                                            style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
+                                                        >
+                                                            <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>Add Me</p>
+                                                    </div>
+                                                );
+                                            }
+                                            if (remaining === 2) {
+                                                rightComponents.push(
+                                                    <div key="right-gray" className="d-flex flex-column align-items-center justify-content-center mx-auto">
+                                                        <div
+                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                            style={{ width: 80, height: 80, cursor: "not-allowed" }}
+                                                        >
+                                                            <span className="fs-3" style={{ color: "gray" }}>+</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            return rightComponents;
+                                        })()}
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>
-                                        Add Me
+                                </div>
+
+                                <div className="d-flex justify-content-between mt-3">
+                                    <p className="text-muted mb-1" style={{ fontSize: "14px", fontWeight: "500" }}>
+                                        Team A
+                                    </p>
+                                    <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500" }}>
+                                        Team B
                                     </p>
                                 </div>
-                                <div className="d-flex flex-column align-items-center justify-content-center mx-auto">
-                                    <div
-                                        className="rounded-circle border d-flex align-items-center justify-content-center"
-                                        style={{ width: 80, height: 80, cursor: "pointer" }}
-                                    >
-                                        <span className="fs-3" style={{ color: "gray" }}>
-                                            +
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-between mt-3">
-                            <p
-                                className="text-muted mb-1"
-                                style={{ fontSize: "14px", fontWeight: "500" }}
-                            >
-                                Team A
-                            </p>
-                            <p
-                                className="mb-0"
-                                style={{ fontSize: "14px", fontWeight: "500" }}
-                            >
-                                Team B
-                            </p>
-                        </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Club Info */}
@@ -259,18 +368,13 @@ const VeiwMatch = ({ className = "" }) => {
                         <div className="d-flex gap-3 align-items-start">
                             <img src={club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
-                                <p
-                                    className="mb-1"
-                                    style={{ fontSize: "20px", fontWeight: "500" }}
-                                >
-                                    The Good Club
-                                </p>
-                                <p
-                                    className="text-muted mb-1"
-                                    style={{ fontSize: "15px", fontWeight: "400" }}
-                                >
-                                    Sukhna Enclave, behind Rock Garden, Kaimbwala,<br />
-                                    Kansal, Chandigarh 160001
+                                <p className=" mb-1" style={{ fontSize: "20px", fontWeight: "500" }}>{clubData?.clubName}</p>
+                                <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
+                                    {clubData?.clubName}
+                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                    {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                        .filter(Boolean)
+                                        .join(', ')}
                                 </p>
                                 <div
                                     className="mb-3"
@@ -302,7 +406,7 @@ const VeiwMatch = ({ className = "" }) => {
                             Information
                         </h6>
                     </div>
-                    <div className="d-flex align-items-center gap-3 px-2">
+                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
                         <div>
                             <p
@@ -312,10 +416,28 @@ const VeiwMatch = ({ className = "" }) => {
                                 Type of Court (2 courts)
                             </p>
                             <p
-                                className="text-muted mb-0"
-                                style={{ fontSize: "18px", fontWeight: "500" }}
+                                className=" mb-0"
+                                style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}
                             >
                                 Outdoor, crystal, Double
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
+                        <MdOutlineDateRange className="fs-2 text-dark" />
+                        <div>
+                            <p
+                                className="mb-0"
+                                style={{ fontSize: "14px", fontWeight: "400" }}
+                            >
+                                End registration
+                            </p>
+                            <p
+                                className=" mb-0"
+                                style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}
+                            >
+                                Today at 10:00 PM
                             </p>
                         </div>
                     </div>
@@ -347,11 +469,7 @@ const VeiwMatch = ({ className = "" }) => {
                                         value={method.id}
                                         className="form-check-input"
                                         checked={selectedPayment === method.id}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            setSelectedPayment(value);
-                                        }}
-
+                                        onChange={(e) => setSelectedPayment(e.target.value)}
                                     />
                                 </label>
                             ))}
@@ -363,20 +481,22 @@ const VeiwMatch = ({ className = "" }) => {
                         style={{ backgroundColor: "#CBD6FF1A" }}
                     >
                         <div className="text-center mb-3">
-                            <div
-                                className="rounded-circle bg-white mx-auto mb-2 shadow"
-                                style={{ width: "90px", height: "90px", lineHeight: "90px" }}
-                            >
-                                <img src={logo} width={80} alt="" />
+                            <div className="d-flex justify-content-center" style={{ lineHeight: '90px' }}>
+                                {logo ? (
+                                    <Avatar src={logo} alt="User Profile" />
+                                ) : (
+                                    <Avatar>
+                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                    </Avatar>
+                                )}
                             </div>
-                            <p
-                                className="mt-4 mb-1"
-                                style={{ fontSize: "20px", fontWeight: "600" }}
-                            >
-                                The Good Club
-                            </p>
+                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
                             <p className="small mb-0">
-                                The Good Club, Chandigarh, Chandigarh, 160001
+                                {clubData?.clubName}
+                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                    .filter(Boolean)
+                                    .join(', ')}
                             </p>
                         </div>
 
@@ -399,9 +519,9 @@ const VeiwMatch = ({ className = "" }) => {
                                     style={{ cursor: "pointer" }}
                                 >
                                     <div>
-                                        <strong>Sun, 22 Jun</strong> {selectedTime} (60m) {mockCourt.name}
+                                        <strong>Sun, 22 Jun</strong> 8:00am (60m) Court 1
                                     </div>
-                                    <div>₹ {mockCourt.price}</div>
+                                    <div>₹ 1000</div>
                                 </div>
                             )}
                             {selectedCourts.map((court, index) => (
@@ -506,8 +626,10 @@ const VeiwMatch = ({ className = "" }) => {
                     </div>
                 </div>
             </div>
+
+            <NewPlayers activeSlot={activeSlot} setShowAddMeForm={setShowAddMeForm} showAddMeForm={showAddMeForm} setActiveSlot={setActiveSlot}/>
         </div>
     );
 };
 
-export default VeiwMatch;
+export default ViewMatch;

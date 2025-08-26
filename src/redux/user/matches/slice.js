@@ -1,10 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createMatches, getMatches } from "./thunk";
+import { createMatches, getMatches, getMatchesUser } from "./thunk";
 
 const initialState = {
     matchesLoading: false,
     matchesData: null,
-    matchesError: null
+    matchesError: null,
+    usersLoading: false,
+    usersData: null,
+    usersError: null
 };
 
 const matchesSlice = createSlice({
@@ -15,6 +18,9 @@ const matchesSlice = createSlice({
             state.matchesLoading = false;
             state.matchesData = null;
             state.matchesError = null;
+            state.usersLoading = false;
+            state.usersData = null;
+            state.usersError = null;
         }
     },
     extraReducers: (builder) => {
@@ -45,8 +51,23 @@ const matchesSlice = createSlice({
                 state.matchesLoading = false;
                 state.matchesError = action.payload;
             })
-            // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
-          
+            // -------------------------O-P-E-N-M-A-T-C-H-E-S-U-S-E-R--------------------//
+
+            .addCase(getMatchesUser.pending, (state) => {
+                state.usersLoading = true;
+                state.usersError = null;
+            })
+            .addCase(getMatchesUser.fulfilled, (state, action) => {
+                state.usersLoading = false;
+                state.usersData = action.payload;
+            })
+            .addCase(getMatchesUser.rejected, (state, action) => {
+                state.usersLoading = false;
+                state.usersError = action.payload;
+            })
+        // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
+
+
 
     }
 });

@@ -27,7 +27,6 @@ const Booking = ({ className = "" }) => {
     const clubData = store?.userClub?.clubData?.data?.courts[0] || []
     const { slotData } = useSelector((state) => state?.userSlot);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
-    console.log({ clubData });
     const [errorMessage, setErrorMessage] = useState("");
     const [errorShow, setErrorShow] = useState(false);
     const logo = JSON.parse(localStorage.getItem("logo"));

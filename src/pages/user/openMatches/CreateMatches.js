@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Container, Row, Col, Button, Card, Form, ProgressBar } from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Form, ProgressBar, FormCheck } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import { FaChevronDown, FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaShoppingCart } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { createMatches } from '../../../redux/user/matches/thunk';
 import { getUserFromSession } from '../../../helpers/api/apiCore';
 import { ButtonLoading, DataLoading } from '../../../helpers/loading/Loaders';
 import 'react-datepicker/dist/react-datepicker.css';
+import { formatTime } from '../../../helpers/Formatting';
 
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -31,7 +32,8 @@ const CreateMatches = () => {
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
-
+  const [showUnavailableOnly, setShowUnavailableOnly] = useState(false); // नया टॉगल स्टेट
+  console.log({ userMatches });
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
@@ -66,17 +68,20 @@ const CreateMatches = () => {
   };
 
   const scrollRef = useRef(null);
-  const [startIndex, setStartIndex] = useState(0); // which day to start from
-  const visibleDays = 7; // only show 7 at a time
+  const [startIndex, setStartIndex] = useState(0);
+  const visibleDays = 7;
 
-  const formatDate = (date) => date.toISOString().split("T")[0];
+  const formatDate = (date) => {
+    if (!date || isNaN(date.getTime())) return null;
+    return date.toISOString().split("T")[0];
+  };
 
   const scroll = (direction) => {
     if (direction === "left" && startIndex > 0) {
-      setStartIndex(startIndex - 1); // move back one day
+      setStartIndex(startIndex - 1);
     }
     if (direction === "right" && startIndex < dates.length - visibleDays) {
-      setStartIndex(startIndex + 1); // move forward one day
+      setStartIndex(startIndex + 1);
     }
   };
 
@@ -102,18 +107,19 @@ const CreateMatches = () => {
   }, [selectedDate]);
 
   const savedClubId = localStorage.getItem("register_club_id");
+
   useEffect(() => {
-    if (savedClubId && selectedDate?.fullDate && selectedDate?.day) {
+    if (savedClubId && selectedDate.day) {
       dispatch(
         getUserSlot({
           register_club_id: savedClubId,
           day: selectedDate.day,
-          courtId: selectedCourts[0]?._id
+          date: selectedDate.fullDate,
+          courtId: selectedCourts[0]?._id || '',
         })
       );
     }
-  }, [savedClubId, selectedCourts?._id, selectedDate?.fullDate, selectedDate?.day, dispatch]);
-
+  }, [selectedDate.day, selectedCourts, savedClubId, dispatch]);
 
   const handleCourtSelect = (court) => {
     const timeOnly = selectedTimes?.map(item => ({
@@ -133,10 +139,23 @@ const CreateMatches = () => {
     );
   };
 
-  // const formatDate = (date) => {
-  //   if (!date || isNaN(date.getTime())) return null;
-  //   return date.toISOString().split("T")[0];
-  // };
+  // डिफॉल्ट रूप से पहला कोर्ट सेलेक्ट करें
+  useEffect(() => {
+    if (slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0 && selectedCourts.length === 0) {
+      const firstCourt = slotData.data[0].courts[0];
+      const timeOnly = selectedTimes?.map(item => ({
+        _id: item?._id,
+        time: item?.time,
+        amount: 1000, // स्टैटिक amount
+      }));
+      const newCourt = {
+        ...firstCourt,
+        date: selectedDate?.fullDate,
+        time: timeOnly,
+      };
+      setSelectedCourts([newCourt]);
+    }
+  }, [slotData, selectedDate?.fullDate, selectedTimes]);
 
   const steps = [
     {
@@ -174,99 +193,69 @@ const CreateMatches = () => {
     },
   ];
 
-  // const handleNext = () => {
-  //   if (selectedLevel && currentStep < steps.length - 1) {
-  //     setSkillDetails(prev => {
-  //       const newDetails = [...prev];
-  //       newDetails[currentStep] = selectedLevel;
-  //       return newDetails;
-  //     });
-  //     setCurrentStep(currentStep + 1);
-  //     setSelectedLevel('');
-  //   } else if (currentStep === steps.length - 1 && selectedLevel) {
-  //     const finalSkillDetails = [...skillDetails];
-  //     finalSkillDetails[currentStep] = selectedLevel;
-
-  //     const formattedData = {
-  //       slot: selectedTimes.map(timeSlot => {
-  //         const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
-  //         return {
-  //           slotId: timeSlot?._id,
-  //           businessHours: [{
-  //             time: "6:00 AM To 11:00 PM",
-  //             day: selectedDate.day,
-  //           }],
-  //           slotTimes: [{
-  //             time: timeSlot?.time,
-  //             amount: timeSlot?.amount || 2000,
-  //           }],
-  //           courtName: selectedCourt?.courtName,
-  //           courtId: selectedCourt?._id,
-  //           bookingDate: new Date(selectedDate.fullDate).toISOString(),
-  //         };
-  //       }),
-  //       clubId: savedClubId,
-  //       matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
-  //       skillLevel: finalSkillDetails[0]?.toLowerCase(),
-  //       skillDetails: finalSkillDetails?.slice(1),
-  //       matchStatus: "open",
-  //       matchTime: selectedTimes.map(time => time.time).join(","),
-  //       players: user?._id ? [user?._id] : user?.id,
-  //     };
-
-  //     dispatch(createMatches(formattedData)).unwrap().then(() => {
-  //       setSelectedCourts([]);
-  //       setSelectedDate([]);
-  //       setSelectedTimes([]);
-  //       setSelectedLevel('');
-  //       setSkillDetails([]);
-  //       navigate('/view-match');
-  //     });
-  //   }
-  // };
-
-  // const handleBack = () => {
-  //   if (currentStep > 0) {
-  //     setCurrentStep(currentStep - 1);
-  //     setSelectedLevel(skillDetails[currentStep - 1] || '');
-  //   }
-  // };
-
-
-  const [selectedOption, setSelectedOption] = useState("");
-
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-      setSelectedOption(""); // reset selection for next step
+    if (selectedLevel && currentStep < steps.length - 1) {
+      setSkillDetails(prev => {
+        const newDetails = [...prev];
+        newDetails[currentStep] = selectedLevel;
+        return newDetails;
+      });
+      setCurrentStep(currentStep + 1);
+      setSelectedLevel(''); // अगले स्टेप के लिए रीसेट करें
+    } else if (currentStep === steps.length - 1 && selectedLevel) {
+      const finalSkillDetails = [...skillDetails];
+      finalSkillDetails[currentStep] = selectedLevel;
+
+      const formattedData = {
+        slot: selectedTimes.map(timeSlot => {
+          const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
+          return {
+            slotId: timeSlot?._id,
+            businessHours: [{
+              time: "6:00 AM To 11:00 PM",
+              day: selectedDate.day,
+            }],
+            slotTimes: [{
+              time: timeSlot?.time,
+              amount: timeSlot?.amount || 1000,
+            }],
+            courtName: selectedCourt?.courtName,
+            courtId: selectedCourt?._id,
+            bookingDate: new Date(selectedDate.fullDate).toISOString(),
+          };
+        }),
+        clubId: savedClubId,
+        matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
+        skillLevel: finalSkillDetails[0]?.toLowerCase(),
+        skillDetails: finalSkillDetails?.slice(1),
+        matchStatus: "open",
+        matchTime: selectedTimes.map(time => time.time).join(","),
+        players: user?._id ? [user?._id] : user?.id,
+      };
+      localStorage.setItem('matchData', JSON.stringify(formattedData));
+
+      dispatch(createMatches(formattedData)).unwrap().then((res) => {
+        console.log(res, 'muskan');
+        if (res?.match?.status === true) return;
+        setCurrentStep(0);
+        setSelectedCourts([]);
+        setSelectedDate([]);
+        setSelectedTimes([]);
+        setSelectedLevel('');
+        setSkillDetails([]);
+        navigate('/view-match');
+      });
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-      setSelectedOption(""); // reset selection for prev step
+      setCurrentStep(currentStep - 1);
+      setSelectedLevel(skillDetails[currentStep - 1] || '');
     }
   };
 
-  useEffect(() => {
-    if (slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0) {
-      const firstCourt = slotData.data[0].courts[0];
-      const timeOnly = selectedTimes?.map(item => ({
-        _id: item?._id,
-        time: item?.time,
-        amount: item?.amount || 100,
-      }));
-      const newCourt = {
-        ...firstCourt,
-        date: selectedDate?.fullDate,
-        time: timeOnly,
-      };
-      if (!selectedCourts.some(c => c._id === firstCourt._id)) {
-        setSelectedCourts([newCourt]);
-      }
-    }
-  }, [slotData, selectedDate?.fullDate, selectedTimes]);
+  const [selectedOption, setSelectedOption] = useState("");
 
   return (
     <Container className="p-4 mb-5" style={{ minHeight: '100vh' }}>
@@ -275,15 +264,15 @@ const CreateMatches = () => {
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
-            <div className="mb-3 ps-4" style={{ fontSize: "20px", fontWeight: "600" }}>
+            <div className="mb-3" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
               Select Date
               <div className="position-relative d-inline-block" ref={wrapperRef}>
                 <span
-                  className="rounded-circle p-2 ms-2 shadow-sm bg-light"
-                  style={{ cursor: "pointer" }}
+                  className="rounded p-1 ms-2 shadow bg-white"
+                  style={{ cursor: "pointer", width: "26px", height: "26px" }}
                   onClick={() => setIsOpen(!isOpen)}
                 >
-                  <i className="bi bi-calendar2-week" style={{ fontSize: "18px" }}></i>
+                  <i className="bi bi-calendar2-week" style={{ width: "14px", height: "16px" }}></i>
                 </span>
                 {isOpen && (
                   <div
@@ -297,7 +286,7 @@ const CreateMatches = () => {
                         setIsOpen(false);
                         const formattedDate = date.toISOString().split("T")[0];
                         const day = date.toLocaleDateString("en-US", { weekday: "long" });
-                        setSelectedDate({ fullDate: formattedDate, day });
+                        setSelectedDate({ fullDate: formattedDate, day: day });
                         setSelectedTimes([]);
                       }}
                       inline
@@ -311,72 +300,63 @@ const CreateMatches = () => {
               </div>
             </div>
             <div className="d-flex align-items-center gap-2 mb-3">
-              {/* Left button */}
-              <button
-                className="btn btn-light p-0"
-                onClick={() => scroll("left")}
-                disabled={startIndex === 0} // disable at start
-              >
+              <button className="btn btn-light p-0" onClick={() => scroll("left")}>
                 <i className="bi bi-chevron-left"></i>
               </button>
-
-              {/* 7-day window */}
               <div
-                className="d-flex gap-2 overflow-hidden no-scrollbar"
+                ref={scrollRef}
+                className="d-flex gap-2 overflow-auto no-scrollbar"
                 style={{
                   scrollBehavior: "smooth",
                   whiteSpace: "nowrap",
-                  maxWidth: "620px", // fits ~7 buttons
+                  maxWidth: "650px",
                 }}
               >
-                {dates?.slice(startIndex, startIndex + visibleDays).map((d, i) => {
-                  const isSelected = selectedDate?.fullDate
-                    ? formatDate(new Date(selectedDate.fullDate)) === d.fullDate
-                    : false;
-
+                {dates?.map((d, i) => {
+                  const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
                   return (
                     <button
+                      ref={(el) => (dateRefs.current[d.fullDate] = el)}
                       key={i}
-                      className={`calendar-day-btn px-3 py-0 rounded border ${isSelected ? "text-white shadow" : "bg-light text-dark"
-                        }`}
+                      className={`calendar-day-btn rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
                       style={{
                         backgroundColor: isSelected ? "#374151" : undefined,
                         border: "none",
                         minWidth: "85px", // fixed size for consistent scroll
                       }}
                       onClick={() => {
-                        setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                        setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                         setStartDate(new Date(d.fullDate));
                         setSelectedTimes([]);
                       }}
                     >
                       <div className="text-center">
-                        <div style={{ fontSize: "14px", fontWeight: "400" }}>
-                          {dayShortMap[d.day]}
-                        </div>
-                        <div style={{ fontSize: "26px", fontWeight: "500" }}>{d.date}</div>
-                        <div style={{ fontSize: "14px", fontWeight: "400" }}>{d.month}</div>
+                        <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{dayShortMap[d.day]}</div>
+                        <div style={{ fontSize: "26px", fontWeight: "500", fontFamily: "Poppins" }}>{d.date}</div>
+                        <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{d.month}</div>
                       </div>
                     </button>
                   );
                 })}
               </div>
-
-              {/* Right button */}
-              <button
-                className="btn btn-light p-0"
-                onClick={() => scroll("right")}
-                disabled={startIndex >= dates.length - visibleDays} // disable at end
-              >
+              <button className="btn btn-light p-0" onClick={() => scroll("right")}>
                 <i className="bi bi-chevron-right"></i>
               </button>
             </div>
           </div>
-          {/* Time Selector */}
+          {/* Time Selector with Toggle */}
           <div className="d-flex justify-content-between align-items-center py-2">
             <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
               Available Slots
             </p>
+            <FormCheck
+              type="switch"
+              id="show-unavailable"
+              label="Show Unavailable Only"
+              checked={showUnavailableOnly}
+              onChange={(e) => setShowUnavailableOnly(e.target.checked)}
+              style={{ marginBottom: 0 }}
+            />
           </div>
           {slotLoading ? (
             <DataLoading height={"30vh"} />
@@ -397,6 +377,10 @@ const CreateMatches = () => {
                     const isToday = selectedDateObj.toDateString() === now.toDateString();
                     const isPast = isToday && slotDate.getTime() < now.getTime();
                     const isBooked = slot?.status === "booked";
+
+                    // Show only unavailable slots if toggle is on
+                    if (showUnavailableOnly && !(isPast || isBooked)) return null;
+
                     const isSelected = selectedTimes.some(t => t._id === slot._id);
                     return (
                       <button
@@ -462,8 +446,8 @@ const CreateMatches = () => {
                                 slotData?.data[0]?.courts?.map((court, index) => (
                                   <div className="col-6" key={court._id || index}>
                                     <div
-                                      className="border rounded-3 d-flex align-items-center justify-content-center"
-                                      style={{ height: "80px" }}
+                                      className="border d-flex align-items-center justify-content-center"
+                                      style={{ height: "80px", borderWidth: "2px" }}
                                     >
                                       {court?.courtName}
                                     </div>
@@ -509,7 +493,6 @@ const CreateMatches = () => {
         </Col>
         {/* RIGHT PANEL */}
         <Col md={5}>
-
           <div
             style={{
               backgroundColor: "#f5f7ff",
@@ -517,9 +500,7 @@ const CreateMatches = () => {
               borderRadius: "12px",
               maxWidth: "100%",
               height: "820px"
-
             }}>
-
             <Card
               style={{
                 backgroundColor: "#f5f7ff",
@@ -527,7 +508,6 @@ const CreateMatches = () => {
                 borderRadius: "12px",
                 maxWidth: "100%",
                 height: "820px"
-
               }}
             >
               {/* Progress Bar */}
@@ -546,8 +526,6 @@ const CreateMatches = () => {
                 ))}
               </div>
 
-
-
               <div className='p-4'>
                 {/* Question */}
                 <h6 className="mb-4 fw-semibold" style={{ color: "#374151", fontSize: "24px" }}>
@@ -555,15 +533,15 @@ const CreateMatches = () => {
                 </h6>
 
                 {/* Options */}
-                <Form style={{ height: "530px"}}>
+                <Form style={{ height: "450px" }}>
                   {steps[currentStep].options.map((option, i) => (
                     <div
                       key={i}
-                      onClick={() => setSelectedOption(option)}
+                      onClick={() => setSelectedLevel(option)} // selectedLevel को अपडेट करें
                       className={`d-flex align-items-center justify-content-between mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
                       style={{
-                        backgroundColor: selectedOption === option ? "#eef2ff" : "#fff",
-                        borderColor: selectedOption === option ? "#4f46e5" : "#e5e7eb",
+                        backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
+                        borderColor: selectedLevel === option ? "#4f46e5" : "#e5e7eb",
                         cursor: "pointer",
                       }}
                     >
@@ -573,50 +551,42 @@ const CreateMatches = () => {
                         name={`step-${currentStep}`}
                         id={`option-${currentStep}-${i}`}
                         value={option}
-                        checked={selectedOption === option}
-                        onChange={(e) => setSelectedOption(e.target.value)}
+                        checked={selectedLevel === option} // selectedLevel से चेक करें
+                        onChange={(e) => setSelectedLevel(e.target.value)} // selectedLevel को अपडेट करें
                         className="fw-semibold"
                       />
-
                     </div>
                   ))}
-
-
-                  {/* Buttons */}
-
                 </Form>
-
-
-                
               </div>
-              <div className="d-flex justify-content-end align-items-center mt-3 p-3  ">
-                  {currentStep > 0 && (
-                    <Button
-                      className="rounded-pill px-4 me-2"
-                      style={{
-                        backgroundColor: "#374151",
-                        border: "none",
-                        color: "#fff",
-                      }}
-                      onClick={handleBack}
-                    >
-                      Back
-                    </Button>
-                  )}
+              <div className="d-flex justify-content-end align-items-center  p-3">
+                {currentStep > 0 && (
                   <Button
-                    className="rounded-pill px-4"
+                    className="rounded-pill px-4 me-2"
                     style={{
-                      backgroundColor:
-                        currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
+                      backgroundColor: "#374151",
                       border: "none",
                       color: "#fff",
                     }}
-                    disabled={!selectedOption}
-                    onClick={handleNext}
+                    onClick={handleBack}
                   >
-                    {currentStep === steps.length - 1 ? "Submit" : "Next"}
+                    Back
                   </Button>
-                </div>
+                )}
+                <Button
+                  className="rounded-pill px-4"
+                  style={{
+                    backgroundColor:
+                      currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
+                    border: "none",
+                    color: "#fff",
+                  }}
+                  disabled={!selectedLevel} // केवल तभी डिसेबल जब selectedLevel खाली हो
+                  onClick={handleNext}
+                >
+                  {userMatches?.matchesLoading ? <ButtonLoading /> : currentStep === steps.length - 1 ? "Submit" : "Next"}
+                </Button>
+              </div>
             </Card>
           </div>
         </Col>
