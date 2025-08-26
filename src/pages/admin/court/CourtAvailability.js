@@ -23,9 +23,9 @@ import {
   Loading,
 } from "../../../helpers/loading/Loaders";
 import { showError, showInfo } from "../../../helpers/Toast";
-
-import "react-datepicker/dist/react-datepicker.css";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
 
 const CourtAvailability = () => {
   const dispatch = useDispatch();
@@ -68,7 +68,6 @@ const CourtAvailability = () => {
   // Available status options
   const statusOptions = [
     "available",
-    "booked",
     "maintenance",
     "weather conditions",
     "staff unavailability",
@@ -79,10 +78,10 @@ const CourtAvailability = () => {
 
   // Status to background color mapping
   const statusColorMap = {
-    available: "#7df97a3d",
+    available: "#FAFBFF",
     booked: "bg-danger text-white",
-    maintenance: "bg-warning-subtle",
-    "weather conditions": "bg-info-subtle",
+    maintenance: "bg-warning text-white",
+    "weather conditions": "bg-info text-white",
     "staff unavailability": "bg-secondary text-white",
   };
 
@@ -135,7 +134,7 @@ const CourtAvailability = () => {
 
     const courtId = selectedCourts[0];
     const courtSlots = selectedSlots[courtId] || [];
-    const exists = courtSlots.some((t) => t.slot._id === slot._id);
+    const exists = courtSlots.some((t) => t.slot?._id === slot?._id);
 
     if (!exists) {
       const totalSlots = Object.values(selectedSlots).flat().length;
@@ -147,11 +146,11 @@ const CourtAvailability = () => {
 
     let newCourtSlots;
     if (exists) {
-      newCourtSlots = courtSlots.filter((t) => t.slot._id !== slot._id);
+      newCourtSlots = courtSlots.filter((t) => t.slot?._id !== slot?._id);
     } else {
       newCourtSlots = [
         ...courtSlots,
-        { slot, status: slot.availabilityStatus || "available" },
+        { slot, status: slot?.availabilityStatus || "available" },
       ]; // Use availabilityStatus
     }
 
@@ -171,7 +170,7 @@ const CourtAvailability = () => {
     setSelectedSlots((prev) => {
       const courtSlots = prev[courtId] || [];
       const updatedCourtSlots = courtSlots.map((item) =>
-        item.slot._id === slotId ? { ...item, status: newStatus } : item
+        item.slot?._id === slotId ? { ...item, status: newStatus } : item
       );
       return { ...prev, [courtId]: updatedCourtSlots };
     });
@@ -182,7 +181,7 @@ const CourtAvailability = () => {
     setSelectedSlots((prev) => {
       const courtSlots = prev[courtId] || [];
       const updatedCourtSlots = courtSlots.filter(
-        (item) => item.slot._id !== slotId
+        (item) => item.slot?._id !== slotId
       );
       if (updatedCourtSlots.length === 0) {
         const { [courtId]: _, ...rest } = prev;
@@ -208,7 +207,7 @@ const CourtAvailability = () => {
       });
       return newSelectedSlots;
     });
-    setCommonStatus(""); // Reset after apply
+    // setCommonStatus(""); // Reset after apply
   };
 
   useEffect(() => {
@@ -257,16 +256,16 @@ const CourtAvailability = () => {
       const court = courts.find((c) => c._id === courtId);
       slotArray.forEach(({ slot, status }) => {
         slotsPayload.push({
-          slotId: slot._id,
+          slotId: slot?._id,
           businessHours: {
             time: businessHours?.[0]?.time,
             _id: businessHours?.[0]?._id,
           },
           slotTimes: [
             {
-              _id: slot._id,
-              time: slot.time,
-              amount: slot.amount || 0,
+              _id: slot?._id,
+              time: slot?.time,
+              amount: slot?.amount || 0,
               status: status,
             },
           ],
@@ -286,7 +285,7 @@ const CourtAvailability = () => {
         _id: activeCourtsData?.[0]?._id,
         businessHoursUpdates: slotsPayload[0]?.businessHours || [],
         slotTimesUpdates: slotsPayload.flatMap((slot) =>
-          slot.slotTimes.map((st) => ({
+          slot?.slotTimes.map((st) => ({
             _id: st._id,
             availabilityStatus: st.status,
             courtId: slot?.courtId,
@@ -299,6 +298,7 @@ const CourtAvailability = () => {
       await dispatch(updateCourt(payload)).unwrap();
       setSelectedSlots({});
       setSelectedCourts([]);
+      setCommonStatus("");
     } catch (error) {
       console.log("Booking failed:", error);
       showError("Failed to update slot status.");
@@ -462,7 +462,7 @@ const CourtAvailability = () => {
                     }}
                   >
                     {dates?.map((d, i) => {
-                      const isSelected = selectedDate === d.fullDate;
+                      const isSelected = selectedDate === d?.fullDate;
                       return (
                         <button
                           key={i}
@@ -478,8 +478,8 @@ const CourtAvailability = () => {
                             fontFamily: "Poppins",
                           }}
                           onClick={() => {
-                            setSelectedDate(d.fullDate);
-                            setSelectedDay(dayFullNames[d.day]);
+                            setSelectedDate(d?.fullDate);
+                            setSelectedDay(dayFullNames[d?.day]);
                             setSelectedSlots({}); // Clear selected slots on date change
                           }}
                         >
@@ -487,17 +487,17 @@ const CourtAvailability = () => {
                             <div
                               style={{ fontSize: "14px", fontWeight: "400" }}
                             >
-                              {d.day}
+                              {d?.day}
                             </div>
                             <div
                               style={{ fontSize: "24px", fontWeight: "600" }}
                             >
-                              {d.date}
+                              {d?.date}
                             </div>
                             <div
                               style={{ fontSize: "14px", fontWeight: "400" }}
                             >
-                              {d.month}
+                              {d?.month}
                             </div>
                           </div>
                         </button>
@@ -549,120 +549,117 @@ const CourtAvailability = () => {
                 <DataLoading height="10vh" />
               ) : (
                 <div className="d-flex flex-wrap gap-2 mb-4">
-                  {slotTimes?.length === 0 ? (
-                    <div
-                      className="d-flex text-danger justify-content-center align-items-center w-100"
-                      style={{ height: "20vh", fontFamily: "Poppins" }}
-                    >
-                      No slots available
-                    </div>
-                  ) : (
-                    <>
-                      {slotTimes
-                        .filter((slot) => {
-                          const slotDate = new Date(selectedDate);
-                          const [hourString, period] = slot?.time
-                            ?.toLowerCase()
-                            .split(" ");
-                          let hour = parseInt(hourString);
-                          if (period === "pm" && hour !== 12) hour += 12;
-                          if (period === "am" && hour === 12) hour = 0;
-                          slotDate.setHours(hour, 0, 0, 0);
+                  {(() => {
+                    const filteredSlotTimes = slotTimes?.filter((slot) => {
+                      const slotDate = new Date(selectedDate);
+                      const [hourString, period] = slot?.time
+                        ?.toLowerCase()
+                        .split(" ");
+                      let hour = parseInt(hourString);
+                      if (period === "pm" && hour !== 12) hour += 12;
+                      if (period === "am" && hour === 12) hour = 0;
+                      slotDate.setHours(hour, 0, 0, 0);
 
-                          const now = new Date();
-                          const isSameDay =
-                            slotDate.toDateString() === now.toDateString();
-                          const isPast =
-                            isSameDay && slotDate.getTime() < now.getTime();
-                          const isAvailable =
-                            slot?.availabilityStatus === "available" &&
-                            slot?.status !== "booked";
+                      const now = new Date();
+                      const isSameDay =
+                        slotDate.toDateString() === now.toDateString();
+                      const isPast =
+                        isSameDay && slotDate.getTime() < now.getTime();
+                      const isAvailable =
+                        slot?.availabilityStatus === "available" &&
+                        slot?.status !== "booked";
 
-                          return showUnavailable || (isAvailable && !isPast);
-                        })
-                        .map((slot, i) => {
-                          const slotDate = new Date(selectedDate);
-                          const [hourString, period] = slot?.time
-                            ?.toLowerCase()
-                            .split(" ");
-                          let hour = parseInt(hourString);
-                          if (period === "pm" && hour !== 12) hour += 12;
-                          if (period === "am" && hour === 12) hour = 0;
-                          slotDate.setHours(hour, 0, 0, 0);
+                      return showUnavailable || (isAvailable && !isPast);
+                    });
 
-                          const now = new Date();
-                          const isSameDay =
-                            slotDate.toDateString() === now.toDateString();
-                          const isPast =
-                            isSameDay && slotDate.getTime() < now.getTime();
-                          const courtSelectedSlots =
-                            selectedSlots[selectedCourts[0]] || [];
-                          const isSelected = courtSelectedSlots.some(
-                            (t) => t.slot._id === slot._id
-                          );
-                          const status =
-                            slot?.availabilityStatus || "available";
-                          const isBooked = slot?.status === "booked";
-                          const isDisabled = isPast || isBooked;
+                    return filteredSlotTimes?.length === 0 ? (
+                      <div
+                        className="d-flex text-danger justify-content-center align-items-center w-100"
+                        style={{ height: "10vh", fontFamily: "Poppins" }}
+                      >
+                        No slots available
+                      </div>
+                    ) : (
+                      filteredSlotTimes?.map((slot, i) => {
+                        const slotDate = new Date(selectedDate);
+                        const [hourString, period] = slot?.time
+                          ?.toLowerCase()
+                          .split(" ");
+                        let hour = parseInt(hourString);
+                        if (period === "pm" && hour !== 12) hour += 12;
+                        if (period === "am" && hour === 12) hour = 0;
+                        slotDate.setHours(hour, 0, 0, 0);
 
-                          const tooltipText =
-                            status.charAt(0).toUpperCase() + status.slice(1);
+                        const now = new Date();
+                        const isSameDay =
+                          slotDate.toDateString() === now.toDateString();
+                        const isPast =
+                          isSameDay && slotDate.getTime() < now.getTime();
+                        const courtSelectedSlots =
+                          selectedSlots[selectedCourts[0]] || [];
+                        const isSelected = courtSelectedSlots.some(
+                          (t) => t?.slot?._id === slot?._id
+                        );
+                        const status = slot?.availabilityStatus || "available";
+                        const isBooked = slot?.status === "booked";
+                        const isDisabled = isPast || isBooked;
 
-                          const buttonEl = (
-                            <span className="d-inline-block">
-                              <button
-                                className={`btn border-0 rounded-pill table-data px-4 py-1 shadow-sm ${
-                                  isSelected
-                                    ? "bg-dark text-white"
-                                    : isPast
-                                    ? "bg-secondary-subtle"
-                                    : isBooked
-                                    ? "bg-danger text-white"
-                                    : statusColorMap[status] || "bg-light"
-                                }`}
-                                onClick={() => toggleTime(slot)}
-                                disabled={isDisabled}
-                                style={{
-                                  backgroundColor: isSelected
-                                    ? "#374151"
-                                    : isPast || isBooked
-                                    ? undefined
-                                    : statusColorMap[status],
-                                  color: isSelected
-                                    ? "white"
-                                    : isPast ||
-                                      status === "available" ||
-                                      status === "maintenance" ||
-                                      status === "weather conditions"
-                                    ? "black"
-                                    : undefined,
-                                  cursor: isDisabled
-                                    ? "not-allowed"
-                                    : "pointer",
-                                  fontFamily: "Poppins",
-                                  fontSize: "14px",
-                                  transition: "all 0.2s ease",
-                                }}
-                              >
-                                {isBooked ? "Booked" : slot?.time}
-                              </button>
-                            </span>
-                          );
+                        const tooltipText =
+                          status.charAt(0).toUpperCase() + status.slice(1);
 
-                          return isDisabled ? (
-                            buttonEl
-                          ) : (
-                            <OverlayTrigger
-                              key={i}
-                              placement="top"
-                              overlay={<Tooltip>{tooltipText}</Tooltip>}
+                        const buttonEl = (
+                          <span className="d-inline-block">
+                            <button
+                              className={`btn border-0 rounded-pill table-data px-4 py-1 shadow-sm ${
+                                isSelected
+                                  ? "bg-dark text-white"
+                                  : isPast
+                                  ? "bg-secondary-subtle"
+                                  : isBooked
+                                  ? "bg-danger text-white"
+                                  : statusColorMap[status] || "bg-light"
+                              }`}
+                              onClick={() => toggleTime(slot)}
+                              disabled={isDisabled}
+                              style={{
+                                backgroundColor: isSelected
+                                  ? "#374151"
+                                  : isPast || isBooked
+                                  ? undefined
+                                  : statusColorMap[status],
+                                color: isSelected
+                                  ? "white"
+                                  : isPast ||
+                                    status === "available" ||
+                                    status === "maintenance" ||
+                                    status === "weather conditions"
+                                  ? "black"
+                                  : undefined,
+                                cursor: isDisabled ? "not-allowed" : "pointer",
+                                fontFamily: "Poppins",
+                                fontSize: "14px",
+                                transition: "all 0.2s ease",
+                              }}
                             >
-                              {buttonEl}
-                            </OverlayTrigger>
-                          );
-                        })}
-                    </>
-                  )}
+                              {isBooked ? "Booked" : slot?.time}
+                            </button>
+                          </span>
+                        );
+
+                        return isDisabled ? (
+                          buttonEl
+                        ) : (
+                          <OverlayTrigger
+                            key={i}
+                            placement="top"
+                            overlay={<Tooltip>{tooltipText}</Tooltip>}
+                          >
+                            {buttonEl}
+                          </OverlayTrigger>
+                        );
+                      })
+                    );
+                  })()}
                 </div>
               )}
             </Col>
@@ -682,7 +679,7 @@ const CourtAvailability = () => {
                     Selected Slots
                   </h6>
                   {/* Apply to All Section */}
-                  {Object.entries(selectedSlots).length > 0 && (
+                  {Object.values(selectedSlots)?.flat()?.length > 2 && (
                     <div className="d-flex align-items-center gap-2 mb-3">
                       <Form.Select
                         value={commonStatus}
@@ -722,7 +719,7 @@ const CourtAvailability = () => {
                       paddingRight: "10px",
                     }}
                   >
-                    {Object.entries(selectedSlots).length === 0 ? (
+                    {Object.entries(selectedSlots)?.length === 0 ? (
                       <div
                         className="text-muted d-flex align-items-center justify-content-center py-3"
                         style={{
@@ -736,26 +733,34 @@ const CourtAvailability = () => {
                     ) : (
                       Object.entries(selectedSlots).map(
                         ([courtId, slotArray]) => {
-                          const court = courts.find((c) => c._id === courtId);
+                          const court = courts.find((c) => c?._id === courtId);
                           return (
                             <div
                               key={courtId}
                               className="mb-3 border-bottom pb-2"
                             >
-                              <div
-                                className="mb-2"
-                                style={{
-                                  fontFamily: "Poppins",
-                                  fontWeight: "500",
-                                  color: "#374151",
-                                  fontSize: "14px",
-                                }}
-                              >
-                                {court?.courtName}
-                              </div>
-                              {slotArray.map(({ slot, status }, index) => (
+                              <div className="d-flex justify-content-between">
                                 <div
-                                  key={slot._id}
+                                  className="mb-2"
+                                  style={{
+                                    fontFamily: "Poppins",
+                                    fontWeight: "500",
+                                    color: "#374151",
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  {court?.courtName}
+                                </div>
+                                <span>
+                                  {format(
+                                    new Date(selectedDate),
+                                    "EEE, dd/MM/yyyy"
+                                  )}
+                                </span>
+                              </div>
+                              {slotArray.map(({ slot, status }) => (
+                                <div
+                                  key={slot?._id}
                                   className="d-flex align-items-center justify-content-between mb-2 bg-light p-2 rounded"
                                   style={{ border: "1px solid #e9ecef" }}
                                 >
@@ -766,14 +771,14 @@ const CourtAvailability = () => {
                                       flex: "1",
                                     }}
                                   >
-                                    {slot.time}
+                                    {slot?.time}
                                   </span>
                                   <Form.Select
                                     value={status}
                                     onChange={(e) =>
                                       handleStatusChange(
                                         courtId,
-                                        slot._id,
+                                        slot?._id,
                                         e.target.value
                                       )
                                     }
@@ -795,7 +800,7 @@ const CourtAvailability = () => {
                                     variant="outline-danger"
                                     className="p-1"
                                     onClick={() =>
-                                      handleRemoveSlot(courtId, slot._id)
+                                      handleRemoveSlot(courtId, slot?._id)
                                     }
                                     style={{
                                       fontSize: "12px",
@@ -811,7 +816,7 @@ const CourtAvailability = () => {
                       )
                     )}
                   </div>
-                  {Object.entries(selectedSlots).length > 0 && (
+                  {Object.entries(selectedSlots)?.length > 0 && (
                     <div className="d-flex justify-content-end gap-3 align-items-end mt-2">
                       <button
                         className="btn btn-secondary rounded-pill px-4 py-2 shadow-sm"
@@ -821,7 +826,11 @@ const CourtAvailability = () => {
                           fontFamily: "Poppins",
                           fontSize: "14px",
                         }}
-                        onClick={() => navigate(-1)}
+                        onClick={() => {
+                          setSelectedSlots({});
+                          setSelectedCourts([]);
+                          setCommonStatus("");
+                        }}
                       >
                         Cancel
                       </button>

@@ -9,6 +9,7 @@ import dashboardReducer from "./admin/dashboard/slice";
 import reviewReducer from "./admin/reviews/slice";
 import subOwnerReducer from "./admin/subOwner/slice";
 import logoReducer from "./admin/logo/slice";
+import openMatchesReducer from "./admin/openMatches/slice";
 //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 import userClubReducer from "./user/club/slice";
 import userSlotReducer from "./user/slot/slice";
@@ -31,6 +32,7 @@ const store = configureStore({
     reviews: reviewReducer,
     subOwner: subOwnerReducer,
     logo: logoReducer,
+    openMatches: openMatchesReducer,
     //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
     userAuth: userAuthReducer,
     userClub: userClubReducer,

@@ -7,7 +7,7 @@ const initialState = {
   openMatchesError: null,
 };
 
-const OpenMatchesSlice = createSlice({
+const openMatchesSlice = createSlice({
   name: "openMatches",
   initialState,
   reducers: {
@@ -38,5 +38,5 @@ const OpenMatchesSlice = createSlice({
   },
 });
 
-export const { resetMatchData } = OpenMatchesSlice.actions;
-export default OpenMatchesSlice.reducer;
+export const { resetMatchData } = openMatchesSlice.actions;
+export default openMatchesSlice.reducer;
