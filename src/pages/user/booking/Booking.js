@@ -570,7 +570,6 @@ const Booking = ({ className = "" }) => {
                                                 const isBooked = slot?.status === "booked";
                                                 return showUnavailable ? (isPast || isBooked) : true; 
                                             });
-
                                             return filteredSlots.length > 0 ? (
                                                 filteredSlots.map((slot, i) => {
                                                     const [hourString, period] = slot?.time?.toLowerCase().split(" ");
