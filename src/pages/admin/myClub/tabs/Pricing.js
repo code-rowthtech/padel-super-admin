@@ -8,7 +8,7 @@ import {
   FormControl,
   Dropdown,
 } from "react-bootstrap";
-import { getSlots, updatePrice } from "../../../../redux/thunks";
+import { getSlots, updateCourt } from "../../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ButtonLoading,
@@ -515,7 +515,7 @@ const Pricing = () => {
       slotTimesUpdates: filledSlotTimes,
     };
 
-    dispatch(updatePrice(payload))
+    dispatch(updateCourt(payload))
       .unwrap()
       .then(() => {
         dispatch(resetClub());

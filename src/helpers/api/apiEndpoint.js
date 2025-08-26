@@ -28,7 +28,7 @@ export const GET_OWNER = "/api/owners/getowner";
 export const REGISTER_CLUB = "/api/club/registerClub";
 export const CREATE_SLOT = "/api/slot/createSlot";
 export const GET_SLOT = "/api/slot/getSlot";
-export const UPDATE_PRICE = "/api/slot/updateCourt";
+export const UPDATE_COURT = "/api/slot/updateCourt";
 
 //-----------------------------------------------M_A_N_U_A_L_-_B_O_O_K_I_N_G--------------------------//
 export const GET_REGISTERED_CLUB = "/api/club/getOwnerRegisterClub";
@@ -65,3 +65,6 @@ export const UPDATE_SUBOWNER = "/api/owners/updatesubowner";
 export const GET_LOGO = "/api/logo/getLogo";
 export const CREATE_LOGO = "/api/logo/saveLogo";
 export const UPDATE_LOGO = "/api/logo/updateLogo";
+
+//-----------------------------------------------U_S_E_R_S-----------------------------------//
+export const GET_OPEN_MATCHES = "/";

@@ -30,7 +30,7 @@ const AdminTopbar = () => {
         className="d-flex align-items-center px-3 py-2 "
         style={{
           width: "900px",
-    
+
           borderRadius: "10px",
         }}
       >
@@ -54,9 +54,20 @@ const AdminTopbar = () => {
 
       {/* User Dropdown + Bell Icon */}
       <div className="d-flex align-items-center gap-4">
-      <div className="d-flex align-items-center" style={{ cursor: "pointer",backgroundColor: "#CBD6FF54", borderRadius: "circle",paddingLeft: "8px",paddingRight: "8px", paddingTop: "6px", paddingBottom: "6px" }}>
+        <div
+          className="d-flex align-items-center"
+          style={{
+            cursor: "pointer",
+            backgroundColor: "#CBD6FF54",
+            borderRadius: "circle",
+            paddingLeft: "8px",
+            paddingRight: "8px",
+            paddingTop: "6px",
+            paddingBottom: "6px",
+          }}
+        >
           <FaBell className="text-muted" size={18} />
-      </div>
+        </div>
 
         <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
           <Dropdown.Toggle
@@ -105,9 +116,9 @@ const AdminTopbar = () => {
             <Dropdown.Item as={NavLink} to="/admin/my-club">
               My Club
             </Dropdown.Item>
-            {/* <Dropdown.Item as={NavLink} to="/admin/court-availability">
+            <Dropdown.Item as={NavLink} to="/admin/court-availability">
               Court Availability
-            </Dropdown.Item> */}
+            </Dropdown.Item>
             <Dropdown.Item as={NavLink} to="/admin/customer-reviews">
               Review & Rating
             </Dropdown.Item>

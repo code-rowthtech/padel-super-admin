@@ -83,11 +83,11 @@ export const createSlot = createAsyncThunk(
   }
 );
 
-export const updatePrice = createAsyncThunk(
-  "club/updatePrice",
+export const updateCourt = createAsyncThunk(
+  "club/updateCourt",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.put(Url.UPDATE_PRICE, data);
+      const res = await ownerApi.put(Url.UPDATE_COURT, data);
       if (res?.status === 200) {
         // showSuccess(res?.data?.message);
         return res?.data;
