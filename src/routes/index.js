@@ -77,6 +77,9 @@ const Americano = React.lazy(() =>
   import("../pages/admin/americano/Americano")
 );
 const SubOwner = React.lazy(() => import("../pages/admin/subOwner/SubOwner"));
+const CourtAvailability = React.lazy(() =>
+  import("../pages/admin/court/CourtAvailability")
+);
 
 // Errors
 const UnAuthorized = React.lazy(() => import("../pages/error/UnAuthorized"));
@@ -282,6 +285,10 @@ const AllRoutes = () => {
             {
               path: "users",
               element: LoadComponent(SubOwner),
+            },
+            {
+              path: "court-availability",
+              element: LoadComponent(CourtAvailability),
             },
           ],
         },

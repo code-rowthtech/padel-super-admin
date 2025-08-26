@@ -3,34 +3,31 @@ import {
   Button,
   Col,
   Container,
-  Form,
-  ListGroup,
   OverlayTrigger,
   Row,
   Tooltip,
+  Form,
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaArrowLeft, FaTrash, FaTrashAlt } from "react-icons/fa";
+import { FaArrowLeft, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { BookingDetailsModal, BookingSuccessModal } from "./BookingModal";
 import {
   getOwnerRegisteredClub,
   getActiveCourts,
-  manualBookingByOwner,
-  getBookingDetailsById,
-} from "../../../../redux/thunks";
+  updatePrice,
+} from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ButtonLoading,
   DataLoading,
   Loading,
-} from "../../../../helpers/loading/Loaders";
-import { showError, showInfo } from "../../../../helpers/Toast";
-import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
+} from "../../../helpers/loading/Loaders";
+import { showError, showInfo } from "../../../helpers/Toast";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { format } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
 
-const ManualBooking = () => {
+const CourtAvailability = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
   const ownerId = Owner?.generatedBy ? Owner?.generatedBy : Owner?._id;
@@ -45,11 +42,34 @@ const ManualBooking = () => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
   const [showUnavailable, setShowUnavailable] = useState(false);
+
+  // State to track selected slots with their status
+  const [selectedSlots, setSelectedSlots] = useState({}); // { courtId: [{ slot, status }] }
+  const [selectedCourts, setSelectedCourts] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const dayFullNames = {
+    Sun: "Sunday",
+    Mon: "Monday",
+    Tue: "Tuesday",
+    Wed: "Wednesday",
+    Thu: "Thursday",
+    Fri: "Friday",
+    Sat: "Saturday",
+  };
+  const [selectedDay, setSelectedDay] = useState(
+    dayFullNames[new Date().toLocaleDateString("en-US", { weekday: "short" })]
+  );
+  const scrollRef = useRef(null);
+  const selectedButtonRef = useRef(null);
+
+  // Available status options
+  const statusOptions = ["available", "booked", "maintenance", "closed"];
+
+  // State for common status apply
+  const [commonStatus, setCommonStatus] = useState("");
 
   // Close on outside click
   const handleClickOutside = (e) => {
@@ -75,25 +95,6 @@ const ManualBooking = () => {
     };
   });
 
-  const dayFullNames = {
-    Sun: "Sunday",
-    Mon: "Monday",
-    Tue: "Tuesday",
-    Wed: "Wednesday",
-    Thu: "Thursday",
-    Fri: "Friday",
-    Sat: "Saturday",
-  };
-
-  const [selectedCourts, setSelectedCourts] = useState([]);
-  const [selectedSlots, setSelectedSlots] = useState({});
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [selectedDay, setSelectedDay] = useState(dayFullNames[dates[0]?.day]);
-  const scrollRef = useRef(null);
-  const selectedButtonRef = useRef(null);
-
   const scroll = (direction) => {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({
@@ -105,6 +106,7 @@ const ManualBooking = () => {
 
   const courts = activeCourtsData?.[0]?.courts || [];
   const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
+  const businessHours = activeCourtsData?.[0]?.slot?.[0]?.businessHours || [];
 
   const handleCourtSelect = (courtId) => {
     setSelectedCourts(courtId ? [courtId] : []);
@@ -118,7 +120,7 @@ const ManualBooking = () => {
 
     const courtId = selectedCourts[0];
     const courtSlots = selectedSlots[courtId] || [];
-    const exists = courtSlots.some((t) => t._id === slot._id);
+    const exists = courtSlots.some((t) => t.slot._id === slot._id);
 
     if (!exists) {
       const totalSlots = Object.values(selectedSlots).flat().length;
@@ -130,9 +132,9 @@ const ManualBooking = () => {
 
     let newCourtSlots;
     if (exists) {
-      newCourtSlots = courtSlots.filter((t) => t._id !== slot._id);
+      newCourtSlots = courtSlots.filter((t) => t.slot._id !== slot._id);
     } else {
-      newCourtSlots = [...courtSlots, slot];
+      newCourtSlots = [...courtSlots, { slot, status: "available" }]; // Default status
     }
 
     let newSelectedSlots;
@@ -146,44 +148,52 @@ const ManualBooking = () => {
     setSelectedSlots(newSelectedSlots);
   };
 
-  const removeSlot = (courtId, slotId) => {
-    const courtSlots = selectedSlots[courtId] || [];
-    const newCourtSlots = courtSlots.filter((t) => t._id !== slotId);
-
-    let newSelectedSlots;
-    if (newCourtSlots.length === 0) {
-      const { [courtId]: _, ...rest } = selectedSlots;
-      newSelectedSlots = rest;
-    } else {
-      newSelectedSlots = { ...selectedSlots, [courtId]: newCourtSlots };
-    }
-
-    setSelectedSlots(newSelectedSlots);
+  // Handle status change for a specific slot
+  const handleStatusChange = (courtId, slotId, newStatus) => {
+    setSelectedSlots((prev) => {
+      const courtSlots = prev[courtId] || [];
+      const updatedCourtSlots = courtSlots.map((item) =>
+        item.slot._id === slotId ? { ...item, status: newStatus } : item
+      );
+      return { ...prev, [courtId]: updatedCourtSlots };
+    });
   };
 
-  const clearLocalStorage = () => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    localStorage.removeItem(key);
-    setSelectedSlots({});
-    setSelectedCourts([]);
-  };
-
-  const cleanOldLocalStorage = () => {
-    const today = new Date().setHours(0, 0, 0, 0);
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith("manual-booking-slots-")) {
-        const dateStr = key.split("manual-booking-slots-")[1];
-        const itemDate = new Date(dateStr).setHours(0, 0, 0, 0);
-        if (itemDate <= today) {
-          localStorage.removeItem(key);
-        }
+  // Handle remove slot
+  const handleRemoveSlot = (courtId, slotId) => {
+    setSelectedSlots((prev) => {
+      const courtSlots = prev[courtId] || [];
+      const updatedCourtSlots = courtSlots.filter(
+        (item) => item.slot._id !== slotId
+      );
+      if (updatedCourtSlots.length === 0) {
+        const { [courtId]: _, ...rest } = prev;
+        return rest;
       }
+      return { ...prev, [courtId]: updatedCourtSlots };
+    });
+  };
+
+  // Handle apply common status to all selected slots
+  const handleApplyToAll = () => {
+    if (!commonStatus) {
+      showInfo("Please select a status to apply.");
+      return;
     }
+    setSelectedSlots((prev) => {
+      const newSelectedSlots = {};
+      Object.entries(prev).forEach(([courtId, courtSlots]) => {
+        newSelectedSlots[courtId] = courtSlots.map((item) => ({
+          ...item,
+          status: commonStatus,
+        }));
+      });
+      return newSelectedSlots;
+    });
+    setCommonStatus(""); // Reset after apply
   };
 
   useEffect(() => {
-    cleanOldLocalStorage();
     dispatch(getOwnerRegisteredClub({ ownerId: ownerId })).unwrap();
   }, []);
 
@@ -207,52 +217,6 @@ const ManualBooking = () => {
   }, [courts]);
 
   useEffect(() => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      const parsedSlots = JSON.parse(saved);
-      const totalSlots = Object.values(parsedSlots).flat().length;
-      if (totalSlots <= 15) {
-        setSelectedSlots(parsedSlots);
-      } else {
-        showInfo(
-          "Loaded slots exceed maximum limit of 15. Truncating selection."
-        );
-        const truncatedSlots = {};
-        let count = 0;
-        for (const [courtId, slots] of Object.entries(parsedSlots)) {
-          if (count >= 15) break;
-          const slotsToAdd = slots.slice(0, 15 - count);
-          if (slotsToAdd.length > 0) {
-            truncatedSlots[courtId] = slotsToAdd;
-            count += slotsToAdd.length;
-          }
-        }
-        setSelectedSlots(truncatedSlots);
-        localStorage.setItem(key, JSON.stringify(truncatedSlots));
-      }
-    } else {
-      setSelectedSlots({});
-    }
-  }, [selectedDate]);
-
-  useEffect(() => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    localStorage.setItem(key, JSON.stringify(selectedSlots));
-  }, [selectedSlots, selectedDate]);
-
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      cleanOldLocalStorage();
-      const key = `manual-booking-slots-${selectedDate}`;
-      localStorage.removeItem(key);
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [selectedDate]);
-
-  useEffect(() => {
     if (selectedButtonRef.current && scrollRef.current) {
       const container = scrollRef.current;
       const selected = selectedButtonRef.current;
@@ -270,34 +234,26 @@ const ManualBooking = () => {
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
 
   const handleConfirm = async () => {
-    if (!name || !phone) {
-      showInfo("Please enter both name and phone number.");
-      return;
-    }
-
     const slotsPayload = [];
-    Object.entries(selectedSlots).forEach(([courtId, times]) => {
+    Object.entries(selectedSlots).forEach(([courtId, slotArray]) => {
       const court = courts.find((c) => c._id === courtId);
-      const slotData = court?.slot?.[0];
-      const formattedBusinessHours =
-        slotData?.businessHours?.map((bh) => ({
-          time: bh.time,
-          day: bh.day,
-        })) || [];
-
-      times.forEach((timeSlot) => {
+      slotArray.forEach(({ slot, status }) => {
         slotsPayload.push({
-          slotId: timeSlot?._id,
-          businessHours: formattedBusinessHours,
+          slotId: slot._id,
+          businessHours: {
+            time: businessHours?.[0]?.time,
+            _id: businessHours?.[0]?._id,
+          },
           slotTimes: [
             {
-              time: timeSlot.time,
-              amount: timeSlot.amount || 0,
+              _id: slot._id,
+              time: slot.time,
+              amount: slot.amount || 0,
+              status: status,
             },
           ],
           courtName: court?.courtName,
           courtId: court?._id,
-          bookingDate: new Date(selectedDate).toISOString(),
         });
       });
     });
@@ -309,32 +265,28 @@ const ManualBooking = () => {
 
     try {
       const payload = {
-        slot: slotsPayload,
-        register_club_id: ownerClubData?.[0]?._id,
-        phoneNumber: phone,
-        name: name,
+        _id: activeCourtsData?.[0]?._id,
+        businessHoursUpdates: slotsPayload[0]?.businessHours || [],
+        slotTimesUpdates: slotsPayload.flatMap((slot) =>
+          slot.slotTimes.map((st) => ({
+            _id: st._id,
+            availabilityStatus: st.status,
+            courtId: slot?.courtId,
+          }))
+        ),
+        // courtId: selectedCourts[0],
         ownerId: Owner?._id,
       };
-      await dispatch(manualBookingByOwner(payload))
-        .unwrap()
-        .then((res) => {
-          const id = res?.data?.[0]?._id;
-          dispatch(getBookingDetailsById({ id }));
-        });
 
-      setShowSuccess(true);
-      setName("");
-      setPhone("");
+      console.log({ payload });
+      await dispatch(updatePrice(payload)).unwrap();
       setSelectedSlots({});
       setSelectedCourts([]);
-      localStorage.removeItem(`manual-booking-slots-${selectedDate}`);
     } catch (error) {
       console.log("Booking failed:", error);
+      showError("Failed to update slot status.");
     }
   };
-
-  const { getBookingDetailsData } = useSelector((state) => state.booking);
-  const bookingDetails = getBookingDetailsData?.booking || {};
 
   return (
     <>
@@ -352,16 +304,13 @@ const ManualBooking = () => {
                   color: "#374151",
                 }}
               >
-                Manual Booking
+                Court Availability
               </h5>
             </Col>
             <Col md={6} className="text-end">
               <Button
                 className="bg-transparent border-0"
-                onClick={() => {
-                  clearLocalStorage();
-                  navigate("/admin/booking");
-                }}
+                onClick={() => navigate("/admin/booking")}
                 style={{
                   color: "#1F41BB",
                   fontSize: "18px",
@@ -461,6 +410,7 @@ const ManualBooking = () => {
                             });
                             setSelectedDay(dayFullNames[dayName]);
                             setIsOpen(false);
+                            setSelectedSlots({}); // Clear selected slots on date change
                           }}
                           minDate={new Date()}
                           maxDate={maxSelectableDate}
@@ -508,6 +458,7 @@ const ManualBooking = () => {
                           onClick={() => {
                             setSelectedDate(d.fullDate);
                             setSelectedDay(dayFullNames[d.day]);
+                            setSelectedSlots({}); // Clear selected slots on date change
                           }}
                         >
                           <div className="text-center pb-2">
@@ -585,67 +536,50 @@ const ManualBooking = () => {
                     </div>
                   ) : (
                     <>
-                      {(() => {
-                        const filteredSlots = slotTimes
-                          .map((slot) => {
-                            const slotDate = new Date(selectedDate);
-                            const [hourString, period] = slot?.time
-                              ?.toLowerCase()
-                              .split(" ");
-                            let hour = parseInt(hourString);
-                            if (period === "pm" && hour !== 12) hour += 12;
-                            if (period === "am" && hour === 12) hour = 0;
-                            slotDate.setHours(hour, 0, 0, 0);
+                      {slotTimes
+                        .map((slot) => {
+                          const slotDate = new Date(selectedDate);
+                          const [hourString, period] = slot?.time
+                            ?.toLowerCase()
+                            .split(" ");
+                          let hour = parseInt(hourString);
+                          if (period === "pm" && hour !== 12) hour += 12;
+                          if (period === "am" && hour === 12) hour = 0;
+                          slotDate.setHours(hour, 0, 0, 0);
 
-                            const now = new Date();
-                            const isSameDay =
-                              slotDate.toDateString() === now.toDateString();
-                            const isPast =
-                              isSameDay && slotDate.getTime() < now.getTime();
-                            const courtSelectedSlots =
-                              selectedSlots[selectedCourts[0]] || [];
-                            const isSelected = courtSelectedSlots.some(
-                              (t) => t._id === slot._id
+                          const now = new Date();
+                          const isSameDay =
+                            slotDate.toDateString() === now.toDateString();
+                          const isPast =
+                            isSameDay && slotDate.getTime() < now.getTime();
+                          const courtSelectedSlots =
+                            selectedSlots[selectedCourts[0]] || [];
+                          const isSelected = courtSelectedSlots.some(
+                            (t) => t.slot._id === slot._id
+                          );
+                          const isBooked = slot?.status === "booked";
+                          const isAvailable =
+                            slot?.availabilityStatus === "available";
+                          const hasAmount = slot?.amount && slot?.amount !== 0;
+
+                          return {
+                            slot,
+                            isPast,
+                            isSelected,
+                            isBooked,
+                            isAvailable,
+                            hasAmount,
+                          };
+                        })
+                        .filter(
+                          ({ isPast, isBooked, isAvailable, hasAmount }) => {
+                            return (
+                              showUnavailable ||
+                              (isAvailable && hasAmount && !isBooked && !isPast)
                             );
-                            const isBooked = slot?.status === "booked";
-                            const isAvailable =
-                              slot?.availabilityStatus === "available";
-                            const hasAmount =
-                              slot?.amount && slot?.amount !== 0;
-
-                            return {
-                              slot,
-                              isPast,
-                              isSelected,
-                              isBooked,
-                              isAvailable,
-                              hasAmount,
-                            };
-                          })
-                          .filter(
-                            ({ isPast, isBooked, isAvailable, hasAmount }) => {
-                              return (
-                                showUnavailable ||
-                                (isAvailable &&
-                                  hasAmount &&
-                                  !isBooked &&
-                                  !isPast)
-                              );
-                            }
-                          );
-
-                        if (filteredSlots.length === 0) {
-                          return (
-                            <div
-                              className="d-flex text-danger justify-content-center align-items-center w-100"
-                              style={{ height: "20vh", fontFamily: "Poppins" }}
-                            >
-                              No slots available
-                            </div>
-                          );
-                        }
-
-                        return filteredSlots.map(
+                          }
+                        )
+                        .map(
                           (
                             {
                               slot,
@@ -698,10 +632,6 @@ const ManualBooking = () => {
                               </span>
                             );
 
-                            if (isSelected || isBooked) {
-                              return <div key={i}>{buttonEl}</div>;
-                            }
-
                             return (
                               <OverlayTrigger
                                 key={i}
@@ -712,8 +642,7 @@ const ManualBooking = () => {
                               </OverlayTrigger>
                             );
                           }
-                        );
-                      })()}
+                        )}
                     </>
                   )}
                 </div>
@@ -724,185 +653,141 @@ const ManualBooking = () => {
                 className="shadow rounded-3 p-3 bg-white"
                 style={{ minHeight: "50vh" }}
               >
-                <div
-                  className="tabel-title d-flex justify-content-between align-items-center mb-3"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
-                >
-                  Selected Bookings
-                  {Object.entries(selectedSlots).length > 0 && (
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      className="rounded-pill"
-                      onClick={clearLocalStorage}
-                      style={{ fontSize: "12px", padding: "4px 10px" }}
-                    >
-                      Clear Cart
-                    </Button>
-                  )}
-                </div>
-                <div style={{ maxHeight: "25vh", overflowY: "auto" }}>
-                  {Object.entries(selectedSlots).length === 0 ? (
-                    <div
-                      className="d-flex text-muted justify-content-center align-items-center w-100"
-                      style={{
-                        height: "20vh",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                    >
-                      No selections yet
-                    </div>
-                  ) : (
-                    <ListGroup variant="flush">
-                      {Object.entries(selectedSlots).map(([courtId, slots]) => {
-                        const court = courts.find((c) => c._id === courtId);
-                        return (
-                          <React.Fragment key={courtId}>
-                            <ListGroup.Item
-                              variant="secondary"
-                              className="fw-bold fs-6 py-1 bg-light rounded-top"
-                              style={{ fontFamily: "Poppins" }}
-                            >
-                              <div className="d-flex justify-content-between">
-                                <span>{court?.courtName}</span>
-                                <span>
-                                  {format(
-                                    new Date(selectedDate),
-                                    "EEE, dd/MM/yyyy"
-                                  )}
-                                </span>
-                              </div>
-                            </ListGroup.Item>
-                            {slots.map((slot) => (
-                              <ListGroup.Item
-                                key={slot._id}
-                                className="d-flex justify-content-between align-items-center py-1 px-2 fs-6"
-                                style={{
-                                  fontFamily: "Poppins",
-                                  transition: "all 0.2s ease",
-                                }}
-                              >
-                                <span style={{ fontSize: "14px" }}>
-                                  {slot.time}
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  ₹{slot.amount}
-                                </span>
-                                <Button
-                                  variant="outline-danger"
-                                  size="sm"
-                                  className="px-1 py-0 border-0"
-                                  onClick={() => removeSlot(courtId, slot._id)}
-                                >
-                                  <FaTrash size={12} />
-                                </Button>
-                              </ListGroup.Item>
-                            ))}
-                          </React.Fragment>
-                        );
-                      })}
-                    </ListGroup>
-                  )}
-                </div>
-                {Object.values(selectedSlots).flat().length > 0 && (
-                  <div className="mt-2 p-2 rounded shadow-sm bg-light">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <span
-                        style={{
-                          fontWeight: "600",
-                          fontFamily: "Poppins",
-                          fontSize: "15px",
-                        }}
-                      >
-                        Total Amount
-                      </span>
-                      <span
-                        style={{
-                          fontWeight: "700",
-                          fontSize: "16px",
-                          color: "#1F41BB",
-                        }}
-                      >
-                        ₹
-                        {Object.values(selectedSlots)
-                          .flat()
-                          .reduce((acc, s) => acc + (s.amount || 0), 0)}
-                      </span>
-                      <span style={{ fontSize: "14px", color: "#374151" }}>
-                        {Object.values(selectedSlots).flat().length} Slots
-                      </span>
-                    </div>
-                  </div>
-                )}
                 <div className="mt-2">
-                  <p
-                    className="mb-2 tabel-title"
+                  <h6
                     style={{
                       fontFamily: "Poppins",
                       fontWeight: "600",
                       color: "#374151",
                     }}
                   >
-                    User Information
-                  </p>
-                  <div className="d-flex gap-3 mb-3">
-                    <input
-                      type="text"
-                      className="form-control rounded-3 py-2 shadow-sm"
-                      placeholder="Name"
+                    Selected Slots
+                  </h6>
+                  {/* Apply to All Section */}
+                  <div className="d-flex align-items-center gap-2 mb-3">
+                    <Form.Select
+                      value={commonStatus}
+                      onChange={(e) => setCommonStatus(e.target.value)}
                       style={{
-                        backgroundColor: "#CBD6FF7A",
                         fontFamily: "Poppins",
                         fontSize: "14px",
                       }}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                    <input
-                      type="tel"
-                      className="form-control rounded-3 py-2 shadow-sm"
-                      placeholder="Phone Number"
+                    >
+                      <option value="">Select Status</option>
+                      {statusOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option.charAt(0).toUpperCase() + option.slice(1)}
+                        </option>
+                      ))}
+                    </Form.Select>
+                    <Button
+                      variant="outline-primary"
+                      className="rounded-pill px-3 py-1 text-nowrap"
+                      onClick={handleApplyToAll}
                       style={{
-                        backgroundColor: "#CBD6FF7A",
                         fontFamily: "Poppins",
                         fontSize: "14px",
+                        fontWeight: "500",
                       }}
-                      value={phone}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                          setPhone(value);
-                        }
-                      }}
-                      maxLength={10}
-                      onKeyDown={(e) => {
-                        const allowedKeys = [
-                          "Backspace",
-                          "Tab",
-                          "ArrowLeft",
-                          "ArrowRight",
-                          "Delete",
-                        ];
-                        if (
-                          !allowedKeys.includes(e.key) &&
-                          !/^\d$/.test(e.key)
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
+                    >
+                      Apply to All
+                    </Button>
                   </div>
-                  <div className="d-flex justify-content-end gap-3 align-items-end">
+
+                  {/* Selected Slots List */}
+                  <div
+                    style={{
+                      maxHeight: "calc(50vh - 150px)",
+                      overflowY: "auto",
+                      paddingRight: "10px",
+                    }}
+                  >
+                    {Object.entries(selectedSlots).length === 0 ? (
+                      <div
+                        className="text-muted text-center py-3"
+                        style={{ fontFamily: "Poppins", fontSize: "14px" }}
+                      >
+                        No slots selected
+                      </div>
+                    ) : (
+                      Object.entries(selectedSlots).map(
+                        ([courtId, slotArray]) => {
+                          const court = courts.find((c) => c._id === courtId);
+                          return (
+                            <div
+                              key={courtId}
+                              className="mb-3 border-bottom pb-2"
+                            >
+                              <div
+                                className="mb-2"
+                                style={{
+                                  fontFamily: "Poppins",
+                                  fontWeight: "500",
+                                  color: "#374151",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                {court?.courtName}
+                              </div>
+                              {slotArray.map(({ slot, status }, index) => (
+                                <div
+                                  key={slot._id}
+                                  className="d-flex align-items-center justify-content-between mb-2 bg-light p-2 rounded"
+                                  style={{ border: "1px solid #e9ecef" }}
+                                >
+                                  <span
+                                    style={{
+                                      fontFamily: "Poppins",
+                                      fontSize: "14px",
+                                      flex: "1",
+                                    }}
+                                  >
+                                    {slot.time}
+                                  </span>
+                                  <Form.Select
+                                    value={status}
+                                    onChange={(e) =>
+                                      handleStatusChange(
+                                        courtId,
+                                        slot._id,
+                                        e.target.value
+                                      )
+                                    }
+                                    style={{
+                                      width: "150px",
+                                      fontFamily: "Poppins",
+                                      fontSize: "14px",
+                                      marginRight: "10px",
+                                    }}
+                                  >
+                                    {statusOptions.map((option) => (
+                                      <option key={option} value={option}>
+                                        {option.charAt(0).toUpperCase() +
+                                          option.slice(1)}
+                                      </option>
+                                    ))}
+                                  </Form.Select>
+                                  <Button
+                                    variant="outline-danger"
+                                    className="p-1"
+                                    onClick={() =>
+                                      handleRemoveSlot(courtId, slot._id)
+                                    }
+                                    style={{
+                                      fontSize: "12px",
+                                    }}
+                                  >
+                                    <FaTrash />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }
+                      )
+                    )}
+                  </div>
+                  <div className="d-flex justify-content-end gap-3 align-items-end mt-4">
                     <button
                       className="btn btn-secondary rounded-pill px-4 py-2 shadow-sm"
                       style={{
@@ -911,13 +796,7 @@ const ManualBooking = () => {
                         fontFamily: "Poppins",
                         fontSize: "14px",
                       }}
-                      onClick={() => {
-                        setName("");
-                        setPhone("");
-                        setShowSuccess(false);
-                        clearLocalStorage();
-                        navigate(-1);
-                      }}
+                      onClick={() => navigate(-1)}
                     >
                       Cancel
                     </button>
@@ -938,22 +817,6 @@ const ManualBooking = () => {
                         "Confirm"
                       )}
                     </button>
-                    <BookingSuccessModal
-                      show={showSuccess}
-                      handleClose={() => {
-                        setShowSuccess(false);
-                        clearLocalStorage();
-                      }}
-                      openDetails={() => {
-                        setShowSuccess(false);
-                        setShowDetails(true);
-                      }}
-                    />
-                    <BookingDetailsModal
-                      show={showDetails}
-                      handleClose={() => setShowDetails(false)}
-                      bookingDetails={bookingDetails}
-                    />
                   </div>
                 </div>
               </div>
@@ -965,4 +828,4 @@ const ManualBooking = () => {
   );
 };
 
-export default ManualBooking;
+export default CourtAvailability;
