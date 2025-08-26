@@ -11,6 +11,7 @@ import { Avatar } from "@mui/material";
 import { Alert } from "react-bootstrap";
 import { formatTime } from "../../../helpers/Formatting";
 import { format } from "date-fns"; // Changed to format from date-fns (was formatDate, but it's format)
+import TokenExpire from "../../../helpers/TokenExpire";
 
 const Booking = ({ className = "" }) => {
     const [startDate, setStartDate] = useState(new Date());
@@ -36,7 +37,7 @@ const Booking = ({ className = "" }) => {
         }
     };
     console.log({ slotData });
-
+    const [expireModal, setExpireModal] = useState(false);
     const [selectedTimes, setSelectedTimes] = useState([]);
     const [selectedBuisness, setSelectedBuisness] = useState([]);
     const [selectedCourts, setSelectedCourts] = useState([]);
@@ -78,13 +79,20 @@ const Booking = ({ className = "" }) => {
 
     const scroll = (direction) => {
         if (scrollRef.current) {
-            const buttonWidth = 90; // width of one day button (adjust if needed)
+            const buttonWidth = 90;
             scrollRef.current.scrollBy({
                 left: direction === "left" ? -buttonWidth : buttonWidth,
                 behavior: "smooth",
             });
         }
     };
+
+    useEffect(() => {
+        if (slotData?.message === "jwt token is expired") {
+            setExpireModal(true);
+        }
+    }, [slotData?.message === "jwt token is expired"]);
+
 
     const toggleTime = (time) => {
         const totalSlots = selectedCourts.reduce((acc, c) => acc + c.time.length, 0);
@@ -547,24 +555,30 @@ const Booking = ({ className = "" }) => {
                                 <div className="d-flex flex-wrap gap-2 mb-4">
                                     {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
                                         (() => {
-                                            const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter(
-                                                slot =>
-                                                    showUnavailable
-                                                        ? slot.status === "booked" ||
-                                                        (new Date(selectedDate?.fullDate) && new Date(selectedDate?.fullDate).getTime() < new Date().getTime())
-                                                        : true
-                                            );
+                                            const selectedDateObj = new Date(selectedDate?.fullDate);
+                                            const now = new Date();
+                                            const isToday = selectedDateObj.toDateString() === now.toDateString();
+
+                                            const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter(slot => {
+                                                const [hourString, period] = slot?.time?.toLowerCase().split(" ");
+                                                let hour = parseInt(hourString);
+                                                if (period === "pm" && hour !== 12) hour += 12;
+                                                if (period === "am" && hour === 12) hour = 0;
+                                                const slotDate = new Date(selectedDateObj);
+                                                slotDate.setHours(hour, 0, 0, 0);
+                                                const isPast = isToday && slotDate.getTime() < now.getTime();
+                                                const isBooked = slot?.status === "booked";
+                                                return showUnavailable ? (isPast || isBooked) : true; 
+                                            });
+
                                             return filteredSlots.length > 0 ? (
                                                 filteredSlots.map((slot, i) => {
-                                                    const selectedDateObj = new Date(selectedDate?.fullDate);
-                                                    const slotDate = new Date(selectedDateObj);
                                                     const [hourString, period] = slot?.time?.toLowerCase().split(" ");
                                                     let hour = parseInt(hourString);
                                                     if (period === "pm" && hour !== 12) hour += 12;
                                                     if (period === "am" && hour === 12) hour = 0;
+                                                    const slotDate = new Date(selectedDateObj);
                                                     slotDate.setHours(hour, 0, 0, 0);
-                                                    const now = new Date();
-                                                    const isToday = selectedDateObj.toDateString() === now.toDateString();
                                                     const isPast = isToday && slotDate.getTime() < now.getTime();
                                                     const isBooked = slot?.status === "booked";
                                                     const isSelected = selectedTimes.some(t => t._id === slot._id);
@@ -572,6 +586,7 @@ const Booking = ({ className = "" }) => {
                                                     const currentCourt = selectedCourts.find(c => c._id === currentCourtId);
                                                     const currentSlots = currentCourt ? currentCourt.time.length : 0;
                                                     const isLimitReached = currentSlots === 15 && !isSelected;
+
                                                     return (
                                                         <button
                                                             key={i}
@@ -605,20 +620,12 @@ const Booking = ({ className = "" }) => {
                                                         </button>
                                                     );
                                                 })
-                                            ) : showUnavailable ? (
-                                                <div className="text-center " >
-                                                    <p className="text-danger text-center fw-medium">No unavailable slots.</p>
-                                                </div>
                                             ) : (
-                                                <div className="text-end">
+                                                <div className="text-center">
                                                     <p className="text-danger text-center fw-medium">No slots available for this date.</p>
                                                 </div>
                                             );
                                         })()
-                                    ) : showUnavailable ? (
-                                        <div className="text-center " >
-                                            <p className="text-danger text-center fw-medium">No unavailable slots.</p>
-                                        </div>
                                     ) : (
                                         <div className="text-center">
                                             <p className="text-danger text-center fw-medium">No slots available for this date.</p>
@@ -873,6 +880,8 @@ const Booking = ({ className = "" }) => {
                     </div>
                 </div>
             </div>
+            <TokenExpire isTokenExpired={expireModal} />
+
         </>
     );
 };

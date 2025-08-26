@@ -32,9 +32,9 @@ import { getReviewClub } from "../../../redux/user/club/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import Pagination from "../../../helpers/Pagination";
 import { formatDate } from "../../../helpers/Formatting";
+import TokenExpire from "../../../helpers/TokenExpire";
 
 const BookingHistory = () => {
-    const store = useSelector((state) => state);
     const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState("all");
     const [searchDate, setSearchDate] = useState(null);
@@ -48,12 +48,13 @@ const BookingHistory = () => {
     const [ratingBookingIndex, setRatingBookingIndex] = useState(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [acceptedRejected, setAcceptedRejected] = useState(false);
+    const [expireModal, setExpireModal] = useState(false);
     const [tableData, setCourtData] = useState(null);
     const [statusData, setStatusData] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const getBookingData = useSelector((state) => state?.userBooking);
     const User = getUserFromSession();
-
+    console.log({ getBookingData });
     const renderSlotTimes = (slotTimes) =>
         slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
 
@@ -80,6 +81,16 @@ const BookingHistory = () => {
         setIsOpen(false);
         setCurrentPage(1);
     };
+
+    useEffect(() => {
+        if (getBookingData?.bookingData?.message === "jwt token is expired") {
+            setExpireModal(true);
+        }
+    }, [getBookingData?.bookingData?.message === "jwt token is expired"]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchDate, searchText, selectedOption, activeTab]);
 
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -672,6 +683,8 @@ const BookingHistory = () => {
                 show={acceptedRejected}
                 tableData={tableData}
             />
+
+            <TokenExpire isTokenExpired={expireModal} />
         </Container>
     );
 };
