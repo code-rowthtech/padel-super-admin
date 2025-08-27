@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { Box, Button, Modal } from "@mui/material";
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from 'react-bootstrap';
-import { loginUserNumber } from '../../../redux/user/auth/authThunk';
+import { Usersignup } from '../../../redux/user/auth/authThunk';
+import { getMatchesUser } from '../../../redux/user/matches/thunk';
+import { ButtonLoading } from '../../../helpers/loading/Loaders';
+import { showSuccess } from '../../../helpers/Toast';
 
 const modalStyle = {
     position: 'absolute',
@@ -14,7 +17,7 @@ const modalStyle = {
     p: 4,
     borderRadius: 2,
     border: 'none',
-   
+
 };
 export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot }) => {
     const [name, setName] = useState("");
@@ -23,7 +26,7 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
     const [errorShow, setErrorShow] = useState(false);
     const [error, setError] = useState(null);
     const dispatch = useDispatch()
-    const user = useSelector((state) => state?.userAuth?.userData?.data);
+    const userLoading = useSelector((state) => state?.userAuth);
 
 
     const handleSubmit = () => {
@@ -41,10 +44,19 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
         setError(null);
         setErrorShow(false);
 
-        dispatch(loginUserNumber({ phoneNumber, name, email })).unwrap().then((res) => {
-            console.log(res,'resresres');
-            setShowAddMeForm(false);
-            setActiveSlot(null);
+        dispatch(Usersignup({ phoneNumber, name, email })).unwrap().then((res) => {
+            console.log(res, 'resresres');
+            if (res?.status === "200") {
+                dispatch(getMatchesUser())
+                setShowAddMeForm(false);
+                setActiveSlot(null);
+                showSuccess("Add Players Successfully");
+                localStorage.setItem('players', JSON.stringify(res?.response));
+            }
+        }).catch((err) => {
+            console.log(err, 'errerrerr');
+            setError(err?.response?.data?.message || "An error occurred. Please try again.");
+            setErrorShow(true);
         })
     };
 
@@ -57,7 +69,7 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
     }, [error, errorShow]);
     return (
         <>
-            {showAddMeForm && activeSlot === "slot-1" && (
+            {showAddMeForm && (
                 <Modal
                     open={showAddMeForm}
                     onClose={() => {
@@ -100,7 +112,6 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                                     pattern="[A-Za-z\s]+"
                                     title="Name can only contain letters and single spaces between words"
                                     aria-label="Name"
-                                    disabled={user?.name}
                                 />
                             </div>
                             <div className="mb-3">
@@ -128,7 +139,6 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                                     }}
                                     className="form-control border p-2"
                                     placeholder="Enter your email"
-                                    disabled={user?.email}
                                 />
                             </div>
                             <div className="mb-3">
@@ -155,7 +165,6 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                                         placeholder="Enter phone number"
                                         pattern="[6-9][0-9]{9}"
                                         title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
-                                        disabled={user?.phoneNumber}
                                     />
                                 </div>
                             </div>
@@ -178,7 +187,7 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                                     style={{ backgroundColor: "#3DBE64" }}
                                     onClick={() => handleSubmit()}
                                 >
-                                    Submit
+                                    {userLoading?.userSignUpLoading ? <ButtonLoading /> : "Submit"}
                                 </Button>
 
                             </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import { Link } from "react-router-dom";
-import { player, padal, club } from "../../../assets/files"; // Assuming padal is for padel icon
+import { player, padal, club } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { DataLoading } from "../../../helpers/loading/Loaders";
@@ -9,19 +9,30 @@ import { Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { MdOutlineDateRange } from "react-icons/md";
 import { NewPlayers } from "./NewPlayers";
+import { createBooking } from "../../../redux/user/booking/thunk";
+import { Button, Modal } from "react-bootstrap";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 const ViewMatch = ({ className = "" }) => {
-    const [selectedTime, setSelectedTime] = useState("8:00am");
     const [selectedCourts, setSelectedCourts] = useState([]);
-    const [selectedDate, setSelectedDate] = useState("22 Jun");
+    const [modal, setModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState("");
     const [showAddMeForm, setShowAddMeForm] = useState(false);
-    const [activeSlot, setActiveSlot] = useState(null);
+    const [activeSlot, setActiveSlot] = useState('slot-1');
+    const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
+    const User = getUserFromSession();
     const matchesData = useSelector((state) => state.userMatches?.usersData);
     const userLoading = useSelector((state) => state.userMatches?.usersLoading);
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || []);
-    const logo = JSON.parse(localStorage.getItem("logo"));
+    const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
+    const userPlayersData = localStorage.getItem('players') ? JSON.parse(localStorage.getItem('players')) : null;
+
+    // Debug: Log matchesData and userPlayersData
+    console.log("matchesData:", matchesData);
+    console.log("userPlayersData:", userPlayersData);
+
     const today = new Date();
     const dates = Array.from({ length: 7 }).map((_, i) => {
         const date = new Date();
@@ -34,20 +45,80 @@ const ViewMatch = ({ className = "" }) => {
         };
     });
 
-    const handleCourtSelect = (court) => {
-        const newCourt = { ...court, time: selectedTime, date: selectedDate };
-        setSelectedCourts((prev) => [...prev, newCourt]);
+    const handleBooking = () => {
+        try {
+            setIsLoading(true);
+
+            // User details from session
+            const name = User?.name;
+            const phoneNumber = User?.phoneNumber;
+            const email = User?.email;
+
+            // Validation checks
+            if (!name || !phoneNumber || !email) {
+                throw new Error("User ki information missing hai. Naam, phone, ya email daalein.");
+            }
+            if (!matchesData?.data?.[0]) {
+                throw new Error("Match data missing hai. Pehle match details select karein.");
+            }
+
+            const match = matchesData.data[0];
+            const register_club_id = match.clubId?._id;
+            const owner_id = match.clubId?.ownerId;
+            const matchTimes = match.matchTime.split(",").map(time => time.trim());
+
+            if (!register_club_id || !owner_id) {
+                throw new Error("Club ya owner ki information missing hai.");
+            }
+            if (!match.slot || match.slot.length === 0 || !match.matchTime) {
+                throw new Error("Slot ya match time missing hai.");
+            }
+
+            // Create slotArray from matchesData
+            const slotArray = match.slot.map((slot, index) => {
+                const time = matchTimes[index] || slot.slotTimes[0].time; // Match time with slot
+                return {
+                    slotId: slot.slotId,
+                    businessHours: clubData?.businessHours || [
+                        { time: "Not available", day: "Monday" }
+                    ],
+                    slotTimes: [
+                        {
+                            time: time,
+                            amount: slot.slotTimes[0]?.amount || 0
+                        }
+                    ],
+                    courtName: slot.courtName,
+                    courtId: slot.courtId || match.clubId?.courts?.[0]?._id,
+                    bookingDate: match.matchDate
+                };
+            });
+
+            // Payload
+            const payload = {
+                name,
+                phoneNumber,
+                email,
+                register_club_id,
+                ownerId: owner_id,
+                slot: slotArray,
+                paymentMethod: selectedPayment || "credit_card",
+                type: "openMatch",
+            };
+
+            console.log("Booking Payload:", payload);
+            dispatch(createBooking(payload)).unwrap();
+            setModal(true);
+        } catch (err) {
+            console.error("Booking Error:", err.message);
+            setError(err.message || "Booking ke dauraan error aaya.");
+            setModal(false);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const total = selectedCourts.reduce((sum, c) => sum + c.price, 0);
-
-    const handleDelete = (index) => {
-        const updatedCourts = [...selectedCourts];
-        updatedCourts.splice(index, 1);
-        setSelectedCourts(updatedCourts);
-    };
-
-    // Mock props for demonstration
+    // Styling for button
     const width = 370;
     const height = 75;
     const circleRadius = height * 0.3;
@@ -93,22 +164,10 @@ const ViewMatch = ({ className = "" }) => {
         paddingRight: `${circleRadius * 2}px`,
     };
 
-    const onClick = () => {
-        alert("Button clicked! (would navigate to /payment)");
-    };
-
-    // Mock court data to match the image
-    const mockCourt = {
-        name: "Court 1",
-        price: 1000,
-        date: "22 Jun",
-    };
-
     useEffect(() => {
-        dispatch(getMatchesUser())
-        dispatch(getUserClub({ search: "" }))
-    }, [dispatch])
-
+        dispatch(getMatchesUser());
+        dispatch(getUserClub({ search: "" }));
+    }, [dispatch]);
 
     const skillLabels = ["A/B", "B/C", "C/D", "D/E"];
 
@@ -121,6 +180,30 @@ const ViewMatch = ({ className = "" }) => {
             setActiveSlot(slot);
         }
     };
+
+    console.log({ showAddMeForm });
+
+    const getDateFromDay = (dayOfWeek, year = 2025) => {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const targetDayIndex = days.indexOf(dayOfWeek);
+        if (targetDayIndex === -1) return 'Invalid day';
+
+        const today = new Date();
+        const currentYear = year || today.getFullYear();
+        const date = new Date(currentYear, today.getMonth(), today.getDate());
+
+        const currentDayIndex = date.getDay();
+        const daysDiff = (currentDayIndex - targetDayIndex + 7) % 7;
+        date.setDate(date.getDate() - daysDiff);
+
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = date.toLocaleString('default', { month: 'long' });
+        return `${day} ${month}`;
+    };
+
+    const dayOfWeek = matchesData?.data?.[0]?.slot?.[0]?.businessHours?.[0]?.day || 'Sunday';
+    const formattedDate = getDateFromDay(dayOfWeek);
+    const time = matchesData?.data?.[0]?.matchTime || '8:00am – 10:00am';
 
     return (
         <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
@@ -169,7 +252,7 @@ const ViewMatch = ({ className = "" }) => {
                                 className="text-muted"
                                 style={{ fontWeight: "500" }}
                             >
-                                22 June | 8:00am – 10:00am
+                                {formattedDate} | {time}
                             </small>
                         </div>
                         <div className="row text-center border-top">
@@ -183,7 +266,14 @@ const ViewMatch = ({ className = "" }) => {
                             </div>
                             <div className="col py-3">
                                 <p className="mb-1 text-muted small">Price</p>
-                                <p className="mb-0 fw-semibold">₹ 2000</p>
+                                <p className="mb-0 fw-semibold">₹ {matchesData?.data?.[0]?.slot
+                                    ?.reduce((total, court) => {
+                                        return (
+                                            total +
+                                            court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0)
+                                        );
+                                    }, 0)
+                                    .toFixed(0)}</p>
                             </div>
                         </div>
                     </div>
@@ -197,9 +287,8 @@ const ViewMatch = ({ className = "" }) => {
                             className="text-muted mb-1"
                             style={{ fontSize: "15px", fontWeight: "500" }}
                         >
-                            Court Number
+                            Open Match
                         </p>
-                        <h5 className="mb-0">1</h5>
                     </div>
 
                     {/* Players Section */}
@@ -217,57 +306,111 @@ const ViewMatch = ({ className = "" }) => {
                         {userLoading ? <DataLoading /> : (
                             <>
                                 <div className="row mx-auto">
-
                                     {/* Team A */}
-                                    <div className="col-6 d-flex gap-3  justify-content-center">
+                                    <div className="col-6 d-flex gap-3 justify-content-center">
                                         {(() => {
-                                            const players = matchesData?.data?.flatMap((m) => m.players || []) || [];
-
-                                            // पहले 2 Player Team A में
-                                            const leftPlayers = players.slice(0, 2);
+                                            const matchPlayers = matchesData?.data?.flatMap((m) => m.players || []) || [];
                                             const leftComponents = [];
 
-                                            leftPlayers.forEach((player, idx) => {
+                                            // First slot from matchesData
+                                            if (matchPlayers.length > 0) {
+                                                const player = matchPlayers[0];
                                                 leftComponents.push(
-                                                    <div key={`left-${idx}`} className="text-center mx-auto mb-3">
+                                                    <div key="left-match-0" className="text-center mx-auto mb-3">
                                                         <div
                                                             className="rounded-circle border d-flex align-items-center justify-content-center"
                                                             style={{
-                                                                width: 80, height: 80,
+                                                                width: 80,
+                                                                height: 80,
                                                                 backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
-                                                                overflow: "hidden"
+                                                                overflow: "hidden",
                                                             }}
                                                         >
                                                             {player.profilePic ? (
-                                                                <img src={player.profilePic} alt="player"
-                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                                <img
+                                                                    src={player.profilePic}
+                                                                    alt="player"
+                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                                />
                                                             ) : (
                                                                 <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
                                                                     {player.userId?.name ? player.userId.name.charAt(0).toUpperCase() : "U"}
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="mb-0 mt-2 fw-semibold">{player.userId?.name.charAt().toUpperCase(1) + player?.userId?.name?.slice(1) || "Unknown"}</p>
-                                                        <span className="badge bg-success-subtle text-success">
-                                                            {skillLabels[idx]}
-                                                        </span>
+                                                        <p className="mb-0 mt-2 fw-semibold">
+                                                            {player.userId?.name.charAt(0).toUpperCase() + player?.userId?.name?.slice(1) || "Unknown"}
+                                                        </p>
+                                                        <span className="badge bg-success-subtle text-success">{skillLabels[0]}</span>
                                                     </div>
                                                 );
-                                            });
-
-                                            // अगर player 2 से कम हैं तो "Add Me" दिखाना
-                                            while (leftComponents.length < 2) {
+                                            } else {
                                                 leftComponents.push(
-                                                    <div key={`left-add-${leftComponents.length}`} className="text-center mx-auto"
+                                                    <div
+                                                        key="left-add-match-0"
+                                                        className="text-center mx-auto"
                                                         onClick={() => handleAddMeClick("slot-1")}
-                                                        style={{ cursor: "pointer" }}>
+                                                        style={{ cursor: "pointer" }}
+                                                    >
                                                         <div
-                                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                                            className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                                             style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
                                                         >
-                                                            <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
+                                                            <span className="fs-3" style={{ color: "#1F41BB" }}>
+                                                                +
+                                                            </span>
                                                         </div>
-                                                        <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>Add Me</p>
+                                                        <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>
+                                                            Add Me
+                                                        </p>
+                                                    </div>
+                                                );
+                                            }
+
+                                            // Second slot from userPlayersData
+                                            const userPlayersArray = Array.isArray(userPlayersData) ? userPlayersData : userPlayersData ? [userPlayersData] : [];
+                                            if (userPlayersArray.length > 0) {
+                                                const player = userPlayersArray[0];
+                                                leftComponents.push(
+                                                    <div key="left-user-1" className="text-center mx-auto mb-3">
+                                                        <div
+                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: 80,
+                                                                height: 80,
+                                                                backgroundColor: "#1F41BB",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
+                                                                {player.name ? player.name.charAt(0).toUpperCase() : "U"}
+                                                            </span>
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold">
+                                                            {player.name.charAt(0).toUpperCase() + player.name.slice(1) || "Unknown"}
+                                                        </p>
+                                                        <span className="badge bg-success-subtle text-success">{skillLabels[1]}</span>
+                                                    </div>
+                                                );
+                                            } else {
+                                                leftComponents.push(
+                                                    <div
+                                                        key="left-add-user-1"
+                                                        className="text-center mx-auto"
+                                                        onClick={() => handleAddMeClick("slot-2")}
+                                                        style={{ cursor: "pointer" }}
+                                                    >
+                                                        <div
+                                                            className="rounded-circle d-flex bg-white align-items-center justify-content-center"
+                                                            style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
+                                                        >
+                                                            <span className="fs-3" style={{ color: "#1F41BB" }}>
+                                                                +
+                                                            </span>
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>
+                                                            Add Me
+                                                        </p>
                                                     </div>
                                                 );
                                             }
@@ -279,66 +422,57 @@ const ViewMatch = ({ className = "" }) => {
                                     {/* Team B */}
                                     <div className="col-6 d-flex gap-3 align-items-start justify-content-center border-start">
                                         {(() => {
-                                            const players = matchesData?.data?.flatMap((m) => m.players || []) || [];
-
-                                            // 3rd और 4th player Team B में
-                                            const rightPlayers = players.slice(2, 4);
                                             const rightComponents = [];
+                                            const userPlayersArray = Array.isArray(userPlayersData) ? userPlayersData : userPlayersData ? [userPlayersData] : [];
 
-                                            rightPlayers.forEach((player, idx) => {
-                                                rightComponents.push(
-                                                    <div key={`right-${idx}`} className="text-center mx-auto mb-3">
-                                                        <div
-                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
-                                                            style={{
-                                                                width: 80, height: 80,
-                                                                backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
-                                                                overflow: "hidden"
-                                                            }}
-                                                        >
-                                                            {player.profilePic ? (
-                                                                <img src={player.profilePic} alt="player"
-                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                                            ) : (
+                                            // Both slots from userPlayersData
+                                            userPlayersArray.forEach((player, idx) => {
+                                                if (idx < 2) {
+                                                    rightComponents.push(
+                                                        <div key={`right-user-${idx}`} className="text-center mx-auto mb-3">
+                                                            <div
+                                                                className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                style={{
+                                                                    width: 80,
+                                                                    height: 80,
+                                                                    backgroundColor: "#1F41BB",
+                                                                    overflow: "hidden",
+                                                                }}
+                                                            >
                                                                 <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
-                                                                    {player.userId?.name ? player.userId.name.charAt(0).toUpperCase() : "U"}
+                                                                    {player.name ? player.name.charAt(0).toUpperCase() : "U"}
                                                                 </span>
-                                                            )}
+                                                            </div>
+                                                            <p className="mb-0 mt-2 fw-semibold">
+                                                                {player.name.charAt(0).toUpperCase() + player.name.slice(1) || "Unknown"}
+                                                            </p>
+                                                            <span className="badge bg-success-subtle text-success">{skillLabels[idx + 2]}</span>
                                                         </div>
-                                                        <p className="mb-0 mt-2 fw-semibold">{player.userId?.name.charAt().toUpperCase(1) + player?.userId?.name?.slice(1) || "Unknown"}</p>
-                                                        <span className="badge bg-success-subtle text-success">
-                                                            {skillLabels[idx + 2]}
-                                                        </span>
-                                                    </div>
-                                                );
+                                                    );
+                                                }
                                             });
 
-                                            // बचे हुए slots भरना
-                                            const remaining = 2 - rightPlayers.length;
-                                            if (remaining > 0) {
+                                            // Add "Add Me" buttons for remaining slots
+                                            const remaining = 2 - rightComponents.length;
+                                            for (let i = 0; i < remaining; i++) {
                                                 rightComponents.push(
-                                                    <div key="right-add" className="text-center mx-auto"
-                                                        onClick={() => handleAddMeClick("slot-1")}
-                                                        style={{ cursor: "pointer" }}>
+                                                    <div
+                                                        key={`right-add-${i}`}
+                                                        className="text-center mx-auto"
+                                                        onClick={() => handleAddMeClick(`slot-${3 + i}`)}
+                                                        style={{ cursor: "pointer" }}
+                                                    >
                                                         <div
-                                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                                            className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                                             style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
                                                         >
-                                                            <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
+                                                            <span className="fs-3" style={{ color: "#1F41BB" }}>
+                                                                +
+                                                            </span>
                                                         </div>
-                                                        <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>Add Me</p>
-                                                    </div>
-                                                );
-                                            }
-                                            if (remaining === 2) {
-                                                rightComponents.push(
-                                                    <div key="right-gray" className="d-flex flex-column align-items-center justify-content-center mx-auto">
-                                                        <div
-                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
-                                                            style={{ width: 80, height: 80, cursor: "not-allowed" }}
-                                                        >
-                                                            <span className="fs-3" style={{ color: "gray" }}>+</span>
-                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>
+                                                            Add Me
+                                                        </p>
                                                     </div>
                                                 );
                                             }
@@ -366,9 +500,9 @@ const ViewMatch = ({ className = "" }) => {
                         style={{ backgroundColor: "#CBD6FF1A" }}
                     >
                         <div className="d-flex gap-3 align-items-start">
-                            <img src={club} alt="court" className="rounded" width={150} />
+                            <img src={clubData?.courtImage?.[0]} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
-                                <p className=" mb-1" style={{ fontSize: "20px", fontWeight: "500" }}>{clubData?.clubName}</p>
+                                <p className="mb-1" style={{ fontSize: "20px", fontWeight: "500" }}>{clubData?.clubName}</p>
                                 <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
                                     {clubData?.clubName}
                                     {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
@@ -416,7 +550,7 @@ const ViewMatch = ({ className = "" }) => {
                                 Type of Court (2 courts)
                             </p>
                             <p
-                                className=" mb-0"
+                                className="mb-0"
                                 style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}
                             >
                                 Outdoor, crystal, Double
@@ -425,7 +559,7 @@ const ViewMatch = ({ className = "" }) => {
                     </div>
 
                     <div className="d-flex mb-4 align-items-center gap-3 px-2">
-                        <MdOutlineDateRange className="fs-2 text-dark" />
+                        <i className="bi bi-calendar-check fs-2 text-dark"></i>
                         <div>
                             <p
                                 className="mb-0"
@@ -434,7 +568,7 @@ const ViewMatch = ({ className = "" }) => {
                                 End registration
                             </p>
                             <p
-                                className=" mb-0"
+                                className="mb-0"
                                 style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}
                             >
                                 Today at 10:00 PM
@@ -474,7 +608,6 @@ const ViewMatch = ({ className = "" }) => {
                                 </label>
                             ))}
                         </div>
-
                     </div>
                     <div
                         className="border rounded px-3 ms-2 pt-3 border-0"
@@ -504,7 +637,7 @@ const ViewMatch = ({ className = "" }) => {
                             className="border-top p-2 mb-3 ps-0"
                             style={{ fontSize: "20px", fontWeight: "600" }}
                         >
-                            Booking summary
+                            Booking Summary
                         </h6>
                         <div
                             style={{
@@ -512,73 +645,78 @@ const ViewMatch = ({ className = "" }) => {
                                 overflowY: "auto",
                             }}
                         >
-                            {selectedCourts.length === 0 && (
-                                <div
-                                    className="court-row d-flex justify-content-between align-items-center mb-3 px-2"
-                                    onClick={() => handleCourtSelect(mockCourt)}
-                                    style={{ cursor: "pointer" }}
-                                >
-                                    <div>
-                                        <strong>Sun, 22 Jun</strong> 8:00am (60m) Court 1
-                                    </div>
-                                    <div>₹ 1000</div>
-                                </div>
+                            {matchesData?.data?.[0]?.slot && matchesData.data[0].slot.length > 0 ? (
+                                matchesData.data[0].slot.map((court, index) =>
+                                    court.slotTimes.map((slotTime, slotIndex) => {
+                                        const formatDate = (dateString) => {
+                                            const date = new Date(dateString);
+                                            const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+                                            const formattedDate = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+                                            return { day, formattedDate };
+                                        };
+                                        const { day, formattedDate } = formatDate(matchesData.data[0].matchDate);
+                                        return (
+                                            <div
+                                                key={`${index}-${slotIndex}`}
+                                                className="court-row d-flex justify-content-between align-items-center mb-3 px-2"
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                <div>
+                                                    <strong>{day}, {formattedDate} {slotTime.time} (60m)</strong> {court.courtName}
+                                                </div>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <div>₹ {slotTime.amount}</div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )
+                            ) : (
+                                <div>No slots available</div>
                             )}
-                            {selectedCourts.map((court, index) => (
-                                <div
-                                    key={index}
-                                    className="court-row d-flex justify-content-between align-items-center mb-3 px-2"
-                                >
-                                    <div>
-                                        <strong>Sun, {court.date}</strong> {court.time} (60m) {court.name}
-                                    </div>
-                                    <div className="d-flex align-items-center gap-2">
-                                        <button
-                                            className="btn btn-sm text-danger delete-btn"
-                                            onClick={() => handleDelete(index)}
-                                        >
-                                            <i className="bi bi-trash-fill"></i>
-                                        </button>
-                                        <div>₹ {court.price}</div>
-                                    </div>
-                                </div>
-                            ))}
                         </div>
 
                         <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>
                                 Total to pay
                             </span>
-                            <span className="text-primary">₹ {total || 1000}</span>
+                            <span className="text-primary">₹ {matchesData?.data?.[0]?.slot
+                                ?.reduce((total, court) => {
+                                    return (
+                                        total +
+                                        court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0)
+                                    );
+                                }, 0)
+                                .toFixed(0)}</span>
                         </div>
 
                         <div className="d-flex justify-content-center mt-3">
                             <button
                                 style={buttonStyle}
-                                onClick={onClick}
+                                onClick={handleBooking}
                                 className={className}
+                                disabled={isLoading}
                             >
-                                <Link to="/payment" style={{ textDecoration: "none" }} className="">
-                                    <svg
-                                        style={svgStyle}
-                                        viewBox={`0 0 ${width} ${height}`}
-                                        preserveAspectRatio="none"
-                                    >
-                                        <defs>
-                                            <linearGradient
-                                                id={`buttonGradient-${width}-${height}`}
-                                                x1="0%"
-                                                y1="0%"
-                                                x2="100%"
-                                                y2="0%"
-                                            >
-                                                <stop offset="0%" stopColor="#3DBE64" />
-                                                <stop offset="50%" stopColor="#1F41BB" />
-                                                <stop offset="100%" stopColor="#1F41BB" />
-                                            </linearGradient>
-                                        </defs>
-                                        <path
-                                            d={`M ${width * 0.76} ${height * 0.15} 
+                                <svg
+                                    style={svgStyle}
+                                    viewBox={`0 0 ${width} ${height}`}
+                                    preserveAspectRatio="none"
+                                >
+                                    <defs>
+                                        <linearGradient
+                                            id={`buttonGradient-${width}-${height}`}
+                                            x1="0%"
+                                            y1="0%"
+                                            x2="100%"
+                                            y2="0%"
+                                        >
+                                            <stop offset="0%" stopColor="#3DBE64" />
+                                            <stop offset="50%" stopColor="#3DBE64" />
+                                            <stop offset="100%" stopColor="#3DBE64" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path
+                                        d={`M ${width * 0.76} ${height * 0.15} 
              C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
              C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
              C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
@@ -593,41 +731,76 @@ const ViewMatch = ({ className = "" }) => {
              C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
              C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
              L ${width * 0.76} ${height * 0.15} Z`}
-                                            fill={`url(#buttonGradient-${width}-${height})`}
+                                        fill={`url(#buttonGradient-${width}-${height})`}
+                                    />
+                                    <circle
+                                        cx={circleX}
+                                        cy={circleY}
+                                        r={circleRadius}
+                                        fill="#3DBE64"
+                                    />
+                                    <g
+                                        stroke="white"
+                                        strokeWidth={height * 0.03}
+                                        fill="none"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path
+                                            d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`}
                                         />
-                                        <circle
-                                            cx={circleX}
-                                            cy={circleY}
-                                            r={circleRadius}
-                                            fill="#3DBE64"
+                                        <path
+                                            d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`}
                                         />
-                                        <g
-                                            stroke="white"
-                                            strokeWidth={height * 0.03}
-                                            fill="none"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
-                                            <path
-                                                d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`}
-                                            />
-                                            <path
-                                                d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`}
-                                            />
-                                            <path
-                                                d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`}
-                                            />
-                                        </g>
-                                    </svg>
-                                    <div style={contentStyle}>Book Now</div>
-                                </Link>
+                                        <path
+                                            d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`}
+                                        />
+                                    </g>
+                                </svg>
+                                <div style={contentStyle}>{isLoading ? "Booking..." : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <NewPlayers activeSlot={activeSlot} setShowAddMeForm={setShowAddMeForm} showAddMeForm={showAddMeForm} setActiveSlot={setActiveSlot}/>
+            {/* Error Modal */}
+            {error && (
+                <Modal show={error} onHide={() => setError(null)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Error</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>{error}</Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setError(null)}>
+                            Close
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            )}
+
+            {/* Success Modal */}
+            <Modal show={modal} onHide={() => setModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Booking Successful</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>Your booking has been confirmed!</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setModal(false)}>
+                        Close
+                    </Button>
+                    <Button variant="primary" as={Link} to="/booking-history">
+                        View Booking History
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <NewPlayers
+                activeSlot={activeSlot}
+                setShowAddMeForm={setShowAddMeForm}
+                showAddMeForm={showAddMeForm}
+                setActiveSlot={setActiveSlot}
+            />
         </div>
     );
 };

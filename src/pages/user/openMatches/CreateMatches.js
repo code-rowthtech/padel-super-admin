@@ -26,9 +26,11 @@ const CreateMatches = () => {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
+  console.log({ selectedTimes });
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedCourts, setSelectedCourts] = useState([]);
   const [skillDetails, setSkillDetails] = useState([]);
+  const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
@@ -39,7 +41,6 @@ const CreateMatches = () => {
       setIsOpen(false);
     }
   };
-
   React.useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -137,6 +138,8 @@ const CreateMatches = () => {
     setSelectedCourts(prev =>
       prev.some(c => c?._id === court?._id) ? [] : [newCourt]
     );
+    setCurrentCourtId(court._id);
+
   };
 
   // डिफॉल्ट रूप से पहला कोर्ट सेलेक्ट करें
@@ -211,13 +214,14 @@ const CreateMatches = () => {
           const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
           return {
             slotId: timeSlot?._id,
-            businessHours: [{
-              time: "6:00 AM To 11:00 PM",
-              day: selectedDate.day,
-            }],
+            businessHours:
+              slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
+                time: t?.time,
+                day: t?.day,
+              })),
             slotTimes: [{
               time: timeSlot?.time,
-              amount: timeSlot?.amount || 1000,
+              amount: timeSlot?.amount,
             }],
             courtName: selectedCourt?.courtName,
             courtId: selectedCourt?._id,
@@ -255,7 +259,6 @@ const CreateMatches = () => {
     }
   };
 
-  const [selectedOption, setSelectedOption] = useState("");
 
   return (
     <Container className="p-4 mb-5" style={{ minHeight: '100vh' }}>
@@ -363,44 +366,80 @@ const CreateMatches = () => {
           ) : (
             <>
               <div className="d-flex flex-wrap gap-2 mb-4">
-                {slotData?.data?.length > 0 &&
-                  slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                  slotData?.data?.[0]?.slot?.[0]?.slotTimes?.map((slot, i) => {
+                {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                  (() => {
                     const selectedDateObj = new Date(selectedDate?.fullDate);
-                    const slotDate = new Date(selectedDateObj);
-                    const [hourString, period] = slot?.time?.toLowerCase().split(" ");
-                    let hour = parseInt(hourString);
-                    if (period === "pm" && hour !== 12) hour += 12;
-                    if (period === "am" && hour === 12) hour = 0;
-                    slotDate.setHours(hour, 0, 0, 0);
                     const now = new Date();
                     const isToday = selectedDateObj.toDateString() === now.toDateString();
-                    const isPast = isToday && slotDate.getTime() < now.getTime();
-                    const isBooked = slot?.status === "booked";
 
-                    // Show only unavailable slots if toggle is on
-                    if (showUnavailableOnly && !(isPast || isBooked)) return null;
+                    const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter(slot => {
+                      const [hourString, period] = slot?.time?.toLowerCase().split(" ");
+                      let hour = parseInt(hourString);
+                      if (period === "pm" && hour !== 12) hour += 12;
+                      if (period === "am" && hour === 12) hour = 0;
+                      const slotDate = new Date(selectedDateObj);
+                      slotDate.setHours(hour, 0, 0, 0);
+                      const isPast = isToday && slotDate.getTime() < now.getTime();
+                      const isBooked = slot?.status === "booked";
+                      return showUnavailableOnly ? (isPast || isBooked) : true;
+                    });
+                    return filteredSlots.length > 0 ? (
+                      filteredSlots.map((slot, i) => {
+                        const [hourString, period] = slot?.time?.toLowerCase().split(" ");
+                        let hour = parseInt(hourString);
+                        if (period === "pm" && hour !== 12) hour += 12;
+                        if (period === "am" && hour === 12) hour = 0;
+                        const slotDate = new Date(selectedDateObj);
+                        slotDate.setHours(hour, 0, 0, 0);
+                        const isPast = isToday && slotDate.getTime() < now.getTime();
+                        const isBooked = slot?.status === "booked";
+                        const isSelected = selectedTimes.some(t => t._id === slot._id);
+                        const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
+                        const currentCourt = selectedCourts.find(c => c._id === currentCourtId);
+                        const currentSlots = currentCourt ? currentCourt.time.length : 0;
+                        const isLimitReached = currentSlots === 15 && !isSelected;
 
-                    const isSelected = selectedTimes.some(t => t._id === slot._id);
-                    return (
-                      <button
-                        key={i}
-                        className="btn border-0 rounded-pill px-4"
-                        onClick={() => !isPast && !isBooked && toggleTime(slot)}
-                        disabled={isPast || isBooked}
-                        style={{
-                          backgroundColor: isSelected ? "#374151" : isBooked ? "#b42424ff" : "#CBD6FF1A",
-                          color: isSelected ? "white" : isPast && !isBooked ? "#888888" : isBooked ? 'white' : "#000000",
-                          cursor: (isPast || isBooked) ? "not-allowed" : "pointer",
-                          opacity: (isPast || isBooked) ? 0.6 : 1,
-                        }}
-                      >
-                        {isBooked ? "Booked" : slot?.time}
-                      </button>
+                        return (
+                          <button
+                            key={i}
+                            className={`btn border-0 rounded-pill px-4 ${isBooked ? "bg-danger text-white" : isPast ? "bg-secondary-subtle" : ""}`}
+                            onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
+                            style={{
+                              backgroundColor: isSelected
+                                ? "#374151"
+                                : isBooked
+                                  ? "#b42424ff"
+                                  : isLimitReached
+                                    ? "#888888"
+                                    : !hasAmount
+                                      ? "#fff7df"
+                                      : isPast && !isBooked
+                                        ? "#CBD6FF1A"
+                                        : "#FAFBFF",
+                              color: isSelected
+                                ? "white"
+                                : isPast && !isBooked
+                                  ? "#888888"
+                                  : isBooked
+                                    ? "white"
+                                    : "#000000",
+                              cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
+                              opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
+                              border: "1px solid #CBD6FF1A",
+                            }}
+                          >
+                            {isBooked ? "Booked" : formatTime(slot?.time)}
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="text-center">
+                        <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                      </div>
                     );
-                  })
+                  })()
                 ) : (
-                  <div className="text-end">
+                  <div className="text-center">
                     <p className="text-danger text-center fw-medium">No slots available for this date.</p>
                   </div>
                 )}
