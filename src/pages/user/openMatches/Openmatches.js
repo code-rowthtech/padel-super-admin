@@ -26,7 +26,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
     const { slotData } = useSelector((state) => state?.userSlot);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
 
-    console.log({ matchesData, slotData });
+    console.log({ matchesData });
 
     // Close on outside click
     const handleClickOutside = (e) => {
@@ -57,6 +57,8 @@ const Openmatches = ({ width = 370, height = 70 }) => {
             fullDate: date.toISOString().split("T")[0],
         };
     });
+
+    console.log({ dates });
 
     const toggleTime = (time) => {
         if (selectedTimes.includes(time)) {
@@ -119,7 +121,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
     // Filter matches based on selectedLevel and date
     const filteredMatches = selectedLevel
         ? matchesData?.data?.filter((match) =>
-            match.skillLevel === selectedLevel &&
+            match?.skillLevel === selectedLevel &&
             (!selectedDate || new Date(match.matchDate).toISOString().split("T")[0] === selectedDate.fullDate)
         ) || []
         : matchesData?.data?.filter((match) =>
@@ -134,7 +136,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         }
     };
 
-    // Format date for display
     const formatMatchDate = (dateString) => {
         const date = new Date(dateString);
         const day = date.toLocaleDateString("en-US", { day: "2-digit" });
@@ -142,11 +143,25 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         return `${day} ${month}`;
     };
 
-    // Calculate total price for a match
     const calculateMatchPrice = (slots) => {
         return slots?.reduce((total, court) => {
             return total + court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0);
         }, 0).toFixed(0);
+    };
+
+    const formatTimes = (slots) => {
+        return slots
+            .map((slot) => {
+                const time = slot?.slotTimes?.[0]?.time.toUpperCase();
+                if (!time) return null;
+                const [hours, minutes] = time.split(":");
+                const hour = parseInt(hours, 10);
+                const period = hour >= 12 ? "PM" : "AM";
+                const formattedHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                return `${formattedHour}${period}`;
+            })
+            .filter((time) => time !== null)
+            .join(",");
     };
 
     return (
@@ -205,6 +220,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                             >
                                 {dates?.map((d, i) => {
                                     const isSelected = selectedDate?.fullDate === d.fullDate;
+                                    console.log(d, 'pakkkkk');
                                     return (
                                         <button
                                             ref={(el) => (dateRefs.current[d.fullDate] = el)}
@@ -222,7 +238,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                             }}
                                         >
                                             <div className="text-center">
-                                                <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{dayShortMap[d.day]}</div>
+                                                <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{d.day}</div>
                                                 <div style={{ fontSize: "26px", fontWeight: "500", fontFamily: "Poppins" }}>{d.date}</div>
                                                 <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{d.month}</div>
                                             </div>
@@ -317,14 +333,14 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                             );
                                         })
                                     ) : (
-                                        <div className="text-center">
-                                            <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                                        <div className="d-flex justify-content-center align-items-center fw-medium" style={{ height: "150px", fontSize: "16px", fontFamily: "Poppins" }}>
+                                            <p className="">No slots available for this date.</p>
                                         </div>
                                     );
                                 })()
                             ) : (
-                                <div className="text-center">
-                                    <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                                <div className="d-flex justify-content-center align-items-center text-danger fw-medium" style={{ height: "200px", fontSize: "16px", fontFamily: "Poppins" }}>
+                                    <p className="text-center">No slots available for this date.</p>
                                 </div>
                             )}
                         </div>
@@ -345,7 +361,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                     <FaChevronDown style={{ fontSize: "10px" }} />
                                 </button>
                                 <ul className="dropdown-menu shadow-sm">
-                                    {["beginner", "intermediate", "advanced", "professional"].map((level) => (
+                                    {['beginner', 'intermediate', 'advanced', 'professional'].map((level) => (
                                         <li key={level}>
                                             <button className="dropdown-item" onClick={() => handleSelect(level)}>
                                                 {level.charAt(0).toUpperCase() + level.slice(1)}
@@ -357,13 +373,14 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                         </div>
 
                         {/* Match Cards */}
-                        { filteredMatches?.length > 0 ? (
-                            filteredMatches?.map((match, index) => (
+                        {filteredMatches?.length && matchesData?.data?.length > 0 ? (
+                            filteredMatches && matchesData?.data?.map((match, index) => (
                                 <div key={index} className="card border-0 shadow-sm mb-3 rounded-2" style={{ backgroundColor: "#CBD6FF1A" }}>
                                     <div className="card-body px-4 py-3 d-flex justify-content-between flex-wrap">
                                         <div>
+                                            {console.log(match, '0000000000000000000000')}
                                             <p className="mb-1" style={{ fontSize: "18px", fontWeight: "600" }}>
-                                                {formatMatchDate(match?.matchDate)} | {match?.matchTime.split(",")[0]}{" "}
+                                                {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
                                                 <span className="fw-normal text-muted ms-3">{match?.skillLevel.charAt(0).toUpperCase() + match?.skillLevel.slice(1)}</span>
                                             </p>
                                             <p className="mb-1" style={{ fontSize: "15px", fontWeight: "500" }}>{match?.clubId?.clubName}</p>
@@ -437,8 +454,8 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                                 <div className="text-primary text-end mb-3" style={{ fontSize: "20px", fontWeight: "500" }}>
                                                     ₹ {calculateMatchPrice(match?.slot)}
                                                 </div>
-                                                <button className="btn rounded-pill px-4 text-white py-0 px-1" style={{ backgroundColor: "#3DBE64", fontSize: "12px", fontWeight: "500" }}>
-                                                    <Link to="/view-match" style={{ textDecoration: "none" }} className="text-white">View</Link>
+                                                <button className="btn rounded-pill px-4 text-white py-0 px-1" onClick={() => navigate('/view-match', { state: { match } })} style={{ backgroundColor: "#3DBE64", fontSize: "12px", fontWeight: "500" }}>
+                                                    View
                                                 </button>
                                             </div>
                                         </div>
@@ -446,7 +463,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                 </div>
                             ))
                         ) : (
-                            <div>No matches available</div>
+                            <div className="d-flex justify-content-center align-items-center text-danger fw-medium" style={{ height: "250px", fontSize: "18px", fontFamily: "Poppins" }}><p>No matches available</p></div>
                         )}
                     </div>
                 </div>

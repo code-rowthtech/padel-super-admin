@@ -5,8 +5,6 @@ import { FaChevronDown, FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaShoppin
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { getUserSlot } from '../../../redux/user/slot/thunk';
-import { createMatches } from '../../../redux/user/matches/thunk';
-import { getUserFromSession } from '../../../helpers/api/apiCore';
 import { ButtonLoading, DataLoading } from '../../../helpers/loading/Loaders';
 import 'react-datepicker/dist/react-datepicker.css';
 import { formatTime } from '../../../helpers/Formatting';
@@ -18,7 +16,6 @@ const CreateMatches = () => {
   const dateRefs = useRef({});
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const user = getUserFromSession();
   const store = useSelector((state) => state);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTimes, setSelectedTimes] = useState([]);
@@ -209,45 +206,9 @@ const CreateMatches = () => {
       const finalSkillDetails = [...skillDetails];
       finalSkillDetails[currentStep] = selectedLevel;
 
-      const formattedData = {
-        slot: selectedTimes.map(timeSlot => {
-          const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
-          return {
-            slotId: timeSlot?._id,
-            businessHours:
-              slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
-                time: t?.time,
-                day: t?.day,
-              })),
-            slotTimes: [{
-              time: timeSlot?.time,
-              amount: timeSlot?.amount,
-            }],
-            courtName: selectedCourt?.courtName,
-            courtId: selectedCourt?._id,
-            bookingDate: new Date(selectedDate.fullDate).toISOString(),
-          };
-        }),
-        clubId: savedClubId,
-        matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
-        skillLevel: finalSkillDetails[0]?.toLowerCase(),
-        skillDetails: finalSkillDetails?.slice(1),
-        matchStatus: "open",
-        matchTime: selectedTimes.map(time => time.time).join(","),
-        players: user?._id ? [user?._id] : user?.id,
-      };
-      localStorage.setItem('matchData', JSON.stringify(formattedData));
-
-      dispatch(createMatches(formattedData)).unwrap().then((res) => {
-        console.log(res, 'muskan');
-        if (res?.match?.status === true) return;
-        setCurrentStep(0);
-        setSelectedCourts([]);
-        setSelectedDate([]);
-        setSelectedTimes([]);
-        setSelectedLevel('');
-        setSkillDetails([]);
-        navigate('/view-match');
+    
+      navigate('/match-payment', {
+        state: { slotData, selectedTimes, finalSkillDetails, selectedDate, selectedCourts },
       });
     }
   };

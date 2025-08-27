@@ -15,6 +15,7 @@ export const ADD_REVIEW_CLUB = "/api/review/saveCustomerReview";
 export const GET_REVIEW_CLUB = "/api/review/getownerClubReview";
 export const CREATE_MATCHES = "/api/openmatch/createOpenMatch";
 export const GET_OPENMATCH_USER = "/api/openmatch/getOpenMatchesByUser"
+export const VIEW_OPENMATCH = "/api/openmatch/findByOpenMatchId"
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 //-----------------------------------------------A_U_T_H----------------------------------------------//

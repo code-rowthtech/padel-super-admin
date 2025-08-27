@@ -44,20 +44,30 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
         setError(null);
         setErrorShow(false);
 
-        dispatch(Usersignup({ phoneNumber, name, email })).unwrap().then((res) => {
-            console.log(res, 'resresres');
-            if (res?.status === "200") {
-                dispatch(getMatchesUser())
-                setShowAddMeForm(false);
-                setActiveSlot(null);
-                showSuccess("Add Players Successfully");
-                localStorage.setItem('players', JSON.stringify(res?.response));
-            }
-        }).catch((err) => {
-            console.log(err, 'errerrerr');
-            setError(err?.response?.data?.message || "An error occurred. Please try again.");
-            setErrorShow(true);
-        })
+        dispatch(Usersignup({ phoneNumber, name, email }))
+            .unwrap()
+            .then((res) => {
+                console.log(res, 'resresres');
+                if (res?.status === "200") {
+                    const existingPlayers = localStorage.getItem('players')
+                        ? JSON.parse(localStorage.getItem('players'))
+                        : [];
+                    const playersArray = Array.isArray(existingPlayers) ? existingPlayers : [];
+                    const updatedPlayers = [...playersArray, res?.response];
+                    localStorage.setItem('players', JSON.stringify(updatedPlayers));
+                    setPhoneNumber('');
+                    setName('');
+                    setEmail('');
+                    dispatch(getMatchesUser());
+                    setShowAddMeForm(false);
+                    setActiveSlot(null);
+                    showSuccess("Add Players Successfully");
+                }
+            }).catch((err) => {
+                console.log(err, 'errerrerr');
+                setError(err?.response?.data?.message || "An error occurred. Please try again.");
+                setErrorShow(true);
+            })
     };
 
     useEffect(() => {

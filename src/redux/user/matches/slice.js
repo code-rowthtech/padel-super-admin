@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createMatches, getMatches, getMatchesUser } from "./thunk";
+import { createMatches, getMatches, getMatchesUser, getMatchesView } from "./thunk";
 
 const initialState = {
     matchesLoading: false,
@@ -7,7 +7,10 @@ const initialState = {
     matchesError: null,
     usersLoading: false,
     usersData: null,
-    usersError: null
+    usersError: null,
+    viewMatchesLoading: false,
+    viewMatchesData: null,
+    viewMatchesError: null,
 };
 
 const matchesSlice = createSlice({
@@ -65,8 +68,19 @@ const matchesSlice = createSlice({
                 state.usersLoading = false;
                 state.usersError = action.payload;
             })
-        // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
-
+            // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
+            .addCase(getMatchesView.pending, (state) => {
+                state.viewMatchesLoading = true;
+                state.viewMatchesData = null;
+            })
+            .addCase(getMatchesView.fulfilled, (state, action) => {
+                state.viewMatchesLoading = false;
+                state.viewMatchesData = action.payload;
+            })
+            .addCase(getMatchesView.rejected, (state, action) => {
+                state.viewMatchesLoading = false;
+                state.viewMatchesError = action.payload;
+            })
 
 
     }
