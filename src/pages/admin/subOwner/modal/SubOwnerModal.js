@@ -13,6 +13,7 @@ import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 const SubOwnerModal = ({ show, onHide, userData }) => {
   const dispatch = useDispatch();
   const { updateSubOwnerLoading } = useSelector((state) => state?.subOwner);
+  const { authLoading } = useSelector((state) => state.ownerAuth);
   const owner = getOwnerFromSession();
   const [form, setForm] = useState({
     name: "",
@@ -135,7 +136,9 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
           await dispatch(updateSubOwner(payload))
             .unwrap()
             .then(() => {
-              dispatch(getSubOwner({ page: 1, limit: 10 }));
+              dispatch(
+                getSubOwner({ ownerId: owner?._id, page: 1, limit: 10 })
+              );
               handleClose();
             });
         } else {
@@ -149,7 +152,9 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
           await dispatch(signupOwner(payload))
             .unwrap()
             .then(() => {
-              dispatch(getSubOwner({ page: 1, limit: 10 }));
+              dispatch(
+                getSubOwner({ ownerId: owner?._id, page: 1, limit: 10 })
+              );
               handleClose();
             });
         }
@@ -296,14 +301,14 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
 
           <Button
             type="submit"
-            disabled={updateSubOwnerLoading}
+            disabled={authLoading || updateSubOwnerLoading}
             className="w-100 rounded-pill py-2 fw-semibold"
             style={{
               background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
               border: "none",
             }}
           >
-            {updateSubOwnerLoading ? (
+            {authLoading || updateSubOwnerLoading ? (
               <ButtonLoading size={14} />
             ) : userData?._id ? (
               "Update User"

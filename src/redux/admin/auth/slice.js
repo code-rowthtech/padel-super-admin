@@ -72,7 +72,7 @@ const authSlice = createSlice({
       .addCase(signupOwner.fulfilled, (state, action) => {
         state.authLoading = false;
         state.user = action.payload;
-        setLoggedInOwner(action.payload);
+        // setLoggedInOwner(action.payload);
       })
       .addCase(signupOwner.rejected, (state, action) => {
         state.authLoading = false;

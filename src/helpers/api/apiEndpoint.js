@@ -67,4 +67,4 @@ export const CREATE_LOGO = "/api/logo/saveLogo";
 export const UPDATE_LOGO = "/api/logo/updateLogo";
 
 //-----------------------------------------------U_S_E_R_S-----------------------------------//
-export const GET_OPEN_MATCHES = "/";
+export const GET_OPEN_MATCHES = "/api/openmatch/getAllOpenMatches";
