@@ -26,6 +26,7 @@ import { showError, showInfo } from "../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
+import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
 
 const CourtAvailability = () => {
   const dispatch = useDispatch();
@@ -327,7 +328,10 @@ const CourtAvailability = () => {
             <Col md={6} className="text-end">
               <Button
                 className="bg-transparent border-0"
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                  navigate(-1);
+                  dispatch(resetOwnerClub());
+                }}
                 style={{
                   color: "#1F41BB",
                   fontSize: "18px",
@@ -340,7 +344,7 @@ const CourtAvailability = () => {
             </Col>
           </Row>
           <Row className="mx-auto bg-white shadow-sm rounded-3">
-            <Col md={8} className="pt-4 px-4">
+            <Col md={8} className="p-4">
               {/* Court Selector */}
               <div className="mb-4">
                 <div
@@ -571,7 +575,7 @@ const CourtAvailability = () => {
 
                       return showUnavailable || (isAvailable && !isPast);
                     });
-
+                    console.log(filteredSlotTimes?.length);
                     return filteredSlotTimes?.length === 0 ? (
                       <div
                         className="d-flex text-danger justify-content-center align-items-center w-100"
@@ -663,7 +667,7 @@ const CourtAvailability = () => {
                 </div>
               )}
             </Col>
-            <Col md={4} className="p-4">
+            <Col md={4} className="py-4 px-3">
               <div
                 className="shadow rounded-3 p-3 bg-white"
                 style={{ minHeight: "50vh" }}

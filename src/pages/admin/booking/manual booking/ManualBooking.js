@@ -3,14 +3,13 @@ import {
   Button,
   Col,
   Container,
-  Form,
   ListGroup,
   OverlayTrigger,
   Row,
   Tooltip,
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaArrowLeft, FaTrash, FaTrashAlt } from "react-icons/fa";
+import { FaArrowLeft, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { BookingSuccessModal } from "./BookingModal";
 import {
@@ -24,7 +23,7 @@ import {
   DataLoading,
   Loading,
 } from "../../../../helpers/loading/Loaders";
-import { showError, showInfo } from "../../../../helpers/Toast";
+import { showInfo } from "../../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 import { format } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
@@ -101,8 +100,8 @@ const ManualBooking = () => {
     }
   };
 
-  const courts = activeCourtsData?.[0]?.courts || [];
-  const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
+  const courts = activeCourtsData?.[0]?.courts;
+  const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes;
 
   const handleCourtSelect = (courtId) => {
     setSelectedCourts(courtId ? [courtId] : []);
@@ -202,7 +201,7 @@ const ManualBooking = () => {
     if (courts?.length > 0 && selectedCourts.length === 0) {
       setSelectedCourts([courts[0]._id]);
     }
-  }, [courts]);
+  }, [courts?.length]);
 
   useEffect(() => {
     const key = `manual-booking-slots-${selectedDate}`;
@@ -363,7 +362,7 @@ const ManualBooking = () => {
             </Col>
           </Row>
           <Row className="mx-auto bg-white shadow-sm rounded-3">
-            <Col md={8} className="pt-4 px-4">
+            <Col md={8} className="p-4">
               {/* Court Selector */}
               <div className="mb-4">
                 <div
@@ -581,11 +580,11 @@ const ManualBooking = () => {
                     <>
                       {(() => {
                         const filteredSlots = slotTimes
-                          .map((slot) => {
+                          ?.map((slot) => {
                             const slotDate = new Date(selectedDate);
                             const [hourString, period] = slot?.time
                               ?.toLowerCase()
-                              .split(" ");
+                              ?.split(" ");
                             let hour = parseInt(hourString);
                             if (period === "pm" && hour !== 12) hour += 12;
                             if (period === "am" && hour === 12) hour = 0;
@@ -597,8 +596,8 @@ const ManualBooking = () => {
                             const isPast =
                               isSameDay && slotDate.getTime() < now.getTime();
                             const courtSelectedSlots =
-                              selectedSlots[selectedCourts[0]] || [];
-                            const isSelected = courtSelectedSlots.some(
+                              selectedSlots[selectedCourts[0]];
+                            const isSelected = courtSelectedSlots?.some(
                               (t) => t._id === slot?._id
                             );
                             const isBooked = slot?.status === "booked";
@@ -628,7 +627,7 @@ const ManualBooking = () => {
                             }
                           );
 
-                        if (filteredSlots.length === 0) {
+                        if (filteredSlots?.length === 0) {
                           return (
                             <div
                               className="d-flex text-danger justify-content-center align-items-center w-100"
@@ -639,7 +638,7 @@ const ManualBooking = () => {
                           );
                         }
 
-                        return filteredSlots.map(
+                        return filteredSlots?.map(
                           (
                             {
                               slot,
@@ -718,7 +717,7 @@ const ManualBooking = () => {
                 </div>
               )}
             </Col>
-            <Col md={4} className="p-4">
+            <Col md={4} className="py-4 px-3">
               <div
                 className="shadow rounded-3 p-3 bg-white"
                 style={{ minHeight: "50vh" }}
