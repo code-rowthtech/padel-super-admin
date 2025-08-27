@@ -12,12 +12,11 @@ import {
 import DatePicker from "react-datepicker";
 import { FaArrowLeft, FaTrash, FaTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { BookingDetailsModal, BookingSuccessModal } from "./BookingModal";
+import { BookingSuccessModal } from "./BookingModal";
 import {
   getOwnerRegisteredClub,
   getActiveCourts,
   manualBookingByOwner,
-  getBookingDetailsById,
 } from "../../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -48,7 +47,6 @@ const ManualBooking = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
   const [showUnavailable, setShowUnavailable] = useState(false);
 
   // Close on outside click
@@ -118,7 +116,7 @@ const ManualBooking = () => {
 
     const courtId = selectedCourts[0];
     const courtSlots = selectedSlots[courtId] || [];
-    const exists = courtSlots.some((t) => t._id === slot._id);
+    const exists = courtSlots.some((t) => t._id === slot?._id);
 
     if (!exists) {
       const totalSlots = Object.values(selectedSlots).flat().length;
@@ -130,7 +128,7 @@ const ManualBooking = () => {
 
     let newCourtSlots;
     if (exists) {
-      newCourtSlots = courtSlots.filter((t) => t._id !== slot._id);
+      newCourtSlots = courtSlots.filter((t) => t._id !== slot?._id);
     } else {
       newCourtSlots = [...courtSlots, slot];
     }
@@ -161,29 +159,29 @@ const ManualBooking = () => {
     setSelectedSlots(newSelectedSlots);
   };
 
-  const clearLocalStorage = () => {
+  const clearSessionStorage = () => {
     const key = `manual-booking-slots-${selectedDate}`;
-    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
     setSelectedSlots({});
     setSelectedCourts([]);
   };
 
-  const cleanOldLocalStorage = () => {
+  const cleanOldSessionStorage = () => {
     const today = new Date().setHours(0, 0, 0, 0);
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i);
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const key = sessionStorage.key(i);
       if (key && key.startsWith("manual-booking-slots-")) {
         const dateStr = key.split("manual-booking-slots-")[1];
         const itemDate = new Date(dateStr).setHours(0, 0, 0, 0);
         if (itemDate <= today) {
-          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
         }
       }
     }
   };
 
   useEffect(() => {
-    cleanOldLocalStorage();
+    cleanOldSessionStorage();
     dispatch(getOwnerRegisteredClub({ ownerId: ownerId })).unwrap();
   }, []);
 
@@ -208,7 +206,7 @@ const ManualBooking = () => {
 
   useEffect(() => {
     const key = `manual-booking-slots-${selectedDate}`;
-    const saved = localStorage.getItem(key);
+    const saved = sessionStorage.getItem(key);
     if (saved) {
       const parsedSlots = JSON.parse(saved);
       const totalSlots = Object.values(parsedSlots).flat().length;
@@ -229,7 +227,7 @@ const ManualBooking = () => {
           }
         }
         setSelectedSlots(truncatedSlots);
-        localStorage.setItem(key, JSON.stringify(truncatedSlots));
+        sessionStorage.setItem(key, JSON.stringify(truncatedSlots));
       }
     } else {
       setSelectedSlots({});
@@ -238,14 +236,14 @@ const ManualBooking = () => {
 
   useEffect(() => {
     const key = `manual-booking-slots-${selectedDate}`;
-    localStorage.setItem(key, JSON.stringify(selectedSlots));
+    sessionStorage.setItem(key, JSON.stringify(selectedSlots));
   }, [selectedSlots, selectedDate]);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      cleanOldLocalStorage();
+      cleanOldSessionStorage();
       const key = `manual-booking-slots-${selectedDate}`;
-      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -291,8 +289,8 @@ const ManualBooking = () => {
           businessHours: formattedBusinessHours,
           slotTimes: [
             {
-              time: timeSlot.time,
-              amount: timeSlot.amount || 0,
+              time: timeSlot?.time,
+              amount: timeSlot?.amount || 0,
             },
           ],
           courtName: court?.courtName,
@@ -315,26 +313,17 @@ const ManualBooking = () => {
         name: name,
         ownerId: Owner?._id,
       };
-      await dispatch(manualBookingByOwner(payload))
-        .unwrap()
-        .then((res) => {
-          const id = res?.data?.[0]?._id;
-          dispatch(getBookingDetailsById({ id }));
-        });
-
+      await dispatch(manualBookingByOwner(payload)).unwrap();
       setShowSuccess(true);
       setName("");
       setPhone("");
       setSelectedSlots({});
       setSelectedCourts([]);
-      localStorage.removeItem(`manual-booking-slots-${selectedDate}`);
+      sessionStorage.removeItem(`manual-booking-slots-${selectedDate}`);
     } catch (error) {
       console.log("Booking failed:", error);
     }
   };
-
-  const { getBookingDetailsData } = useSelector((state) => state.booking);
-  const bookingDetails = getBookingDetailsData?.booking || {};
 
   return (
     <>
@@ -359,7 +348,7 @@ const ManualBooking = () => {
               <Button
                 className="bg-transparent border-0"
                 onClick={() => {
-                  clearLocalStorage();
+                  clearSessionStorage();
                   navigate("/admin/booking");
                 }}
                 style={{
@@ -584,7 +573,7 @@ const ManualBooking = () => {
                   {slotTimes?.length === 0 ? (
                     <div
                       className="d-flex text-danger justify-content-center align-items-center w-100"
-                      style={{ height: "20vh", fontFamily: "Poppins" }}
+                      style={{ height: "10vh", fontFamily: "Poppins" }}
                     >
                       No slots available
                     </div>
@@ -610,7 +599,7 @@ const ManualBooking = () => {
                             const courtSelectedSlots =
                               selectedSlots[selectedCourts[0]] || [];
                             const isSelected = courtSelectedSlots.some(
-                              (t) => t._id === slot._id
+                              (t) => t._id === slot?._id
                             );
                             const isBooked = slot?.status === "booked";
                             const isAvailable =
@@ -643,7 +632,7 @@ const ManualBooking = () => {
                           return (
                             <div
                               className="d-flex text-danger justify-content-center align-items-center w-100"
-                              style={{ height: "20vh", fontFamily: "Poppins" }}
+                              style={{ height: "10vh", fontFamily: "Poppins" }}
                             >
                               No slots available
                             </div>
@@ -680,7 +669,7 @@ const ManualBooking = () => {
                                       : isPast
                                       ? "bg-secondary-subtle"
                                       : !isAvailable || !hasAmount
-                                      ? "bg-warning-subtle"
+                                      ? "bg-warning"
                                       : ""
                                   }`}
                                   onClick={() => toggleTime(slot)}
@@ -693,7 +682,7 @@ const ManualBooking = () => {
                                   style={{
                                     backgroundColor: isSelected
                                       ? "#374151"
-                                      : "#7df97a3d",
+                                      : "#FAFBFF",
                                     color: isSelected ? "white" : "#000000",
                                     cursor: !hasAmount
                                       ? "not-allowed"
@@ -743,15 +732,15 @@ const ManualBooking = () => {
                   }}
                 >
                   Selected Bookings
-                  {Object.entries(selectedSlots).length > 0 && (
+                  {Object.entries(selectedSlots)?.length > 0 && (
                     <Button
                       variant="outline-secondary"
                       size="sm"
                       className="rounded-pill"
-                      onClick={clearLocalStorage}
+                      onClick={clearSessionStorage}
                       style={{ fontSize: "12px", padding: "4px 10px" }}
                     >
-                      Clear Cart
+                      Clear All
                     </Button>
                   )}
                 </div>
@@ -763,7 +752,7 @@ const ManualBooking = () => {
                     fontSize: "14px",
                   }}
                 >
-                  {Object.entries(selectedSlots).length === 0 ? (
+                  {Object.entries(selectedSlots)?.length === 0 ? (
                     <div
                       className="d-flex text-muted justify-content-center align-items-center"
                       style={{ height: "26vh" }}
@@ -773,7 +762,7 @@ const ManualBooking = () => {
                   ) : (
                     <ListGroup variant="flush">
                       {Object.entries(selectedSlots).map(([courtId, slots]) => {
-                        const court = courts.find((c) => c._id === courtId);
+                        const court = courts.find((c) => c?._id === courtId);
                         return (
                           <React.Fragment key={courtId}>
                             <ListGroup.Item
@@ -791,9 +780,9 @@ const ManualBooking = () => {
                                 </span>
                               </div>
                             </ListGroup.Item>
-                            {slots.map((slot) => (
+                            {slots?.map((slot) => (
                               <ListGroup.Item
-                                key={slot._id}
+                                key={slot?._id}
                                 className="d-flex justify-content-between align-items-center py-1 px-2 fs-6"
                                 style={{
                                   fontFamily: "Poppins",
@@ -801,7 +790,7 @@ const ManualBooking = () => {
                                 }}
                               >
                                 <span style={{ fontSize: "14px" }}>
-                                  {slot.time}
+                                  {slot?.time}
                                 </span>
                                 <span
                                   style={{
@@ -809,13 +798,13 @@ const ManualBooking = () => {
                                     fontWeight: "500",
                                   }}
                                 >
-                                  ₹{slot.amount}
+                                  ₹{slot?.amount}
                                 </span>
                                 <Button
                                   variant="outline-danger"
                                   size="sm"
                                   className="px-1 py-0 border-0"
-                                  onClick={() => removeSlot(courtId, slot._id)}
+                                  onClick={() => removeSlot(courtId, slot?._id)}
                                 >
                                   <FaTrash size={12} />
                                 </Button>
@@ -877,20 +866,36 @@ const ManualBooking = () => {
                             fontSize: "14px",
                           }}
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => {
+                            let value = e.target.value;
+
+                            // Remove anything that's not a-z or space
+                            value = value.replace(/[^a-zA-Z\s]/g, "");
+
+                            // Capitalize first letter
+                            if (value.length > 0) {
+                              value =
+                                value.charAt(0).toUpperCase() + value.slice(1);
+                            }
+
+                            setName(value);
+                          }}
                         />
+
                         <input
                           type="tel"
                           className="form-control rounded-3 py-2 shadow-sm"
-                          placeholder="Phone Number"
                           style={{
                             backgroundColor: "#CBD6FF7A",
                             fontFamily: "Poppins",
                             fontSize: "14px",
                           }}
-                          value={phone}
+                          value={phone ? `+91 ${phone}` : ""}
+                          placeholder="+91 Phone Number"
                           onChange={(e) => {
-                            const value = e.target.value;
+                            const value = e.target.value
+                              .replace("+91", "")
+                              .replace(/\s/g, "");
                             if (
                               value === "" ||
                               /^[6-9][0-9]{0,9}$/.test(value)
@@ -898,7 +903,7 @@ const ManualBooking = () => {
                               setPhone(value);
                             }
                           }}
-                          maxLength={10}
+                          maxLength={14}
                           onKeyDown={(e) => {
                             const allowedKeys = [
                               "Backspace",
@@ -928,9 +933,10 @@ const ManualBooking = () => {
                           onClick={() => {
                             setName("");
                             setPhone("");
+                            setSelectedSlots({});
+                            setSelectedCourts([]);
+                            clearSessionStorage();
                             setShowSuccess(false);
-                            clearLocalStorage();
-                            navigate(-1);
                           }}
                         >
                           Cancel
@@ -952,22 +958,6 @@ const ManualBooking = () => {
                             "Confirm"
                           )}
                         </button>
-                        <BookingSuccessModal
-                          show={showSuccess}
-                          handleClose={() => {
-                            setShowSuccess(false);
-                            clearLocalStorage();
-                          }}
-                          openDetails={() => {
-                            setShowSuccess(false);
-                            setShowDetails(true);
-                          }}
-                        />
-                        <BookingDetailsModal
-                          show={showDetails}
-                          handleClose={() => setShowDetails(false)}
-                          bookingDetails={bookingDetails}
-                        />
                       </div>
                     </div>
                   </div>
@@ -975,6 +965,17 @@ const ManualBooking = () => {
               </div>
             </Col>
           </Row>
+          <BookingSuccessModal
+            show={showSuccess}
+            handleClose={() => {
+              setShowSuccess(false);
+              clearSessionStorage();
+            }}
+            openDetails={() => {
+              setShowSuccess(false);
+              navigate("/admin/booking");
+            }}
+          />
         </Container>
       )}
     </>

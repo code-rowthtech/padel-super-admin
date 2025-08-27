@@ -1,8 +1,20 @@
 import { FaMapMarkerAlt } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import { getAllOpenMatches } from "../../../redux/thunks";
+import { useEffect } from "react";
 
 const OpenMatches = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const openMatchesData = useSelector(
+    (state) => state.openMatches?.openMatchesData?.data
+  );
+  console.log({ openMatchesData });
+  useEffect(() => {
+    dispatch(getAllOpenMatches());
+  }, []);
+
   const matchData = [
     {
       level: "Beginner",

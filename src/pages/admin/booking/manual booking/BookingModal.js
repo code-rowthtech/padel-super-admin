@@ -48,7 +48,7 @@ export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
           maxWidth: "300px",
         }}
       >
-        View Details
+        Continue
       </Button>
       {/* <div>
         <button
