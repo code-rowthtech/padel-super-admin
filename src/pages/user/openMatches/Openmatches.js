@@ -11,6 +11,8 @@ import { player } from "../../../assets/files";
 import { FormCheck } from "react-bootstrap";
 import { getUserSlot } from "../../../redux/user/slot/thunk";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
+import { getReviewClub } from "../../../redux/user/club/thunk";
+import StarHalfIcon from '@mui/icons-material/StarHalf';
 
 const Openmatches = ({ width = 370, height = 70 }) => {
     const [startDate, setStartDate] = useState(new Date());
@@ -25,6 +27,8 @@ const Openmatches = ({ width = 370, height = 70 }) => {
     const matchLoading = useSelector((state) => state.userMatches?.usersLoading);
     const { slotData } = useSelector((state) => state?.userSlot);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+    const getReviewData = useSelector((store) => store?.userClub?.getReviewData?.data)
+
 
     console.log({ matchesData });
 
@@ -163,6 +167,12 @@ const Openmatches = ({ width = 370, height = 70 }) => {
             .filter((time) => time !== null)
             .join(",");
     };
+
+    useEffect(() => {
+        if (savedClubId) {
+            dispatch(getReviewClub(savedClubId));
+        }
+    }, [savedClubId]);
 
     return (
         <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
@@ -505,41 +515,62 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                             </div>
                         </div>
                         <div className="px-4 py-5 row rounded-4 mt-4 h-100" style={{ backgroundColor: "#F5F5F566" }}>
-                            <div className="col-5 text-center d-flex align-items-center justify-content-center">
+                            <div className="col-4 text-center d-flex align-items-center justify-content-center">
                                 <div className="w-100">
                                     <h4 className="" style={{ fontSize: "16px", fontWeight: "500" }}>Overall Rating</h4>
-                                    <div className="display-4 fw-bold">4.0</div>
+                                    <div className="display-5 fw-bold">{getReviewData?.averageRating}</div>
                                     <div className="text-success">
-                                        {[...Array(4)].map((_, i) => (
-                                            <StarIcon key={i} style={{ color: '#32B768' }} />
-                                        ))}
-                                        <StarBorderIcon style={{ color: '#ccc' }} />
+                                        {[...Array(5)].map((_, i) => {
+                                            const rating = getReviewData?.averageRating || 0;
+                                            if (i < Math.floor(rating)) {
+                                                return <StarIcon key={i} style={{ color: "#32B768" }} />;
+                                            } else if (i < rating && rating % 1 >= 0.5) {
+                                                return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
+                                            } else {
+                                                return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
+                                            }
+                                        })}
                                     </div>
-                                    <div className="text-muted mt-2">based on 40 reviews</div>
+                                    <div className="text-muted mt-2" style={{fontSize:'12px',fontFamily:"Poppins"}}>based on {getReviewData?.totalReviews} reviews</div>
                                 </div>
                             </div>
-                            <div className="col-7 px-4 border-start d-flex align-items-center">
+                            <div className="col-8  border-start d-flex align-items-center">
                                 <div className="w-100">
-                                    {["Excellent", "Good", "Average", "Below Average", "Poor"].map((label, idx) => (
-                                        <div className="d-flex align-items-center mb-1 w-100" key={idx}>
-                                            <div className="me-2" style={{ width: "100px" }}>{label}</div>
-                                            <div className="progress w-100" style={{ height: "8px" }}>
-                                                <div
-                                                    className={`progress-bar bg-${idx === 0
-                                                        ? "success"
-                                                        : idx === 1
-                                                            ? "info"
-                                                            : idx === 2
-                                                                ? "warning"
-                                                                : idx === 3
-                                                                    ? "danger"
-                                                                    : "dark"
-                                                        }`}
-                                                    style={{ width: `${100 - idx * 15}%` }}
-                                                ></div>
+                                    {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
+                                        let width = "0%";
+                                        let percent = 0;
+
+                                        if (label === getReviewData?.ratingCategory) {
+                                            const rating = getReviewData?.averageRating || 0;
+                                            percent = Math.round(rating * 20); // Convert 0-5 rating to percentage
+                                            width = `${percent}%`;
+                                        }
+
+                                        return (
+                                            <div className="d-flex align-items-center justify-content-between mb-1 w-100" key={idx}>
+                                                <div className="me-2 fw-medium" style={{ width: "100px" ,fontSize:'12px',fontFamily:"Poppins"}}>
+                                                    {label}
+                                                </div>
+                                                <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
+                                                    <div
+                                                        className={`progress-bar bg-${idx === 0 ? "success" : idx === 1 ? "info" : idx === 2 ? "warning" : idx === 3 ? "danger" : "dark"
+                                                            }`}
+                                                        style={{ width }}
+                                                    ></div>
+                                                </div>
+                                                <div className=''
+                                                    style={{
+                                                        color: "#000",
+                                                        fontSize: "12px",
+                                                        backgroundColor: "rgba(255, 255, 255, 0.7)",
+                                                    }}
+                                                >
+                                                    {percent}%
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
+
                                 </div>
                             </div>
                         </div>
