@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
-import { IoIosArrowForward } from "react-icons/io";
 import {
   getOwnerRegisteredClub,
   getReviewsForOwner,
@@ -10,6 +9,7 @@ import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { format } from "date-fns";
 import { FaCircleUser } from "react-icons/fa6";
 import { DataLoading } from "../../../helpers/loading/Loaders";
+
 const CustomerReviews = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
@@ -17,6 +17,22 @@ const CustomerReviews = () => {
   const { reviewsData, reviewsLoading } = useSelector(
     (state) => state?.reviews
   );
+  const { ownerClubLoading } = useSelector((s) => s.manualBooking);
+  // State for pagination
+  const [visibleReviews, setVisibleReviews] = useState(10);
+  const [allReviews, setAllReviews] = useState([]);
+
+  // Update allReviews when reviewsData changes
+  useEffect(() => {
+    if (reviewsData?.reviews) {
+      setAllReviews(reviewsData.reviews);
+    }
+  }, [reviewsData]);
+
+  // Function to load more reviews
+  const loadMoreReviews = () => {
+    setVisibleReviews((prevVisibleReviews) => prevVisibleReviews + 10);
+  };
 
   // Rating distribution data
   const ratingDistribution = [
@@ -53,9 +69,10 @@ const CustomerReviews = () => {
         dispatch(getReviewsForOwner({ clubId: res?.[0]?._id }));
       });
   }, [dispatch]);
+
   return (
     <div className="container py-4" style={{ maxWidth: "1200px" }}>
-      {reviewsLoading ? (
+      {reviewsLoading || ownerClubLoading ? (
         <DataLoading height="70vh" size={90} />
       ) : (
         <>
@@ -117,28 +134,15 @@ const CustomerReviews = () => {
           {/* Customer Reviews Section */}
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h4 className="fw-bold mb-0">Customer Reviews</h4>
-            {/* <button className="btn btn-link text-primary p-0 fw-semibold d-flex align-items-center">
-          View all <IoIosArrowForward className="ms-1" />
-        </button> */}
           </div>
 
           <div className="row g-4">
-            {reviewsData?.reviews?.map((review) => (
+            {allReviews.slice(0, visibleReviews).map((review) => (
               <div key={review.id} className="col-md-6">
                 <div className="card h-100 border-0 shadow-sm">
                   <div className="card-body p-4">
                     <div className="d-flex justify-content-between mb-3">
                       <div className="d-flex align-items-center">
-                        {/* <img
-                      src={review.avatar}
-                      alt={review.name}
-                      className="rounded-circle me-3"
-                      style={{
-                        width: "48px",
-                        height: "48px",
-                        objectFit: "cover",
-                      }}
-                    /> */}
                         <FaCircleUser size={48} className="me-3" />
                         <div>
                           <h6 className="mb-0 fw-semibold">
@@ -153,7 +157,6 @@ const CustomerReviews = () => {
                         </div>
                       </div>
                       <span className="text-muted small">
-                        {/* {format(new Date(review.createdAt), "dd/MM/yyyy")} */}
                         {format(
                           new Date(review?.createdAt),
                           "dd/MM/yyyy | hh:mm a"
@@ -163,26 +166,26 @@ const CustomerReviews = () => {
                     <p className="card-text text-dark mt-3">
                       {review.reviewComment}
                     </p>
-                    {/* <div className="mt-3 pt-2 border-top">
-                  <button className="btn btn-sm btn-outline-primary me-2">
-                    Helpful
-                  </button>
-                  <button className="btn btn-sm btn-outline-secondary">
-                    Comment
-                  </button>
-                </div> */}
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Load More Button */}
-          {/* <div className="text-center mt-5">
-        <button className="btn btn-primary px-4 py-2 fw-semibold">
-          Load More Reviews
-        </button>
-      </div> */}
+          {/* Load More Button - Only show if there are more reviews to load */}
+          {allReviews.length > visibleReviews && (
+            <div className="text-center mt-5">
+              <button
+                className="btn px-4 py-2 fw-semibold text-white"
+                style={{
+                  backgroundColor: "#22c55e",
+                }}
+                onClick={loadMoreReviews}
+              >
+                Load More
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
