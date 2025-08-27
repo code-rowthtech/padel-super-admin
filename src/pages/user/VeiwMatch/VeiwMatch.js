@@ -1,98 +1,44 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
-import { Link } from "react-router-dom";
-import { logo, player, padal, club } from "../../../assets/files";
+import { useLocation } from "react-router-dom";
+import { padal, club, player } from "../../../assets/files";
+import { useDispatch, useSelector } from "react-redux";
+import { getMatchesView } from "../../../redux/user/matches/thunk";
+import { DataLoading } from "../../../helpers/loading/Loaders";
+import { Avatar } from "@mui/material";
 
-const VeiwMatch = ({ className = "" }) => {
-    const [selectedTime, setSelectedTime] = useState("09:00am");
-    const [selectedCourts, setSelectedCourts] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedPayment, setSelectedPayment] = useState("");
+const ViewMatch = ({ className = "" }) => {
+    const dispatch = useDispatch();
+    const { state } = useLocation();
+    const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
+    const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
+    const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
+    const userPlayersData = matchesData?.data?.players || []; // Players data
+    const clubData = matchesData?.data?.clubId || {}; // Club data
 
-    const today = new Date();
-    const dates = Array.from({ length: 7 }).map((_, i) => {
-        const date = new Date();
-        date.setDate(today.getDate() + i);
-        return {
-            day: date.toLocaleDateString("en-US", { weekday: "short" }),
-            date: date.getDate(),
-            month: date.toLocaleDateString("en-US", { month: "short" }),
-            fullDate: date.toISOString().split("T")[0],
-        };
-    });
+    console.log("matchesData:", matchesData);
+    console.log("userPlayersData:", userPlayersData);
 
-    const handleCourtSelect = (court) => {
-        const newCourt = { ...court, time: selectedTime, date: selectedDate };
-        setSelectedCourts((prev) => [...prev, newCourt]);
+    useEffect(() => {
+        if (state?.match?._id) {
+            dispatch(getMatchesView(state?.match?._id));
+        }
+    }, [state?.match?._id, dispatch]);
+
+    const skillLabels = ["A/B", "B/C", "C/D", "D/E"];
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+        const formattedDate = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+        return { day, formattedDate };
     };
 
-    const total = selectedCourts.reduce((sum, c) => sum + c.price, 0);
-
-    const handleDelete = (index) => {
-        const updatedCourts = [...selectedCourts];
-        updatedCourts.splice(index, 1);
-        setSelectedCourts(updatedCourts);
-    };
-
-    // Mock props for demonstration
-    const width = 370;
-    const height = 75;
-    const circleRadius = height * 0.3;
-    const curvedSectionStart = width * 0.76;
-    const curvedSectionEnd = width * 0.996;
-    const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
-    const circleY = height * 0.5;
-    const arrowSize = circleRadius * 0.6;
-    const arrowX = circleX;
-    const arrowY = circleY;
-
-    const buttonStyle = {
-        position: "relative",
-        width: `${width}px`,
-        height: `${height}px`,
-        border: "none",
-        background: "transparent",
-        cursor: "pointer",
-        padding: 0,
-        overflow: "visible",
-    };
-
-    const svgStyle = {
-        width: "100%",
-        height: "100%",
-        position: "absolute",
-        top: 0,
-        left: 0,
-        zIndex: 1,
-    };
-
-    const contentStyle = {
-        position: "relative",
-        zIndex: 2,
-        color: "white",
-        fontWeight: "600",
-        fontSize: "16px",
-        textAlign: "center",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        paddingRight: `${circleRadius * 2}px`,
-    };
-
-    const onClick = () => {
-        alert("Button clicked! (would navigate to /payment)");
-    };
-
-    // Mock court data to match the image
-    const mockCourt = {
-        name: "Court 1",
-        price: 1000,
-        date: "22 Jun",
-    };
+    const matchDate = matchesData?.data?.matchDate ? formatDate(matchesData.data.matchDate) : { day: 'Sun', formattedDate: '27 Aug' };
+    const matchTime = matchesData?.data?.matchTime || '5 am,6 am';
 
     return (
-        <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
+        <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
             <div className="row w-100">
                 {/* Left Section */}
                 <div
@@ -138,21 +84,28 @@ const VeiwMatch = ({ className = "" }) => {
                                 className="text-muted"
                                 style={{ fontWeight: "500" }}
                             >
-                                21 June | 9:00am – 10:00am
+                                {matchDate.day}, {matchDate.formattedDate} | {matchTime}
                             </small>
                         </div>
                         <div className="row text-center border-top">
                             <div className="col py-3">
                                 <p className="mb-1 text-muted small">Gender</p>
-                                <p className="mb-0 fw-semibold">Mixed</p>
+                                <p className="mb-0 fw-semibold">{matchesData?.data?.gender || "Any"}</p>
                             </div>
                             <div className="col border-start border-end py-3">
                                 <p className="mb-1 text-muted small">Level</p>
-                                <p className="mb-0 fw-semibold">0.92–0.132</p>
+                                <p className="mb-0 fw-semibold">{matchesData?.data?.skillLevel || "Intermediate"}</p>
                             </div>
                             <div className="col py-3">
                                 <p className="mb-1 text-muted small">Price</p>
-                                <p className="mb-0 fw-semibold">₹ 2000</p>
+                                <p className="mb-0 fw-semibold">₹ {matchesData?.data?.slot
+                                    ?.reduce((total, court) => {
+                                        return (
+                                            total +
+                                            court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0)
+                                        );
+                                    }, 0)
+                                    .toFixed(0)}</p>
                             </div>
                         </div>
                     </div>
@@ -166,9 +119,8 @@ const VeiwMatch = ({ className = "" }) => {
                             className="text-muted mb-1"
                             style={{ fontSize: "15px", fontWeight: "500" }}
                         >
-                            Court Number
+                            {matchesData?.data?.matchStatus || "Open Match"}
                         </p>
-                        <h5 className="mb-0">1</h5>
                     </div>
 
                     {/* Players Section */}
@@ -182,73 +134,177 @@ const VeiwMatch = ({ className = "" }) => {
                         >
                             Players
                         </h6>
-                        <div className="d-flex justify-content-between align-items-start">
-                            <div className="col-6 d-flex gap-3 align-items-center justify-content-center">
-                                <div className="text-center mx-auto">
-                                    <img
-                                        src="https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80"
-                                        className="rounded-circle border"
-                                        style={{ width: 80, height: 80 }}
-                                        alt="Courtney"
-                                    />
-                                    <p className="mb-0 mt-2 fw-semibold">Courtney Henry</p>
-                                    <span className="badge bg-success-subtle text-success">
-                                        A/B
-                                    </span>
-                                </div>
-                                <div className="d-flex flex-column align-items-center justify-content-center mx-auto">
-                                    <div
-                                        className="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center"
-                                        style={{ width: 80, height: 80 }}
-                                    >
-                                        <span>DL</span>
+
+                        {userLoading ? <DataLoading /> : (
+                            <>
+                                <div className="row mx-auto">
+                                    {/* Team A */}
+                                    <div className="col-6 d-flex gap-3 justify-content-center">
+                                        {(() => {
+                                            const leftComponents = [];
+                                            const userPlayersArray = Array.isArray(userPlayersData) ? userPlayersData : [];
+
+                                            // First slot
+                                            if (userPlayersArray.length > 0 && userPlayersArray[0]?.userId) {
+                                                const player = userPlayersArray[0].userId;
+                                                leftComponents.push(
+                                                    <div key="left-player-0" className="text-center mx-auto mb-3">
+                                                        <div
+                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: 80,
+                                                                height: 80,
+                                                                backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            {player.profilePic ? (
+                                                                <img
+                                                                    src={player.profilePic}
+                                                                    alt="player"
+                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                                />
+                                                            ) : (
+                                                                <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
+                                                                    {player?.name ? player.name.charAt(0).toUpperCase() : "U"}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold">
+                                                            {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
+                                                        </p>
+                                                        <span className="badge bg-success-subtle text-success">{skillLabels[0]}</span>
+                                                    </div>
+                                                );
+                                            }
+
+                                            // Second slot
+                                            if (userPlayersArray.length > 1 && userPlayersArray[1]?.userId) {
+                                                const player = userPlayersArray[1].userId;
+                                                leftComponents.push(
+                                                    <div key="left-player-1" className="text-center mx-auto mb-3">
+                                                        <div
+                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: 80,
+                                                                height: 80,
+                                                                backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            {player.profilePic ? (
+                                                                <img
+                                                                    src={player.profilePic}
+                                                                    alt="player"
+                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                                />
+                                                            ) : (
+                                                                <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
+                                                                    {player?.name ? player.name.charAt(0).toUpperCase() : "U"}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold">
+                                                            {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
+                                                        </p>
+                                                        <span className="badge bg-success-subtle text-success">{skillLabels[1]}</span>
+                                                    </div>
+                                                );
+                                            }
+
+                                            return leftComponents;
+                                        })()}
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold">Devon Lane</p>
-                                    <span className="badge bg-success-subtle text-success">
-                                        B/C
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="col-6 d-flex gap-3 align-items-start justify-content-center border-start">
-                                <div className="text-center mx-auto">
-                                    <div
-                                        className="rounded-circle d-flex align-items-center justify-content-center"
-                                        style={{ width: 80, height: 80, border: "1px solid #1F41BB", cursor: "pointer" }}
-                                    >
-                                        <span className="fs-3" style={{ color: "#1F41BB" }}>
-                                            +
-                                        </span>
+
+                                    {/* Team B */}
+                                    <div className="col-6 d-flex gap-3 align-items-start justify-content-center border-start">
+                                        {(() => {
+                                            const rightComponents = [];
+                                            const userPlayersArray = Array.isArray(userPlayersData) ? userPlayersData : [];
+
+                                            // First slot
+                                            if (userPlayersArray.length > 2 && userPlayersArray[2]?.userId) {
+                                                const player = userPlayersArray[2].userId;
+                                                rightComponents.push(
+                                                    <div key="right-player-0" className="text-center mx-auto mb-3">
+                                                        <div
+                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: 80,
+                                                                height: 80,
+                                                                backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            {player.profilePic ? (
+                                                                <img
+                                                                    src={player.profilePic}
+                                                                    alt="player"
+                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                                />
+                                                            ) : (
+                                                                <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
+                                                                    {player?.name ? player.name.charAt(0).toUpperCase() : "U"}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold">
+                                                            {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
+                                                        </p>
+                                                        <span className="badge bg-success-subtle text-success">{skillLabels[2]}</span>
+                                                    </div>
+                                                );
+                                            }
+
+                                            // Second slot
+                                            if (userPlayersArray.length > 3 && userPlayersArray[3]?.userId) {
+                                                const player = userPlayersArray[3].userId;
+                                                rightComponents.push(
+                                                    <div key="right-player-1" className="text-center mx-auto mb-3">
+                                                        <div
+                                                            className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                            style={{
+                                                                width: 80,
+                                                                height: 80,
+                                                                backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            {player.profilePic ? (
+                                                                <img
+                                                                    src={player.profilePic}
+                                                                    alt="player"
+                                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                                />
+                                                            ) : (
+                                                                <span style={{ color: "white", fontWeight: "600", fontSize: "24px" }}>
+                                                                    {player?.name ? player.name.charAt(0).toUpperCase() : "U"}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="mb-0 mt-2 fw-semibold">
+                                                            {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
+                                                        </p>
+                                                        <span className="badge bg-success-subtle text-success">{skillLabels[3]}</span>
+                                                    </div>
+                                                );
+                                            }
+
+                                            return rightComponents;
+                                        })()}
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>
-                                        Add Me
+                                </div>
+
+                                <div className="d-flex justify-content-between mt-3">
+                                    <p className="text-muted mb-1" style={{ fontSize: "14px", fontWeight: "500" }}>
+                                        Team A
+                                    </p>
+                                    <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500" }}>
+                                        Team B
                                     </p>
                                 </div>
-                                <div className="d-flex flex-column align-items-center justify-content-center mx-auto">
-                                    <div
-                                        className="rounded-circle border d-flex align-items-center justify-content-center"
-                                        style={{ width: 80, height: 80, cursor: "pointer" }}
-                                    >
-                                        <span className="fs-3" style={{ color: "gray" }}>
-                                            +
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-between mt-3">
-                            <p
-                                className="text-muted mb-1"
-                                style={{ fontSize: "14px", fontWeight: "500" }}
-                            >
-                                Team A
-                            </p>
-                            <p
-                                className="mb-0"
-                                style={{ fontSize: "14px", fontWeight: "500" }}
-                            >
-                                Team B
-                            </p>
-                        </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Club Info */}
@@ -257,20 +313,11 @@ const VeiwMatch = ({ className = "" }) => {
                         style={{ backgroundColor: "#CBD6FF1A" }}
                     >
                         <div className="d-flex gap-3 align-items-start">
-                            <img src={club} alt="court" className="rounded" width={150} />
+                            <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
-                                <p
-                                    className="mb-1"
-                                    style={{ fontSize: "20px", fontWeight: "500" }}
-                                >
-                                    The Good Club
-                                </p>
-                                <p
-                                    className="text-muted mb-1"
-                                    style={{ fontSize: "15px", fontWeight: "400" }}
-                                >
-                                    Sukhna Enclave, behind Rock Garden, Kaimbwala,<br />
-                                    Kansal, Chandigarh 160001
+                                <p className="mb-1" style={{ fontSize: "20px", fontWeight: "500" }}>{clubData?.clubName || "Unknown Club"}</p>
+                                <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
+                                    {clubData?.address || "Unknown Address"}
                                 </p>
                                 <div
                                     className="mb-3"
@@ -302,20 +349,38 @@ const VeiwMatch = ({ className = "" }) => {
                             Information
                         </h6>
                     </div>
-                    <div className="d-flex align-items-center gap-3 px-2">
+                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
                         <div>
                             <p
                                 className="mb-0"
                                 style={{ fontSize: "14px", fontWeight: "400" }}
                             >
-                                Type of Court (2 courts)
+                                Type of Court
                             </p>
                             <p
-                                className="text-muted mb-0"
-                                style={{ fontSize: "18px", fontWeight: "500" }}
+                                className="mb-0"
+                                style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}
                             >
-                                Outdoor, crystal, Double
+                                {matchesData?.data?.matchType || "Doubles"}, Outdoor, Crystal
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
+                        <i className="bi bi-calendar-check fs-2 text-dark"></i>
+                        <div>
+                            <p
+                                className="mb-0"
+                                style={{ fontSize: "14px", fontWeight: "400" }}
+                            >
+                                End registration
+                            </p>
+                            <p
+                                className="mb-0"
+                                style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}
+                            >
+                                Today at 10:00 PM
                             </p>
                         </div>
                     </div>
@@ -323,60 +388,49 @@ const VeiwMatch = ({ className = "" }) => {
 
                 {/* Right Section - Booking Summary */}
                 <div className="col-5 pe-0">
-                    <div className="rounded-4 pt-4 px-5" style={{ backgroundColor: "#F5F5F566" }}>
-                        <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
-                            Payment Method
-                        </h6>
-                        <div className="d-flex flex-column gap-3">
-                            {[
-                                { id: "google", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
-                                { id: "apple", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
-                                { id: "paypal", name: "Paypal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
-                            ].map((method) => (
-                                <label
-                                    key={method.id}
-                                    className="d-flex justify-content-between align-items-center p-3 bg-white rounded-4 p-4"
-                                >
-                                    <div className="d-flex align-items-center gap-3">
-                                        <img src={method.icon} alt={method.name} width={28} />
-                                        <span className="fw-medium">{method.name}</span>
-                                    </div>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        value={method.id}
-                                        className="form-check-input"
-                                        checked={selectedPayment === method.id}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            setSelectedPayment(value);
-                                        }}
-
-                                    />
-                                </label>
-                            ))}
+                    <div
+                        className="row mb-4 align-items-center text-white rounded-4 px-3 ms-2 pt-3"
+                        style={{
+                            background: "linear-gradient(to right, #101826, #1e293b)",
+                            overflow: "visible",
+                            position: "relative",
+                        }}
+                    >
+                        <div className="col-md-6 mb-4 mb-md-0">
+                            <h4 className="fw-bold">Let the Battles Begin!</h4>
+                            <p className="text-light">Great for competitive vibes.</p>
                         </div>
-
+                        <div className="col-md-6 text-center" style={{ position: "relative" }}>
+                            <img
+                                src={player}
+                                alt="Player"
+                                className="img-fluid"
+                                style={{
+                                    maxHeight: "390px",
+                                    marginTop: "-20px",
+                                    zIndex: 999,
+                                    position: "relative",
+                                }}
+                            />
+                        </div>
                     </div>
                     <div
                         className="border rounded px-3 ms-2 pt-3 border-0"
                         style={{ backgroundColor: "#CBD6FF1A" }}
                     >
                         <div className="text-center mb-3">
-                            <div
-                                className="rounded-circle bg-white mx-auto mb-2 shadow"
-                                style={{ width: "90px", height: "90px", lineHeight: "90px" }}
-                            >
-                                <img src={logo} width={80} alt="" />
+                            <div className="d-flex justify-content-center" style={{ lineHeight: '90px' }}>
+                                {logo ? (
+                                    <Avatar src={logo} alt="User Profile" />
+                                ) : (
+                                    <Avatar>
+                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                    </Avatar>
+                                )}
                             </div>
-                            <p
-                                className="mt-4 mb-1"
-                                style={{ fontSize: "20px", fontWeight: "600" }}
-                            >
-                                The Good Club
-                            </p>
-                            <p className="small mb-0">
-                                The Good Club, Chandigarh, Chandigarh, 160001
+                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName || "Unknown Club"}</p>
+                            <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
+                                {clubData?.address || "Unknown Address"}
                             </p>
                         </div>
 
@@ -384,7 +438,7 @@ const VeiwMatch = ({ className = "" }) => {
                             className="border-top p-2 mb-3 ps-0"
                             style={{ fontSize: "20px", fontWeight: "600" }}
                         >
-                            Booking summary
+                            Booking Summary
                         </h6>
                         <div
                             style={{
@@ -392,117 +446,41 @@ const VeiwMatch = ({ className = "" }) => {
                                 overflowY: "auto",
                             }}
                         >
-                            {selectedCourts.length === 0 && (
-                                <div
-                                    className="court-row d-flex justify-content-between align-items-center mb-3 px-2"
-                                    onClick={() => handleCourtSelect(mockCourt)}
-                                    style={{ cursor: "pointer" }}
-                                >
-                                    <div>
-                                        <strong>Sun, 22 Jun</strong> {selectedTime} (60m) {mockCourt.name}
-                                    </div>
-                                    <div>₹ {mockCourt.price}</div>
-                                </div>
-                            )}
-                            {selectedCourts.map((court, index) => (
-                                <div
-                                    key={index}
-                                    className="court-row d-flex justify-content-between align-items-center mb-3 px-2"
-                                >
-                                    <div>
-                                        <strong>Sun, {court.date}</strong> {court.time} (60m) {court.name}
-                                    </div>
-                                    <div className="d-flex align-items-center gap-2">
-                                        <button
-                                            className="btn btn-sm text-danger delete-btn"
-                                            onClick={() => handleDelete(index)}
+                            {matchesData?.data?.slot && matchesData.data.slot.length > 0 ? (
+                                matchesData.data.slot.map((court, index) =>
+                                    court.slotTimes.map((slotTime, slotIndex) => (
+                                        <div
+                                            key={`${index}-${slotIndex}`}
+                                            className="court-row d-flex justify-content-between align-items-center mb-3 px-2"
+                                            style={{ cursor: "pointer" }}
                                         >
-                                            <i className="bi bi-trash-fill"></i>
-                                        </button>
-                                        <div>₹ {court.price}</div>
-                                    </div>
-                                </div>
-                            ))}
+                                            <div>
+                                                <strong>{matchDate.day}, {matchDate.formattedDate} {slotTime.time} (60m)</strong> {court.courtName}
+                                            </div>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div>₹ {slotTime.amount}</div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )
+                            ) : (
+                                <div>No slots available</div>
+                            )}
                         </div>
 
-                        <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
+                        {/* <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>
                                 Total to pay
                             </span>
-                            <span className="text-primary">₹ {total || 1000}</span>
-                        </div>
-
-                        <div className="d-flex justify-content-center mt-3">
-                            <button
-                                style={buttonStyle}
-                                onClick={onClick}
-                                className={className}
-                            >
-                                <Link to="/payment" style={{ textDecoration: "none" }} className="">
-                                    <svg
-                                        style={svgStyle}
-                                        viewBox={`0 0 ${width} ${height}`}
-                                        preserveAspectRatio="none"
-                                    >
-                                        <defs>
-                                            <linearGradient
-                                                id={`buttonGradient-${width}-${height}`}
-                                                x1="0%"
-                                                y1="0%"
-                                                x2="100%"
-                                                y2="0%"
-                                            >
-                                                <stop offset="0%" stopColor="#3DBE64" />
-                                                <stop offset="50%" stopColor="#1F41BB" />
-                                                <stop offset="100%" stopColor="#1F41BB" />
-                                            </linearGradient>
-                                        </defs>
-                                        <path
-                                            d={`M ${width * 0.76} ${height * 0.15} 
-             C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
-             C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
-             C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
-             C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} 
-             C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} 
-             C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} 
-             C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} 
-             C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} 
-             C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} 
-             C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} 
-             L ${width * 0.08} ${height * 0.85} 
-             C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
-             C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
-             L ${width * 0.76} ${height * 0.15} Z`}
-                                            fill={`url(#buttonGradient-${width}-${height})`}
-                                        />
-                                        <circle
-                                            cx={circleX}
-                                            cy={circleY}
-                                            r={circleRadius}
-                                            fill="#3DBE64"
-                                        />
-                                        <g
-                                            stroke="white"
-                                            strokeWidth={height * 0.03}
-                                            fill="none"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
-                                            <path
-                                                d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`}
-                                            />
-                                            <path
-                                                d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`}
-                                            />
-                                            <path
-                                                d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`}
-                                            />
-                                        </g>
-                                    </svg>
-                                    <div style={contentStyle}>Book Now</div>
-                                </Link>
-                            </button>
-                        </div>
+                            <span className="text-primary">₹ {matchesData?.data?.slot
+                                ?.reduce((total, court) => {
+                                    return (
+                                        total +
+                                        court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0)
+                                    );
+                                }, 0)
+                                .toFixed(0)}</span>
+                        </div> */}
                     </div>
                 </div>
             </div>
@@ -510,4 +488,4 @@ const VeiwMatch = ({ className = "" }) => {
     );
 };
 
-export default VeiwMatch;
+export default ViewMatch;

@@ -26,6 +26,8 @@ import { formatDate } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
+import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
+
 const Booking = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -144,7 +146,10 @@ const Booking = () => {
               cursor: "pointer",
               transition: "all 0.3s ease",
             }}
-            onClick={() => navigate("/admin/manualbooking")}
+            onClick={() => {
+              navigate("/admin/manualbooking");
+              dispatch(resetOwnerClub());
+            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.opacity = "0.9";
               e.currentTarget.style.transform = "translateY(-1px)";

@@ -22,6 +22,7 @@ const reviewSlice = createSlice({
       // -----------------------------------------------------//---- Get All Reviews
       .addCase(getReviewsForOwner.pending, (state) => {
         state.reviewsLoading = true;
+        state.reviewsData = null;
         state.reviewsError = null;
       })
       .addCase(getReviewsForOwner.fulfilled, (state, action) => {

@@ -25,7 +25,20 @@ export const loginUserNumber = createAsyncThunk(
       // showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
+      showError(error || error?.message);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const Usersignup = createAsyncThunk(
+  "auth/Usersignup",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.post(Url.User_Signup, data);
+      return res?.data;
+    } catch (error) {
+      showError(error || error?.message);
       return rejectWithValue(error);
     }
   }
