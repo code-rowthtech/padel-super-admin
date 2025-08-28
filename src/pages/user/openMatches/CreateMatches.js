@@ -23,7 +23,6 @@ const CreateMatches = () => {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
-  console.log({ selectedTimes });
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedCourts, setSelectedCourts] = useState([]);
   const [skillDetails, setSkillDetails] = useState([]);
@@ -32,7 +31,6 @@ const CreateMatches = () => {
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
   const [showUnavailableOnly, setShowUnavailableOnly] = useState(false); // नया टॉगल स्टेट
-  console.log({ userMatches });
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);

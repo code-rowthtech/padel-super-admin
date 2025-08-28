@@ -16,8 +16,6 @@ const ViewMatch = ({ className = "" }) => {
     const userPlayersData = matchesData?.data?.players || []; // Players data
     const clubData = matchesData?.data?.clubId || {}; // Club data
 
-    console.log("matchesData:", matchesData);
-    console.log("userPlayersData:", userPlayersData);
 
     useEffect(() => {
         if (state?.match?._id) {

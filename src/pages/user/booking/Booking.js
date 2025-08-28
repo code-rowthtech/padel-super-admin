@@ -35,13 +35,11 @@ const Booking = ({ className = "" }) => {
             setIsOpen(false);
         }
     };
-    console.log({ slotData });
     const [expireModal, setExpireModal] = useState(false);
     const [selectedTimes, setSelectedTimes] = useState([]);
     const [selectedBuisness, setSelectedBuisness] = useState([]);
     const [selectedCourts, setSelectedCourts] = useState([]);
     const [currentCourtId, setCurrentCourtId] = useState(null);
-    console.log({ currentCourtId });
     const [selectedDate, setSelectedDate] = useState({
         fullDate: new Date().toISOString().split("T")[0],
         day: new Date().toLocaleDateString("en-US", { weekday: "long" })

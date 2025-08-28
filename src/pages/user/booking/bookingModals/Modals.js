@@ -20,7 +20,6 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const store = useSelector((state) => state)
   const clubData = store?.userClub?.clubData?.data?.courts[0] || []
   const logo = JSON.parse(localStorage.getItem("logo"));
-  console.log(tableData, 'statusbooki');
   const User = getUserFromSession()
   const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
     if (!dateValue) return fallback; // Handle null or undefined
@@ -54,7 +53,6 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const handleContinue = () => {
     dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason }))
   };
-  console.log(bookingStatusData?.bookingStatusData, 'bookingStatusData?.bookingStatusData');
   useEffect(() => {
     if (bookingStatusData?.bookingStatusData?.status === "200" && bookingStatusData?.bookingStatusData?.message) {
       setShowSuccessModal(false);

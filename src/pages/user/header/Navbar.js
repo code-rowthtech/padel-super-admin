@@ -17,7 +17,6 @@ const Navbar = () => {
     const store = useSelector((state) => state?.userAuth);
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
     const User = getUserFromSession()
-    console.log(User,'user00');
     const logo = JSON.parse(localStorage.getItem("logo"));
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {

@@ -18,7 +18,6 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
     const dispatch = useDispatch();
     const store = useSelector((state) => state);
     const addReviewLoading = store?.userClub?.reviewLoading;
-console.log({tableData});
     const hasReview = !!tableData?.booking?.customerReview;
     const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
         if (!dateValue) return fallback; // Handle null or undefined

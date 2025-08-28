@@ -54,7 +54,6 @@ const BookingHistory = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const getBookingData = useSelector((state) => state?.userBooking);
     const User = getUserFromSession();
-    console.log({ getBookingData });
     const renderSlotTimes = (slotTimes) =>
         slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
 
@@ -155,7 +154,6 @@ const BookingHistory = () => {
     });
 
     const totalRecords = getBookingData?.bookingData?.total || getBookingData?.bookingData?.length;
-    console.log({ totalRecords });
     return (
         <Container>
             <Row className="mb-3 mt-5">
