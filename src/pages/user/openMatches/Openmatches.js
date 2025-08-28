@@ -30,7 +30,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
     const getReviewData = useSelector((store) => store?.userClub?.getReviewData?.data)
 
 
-    console.log({ matchesData });
+    console.log({ getReviewData });
 
     // Close on outside click
     const handleClickOutside = (e) => {
@@ -517,8 +517,8 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                         <div className="px-4 py-5 row rounded-4 mt-4 h-100" style={{ backgroundColor: "#F5F5F566" }}>
                             <div className="col-4 text-center d-flex align-items-center justify-content-center">
                                 <div className="w-100">
-                                    <h4 className="" style={{ fontSize: "16px", fontWeight: "500" }}>Overall Rating</h4>
-                                    <div className="display-5 fw-bold">{getReviewData?.averageRating}</div>
+                                    <h4 style={{ fontSize: "16px", fontWeight: "500" }}>Overall Rating</h4>
+                                    <div className="display-5 fw-bold">{getReviewData?.averageRating || 0}</div>
                                     <div className="text-success">
                                         {[...Array(5)].map((_, i) => {
                                             const rating = getReviewData?.averageRating || 0;
@@ -531,34 +531,52 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                             }
                                         })}
                                     </div>
-                                    <div className="text-muted mt-2" style={{fontSize:'12px',fontFamily:"Poppins"}}>based on {getReviewData?.totalReviews} reviews</div>
+                                    <div className="text-muted mt-2" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                                        based on {getReviewData?.totalReviews || 0} reviews
+                                    </div>
                                 </div>
                             </div>
-                            <div className="col-8  border-start d-flex align-items-center">
+                            <div className="col-8 border-start d-flex align-items-center">
                                 <div className="w-100">
                                     {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
                                         let width = "0%";
                                         let percent = 0;
 
+                                        // Distribute percentages based on averageRating and ratingCategory
+                                        const rating = getReviewData?.averageRating || 0;
                                         if (label === getReviewData?.ratingCategory) {
-                                            const rating = getReviewData?.averageRating || 0;
-                                            percent = Math.round(rating * 20); // Convert 0-5 rating to percentage
-                                            width = `${percent}%`;
+                                            percent = Math.round(rating * 20); // e.g., 3.5 * 20 = 70% for "Good"
+                                        } else {
+                                            // Estimated distribution for other categories
+                                            const basePercent = Math.round((5 - rating) * 20 / 4); // Spread remaining percentage
+                                            percent = idx < ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
+                                                ? basePercent * (3 - idx)
+                                                : idx > ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
+                                                    ? basePercent * (idx - 2)
+                                                    : basePercent;
                                         }
+                                        width = `${percent}%`;
 
                                         return (
                                             <div className="d-flex align-items-center justify-content-between mb-1 w-100" key={idx}>
-                                                <div className="me-2 fw-medium" style={{ width: "100px" ,fontSize:'12px',fontFamily:"Poppins"}}>
+                                                <div className="me-2 fw-medium" style={{ width: "100px", fontSize: "12px", fontFamily: "Poppins" }}>
                                                     {label}
                                                 </div>
                                                 <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
                                                     <div
-                                                        className={`progress-bar bg-${idx === 0 ? "success" : idx === 1 ? "info" : idx === 2 ? "warning" : idx === 3 ? "danger" : "dark"
-                                                            }`}
-                                                        style={{ width }}
+                                                        className="progress-bar"
+                                                        style={{
+                                                            width,
+                                                            backgroundColor:
+                                                                idx === 0 ? "#3DBE64" : // Excellent (Green)
+                                                                    idx === 1 ? "#7CBA3D" : // Very Good (Dark Green)
+                                                                        idx === 2 ? "#ECD844" : // Good (Dark Green)
+                                                                            idx === 3 ? "#FC702B" : // Average (Yellow)
+                                                                                "#E9341F", // Poor (Red)
+                                                        }}
                                                     ></div>
                                                 </div>
-                                                <div className=''
+                                                <div
                                                     style={{
                                                         color: "#000",
                                                         fontSize: "12px",
@@ -570,7 +588,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                             </div>
                                         );
                                     })}
-
                                 </div>
                             </div>
                         </div>

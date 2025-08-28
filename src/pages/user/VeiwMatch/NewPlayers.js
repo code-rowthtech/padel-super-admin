@@ -58,7 +58,6 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                     setPhoneNumber('');
                     setName('');
                     setEmail('');
-                    dispatch(getMatchesUser());
                     setShowAddMeForm(false);
                     setActiveSlot(null);
                     showSuccess("Add Players Successfully");

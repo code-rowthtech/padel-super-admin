@@ -787,7 +787,7 @@ const OpenmatchPayment = ({ className = "" }) => {
 
             {/* Error Modal */}
             {error && (
-                <Modal show={error} onHide={() => setError(null)}>
+                <Modal centered show={error} onHide={() => setError(null)}>
                     <Modal.Header closeButton>
                         <Modal.Title>Error</Modal.Title>
                     </Modal.Header>
@@ -801,7 +801,7 @@ const OpenmatchPayment = ({ className = "" }) => {
             )}
 
             {/* Success Modal */}
-            <Modal show={modal} onHide={() => setModal(false)}>
+            {/* <Modal show={modal} onHide={() => setModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Booking Successful</Modal.Title>
                 </Modal.Header>
@@ -814,7 +814,7 @@ const OpenmatchPayment = ({ className = "" }) => {
                         View Booking History
                     </Button>
                 </Modal.Footer>
-            </Modal>
+            </Modal> */}
 
             <NewPlayers
                 activeSlot={activeSlot}

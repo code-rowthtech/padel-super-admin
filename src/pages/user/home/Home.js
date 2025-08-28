@@ -40,7 +40,7 @@ const Home = () => {
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
-    console.log(clubData,'clubDataclubDataclubData');
+    console.log(clubData, 'clubDataclubDataclubData');
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
@@ -205,9 +205,9 @@ const Home = () => {
                             Join the community, feel the energy, and experience the good vibes!<br />
                             #theGoodPeople
                         </p>
-                        <p style={{ fontSize: "16px", fontFamily: "600" ,margin:"0px"}}>Join the Padel community group on WhatsApp </p>
-                       <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
-                       <p className='mt-4'><a className='mt-4'  href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
+                        <p style={{ fontSize: "16px", fontFamily: "600", margin: "0px" }}>Join the Padel community group on WhatsApp </p>
+                        <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
+                        <p className='mt-4'><a className='mt-4' href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
 
 
 
@@ -217,7 +217,7 @@ const Home = () => {
                     <div className="col-lg-4">
                         <div className="bg-white p-4">
                             <div className="d-flex justify-content-center mb-4">
-                                <strong className='me-2'style={{fontWeight:"500"}} >
+                                <strong className='me-2' style={{ fontWeight: "500" }} >
                                     <i className="bi bi-alarm-fill"></i> Close Now
                                 </strong>
                                 <span>{clubData?.businessHours?.[adjustedIndex]?.time}</span>
@@ -233,7 +233,7 @@ const Home = () => {
                                 </div>
                             ))}
 
-                            <p className="mt-3 text-center " style={{fontWeight:"500"}}>Time zone (India Standard Time)</p>
+                            <p className="mt-3 text-center " style={{ fontWeight: "500" }}>Time zone (India Standard Time)</p>
                             <div className='text-center'>
                                 <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp">
                                     Court Book <i className="bi bi-arrow-right"></i>
@@ -329,72 +329,87 @@ const Home = () => {
                                 <div className="row g-4">
                                     <div className="col-md-12">
                                         <div className="p-4 row rounded-4 bg-white h-100">
-                                            <div className='col-5 text-center d-flex align-items-center justify-contant-center'>
-                                                <div className="w-100">
-                                                    <h4 className="" style={{ fontSize: "16px", fontWeight: "500" }}>Overall Rating</h4>
-                                                    <div className="display-4 fw-bold">{getReviewData?.averageRating}</div>
-                                                    <div className="text-success">
-                                                        {[...Array(5)].map((_, i) => {
+                                                <div className="col-5 text-center d-flex align-items-center justify-content-center">
+                                                    <div className="w-100">
+                                                        <h4 style={{ fontSize: "16px", fontWeight: "500" }}>Overall Rating</h4>
+                                                        <div className="display-5 fw-bold">{getReviewData?.averageRating || 0}</div>
+                                                        <div className="text-success">
+                                                            {[...Array(5)].map((_, i) => {
+                                                                const rating = getReviewData?.averageRating || 0;
+                                                                if (i < Math.floor(rating)) {
+                                                                    return <StarIcon key={i} style={{ color: "#32B768" }} />;
+                                                                } else if (i < rating && rating % 1 >= 0.5) {
+                                                                    return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
+                                                                } else {
+                                                                    return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
+                                                                }
+                                                            })}
+                                                        </div>
+                                                        <div className="text-muted mt-2" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                                                            based on {getReviewData?.totalReviews || 0} reviews
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="col-7 border-start d-flex align-items-center">
+                                                    <div className="w-100">
+                                                        {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
+                                                            let width = "0%";
+                                                            let percent = 0;
+
+                                                            // Distribute percentages based on averageRating and ratingCategory
                                                             const rating = getReviewData?.averageRating || 0;
-                                                            if (i < Math.floor(rating)) {
-                                                                return <StarIcon key={i} style={{ color: "#32B768" }} />;
-                                                            } else if (i < rating && rating % 1 >= 0.5) {
-                                                                return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
+                                                            if (label === getReviewData?.ratingCategory) {
+                                                                percent = Math.round(rating * 20); // e.g., 3.5 * 20 = 70% for "Good"
                                                             } else {
-                                                                return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
+                                                                // Estimated distribution for other categories
+                                                                const basePercent = Math.round((5 - rating) * 20 / 4); // Spread remaining percentage
+                                                                percent = idx < ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
+                                                                    ? basePercent * (3 - idx)
+                                                                    : idx > ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
+                                                                        ? basePercent * (idx - 2)
+                                                                        : basePercent;
                                                             }
+                                                            width = `${percent}%`;
+
+                                                            return (
+                                                                <div className="d-flex align-items-center justify-content-between mb-1 w-100" key={idx}>
+                                                                    <div className="me-2 fw-medium" style={{ width: "100px", fontSize: "12px", fontFamily: "Poppins" }}>
+                                                                        {label}
+                                                                    </div>
+                                                                    <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
+                                                                        <div
+                                                                            className="progress-bar"
+                                                                            style={{
+                                                                                width,
+                                                                                backgroundColor:
+                                                                                    idx === 0 ? "#3DBE64" : // Excellent (Green)
+                                                                                        idx === 1 ? "#7CBA3D" : // Very Good (Dark Green)
+                                                                                            idx === 2 ? "#ECD844" : // Good (Dark Green)
+                                                                                                idx === 3 ? "#FC702B" : // Average (Yellow)
+                                                                                                    "#E9341F", // Poor (Red)
+                                                                            }}
+                                                                        ></div>
+                                                                    </div>
+                                                                    <div
+                                                                        style={{
+                                                                            color: "#000",
+                                                                            fontSize: "12px",
+                                                                            backgroundColor: "rgba(255, 255, 255, 0.7)",
+                                                                        }}
+                                                                    >
+                                                                        {percent}%
+                                                                    </div>
+                                                                </div>
+                                                            );
                                                         })}
                                                     </div>
-                                                    <div className="text-muted mt-2">based on {getReviewData?.totalReviews} reviews</div>
-                                                </div>
-
-                                            </div>
-
-                                            <div className="col-7 px-4 border-start d-flex align-items-center">
-                                                <div className="w-100">
-                                                    {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
-                                                        let width = "0%";
-                                                        let percent = 0;
-
-                                                        if (label === getReviewData?.ratingCategory) {
-                                                            const rating = getReviewData?.averageRating || 0;
-                                                            percent = Math.round(rating * 20); // Convert 0-5 rating to percentage
-                                                            width = `${percent}%`;
-                                                        }
-
-                                                        return (
-                                                            <div className="d-flex align-items-center justify-content-between mb-1 w-100" key={idx}>
-                                                                <div className="me-2" style={{ width: "100px" }}>
-                                                                    {label}
-                                                                </div>
-                                                                <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
-                                                                    <div
-                                                                        className={`progress-bar bg-${idx === 0 ? "success" : idx === 1 ? "info" : idx === 2 ? "warning" : idx === 3 ? "danger" : "dark"
-                                                                            }`}
-                                                                        style={{ width }}
-                                                                    ></div>
-                                                                </div>
-                                                                <div className=''
-                                                                    style={{
-                                                                        color: "#000",
-                                                                        fontSize: "12px",
-                                                                        backgroundColor: "rgba(255, 255, 255, 0.7)",
-                                                                    }}
-                                                                >
-                                                                    {percent}%
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Rate This Court */}
-                                    <div className="col-md-6">
-                                        {/* <div className="p-4 bg-white rounded-4 h-100">
+                                        {/* Rate This Court */}
+                                        <div className="col-md-6">
+                                            {/* <div className="p-4 bg-white rounded-4 h-100">
                                             <h5 style={{ fontSize: "20px", fontWeight: "600" }}>Rate this Court</h5>
 
                                             <div className="d-flex align-items-center gap-2 mt-2 fs-5">
@@ -462,127 +477,127 @@ const Home = () => {
                                                 </button>
                                             </div>
                                         </div> */}
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Customer Reviews */}
-                                <div className="mt-2">
-                                    <h4 className=" mb-3" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
-                                    <div className='  rounded-3 '
-                                        style={{
-                                            maxHeight: getReviewData?.reviews?.length >= 4 ? "500px" : "auto",
-                                            overflowY: getReviewData?.reviews?.length >= 4 ? "auto" : "visible"
-                                        }}
-                                    >
+                                    {/* Customer Reviews */}
+                                    <div className="mt-2">
+                                        <h4 className=" mb-3" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
+                                        <div className='  rounded-3 '
+                                            style={{
+                                                maxHeight: getReviewData?.reviews?.length >= 4 ? "500px" : "auto",
+                                                overflowY: getReviewData?.reviews?.length >= 4 ? "auto" : "visible"
+                                            }}
+                                        >
 
-                                        {getReviewData?.reviews?.map((review, i) => (
-                                            <div div className='p-3 bg-white mb-2 d-flex justify-content-between align-items-start flex-wrap'>
-                                                <div key={i} className="d-flex align-items-start">
-                                                    <img
-                                                        src={review.avatar || 'https://t4.ftcdn.net/jpg/15/13/35/75/360_F_1513357508_F3lTOCrYHHjBB8Lb3K9IBfS4IPLyNcrJ.jpg'}
-                                                        alt={review?.userId?.name}
-                                                        className="rounded-circle me-3"
-                                                        width="60"
-                                                        height="60"
-                                                    />
-                                                    <div>
-                                                        <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500" }}>{review?.userId?.name || review?.userId?.email}</h6>
-                                                        <div className=" mb-2">
-                                                            {[...Array(Math.floor(review?.reviewRating || 0))].map((_, i) => (
-                                                                <StarIcon key={i} size={5} style={{ color: "#32B768" }} />
-                                                            ))}
-                                                            {review?.reviewRating % 1 !== 0 && review?.reviewRating <= 5 && (
-                                                                <StarHalfIcon key="half" size={5} style={{ color: "#32B768" }} />
-                                                            )}
-                                                            {[...Array(Math.floor(5 - (review?.reviewRating || 0)))].map((_, i) => (
-                                                                <StarBorderIcon key={`empty-${i}`} size={5} style={{ color: '#ccc' }} />
-                                                            ))}
-                                                            <span className="ms-1 pt-3">{review?.reviewRating || 0}</span>
+                                            {getReviewData?.reviews?.map((review, i) => (
+                                                <div div className='p-3 bg-white mb-2 d-flex justify-content-between align-items-start flex-wrap'>
+                                                    <div key={i} className="d-flex align-items-start">
+                                                        <img
+                                                            src={review.avatar || 'https://t4.ftcdn.net/jpg/15/13/35/75/360_F_1513357508_F3lTOCrYHHjBB8Lb3K9IBfS4IPLyNcrJ.jpg'}
+                                                            alt={review?.userId?.name}
+                                                            className="rounded-circle me-3"
+                                                            width="60"
+                                                            height="60"
+                                                        />
+                                                        <div>
+                                                            <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500" }}>{review?.userId?.name || review?.userId?.email}</h6>
+                                                            <div className=" mb-2">
+                                                                {[...Array(Math.floor(review?.reviewRating || 0))].map((_, i) => (
+                                                                    <StarIcon key={i} size={5} style={{ color: "#32B768" }} />
+                                                                ))}
+                                                                {review?.reviewRating % 1 !== 0 && review?.reviewRating <= 5 && (
+                                                                    <StarHalfIcon key="half" size={5} style={{ color: "#32B768" }} />
+                                                                )}
+                                                                {[...Array(Math.floor(5 - (review?.reviewRating || 0)))].map((_, i) => (
+                                                                    <StarBorderIcon key={`empty-${i}`} size={5} style={{ color: '#ccc' }} />
+                                                                ))}
+                                                                <span className="ms-1 pt-3">{review?.reviewRating || 0}</span>
+                                                            </div>
+                                                            <p className="mb-0 text-muted" style={{ maxWidth: "700px" }}>
+                                                                {review?.reviewComment}
+                                                            </p>
                                                         </div>
-                                                        <p className="mb-0 text-muted" style={{ maxWidth: "700px" }}>
-                                                            {review?.reviewComment}
-                                                        </p>
+                                                    </div>
+                                                    <div className="text-muted small mt-3 mt-md-0">
+                                                        Post Date : <strong>{formatDate(review?.createdAt)}</strong>
                                                     </div>
                                                 </div>
-                                                <div className="text-muted small mt-3 mt-md-0">
-                                                    Post Date : <strong>{formatDate(review?.createdAt)}</strong>
-                                                </div>
-                                            </div>
 
-                                        ))}
+                                            ))}
 
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                         )}
 
-                        {activeTab === 'photos' && (
-                            <div className="container my-5">
-                                <div className="custom-gallery">
-                                    {clubData?.courtImage?.length > 0 ? (
-                                        galleryImages.map((image, index) => (
-                                            <div
-                                                key={index}
-                                                className={`gallery-item item${index + 1}`}
-                                                onClick={() => {
-                                                    setPhotoIndex(index);
-                                                    setIsOpen(true);
-                                                }}
-                                                style={{ cursor: 'pointer' }}
-                                            >
-                                                {!loadedImages[index] && (
-                                                    <div className="image-loader youtube-style">
-                                                        <div className="youtube-spinner"></div>
+                                {activeTab === 'photos' && (
+                                    <div className="container my-5">
+                                        <div className="custom-gallery">
+                                            {clubData?.courtImage?.length > 0 ? (
+                                                galleryImages.map((image, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className={`gallery-item item${index + 1}`}
+                                                        onClick={() => {
+                                                            setPhotoIndex(index);
+                                                            setIsOpen(true);
+                                                        }}
+                                                        style={{ cursor: 'pointer' }}
+                                                    >
+                                                        {!loadedImages[index] && (
+                                                            <div className="image-loader youtube-style">
+                                                                <div className="youtube-spinner"></div>
+                                                            </div>
+                                                        )}
+                                                        <img
+                                                            src={image}
+                                                            alt={`Gallery ${index + 1}`}
+                                                            onLoad={() => handleImageLoad(index)}
+                                                            onError={() => handleImageLoad(index)} // Handle broken images
+                                                            style={{ display: loadedImages[index] ? 'block' : 'none' }}
+                                                        />
                                                     </div>
-                                                )}
-                                                <img
-                                                    src={image}
-                                                    alt={`Gallery ${index + 1}`}
-                                                    onLoad={() => handleImageLoad(index)}
-                                                    onError={() => handleImageLoad(index)} // Handle broken images
-                                                    style={{ display: loadedImages[index] ? 'block' : 'none' }}
-                                                />
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p>{store?.userClub?.clubData?.data?.courts?.length === 0 ? 'No images yet!' : 'No images available'}</p>
-                                    )}
-                                </div>
+                                                ))
+                                            ) : (
+                                                <p>{store?.userClub?.clubData?.data?.courts?.length === 0 ? 'No images yet!' : 'No images available'}</p>
+                                            )}
+                                        </div>
 
-                                {/* Lightbox */}
-                                {isOpen && galleryImages.length > 0 && (
-                                    <Lightbox
-                                        mainSrc={galleryImages[photoIndex]}
-                                        nextSrc={galleryImages[(photoIndex + 1) % galleryImages.length]}
-                                        prevSrc={galleryImages[(photoIndex + galleryImages.length - 1) % galleryImages.length]}
-                                        onCloseRequest={() => setIsOpen(false)}
-                                        onMovePrevRequest={() =>
-                                            setPhotoIndex((photoIndex + galleryImages.length - 1) % galleryImages.length)
-                                        }
-                                        onMoveNextRequest={() =>
-                                            setPhotoIndex((photoIndex + 1) % galleryImages.length)
-                                        }
-                                        imagePadding={0} // Remove padding for edge-to-edge image
-                                        wrapperClassName="full-screen-lightbox" // Custom class for full-screen styling
-                                    />
+                                        {/* Lightbox */}
+                                        {isOpen && galleryImages.length > 0 && (
+                                            <Lightbox
+                                                mainSrc={galleryImages[photoIndex]}
+                                                nextSrc={galleryImages[(photoIndex + 1) % galleryImages.length]}
+                                                prevSrc={galleryImages[(photoIndex + galleryImages.length - 1) % galleryImages.length]}
+                                                onCloseRequest={() => setIsOpen(false)}
+                                                onMovePrevRequest={() =>
+                                                    setPhotoIndex((photoIndex + galleryImages.length - 1) % galleryImages.length)
+                                                }
+                                                onMoveNextRequest={() =>
+                                                    setPhotoIndex((photoIndex + 1) % galleryImages.length)
+                                                }
+                                                imagePadding={0} // Remove padding for edge-to-edge image
+                                                wrapperClassName="full-screen-lightbox" // Custom class for full-screen styling
+                                            />
+                                        )}
+                                    </div>
+
+                                )}
+
+                                {activeTab === 'call' && (
+                                    <div>
+                                        <h4 style={{ fontWeight: '600' }}>Call Us</h4>
+                                        <a href="tel:+919999999999" className="btn btn-outline-dark px-4 py-2 rounded-pill">
+                                            📞 +91 99999 99999
+                                        </a>
+                                    </div>
                                 )}
                             </div>
-
-                        )}
-
-                        {activeTab === 'call' && (
-                            <div>
-                                <h4 style={{ fontWeight: '600' }}>Call Us</h4>
-                                <a href="tel:+919999999999" className="btn btn-outline-dark px-4 py-2 rounded-pill">
-                                    📞 +91 99999 99999
-                                </a>
-                            </div>
-                        )}
-                    </div>
                 </div>
-            </div>
-        </>
-    );
+                </div>
+            </>
+            );
 };
 
-export default Home;
+            export default Home;
