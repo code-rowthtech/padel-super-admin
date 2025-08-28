@@ -12,7 +12,6 @@ const OpenMatches = () => {
   const { openMatchesData, openMatchesLoading } = useSelector(
     (state) => state.openMatches
   );
-  console.log({ openMatchesData });
   useEffect(() => {
     dispatch(getAllOpenMatches());
   }, []);

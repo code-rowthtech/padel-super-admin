@@ -30,8 +30,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
     const getReviewData = useSelector((store) => store?.userClub?.getReviewData?.data)
 
 
-    console.log({ getReviewData });
-
     // Close on outside click
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -62,7 +60,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         };
     });
 
-    console.log({ dates });
 
     const toggleTime = (time) => {
         if (selectedTimes.includes(time)) {
@@ -230,7 +227,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                             >
                                 {dates?.map((d, i) => {
                                     const isSelected = selectedDate?.fullDate === d.fullDate;
-                                    console.log(d, 'pakkkkk');
                                     return (
                                         <button
                                             ref={(el) => (dateRefs.current[d.fullDate] = el)}
@@ -388,7 +384,6 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                 <div key={index} className="card border-0 shadow-sm mb-3 rounded-2" style={{ backgroundColor: "#CBD6FF1A" }}>
                                     <div className="card-body px-4 py-3 d-flex justify-content-between flex-wrap">
                                         <div>
-                                            {console.log(match, '0000000000000000000000')}
                                             <p className="mb-1" style={{ fontSize: "18px", fontWeight: "600" }}>
                                                 {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
                                                 <span className="fw-normal text-muted ms-3">{match?.skillLevel.charAt(0).toUpperCase() + match?.skillLevel.slice(1)}</span>

@@ -33,8 +33,6 @@ const OpenmatchPayment = ({ className = "" }) => {
     const playerIds = userPlayersData?.map(player => player._id) || [];
     const players = User?._id ? [...playerIds, User._id] : playerIds;
 
-    console.log({ selectedTimes, selectedCourts, selectedDate });
-    console.log("userPlayersData:", userPlayersData);
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));

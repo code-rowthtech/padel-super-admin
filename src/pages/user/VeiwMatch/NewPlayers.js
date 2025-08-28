@@ -47,7 +47,6 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
         dispatch(Usersignup({ phoneNumber, name, email }))
             .unwrap()
             .then((res) => {
-                console.log(res, 'resresres');
                 if (res?.status === "200") {
                     const existingPlayers = localStorage.getItem('players')
                         ? JSON.parse(localStorage.getItem('players'))
@@ -63,7 +62,6 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                     showSuccess("Add Players Successfully");
                 }
             }).catch((err) => {
-                console.log(err, 'errerrerr');
                 setError(err?.response?.data?.message || "An error occurred. Please try again.");
                 setErrorShow(true);
             })

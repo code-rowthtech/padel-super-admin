@@ -295,13 +295,11 @@ const CourtAvailability = () => {
         ownerId: Owner?._id,
       };
 
-      console.log({ payload });
       await dispatch(updateCourt(payload)).unwrap();
       setSelectedSlots({});
       setSelectedCourts([]);
       setCommonStatus("");
     } catch (error) {
-      console.log("Booking failed:", error);
       showError("Failed to update slot status.");
     }
   };
@@ -575,7 +573,6 @@ const CourtAvailability = () => {
 
                       return showUnavailable || (isAvailable && !isPast);
                     });
-                    console.log(filteredSlotTimes?.length);
                     return filteredSlotTimes?.length === 0 ? (
                       <div
                         className="d-flex text-danger justify-content-center align-items-center w-100"

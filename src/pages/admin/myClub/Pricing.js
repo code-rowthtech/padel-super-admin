@@ -549,7 +549,6 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
         setHasPriceChanges(false);
       })
       .catch((error) => {
-        console.log("Price update failed:", error);
         showError("Failed to update prices. Please try again.");
       });
   };

@@ -40,7 +40,6 @@ const Home = () => {
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
-    console.log(clubData, 'clubDataclubDataclubData');
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
