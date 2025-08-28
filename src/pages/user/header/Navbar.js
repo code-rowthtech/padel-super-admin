@@ -126,18 +126,18 @@ const Navbar = () => {
                                 Open Matches
                             </NavLink>
                         </li>
-                        {/* <li className="nav-item">
+                        <li className="nav-item">
                             <NavLink
-                                to="/competitions"
+                                to="/americano"
                                 className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
                                 style={({ isActive }) => ({
                                     color: isActive ? '#1F41BB' : '#000',
                                     textDecoration: 'none',
                                 })}
                             >
-                                Competitions
+                                Americano
                             </NavLink>
-                        </li> */}
+                        </li>
                     </ul>
 
                     <div className="d-flex">

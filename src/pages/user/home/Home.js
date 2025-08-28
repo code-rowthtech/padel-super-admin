@@ -18,7 +18,7 @@ import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { formatDate } from '../../../helpers/Formatting';
 import { Avatar } from '@mui/material';
 import { getLogo } from '../../../redux/user/auth/authThunk';
-
+import {isUserAuthenticated} from '../../../helpers/api/apiCore';
 
 
 
@@ -40,6 +40,7 @@ const Home = () => {
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
+    console.log(isUserAuthenticated(),'home page');
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
