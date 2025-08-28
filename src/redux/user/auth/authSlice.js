@@ -7,6 +7,7 @@ import {
   getAllUsers,
   loginUserNumber,
   getLogo,
+  Usersignup,
 } from "./authThunk";
 import {
   setLoggedInUser,
@@ -21,7 +22,10 @@ const initialState = {
   error: null,
   new: null,
   logo: [],
-  logoLoading: false
+  logoLoading: false,
+  userSignUpLoading: false,
+  userSignUp: null,
+  errorSignUp: null,
 };
 
 const authSlice = createSlice({
@@ -34,6 +38,7 @@ const authSlice = createSlice({
       setLoggedInUser(null);
       localStorage.removeItem("padel_user");
       sessionStorage.clear();
+
       // window.location.href = '/home';
     },
     resetAuth(state) {
@@ -41,6 +46,10 @@ const authSlice = createSlice({
       state.user = null;
       // state.otp = null;
       state.error = null;
+      state.userSignUpLoading = false;
+      state.userSignUp = null;
+      state.errorSignUp = null;
+
     },
   },
   extraReducers: (builder) => {
@@ -79,10 +88,27 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+        // SignUp
+      .addCase(Usersignup.pending, (state) => {
+        state.userSignUpLoading = true;
+        state.errorSignUp = null;
+      })
+      .addCase(Usersignup.fulfilled, (state, action) => {
+        state.userSignUpLoading = false;
+        state.userSignUp = action.payload;
+        // const { response } = action.payload;
+        // const user = { ...response.user, token: response.token };
+        // setLoggedInUser(user);
+      })
+      .addCase(Usersignup.rejected, (state, action) => {
+        state.userSignUpLoading = false;
+        state.errorSignUp = action.payload;
+      })
+
       //Send Otp
       .addCase(sendOtp.pending, (state) => {
         state.userAuthLoading = true;
-        state.error = null;
+        state.errorSignUp = null;
       })
       .addCase(sendOtp.fulfilled, (state, action) => {
         state.userAuthLoading = false;

@@ -75,6 +75,7 @@ const Payment = ({ className = "" }) => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setErrorShow(false);
+            setError('')
         }, 2000);
         return () => clearTimeout(timer);
     }, [error, errorShow]);

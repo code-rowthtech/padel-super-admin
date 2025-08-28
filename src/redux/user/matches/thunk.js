@@ -11,7 +11,7 @@ export const createMatches = createAsyncThunk(
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
+      // showError(error?.message);
       return rejectWithValue(error);
     }
   }
@@ -25,6 +25,33 @@ export const getMatches = createAsyncThunk(
       return res?.data;
     } catch (error) {
       showError(error?.message);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getMatchesUser = createAsyncThunk(
+  "booking/getMatchesUser",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.get(`${Url.GET_OPENMATCH_USER}`, data);
+      return res?.data;
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getMatchesView = createAsyncThunk(
+  "booking/getMatchesView",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.get(`${Url.VIEW_OPENMATCH}?_id=${data}`);
+      console.log("res in thunk:", res);
+      return res?.data;
+    } catch (error) {
+      showError(error);
       return rejectWithValue(error);
     }
   }
