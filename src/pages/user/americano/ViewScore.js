@@ -133,7 +133,6 @@ const ViewScore = ({ setScore }) => {
                                     zIndex: 10,
                                 }}
                             >
-                                {/* optional drag indicator */}
                                 <div
                                     style={{
                                         width: "10px",
