@@ -236,10 +236,10 @@ h1.display-5 {
 }
 
 .table-data {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   font-family: "Poppins" sans-serif;
-  color: #797d8c;
+  color: #000000;
 }
 
 .manual-heading {
@@ -278,11 +278,11 @@ h1.display-5 {
 }
 
 .custom-table td {
-  padding: 0.7rem 1rem !important;
+  padding: 0.7rem 1rem ;
   text-align: center;
   font-weight: 400;
-  vertical-align: middle;
-  white-space: nowrap;
+  /* vertical-align: middle; */
+  /* white-space: nowrap; */
   font-size: 14px;
   /* Prevents text wrapping in cells */
 }
@@ -466,7 +466,7 @@ h1.display-5 {
 }
 
 .animated-image {
-  animation: scaleAnimation 2s infinite ease-in-out;
+  animation: scaleAnimation 2s  ease-in-out;
 }
 
 @keyframes scaleAnimation {

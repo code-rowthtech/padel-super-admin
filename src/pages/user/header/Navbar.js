@@ -1,22 +1,27 @@
 import { logo } from '../../../assets/files';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Dropdown } from 'react-bootstrap';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
 import { IoTennisballOutline } from 'react-icons/io5';
 import { Avatar } from '@mui/material';
-import { getUserFromSession } from '../../../helpers/api/apiCore';
+import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/apiCore';
+import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
+import { IoIosLogOut } from 'react-icons/io';
+import { PiRanking } from "react-icons/pi";
 
 const Navbar = () => {
     const dispatch = useDispatch();
+
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
     const User = getUserFromSession()
+    let token = isUserAuthenticated()
     const logo = JSON.parse(localStorage.getItem("logo"));
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
@@ -141,7 +146,7 @@ const Navbar = () => {
                     </ul>
 
                     <div className="d-flex">
-                        {store?.user?.status === '200' || userData?.token ? (
+                        {store?.user?.status === '200' || token ? (
                             <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
                                 <Dropdown.Toggle
                                     variant="white"
@@ -169,23 +174,23 @@ const Navbar = () => {
                                     )}
                                 </Dropdown.Toggle>
 
-                                <Dropdown.Menu className="table-data fw-medium" style={{ color: '#374151' }}>
-                                    <Dropdown.Item as={NavLink} to="/profile">
-                                        Profile
+                                <Dropdown.Menu className="table-data fw-medium" style={{ color: '#374151', width:"200px" }}>
+                                    <Dropdown.Item className='mb-2' as={NavLink} to="/profile">
+                                     <FaRegUserCircle size={20} className='me-2' />   Profile
                                     </Dropdown.Item>
-                                    <Dropdown.Item as={NavLink} to="/booking-history">
-                                        My Booking
+                                    <Dropdown.Item className='mb-2' as={NavLink} to="/booking-history">
+                                       <MdOutlineDateRange className='me-2' size={20} /> My Booking
                                     </Dropdown.Item>
-                                    <Dropdown.Item as={NavLink} to="/open-matches">
-                                        Open Matches
+                                    <Dropdown.Item className='mb-2' as={NavLink} to="/open-matches">
+                                       <MdSportsTennis className='me-2' size={20} /> Open Matches
                                     </Dropdown.Item>
-                                    <Dropdown.Item as={NavLink} to="/admin/help-support">
-                                        Americano
+                                    <Dropdown.Item className='mb-2' as={NavLink} to="/admin/help-support">
+                                       <PiRanking className='me-2' size={20} /> Americano
                                     </Dropdown.Item>
-                                    <Dropdown.Item as={NavLink} to="/admin/settings">
-                                        Help & Support
+                                    <Dropdown.Item className='mb-2' as={NavLink} to="/admin/settings">
+                                      <FaHeadphones className='me-2' />  Help & Support
                                     </Dropdown.Item>
-                                    <Dropdown.Item
+                                    <Dropdown.Item className='mb-2'
                                         onClick={() => {
                                             dispatch(logoutUser());
                                             localStorage.removeItem('padel_user');
@@ -194,7 +199,7 @@ const Navbar = () => {
                                             navigate('/home');
                                         }}
                                     >
-                                        Logout
+                                      <IoIosLogOut className='me-2' size={20} />  Logout
                                     </Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>

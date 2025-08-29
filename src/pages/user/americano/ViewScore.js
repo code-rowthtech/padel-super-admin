@@ -14,18 +14,19 @@ import { scrore_bg } from "../../../assets/files";
 
 const ViewScore = ({ setScore }) => {
     const [activeTab, setActiveTab] = useState("leaderboard");
+    const [userScroll, setUserScroll] = useState(false);
 
     const players = [
-        { id: 1, name: "Dianne", points: 120, record: "8-2-1", img: "https://i.pravatar.cc/50?img=1" },
-        { id: 2, name: "Jane", points: 110, record: "8-2-1", img: "https://i.pravatar.cc/50?img=2" },
-        { id: 3, name: "Lily", points: 100, record: "8-2-1", img: "https://i.pravatar.cc/50?img=3" },
-        { id: 4, name: "Aubrey", points: 95, record: "8-2-1", img: "https://i.pravatar.cc/50?img=4" },
-        { id: 5, name: "Connie", points: 90, record: "8-2-1", img: "https://i.pravatar.cc/50?img=5" },
+        { id: 1, name: "Dianne", points: 120, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=1" },
+        { id: 2, name: "Jane", points: 110, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=2" },
+        { id: 3, name: "Lily", points: 100, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=3" },
+        { id: 4, name: "Aubrey", points: 95, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=4" },
+        { id: 5, name: "Connie", points: 90, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=5" },
     ];
 
     return (
         <Col md={5} className="p-0" style={{ backgroundColor: "#1F41BB" }}>
-            <div className="position-relative text-white p-3 mb-5  mt-3 d-flex align-items-center">
+            <div className="position-relative text-white p-3 mb-3 mt-3 d-flex align-items-center">
                 <FaArrowLeft
                     size={20}
                     onClick={() => setScore(false)}
@@ -85,10 +86,11 @@ const ViewScore = ({ setScore }) => {
                 {activeTab === "leaderboard" && (
                     <>
                         {/* Rank Info */}
-                        <div className="  p-2 pt-3 pb-0 ms-4 rounded me-4 text-center  d-flex align-items-center justify-content-start gap-3" style={{ backgroundColor: "#CBD6FF" }}>
+                        {userScroll ? '' : (<div className="  p-2 pt-3 pb-0 ms-4 rounded me-4 text-center  d-flex align-items-center justify-content-start gap-3" style={{ backgroundColor: "#CBD6FF" }}>
                             <p className="fw-bold rounded py-2 px-3 text-white" style={{ backgroundColor: "#374151" }}>#4</p>
                             <p style={{ color: "#1F41BB", fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>You are doing better than 60% of other players!</p>
                         </div>
+                        )}
 
                         {/* Podium */}
                         <div
@@ -125,12 +127,20 @@ const ViewScore = ({ setScore }) => {
                             <div
                                 className="position-absolute start-50 translate-middle-x"
                                 style={{
-                                    top: "71.5%",
+                                    top: userScroll ? "-1%" : "71.5%",
                                     width: "70px",
                                     height: "25px",
                                     backgroundColor: "#fff",
                                     borderRadius: "25px 25px 0 0 ",
                                     zIndex: 10,
+                                    cursor: "pointer",
+                                }}
+                                onClick={() => {
+                                    setUserScroll(prev => !prev);
+                                    window.scrollTo({
+                                        top: 0,
+                                        behavior: "smooth"
+                                    });
                                 }}
                             >
                                 <div
@@ -143,37 +153,45 @@ const ViewScore = ({ setScore }) => {
                                         marginTop: "10px",
                                     }}
                                 ></div>
-                            </div>                            <div
-                                className="p-3 pt-0 position-relative"
+                            </div>
+                            <div className="p-3  position-relative"
                                 style={{
-                                    overflowY: "auto",
+                                    height: userScroll ? "100vh" : "350px",
                                     backgroundColor: "#fff",
-                                    marginTop: "27%",
+                                    marginTop: userScroll ? "-32%" : "27%",
                                     borderRadius: "20px 20px 0 0",
                                 }}
                             >
                                 {/* Center Tab Shape */}
 
 
-                                {players.map((p, idx) => (
+                                {(userScroll ? players : players.slice(0, 3)).map((p, idx) => (
                                     <div
                                         key={p.id}
-                                        className="d-flex justify-content-between align-items-center border-bottom py-3"
+                                        className="d-flex mt-3 rounded p-2 justify-content-between align-items-center border py-2"
                                     >
-                                        <div className="d-flex align-items-center">
-                                            <span className="me-3 fw-bold">{idx + 1}</span>
-                                            <img
-                                                src={p.img}
-                                                alt={p.name}
-                                                className="rounded-circle me-2"
-                                                width={40}
-                                                height={40}
-                                            />
-                                            <span className="fw-bold">{p.name}</span>
+                                        <div className=" d-flex align-items-center gap-3">
+                                            <div className="d-flex align-items-center">
+                                                <span className="me-3 fw-bold">{idx + 1}</span>
+                                                <img
+                                                    src={p.img}
+                                                    alt={p.name}
+                                                    className="rounded-circle me-2"
+                                                    width={40}
+                                                    height={40}
+                                                />
+                                            </div>
+                                            <div className="div ">
+                                                <h6 className="fw-bold custom-title m-0">{p.name}</h6>
+                                                <div className="d-flex gap-3">
+                                                    <p className="mb-1 rounded-pill text-white text-center fw-bold pt-1" style={{ background: "#3DBE64", width: "37px", height: "23px", fontSize: "10px" }}>{p.points}</p>
+                                                    <p>Points</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span className="me-3 text-success fw-bold">{p.points} pts</span>
-                                            <span className="fw-bold">{p.record}</span>
+                                        <div className="text-center ">
+                                            <p className=" m-0" style={{ color: "#626262", fontWeight: "500", fontFamily: "Poppins", fontSize: '16px' }}>{p.recordhead}</p>
+                                            <p className="fw-bold text-dark" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: '16px' }}>{p.record}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -188,41 +206,144 @@ const ViewScore = ({ setScore }) => {
 
                 {activeTab === "rounds" && (
                     <>
-                        <h6 className="fw-bold mb-3">Your Match</h6>
-                        <Row className="mb-3">
-                            <Col className="text-center">
-                                <Card className="p-2">
-                                    <img src="https://i.pravatar.cc/50?img=6" className="rounded-circle" alt="" />
-                                    <div>Claire</div>
-                                </Card>
-                            </Col>
-                            <Col className="text-center align-self-center">
-                                <h5>VS</h5>
-                            </Col>
-                            <Col className="text-center">
-                                <Card className="p-2">
-                                    <img src="https://i.pravatar.cc/50?img=7" className="rounded-circle" alt="" />
-                                    <div>Jane</div>
-                                </Card>
-                            </Col>
-                        </Row>
-                        <Button variant="primary" className="w-100 mb-3">
-                            View All
-                        </Button>
+                        {/* Podium */}
+                        <div
+                            className="mb-4"
+                            style={{
+                                height: "450px",
+                                position: "relative",
+                            }}
+                        >
+                            {/* Top podium section */}
+                            <div
+                                className="rounded text-white text-center mt-4 me-4 ms-4 p-4"
+                                style={{ backgroundColor: "#111A79" }}
+                            >
+                                {/* Title */}
+                                <h6 className="mb-4">Your Match</h6>
 
-                        {/* Round Matches */}
-                        <h6 className="fw-bold">Round 1</h6>
-                        <Row>
-                            <Col>
-                                <Card className="p-2 text-center mb-2">
-                                    <span>Benita vs Kathryn</span>
-                                    <div className="d-flex justify-content-around mt-2">
-                                        <span>16</span>
-                                        <span>19</span>
+                                {/* Main Row */}
+                                <div className="row align-items-center">
+
+                                    {/* Left Side */}
+                                    <div className="col-4 d-flex flex-column align-items-center">
+                                        <img
+                                            src="left.jpg"
+                                            alt="Left Player"
+                                            className="rounded-circle mb-2"
+                                            width={60}
+                                            height={60}
+                                        />
+                                        <small>Claire + Wendy</small>
+                                        <span
+                                            className="badge bg-success mt-2 px-3 py-1"
+                                            style={{ borderRadius: "10px" }}
+                                        >
+                                            16
+                                        </span>
                                     </div>
-                                </Card>
-                            </Col>
-                        </Row>
+
+                                    {/* VS Section */}
+                                    <div className="col-4 d-flex flex-column align-items-center">
+                                        <h2 className="fw-bold">VS</h2>
+                                    </div>
+
+                                    {/* Right Side */}
+                                    <div className="col-4 d-flex flex-column align-items-center">
+                                        <img
+                                            src="right.jpg"
+                                            alt="Right Player"
+                                            className="rounded-circle mb-2"
+                                            width={60}
+                                            height={60}
+                                        />
+                                        <small>Bessie + Jane</small>
+                                        <span
+                                            className="badge bg-success mt-2 px-3 py-1"
+                                            style={{ borderRadius: "10px" }}
+                                        >
+                                            22
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                className="position-absolute start-50 translate-middle-x"
+                                style={{
+                                    top: userScroll ? "-1%" : "71.5%",
+                                    width: "70px",
+                                    height: "25px",
+                                    backgroundColor: "#fff",
+                                    borderRadius: "25px 25px 0 0 ",
+                                    zIndex: 10,
+                                    cursor: "pointer",
+                                }}
+                                onClick={() => {
+                                    setUserScroll(prev => !prev);
+                                    window.scrollTo({
+                                        top: 0,
+                                        behavior: "smooth"
+                                    });
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: "10px",
+                                        height: "10px",
+                                        backgroundColor: "#838282ff",
+                                        borderRadius: "50%",
+                                        margin: "auto",
+                                        marginTop: "10px",
+                                    }}
+                                ></div>
+                            </div>
+                            <div className="p-3  position-relative"
+                                style={{
+                                    height: userScroll ? "100vh" : "350px",
+                                    backgroundColor: "#fff",
+                                    marginTop: userScroll ? "-32%" : "27%",
+                                    borderRadius: "20px 20px 0 0",
+                                }}
+                            >
+                                {/* Center Tab Shape */}
+
+
+                                {(userScroll ? players : players.slice(0, 3)).map((p, idx) => (
+                                    <div
+                                        key={p.id}
+                                        className="d-flex mt-3 rounded p-2 justify-content-between align-items-center border py-2"
+                                    >
+                                        <div className=" d-flex align-items-center gap-3">
+                                            <div className="d-flex align-items-center">
+                                                <span className="me-3 fw-bold">{idx + 1}</span>
+                                                <img
+                                                    src={p.img}
+                                                    alt={p.name}
+                                                    className="rounded-circle me-2"
+                                                    width={40}
+                                                    height={40}
+                                                />
+                                            </div>
+                                            <div className="div ">
+                                                <h6 className="fw-bold custom-title m-0">{p.name}</h6>
+                                                <div className="d-flex gap-3">
+                                                    <p className="mb-1 rounded-pill text-white text-center fw-bold pt-1" style={{ background: "#3DBE64", width: "37px", height: "23px", fontSize: "10px" }}>{p.points}</p>
+                                                    <p>Points</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-center ">
+                                            <p className=" m-0" style={{ color: "#626262", fontWeight: "500", fontFamily: "Poppins", fontSize: '16px' }}>{p.recordhead}</p>
+                                            <p className="fw-bold text-dark" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: '16px' }}>{p.record}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                        </div>
                     </>
                 )}
             </Card>

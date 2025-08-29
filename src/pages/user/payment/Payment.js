@@ -8,6 +8,7 @@ import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Alert, Button, Modal } from "react-bootstrap";
 import { booking_success_img } from "../../../assets/files";
+import { IoIosArrowDown } from "react-icons/io";
 
 // Load Razorpay Checkout
 const loadRazorpay = (callback) => {
@@ -266,7 +267,6 @@ const Payment = ({ className = "" }) => {
                                         pattern="[A-Za-z\s]+"
                                         title="Name can only contain letters and single spaces between words"
                                         aria-label="Name"
-                                        disabled={user?.name}
                                     />
                                 </div>
                                 <div className="col-md-4 mb-3 p-1">
@@ -274,9 +274,9 @@ const Payment = ({ className = "" }) => {
                                         Phone No <span className="text-danger">*</span>
                                     </label>
                                     <div className="input-group">
-                                        <span className="input-group-text border-0 p-2">
+                                        <span className="input-group-text border-0 p-2" style={{ backgroundColor: "#F5F5F5" }}>
                                             <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
-                                            <span>+91</span>
+                                            <span><IoIosArrowDown /></span>
                                         </span>
                                         <input
                                             type="text"
@@ -290,10 +290,10 @@ const Payment = ({ className = "" }) => {
                                                 }
                                             }}
                                             className="form-control border-0 p-2"
-                                            placeholder="Enter phone number"
+                                            placeholder="+91"
                                             pattern="[6-9][0-9]{9}"
                                             title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
-                                            disabled={user?.phoneNumber}
+                                            // disabled={user?.phoneNumber}
                                         />
                                     </div>
                                 </div>
@@ -324,7 +324,6 @@ const Payment = ({ className = "" }) => {
                                         }}
                                         className="form-control border-0 p-2"
                                         placeholder="Enter your email"
-                                        disabled={user?.email}
                                     />
                                 </div>
                             </div>
@@ -355,6 +354,7 @@ const Payment = ({ className = "" }) => {
                                             value={method.id}
                                             className="form-check-input"
                                             checked={selectedPayment === method.id}
+                                            style={{border: '4px solid #4D4DFF', width: '20px', height: '20px',boxShadow:"none"}}
                                             onChange={(e) => setSelectedPayment(e.target.value)}
                                         />
                                     </label>
@@ -377,13 +377,13 @@ const Payment = ({ className = "" }) => {
                                     <Avatar>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>
                                 )}
                             </div>
-                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>
+                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                            <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
-                            </p>
-                            <p className="small mb-0">
-                                {clubData?.clubName}
-                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ", " : ""}
-                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode].filter(Boolean).join(", ")}
+                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                    .filter(Boolean)
+                                    .join(', ')}
                             </p>
                         </div>
 
@@ -398,10 +398,10 @@ const Payment = ({ className = "" }) => {
                                             <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex">
-                                                        <span style={{ fontWeight: "600" }}>
-                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""},
+                                                        <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
+                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ''}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "600" }}>
+                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
                                                                 const date = new Date(court.date);
@@ -410,22 +410,22 @@ const Payment = ({ className = "" }) => {
                                                                 return `${day} ${month}`;
                                                             })()}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "600" }}>
-                                                            {timeSlot?.time} (60)
+                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
+                                                            {timeSlot?.time} (60m)
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "400" }}>
+                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
                                                             {court?.courtName}
                                                         </span>
                                                     </div>
-                                                    <div className="d-flex">
+                                                    <div className="d-flex align-items-center">
                                                         <span className="ps-2" style={{ fontWeight: "600", color: "#1A237E" }}>
                                                             ₹{timeSlot?.amount || 2000}
                                                         </span>
                                                         <button
-                                                            className="btn btn-sm text-danger delete-btn ms-auto"
+                                                            className="btn btn-sm  text-danger delete-btn "
                                                             onClick={() => handleDeleteSlot(index, timeIndex)}
                                                         >
-                                                            <i className="bi bi-trash-fill pt-1"></i>
+                                                            <i className="bi bi-trash-fill mb-2 "></i>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -531,7 +531,7 @@ const Payment = ({ className = "" }) => {
                     <img
                         src={booking_success_img}
                         alt="Booking Success"
-                        style={{ width: "190px", height: "190px", marginBottom: "20px" }}
+                        style={{ width: "300px", height: "400px", marginBottom: "20px" }}
                     />
 
                     {/* Title */}
