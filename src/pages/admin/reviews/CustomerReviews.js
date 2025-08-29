@@ -89,7 +89,7 @@ const CustomerReviews = () => {
                   </div>
                   <p className="text-muted mb-0">
                     Based on
-                    <span className="fw-semibold">
+                    <span className="fw-semibold mx-1">
                       {reviewsData?.totalReviews}
                     </span>
                     reviews
