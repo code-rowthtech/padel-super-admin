@@ -23,6 +23,7 @@ const CreateMatches = React.lazy(() =>
 );
 const ViewMatch = React.lazy(() => import("../pages/user/VeiwMatch/VeiwMatch"));
 const OpenmatchPayment = React.lazy(() => import("../pages/user/VeiwMatch/OpenmatchPayment"));
+const AmericanoUser = React.lazy(() => import("../pages/user/americano/Americano"));
 const Payment = React.lazy(() => import("../pages/user/payment/Payment"));
 const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
@@ -145,9 +146,13 @@ const AllRoutes = () => {
           path: "view-match",
           element: LoadComponent(ViewMatch),
         },
-         {
+        {
           path: "match-payment",
           element: LoadComponent(OpenmatchPayment),
+        },
+        {
+          path: "americano",
+          element: LoadComponent(AmericanoUser),
         },
         {
           path: "unauthorized",

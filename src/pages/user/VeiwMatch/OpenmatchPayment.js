@@ -52,17 +52,17 @@ const OpenmatchPayment = ({ className = "" }) => {
                         time: timeSlot?.time,
                         amount: timeSlot?.amount,
                     }],
-                    courtName: selectedCourt?.courtName || "Court 1",
+                    courtName: selectedCourt?.courtName ,
                     courtId: selectedCourt?._id,
                     bookingDate: new Date(selectedDate?.fullDate).toISOString(),
                 };
             }) || [],
             clubId: savedClubId,
             matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
-            skillLevel: finalSkillDetails?.[0]?.toLowerCase() || "intermediate",
-            skillDetails: finalSkillDetails?.slice(1) || [],
+            skillLevel: finalSkillDetails?.[0] ,
+            skillDetails: finalSkillDetails?.slice(1) ,
             matchStatus: "open",
-            matchTime: selectedTimes?.map(time => time.time).join(",") || "5 am,6 am,7 am",
+            matchTime: selectedTimes?.map(time => time.time).join(",") ,
             players: players,
         };
 

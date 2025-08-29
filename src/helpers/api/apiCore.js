@@ -49,6 +49,7 @@ export const setLoggedInOwner = (session) => {
 // TOKEN VALIDATION
 // -------------------
 const validateToken = (token, userType) => {
+  console.log({token, userType});
   if (!token) return false;
   try {
     const decoded = jwtDecode(token);
@@ -82,6 +83,7 @@ const handleExpiredSession = (userType) => {
 
 export const isUserAuthenticated = () => {
   const user = getUserFromSession();
+  console.log({user},'api core');
   return validateToken(user?.token, "user");
 };
 
