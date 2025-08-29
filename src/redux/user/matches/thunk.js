@@ -48,7 +48,6 @@ export const getMatchesView = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.get(`${Url.VIEW_OPENMATCH}?_id=${data}`);
-      console.log("res in thunk:", res);
       return res?.data;
     } catch (error) {
       showError(error);

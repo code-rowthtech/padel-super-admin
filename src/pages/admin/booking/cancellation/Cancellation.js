@@ -194,8 +194,8 @@ const Cancellation = () => {
                   <thead>
                     <tr>
                       <th>User Name</th>
+                      <th>Contact</th>
                       <th>Booking Date</th>
-                      {/* <th>Contact</th> */}
                       {/* <th>Booking</th> */}
                       <th>Court No</th>
                       {/* <th>Slot</th> */}
@@ -211,16 +211,19 @@ const Cancellation = () => {
                       <tr key={item?._id} className="table-data border-bottom">
                         <td>
                           {item?.userId?.name
-                            ?.slice(0, 1)
-                            ?.toUpperCase()
-                            ?.concat(item?.userId?.name?.slice(1)) || "N/A"}
+                            ? item.userId.name.charAt(0).toUpperCase() +
+                              item.userId.name.slice(1)
+                            : "N/A"}
                         </td>
-                        <td>{formatDate(item?.bookingDate)}</td>
-
-                        {/* <td>
+                        <td>
                           {item?.userId?.countryCode || ""}{" "}
                           {item?.userId?.phoneNumber || "N/A"}
-                        </td> */}
+                        </td>
+                        <td>
+                          {formatDate(item?.bookingDate)}
+                          {renderSlotTimes(item?.slot[0]?.slotTimes)}
+                        </td>
+
                         {/* <td>
                           {item?.bookingType
                             ?.slice(0, 1)
@@ -261,7 +264,10 @@ const Cancellation = () => {
                           {loadingBookingId === item._id ? (
                             <ButtonLoading color="blue" size={7} />
                           ) : (
-                            <FaEye className="text-primary" />
+                            <FaEye
+                              className="text-primary"
+                              style={{ cursor: "pointer" }}
+                            />
                           )}
                         </td>
                         {/* )} */}

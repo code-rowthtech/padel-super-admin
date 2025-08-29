@@ -12,94 +12,9 @@ const OpenMatches = () => {
   const { openMatchesData, openMatchesLoading } = useSelector(
     (state) => state.openMatches
   );
-  console.log({ openMatchesData });
   useEffect(() => {
     dispatch(getAllOpenMatches());
   }, []);
-
-  // const matchData = [
-  //   {
-  //     level: "Beginner",
-  //     teamInfo: "Team A",
-  //     players: [
-  //       {
-  //         name: "Player 1",
-  //         image:
-  //           "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //       {
-  //         name: "Player 2",
-  //         image:
-  //           "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //       {
-  //         name: "Player 3",
-  //         image:
-  //           "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     level: "Intermediate",
-  //     players: [
-  //       {
-  //         name: "Jane Cooper",
-  //         image:
-  //           "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //       {
-  //         name: "Player 5",
-  //         image:
-  //           "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //       {
-  //         name: "Player 6",
-  //         image:
-  //           "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     level: "Advance",
-  //     players: [
-  //       {
-  //         name: "Devon Lane",
-  //         image:
-  //           "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //       {
-  //         name: "Player 8",
-  //         image:
-  //           "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //       {
-  //         name: "Player 9",
-  //         image:
-  //           "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     level: "Professional",
-  //     players: [
-  //       {
-  //         name: "Devon Lane",
-  //         image:
-  //           "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //       {
-  //         name: "Player 10",
-  //         image:
-  //           "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //       {
-  //         name: "Player 11",
-  //         image:
-  //           "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=100&q=80",
-  //       },
-  //     ],
-  //   },
-  // ];
 
   return (
     <>
@@ -252,7 +167,7 @@ const OpenMatches = () => {
                   </div>
 
                   <Link
-                    to="/admin/match-details"
+                    to={`/admin/match-details/${match?._id}`}
                     className="btn rounded-pill px-3 py-1 text-white"
                     style={{
                       backgroundColor: "#3DBE64",

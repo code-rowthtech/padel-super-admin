@@ -10,40 +10,35 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
     centered
     backdrop="static"
   >
-    <Modal.Body className="text-center p-4 position-relative">
-      <button
-        onClick={handleClose}
+    <div className="d-flex justify-content-between align-items-center p-2">
+      <h3
+        className="flex-grow-1 text-center mb-0"
         style={{
-          position: "absolute",
-          top: "10px",
-          right: "20px",
-          background: "none",
-          border: "none",
-          fontSize: "24px",
-          cursor: "pointer",
-          color: "red",
+          fontFamily: "Poppins, sans-serif",
+          fontWeight: 600,
+          color: "#1F2937",
         }}
       >
-        ×
-      </button>
-
+        Payment Details
+      </h3>
+      <i
+        className="bi bi-x fs-2 text-danger fw-bold"
+        onClick={handleClose}
+        style={{ cursor: "pointer" }}
+      ></i>
+    </div>
+    <Modal.Body className="text-center pt-0">
       <div className="text-center">
-        <h2
-          className="tabel-title py-4"
-          style={{ fontFamily: "Poppins", fontWeight: "600" }}
-        >
-          Payment Details
-        </h2>
         <img
           src={modalSuccess}
           alt="Details"
-          className="py-2"
-          style={{ width: "200px", marginBottom: "20px" }}
+          className="animated-img mb-1"
+          style={{ width: "200px" }}
         />
         <h4>Payment Successful!</h4>
         <span>Your payment has been received successfully.</span>
         <div
-          className="d-flex justify-content-between border align-items-center rounded-3 mb-4 mt-2"
+          className="d-flex justify-content-between border align-items-center rounded-3 mb-2 mt-3"
           style={{ backgroundColor: "#CBD6FF1A" }}
         >
           <div className="text-start  p-2 ps-3">
@@ -136,7 +131,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
           </div>
         </div>
         <h2
-          className="tabel-title py-2 text-start"
+          className="tabel-title pt-2 text-start"
           style={{
             fontFamily: "Poppins",
             fontSize: "17px",
@@ -148,7 +143,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
         </h2>
         <div className="d-flex justify-content-between">
           <h2
-            className="tabel-title py-2 text-start text-muted"
+            className="tabel-title py-1 text-start text-muted"
             style={{
               fontFamily: "Poppins",
               fontSize: "14px",
@@ -158,7 +153,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
             Total payment
           </h2>
           <h2
-            className="tabel-title py-2 text-start"
+            className="tabel-title py-1 text-start"
             style={{
               fontFamily: "Poppins",
               fontSize: "14px",

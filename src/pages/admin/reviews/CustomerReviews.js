@@ -99,16 +99,16 @@ const CustomerReviews = () => {
                 {/* Rating Breakdown */}
                 <div className="col-md-7 ps-md-4 mt-3 mt-md-0">
                   <h5 className="fw-semibold mb-3">Rating Breakdown</h5>
-                  {ratingDistribution.map((item, index) => (
-                    <div key={index} className="mb-2">
+                  {ratingDistribution?.map((item) => (
+                    <div key={item?.label} className="mb-2">
                       <div className="d-flex justify-content-between mb-1">
                         <div className="d-flex align-items-center">
                           <span className="me-2" style={{ minWidth: "100px" }}>
                             {item.label}
                           </span>
-                          <span className="text-muted">{item.count}</span>
                         </div>
-                        <span className="text-muted">{item.percentage}%</span>
+                        <span className="text-muted">{item.count}</span>
+                        {/* <span className="text-muted">{item.percentage}%</span> */}
                       </div>
                       <div
                         className="progress"
@@ -137,8 +137,8 @@ const CustomerReviews = () => {
           </div>
 
           <div className="row g-4">
-            {allReviews.slice(0, visibleReviews).map((review) => (
-              <div key={review.id} className="col-md-6">
+            {allReviews.slice(0, visibleReviews)?.map((review) => (
+              <div key={review?._id} className="col-md-6">
                 <div className="card h-100 border-0 shadow-sm">
                   <div className="card-body p-4">
                     <div className="d-flex justify-content-between mb-3">

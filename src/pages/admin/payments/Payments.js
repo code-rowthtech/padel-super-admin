@@ -242,8 +242,8 @@ const Payments = () => {
                       <thead>
                         <tr>
                           <th>User Name</th>
+                          <th>Contact</th>
                           <th>Date</th>
-                          {/* <th>Contact</th> */}
                           <th>Payment Method</th>
                           {/* <th>Slot</th> */}
                           {/* <th>Court No</th> */}
@@ -256,16 +256,17 @@ const Payments = () => {
                           <tr key={item?._id}>
                             <td>
                               {item?.userId?.name
-                                ?.slice(0, 1)
-                                ?.toUpperCase()
-                                ?.concat(item?.userId?.name?.slice(1)) || "N/A"}
+                                ? item.userId.name.charAt(0).toUpperCase() +
+                                  item.userId.name.slice(1)
+                                : "N/A"}
                             </td>
-                            {/* <td className="table-data border-bottom">
-                              {item?.userId?.countryCode || ""}
+                            <td className="table-data border-bottom">
+                              {item?.userId?.countryCode || ""}{" "}
                               {item?.userId?.phoneNumber || "N/A"}
-                            </td> */}
+                            </td>
                             <td className="table-data border-bottom">
                               {formatDate(item?.bookingDate)}
+                              {renderSlotTimes(item?.slot[0]?.slotTimes)}
                             </td>
                             <td>
                               {item?.bookingType

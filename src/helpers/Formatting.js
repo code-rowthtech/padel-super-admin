@@ -42,19 +42,22 @@ export const formatDate = (dateString) => {
   ];
   const monthName = monthNames[date.getMonth()];
 
-  // Format time in 12-hour format with AM/PM
+  // Get year
+  const year = date.getFullYear();
+
+  // Format time in 12-hour format with AM/PM (if you want to keep it later)
   let hours = date.getHours();
   const minutes = date.getMinutes();
   const ampm = hours >= 12 ? "pm" : "am";
-
   hours = hours % 12;
-  hours = hours ? hours : 12; // Convert 0 to 12
+  hours = hours ? hours : 12;
 
   const formattedTime = `${hours}:${minutes
     .toString()
     .padStart(2, "0")}${ampm}`;
 
-  return `${dayWithSuffix} ${monthName} ${formattedTime}`;
+  // Now include year
+  return `${dayWithSuffix} ${monthName} ${year} `;
 };
 
 export const formatTime = (timeStr) => {
@@ -73,7 +76,10 @@ export const formatTime = (timeStr) => {
   const date = new Date(1970, 0, 1, hour, minute);
 
   return date
-    .toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true })
+    .toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
     .toLowerCase();
 };
-

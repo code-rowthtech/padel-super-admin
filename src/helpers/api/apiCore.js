@@ -63,22 +63,22 @@ const validateToken = (token, userType) => {
   }
 };
 
-const handleExpiredSession = (userType) => {
-  if (userType === "user") {
-    setLoggedInUser(null);
-  } else {
-    setLoggedInOwner(null);
-  }
+// const handleExpiredSession = (userType) => {
+//   if (userType === "user") {
+//     setLoggedInUser(null);
+//   } else {
+//     setLoggedInOwner(null);
+//   }
 
-  const message = "Your session has expired.";
-  alert(message);
+//   const message = "Your session has expired.";
+//   alert(message);
 
-  if (window.location.pathname.toLowerCase().startsWith("/admin")) {
-    window.location.href = "/admin/login";
-  } else {
-    window.location.href = "/";
-  }
-};
+//   if (window.location.pathname.toLowerCase().startsWith("/admin")) {
+//     window.location.href = "/admin/login";
+//   } else {
+//     window.location.href = "/";
+//   }
+// };
 
 export const isUserAuthenticated = () => {
   const user = getUserFromSession();
@@ -99,7 +99,48 @@ export const isAuthenticated = () =>
 const userAxios = axios.create({ baseURL: config.API_URL });
 const ownerAxios = axios.create({ baseURL: config.API_URL });
 
+let sessionHandled = false;
+
+const handleExpiredSession = (userType) => {
+  if (sessionHandled) return; // already handled
+  sessionHandled = true;
+
+  if (userType === "user") {
+    setLoggedInUser(null);
+  } else {
+    setLoggedInOwner(null);
+  }
+
+  alert("Your session has expired. Please log in again.");
+
+  if (window.location.pathname.toLowerCase().startsWith("/admin")) {
+    window.location.href = "/admin/login";
+  } else {
+    window.location.href = "/";
+  }
+};
 // Shared error handler
+// const errorInterceptor = (err) => {
+//   if (!navigator.onLine) {
+//     window.location.href = "/no-internet";
+//     return Promise.reject("No internet connection");
+//   }
+
+//   const { response } = err;
+//   const status = response?.status;
+//   const message =
+//     response?.data?.message ||
+//     {
+//       400: "Error",
+//       401: "Invalid credentials",
+//       403: "Access Forbidden",
+//       404: "Sorry! the data you are looking for could not be found",
+//     }[status] ||
+//     err.message;
+
+//   return Promise.reject(message);
+// };
+
 const errorInterceptor = (err) => {
   if (!navigator.onLine) {
     window.location.href = "/no-internet";
@@ -108,11 +149,22 @@ const errorInterceptor = (err) => {
 
   const { response } = err;
   const status = response?.status;
+
+  // Handle expired token once
+  if (status === 401) {
+    const path = window.location.pathname.toLowerCase();
+    if (path.startsWith("/admin")) {
+      handleExpiredSession("owner");
+    } else {
+      handleExpiredSession("user");
+    }
+    return Promise.reject("Session expired. Please log in again.");
+  }
+
   const message =
     response?.data?.message ||
     {
       400: "Error",
-      401: "Invalid credentials",
       403: "Access Forbidden",
       404: "Sorry! the data you are looking for could not be found",
     }[status] ||

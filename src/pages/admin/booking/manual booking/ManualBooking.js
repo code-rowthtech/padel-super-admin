@@ -267,6 +267,10 @@ const ManualBooking = () => {
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
 
   const handleConfirm = async () => {
+    if (!name.trim()) {
+      showInfo("Name cannot be empty or just spaces!");
+      return;
+    }
     if (!name || !phone) {
       showInfo("Please enter both name and phone number.");
       return;
@@ -880,7 +884,6 @@ const ManualBooking = () => {
                             setName(value);
                           }}
                         />
-
                         <input
                           type="tel"
                           className="form-control rounded-3 py-2 shadow-sm"

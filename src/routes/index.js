@@ -22,7 +22,9 @@ const CreateMatches = React.lazy(() =>
   import("../pages/user/openMatches/CreateMatches")
 );
 const ViewMatch = React.lazy(() => import("../pages/user/VeiwMatch/VeiwMatch"));
-const OpenmatchPayment = React.lazy(() => import("../pages/user/VeiwMatch/OpenmatchPayment"));
+const OpenmatchPayment = React.lazy(() =>
+  import("../pages/user/VeiwMatch/OpenmatchPayment")
+);
 const Payment = React.lazy(() => import("../pages/user/payment/Payment"));
 const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
@@ -145,7 +147,7 @@ const AllRoutes = () => {
           path: "view-match",
           element: LoadComponent(ViewMatch),
         },
-         {
+        {
           path: "match-payment",
           element: LoadComponent(OpenmatchPayment),
         },
@@ -256,7 +258,7 @@ const AllRoutes = () => {
               element: LoadComponent(OpenMatchesPage),
             },
             {
-              path: "match-details",
+              path: "match-details/:id",
               element: LoadComponent(MatchDetails),
             },
             {

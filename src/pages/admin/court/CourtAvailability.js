@@ -295,13 +295,11 @@ const CourtAvailability = () => {
         ownerId: Owner?._id,
       };
 
-      console.log({ payload });
       await dispatch(updateCourt(payload)).unwrap();
       setSelectedSlots({});
       setSelectedCourts([]);
       setCommonStatus("");
     } catch (error) {
-      console.log("Booking failed:", error);
       showError("Failed to update slot status.");
     }
   };
