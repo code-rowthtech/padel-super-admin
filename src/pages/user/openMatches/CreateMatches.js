@@ -199,7 +199,7 @@ const CreateMatches = () => {
         return newDetails;
       });
       setCurrentStep(currentStep + 1);
-      setSelectedLevel(''); // अगले स्टेप के लिए रीसेट करें
+      setSelectedLevel(''); 
     } else if (currentStep === steps.length - 1 && selectedLevel) {
       const finalSkillDetails = [...skillDetails];
       finalSkillDetails[currentStep] = selectedLevel;
@@ -532,7 +532,7 @@ const CreateMatches = () => {
 
                 {/* Options */}
                 <Form style={{ height: "450px" }}>
-                  {steps[currentStep].options.map((option, i) => (
+                  {steps[currentStep].options?.map((option, i) => (
                     <div
                       key={i}
                       onClick={() => setSelectedLevel(option)} // selectedLevel को अपडेट करें

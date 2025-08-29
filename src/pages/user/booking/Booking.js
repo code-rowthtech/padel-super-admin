@@ -44,15 +44,6 @@ const Booking = ({ className = "" }) => {
         fullDate: new Date().toISOString().split("T")[0],
         day: new Date().toLocaleDateString("en-US", { weekday: "long" })
     });
-    const dayMap = {
-        sunday: 'Sun',
-        monday: 'Mon',
-        tuesday: 'Tue',
-        wednesday: 'Wed',
-        thursday: 'Thu',
-        friday: 'Fri',
-        saturday: 'Sat'
-    };
     const dayShortMap = {
         Monday: "Mon",
         Tuesday: "Tue",
@@ -496,11 +487,12 @@ const Booking = ({ className = "" }) => {
                                             <button
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
                                                 key={i}
-                                                className={`calendar-day-btn rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                                                className={`calendar-day-btn rounded  ${isSelected ? "text-white" : "bg-light text-dark"}`}
                                                 style={{
                                                     backgroundColor: isSelected ? "#374151" : undefined,
-                                                    border: "none",
-                                                    minWidth: "85px", // fixed size for consistent scroll
+                                                    boxShadow: isSelected ? '0px 4px 4px 0px #00000040' : '',
+                                                    border: isSelected ? '' : '1px solid #4949491A',
+                                                    minWidth: "85px",
                                                 }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
@@ -524,7 +516,7 @@ const Booking = ({ className = "" }) => {
                         </div>
                         <div className="d-flex justify-content-between align-items-center py-2">
                             <p className="mb-0" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
-                                Available Slots <span className="" style={{ fontWeight: "400", fontSize: "13px" }}>(60)</span>
+                                Available Slots <span className="" style={{ fontWeight: "400", fontSize: "13px" }}>(60m)</span>
                             </p>
                             <div className="form-switch d-flex align-items-center gap-2 p-0">
                                 <input
@@ -565,7 +557,7 @@ const Booking = ({ className = "" }) => {
                                                 slotDate.setHours(hour, 0, 0, 0);
                                                 const isPast = isToday && slotDate.getTime() < now.getTime();
                                                 const isBooked = slot?.status === "booked";
-                                                return showUnavailable ? (isPast || isBooked) : true; 
+                                                return showUnavailable ? (isPast || isBooked) : true;
                                             });
                                             return filteredSlots.length > 0 ? (
                                                 filteredSlots.map((slot, i) => {
@@ -586,33 +578,32 @@ const Booking = ({ className = "" }) => {
                                                     return (
                                                         <button
                                                             key={i}
-                                                            className={`btn border-0 rounded-pill px-4 ${isBooked ? "bg-danger text-white" : isPast ? "bg-secondary-subtle" : ""}`}
+                                                            className={`btn border-0 rounded-pill px-4 ${isBooked ? " bg-secondary-subtle" : isPast ? "bg-secondary-subtle" : ""}`}
                                                             onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
                                                             style={{
                                                                 backgroundColor: isSelected
                                                                     ? "#374151"
                                                                     : isBooked
-                                                                        ? "#b42424ff"
+                                                                        ? "#888888"
                                                                         : isLimitReached
-                                                                            ? "#888888"
+                                                                            ? "#fff7df"
                                                                             : !hasAmount
                                                                                 ? "#fff7df"
-                                                                                : isPast && !isBooked
+                                                                                : isPast
                                                                                     ? "#CBD6FF1A"
                                                                                     : "#FAFBFF",
+                                                                border: "1px solid #CBD6FF1A",
                                                                 color: isSelected
                                                                     ? "white"
-                                                                    : isPast && !isBooked
+                                                                    : isPast || hasAmount || isBooked
                                                                         ? "#888888"
-                                                                        : isBooked
-                                                                            ? "white"
-                                                                            : "#000000",
+                                                                        : "#000000",
                                                                 cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
                                                                 opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
                                                                 border: "1px solid #CBD6FF1A",
                                                             }}
                                                         >
-                                                            {isBooked ? "Booked" : formatTime(slot?.time)}
+                                                            {formatTime(slot?.time)}
                                                         </button>
                                                     );
                                                 })
@@ -664,20 +655,34 @@ const Booking = ({ className = "" }) => {
                                                             </div>
                                                         </div>
                                                         <div className="modal-body p-0 mt-4">
-                                                            <div className="row g-2">
-                                                                {Array.isArray(slotData?.data[0]?.courts) &&
-                                                                    slotData?.data[0]?.courts?.map((court, index) => (
-                                                                        <div
-                                                                            className={`${court.length === 1
-                                                                                ? "col-12"
-                                                                                : court.length === 2
-                                                                                    ? "col-6"
-                                                                                    : court.length === 3 && index === 2
-                                                                                        ? "col-12"
-                                                                                        : "col-6"
-                                                                                }`}
-                                                                            key={court._id || index}
-                                                                        >
+                                                            {Array.isArray(slotData?.data[0]?.courts) &&
+                                                                slotData?.data[0]?.courts?.length === 4 ? (
+                                                                // Custom Layout for 4 courts
+                                                                <div className="row g-2">
+                                                                    <div className="col-3">
+                                                                        <div className="border rounded-3 d-flex align-items-center justify-content-center" style={{ height: "160px" }}>
+                                                                            {slotData?.data[0]?.courts[0]?.courtName}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="col-6 d-flex flex-column gap-2">
+                                                                        <div className="border rounded-3 d-flex align-items-center justify-content-center" style={{ height: "75px" }}>
+                                                                            {slotData?.data[0]?.courts[1]?.courtName}
+                                                                        </div>
+                                                                        <div className="border rounded-3 d-flex align-items-center justify-content-center" style={{ height: "75px" }}>
+                                                                            {slotData?.data[0]?.courts[2]?.courtName}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="col-3">
+                                                                        <div className="border rounded-3 d-flex align-items-center justify-content-center" style={{ height: "160px" }}>
+                                                                            {slotData?.data[0]?.courts[3]?.courtName}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                // Fallback for other counts
+                                                                <div className="row g-2">
+                                                                    {slotData?.data[0]?.courts?.map((court, index) => (
+                                                                        <div className="col-6" key={court._id || index}>
                                                                             <div
                                                                                 className="border rounded-3 d-flex align-items-center justify-content-center"
                                                                                 style={{ height: "80px" }}
@@ -686,8 +691,10 @@ const Booking = ({ className = "" }) => {
                                                                             </div>
                                                                         </div>
                                                                     ))}
-                                                            </div>
+                                                                </div>
+                                                            )}
                                                         </div>
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -719,7 +726,8 @@ const Booking = ({ className = "" }) => {
                                                             <small className="text-muted">{court.type}</small>
                                                         </div>
                                                     </div>
-                                                    <div className="d-flex align-items-center gap-3">
+                                                    <div className="d-flex align-items-center justify-content-center gap-3">
+                                                        <p className="custom-title mb-0">₹ 1000</p>
                                                         <button
                                                             className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
                                                             style={{ width: "32px", height: "32px" }}
@@ -727,6 +735,7 @@ const Booking = ({ className = "" }) => {
                                                             <FaShoppingCart size={14} color="white" />
                                                         </button>
                                                     </div>
+
                                                 </div>
                                             ))
                                         ) : (
@@ -749,8 +758,8 @@ const Booking = ({ className = "" }) => {
                                         </Avatar>
                                     )}
                                 </div>
-                                <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName}</p>
-                                <p className="small mb-0">
+                                <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                                <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                     {clubData?.clubName}
                                     {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                     {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
@@ -767,10 +776,10 @@ const Booking = ({ className = "" }) => {
                                                 <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                     <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                         <div className="d-flex">
-                                                            <span style={{ fontWeight: "600" }}>
-                                                                {court?.day ? dayMap[court.day.toLowerCase()] : ''},
+                                                            <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
+                                                                {court?.day ? dayShortMap[court.day.toLowerCase()] : ''}
                                                             </span>
-                                                            <span className="ps-2" style={{ fontWeight: "600" }}>
+                                                            <span className="ps-2" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
                                                                 {(() => {
                                                                     if (!court?.date) return "";
                                                                     const date = new Date(court.date);
@@ -779,10 +788,10 @@ const Booking = ({ className = "" }) => {
                                                                     return `${day} ${month}`;
                                                                 })()}
                                                             </span>
-                                                            <span className="ps-2" style={{ fontWeight: "600" }}>
-                                                                {timeSlot?.time} (60)
+                                                            <span className="ps-2" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
+                                                                {timeSlot?.time} (60m)
                                                             </span>
-                                                            <span className="ps-2" style={{ fontWeight: "400" }}>
+                                                            <span className="ps-2" style={{ fontWeight: "500", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
                                                                 {court?.courtName}
                                                             </span>
                                                         </div>

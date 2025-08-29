@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { complete_img } from "../../../../assets/files";
+import { booking_success_img, complete_img, modalSuccess } from "../../../../assets/files";
 import { addReviewClub } from "../../../../redux/user/club/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
@@ -70,7 +70,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
 
     const renderStars = () => {
         return (
-            <div className="d-flex align-items-center justify-content-center gap-2 mt-2 fs-5">
+            <div className="d-flex align-items-center justify-content-center gap-2  fs-5">
                 {[...Array(5)].map((_, i) => {
                     const fullValue = i + 1;
                     const halfValue = i + 0.5;
@@ -124,35 +124,45 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
 
     return (
         <Modal show={show} onHide={onHide} centered backdrop="static">
+            <div className="d-flex justify-content-between align-items-center m-0 p-2">
+                <h4
+                    className="flex-grow-1 text-center mb-0"
+                    style={{
+                        fontFamily: "Poppins, sans-serif",
+                        fontWeight: 600,
+                        color: "#1F2937",
+                    }}
+                >
+                    Booking Confirmation
+                </h4>
+                <i
+                    className="bi bi-x fs-2 text-danger fw-bold"
+                    onClick={onHide}
+                    style={{ cursor: "pointer" }}
+                ></i>
+            </div>
             <Modal.Body className="text-center px-3 pt-0 pb-2">
-                <div className="d-flex justify-content-end">
-                    <button
-                        type="button"
-                        className="bi bi-x fs-4 text-danger"
-                        style={{ border: "none", background: "none" }}
-                        aria-label="Close"
-                        onClick={onHide}
-                    />
-                </div>
-
-                <h5 className="mb-0 fw-bold" style={{ color: "#111827" }}>
-                    You Played very well
-                </h5>
                 <img
-                    src={complete_img}
+                    src={modalSuccess}
                     alt="Success"
-                    className="animated-image"
+                    className="animated-img"
                     style={{ width: "200px" }}
                 />
 
                 {/* Court & Booking details */}
                 <div className="rounded-3 border mb-2 p-2" style={{ borderColor: "#1A73E8", borderWidth: "1px", borderStyle: "solid" }}>
+                    <p className="text-start m-0 table-data">🎉 You Played very well</p>
+                    <p className="text-start" style={{fontSize:"10px",fontWeight:"400",fontFamily:"Poppins",color:"#374151"}}>Your Slots are Successfully booked.</p>
                     <div className="d-flex p-0 justify-content-between">
                         <div className="text-start">
-                            <p className="text-muted mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>Court</p>
-                            <p className="text-muted mb-0" style={{ fontSize: "13px", fontWeight: "500" }}>Data/Time</p>
+                            <p className="text-muted mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>Court Name</p>
+                            <p className="text-muted mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>Court Number</p>
+                            <p className="text-muted mb-0" style={{ fontSize: "13px", fontWeight: "500" }}>Data & Time/Min</p>
                         </div>
                         <div className="text-end">
+                            <p className="fw-bold mb-1" style={{ fontSize: "14px", color: "#111827" }}>
+                                {tableData?.booking?.register_club_id?.clubName || "N/A"}
+                            </p>
                             <p className="fw-bold mb-1" style={{ fontSize: "14px", color: "#111827" }}>
                                 {tableData?.slotItem?.courtName || "N/A"}
                             </p>
@@ -183,12 +193,12 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
 
                 {/* Rating */}
                 <div>
-                    <h4 className="tabel-title text-start">Rate this court</h4>
+                    <h4 className="tabel-title m-0 text-start">Rate this court</h4>
                     {renderStars()}
                 </div>
 
                 {/* Review input */}
-                <div className="mt-2 text-start">
+                <div className="mt-1 text-start">
                     <p className="mb-2" style={{ fontWeight: "600", color: "#374151" }}>Write a message</p>
                     <Form.Control
                         as="textarea"
@@ -203,7 +213,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
 
                 {/* Button */}
                 {!hasReview && (
-                    <div className="justify-content-center mt-4 d-flex align-items-center">
+                    <div className="justify-content-center mt-2 d-flex align-items-center">
                         <Button
                             style={{ backgroundColor: "#1A237E", fontWeight: "500", fontSize: "17px", border: "0" }}
                             onClick={handleSubmit}

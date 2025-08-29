@@ -253,20 +253,36 @@ const Payments = () => {
                       </thead>
                       <tbody>
                         {payments?.map((item, index) => (
-                          <tr key={item?._id}>
+                          <tr
+                            key={item?._id}
+                            className="table-data border-bottom"
+                          >
                             <td>
                               {item?.userId?.name
                                 ? item.userId.name.charAt(0).toUpperCase() +
                                   item.userId.name.slice(1)
                                 : "N/A"}
                             </td>
-                            <td className="table-data border-bottom">
+                            <td>
                               {item?.userId?.countryCode || ""}{" "}
                               {item?.userId?.phoneNumber || "N/A"}
                             </td>
-                            <td className="table-data border-bottom">
-                              {formatDate(item?.bookingDate)}
-                              {renderSlotTimes(item?.slot[0]?.slotTimes)}
+                            <td>
+                              <div
+                                style={{
+                                  display: "inline-grid", // shrink to content
+                                  gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
+                                  textAlign: "left", // keep text aligned from start
+                                }}
+                              >
+                                <span className="fw-medium">
+                                  {formatDate(item?.bookingDate)}
+                                </span>
+                                <span className="text-muted small">
+                                  |{" "}
+                                  {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
+                                </span>
+                              </div>
                             </td>
                             <td>
                               {item?.bookingType
@@ -278,15 +294,12 @@ const Payments = () => {
                               {item?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
                               {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
                             </td> */}
-                            {/* <td className="table-data border-bottom">
+                            {/* <td >
                               {item?.slot?.[0]?.courtName || "-"}
                             </td> */}
-                            <td className="table-data border-bottom">
-                              ₹{item?.totalAmount}
-                            </td>
+                            <td>₹{item?.totalAmount}</td>
 
                             <td
-                              className="table-data border-bottom"
                               style={{ cursor: "pointer" }}
                               onClick={() => handlePaymentDetails(item?._id)}
                             >

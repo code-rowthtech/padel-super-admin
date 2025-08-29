@@ -26,6 +26,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
   };
+  console.log({ tableData });
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
@@ -72,23 +73,31 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   return (
     <>
       <Modal show={show && !showSuccessModal && !showConfirmationModal} onHide={handleClose} centered backdrop="static">
-        <Modal.Body className="text-center p-4">
-          <div className="d-flex justify-content-end">
-            <button
-              type="button"
-              className="bi bi-x fs-4 text-danger"
-              style={{ border: 'none', background: 'none' }}
-              aria-label="Close"
-              onClick={handleClose}
-            />
-          </div>
+        <div className="d-flex justify-content-between align-items-center p-2">
+          <h4
+            className="flex-grow-1 text-center mb-0"
+            style={{
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: 600,
+              color: "#1F2937",
+            }}
+          >
+            {tableData?.booking?.bookingStatus ? "Cancellation Request" : ""}
+          </h4>
+          <i
+            className="bi bi-x fs-2 text-danger fw-bold"
+            onClick={handleClose}
+            style={{ cursor: "pointer" }}
+          ></i>
+        </div>
+        <Modal.Body className="text-center pt-0 pb-0">
 
           {!changeContent && (
             <img
               src={modalSuccess}
               alt="Success"
-              className="py-4 animated-image"
-              style={{ width: '200px', marginBottom: '20px' }}
+              className=" animated-img mb-1"
+              style={{ width: '200px' }}
             />
           )}
 
@@ -108,7 +117,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
               }
               <p className="mt-3">
                 {{
-                  "in-progress": "Your cancellation request pending for action.",
+                  "in-progress": "Your cancellation request is pending for action.",
                   "upcoming": "Your booking is starting soon!",
                 }[tableData?.booking?.bookingStatus] || ""}
               </p>
@@ -119,7 +128,10 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                   Court Name
                 </p>
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-                  Date/Time
+                  Court Number
+                </p>
+                <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+                  Date & Time/Min
                 </p>
                 {tableData?.booking?.bookingStatus === "in-progress" && <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   Cancellation Request Date
@@ -128,6 +140,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
               </div>
               <div className="text-end p-2 pe-3">
                 <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                  {tableData?.booking?.register_club_id?.clubName || 'N/A'}
+                </p>
+                <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
                   {tableData?.slotItem?.courtName || 'N/A'}
                 </p>
 
@@ -135,7 +150,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                   {safeFormatDate(
                     new Date(tableData?.booking?.createdAt),
                     "dd/MM/yyyy | hh:mm a" || "N/A"
-                  )}
+                  )}(60m)
                 </p>
                 {tableData?.booking?.bookingStatus === "in-progress" && <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
                   {safeFormatDate(
@@ -162,7 +177,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
           </div>
 
           {tableData?.booking?.bookingStatus === "in-progress" ? (
-            <div className="mt-1">
+            <div className="mt-1 mb-0">
               <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
                 What’s your reason to cancel this slot
               </h5>
@@ -217,7 +232,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
             </div>
           )}
 
-          <div className="justify-content-center mb-3 d-flex align-items-center p-3">
+          <div className="justify-content-center  d-flex align-items-center p-3">
             {changeContent ? (
               <Button
                 style={{ backgroundColor: '#1A237E', fontWeight: '500', fontSize: '17px', border: '0' }}
@@ -329,9 +344,12 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
               Court Name
             </p>
+            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+              Court Number
+            </p>
 
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Date/Time
+              Date & Time/Min
             </p>
           </div>
           <div className="text-end p-2 pe-3">
@@ -339,10 +357,13 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
               {tableData?.slotItem?.courtName}
             </p>
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {tableData?.booking?.register_club_id?.clubName}
+            </p>
+            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
               {safeFormatDate(
                 new Date(tableData?.slotItem?.createdAt),
                 "dd/MM/yyyy | hh:mm a" || "N/A"
-              )}
+              )}(60m)
             </p>
           </div>
         </div>
@@ -422,7 +443,10 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               Court Name
             </p>
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Date/Time
+              Court Number
+            </p>
+            <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
+              Date & Time/Min
             </p>
             {(booking?.booking?.bookingStatus === "in-progress" || booking?.booking?.bookingStatus === "refunded" || booking?.booking?.bookingStatus === "rejected") && (
               <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
@@ -442,13 +466,17 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           </div>
           <div className="text-end p-2 pe-3">
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+              {booking?.booking?.register_club_id?.clubName}
+            </p>
+            <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
               {booking?.slotItem?.courtName}
             </p>
+
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
               {safeFormatDate(
                 new Date(booking?.booking?.createdAt),
                 "dd/MM/yyyy | hh:mm a"
-              )}
+              )}(60m)
             </p>
             {(booking?.booking?.bookingStatus === "in-progress" || booking?.booking?.bookingStatus === "refunded" || booking?.booking?.bookingStatus === "rejected") && (
               <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>

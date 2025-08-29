@@ -272,8 +272,7 @@ const BookingHistory = () => {
                         <Table borderless size="sm" className="custom-table position-relative">
                             <thead>
                                 <tr className="">
-                                    <th>Booking Date</th>
-                                    <th>Slot</th>
+                                    <th className="text-start px-5">Booking Date / Time</th>
                                     <th>Court Name</th>
                                     <th>Booking Type</th>
                                     {activeTab === "cancelled" && <th>Reason</th>}
@@ -343,48 +342,34 @@ const BookingHistory = () => {
                                                 key={`${i}-${index}`}
                                                 className="table-data border-bottom"
                                             >
-                                                <td className="table-data">
-                                                    {formatDate(new Date(slotItem?.bookingDate))}
+                                                <td className="table-data py-2 ps-5 text-start" style={{fontWeight:"600",fontSize:"18pxc",olor:"#000000"}}>
+                                                    {formatDate(new Date(slotItem?.bookingDate))}  {(() => {
+                                                        const times =
+                                                            slotItem?.slotTimes?.map(
+                                                                (slot) => slot?.time
+                                                            ) || [];
+                                                        const displayed =
+                                                            times?.slice(0, 5).join(", ");
+                                                        return times?.length > 5
+                                                            ? `${displayed} ...`
+                                                            : displayed;
+                                                    })()}
                                                 </td>
-                                                <td>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={
-                                                            <Tooltip id={`slot-tooltip-${slotItem?.id}`}>
-                                                                {renderSlotTimes(slotItem?.slotTimes)}
-                                                            </Tooltip>
-                                                        }
-                                                    >
-                                                        <span>
-                                                            {(() => {
-                                                                const times =
-                                                                    slotItem?.slotTimes?.map(
-                                                                        (slot) => slot?.time
-                                                                    ) || [];
-                                                                const displayed =
-                                                                    times?.slice(0, 5).join(", ");
-                                                                return times?.length > 5
-                                                                    ? `${displayed} ...`
-                                                                    : displayed;
-                                                            })()}
-                                                        </span>
-                                                    </OverlayTrigger>
-                                                </td>
-                                                <td className="table-data">
+                                                <td className="table-data py-2">
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
-                                                <td className="table-data">
+                                                <td className="table-data py-2">
                                                     {booking?.bookingType || "N/A"}
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
-                                                    <td>
+                                                    <td className="py-2">
                                                         {booking?.cancellationReason?.charAt(0).toUpperCase() +
                                                             (booking?.cancellationReason?.slice(1) || "")}
                                                     </td>
                                                 )}
                                                 {activeTab === "completed" && (
-                                                    <td className="text-center">
+                                                    <td className="text-center py-2">
                                                         {[1, 2, 3, 4, 5].map((star) => {
                                                             const averageRating =
                                                                 booking?.customerReview?.reviewRating || 0;
@@ -443,7 +428,7 @@ const BookingHistory = () => {
 
                                                     </td>
                                                 )}
-                                                <td
+                                                <td className="py-2"
                                                     style={{
                                                         color: "#1A237E",
                                                         fontSize: "16px",
@@ -454,7 +439,7 @@ const BookingHistory = () => {
                                                     ₹{booking?.totalAmount || "N/A"}
                                                 </td>
                                                 {activeTab === "cancelled" && (
-                                                    <td
+                                                    <td className="py-2"
                                                         style={{
                                                             color:
                                                                 booking?.bookingStatus === "rejected"
@@ -474,7 +459,7 @@ const BookingHistory = () => {
                                                                 : "Requested"}
                                                     </td>
                                                 )}
-                                                <td className="text-center">
+                                                <td className="text-center py-2">
                                                     {activeTab === "completed" ? null : (
                                                         <>
                                                             {booking?.bookingStatus === "in-progress" ? (

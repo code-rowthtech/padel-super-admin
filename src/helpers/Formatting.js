@@ -48,7 +48,7 @@ export const formatDate = (dateString) => {
   // Format time in 12-hour format with AM/PM (if you want to keep it later)
   let hours = date.getHours();
   const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? "pm" : "am";
+  const ampm = hours >= 12 ? "PM" : "AM";
   hours = hours % 12;
   hours = hours ? hours : 12;
 

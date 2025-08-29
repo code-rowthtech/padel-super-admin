@@ -230,8 +230,20 @@ const Booking = () => {
                           {item?.userId?.phoneNumber || "N/A"}
                         </td>
                         <td>
-                          {formatDate(item?.bookingDate)}
-                          {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
+                          <div
+                            style={{
+                              display: "inline-grid", // shrink to content
+                              gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
+                              textAlign: "left", // keep text aligned from start
+                            }}
+                          >
+                            <span className="fw-medium">
+                              {formatDate(item?.bookingDate)}
+                            </span>
+                            <span className="text-muted small">
+                              | {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
+                            </span>
+                          </div>
                         </td>
 
                         {/* <td>
