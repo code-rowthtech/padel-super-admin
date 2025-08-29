@@ -14,6 +14,7 @@ import modalDetails from './images/image 25.png'
 import complete_img from './images/complete-img-removebg-preview.png'
 import booking_success_img from './images/bookingsuccess.png'
 import americano_reactangle from './images/Rectangle 18827.png'
+import scrore_bg from "./images/scrorebg.png"
 
 export {
     twoball,
@@ -30,5 +31,6 @@ export {
     modalDetails,
     modalSuccess,
     complete_img,
-    booking_success_img,americano_reactangle
+    booking_success_img,americano_reactangle,
+    scrore_bg
 }
