@@ -33,3 +33,33 @@ export const getAllOpenMatches = createAsyncThunk(
     }
   }
 );
+export const getMatchById = createAsyncThunk(
+  "openMatches/getMatchById",
+  async (params, { rejectWithValue }) => {
+    try {
+      const buildQuery = (params) => {
+        const query = new URLSearchParams();
+
+        if (params?.id) query.append("_id", params?.id);
+
+        return query.toString();
+      };
+      const res = await ownerApi.get(
+        `${Url.GET_OPEN_MATCH_BY_ID}?${buildQuery(params)}`
+      );
+      // Destructure response data
+      const { status, data, message } = res.data || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+
+      const errorMessage = message || "Failed to get Match Details";
+      // showError(errorMessage);
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message || "Network error";
+      // showError(error);
+      // return rejectWithValue(errorMessage);
+    }
+  }
+);
