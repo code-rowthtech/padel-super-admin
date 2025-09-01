@@ -31,7 +31,7 @@ import { resetBooking } from "../../../redux/user/booking/slice";
 import { getReviewClub } from "../../../redux/user/club/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import Pagination from "../../../helpers/Pagination";
-import { formatDate } from "../../../helpers/Formatting";
+import { formatDate, formatTime } from "../../../helpers/Formatting";
 import TokenExpire from "../../../helpers/TokenExpire";
 
 const BookingHistory = () => {
@@ -154,6 +154,24 @@ const BookingHistory = () => {
     });
 
     const totalRecords = getBookingData?.bookingData?.total || getBookingData?.bookingData?.length;
+
+    const getOrdinalSuffix = (day) => {
+        if (day > 3 && day < 21) return 'th';
+        switch (day % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
+
+    const formatDate = (date) => {
+        const d = new Date(date);
+        const day = d.getDate();
+        const month = d.toLocaleString('en-US', { month: 'short' });
+        const year = d.getFullYear();
+        return `${day}${getOrdinalSuffix(day)}${month}'${year}`;
+    };
     return (
         <Container>
             <Row className="mb-3 mt-5">
@@ -269,59 +287,58 @@ const BookingHistory = () => {
             <Row>
                 <Col md={12}>
                     <div className="custom-scroll-container">
-                        <Table borderless size="sm" className="custom-table position-relative">
-                            <thead>
-                                <tr className="">
-                                    <th className="text-start px-5">Booking Date / Time</th>
-                                    <th>Court Name</th>
-                                    <th>Booking Type</th>
-                                    {activeTab === "cancelled" && <th>Reason</th>}
-                                    {activeTab === "completed" && <th>Rating</th>}
-                                    {activeTab === "completed" && <th>Message</th>}
-                                    <th>Amount</th>
-                                    {activeTab === "cancelled" && (
-                                        <th>
-                                            <div className="dropdown-wrapper">
-                                                <div
-                                                    className="dropdown-header"
-                                                    onClick={() => setIsOpen(!isOpen)}
-                                                >
-                                                    Status{" "}
-                                                    <b className="arrow">
-                                                        <i className="bi bi-chevron-down text-dark fw-bold"></i>
-                                                    </b>
-                                                </div>
-                                                {isOpen && (
-                                                    <div className="dropdown-list text-start">
-                                                        <div className="mb-0" onClick={() => handleSelect("All")}>
-                                                            All
-                                                        </div>
-                                                        <div
-                                                            className="mb-0"
-                                                            onClick={() => handleSelect("Accepted")}
-                                                        >
-                                                            Accepted
-                                                        </div>
-                                                        <div
-                                                            className="mb-0"
-                                                            onClick={() => handleSelect("Rejected")}
-                                                        >
-                                                            Rejected
-                                                        </div>
-                                                        <div
-                                                            className="mb-0"
-                                                            onClick={() => handleSelect("Requested")}
-                                                        >
-                                                            Requested
-                                                        </div>
-                                                    </div>
-                                                )}
+                        <Table borderless size="sm" className="custom-table position-relative" style={{ borderCollapse: "collapse" }}>                            <thead>
+                            <tr className="">
+                                <th className="text-start px-5" rowSpan={1} style={{ borderRadius: "15px 0 0 0" }}>Booking Date / Time</th>
+                                <th>Court Name</th>
+                                <th>Booking Type</th>
+                                {activeTab === "cancelled" && <th>Reason</th>}
+                                {activeTab === "completed" && <th>Rating</th>}
+                                {activeTab === "completed" && <th>Message</th>}
+                                <th>Amount</th>
+                                {activeTab === "cancelled" && (
+                                    <th>
+                                        <div className="dropdown-wrapper">
+                                            <div
+                                                className="dropdown-header"
+                                                onClick={() => setIsOpen(!isOpen)}
+                                            >
+                                                Status{" "}
+                                                <b className="arrow">
+                                                    <i className="bi bi-chevron-down text-dark fw-bold"></i>
+                                                </b>
                                             </div>
-                                        </th>
-                                    )}
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
+                                            {isOpen && (
+                                                <div className="dropdown-list text-start">
+                                                    <div className="mb-0" onClick={() => handleSelect("All")}>
+                                                        All
+                                                    </div>
+                                                    <div
+                                                        className="mb-0"
+                                                        onClick={() => handleSelect("Accepted")}
+                                                    >
+                                                        Accepted
+                                                    </div>
+                                                    <div
+                                                        className="mb-0"
+                                                        onClick={() => handleSelect("Rejected")}
+                                                    >
+                                                        Rejected
+                                                    </div>
+                                                    <div
+                                                        className="mb-0"
+                                                        onClick={() => handleSelect("Requested")}
+                                                    >
+                                                        Requested
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </th>
+                                )}
+                                <th style={{ borderRadius: "0 15px 0 0" }}>Action</th>
+                            </tr>
+                        </thead>
                             {getBookingData?.bookingLoading ? (
                                 <tbody>
                                     <tr>
@@ -342,17 +359,15 @@ const BookingHistory = () => {
                                                 key={`${i}-${index}`}
                                                 className="table-data border-bottom"
                                             >
-                                                <td className="table-data py-2 ps-5 text-start" style={{fontWeight:"600",fontSize:"18pxc",olor:"#000000"}}>
-                                                    {formatDate(new Date(slotItem?.bookingDate))}  {(() => {
-                                                        const times =
-                                                            slotItem?.slotTimes?.map(
-                                                                (slot) => slot?.time
-                                                            ) || [];
-                                                        const displayed =
-                                                            times?.slice(0, 5).join(", ");
-                                                        return times?.length > 5
-                                                            ? `${displayed} ...`
-                                                            : displayed;
+                                                <td className="table-data py-2 ps-5 text-start" rowSpan={1} style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
+                                                    {formatDate(new Date("2025-06-22"))} {/* Adjust the date string as per slotItem?.bookingDate */}
+                                                    {(() => {
+                                                        const times = slotItem?.slotTimes?.map((slot) => {
+                                                            const time = slot?.time;
+                                                            return time ? formatTime(time) : ""; // Apply formatTime to each time string
+                                                        }) || [];
+                                                        const displayed = times?.slice(0, 5).join(", ");
+                                                        return times?.length > 5 ? `${displayed} ...` : displayed;
                                                     })()}
                                                 </td>
                                                 <td className="table-data py-2">

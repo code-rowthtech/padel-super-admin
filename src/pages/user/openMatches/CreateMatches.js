@@ -18,24 +18,25 @@ const CreateMatches = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedTimes, setSelectedTimes] = useState([]);
+  const [selectedCourts, setSelectedCourts] = useState([]); // मल्टीपल कोर्ट्स के लिए
   const [selectedDate, setSelectedDate] = useState({
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
   const [selectedLevel, setSelectedLevel] = useState("");
-  const [selectedCourts, setSelectedCourts] = useState([]);
   const [skillDetails, setSkillDetails] = useState([]);
-  const [currentCourtId, setCurrentCourtId] = useState(null);
+  const [currentCourtId, setCurrentCourtId] = useState(null); // वर्तमान में सेलेक्टेड कोर्ट
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
-  const [showUnavailableOnly, setShowUnavailableOnly] = useState(false); // नया टॉगल स्टेट
+  const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
+
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
     }
   };
+
   React.useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -81,12 +82,46 @@ const CreateMatches = () => {
     }
   };
 
-  const toggleTime = (time) => {
-    if (selectedTimes.includes(time)) {
-      setSelectedTimes(selectedTimes.filter((t) => t !== time));
-    } else {
-      setSelectedTimes([...selectedTimes, time]);
-    }
+  // कोर्ट सेलेक्ट करने की लॉजिक
+  const handleCourtSelect = (court) => {
+    setCurrentCourtId(court._id); // वर्तमान कोर्ट सेट करें
+    setSelectedCourts((prev) => {
+      // अगर कोर्ट पहले से सेलेक्टेड है, तो उसे हटाएं
+      if (prev.some((c) => c._id === court._id)) {
+        return prev.filter((c) => c._id !== court._id);
+      }
+      // नया कोर्ट जोड़ें
+      return [
+        ...prev,
+        {
+          _id: court._id,
+          courtName: court.courtName,
+          type: court.type,
+          date: selectedDate?.fullDate,
+          times: [], // शुरू में कोई स्लॉट्स नहीं
+        },
+      ];
+    });
+  };
+
+  // स्लॉट्स को टॉगल करने की लॉजिक
+  const toggleTime = (slot) => {
+    setSelectedCourts((prev) => {
+      const updatedCourts = prev.map((court) => {
+        if (court._id === currentCourtId) {
+          const isSelected = court.times.some((t) => t._id === slot._id);
+          const newTimes = isSelected
+            ? court.times.filter((t) => t._id !== slot._id)
+            : [
+                ...court.times,
+                { _id: slot._id, time: slot.time, amount: slot.amount || 1000 },
+              ];
+          return { ...court, times: newTimes };
+        }
+        return court;
+      });
+      return updatedCourts;
+    });
   };
 
   const maxSelectableDate = new Date();
@@ -111,49 +146,32 @@ const CreateMatches = () => {
           register_club_id: savedClubId,
           day: selectedDate.day,
           date: selectedDate.fullDate,
-          courtId: selectedCourts[0]?._id || '',
+          courtId: currentCourtId || '',
         })
       );
     }
-  }, [selectedDate.day, selectedCourts, savedClubId, dispatch]);
-
-  const handleCourtSelect = (court) => {
-    const timeOnly = selectedTimes?.map(item => ({
-      _id: item?._id,
-      time: item?.time,
-      amount: item?.amount || 100,
-    }));
-
-    const newCourt = {
-      ...court,
-      date: selectedDate?.fullDate,
-      time: timeOnly,
-    };
-
-    setSelectedCourts(prev =>
-      prev.some(c => c?._id === court?._id) ? [] : [newCourt]
-    );
-    setCurrentCourtId(court._id);
-
-  };
+  }, [selectedDate.day, currentCourtId, savedClubId, dispatch]);
 
   // डिफॉल्ट रूप से पहला कोर्ट सेलेक्ट करें
   useEffect(() => {
-    if (slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0 && selectedCourts.length === 0) {
+    if (
+      slotData?.data?.length > 0 &&
+      slotData.data[0]?.courts?.length > 0 &&
+      selectedCourts.length === 0
+    ) {
       const firstCourt = slotData.data[0].courts[0];
-      const timeOnly = selectedTimes?.map(item => ({
-        _id: item?._id,
-        time: item?.time,
-        amount: 1000, // स्टैटिक amount
-      }));
-      const newCourt = {
-        ...firstCourt,
-        date: selectedDate?.fullDate,
-        time: timeOnly,
-      };
-      setSelectedCourts([newCourt]);
+      setSelectedCourts([
+        {
+          _id: firstCourt._id,
+          courtName: firstCourt.courtName,
+          type: firstCourt.type,
+          date: selectedDate?.fullDate,
+          times: [],
+        },
+      ]);
+      setCurrentCourtId(firstCourt._id);
     }
-  }, [slotData, selectedDate?.fullDate, selectedTimes]);
+  }, [slotData, selectedDate?.fullDate]);
 
   const steps = [
     {
@@ -193,20 +211,19 @@ const CreateMatches = () => {
 
   const handleNext = () => {
     if (selectedLevel && currentStep < steps.length - 1) {
-      setSkillDetails(prev => {
+      setSkillDetails((prev) => {
         const newDetails = [...prev];
         newDetails[currentStep] = selectedLevel;
         return newDetails;
       });
       setCurrentStep(currentStep + 1);
-      setSelectedLevel(''); 
+      setSelectedLevel('');
     } else if (currentStep === steps.length - 1 && selectedLevel) {
       const finalSkillDetails = [...skillDetails];
       finalSkillDetails[currentStep] = selectedLevel;
 
-    
       navigate('/match-payment', {
-        state: { slotData, selectedTimes, finalSkillDetails, selectedDate, selectedCourts },
+        state: { slotData, finalSkillDetails, selectedDate, selectedCourts },
       });
     }
   };
@@ -217,7 +234,6 @@ const CreateMatches = () => {
       setSelectedLevel(skillDetails[currentStep - 1] || '');
     }
   };
-
 
   return (
     <Container className="p-4 mb-5" style={{ minHeight: '100vh' }}>
@@ -249,7 +265,10 @@ const CreateMatches = () => {
                         const formattedDate = date.toISOString().split("T")[0];
                         const day = date.toLocaleDateString("en-US", { weekday: "long" });
                         setSelectedDate({ fullDate: formattedDate, day: day });
-                        setSelectedTimes([]);
+                        // डेट बदलने पर सभी कोर्ट्स के स्लॉट्स रीसेट करें
+                        setSelectedCourts((prev) =>
+                          prev.map((court) => ({ ...court, times: [] }))
+                        );
                       }}
                       inline
                       maxDate={maxSelectableDate}
@@ -284,12 +303,15 @@ const CreateMatches = () => {
                       style={{
                         backgroundColor: isSelected ? "#374151" : undefined,
                         border: "none",
-                        minWidth: "85px", // fixed size for consistent scroll
+                        minWidth: "85px",
                       }}
                       onClick={() => {
                         setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                         setStartDate(new Date(d.fullDate));
-                        setSelectedTimes([]);
+                        // डेट बदलने पर सभी कोर्ट्स के स्लॉट्स रीसेट करें
+                        setSelectedCourts((prev) =>
+                          prev.map((court) => ({ ...court, times: [] }))
+                        );
                       }}
                     >
                       <div className="text-center">
@@ -309,7 +331,7 @@ const CreateMatches = () => {
           {/* Time Selector with Toggle */}
           <div className="d-flex justify-content-between align-items-center py-2">
             <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-              Available Slots
+              Available Slots for {selectedCourts.find((c) => c._id === currentCourtId)?.courtName || "Selected Court"}
             </p>
             <FormCheck
               type="switch"
@@ -331,7 +353,7 @@ const CreateMatches = () => {
                     const now = new Date();
                     const isToday = selectedDateObj.toDateString() === now.toDateString();
 
-                    const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter(slot => {
+                    const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter((slot) => {
                       const [hourString, period] = slot?.time?.toLowerCase().split(" ");
                       let hour = parseInt(hourString);
                       if (period === "pm" && hour !== 12) hour += 12;
@@ -342,6 +364,7 @@ const CreateMatches = () => {
                       const isBooked = slot?.status === "booked";
                       return showUnavailableOnly ? (isPast || isBooked) : true;
                     });
+
                     return filteredSlots.length > 0 ? (
                       filteredSlots.map((slot, i) => {
                         const [hourString, period] = slot?.time?.toLowerCase().split(" ");
@@ -352,42 +375,40 @@ const CreateMatches = () => {
                         slotDate.setHours(hour, 0, 0, 0);
                         const isPast = isToday && slotDate.getTime() < now.getTime();
                         const isBooked = slot?.status === "booked";
-                        const isSelected = selectedTimes.some(t => t._id === slot._id);
+                        const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
+                        const isSelected = currentCourt?.times.some((t) => t._id === slot._id);
                         const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
-                        const currentCourt = selectedCourts.find(c => c._id === currentCourtId);
-                        const currentSlots = currentCourt ? currentCourt.time.length : 0;
-                        const isLimitReached = currentSlots === 15 && !isSelected;
+                        const currentSlots = currentCourt ? currentCourt.times.length : 0;
+                        const isLimitReached = currentSlots >= 15 && !isSelected;
 
                         return (
                           <button
                             key={i}
-                            className={`btn border-0 rounded-pill px-4 ${isBooked ? "bg-danger text-white" : isPast ? "bg-secondary-subtle" : ""}`}
+                            className={`btn border-0 rounded-pill px-4 ${isBooked ? " bg-secondary-subtle" : isPast ? "bg-secondary-subtle" : ""}`}
                             onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
                             style={{
                               backgroundColor: isSelected
                                 ? "#374151"
                                 : isBooked
-                                  ? "#b42424ff"
+                                  ? "#888888"
                                   : isLimitReached
-                                    ? "#888888"
+                                    ? "#fff7df"
                                     : !hasAmount
                                       ? "#fff7df"
-                                      : isPast && !isBooked
+                                      : isPast
                                         ? "#CBD6FF1A"
                                         : "#FAFBFF",
+                              border: "1px solid #CBD6FF1A",
                               color: isSelected
                                 ? "white"
-                                : isPast && !isBooked
+                                : isPast || hasAmount || isBooked
                                   ? "#888888"
-                                  : isBooked
-                                    ? "white"
-                                    : "#000000",
+                                  : "#000000",
                               cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
                               opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
-                              border: "1px solid #CBD6FF1A",
                             }}
                           >
-                            {isBooked ? "Booked" : formatTime(slot?.time)}
+                            {formatTime(slot?.time)}
                           </button>
                         );
                       })
@@ -406,7 +427,7 @@ const CreateMatches = () => {
               <div>
                 <div className="d-flex justify-content-between align-items-center py-2">
                   <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-                    Available Court
+                    Available Courts
                   </p>
                   <div>
                     <a
@@ -466,10 +487,11 @@ const CreateMatches = () => {
                         key={court?._id}
                         onClick={() => handleCourtSelect(court)}
                         style={{ cursor: "pointer" }}
-                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${selectedCourts.some(selCourt => selCourt._id === court._id)
-                          ? "bg-success-subtle rounded"
-                          : ""
-                          }`}
+                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
+                          selectedCourts.some((selCourt) => selCourt._id === court._id)
+                            ? "bg-success-subtle rounded"
+                            : ""
+                        }`}
                       >
                         <div className="d-flex align-items-center gap-3">
                           <img src="https://picsum.photos/60" alt="court" className="rounded" />
@@ -485,6 +507,22 @@ const CreateMatches = () => {
                     <div className="text-center py-4 text-muted">No courts available</div>
                   )}
                 </div>
+                {/* सेलेक्टेड कोर्ट्स और उनके स्लॉट्स दिखाएं */}
+                <div className="mt-3">
+                  <h6>Selected Courts and Slots</h6>
+                  {selectedCourts.length > 0 ? (
+                    selectedCourts.map((court) => (
+                      <div key={court._id} className="border p-2 mb-2 rounded">
+                        <p className="mb-1 fw-semibold">{court.courtName}</p>
+                        <p className="mb-1">
+                          Selected Slots: {court.times.length > 0 ? court.times.map((t) => formatTime(t.time)).join(", ") : "None"}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No courts selected</p>
+                  )}
+                </div>
               </div>
             </>
           )}
@@ -497,15 +535,16 @@ const CreateMatches = () => {
               border: "none",
               borderRadius: "12px",
               maxWidth: "100%",
-              height: "820px"
-            }}>
+              height: "820px",
+            }}
+          >
             <Card
               style={{
                 backgroundColor: "#f5f7ff",
                 border: "none",
                 borderRadius: "12px",
                 maxWidth: "100%",
-                height: "820px"
+                height: "820px",
               }}
             >
               {/* Progress Bar */}
@@ -524,7 +563,7 @@ const CreateMatches = () => {
                 ))}
               </div>
 
-              <div className='p-4'>
+              <div className="p-4">
                 {/* Question */}
                 <h6 className="mb-4 fw-semibold" style={{ color: "#374151", fontSize: "24px" }}>
                   {steps[currentStep].question}
@@ -535,7 +574,7 @@ const CreateMatches = () => {
                   {steps[currentStep].options?.map((option, i) => (
                     <div
                       key={i}
-                      onClick={() => setSelectedLevel(option)} // selectedLevel को अपडेट करें
+                      onClick={() => setSelectedLevel(option)}
                       className={`d-flex align-items-center justify-content-between mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
                       style={{
                         backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
@@ -549,15 +588,15 @@ const CreateMatches = () => {
                         name={`step-${currentStep}`}
                         id={`option-${currentStep}-${i}`}
                         value={option}
-                        checked={selectedLevel === option} // selectedLevel से चेक करें
-                        onChange={(e) => setSelectedLevel(e.target.value)} // selectedLevel को अपडेट करें
+                        checked={selectedLevel === option}
+                        onChange={(e) => setSelectedLevel(e.target.value)}
                         className="fw-semibold"
                       />
                     </div>
                   ))}
                 </Form>
               </div>
-              <div className="d-flex justify-content-end align-items-center  p-3">
+              <div className="d-flex justify-content-end align-items-center p-3">
                 {currentStep > 0 && (
                   <Button
                     className="rounded-pill px-4 me-2"
@@ -574,15 +613,20 @@ const CreateMatches = () => {
                 <Button
                   className="rounded-pill px-4"
                   style={{
-                    backgroundColor:
-                      currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
+                    backgroundColor: currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
                     border: "none",
                     color: "#fff",
                   }}
-                  disabled={!selectedLevel} // केवल तभी डिसेबल जब selectedLevel खाली हो
+                  disabled={!selectedLevel}
                   onClick={handleNext}
                 >
-                  {userMatches?.matchesLoading ? <ButtonLoading /> : currentStep === steps.length - 1 ? "Submit" : "Next"}
+                  {userMatches?.matchesLoading ? (
+                    <ButtonLoading />
+                  ) : currentStep === steps.length - 1 ? (
+                    "Submit"
+                  ) : (
+                    "Next"
+                  )}
                 </Button>
               </div>
             </Card>

@@ -36,9 +36,6 @@ const LoginPage = () => {
     return (
         <div className="auth-wrapper">
             <Container fluid className="vh-100 p-0">
-                <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand position-absolute">
-                    <img src={logo} alt="Logo" style={{ width: "120px" }} />
-                </Link>
                 <Row className="g-0 h-100">
                     {/* Left Form */}
                     <Col
@@ -47,20 +44,20 @@ const LoginPage = () => {
                         className="d-flex flex-column justify-content-center align-items-center px-5"
                     >
                         <div className="w-100" style={{ maxWidth: '400px' }}>
-                            <h2 className="fw-bold mb-2">WELCOME BACK</h2>
-                            <p className="text-muted mb-4" style={{ fontSize: "16px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}>Welcome back! Please enter your details.</p>
+                            <h2 className="welcome-heading mb-2">WELCOME BACK</h2>
+                            <p className="text-muted mb-4" style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}>Welcome back! Please enter your details.</p>
 
                             <Form onSubmit={handleSubmit}>
                                 {showAlert && <Alert variant="danger">{error}</Alert>}
 
 
                                 <Form.Group className="mb-3" controlId="formPhone">
-                                    <Form.Label className="fw-semibold">Phone Number</Form.Label>
+                                    <Form.Label className="" style={{fontSize:"14px",fontWeight:"500",fontFamily:"Poppins"}}>Phone Number</Form.Label>
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
                                         className=" form-control py-3"
-                                        style={{ borderRadius: "15px", fontSize: "16px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}
+                                        style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364",boxShadow: '0px 4px 10px 0px #00000040' }}
                                         value={phone}
                                         minLength={10}
                                         maxLength={10}
@@ -79,7 +76,7 @@ const LoginPage = () => {
                                     type="submit"
                                     className="w-100 text-white  border-0 py-3 "
                                     disabled={userAuthLoading}
-                                    style={{backgroundColor: '#4CAF50', borderRadius: "15px", fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364" }}
+                                    style={{backgroundColor: '#4CAF50', borderRadius: "15px", fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364",boxShadow: '0px 4px 10px 0px #00000040'}}
 
                                 >
                                     {userAuthLoading ? <ButtonLoading /> : 'Get OTP'}
@@ -101,8 +98,8 @@ const LoginPage = () => {
                         className="d-none d-md-block"
                         style={{
                             backgroundImage: `url(${authImg})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'revert-layer',
+                            backgroundSize: 'contain',
+                            backgroundPosition: 'center',
                         }}
                     />
                 </Row>
