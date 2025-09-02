@@ -9,7 +9,7 @@ import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { player } from "../../../assets/files";
 import { FormCheck } from "react-bootstrap";
-import { getUserSlot } from "../../../redux/user/slot/thunk";
+import { getMatchesSlot } from "../../../redux/user/slot/thunk";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { getReviewClub } from "../../../redux/user/club/thunk";
 import StarHalfIcon from '@mui/icons-material/StarHalf';
@@ -47,6 +47,7 @@ const Openmatches = ({ width = 370, height = 70 }) => {
         fullDate: new Date().toISOString().split("T")[0],
         day: new Date().toLocaleDateString("en-US", { weekday: "long" })
     });
+    console.log({selectedDate});
 
     const today = new Date();
     const dates = Array.from({ length: 40 }).map((_, i) => {
@@ -75,10 +76,11 @@ const Openmatches = ({ width = 370, height = 70 }) => {
 
     useEffect(() => {
         if (savedClubId && selectedDate?.day && selectedDate?.fullDate) {
+            const fullDay = new Date(selectedDate.fullDate).toLocaleDateString("en-US", { weekday: "long" });
             dispatch(
-                getUserSlot({
+                getMatchesSlot({
                     register_club_id: savedClubId,
-                    day: selectedDate.day,
+                    day: fullDay,
                     date: selectedDate.fullDate,
                 })
             );

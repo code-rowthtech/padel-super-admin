@@ -83,18 +83,18 @@ const VerifyOTP = () => {
           padding: 30,
         }}
       >
-        <div style={{ width: '100%', maxWidth: 350, textAlign: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 390, textAlign: 'center' }}>
           <h3 style={{ fontWeight: 'bold', marginBottom: 10 }}>WELCOME BACK</h3>
-          <p style={{ marginBottom: 25, color: '#666' }}>
-            A verification code has been sent at <strong>+91••••••••••</strong>
-          </p>
+          <div style={{ marginBottom: 25, color: '#666' }}>
+            A verification code has been sent to <strong>+91*****{phone?.slice(5)}</strong>
+          </div>
           {showAlert && <Alert variant="danger">{error}</Alert>}
           {timer > 0 && store?.otp?.response && (
             <Alert variant="info" className="py-1">
               Your OTP is: {store?.otp?.response}
             </Alert>
           )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-evenly', gap: 6 }}>
             {otp.map((digit, index) => (
               <Form.Control
                 key={index}
@@ -109,7 +109,7 @@ const VerifyOTP = () => {
                   height: 50,
                   fontSize: 24,
                   textAlign: 'center',
-                  borderRadius: 8,
+                  borderRadius: '4px',
                   boxShadow: ' 0px 1px 6.5px 0px #0000001F inset',
 
                 }}
@@ -154,6 +154,7 @@ const VerifyOTP = () => {
           backgroundImage: `url(${authImg})`,
           backgroundSize: 'contain',
           backgroundPosition: 'center',
+          backgroundRepeat:"no-repeat"
         }}
       />
     </Row>
