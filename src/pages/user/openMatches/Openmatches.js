@@ -13,6 +13,7 @@ import { getUserSlot } from "../../../redux/user/slot/thunk";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { getReviewClub } from "../../../redux/user/club/thunk";
 import StarHalfIcon from '@mui/icons-material/StarHalf';
+import { formatTime } from "../../../helpers/Formatting";
 
 const Openmatches = ({ width = 370, height = 70 }) => {
     const [startDate, setStartDate] = useState(new Date());
@@ -289,31 +290,30 @@ const Openmatches = ({ width = 370, height = 70 }) => {
                                             return (
                                                 <button
                                                     key={i}
-                                                    className={`btn border-0 rounded-pill px-4 ${isBooked ? "bg-danger text-white" : isPast ? "bg-secondary-subtle" : ""}`}
-                                                    onClick={() => !isPast && !isBooked && hasAmount && toggleTime(slot)}
+                                                    className={`btn border-0 rounded-pill px-4 ${isBooked ? " bg-secondary-subtle" : isPast ? "bg-secondary-subtle" : ""}`}
+                                                    onClick={() => !isPast && !isBooked && hasAmount  && toggleTime(slot)}
                                                     style={{
                                                         backgroundColor: isSelected
                                                             ? "#374151"
                                                             : isBooked
-                                                                ? "#b42424ff"
+                                                                ? "#888888"
                                                                 : !hasAmount
-                                                                    ? "#fff7df"
-                                                                    : isPast && !isBooked
-                                                                        ? "#CBD6FF1A"
-                                                                        : "#FAFBFF",
+                                                                        ? "#fff7df"
+                                                                        : isPast
+                                                                            ? "#CBD6FF1A"
+                                                                            : "#FAFBFF",
+                                                        border: "1px solid #CBD6FF1A",
                                                         color: isSelected
                                                             ? "white"
-                                                            : isPast && !isBooked
+                                                            : isPast || hasAmount || isBooked
                                                                 ? "#888888"
-                                                                : isBooked
-                                                                    ? "white"
-                                                                    : "#000000",
-                                                        cursor: isPast || isBooked || !hasAmount ? "not-allowed" : "pointer",
-                                                        opacity: isPast || isBooked || !hasAmount ? 0.6 : 1,
+                                                                : "#000000",
+                                                        cursor: isPast || isBooked || !hasAmount  ? "not-allowed" : "pointer",
+                                                        opacity: isPast || isBooked || !hasAmount  ? 0.6 : 1,
                                                         border: "1px solid #CBD6FF1A",
                                                     }}
                                                 >
-                                                    {isBooked ? "Booked" : slot.time}
+                                                    {formatTime(slot?.time)}
                                                 </button>
                                             );
                                         })

@@ -180,8 +180,10 @@ h1.display-5 {
 }
 
 .calendar-day-btn {
-  flex: 0 0 91px !important; /* width fix */
-  height: 95px !important; /* height fix */
+  flex: 0 0 91px !important;
+  /* width fix */
+  height: 95px !important;
+  /* height fix */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -270,21 +272,28 @@ h1.display-5 {
   background-color: #d0d6ea;
   font-weight: 600;
   text-align: center;
-  padding: 0.45rem 0.7rem;
+  padding: 13px 55px;
   /* position: sticky; */
   top: 0;
   z-index: 1;
   font-size: 14px;
 }
 
+.custom-table td:first-child,
+.custom-table td:nth-child(2) {
+  padding: 0.7rem 0;
+  /* Remove horizontal padding, keep vertical padding */
+}
+
 .custom-table td {
-  padding: 0.7rem 1rem ;
+  padding: 0.7rem 0px;
+  /* Default padding for other columns */
   text-align: center;
   font-weight: 400;
-  /* vertical-align: middle; */
-  /* white-space: nowrap; */
   font-size: 14px;
-  /* Prevents text wrapping in cells */
+  border-bottom: 0.5px solid #0000001A;
+  background-color: #FAFBFF !important;
+  /* Fixed the syntax error with quotes */
 }
 
 .custom-table .table-data {
@@ -466,7 +475,7 @@ h1.display-5 {
 }
 
 .animated-image {
-  animation: scaleAnimation 2s  ease-in-out;
+  animation: scaleAnimation 2s ease-in-out;
 }
 
 @keyframes scaleAnimation {
@@ -509,4 +518,10 @@ h1.display-5 {
   100% {
     transform: scale(1);
   }
+}
+
+.welcome-heading {
+  font-size: 34px;
+  font-weight: 500;
+  font-family: "Poppins";
 }
