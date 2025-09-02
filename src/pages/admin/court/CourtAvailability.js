@@ -455,13 +455,8 @@ const CourtAvailability = () => {
                   </button>
                   <div
                     ref={scrollRef}
-                    className="d-flex gap-2"
-                    style={{
-                      scrollBehavior: "smooth",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      flex: 1,
-                    }}
+                    className="d-flex gap-2 overflow-auto flex-grow-1"
+                    style={{ scrollbarWidth: "none" }}
                   >
                     {dates?.map((d, i) => {
                       const isSelected = selectedDate === d?.fullDate;

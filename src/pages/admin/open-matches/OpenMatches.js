@@ -33,7 +33,7 @@ const OpenMatches = () => {
                 transition: "all 0.3s ease",
                 background: "none",
               }}
-              onClick={() => navigate("#")}
+              onClick={() => navigate("/admin/create-match")}
               onMouseEnter={(e) => {
                 e.currentTarget.style.opacity = "0.9";
                 e.currentTarget.style.transform = "translateY(-1px)";
@@ -106,7 +106,7 @@ const OpenMatches = () => {
                 {/* Right: Players & Price */}
                 <div className="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
                   <div className="d-flex align-items-center justify-content-end mb-2">
-                    {match.isActive && (
+                    {match?.players?.length < 4 && (
                       <div
                         className="d-flex align-items-center rounded-pill pe-3 bg-white me-2"
                         style={{ borderRadius: "999px", zIndex: 999 }}
@@ -136,13 +136,47 @@ const OpenMatches = () => {
                             Available
                           </span>
                           <small style={{ fontSize: "8px", color: "#6B7280" }}>
-                            {match.teamInfo}
+                            {match?.teamInfo}
                           </small>
                         </div>
                       </div>
                     )}
 
-                    {match?.clubId?.courtImage?.map((item, idx) => (
+                    {match?.players?.map((item, idx) =>
+                      item?.profileImage ? (
+                        <img
+                          key={`${match?._id}-${idx}`}
+                          src={item?.profileImage}
+                          alt="Court Images"
+                          className="rounded-circle border border-white d-flex align-items-center justify-content-center text-white"
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            marginLeft: idx !== 0 ? "-10px" : "0",
+                            zIndex: match?.players?.length - idx,
+                            position: "relative",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          key={`${match?._id}-${idx}`}
+                          className="rounded-circle border border-white d-flex align-items-center justify-content-center text-white"
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            marginLeft: idx !== 0 ? "-10px" : "0",
+                            zIndex: match?.players?.length - idx,
+                            position: "relative",
+                            backgroundColor: "black",
+                            fontWeight: "bold",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {item?.userId?.name?.[0] || "U"}
+                        </div>
+                      )
+                    )}
+                    {/* {match?.clubId?.courtImage?.map((item, idx) => (
                       <img
                         key={`${match?._id}-${idx}`}
                         src={item}
@@ -156,7 +190,7 @@ const OpenMatches = () => {
                           position: "relative",
                         }}
                       />
-                    ))}
+                    ))} */}
                   </div>
 
                   <div

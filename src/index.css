@@ -332,8 +332,8 @@ h1.display-5 {
   text-align: center;
   font-weight: 400;
   font-size: 14px;
-  border-bottom: 0.5px solid #0000001A;
-  background-color: #FAFBFF !important;
+  border-bottom: 0.5px solid #0000001a;
+  background-color: #fafbff !important;
   /* Fixed the syntax error with quotes */
 }
 

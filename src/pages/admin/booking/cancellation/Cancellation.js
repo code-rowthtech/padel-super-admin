@@ -26,7 +26,7 @@ import {
   DataLoading,
 } from "../../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
-import { formatDate } from "../../../../helpers/Formatting";
+import { formatDate, formatTime } from "../../../../helpers/Formatting";
 import {
   getBookingByStatus,
   getBookingDetailsById,
@@ -227,11 +227,14 @@ const Cancellation = () => {
                               textAlign: "left", // keep text aligned from start
                             }}
                           >
-                            <span className="fw-medium">
+                            <span className="fw-medium text-nowrap">
                               {formatDate(item?.bookingDate)}
                             </span>
-                            <span className="text-muted small">
-                              | {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
+                            <span className="text-muted small ms-1">
+                              |{" "}
+                              {formatTime(
+                                renderSlotTimes(item?.slot?.[0]?.slotTimes)
+                              )}
                             </span>
                           </div>
                         </td>
