@@ -65,7 +65,14 @@ h1.display-5 {
 .icon-button {
   width: 70px;
   text-align: center;
-  color: #333;
+  /* color: #333; */
+}
+
+.label {
+  font-weight: 500;
+  font-family: "Poppins";
+  font-size: 14px;
+  color: #374151;
 }
 
 /* custom-datepicker.css */
@@ -143,8 +150,8 @@ h1.display-5 {
   align-items: center;
   justify-content: center;
   font-size: 35px;
-  color: #3a3a3a;
-  background-color: white;
+  color: #374151;
+  background-color: #CBD6FF1A;
   transition: all 0.3s ease;
 }
 
@@ -167,17 +174,10 @@ h1.display-5 {
   transition: transform 0.5s ease !important;
 }
 
-.image-zoom-container:hover img {
-  transform: scale(1.1) !important;
-}
-
 .image-zoom-hover img {
   transition: transform 0.5s ease;
 }
 
-.image-zoom-hover:hover img {
-  transform: scale(1.1);
-}
 
 .calendar-day-btn {
   flex: 0 0 91px !important;
@@ -396,20 +396,67 @@ h1.display-5 {
   display: grid;
   grid-template-areas:
     "img1 img2 img3"
-    "img4 img5 img6"
-    "img7 img8 img9"
-    "img10 img8 img9";
-  grid-gap: 8px;
+    "img4 img5 img5"
+    "img6 img7 img8"
+    "img9 img10 img10";
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 220px;
+  /* adjust height */
+  gap: 10px;
 }
 
-.custom-gallery img {
+.gallery-item {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.gallery-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  border-radius: 6px;
 }
+
+/* Assign areas */
+.item1 {
+  grid-area: img1;
+}
+
+.item2 {
+  grid-area: img2;
+}
+
+.item3 {
+  grid-area: img3;
+}
+
+.item4 {
+  grid-area: img4;
+}
+
+.item5 {
+  grid-area: img5;
+}
+
+.item6 {
+  grid-area: img6;
+}
+
+.item7 {
+  grid-area: img7;
+}
+
+.item8 {
+  grid-area: img8;
+}
+
+.item9 {
+  grid-area: img9;
+}
+
+.item10 {
+  grid-area: img10;
+}
+
 
 /* Assign each image to its area */
 .item1 {
@@ -484,6 +531,7 @@ h1.display-5 {
 .image-loader {
   background: linear-gradient(180deg, #181818 0%, #282828 100%);
 }
+
 
 /* =======-Image hoveer effect for table  */
 .img-container {
@@ -565,4 +613,43 @@ h1.display-5 {
   font-size: 34px;
   font-weight: 500;
   font-family: "Poppins";
+}
+
+.login-btn {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: "Poppins";
+  height: 50px;
+  width: 146px;
+  background: #3DBE64;
+}
+
+.nav-item {
+  font-size: 16px;
+  font-weight: 500;
+  font-family: "Poppins";
+}
+
+.home-main-heading {
+  font-weight: 700;
+  font-family: "Poppins";
+  font-size: 70px
+}
+
+.open-now-time {
+  font-size: 18px;
+  font-family: 'Poppins';
+  font-weight: 500;
+  color: #1C1B1F;
+}
+
+.home-upcoming-heading {
+  font-size: 28px;
+  font-weight: 600;
+  font-family: "Poppins";
+}
+.averageRating-count{
+  font-weight: 600;
+  font-family: "Poppins";
+  font-size: 50px;
 }

@@ -172,7 +172,7 @@ const BookingHistory = () => {
         const year = d.getFullYear();
         return `${day}${getOrdinalSuffix(day)}${month}' ${year}`;
     };
-    
+
     return (
         <Container>
             <Row className="mb-3 mt-5">
@@ -359,12 +359,12 @@ const BookingHistory = () => {
                                                 key={`${i}-${index}`}
                                                 className=" border-bottom"
                                             >
-                                                <td className="table-data py-2 ps-5 text-start"  style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
+                                                <td className="table-data py-2 ps-5 text-start" style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
                                                     {formatDate(new Date())} {/* Adjust the date string as per slotItem?.bookingDate */}
                                                     {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
-                                                            return time ? formatTime(time) : ""; 
+                                                            return time ? formatTime(time) : "";
                                                         }) || [];
                                                         const displayed = times?.slice(0, 5).join(", ");
                                                         return times?.length > 5 ? ` ${displayed} ...` : displayed;
@@ -422,23 +422,22 @@ const BookingHistory = () => {
                                                         >
                                                             <span>
                                                                 {(() => {
-                                                                    const comment = booking?.customerReview?.reviewComment || "No Message";
+                                                                    const comment = booking?.customerReview?.reviewComment?.trim() || "No Message";
 
-                                                                    if (comment.length === 0) return "";
+                                                                    if (!comment) return "";
 
-                                                                    if (comment.length <= 20) {
+                                                                    // Split into words
+                                                                    const words = comment.split(/\s+/);
+
+                                                                    if (words.length <= 20) {
                                                                         return comment.charAt(0).toUpperCase() + comment.slice(1);
-                                                                    } else if (comment.length < 200) {
-                                                                        return (
-                                                                            comment.charAt(0).toUpperCase() +
-                                                                            comment.slice(1, 20) +
-                                                                            "...."
-                                                                        );
                                                                     } else {
-                                                                        return comment.charAt(0).toUpperCase() + comment.slice(1);
+                                                                        const first20 = words.slice(0, 4).join(" ");
+                                                                        return first20.charAt(0).toUpperCase() + first20.slice(1) + " ....";
                                                                     }
                                                                 })()}
                                                             </span>
+
                                                         </OverlayTrigger>
 
                                                     </td>
