@@ -26,7 +26,7 @@ import {
   DataLoading,
 } from "../../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
-import { formatDate } from "../../../../helpers/Formatting";
+import { formatDate, formatTime } from "../../../../helpers/Formatting";
 import {
   getBookingByStatus,
   getBookingDetailsById,
@@ -231,7 +231,10 @@ const Cancellation = () => {
                               {formatDate(item?.bookingDate)}
                             </span>
                             <span className="text-muted small ms-1">
-                              | {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
+                              |{" "}
+                              {formatTime(
+                                renderSlotTimes(item?.slot?.[0]?.slotTimes)
+                              )}
                             </span>
                           </div>
                         </td>

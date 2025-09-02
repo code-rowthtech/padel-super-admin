@@ -106,7 +106,7 @@ const OpenMatches = () => {
                 {/* Right: Players & Price */}
                 <div className="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
                   <div className="d-flex align-items-center justify-content-end mb-2">
-                    {match.isActive && (
+                    {match?.players?.length < 4 && (
                       <div
                         className="d-flex align-items-center rounded-pill pe-3 bg-white me-2"
                         style={{ borderRadius: "999px", zIndex: 999 }}
@@ -136,7 +136,7 @@ const OpenMatches = () => {
                             Available
                           </span>
                           <small style={{ fontSize: "8px", color: "#6B7280" }}>
-                            {match.teamInfo}
+                            {match?.teamInfo}
                           </small>
                         </div>
                       </div>

@@ -22,7 +22,7 @@ import {
   BookingCancelModal,
 } from "./manual booking/BookingModal";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
-import { formatDate } from "../../../helpers/Formatting";
+import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
@@ -241,7 +241,10 @@ const Booking = () => {
                               {formatDate(item?.bookingDate)}
                             </span>
                             <span className="text-muted small ms-1">
-                              | {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
+                              |{" "}
+                              {formatTime(
+                                renderSlotTimes(item?.slot[0]?.slotTimes)
+                              )}
                             </span>
                           </div>
                         </td>

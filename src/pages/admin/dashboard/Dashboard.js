@@ -35,7 +35,7 @@ import {
   updateBookingStatus,
 } from "../../../redux/thunks";
 import { useSelector, useDispatch } from "react-redux";
-import { formatDate } from "../../../helpers/Formatting";
+import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import {
   BookingCancelModal,
@@ -382,8 +382,10 @@ const AdminDashboard = () => {
                                   </span>
                                   <span className="text-muted small ms-1">
                                     |{" "}
-                                    {renderSlotTimes(
-                                      item?.slot?.[0]?.slotTimes
+                                    {formatTime(
+                                      renderSlotTimes(
+                                        item?.slot?.[0]?.slotTimes
+                                      )
                                     )}
                                   </span>
                                 </div>
@@ -485,8 +487,10 @@ const AdminDashboard = () => {
                                   </span>
                                   <span className="text-muted small ms-1">
                                     |{" "}
-                                    {renderSlotTimes(
-                                      item?.slot?.[0]?.slotTimes
+                                    {formatTime(
+                                      renderSlotTimes(
+                                        item?.slot?.[0]?.slotTimes
+                                      )
                                     )}
                                   </span>
                                 </div>
