@@ -33,14 +33,59 @@ const CustomerReviews = () => {
   const loadMoreReviews = () => {
     setVisibleReviews((prevVisibleReviews) => prevVisibleReviews + 10);
   };
+  // Example: reviewsData?.ratingCounts = { Excellent: 3, Good: 3, Average: 2, Below: 0, Poor: 1 }
 
-  // Rating distribution data
+  const totalReviews = Object.values(reviewsData?.ratingCounts || {}).reduce(
+    (acc, count) => acc + count,
+    0
+  );
+
   const ratingDistribution = [
-    { label: "Excellent", count: 1000, percentage: 100, color: "#4CAF50" },
-    { label: "Good", count: 800, percentage: 80, color: "#8BC34A" },
-    { label: "Average", count: 600, percentage: 60, color: "#FFC107" },
-    { label: "Below Average", count: 100, percentage: 10, color: "#FF9800" },
-    { label: "Poor", count: 50, percentage: 5, color: "#F44336" },
+    {
+      label: "Excellent",
+      count: reviewsData?.ratingCounts?.Excellent || 0,
+      percentage:
+        totalReviews > 0
+          ? ((reviewsData?.ratingCounts?.Excellent || 0) / totalReviews) * 100
+          : 0,
+      color: "#4CAF50",
+    },
+    {
+      label: "Good",
+      count: reviewsData?.ratingCounts?.Good || 0,
+      percentage:
+        totalReviews > 0
+          ? ((reviewsData?.ratingCounts?.Good || 0) / totalReviews) * 100
+          : 0,
+      color: "#8BC34A",
+    },
+    {
+      label: "Average",
+      count: reviewsData?.ratingCounts?.Average || 0,
+      percentage:
+        totalReviews > 0
+          ? ((reviewsData?.ratingCounts?.Average || 0) / totalReviews) * 100
+          : 0,
+      color: "#FFC107",
+    },
+    {
+      label: "Below Average",
+      count: reviewsData?.ratingCounts?.Below || 0,
+      percentage:
+        totalReviews > 0
+          ? ((reviewsData?.ratingCounts?.Below || 0) / totalReviews) * 100
+          : 0,
+      color: "#FF9800",
+    },
+    {
+      label: "Poor",
+      count: reviewsData?.ratingCounts?.Poor || 0,
+      percentage:
+        totalReviews > 0
+          ? ((reviewsData?.ratingCounts?.Poor || 0) / totalReviews) * 100
+          : 0,
+      color: "#F44336",
+    },
   ];
 
   // Function to render star icons

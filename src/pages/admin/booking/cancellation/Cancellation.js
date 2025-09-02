@@ -227,10 +227,10 @@ const Cancellation = () => {
                               textAlign: "left", // keep text aligned from start
                             }}
                           >
-                            <span className="fw-medium">
+                            <span className="fw-medium text-nowrap">
                               {formatDate(item?.bookingDate)}
                             </span>
-                            <span className="text-muted small">
+                            <span className="text-muted small ms-1">
                               | {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
                             </span>
                           </div>

@@ -128,8 +128,8 @@ const AdminDashboard = () => {
       type === "details"
         ? setShowBookingDetails(true)
         : type === "cancel"
-          ? setShowBookingCancel(true)
-          : setShowCancellation(true);
+        ? setShowBookingCancel(true)
+        : setShowCancellation(true);
     } catch (error) {
       console.error("Failed to fetch booking details:", error);
     } finally {
@@ -167,7 +167,8 @@ const AdminDashboard = () => {
                       <div
                         className={`d-flex align-items-center gap-1 text-${card.color} fw-semibold`}
                       >
-                        <div className="d-flex align-items-center justify-content-center"
+                        <div
+                          className="d-flex align-items-center justify-content-center"
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
@@ -177,13 +178,17 @@ const AdminDashboard = () => {
                             paddingTop: "4px",
                             paddingBottom: "4px",
                             borderRadius: "50%",
-                            backgroundColor: card.color === "danger" ? "#FFD9D7" : "#B5FFCE", // red vs blue background
+                            backgroundColor:
+                              card.color === "danger" ? "#FFD9D7" : "#B5FFCE", // red vs blue background
                           }}
                         >
                           <span
                             style={{
                               display: "inline-block",
-                              transform: card.color === "danger" ? "rotate(45deg)" : "rotate(-45deg)",
+                              transform:
+                                card.color === "danger"
+                                  ? "rotate(45deg)"
+                                  : "rotate(-45deg)",
                               transition: "transform 0.3s ease",
                             }}
                           >
@@ -220,7 +225,6 @@ const AdminDashboard = () => {
                       Total Revenue
                     </h6>
                     <div className="d-flex">
-
                       <div className="d-flex align-items-center me-3">
                         <div
                           style={{
@@ -231,7 +235,9 @@ const AdminDashboard = () => {
                             marginRight: "6px",
                           }}
                         ></div>
-                        <span style={{ fontSize: "0.85rem", color: "#ef4444" }}>Loss</span>
+                        <span style={{ fontSize: "0.85rem", color: "#ef4444" }}>
+                          Loss
+                        </span>
                       </div>
                       <div className="d-flex align-items-center ">
                         <div
@@ -243,7 +249,9 @@ const AdminDashboard = () => {
                             marginRight: "6px",
                           }}
                         ></div>
-                        <span style={{ fontSize: "0.85rem", color: "#4f46e5" }}>Profit</span>
+                        <span style={{ fontSize: "0.85rem", color: "#4f46e5" }}>
+                          Profit
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -313,8 +321,12 @@ const AdminDashboard = () => {
               <Card className="shadow-sm border-0">
                 <Card.Body>
                   <div className="d-flex justify-content-between mb-2">
-                    <h6 className="mb-3"
-                      style={{ fontSize: "20px", fontWeight: "600" }}>Today Cancellation</h6>
+                    <h6
+                      className="mb-3"
+                      style={{ fontSize: "20px", fontWeight: "600" }}
+                    >
+                      Today Cancellation
+                    </h6>
                     <Link
                       to="/admin/cancellation"
                       className="dashboard-viewmore"
@@ -357,7 +369,25 @@ const AdminDashboard = () => {
                                   ?.concat(item?.userId?.name?.slice(1)) ||
                                   "N/A"}
                               </td>{" "}
-                              <td>{formatDate(item?.bookingDate)}</td>
+                              <td>
+                                <div
+                                  style={{
+                                    display: "inline-grid", // shrink to content
+                                    gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
+                                    textAlign: "left", // keep text aligned from start
+                                  }}
+                                >
+                                  <span className="fw-medium text-nowrap">
+                                    {formatDate(item?.bookingDate)}
+                                  </span>
+                                  <span className="text-muted small ms-1">
+                                    |{" "}
+                                    {renderSlotTimes(
+                                      item?.slot?.[0]?.slotTimes
+                                    )}
+                                  </span>
+                                </div>
+                              </td>{" "}
                               <td>{item?.slot[0]?.courtName || "-"}</td>
                               <td style={{ cursor: "pointer" }}>
                                 {loadingById === item?._id ? (
@@ -403,8 +433,12 @@ const AdminDashboard = () => {
               <Card className="shadow-sm border-0">
                 <Card.Body>
                   <div className="d-flex justify-content-between mb-2">
-                    <h6 className="mb-3"
-                      style={{ fontSize: "20px", fontWeight: "600" }}>Recent Bookings</h6>
+                    <h6
+                      className="mb-3"
+                      style={{ fontSize: "20px", fontWeight: "600" }}
+                    >
+                      Recent Bookings
+                    </h6>
                     <Link to="/admin/booking" className="dashboard-viewmore">
                       View More
                     </Link>
@@ -438,7 +472,25 @@ const AdminDashboard = () => {
                                   ?.concat(item?.userId?.name?.slice(1)) ||
                                   "N/A"}
                               </td>{" "}
-                              <td>{formatDate(item?.bookingDate)}</td>
+                              <td>
+                                <div
+                                  style={{
+                                    display: "inline-grid", // shrink to content
+                                    gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
+                                    textAlign: "left", // keep text aligned from start
+                                  }}
+                                >
+                                  <span className="fw-medium text-nowrap">
+                                    {formatDate(item?.bookingDate)}
+                                  </span>
+                                  <span className="text-muted small ms-1">
+                                    |{" "}
+                                    {renderSlotTimes(
+                                      item?.slot?.[0]?.slotTimes
+                                    )}
+                                  </span>
+                                </div>
+                              </td>{" "}
                               <td>{item?.slot[0]?.courtName || "-"}</td>
                               <td style={{ cursor: "pointer" }}>
                                 {loadingById === item?._id ? (
