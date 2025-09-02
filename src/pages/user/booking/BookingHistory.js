@@ -172,6 +172,7 @@ const BookingHistory = () => {
         const year = d.getFullYear();
         return `${day}${getOrdinalSuffix(day)}${month}' ${year}`;
     };
+    
     return (
         <Container>
             <Row className="mb-3 mt-5">
@@ -230,7 +231,6 @@ const BookingHistory = () => {
 
                 </AppBar>
             </Box>
-
             <Row className="mb-3">
                 <Col md={6}>
                     <h2 className="tabel-title mt-2" style={{ fontWeight: "600", fontSize: "24px" }}>
