@@ -156,11 +156,11 @@ const BookingHistory = () => {
     const totalRecords = getBookingData?.bookingData?.total || getBookingData?.bookingData?.length;
 
     const getOrdinalSuffix = (day) => {
-        if (day > 3 && day < 21) return 'th';
+        if (day > 3 && day < 21) return 'th ';
         switch (day % 10) {
-            case 1: return 'st';
-            case 2: return 'nd';
-            case 3: return 'rd';
+            case 1: return 'st ';
+            case 2: return 'nd ';
+            case 3: return 'rd ';
             default: return 'th';
         }
     };
@@ -170,7 +170,7 @@ const BookingHistory = () => {
         const day = d.getDate();
         const month = d.toLocaleString('en-US', { month: 'short' });
         const year = d.getFullYear();
-        return `${day}${getOrdinalSuffix(day)}${month}'${year}`;
+        return `${day}${getOrdinalSuffix(day)}${month}' ${year}`;
     };
     return (
         <Container>
@@ -241,8 +241,8 @@ const BookingHistory = () => {
                     md={6}
                     className="d-flex gap-2 justify-content-end align-items-center"
                 >
-                    <InputGroup className="rounded  p-1 align-items-center" style={{ backgroundColor: "#FAFBFF" }}>
-                        <InputGroup.Text className="bg-light border-0 px-3">
+                    <InputGroup className="rounded d-flex p-1 align-items-center" style={{ backgroundColor: "#FAFBFF" }}>
+                        <InputGroup.Text className="bg-light border-0 px-">
                             <FaCalendarAlt className="text-muted" />
                         </InputGroup.Text>
                         <DatePicker
@@ -287,11 +287,11 @@ const BookingHistory = () => {
             <Row>
                 <Col md={12}>
                     <div className="custom-scroll-container">
-                        <Table borderless size="sm" className="custom-table position-relative" style={{ borderCollapse: "collapse" }}>                            <thead>
-                            <tr className="">
+                        <Table borderless responsive size="sm" className="custom-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>                            <thead>
+                            <tr className="p-0">
                                 <th className="text-start px-5" rowSpan={1} style={{ borderRadius: "15px 0 0 0" }}>Booking Date / Time</th>
-                                <th>Court Name</th>
-                                <th>Booking Type</th>
+                                <th className="text- ">Court Name</th>
+                                {/* <th>Booking Type</th> */}
                                 {activeTab === "cancelled" && <th>Reason</th>}
                                 {activeTab === "completed" && <th>Rating</th>}
                                 {activeTab === "completed" && <th>Message</th>}
@@ -352,30 +352,30 @@ const BookingHistory = () => {
                                     </tr>
                                 </tbody>
                             ) : filterStatus?.length > 0 ? (
-                                <tbody className="border">
+                                <tbody className=" ">
                                     {filterStatus?.map((booking, i) =>
                                         booking?.slot?.map((slotItem, index) => (
                                             <tr
                                                 key={`${i}-${index}`}
-                                                className="table-data border-bottom"
+                                                className=" border-bottom"
                                             >
-                                                <td className="table-data py-2 ps-5 text-start" rowSpan={1} style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
-                                                    {formatDate(new Date("2025-06-22"))} {/* Adjust the date string as per slotItem?.bookingDate */}
+                                                <td className="table-data py-2 ps-5 text-start"  style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
+                                                    {formatDate(new Date())} {/* Adjust the date string as per slotItem?.bookingDate */}
                                                     {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
-                                                            return time ? formatTime(time) : ""; // Apply formatTime to each time string
+                                                            return time ? formatTime(time) : ""; 
                                                         }) || [];
                                                         const displayed = times?.slice(0, 5).join(", ");
-                                                        return times?.length > 5 ? `${displayed} ...` : displayed;
+                                                        return times?.length > 5 ? ` ${displayed} ...` : displayed;
                                                     })()}
                                                 </td>
-                                                <td className="table-data py-2">
+                                                <td className="table-data  py-2">
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
-                                                <td className="table-data py-2">
+                                                {/* <td className="table-data py-2">
                                                     {booking?.bookingType || "N/A"}
-                                                </td>
+                                                </td> */}
 
                                                 {activeTab === "cancelled" && (
                                                     <td className="py-2">
