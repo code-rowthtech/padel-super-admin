@@ -13,7 +13,7 @@ import {
   BsArrowUpRightCircleFill,
   BsFillArrowDownLeftCircleFill,
 } from "react-icons/bs";
-import { formatDate } from "../../../helpers/Formatting";
+import { formatDate, formatTime } from "../../../helpers/Formatting";
 import {
   getBookingByStatus,
   getBookingDetailsById,
@@ -275,12 +275,14 @@ const Payments = () => {
                                   textAlign: "left", // keep text aligned from start
                                 }}
                               >
-                                <span className="fw-medium">
+                                <span className="fw-medium text-nowrap">
                                   {formatDate(item?.bookingDate)}
                                 </span>
-                                <span className="text-muted small">
+                                <span className="text-muted small ms-1">
                                   |{" "}
-                                  {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
+                                  {formatTime(
+                                    renderSlotTimes(item?.slot?.[0]?.slotTimes)
+                                  )}{" "}
                                 </span>
                               </div>
                             </td>

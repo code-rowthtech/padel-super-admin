@@ -86,6 +86,9 @@ const SubOwner = React.lazy(() => import("../pages/admin/subOwner/SubOwner"));
 const CourtAvailability = React.lazy(() =>
   import("../pages/admin/court/CourtAvailability")
 );
+const CreateMatch = React.lazy(() =>
+  import("../pages/admin/open-matches/create/CreateMatch")
+);
 
 // Errors
 const UnAuthorized = React.lazy(() => import("../pages/error/UnAuthorized"));
@@ -303,6 +306,10 @@ const AllRoutes = () => {
             {
               path: "court-availability",
               element: LoadComponent(CourtAvailability),
+            },
+            {
+              path: "create-match",
+              element: LoadComponent(CreateMatch),
             },
           ],
         },

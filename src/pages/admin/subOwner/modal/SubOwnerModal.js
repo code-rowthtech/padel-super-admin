@@ -109,6 +109,7 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
   };
 
   const handleClose = () => {
+    onHide();
     setForm({
       name: "",
       phoneNumber: "",
@@ -116,7 +117,6 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
       password: "",
       confirmPassword: "",
     });
-    onHide();
   };
   const handleSubmit = async (e) => {
     e.preventDefault();

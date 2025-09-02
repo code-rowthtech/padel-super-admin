@@ -8,6 +8,7 @@ import { getUserSlot } from '../../../redux/user/slot/thunk';
 import { ButtonLoading, DataLoading } from '../../../helpers/loading/Loaders';
 import 'react-datepicker/dist/react-datepicker.css';
 import { formatTime } from '../../../helpers/Formatting';
+import Avatar from '@mui/material/Avatar';
 
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -487,14 +488,14 @@ const CreateMatches = () => {
                         key={court?._id}
                         onClick={() => handleCourtSelect(court)}
                         style={{ cursor: "pointer" }}
-                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-3 mb-1 px-2 ${
+                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-2 mb-1 px-2 ${
                           selectedCourts.some((selCourt) => selCourt._id === court._id)
                             ? "bg-success-subtle rounded"
                             : ""
                         }`}
                       >
                         <div className="d-flex align-items-center gap-3">
-                          <img src="https://picsum.photos/60" alt="court" className="rounded" />
+                          <Avatar src='https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0='/>
                           <div>
                             <p className="mb-1 fw-semibold">{court?.courtName}</p>
                             <small className="text-muted">{court?.type}</small>
@@ -505,22 +506,6 @@ const CreateMatches = () => {
                     ))
                   ) : (
                     <div className="text-center py-4 text-muted">No courts available</div>
-                  )}
-                </div>
-                {/* सेलेक्टेड कोर्ट्स और उनके स्लॉट्स दिखाएं */}
-                <div className="mt-3">
-                  <h6>Selected Courts and Slots</h6>
-                  {selectedCourts.length > 0 ? (
-                    selectedCourts.map((court) => (
-                      <div key={court._id} className="border p-2 mb-2 rounded">
-                        <p className="mb-1 fw-semibold">{court.courtName}</p>
-                        <p className="mb-1">
-                          Selected Slots: {court.times.length > 0 ? court.times.map((t) => formatTime(t.time)).join(", ") : "None"}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p>No courts selected</p>
                   )}
                 </div>
               </div>

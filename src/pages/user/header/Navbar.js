@@ -66,8 +66,8 @@ const Navbar = () => {
 
 
     return (
-        <nav className="navbar navbar-expand-lg bg-white py-1">
-            <div className="container">
+        <nav className="navbar navbar-expand-lg bg-white py-2">
+            <div className="container py-1">
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
                     {logo ?
@@ -94,13 +94,13 @@ const Navbar = () => {
 
                 {/* Navigation links */}
                 <div className="collapse navbar-collapse" id="mainNav">
-                    <ul className="navbar-nav w-100 ps-md-5 ps-0 ms-md-5 ms-0 mb-2 mb-lg-0 gap-4">
+                    <ul className="navbar-nav w-100 ps-md-5 ps-0 ms-md-5 ms-0 mb-2 mb-lg-0 gap-5">
                         <li className="nav-item">
                             <NavLink
                                 to="/home"
-                                className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
+                                className={`nav-link `}
                                 style={({ isActive }) => ({
-                                    color: isActive ? '#1F41BB' : '#000',
+                                    color: isActive ? '#1F41BB' : '#374151',
                                     textDecoration: 'none',
                                 })}
                             >
@@ -110,9 +110,9 @@ const Navbar = () => {
                         <li className="nav-item">
                             <NavLink
                                 to="/booking"
-                                className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
+                                className={`nav-link `}
                                 style={({ isActive }) => ({
-                                    color: isActive ? '#1F41BB' : '#000',
+                                    color: isActive ? '#1F41BB' : '#374151',
                                     textDecoration: 'none',
                                 })}
                             >
@@ -122,9 +122,9 @@ const Navbar = () => {
                         <li className="nav-item">
                             <NavLink
                                 to="/open-matches"
-                                className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
+                                className={`nav-link `}
                                 style={({ isActive }) => ({
-                                    color: isActive ? '#1F41BB' : '#000',
+                                    color: isActive ? '#1F41BB' : '#374151',
                                     textDecoration: 'none',
                                 })}
                             >
@@ -134,9 +134,9 @@ const Navbar = () => {
                         <li className="nav-item">
                             <NavLink
                                 to="/americano"
-                                className={({ isActive }) => `nav-link ${isActive ? 'fw-semibold' : ''}`}
+                                className='nav-link'
                                 style={({ isActive }) => ({
-                                    color: isActive ? '#1F41BB' : '#000',
+                                    color: isActive ? '#1F41BB' : '#374151',
                                     textDecoration: 'none',
                                 })}
                             >
@@ -159,13 +159,13 @@ const Navbar = () => {
                                         width="40"
                                         height="40"
                                     />
-                                    <div className="text-end d-none d-sm-block">
+                                    <div className="text-start d-none d-sm-block">
                                         <div className="fw-semibold">
                                             {userData?.name
                                                 ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
                                                 : 'User'}
                                         </div>
-                                        <div className="text-muted small">{userData?.phoneNumber || 'N/A'}</div>
+                                        <div className="text-muted small">+91 {userData?.phoneNumber || 'N/A'}</div>
                                     </div>
                                     {isOpen ? (
                                         <FaChevronUp className="ms-2 text-muted" />
@@ -174,23 +174,29 @@ const Navbar = () => {
                                     )}
                                 </Dropdown.Toggle>
 
-                                <Dropdown.Menu className="table-data fw-medium" style={{ color: '#374151', width:"200px" }}>
-                                    <Dropdown.Item className='mb-2' as={NavLink} to="/profile">
-                                     <FaRegUserCircle size={20} className='me-2' />   Profile
+                                <Dropdown.Menu className="table-data fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/profile">
+                                        <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
                                     </Dropdown.Item>
-                                    <Dropdown.Item className='mb-2' as={NavLink} to="/booking-history">
-                                       <MdOutlineDateRange className='me-2' size={20} /> My Booking
+
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
+                                        <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
                                     </Dropdown.Item>
-                                    <Dropdown.Item className='mb-2' as={NavLink} to="/open-matches">
-                                       <MdSportsTennis className='me-2' size={20} /> Open Matches
+
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/open-matches">
+                                        <MdSportsTennis size={20} style={{ minWidth: "24px" }} className="me-2" /> Open Matches
                                     </Dropdown.Item>
-                                    <Dropdown.Item className='mb-2' as={NavLink} to="/admin/help-support">
-                                       <PiRanking className='me-2' size={20} /> Americano
+
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/admin/help-support">
+                                        <PiRanking size={20} style={{ minWidth: "24px" }} className="me-2" /> Americano
                                     </Dropdown.Item>
-                                    <Dropdown.Item className='mb-2' as={NavLink} to="/admin/settings">
-                                      <FaHeadphones className='me-2' />  Help & Support
+
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/admin/settings">
+                                        <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
                                     </Dropdown.Item>
-                                    <Dropdown.Item className='mb-2'
+
+                                    <Dropdown.Item
+                                        className='mb-2 d-flex align-items-center'
                                         onClick={() => {
                                             dispatch(logoutUser());
                                             localStorage.removeItem('padel_user');
@@ -199,15 +205,15 @@ const Navbar = () => {
                                             navigate('/home');
                                         }}
                                     >
-                                      <IoIosLogOut className='me-2' size={20} />  Logout
+                                        <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
                                     </Dropdown.Item>
                                 </Dropdown.Menu>
+
                             </Dropdown>
                         ) : (
                             <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
                                 <button
-                                    className="btn btn-sm px-4 fw-medium small  rounded-pill text-white"
-                                    style={{ backgroundColor: '#3DBE64' }}
+                                    className=" login-btn px-4 border-0   rounded-pill text-white"
                                 >
                                     Login
                                 </button>

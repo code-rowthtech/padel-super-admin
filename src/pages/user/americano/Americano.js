@@ -12,7 +12,24 @@ import { FiArrowRight } from "react-icons/fi";
 import { getReviewClub } from '../../../redux/user/club/thunk';
 import Upcoming from './Upcoming';
 import ViewScore from './ViewScore';
+import { styled } from '@mui/system';
 
+// Styled Tabs for left and right alignment
+const StyledTabs = styled(Tabs)({
+  display: "flex",
+  justifyContent: "space-evenly",
+  width: "100%",
+  "& .MuiTabs-flexContainer": {
+    display: "flex",
+    justifyContent: "space-evenly",
+  },
+});
+
+const StyledTab = styled(Tab)({
+  fontFamily: "Poppins",
+  fontSize: "20px",
+  fontWeight: 500,
+});
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -44,9 +61,9 @@ function a11yProps(index: number) {
 }
 
 const Americano = () => {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
     const [value, setValue] = useState(0);
-    const [score, setScore] = useState(false)
+    const [score, setScore] = useState(false);
     const getReviewData = useSelector((store) => store?.userClub?.getReviewData?.data);
     const registerId = localStorage.getItem("register_club_id");
 
@@ -73,7 +90,7 @@ const Americano = () => {
         { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'David' } },
         { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'Eve' } },
         { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'Eve' } }
-    ]
+    ];
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
@@ -85,16 +102,33 @@ const Americano = () => {
         }
     }, [registerId]);
 
+    // Example: If you want to add full day logic (optional, based on your previous question)
+    /*
+    useEffect(() => {
+        const selectedDate = { day: 'Tue', fullDate: '2025-09-02' }; // Example data, replace with actual
+        if (registerId && selectedDate?.day && selectedDate?.fullDate) {
+            const fullDay = new Date(selectedDate.fullDate).toLocaleDateString("en-US", { weekday: "long" });
+            dispatch(
+                getMatchesSlot({
+                    register_club_id: registerId,
+                    day: fullDay, // Sends full day like "Tuesday"
+                    date: selectedDate.fullDate,
+                })
+            );
+        }
+    }, [dispatch, registerId]);
+    */
+
     return (
         <>
             <Container className='mb-4'>
                 <Row>
                     <Col md={7} style={{ backgroundColor: "#F5F5F566" }} className="p-4">
-                        <Box className="d-flex justify-content-evenly align-items-center" sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                            <Tabs className='' value={value} onChange={handleChange} centered>
-                                <Tab style={{ fontSize: '20px', fontWeight: "500", fontFamily: "Poppins" }} label="Ongoing" {...a11yProps(0)} />
-                                <Tab style={{ fontSize: '20px', fontWeight: "500", fontFamily: "Poppins" }} label="Upcoming" {...a11yProps(1)} />
-                            </Tabs>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <StyledTabs value={value} onChange={handleChange} aria-label="match tabs">
+                                <StyledTab label="Ongoing" {...a11yProps(0)} />
+                                <StyledTab label="Upcoming" {...a11yProps(1)} />
+                            </StyledTabs>
                         </Box>
                         <CustomTabPanel value={value} index={0}>
                             {tournaments.map((tournament, index) => (
