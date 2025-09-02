@@ -5,11 +5,11 @@ import { player, padal, club } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { createMatches } from "../../../redux/user/matches/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
-import { Alert, Avatar } from "@mui/material";
+import { Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { NewPlayers } from "./NewPlayers";
 import { createBooking } from "../../../redux/user/booking/thunk";
-import { Button, Modal } from "react-bootstrap";
+import { Alert, Button, Modal } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 const OpenmatchPayment = (props) => {
@@ -118,10 +118,11 @@ const OpenmatchPayment = (props) => {
                     localStorage.removeItem('players');
                     navigate('/open-matches');
                     setErrorShow(false);
+                    setIsLoading(true);
                 });
                 setModal(true);
             } catch (err) {
-                setError(err.message || "Booking ke dauraan error aaya.");
+                setError(err.message || err || "Booking ke dauraan error aaya.");
                 setModal(false);
             } finally {
                 setIsLoading(false);
@@ -177,8 +178,8 @@ const OpenmatchPayment = (props) => {
         border: "none",
         background: "transparent",
         cursor: "pointer",
-        opacity: (isLoading || !selectedPayment || userPlayersData.length < 3) ? 0.5 : 1,
-        pointerEvents: (isLoading || !selectedPayment || userPlayersData.length < 3) ? 'none' : 'auto',
+        opacity: (isLoading),
+        pointerEvents: (isLoading ? 'none' : 'auto'),
     };
 
     const svgStyle = {
@@ -203,6 +204,15 @@ const OpenmatchPayment = (props) => {
         height: "100%",
         paddingRight: `${circleRadius * 2}px`,
     };
+
+    useEffect(() => {
+        if (errorShow) {
+            setInterval(() => {
+                setErrorShow(false)
+                setError('')
+            }, 3000);
+        }
+    }, [errorShow])
 
     return (
         <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
@@ -725,7 +735,7 @@ const OpenmatchPayment = (props) => {
                             )}
                         </div>
                         {console.log({ selectedCourts })}
-                        <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
+                        <div className="border-top pt-2 mb-3 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>
                                 Total to pay
                             </span>
@@ -734,14 +744,16 @@ const OpenmatchPayment = (props) => {
                             </span>
                             <span className="text-primary">₹ {totalAmount.toFixed(0)}</span>
                         </div>
-                       
+
+                        {errorShow && <Alert variant="danger">{error}</Alert>}
+
                         {/* Book Now Button */}
                         <div className="d-flex justify-content-center mt-3">
                             <button
                                 style={buttonStyle}
                                 onClick={handleBooking}
                                 className={props.className}
-                                // disabled={isLoading}
+                            // disabled={isLoading}
                             >
                                 <svg
                                     style={svgStyle}
@@ -803,7 +815,7 @@ const OpenmatchPayment = (props) => {
                                         />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{isLoading ? <ButtonLoading/> : "Book Now"}</div>
+                                <div style={contentStyle}>{isLoading ? <ButtonLoading /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
@@ -811,7 +823,7 @@ const OpenmatchPayment = (props) => {
             </div>
 
             {/* Error Modal */}
-            {error && (
+            {!errorShow && (
                 <Modal centered show={error} onHide={() => setError(null)}>
                     <Modal.Header closeButton>
                         <Modal.Title>Error</Modal.Title>

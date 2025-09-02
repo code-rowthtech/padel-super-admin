@@ -287,11 +287,11 @@ const BookingHistory = () => {
             <Row>
                 <Col md={12}>
                     <div className="custom-scroll-container">
-                        <Table borderless responsive size="sm" className="custom-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>                            <thead>
+                        <Table borderless responsive size="sm" className="booking-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>                            <thead>
                             <tr className="p-0">
                                 <th className="text-start px-5" rowSpan={1} style={{ borderRadius: "15px 0 0 0" }}>Booking Date / Time</th>
                                 <th className="text- ">Court Name</th>
-                                {/* <th>Booking Type</th> */}
+                                <th>Booking Type</th>
                                 {activeTab === "cancelled" && <th>Reason</th>}
                                 {activeTab === "completed" && <th>Rating</th>}
                                 {activeTab === "completed" && <th>Message</th>}
@@ -373,9 +373,9 @@ const BookingHistory = () => {
                                                 <td className="table-data  py-2">
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
-                                                {/* <td className="table-data py-2">
+                                                <td className="table-data py-2">
                                                     {booking?.bookingType || "N/A"}
-                                                </td> */}
+                                                </td>
 
                                                 {activeTab === "cancelled" && (
                                                     <td className="py-2">
