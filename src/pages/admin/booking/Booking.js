@@ -206,8 +206,8 @@ const Booking = () => {
                   <thead>
                     <tr className="text-center">
                       <th>User Name</th>
+                      <th>Contact</th>
                       <th>Booking Date</th>
-                      {/* <th>Contact</th> */}
                       {/* <th>Booking</th> */}
                       <th>Court No</th>
                       {/* <th>Slot</th>
@@ -221,16 +221,31 @@ const Booking = () => {
                       <tr key={item?._id} className="table-data border-bottom">
                         <td>
                           {item?.userId?.name
-                            ?.slice(0, 1)
-                            ?.toUpperCase()
-                            ?.concat(item?.userId?.name?.slice(1)) || "N/A"}
+                            ? item.userId.name.charAt(0).toUpperCase() +
+                              item.userId.name.slice(1)
+                            : "N/A"}
                         </td>
-                        <td>{formatDate(item?.bookingDate)}</td>
-
-                        {/* <td>
+                        <td>
                           {item?.userId?.countryCode || ""}{" "}
                           {item?.userId?.phoneNumber || "N/A"}
-                        </td> */}
+                        </td>
+                        <td>
+                          <div
+                            style={{
+                              display: "inline-grid", // shrink to content
+                              gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
+                              textAlign: "left", // keep text aligned from start
+                            }}
+                          >
+                            <span className="fw-medium">
+                              {formatDate(item?.bookingDate)}
+                            </span>
+                            <span className="text-muted small">
+                              | {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
+                            </span>
+                          </div>
+                        </td>
+
                         {/* <td>
                           {item?.bookingType
                             ?.slice(0, 1)
@@ -251,7 +266,7 @@ const Booking = () => {
                         </td> */}
                         <td style={{ cursor: "pointer" }}>
                           {loadingBookingId === item?._id ? (
-                            <ButtonLoading color="blue" size={7} />
+                            <ButtonLoading color="blue" size={8} />
                           ) : (
                             <>
                               {tab !== 1 && (
@@ -274,7 +289,7 @@ const Booking = () => {
                                 overlay={<Tooltip>View Details</Tooltip>}
                               >
                                 <FaEye
-                                  className="text-primary ms-1"
+                                  className="text-primary ms-2"
                                   onClick={() =>
                                     handleBookingDetails(item?._id, "details")
                                   }

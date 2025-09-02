@@ -124,7 +124,10 @@ const SubOwner = () => {
                       <tr key={item._id} className="table-data border-bottom">
                         <td>{item?.name || "N/A"}</td>
                         <td>{item?.email || "N/A"}</td>
-                        <td>{item?.phoneNumber || "-"}</td>
+                        <td>
+                          {" "}
+                          {item?.countryCode || ""} {item?.phoneNumber || "-"}
+                        </td>
                         <td style={{ cursor: "pointer" }}>
                           <OverlayTrigger
                             placement="bottom"

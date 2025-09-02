@@ -16,8 +16,6 @@ const OpenMatches = () => {
     dispatch(getAllOpenMatches());
   }, []);
 
-  
-
   return (
     <>
       {openMatchesLoading ? (
@@ -169,7 +167,7 @@ const OpenMatches = () => {
                   </div>
 
                   <Link
-                    to="/admin/match-details"
+                    to={`/admin/match-details/${match?._id}`}
                     className="btn rounded-pill px-3 py-1 text-white"
                     style={{
                       backgroundColor: "#3DBE64",

@@ -573,6 +573,7 @@ const CourtAvailability = () => {
 
                       return showUnavailable || (isAvailable && !isPast);
                     });
+
                     return filteredSlotTimes?.length === 0 ? (
                       <div
                         className="d-flex text-danger justify-content-center align-items-center w-100"
