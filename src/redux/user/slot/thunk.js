@@ -27,3 +27,28 @@ export const getUserSlot = createAsyncThunk(
     }
   }
 );
+
+export const getMatchesSlot = createAsyncThunk(
+  "club/getMathcesSlot",
+  async ({ register_club_id, day ,date}, { rejectWithValue }) => {
+    try {
+      // Early validation
+      if (!register_club_id || !day  || !date) {
+        throw new Error("Missing required parameters: register_club_id or day");
+      }
+
+      const queryParams = new URLSearchParams({
+        register_club_id,
+        day,
+        date,
+      }).toString();
+
+      const response = await userApi.get(`${Url.GET_MATCHES_SLOT_API}?${queryParams}`);
+
+      return response?.data;
+    } catch (error) {
+      showError(error?.message || "Something went wrong while fetching slots");
+      return rejectWithValue(error?.response?.data || error.message);
+    }
+  }
+);

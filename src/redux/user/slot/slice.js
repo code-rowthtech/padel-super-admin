@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserSlot } from "./thunk";
+import { getMatchesSlot, getMathcesSlot, getUserSlot } from "./thunk";
 
 const initialState = {
     slotLoading: false,
@@ -32,7 +32,20 @@ const slotSlice = createSlice({
                 state.slotLoading = false;
                 state.slotError = action.payload;
             })
-        // -------------------------U-P-D-A-T-E--M-A-T-C-H----------------------//
+            // -------------------------U-P-D-A-T-E--M-A-T-C-H----------------------//
+
+            .addCase(getMatchesSlot.pending, (state) => {
+                state.slotLoading = true;
+                state.slotError = null;
+            })
+            .addCase(getMatchesSlot.fulfilled, (state, action) => {
+                state.slotLoading = false;
+                state.slotData = action.payload;
+            })
+            .addCase(getMatchesSlot.rejected, (state, action) => {
+                state.slotLoading = false;
+                state.slotError = action.payload;
+            })
     }
 });
 

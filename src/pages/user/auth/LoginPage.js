@@ -100,6 +100,7 @@ const LoginPage = () => {
                             backgroundImage: `url(${authImg})`,
                             backgroundSize: 'contain',
                             backgroundPosition: 'center',
+                            backgroundRepeat:"no-repeat"
                         }}
                     />
                 </Row>
