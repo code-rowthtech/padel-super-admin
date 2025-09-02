@@ -152,8 +152,8 @@ const VerifyOTP = () => {
         className="d-none d-md-block"
         style={{
           backgroundImage: `url(${authImg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'revert-layer',
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
         }}
       />
     </Row>

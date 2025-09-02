@@ -4,45 +4,56 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { player, padal, club } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { createMatches } from "../../../redux/user/matches/thunk";
-import { DataLoading } from "../../../helpers/loading/Loaders";
-import { Avatar } from "@mui/material";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import { Alert, Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { NewPlayers } from "./NewPlayers";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import { Button, Modal } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 
-const OpenmatchPayment = ({ className = "" }) => {
+const OpenmatchPayment = (props) => {
     const [modal, setModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState("");
     const [showAddMeForm, setShowAddMeForm] = useState(false);
+    const [errorShow, setErrorShow] = useState(false);
     const [activeSlot, setActiveSlot] = useState('slot-1');
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const { state } = useLocation();
     const User = getUserFromSession();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || {});
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
     const userPlayersData = localStorage.getItem('players') ? JSON.parse(localStorage.getItem('players')) : [];
-    const { slotData, selectedTimes, finalSkillDetails, selectedDate, selectedCourts } = state || {};
+    const { slotData, finalSkillDetails, selectedDate, selectedCourts } = state || {};
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
 
     const playerIds = userPlayersData?.map(player => player._id) || [];
     const players = User?._id ? [...playerIds, User._id] : playerIds;
 
+    console.log({ selectedCourts });
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
 
     const handleBooking = () => {
+        if (!selectedPayment) {
+            setError("Select a payment method.");
+            setErrorShow(true);
+            return;
+        }
+        if (userPlayersData.length < 3) {
+            setError("Add at least 3 players to proceed.");
+            setErrorShow(true)
+            return;
+        }
         const formattedData = {
-            slot: selectedTimes?.map(timeSlot => {
-                const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
-                return {
+            slot: selectedCourts?.flatMap(court =>
+                court.times.map(timeSlot => ({
                     slotId: timeSlot?._id,
                     businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
                         time: t?.time,
@@ -50,19 +61,19 @@ const OpenmatchPayment = ({ className = "" }) => {
                     })) || [],
                     slotTimes: [{
                         time: timeSlot?.time,
-                        amount: timeSlot?.amount,
+                        amount: timeSlot?.amount || 1000,
                     }],
-                    courtName: selectedCourt?.courtName ,
-                    courtId: selectedCourt?._id,
+                    courtName: court?.courtName,
+                    courtId: court?._id,
                     bookingDate: new Date(selectedDate?.fullDate).toISOString(),
-                };
-            }) || [],
+                }))
+            ) || [],
             clubId: savedClubId,
             matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
-            skillLevel: finalSkillDetails?.[0] ,
-            skillDetails: finalSkillDetails?.slice(1) ,
+            skillLevel: finalSkillDetails?.[0],
+            skillDetails: finalSkillDetails?.slice(1),
             matchStatus: "open",
-            matchTime: selectedTimes?.map(time => time.time).join(",") ,
+            matchTime: selectedCourts?.flatMap(court => court.times.map(time => time.time)).join(","),
             players: players,
         };
 
@@ -85,9 +96,8 @@ const OpenmatchPayment = ({ className = "" }) => {
                     ownerId: owner_id,
                     paymentMethod: selectedPayment || "Gpay",
                     type: "openMatch",
-                    slot: selectedTimes?.map(timeSlot => {
-                        const selectedCourt = selectedCourts[0] || slotData?.data?.[0]?.courts?.[0] || {};
-                        return {
+                    slot: selectedCourts?.flatMap(court =>
+                        court.times.map(timeSlot => ({
                             slotId: timeSlot?._id,
                             businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
                                 time: t?.time,
@@ -95,18 +105,19 @@ const OpenmatchPayment = ({ className = "" }) => {
                             })) || [],
                             slotTimes: [{
                                 time: timeSlot?.time,
-                                amount: timeSlot?.amount,
+                                amount: timeSlot?.amount || 1000,
                             }],
-                            courtName: selectedCourt?.courtName || "Court 1",
-                            courtId: selectedCourt?._id,
+                            courtName: court?.courtName || "Court",
+                            courtId: court?._id,
                             bookingDate: new Date(selectedDate?.fullDate).toISOString(),
-                        };
-                    }) || [],
+                        }))
+                    ) || [],
                 };
 
                 dispatch(createBooking(payload)).unwrap().then((res) => {
                     localStorage.removeItem('players');
-                    navigate('/open-matches')
+                    navigate('/open-matches');
+                    setErrorShow(false);
                 });
                 setModal(true);
             } catch (err) {
@@ -138,7 +149,14 @@ const OpenmatchPayment = ({ className = "" }) => {
     };
 
     const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: 'Fri', formattedDate: '29 Aug' };
-    const matchTime = selectedTimes?.map(time => time.time).join(", ") || '5 am,6 am,7 am';
+    // सभी कोर्ट्स के स्लॉट्स को एक स्ट्रिंग में जोड़ें
+    const matchTime = selectedCourts?.flatMap(court => court.times.map(time => time.time)).join(", ") || '5 am,6 am';
+
+    // कुल कीमत की गणना
+    const totalAmount = selectedCourts?.reduce((total, court) =>
+        total + court.times.reduce((sum, slot) => sum + Number(slot.amount || 1000), 0),
+        0
+    ) || 6000;
 
     // Styling for button
     const width = 370;
@@ -233,7 +251,7 @@ const OpenmatchPayment = ({ className = "" }) => {
                                 className="text-muted"
                                 style={{ fontWeight: "500" }}
                             >
-                                {matchDate.day}, {matchDate.formattedDate} | {matchTime}
+                                {matchDate.day}, {matchDate.formattedDate} | {matchTime?.slice(0, 20)}{matchTime.length > 20 ? "..." : ""} (60m)
                             </small>
                         </div>
                         <div className="row text-center border-top">
@@ -247,9 +265,7 @@ const OpenmatchPayment = ({ className = "" }) => {
                             </div>
                             <div className="col py-3">
                                 <p className="mb-1 text-muted small">Price</p>
-                                <p className="mb-0 fw-semibold">₹ {selectedTimes
-                                    ?.reduce((total, slot) => total + Number(slot.amount), 0)
-                                    .toFixed(0) || "6000"}</p>
+                                <p className="mb-0 fw-semibold">₹ {totalAmount.toFixed(0)}</p>
                             </div>
                         </div>
                     </div>
@@ -680,41 +696,52 @@ const OpenmatchPayment = ({ className = "" }) => {
                                 overflowY: "auto",
                             }}
                         >
-                            {selectedTimes && selectedTimes.length > 0 && selectedCourts && selectedCourts.length > 0 ? (
-                                selectedTimes.map((slotTime, index) => (
-                                    <div
-                                        key={slotTime._id}
-                                        className="court-row d-flex justify-content-between align-items-center mb-3 px-2"
-                                        style={{ cursor: "pointer" }}
-                                    >
-                                        <div>
-                                            <strong>{matchDate.day}, {matchDate.formattedDate} {slotTime.time} (60m)</strong> {selectedCourts[0]?.courtName || "Court 1"}
-                                        </div>
-                                        <div className="d-flex align-items-center gap-2">
-                                            <div>₹ {slotTime.amount}</div>
-                                        </div>
+                            {selectedCourts && selectedCourts.length > 0 ? (
+                                selectedCourts?.map((court, courtIndex) => (
+                                    <div key={court._id} className="court-section mb-3">
+
+                                        {court.times && court.times.length > 0 ? (
+                                            court.times.map((slotTime, slotIndex) => (
+                                                <div
+                                                    key={slotTime._id}
+                                                    className="court-row d-flex justify-content-between align-items-center mb-2 px-2"
+                                                    style={{ cursor: "pointer" }}
+                                                >
+                                                    <div>
+                                                        <strong>{matchDate.day}, {matchDate.formattedDate} {slotTime.time} (60m)</strong> {court.courtName || `Court ${courtIndex + 1}`}
+                                                    </div>
+                                                    <div className="d-flex align-items-center gap-2">
+                                                        <div>₹ {slotTime.amount || 1000}</div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div>No slots selected for this court</div>
+                                        )}
                                     </div>
                                 ))
                             ) : (
-                                <div>No slots available</div>
+                                <div>No courts selected</div>
                             )}
                         </div>
-
+                        {console.log({ selectedCourts })}
                         <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>
                                 Total to pay
                             </span>
-                            <span className="text-primary">₹ {selectedTimes
-                                ?.reduce((total, slot) => total + Number(slot.amount), 0)
-                                .toFixed(0) || "6000"}</span>
+                            <span style={{ fontSize: "16px", fontWeight: "600" }}>
+                                Slots: {selectedCourts?.reduce((total, court) => total + court.times.length, 0) || 0}
+                            </span>
+                            <span className="text-primary">₹ {totalAmount.toFixed(0)}</span>
                         </div>
-
+                       
+                        {/* Book Now Button */}
                         <div className="d-flex justify-content-center mt-3">
                             <button
                                 style={buttonStyle}
                                 onClick={handleBooking}
-                                className={className}
-                                disabled={isLoading || !selectedPayment || userPlayersData.length < 3}
+                                className={props.className}
+                                // disabled={isLoading}
                             >
                                 <svg
                                     style={svgStyle}
@@ -776,7 +803,7 @@ const OpenmatchPayment = ({ className = "" }) => {
                                         />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{isLoading ? "Booking..." : "Book Now"}</div>
+                                <div style={contentStyle}>{isLoading ? <ButtonLoading/> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
@@ -797,22 +824,6 @@ const OpenmatchPayment = ({ className = "" }) => {
                     </Modal.Footer>
                 </Modal>
             )}
-
-            {/* Success Modal */}
-            {/* <Modal show={modal} onHide={() => setModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Booking Successful</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>Your booking has been confirmed!</Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setModal(false)}>
-                        Close
-                    </Button>
-                    <Button variant="primary" as={Link} to="/booking-history">
-                        View Booking History
-                    </Button>
-                </Modal.Footer>
-            </Modal> */}
 
             <NewPlayers
                 activeSlot={activeSlot}

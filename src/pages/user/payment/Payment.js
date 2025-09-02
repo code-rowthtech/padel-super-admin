@@ -41,7 +41,6 @@ const Payment = ({ className = "" }) => {
     const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
     const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
     const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
-
     const dayMap = {
         sunday: "Sun",
         monday: "Mon",
@@ -293,7 +292,7 @@ const Payment = ({ className = "" }) => {
                                             placeholder="+91"
                                             pattern="[6-9][0-9]{9}"
                                             title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
-                                            // disabled={user?.phoneNumber}
+                                        // disabled={user?.phoneNumber}
                                         />
                                     </div>
                                 </div>
@@ -354,7 +353,7 @@ const Payment = ({ className = "" }) => {
                                             value={method.id}
                                             className="form-check-input"
                                             checked={selectedPayment === method.id}
-                                            style={{border: '4px solid #4D4DFF', width: '20px', height: '20px',boxShadow:"none"}}
+                                            style={{ border: '4px solid #4D4DFF', width: '20px', height: '20px', boxShadow: "none" }}
                                             onChange={(e) => setSelectedPayment(e.target.value)}
                                         />
                                     </label>
