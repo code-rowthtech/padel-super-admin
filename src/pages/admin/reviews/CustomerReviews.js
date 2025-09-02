@@ -152,8 +152,8 @@ const CustomerReviews = () => {
                             {item.label}
                           </span>
                         </div>
-                        <span className="text-muted">{item.count}</span>
-                        {/* <span className="text-muted">{item.percentage}%</span> */}
+                        {/* <span className="text-muted">{item.count}</span> */}
+                        <span className="text-muted">{item.percentage}%</span>
                       </div>
                       <div
                         className="progress"

@@ -1,17 +1,20 @@
 import React, { useRef, useEffect, useState } from "react";
 import {
   Button,
+  Card,
   Col,
   Container,
+  Form,
+  InputGroup,
   ListGroup,
+  Modal,
   OverlayTrigger,
   Row,
   Tooltip,
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaArrowLeft, FaTrash } from "react-icons/fa";
+import { FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { BookingSuccessModal } from "./BookingModal";
 import {
   getOwnerRegisteredClub,
   getActiveCourts,
@@ -43,10 +46,21 @@ const CreateMatch = () => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
   const [showUnavailable, setShowUnavailable] = useState(false);
+
+  // State for form values
+  const [skillLevel, setSkillLevel] = useState("");
+  const [racketSport, setRacketSport] = useState("");
+  const [padelTraining, setPadelTraining] = useState("");
+  const [ageGroup, setAgeGroup] = useState("");
+  const [volleySkill, setVolleySkill] = useState("");
+  const [reboundSkill, setReboundSkill] = useState("");
+
+  // State for users
+  const [users, setUsers] = useState([]);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserPhone, setNewUserPhone] = useState("");
+  const [showUserModal, setShowUserModal] = useState(false);
 
   // Close on outside click
   const handleClickOutside = (e) => {
@@ -61,7 +75,7 @@ const CreateMatch = () => {
   }, []);
 
   const today = new Date();
-  const dates = Array.from({ length: 41 }).map((_, i) => {
+  const dates = Array.from({ length: 41 })?.map((_, i) => {
     const date = new Date(today);
     date.setDate(date.getDate() + i);
     return {
@@ -143,44 +157,7 @@ const CreateMatch = () => {
     setSelectedSlots(newSelectedSlots);
   };
 
-  const removeSlot = (courtId, slotId) => {
-    const courtSlots = selectedSlots[courtId] || [];
-    const newCourtSlots = courtSlots.filter((t) => t._id !== slotId);
-
-    let newSelectedSlots;
-    if (newCourtSlots.length === 0) {
-      const { [courtId]: _, ...rest } = selectedSlots;
-      newSelectedSlots = rest;
-    } else {
-      newSelectedSlots = { ...selectedSlots, [courtId]: newCourtSlots };
-    }
-
-    setSelectedSlots(newSelectedSlots);
-  };
-
-  const clearSessionStorage = () => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    sessionStorage.removeItem(key);
-    setSelectedSlots({});
-    setSelectedCourts([]);
-  };
-
-  const cleanOldSessionStorage = () => {
-    const today = new Date().setHours(0, 0, 0, 0);
-    for (let i = sessionStorage.length - 1; i >= 0; i--) {
-      const key = sessionStorage.key(i);
-      if (key && key.startsWith("manual-booking-slots-")) {
-        const dateStr = key.split("manual-booking-slots-")[1];
-        const itemDate = new Date(dateStr).setHours(0, 0, 0, 0);
-        if (itemDate <= today) {
-          sessionStorage.removeItem(key);
-        }
-      }
-    }
-  };
-
   useEffect(() => {
-    cleanOldSessionStorage();
     dispatch(getOwnerRegisteredClub({ ownerId: ownerId })).unwrap();
   }, []);
 
@@ -204,52 +181,6 @@ const CreateMatch = () => {
   }, [courts?.length]);
 
   useEffect(() => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    const saved = sessionStorage.getItem(key);
-    if (saved) {
-      const parsedSlots = JSON.parse(saved);
-      const totalSlots = Object.values(parsedSlots).flat().length;
-      if (totalSlots <= 15) {
-        setSelectedSlots(parsedSlots);
-      } else {
-        showInfo(
-          "Loaded slots exceed maximum limit of 15. Truncating selection."
-        );
-        const truncatedSlots = {};
-        let count = 0;
-        for (const [courtId, slots] of Object.entries(parsedSlots)) {
-          if (count >= 15) break;
-          const slotsToAdd = slots.slice(0, 15 - count);
-          if (slotsToAdd.length > 0) {
-            truncatedSlots[courtId] = slotsToAdd;
-            count += slotsToAdd.length;
-          }
-        }
-        setSelectedSlots(truncatedSlots);
-        sessionStorage.setItem(key, JSON.stringify(truncatedSlots));
-      }
-    } else {
-      setSelectedSlots({});
-    }
-  }, [selectedDate]);
-
-  useEffect(() => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    sessionStorage.setItem(key, JSON.stringify(selectedSlots));
-  }, [selectedSlots, selectedDate]);
-
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      cleanOldSessionStorage();
-      const key = `manual-booking-slots-${selectedDate}`;
-      sessionStorage.removeItem(key);
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [selectedDate]);
-
-  useEffect(() => {
     if (selectedButtonRef.current && scrollRef.current) {
       const container = scrollRef.current;
       const selected = selectedButtonRef.current;
@@ -266,17 +197,39 @@ const CreateMatch = () => {
   const maxSelectableDate = new Date();
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
 
+  const validateForm = () => {
+    if (!skillLevel) {
+      showInfo("Please select skill level.");
+      return false;
+    }
+    if (!racketSport) {
+      showInfo("Please select racket sport.");
+      return false;
+    }
+    if (!padelTraining) {
+      showInfo("Please select padel training status.");
+      return false;
+    }
+    if (!ageGroup) {
+      showInfo("Please select age group.");
+      return false;
+    }
+    if (!volleySkill) {
+      showInfo("Please select volley skill.");
+      return false;
+    }
+    if (!reboundSkill) {
+      showInfo("Please select rebound skill.");
+      return false;
+    }
+    return true;
+  };
+
   const handleConfirm = async () => {
-    if (!name.trim()) {
-      showInfo("Name cannot be empty or just spaces!");
-      return;
-    }
-    if (!name || !phone) {
-      showInfo("Please enter both name and phone number.");
-      return;
-    }
+    if (!validateForm()) return;
 
     const slotsPayload = [];
+    let totalAmount = 0;
     Object.entries(selectedSlots).forEach(([courtId, times]) => {
       const court = courts.find((c) => c._id === courtId);
       const slotData = court?.slot?.[0];
@@ -287,18 +240,20 @@ const CreateMatch = () => {
         })) || [];
 
       times.forEach((timeSlot) => {
+        const slotAmount = timeSlot?.amount || 0;
+        totalAmount += slotAmount;
         slotsPayload.push({
           slotId: timeSlot?._id,
           businessHours: formattedBusinessHours,
           slotTimes: [
             {
               time: timeSlot?.time,
-              amount: timeSlot?.amount || 0,
+              amount: slotAmount,
             },
           ],
           courtName: court?.courtName,
           courtId: court?._id,
-          bookingDate: new Date(selectedDate).toISOString(),
+          matchDate: new Date(selectedDate).toISOString(),
         });
       });
     });
@@ -311,21 +266,70 @@ const CreateMatch = () => {
     try {
       const payload = {
         slot: slotsPayload,
-        register_club_id: ownerClubData?.[0]?._id,
-        phoneNumber: phone,
-        name: name,
+        clubId: ownerClubData?.[0]?._id,
         ownerId: Owner?._id,
+        skillLevel,
+        playerDetails: [
+          racketSport,
+          padelTraining,
+          ageGroup,
+          volleySkill,
+          reboundSkill,
+        ],
+        users,
       };
       await dispatch(manualBookingByOwner(payload)).unwrap();
-      setShowSuccess(true);
-      setName("");
-      setPhone("");
       setSelectedSlots({});
       setSelectedCourts([]);
-      sessionStorage.removeItem(`manual-booking-slots-${selectedDate}`);
+      setUsers([]);
+      setSkillLevel("");
+      setRacketSport("");
+      setPadelTraining("");
+      setAgeGroup("");
+      setVolleySkill("");
+      setReboundSkill("");
     } catch (error) {
       console.log("Booking failed:", error);
     }
+  };
+
+  const addUser = () => {
+    if (users.length >= 4) {
+      showInfo("Maximum 4 users can be added.");
+      return;
+    }
+    if (!newUserName || !newUserPhone) {
+      showInfo("Please enter name and phone number.");
+      return;
+    }
+    setUsers([...users, { name: newUserName, phone: newUserPhone }]);
+    setNewUserName("");
+    setNewUserPhone("");
+    setShowUserModal(false);
+  };
+
+  const removeUser = (index) => {
+    const updatedUsers = users.filter((_, i) => i !== index);
+    setUsers(updatedUsers);
+  };
+
+  const getSelectedCourtName = () => {
+    if (!selectedCourts[0]) return "";
+    const court = courts?.find((c) => c._id === selectedCourts[0]);
+    return court?.courtName || "";
+  };
+
+  const getSelectedSlotsList = () => {
+    if (!selectedCourts[0]) return [];
+    return selectedSlots[selectedCourts[0]] || [];
+  };
+
+  const calculateTotal = () => {
+    let total = 0;
+    getSelectedSlotsList().forEach((slot) => {
+      total += slot?.amount || 0;
+    });
+    return total;
   };
 
   return (
@@ -333,119 +337,57 @@ const CreateMatch = () => {
       {ownerClubLoading ? (
         <Loading />
       ) : (
-        <Container className="p-0" fluid>
-          <Row className="mb-3">
-            <Col md={6}>
-              <h5
-                className="manual-heading"
-                style={{
-                  fontFamily: "Poppins",
-                  fontWeight: "700",
-                  color: "#374151",
-                }}
-              >
-                Manual Booking
-              </h5>
+        <Container fluid className="p-4 bg-light min-vh-100">
+          <Row className="mb-4 align-items-center">
+            <Col>
+              <h4 className="font-weight-bold text-dark">Create Match</h4>
             </Col>
-            <Col md={6} className="text-end">
+            <Col className="text-end">
               <Button
-                className="bg-transparent border-0"
-                onClick={() => {
-                  clearSessionStorage();
-                  navigate("/admin/booking");
-                }}
-                style={{
-                  color: "#1F41BB",
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  fontFamily: "Poppins",
-                }}
+                variant="link"
+                onClick={() => navigate("/admin/open-matches")}
+                className="text-primary font-weight-bold"
               >
                 <FaArrowLeft className="me-2" /> Back
               </Button>
             </Col>
           </Row>
-          <Row className="mx-auto bg-white shadow-sm rounded-3">
-            <Col md={8} className="p-4">
-              {/* Court Selector */}
-              <div className="mb-4">
-                <div
-                  className="tabel-title mb-2"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
-                >
-                  Select Court
-                </div>
-                <div className="d-flex flex-wrap gap-2 mb-3">
-                  {courts?.map((court) => (
-                    <button
-                      key={court._id}
-                      type="button"
-                      onClick={() => handleCourtSelect(court._id)}
-                      className="btn py-2 shadow-sm"
-                      style={{
-                        borderRadius: "12px",
-                        minWidth: "110px",
-                        transition: "all 0.2s ease-in-out",
-                        backgroundColor: selectedCourts?.includes(court._id)
-                          ? "#374151"
-                          : "#F3F4F6",
-                        color: selectedCourts?.includes(court._id)
-                          ? "#FFFFFF"
-                          : "#000000",
-                        fontWeight: selectedCourts?.includes(court._id)
-                          ? "600"
-                          : "400",
-                        border: selectedCourts?.includes(court._id)
-                          ? "2px solid #374151"
-                          : "1px solid #ccd2d9ff",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                      }}
-                    >
-                      {court.courtName}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Date Selector */}
-              <div className="calendar-strip">
-                <div
-                  className="tabel-title mb-3"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
-                >
-                  Select Date
-                  <div
-                    className="position-relative d-inline-block"
-                    ref={wrapperRef}
-                  >
-                    <span
-                      className="rounded px-1 ms-2 shadow-sm"
-                      style={{
-                        cursor: "pointer",
-                        width: "26px",
-                        height: "26px",
-                        backgroundColor: "rgb(229, 233, 236)",
-                      }}
+          <Row>
+            <Col md={6}>
+              <Card className="shadow-sm mb-4">
+                <Card.Body>
+                  <h5 className="mb-3 text-dark">Select Court</h5>
+                  <div className="d-flex flex-wrap gap-2">
+                    {courts?.map((court) => (
+                      <Button
+                        key={court._id}
+                        variant={
+                          selectedCourts.includes(court._id) ? "dark" : "light"
+                        }
+                        className="rounded-pill px-4 py-2"
+                        onClick={() => handleCourtSelect(court._id)}
+                      >
+                        {court.courtName}
+                      </Button>
+                    ))}
+                  </div>
+                </Card.Body>
+              </Card>
+              <Card className="shadow-sm mb-4">
+                <Card.Body>
+                  <h5 className="mb-3 text-dark">Select Date</h5>
+                  <div className="position-relative d-inline-block me-2">
+                    <Button
+                      variant="light"
+                      className="rounded-circle p-2"
                       onClick={() => setIsOpen(!isOpen)}
                     >
-                      <i
-                        className="bi bi-calendar2-week"
-                        style={{ width: "14px", height: "16px" }}
-                      ></i>
-                    </span>
+                      <i className="bi bi-calendar-week"></i>
+                    </Button>
                     {isOpen && (
                       <div
-                        className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
-                        style={{ top: "100%", left: "0", minWidth: "100%" }}
+                        className="position-absolute bg-white border rounded shadow p-2"
+                        ref={wrapperRef}
                       >
                         <DatePicker
                           selected={startDate}
@@ -462,187 +404,106 @@ const CreateMatch = () => {
                           minDate={new Date()}
                           maxDate={maxSelectableDate}
                           inline
-                          dropdownMode="select"
-                          calendarClassName="custom-calendar w-100 shadow-sm"
                         />
                       </div>
                     )}
                   </div>
-                </div>
-                <div className="d-flex align-items-center w-100 p-0 gap-2 mb-4">
-                  <button
-                    className="btn btn-light p-2 shadow-sm"
-                    onClick={() => scroll("left")}
-                  >
-                    <i className="bi bi-chevron-left"></i>
-                  </button>
-                  <div
-                    ref={scrollRef}
-                    className="d-flex gap-2"
-                    style={{
-                      scrollBehavior: "smooth",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      flex: 1,
-                    }}
-                  >
-                    {dates?.map((d, i) => {
-                      const isSelected = selectedDate === d.fullDate;
-                      return (
-                        <button
+                  <div className="d-flex align-items-center gap-2">
+                    <Button variant="light" onClick={() => scroll("left")}>
+                      <i className="bi bi-chevron-left"></i>
+                    </Button>
+                    <div
+                      ref={scrollRef}
+                      className="d-flex gap-2 overflow-auto flex-grow-1"
+                      style={{ scrollbarWidth: "none" }}
+                    >
+                      {dates?.map((d, i) => (
+                        <Button
                           key={i}
-                          ref={isSelected ? selectedButtonRef : null}
-                          className={`calendar-day-btn border px-3 py-2 rounded shadow-sm ${
-                            isSelected ? "text-white" : "bg-light text-dark"
-                          }`}
-                          style={{
-                            backgroundColor: isSelected ? "#374151" : undefined,
-                            border: "none",
-                            minWidth: "85px",
-                            transition: "all 0.2s ease",
-                            fontFamily: "Poppins",
-                          }}
+                          ref={
+                            selectedDate === d.fullDate
+                              ? selectedButtonRef
+                              : null
+                          }
+                          variant={
+                            selectedDate === d.fullDate ? "dark" : "light"
+                          }
+                          className="text-center px-3 py-2 rounded"
                           onClick={() => {
                             setSelectedDate(d.fullDate);
                             setSelectedDay(dayFullNames[d.day]);
                           }}
                         >
-                          <div className="text-center pb-2">
-                            <div
-                              style={{ fontSize: "14px", fontWeight: "400" }}
-                            >
-                              {d.day}
-                            </div>
-                            <div
-                              style={{ fontSize: "24px", fontWeight: "600" }}
-                            >
-                              {d.date}
-                            </div>
-                            <div
-                              style={{ fontSize: "14px", fontWeight: "400" }}
-                            >
-                              {d.month}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                          <div className="small">{d.day}</div>
+                          <div className="h5 mb-0">{d.date}</div>
+                          <div className="small">{d.month}</div>
+                        </Button>
+                      ))}
+                    </div>
+                    <Button variant="light" onClick={() => scroll("right")}>
+                      <i className="bi bi-chevron-right"></i>
+                    </Button>
                   </div>
-                  <button
-                    className="btn btn-light p-2 shadow-sm"
-                    onClick={() => scroll("right")}
-                  >
-                    <i className="bi bi-chevron-right"></i>
-                  </button>
-                </div>
-              </div>
-
-              {/* Time Selector */}
-              <div className="d-flex justify-content-between align-items-center py-2">
-                <p
-                  className="mb-3 tabel-title"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
-                >
-                  Available Slots
-                  <span className="fs-6 text-muted">(60m)</span>
-                </p>
-                <div className="form-switch d-flex align-items-center gap-2 p-0">
-                  <input
-                    className="form-check-input fs-5 mb-1"
-                    type="checkbox"
-                    role="switch"
-                    id="flexSwitchCheckDefault"
-                    style={{ boxShadow: "none" }}
-                    checked={showUnavailable}
-                    onChange={(e) => setShowUnavailable(e.target.checked)}
-                  />
-                  <label
-                    className="table-data text-dark mb-0"
-                    htmlFor="flexSwitchCheckDefault"
-                    style={{ whiteSpace: "nowrap", fontSize: "14px" }}
-                  >
-                    Show Unavailable Slots
-                  </label>
-                </div>
-              </div>
-              {activeCourtsLoading ? (
-                <DataLoading height="10vh" />
-              ) : (
-                <div className="d-flex flex-wrap gap-2 mb-4">
-                  {slotTimes?.length === 0 ? (
-                    <div
-                      className="d-flex text-danger justify-content-center align-items-center w-100"
-                      style={{ height: "10vh", fontFamily: "Poppins" }}
-                    >
+                </Card.Body>
+              </Card>
+              <Card className="shadow-sm">
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="text-dark">Available Slots (60m)</h5>
+                    <Form.Check
+                      type="switch"
+                      label="Show Unavailable"
+                      checked={showUnavailable}
+                      onChange={(e) => setShowUnavailable(e.target.checked)}
+                    />
+                  </div>
+                  {activeCourtsLoading ? (
+                    <DataLoading height="10vh" />
+                  ) : slotTimes?.length === 0 ? (
+                    <div className="text-center text-danger">
                       No slots available
                     </div>
                   ) : (
-                    <>
-                      {(() => {
-                        const filteredSlots = slotTimes
-                          ?.map((slot) => {
-                            const slotDate = new Date(selectedDate);
-                            const [hourString, period] = slot?.time
-                              ?.toLowerCase()
-                              ?.split(" ");
-                            let hour = parseInt(hourString);
-                            if (period === "pm" && hour !== 12) hour += 12;
-                            if (period === "am" && hour === 12) hour = 0;
-                            slotDate.setHours(hour, 0, 0, 0);
+                    <div className="d-flex flex-wrap gap-2">
+                      {slotTimes
+                        ?.map((slot) => {
+                          const slotDate = new Date(selectedDate);
+                          const [hourString, period] = slot.time
+                            .toLowerCase()
+                            .split(" ");
+                          let hour = parseInt(hourString);
+                          if (period === "pm" && hour !== 12) hour += 12;
+                          if (period === "am" && hour === 12) hour = 0;
+                          slotDate.setHours(hour, 0, 0, 0);
 
-                            const now = new Date();
-                            const isSameDay =
-                              slotDate.toDateString() === now.toDateString();
-                            const isPast =
-                              isSameDay && slotDate.getTime() < now.getTime();
-                            const courtSelectedSlots =
-                              selectedSlots[selectedCourts[0]];
-                            const isSelected = courtSelectedSlots?.some(
-                              (t) => t._id === slot?._id
-                            );
-                            const isBooked = slot?.status === "booked";
-                            const isAvailable =
-                              slot?.availabilityStatus === "available";
-                            const hasAmount =
-                              slot?.amount && slot?.amount !== 0;
-
-                            return {
-                              slot,
-                              isPast,
-                              isSelected,
-                              isBooked,
-                              isAvailable,
-                              hasAmount,
-                            };
-                          })
-                          .filter(
-                            ({ isPast, isBooked, isAvailable, hasAmount }) => {
-                              return (
-                                showUnavailable ||
-                                (isAvailable &&
-                                  hasAmount &&
-                                  !isBooked &&
-                                  !isPast)
-                              );
-                            }
+                          const now = new Date();
+                          const isSameDay =
+                            slotDate.toDateString() === now.toDateString();
+                          const isPast =
+                            isSameDay && slotDate.getTime() < now.getTime();
+                          const isSelected = getSelectedSlotsList().some(
+                            (t) => t._id === slot._id
                           );
+                          const isBooked = slot.status === "booked";
+                          const isAvailable =
+                            slot.availabilityStatus === "available";
+                          const hasAmount = slot.amount && slot.amount !== 0;
 
-                        if (filteredSlots?.length === 0) {
-                          return (
-                            <div
-                              className="d-flex text-danger justify-content-center align-items-center w-100"
-                              style={{ height: "10vh", fontFamily: "Poppins" }}
-                            >
-                              No slots available
-                            </div>
-                          );
-                        }
-
-                        return filteredSlots?.map(
+                          return {
+                            slot,
+                            isPast,
+                            isSelected,
+                            isBooked,
+                            isAvailable,
+                            hasAmount,
+                          };
+                        })
+                        ?.filter(
+                          ({ isPast, isBooked, isAvailable, hasAmount }) =>
+                            showUnavailable ||
+                            (isAvailable && hasAmount && !isBooked && !isPast)
+                        )
+                        ?.map(
                           (
                             {
                               slot,
@@ -659,327 +520,277 @@ const CreateMatch = () => {
                               tooltipText = "Amount not available";
                             else if (isBooked) tooltipText = "Booked";
                             else if (isPast)
-                              tooltipText = "Cannot book slot in past hours";
+                              tooltipText = "Cannot book past hours";
                             else if (!isAvailable) tooltipText = "Unavailable";
                             else tooltipText = "Book Now";
 
-                            const buttonEl = (
-                              <span className="d-inline-block">
-                                <button
-                                  className={`btn border-0 rounded-pill table-data px-4 py-1 shadow-sm ${
-                                    isBooked
-                                      ? "bg-danger text-white"
-                                      : isPast
-                                      ? "bg-secondary-subtle"
-                                      : !isAvailable || !hasAmount
-                                      ? "bg-warning"
-                                      : ""
-                                  }`}
-                                  onClick={() => toggleTime(slot)}
-                                  disabled={
-                                    isPast ||
-                                    isBooked ||
-                                    !hasAmount ||
-                                    !isAvailable
-                                  }
-                                  style={{
-                                    backgroundColor: isSelected
-                                      ? "#374151"
-                                      : "#FAFBFF",
-                                    color: isSelected ? "white" : "#000000",
-                                    cursor: !hasAmount
-                                      ? "not-allowed"
-                                      : "pointer",
-                                    fontFamily: "Poppins",
-                                    fontSize: "14px",
-                                    transition: "all 0.2s ease",
-                                  }}
-                                >
-                                  {isBooked ? "Booked" : slot?.time}
-                                </button>
-                              </span>
+                            const button = (
+                              <Button
+                                variant={
+                                  isSelected
+                                    ? "dark"
+                                    : isBooked
+                                    ? "danger"
+                                    : isPast
+                                    ? "secondary"
+                                    : !isAvailable || !hasAmount
+                                    ? "warning"
+                                    : "light"
+                                }
+                                className="rounded-pill px-3 py-1"
+                                onClick={() => toggleTime(slot)}
+                                disabled={
+                                  isPast ||
+                                  isBooked ||
+                                  !hasAmount ||
+                                  !isAvailable
+                                }
+                              >
+                                {isBooked ? "Booked" : slot.time}
+                              </Button>
                             );
 
-                            if (isSelected || isBooked) {
-                              return <div key={i}>{buttonEl}</div>;
-                            }
-
-                            return (
+                            return isSelected || isBooked ? (
+                              <div key={i}>{button}</div>
+                            ) : (
                               <OverlayTrigger
                                 key={i}
                                 placement="top"
                                 overlay={<Tooltip>{tooltipText}</Tooltip>}
                               >
-                                {buttonEl}
+                                {button}
                               </OverlayTrigger>
                             );
                           }
-                        );
-                      })()}
-                    </>
-                  )}
-                </div>
-              )}
-            </Col>
-            <Col md={4} className="py-4 px-3">
-              <div
-                className="shadow rounded-3 p-3 bg-white"
-                style={{ minHeight: "50vh" }}
-              >
-                <div
-                  className="tabel-title d-flex justify-content-between align-items-center mb-3"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
-                >
-                  Selected Bookings
-                  {Object.entries(selectedSlots)?.length > 0 && (
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      className="rounded-pill"
-                      onClick={clearSessionStorage}
-                      style={{ fontSize: "12px", padding: "4px 10px" }}
-                    >
-                      Clear All
-                    </Button>
-                  )}
-                </div>
-                <div
-                  style={{
-                    height: "26vh",
-                    overflowY: "auto",
-                    fontFamily: "Poppins",
-                    fontSize: "14px",
-                  }}
-                >
-                  {Object.entries(selectedSlots)?.length === 0 ? (
-                    <div
-                      className="d-flex text-muted justify-content-center align-items-center"
-                      style={{ height: "26vh" }}
-                    >
-                      No selections yet
+                        )}
                     </div>
-                  ) : (
-                    <ListGroup variant="flush">
-                      {Object.entries(selectedSlots).map(([courtId, slots]) => {
-                        const court = courts.find((c) => c?._id === courtId);
-                        return (
-                          <React.Fragment key={courtId}>
-                            <ListGroup.Item
-                              variant="secondary"
-                              className="fw-bold fs-6 py-1 bg-light rounded-top"
-                              style={{ fontFamily: "Poppins" }}
-                            >
-                              <div className="d-flex justify-content-between">
-                                <span>{court?.courtName}</span>
-                                <span>
-                                  {format(
-                                    new Date(selectedDate),
-                                    "EEE, dd/MM/yyyy"
-                                  )}
-                                </span>
-                              </div>
+                  )}
+                </Card.Body>
+              </Card>
+              <Row className="my-4">
+                <Card className="shadow-sm">
+                  <Card.Body>
+                    <h5 className="mb-3 text-dark">Booking Summary</h5>
+                    {selectedCourts.length === 0 ? (
+                      <p className="text-muted">No court selected.</p>
+                    ) : (
+                      <>
+                        <p>
+                          <strong>Court:</strong> {getSelectedCourtName()}
+                        </p>
+                        <p>
+                          <strong>Selected Slots:</strong>
+                        </p>
+                        <ListGroup className="mb-3">
+                          {getSelectedSlotsList()?.map((slot, index) => (
+                            <ListGroup.Item key={index}>
+                              {slot.time} - Amount: ${slot.amount || 0}
                             </ListGroup.Item>
-                            {slots?.map((slot) => (
-                              <ListGroup.Item
-                                key={slot?._id}
-                                className="d-flex justify-content-between align-items-center py-1 px-2 fs-6"
-                                style={{
-                                  fontFamily: "Poppins",
-                                  transition: "all 0.2s ease",
-                                }}
-                              >
-                                <span style={{ fontSize: "14px" }}>
-                                  {slot?.time}
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  ₹{slot?.amount}
-                                </span>
-                                <Button
-                                  variant="outline-danger"
-                                  size="sm"
-                                  className="px-1 py-0 border-0"
-                                  onClick={() => removeSlot(courtId, slot?._id)}
-                                >
-                                  <FaTrash size={12} />
-                                </Button>
-                              </ListGroup.Item>
-                            ))}
-                          </React.Fragment>
-                        );
-                      })}
-                    </ListGroup>
-                  )}
-                </div>
-                {Object.values(selectedSlots).flat().length > 0 && (
-                  <div className="mt-2 p-2 rounded shadow-sm bg-light">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <span
-                        style={{
-                          fontWeight: "600",
-                          fontFamily: "Poppins",
-                          fontSize: "15px",
-                        }}
-                      >
-                        Total Amount
-                      </span>
-                      <span
-                        style={{
-                          fontWeight: "700",
-                          fontSize: "16px",
-                          color: "#1F41BB",
-                        }}
-                      >
-                        ₹
-                        {Object.values(selectedSlots)
-                          .flat()
-                          .reduce((acc, s) => acc + (s.amount || 0), 0)}
-                      </span>
-                      <span style={{ fontSize: "14px", color: "#374151" }}>
-                        {Object.values(selectedSlots).flat().length} Slots
-                      </span>
-                    </div>
-                    <div className="mt-2">
-                      <p
-                        className="mb-2 tabel-title"
-                        style={{
-                          fontFamily: "Poppins",
-                          fontWeight: "600",
-                          color: "#374151",
-                        }}
-                      >
-                        User Information
-                      </p>
-                      <div className="d-flex gap-3 mb-3">
-                        <input
-                          type="text"
-                          className="form-control rounded-3 py-2 shadow-sm"
-                          placeholder="Name"
-                          style={{
-                            backgroundColor: "#CBD6FF7A",
-                            fontFamily: "Poppins",
-                            fontSize: "14px",
-                          }}
-                          value={name}
-                          onChange={(e) => {
-                            let value = e.target.value;
+                          ))}
+                        </ListGroup>
+                        <p>
+                          <strong>Total Amount:</strong> ${calculateTotal()}
+                        </p>
+                      </>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Row>
 
-                            // Remove anything that's not a-z or space
-                            value = value.replace(/[^a-zA-Z\s]/g, "");
-
-                            // Capitalize first letter
-                            if (value.length > 0) {
-                              value =
-                                value.charAt(0).toUpperCase() + value.slice(1);
-                            }
-
-                            setName(value);
-                          }}
-                        />
-                        <input
-                          type="tel"
-                          className="form-control rounded-3 py-2 shadow-sm"
-                          style={{
-                            backgroundColor: "#CBD6FF7A",
-                            fontFamily: "Poppins",
-                            fontSize: "14px",
-                          }}
-                          value={phone ? `+91 ${phone}` : ""}
-                          placeholder="+91 Phone Number"
-                          onChange={(e) => {
-                            const value = e.target.value
-                              .replace("+91", "")
-                              .replace(/\s/g, "");
-                            if (
-                              value === "" ||
-                              /^[6-9][0-9]{0,9}$/.test(value)
-                            ) {
-                              setPhone(value);
-                            }
-                          }}
-                          maxLength={14}
-                          onKeyDown={(e) => {
-                            const allowedKeys = [
-                              "Backspace",
-                              "Tab",
-                              "ArrowLeft",
-                              "ArrowRight",
-                              "Delete",
-                            ];
-                            if (
-                              !allowedKeys.includes(e.key) &&
-                              !/^\d$/.test(e.key)
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="d-flex justify-content-end gap-3 align-items-end">
-                        <button
-                          className="btn btn-secondary rounded-pill p-2 shadow-sm"
-                          style={{
-                            minWidth: "120px",
-                            fontWeight: "500",
-                            fontFamily: "Poppins",
-                            fontSize: "14px",
-                          }}
-                          onClick={() => {
-                            setName("");
-                            setPhone("");
-                            setSelectedSlots({});
-                            setSelectedCourts([]);
-                            clearSessionStorage();
-                            setShowSuccess(false);
-                          }}
+              <Button
+                variant="success"
+                size="lg"
+                className="w-100"
+                onClick={handleConfirm}
+                disabled={manualBookingLoading}
+              >
+                {manualBookingLoading ? <ButtonLoading /> : "Confirm Booking"}
+              </Button>
+            </Col>
+            <Col md={6}>
+              <Card className="shadow-sm mb-4">
+                <Card.Body>
+                  <h5 className="mb-4 text-dark">Match Details</h5>
+                  <Form>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Skill Level</Form.Label>
+                      <Form.Select
+                        value={skillLevel}
+                        onChange={(e) => setSkillLevel(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="Professional">Professional</option>
+                      </Form.Select>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Racket Sport Played Before</Form.Label>
+                      <Form.Select
+                        value={racketSport}
+                        onChange={(e) => setRacketSport(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        <option value="Tennis">Tennis</option>
+                        <option value="Badminton">Badminton</option>
+                        <option value="Squash">Squash</option>
+                        <option value="Others">Others</option>
+                      </Form.Select>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        Received or Receiving Padel Training?
+                      </Form.Label>
+                      <Form.Select
+                        value={padelTraining}
+                        onChange={(e) => setPadelTraining(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        <option value="No">No</option>
+                        <option value="InPast">Yes, In Past</option>
+                        <option value="Currently">Yes, Currently</option>
+                      </Form.Select>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Age Group</Form.Label>
+                      <Form.Select
+                        value={ageGroup}
+                        onChange={(e) => setAgeGroup(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        <option value="Between 18 and 30 years">
+                          Between 18 and 30 years
+                        </option>
+                        <option value="31 to 40 years">31 to 40 years</option>
+                        <option value="41 to 50 years">41 to 50 years</option>
+                        <option value="Over 50">Over 50</option>
+                      </Form.Select>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>On the Volley?</Form.Label>
+                      <Form.Select
+                        value={volleySkill}
+                        onChange={(e) => setVolleySkill(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        <option value="I hardly got to the net">
+                          I hardly got to the net
+                        </option>
+                        <option value="I don’t feel safe at the net, I make too many mistake">
+                          I don’t feel safe at the net, I make too many mistakes
+                        </option>
+                        <option value="I can volley forehand and backhand with some difficulties">
+                          I can volley forehand and backhand with some
+                          difficulties
+                        </option>
+                        <option value="I have good positioning at the net and I volley confidently">
+                          I have good positioning at the net and I volley
+                          confidently
+                        </option>
+                        <option value="I don’t know">I don’t know</option>
+                      </Form.Select>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>On the Rebounds...</Form.Label>
+                      <Form.Select
+                        value={reboundSkill}
+                        onChange={(e) => setReboundSkill(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        <option value="I don’t Know how to read the rebounds, I hit before it rebounds">
+                          I don’t know how to read the rebounds, I hit before it
+                          rebounds
+                        </option>
+                        <option value="I try, with difficulty, to hit the rebounds on the back wall">
+                          I try, with difficulty, to hit the rebounds on the
+                          back wall
+                        </option>
+                        <option value="I return rebounds on the back wall, it is difficulty for me to return the double wall ones">
+                          I return rebounds on the back wall, it is difficult
+                          for me to return the double wall ones
+                        </option>
+                        <option value="I return double- wall rebounds and reach for quick rebounds">
+                          I return double-wall rebounds and reach for quick
+                          rebounds
+                        </option>
+                        <option value="I perform powerful wall descent shots with forehand and backhand">
+                          I perform powerful wall descent shots with forehand
+                          and backhand
+                        </option>
+                        <option value="I don’t know">I don’t know</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Form>
+                </Card.Body>
+              </Card>
+              <Card className="shadow-sm">
+                <Card.Body>
+                  <h5 className="mb-3 text-dark">Add Players (Max 4)</h5>
+                  <Button
+                    variant="primary"
+                    className="mb-3"
+                    onClick={() => setShowUserModal(true)}
+                    disabled={users.length >= 4}
+                  >
+                    <FaPlus className="me-2" /> Add Player
+                  </Button>
+                  <ListGroup>
+                    {users?.map((user, index) => (
+                      <ListGroup.Item
+                        key={index}
+                        className="d-flex justify-content-between align-items-center"
+                      >
+                        {user.name} - {user.phone}
+                        <Button
+                          variant="link"
+                          className="text-danger"
+                          onClick={() => removeUser(index)}
                         >
-                          Cancel
-                        </button>
-                        <button
-                          className="btn text-white rounded-pill p-2 shadow-sm"
-                          style={{
-                            minWidth: "120px",
-                            fontWeight: "500",
-                            backgroundColor: "#22c55e",
-                            fontFamily: "Poppins",
-                            fontSize: "14px",
-                          }}
-                          onClick={handleConfirm}
-                        >
-                          {manualBookingLoading ? (
-                            <ButtonLoading color="white" size={12} />
-                          ) : (
-                            "Confirm"
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+                          <FaTrash />
+                        </Button>
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                </Card.Body>
+              </Card>
             </Col>
           </Row>
-          <BookingSuccessModal
-            show={showSuccess}
-            handleClose={() => {
-              setShowSuccess(false);
-              clearSessionStorage();
-            }}
-            openDetails={() => {
-              setShowSuccess(false);
-              navigate("/admin/booking");
-            }}
-          />
         </Container>
       )}
+
+      {/* Modal for adding user */}
+      <Modal show={showUserModal} onHide={() => setShowUserModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Player</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Name</Form.Label>
+            <Form.Control
+              type="text"
+              value={newUserName}
+              onChange={(e) => setNewUserName(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Phone Number</Form.Label>
+            <Form.Control
+              type="tel"
+              value={newUserPhone}
+              onChange={(e) => setNewUserPhone(e.target.value)}
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowUserModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={addUser}>
+            Add
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };
