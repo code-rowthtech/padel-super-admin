@@ -17,7 +17,7 @@ import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/c
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { Avatar } from '@mui/material';
 import { getLogo, getUserProfile } from '../../../redux/user/auth/authThunk';
-import { isUserAuthenticated } from '../../../helpers/api/apiCore';
+import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/apiCore';
 import { MdWatchLater } from "react-icons/md";
 import { PiImagesSquareFill } from "react-icons/pi";
 
@@ -38,6 +38,7 @@ const Home = () => {
     const getReviewData = store?.userClub?.getReviewData?.data
     const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
     const [loadedImages, setLoadedImages] = useState({});
+    let token = isUserAuthenticated()
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
@@ -49,7 +50,9 @@ const Home = () => {
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }))
-        dispatch(getUserProfile())
+        if (token) {
+            dispatch(getUserProfile())
+        }
     }, [])
 
     useEffect(() => {

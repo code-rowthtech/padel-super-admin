@@ -276,9 +276,10 @@ const ViewMatch = ({ className = "" }) => {
                             </div>
                             <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>{clubData?.clubName || "Unknown Club"}</p>
                             <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
-                                {clubData?.address || "Unknown Address"}
+                                {clubData?.address || "Unknown Address"}{clubData?.zipCode}
                             </p>
                         </div>
+                        {console.log({clubData})}
 
                         <h6 className="border-top p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
                             Booking Summary
