@@ -8,7 +8,7 @@ export const GET_MATCH_API = "";
 export const API = "";
 export const GET_CLUB_API = "/api/club/getAllRegisteredCourts";
 export const GET_SLOT_API = "/api/slot/getAllActiveCourts";
-export const GET_MATCHES_SLOT_API = "/api/slot/getAvailableSlot"
+export const GET_MATCHES_SLOT_API = "/api/slot/getAvailableSlot";
 export const CREATE_BOOKING_API = "/api/booking/manualBookingByOwner";
 export const GET_BOOKING_API = "/api/booking/getUserBookings";
 export const BOOKING_STATUS_CHANGE = "/api/booking/updateBookingStatus";
@@ -73,3 +73,4 @@ export const UPDATE_LOGO = "/api/logo/updateLogo";
 //-----------------------------------------------O_P_E_N_M_A_T_C_H_E_S-----------------------------------//
 export const GET_OPEN_MATCHES = "/api/openmatch/getAllOpenMatches";
 export const GET_OPEN_MATCH_BY_ID = "/api/openmatch/findByOpenMatchId";
+export const CREATE_OPEN_MATCH = "/api/openmatch/createOpenMatch ";

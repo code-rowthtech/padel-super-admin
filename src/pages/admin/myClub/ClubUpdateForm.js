@@ -133,7 +133,7 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
       >
         {hours.map((h) => (
           <option key={h} value={h}>
-            {String(h).padStart(2, "0")}
+            {`${String(h).padStart(2, "0")}:00`}
           </option>
         ))}
       </Form.Select>
