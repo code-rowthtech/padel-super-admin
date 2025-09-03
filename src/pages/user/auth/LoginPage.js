@@ -52,12 +52,12 @@ const LoginPage = () => {
 
 
                                 <Form.Group className="mb-3" controlId="formPhone">
-                                    <Form.Label className="" style={{fontSize:"14px",fontWeight:"500",fontFamily:"Poppins"}}>Phone Number</Form.Label>
+                                    <Form.Label className="" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>Phone Number</Form.Label>
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
                                         className=" form-control py-3"
-                                        style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364",boxShadow: '0px 4px 10px 0px #00000040' }}
+                                        style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 4px 10px 0px #00000040' }}
                                         value={phone}
                                         minLength={10}
                                         maxLength={10}
@@ -72,11 +72,11 @@ const LoginPage = () => {
                                 </Form.Group>
 
                                 <Button
-                                  
+
                                     type="submit"
-                                    className="w-100 text-white  border-0 py-3 "
+                                    className="w-100 text-white  border-0 py-3 rounded-pill "
                                     disabled={userAuthLoading}
-                                    style={{backgroundColor: '#4CAF50', borderRadius: "15px", fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364",boxShadow: '0px 4px 10px 0px #00000040'}}
+                                    style={{ backgroundColor: '#4CAF50', fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 4px 10px 0px #00000040' }}
 
                                 >
                                     {userAuthLoading ? <ButtonLoading /> : 'Get OTP'}
@@ -93,16 +93,20 @@ const LoginPage = () => {
                     </Col>
 
                     {/* Right Image */}
-                    <Col
-                        md={6}
-                        className="d-none d-md-block"
-                        style={{
-                            backgroundImage: `url(${authImg})`,
-                            backgroundSize: 'contain',
-                            backgroundPosition: 'center',
-                            backgroundRepeat:"no-repeat"
-                        }}
-                    />
+                    <Col md={6} className="d-none d-md-flex p-0 align-items-center justify-content-center">
+                        <img
+                            src={authImg}
+                            alt="Auth"
+                            className="img-fluid"
+                            style={{
+                                width: "100%",
+                                height: "100vh",
+                                // objectFit: "contain",   // show full image, no cropping
+                            }}
+                        />
+                    </Col>
+
+
                 </Row>
             </Container>
         </div>

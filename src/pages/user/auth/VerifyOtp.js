@@ -80,21 +80,42 @@ const VerifyOTP = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: 30,
+          padding: "30px 0px",
         }}
       >
-        <div style={{ width: '100%', maxWidth: 390, textAlign: 'center' }}>
-          <h3 style={{ fontWeight: 'bold', marginBottom: 10 }}>WELCOME BACK</h3>
-          <div style={{ marginBottom: 25, color: '#666' }}>
+        <div style={{ width: '100%', maxWidth: 390, textAlign: 'center', position: "relative" }}>
+          <h2 className="welcome-heading mb-2">WELCOME BACK</h2>
+          <div style={{ marginBottom: 30, color: '#666' }}>
             A verification code has been sent to <strong>+91*****{phone?.slice(5)}</strong>
           </div>
-          {showAlert && <Alert variant="danger">{error}</Alert>}
+
+          {/* Error Alert positioned absolutely */}
+          {showAlert && (
+            <Alert
+              variant="danger"
+              style={{
+                position: "absolute",
+                top: "-40px",   // adjust as needed
+                left: 0,
+                right: 0,
+                margin: "auto",
+                width: "100%",
+                maxWidth: 390,
+              }}
+            >
+              {error}
+            </Alert>
+          )}
+
+          {/* OTP display (info alert) */}
           {timer > 0 && store?.otp?.response && (
             <Alert variant="info" className="py-1">
               Your OTP is: {store?.otp?.response}
             </Alert>
           )}
-          <div style={{ display: 'flex', justifyContent: 'space-evenly', gap: 6 }}>
+
+          {/* OTP Inputs */}
+          <div className='mb-3' style={{ display: 'flex', justifyContent: 'space-evenly', gap: 6 }}>
             {otp.map((digit, index) => (
               <Form.Control
                 key={index}
@@ -110,25 +131,35 @@ const VerifyOTP = () => {
                   fontSize: 24,
                   textAlign: 'center',
                   borderRadius: '4px',
-                  boxShadow: ' 0px 1px 6.5px 0px #0000001F inset',
-
+                  boxShadow: '0px 1px 6.5px 0px #0000001F inset',
                 }}
               />
             ))}
           </div>
 
-          <div style={{ marginTop: 15, marginBottom: 20, color: '#555' }}>
+          {/* Timer */}
+          <div style={{ marginTop: 20, marginBottom: 20, color: '#555', fontWeight: "500" }}>
             {timer !== 0 && <>00:{String(timer).padStart(2, '0')} Sec</>}
           </div>
 
+          {/* Verify Button */}
           <Button
             onClick={handleSubmit}
-            style={{ backgroundColor: '#4CAF50', borderRadius: "15px", fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364" }}
-            className="w-100 text-white  border-0 py-3 "
+            style={{
+              backgroundColor: '#4CAF50',
+              fontSize: "16px",
+              fontWeight: "600",
+              fontFamily: "Poppins",
+              color: "#636364",
+              boxShadow: ' 0px 4px 10px 0px #1A237E40',
+
+            }}
+            className="w-100 text-white rounded-pill border-0 py-3"
           >
             {userAuthLoading ? <ButtonLoading /> : 'Verification Code'}
           </Button>
 
+          {/* Re-send */}
           {timer === 0 && (
             <div style={{ marginTop: 15 }}>
               <span style={{ color: '#777' }}>Didn’t receive code? </span>
@@ -144,19 +175,22 @@ const VerifyOTP = () => {
             </div>
           )}
         </div>
+
       </Col>
 
       {/* Right Panel */}
-      <Col
-        md={6}
-        className="d-none d-md-block"
-        style={{
-          backgroundImage: `url(${authImg})`,
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat:"no-repeat"
-        }}
-      />
+      <Col md={6} className="d-none d-md-flex p-0 align-items-center justify-content-center">
+        <img
+          src={authImg}
+          alt="Auth"
+          className="img-fluid"
+          style={{
+            width: "100%",
+            height: "100vh",
+            // objectFit: "contain",   // show full image, no cropping
+          }}
+        />
+      </Col>
     </Row>
   );
 };

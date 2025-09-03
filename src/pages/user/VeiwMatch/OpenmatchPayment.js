@@ -34,8 +34,6 @@ const OpenmatchPayment = (props) => {
     const playerIds = userPlayersData?.map(player => player._id) || [];
     const players = User?._id ? [...playerIds, User._id] : playerIds;
 
-    console.log({ selectedCourts });
-
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
