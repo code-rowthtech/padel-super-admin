@@ -13,7 +13,6 @@ const Profile = () => {
     const dispatch = useDispatch();
     const { user, userLoading, userError } = useSelector((state) => state?.userAuth);
     const userData = useSelector((state)=>state?.userAuth)
-    console.log({ userData });
     const formatDateForInput = (isoDate) => {
         if (!isoDate) return "";
         const date = new Date(isoDate);

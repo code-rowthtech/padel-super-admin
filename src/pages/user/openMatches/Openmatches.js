@@ -320,7 +320,6 @@ const Openmatches = () => {
                                     <div key={index} className="card border-0 shadow-sm mb-3 rounded-2" style={{ backgroundColor: "#CBD6FF1A" }}>
                                         <div className="card-body px-4 py-3 d-flex justify-content-between flex-wrap">
                                             <div>
-                                                {console.log({ match })}
                                                 <p className="mb-1" style={{ fontSize: "18px", fontWeight: "600" }}>
                                                     {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
                                                     <span className="fw-normal text-muted ms-3">

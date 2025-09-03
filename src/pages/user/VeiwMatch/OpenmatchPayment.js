@@ -77,7 +77,6 @@ const OpenmatchPayment = (props) => {
         };
 
         dispatch(createMatches(formattedData)).unwrap().then((res) => {
-            console.log({ res });
             if (!res?.match?.clubId) return;
             try {
                 setIsLoading(true);
@@ -736,7 +735,6 @@ const OpenmatchPayment = (props) => {
                                 <div>No courts selected</div>
                             )}
                         </div>
-                        {console.log({ selectedCourts })}
                         <div className="border-top pt-2 mb-3 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>
                                 Total to pay

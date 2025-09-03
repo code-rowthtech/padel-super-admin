@@ -45,7 +45,6 @@ const ViewMatch = ({ className = "" }) => {
         });
     };
     const renderPlayerSlot = (player, index, isRemovable) => {
-        console.log({ player });
         if (player) {
             const user = player.userId;
             return (

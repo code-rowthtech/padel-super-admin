@@ -14,7 +14,6 @@ import { PiRanking } from "react-icons/pi";
 
 const Navbar = () => {
     const dispatch = useDispatch();
-
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [userData, setUserData] = useState(null);
@@ -22,7 +21,6 @@ const Navbar = () => {
     const User = useSelector((state) => state?.userAuth)
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
     let token = isUserAuthenticated()
-    console.log({User});
     const logo = JSON.parse(localStorage.getItem("logo"));
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
