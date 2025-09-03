@@ -319,6 +319,7 @@ const Images = ({ formData, onNext, onBack, updateFormData }) => {
                           borderRadius: "8px",
                           border: "1px solid #E5E7EB",
                         }}
+                        loading="lazy"
                       />
                       <button
                         onClick={(e) => {

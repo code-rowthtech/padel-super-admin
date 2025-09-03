@@ -743,6 +743,7 @@ const ClubUpdateForm = () => {
                         height: "80px",
                         objectFit: "cover",
                       }}
+                      loading="lazy"
                     />
                     <button
                       onClick={(e) => {

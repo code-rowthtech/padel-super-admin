@@ -156,6 +156,7 @@ const OpenMatches = () => {
                             zIndex: match?.players?.length - idx,
                             position: "relative",
                           }}
+                          loading="lazy"
                         />
                       ) : (
                         <div

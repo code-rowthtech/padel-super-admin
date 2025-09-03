@@ -180,7 +180,7 @@ const MatchDetails = () => {
             >
               <div className="d-flex justify-content-between align-items-start mb-3">
                 <div className="d-flex align-items-center gap-3">
-                  <img src={padal} alt="padel" width={32} />
+                  <img src={padal} alt="padel" width={32} loading="lazy" />
                   <strong>
                     {/* {getMatchDetails?.skillDetails?.[0] || "PADEL"} */}
                     PADEL
