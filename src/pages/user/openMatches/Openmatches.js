@@ -13,6 +13,7 @@ import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { getReviewClub } from "../../../redux/user/club/thunk";
 import "react-datepicker/dist/react-datepicker.css";
 import { player } from "../../../assets/files";
+import UpdatePlayers from "../VeiwMatch/UpdatePlayers";
 
 const slotTime = [
     '4:00 AM', '5:00 AM', '6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -47,7 +48,8 @@ const Openmatches = () => {
     const matchLoading = useSelector((state) => state.userMatches?.usersLoading);
     const reviewData = useSelector((state) => state.userClub?.getReviewData?.data);
     const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
-
+    const [showModal, setShowModal] = useState(false);
+    const [matchId,setMatchId] = useState(null)
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
             setIsOpen(false);
@@ -69,7 +71,7 @@ const Openmatches = () => {
     useEffect(() => {
         const payload = {
             matchDate: selectedDate?.fullDate,
-            ...(selectedTime && { matchTime: normalizeTime(selectedTime) }), // Normalize time for payload
+            ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
             ...(selectedLevel && { skillLevel: selectedLevel }),
         };
         dispatch(getMatchesUser(payload));
@@ -257,8 +259,8 @@ const Openmatches = () => {
                     </div>
 
                     <div className="row   mb-4 mx-auto">
-                        {slotTime.map((time, idx) => (
-                            <div className="col-2 d-flex justify-content-center align-items-start"  key={idx}>
+                        {slotTime?.map((time, idx) => (
+                            <div className="col-2 d-flex justify-content-center align-items-start" key={idx}>
                                 <button
                                     className={`btn border-0 rounded-pill  ${selectedTime === time ? 'text-white' : ''}`}
                                     onClick={() => toggleTime(time)}
@@ -353,6 +355,11 @@ const Openmatches = () => {
                                                                             fontSize: "24px",
                                                                             fontWeight: "400",
                                                                             marginRight: "10px",
+                                                                            cursor:"pointer"
+                                                                        }}
+                                                                        onClick={() => {
+                                                                            setShowModal(true);
+                                                                            setMatchId(match?._id);
                                                                         }}
                                                                     >
                                                                         <span className="d-flex align-items-center mb-1">+</span>
@@ -400,7 +407,9 @@ const Openmatches = () => {
                                                     </div>
                                                     <button
                                                         className="btn rounded-pill px-4 text-white py-0 px-1"
-                                                        onClick={() => navigate('/view-match', { state: { match } })}
+                                                        onClick={() => {
+                                                            navigate('/view-match', { state: { match } });
+                                                        }}
                                                         style={{ backgroundColor: "#3DBE64", fontSize: "12px", fontWeight: "500" }}
                                                         aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
                                                     >
@@ -542,6 +551,7 @@ const Openmatches = () => {
                     </div>
                 </div>
             </div>
+            <UpdatePlayers showModal={showModal} matchId={matchId} setShowModal={setShowModal} selectedDate={selectedDate} selectedLevel={selectedLevel} selectedTime={selectedTime} />
         </div>
     );
 };

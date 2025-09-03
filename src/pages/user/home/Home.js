@@ -7,7 +7,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import StarIcon from '@mui/icons-material/Star';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { FaStar, FaStarHalfAlt } from "react-icons/fa";
+import { FaArrowRight, FaStar, FaStarHalfAlt } from "react-icons/fa";
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import { Link, useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/club/thunk';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { Avatar } from '@mui/material';
-import { getLogo } from '../../../redux/user/auth/authThunk';
+import { getLogo, getUserProfile } from '../../../redux/user/auth/authThunk';
 import { isUserAuthenticated } from '../../../helpers/api/apiCore';
 import { MdWatchLater } from "react-icons/md";
 import { PiImagesSquareFill } from "react-icons/pi";
@@ -50,6 +50,7 @@ const Home = () => {
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }))
+        dispatch(getUserProfile())
     }, [])
 
     useEffect(() => {
@@ -68,7 +69,7 @@ const Home = () => {
         if (!dateString) return "N/A";
         const date = new Date(dateString);
         const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0"); 
+        const month = String(date.getMonth() + 1).padStart(2, "0");
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     };
@@ -159,9 +160,9 @@ const Home = () => {
                                             <Link
                                                 to="/open-matches"
                                                 className="text-decoration-none custom-title  d-inline-flex align-items-center"
-                                                style={{ color: "#7CBA3D" }}
+                                                style={{ color: "#7CBA3D", fontWeight: "500" }}
                                             >
-                                                View all <i className="bi bi-arrow-right fs-5 ms-2"></i>
+                                                View all <FaArrowRight className='ms-2' />
                                             </Link>
 
                                         </div>
@@ -182,8 +183,8 @@ const Home = () => {
                 <div className="row g-4">
 
                     {/* Left Column: About + Contact Info */}
-                    <div className="col-lg-8">
-                        <div className="mb-3 d-flex align-items-center gap-3">
+                    <div className="col-lg-8 ">
+                        <div className="mb-4 d-flex align-items-center gap-3">
                             <div className=''>
                                 <Avatar>
                                     {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
@@ -191,8 +192,8 @@ const Home = () => {
                             </div>
                             <div>
                                 <h5 className="mb-0">{clubData?.clubName || "Club Name"}</h5>
-                                <div className="d-flex align-items-center">
-                                    <div className="text-success">
+                                <div className="d-flex align-items-center justify-content-center">
+                                    <p className="text-success">
                                         {[...Array(5)].map((_, i) => {
                                             const rating = getReviewData?.averageRating || 0;
                                             if (i < Math.floor(rating)) {
@@ -203,10 +204,10 @@ const Home = () => {
                                                 return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
                                             }
                                         })}
-                                    </div>
-                                    <span className="ms-2 " style={{ fontSize: '17.5px', color: '#374151', fontWeight: "500", fontFamily: "Poppins" }}>
+                                    </p>
+                                    <p className="ms-2 mt-2 " style={{ fontSize: '17.5px', color: '#374151', fontWeight: "500", fontFamily: "Poppins" }}>
                                         {getReviewData?.averageRating}
-                                    </span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -221,9 +222,54 @@ const Home = () => {
                         </p>
                         <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400", margin: "0px" }}>Join the Padel community group on WhatsApp </p>
                         <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
-                        <p className='mt-4'><a className='mt-4' href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
+                        <p className='mt-4 '><a className='mt-4' href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
 
+                        {/* Tab Buttons */}
+                        <div className="d-flex gap-4 mt-5  mb-3 flex-wrap">
+                            {/* Direction */}
+                            <div
+                                onClick={() => setActiveTab('direction')}
+                                className={`icon-button text-center text-decoration-none  border-0`}
+                            >
+                                <div className={`icon-circle mx-auto ${activeTab === 'direction' ? 'active' : ''}`} >
+                                    <DirectionsIcon size={20} />
+                                </div>
+                                <div className="label  mt-2 ">Direction</div>
+                            </div>
 
+                            {/* Reviews */}
+                            <div
+                                onClick={() => setActiveTab('reviews')}
+                                className="icon-button text-center text-decoration-none  border-0"
+                            >
+                                <div className={`icon-circle mx-auto ${activeTab === 'reviews' ? 'active' : ''}`}>
+                                    <StarOutlineIcon />
+                                </div>
+                                <div className="label  mt-2 ">Reviews</div>
+                            </div>
+
+                            {/* Photos */}
+                            <div
+                                onClick={() => setActiveTab('photos')}
+                                className="icon-button text-center text-decoration-none  border-0"
+                            >
+                                <div className={`icon-circle mx-auto ${activeTab === 'photos' ? 'active' : ''}`}>
+                                    <PiImagesSquareFill size={30} />
+                                </div>
+                                <div className="label  mt-2 ">Photos</div>
+                            </div>
+
+                            {/* Call */}
+                            <div
+
+                                className="icon-button text-center text-decoration-none  border-0"
+                            >
+                                <div className={`icon-circle mx-auto ${activeTab === 'photos' ? 'active' : ''}`}>
+                                    <PhoneIcon />
+                                </div>
+                                <div className="label  mt-2">Call</div>
+                            </div>
+                        </div>
 
                     </div>
 
@@ -240,7 +286,7 @@ const Home = () => {
                                 <div
                                     key={idx}
                                     className={`d-flex justify-content-between open-now-time mb-3 `}
-                                    style={{ fontWeight: idx === adjustedIndex ? "650" : '500' }}
+                                    style={{ fontWeight: idx === adjustedIndex ? "600" : '400' }}
                                 >
                                     <span>{day?.day}</span>
                                     <span>{day?.time}</span>
@@ -258,176 +304,128 @@ const Home = () => {
                     </div>
                 </div>
 
-                <div>
-                    {/* Tab Buttons */}
-                    <div className="d-flex gap-4 mt-3 mb-5 flex-wrap">
-                        {/* Direction */}
-                        <button
-                            onClick={() => setActiveTab('direction')}
-                            className={`icon-button text-center text-decoration-none  border-0`}
-                            style={{ backgroundColor: "#CBD6FF1A" }}
-                        >
-                            <div className={`icon-circle mx-auto ${activeTab === 'direction' ? 'active' : ''}`} >
-                                <DirectionsIcon />
+
+
+                {/* Tab Content */}
+                <div className="mt-5 mb-5">
+                    {activeTab === 'direction' && (
+                        <>
+                            <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>Address</h4>
+                            <p
+                                style={{
+                                    fontSize: '16px',
+                                    fontWeight: 500,
+                                    textDecoration: 'underline',
+                                    fontFamily: "Poppins",
+                                    color: "#374151"
+                                }}
+                            >
+                                {clubData?.clubName}
+                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                    .filter(Boolean)
+                                    .join(', ')}                                </p>
+                            <div className="ratio ratio-16x9 rounded-4 overflow-hidden mt-4">
+                                <iframe
+                                    src={mapSrc}
+                                    width="600"
+                                    height="450"
+                                    allowFullScreen=""
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    title="The Good Club Map"
+                                ></iframe>
                             </div>
-                            <div className="label  mt-2 ">Direction</div>
-                        </button>
+                        </>
+                    )}
 
-                        {/* Reviews */}
-                        <button
-                            onClick={() => setActiveTab('reviews')}
-                            className="icon-button text-center text-decoration-none  border-0"
-                            style={{ backgroundColor: "#CBD6FF1A" }}
-                        >
-                            <div className={`icon-circle mx-auto ${activeTab === 'reviews' ? 'active' : ''}`}>
-                                <StarOutlineIcon />
-                            </div>
-                            <div className="label  mt-2 ">Reviews</div>
-                        </button>
-
-                        {/* Photos */}
-                        <button
-                            onClick={() => setActiveTab('photos')}
-                            className="icon-button text-center text-decoration-none  border-0"
-                            style={{ backgroundColor: "#CBD6FF1A" }}
-                        >
-                            <div className={`icon-circle mx-auto ${activeTab === 'photos' ? 'active' : ''}`}>
-                                <PiImagesSquareFill />
-                            </div>
-                            <div className="label  mt-2 ">Photos</div>
-                        </button>
-
-                        {/* Call */}
-                        <button
-                            style={{ backgroundColor: "#CBD6FF1A" }}
-                            className="icon-button text-center text-decoration-none  border-0"
-                        >
-                            <div className={`icon-circle mx-auto`}>
-                                <PhoneIcon />
-                            </div>
-                            <div className="label  mt-2">Call</div>
-                        </button>
-                    </div>
-
-                    {/* Tab Content */}
-                    <div className="mt-5 mb-5">
-                        {activeTab === 'direction' && (
-                            <>
-                                <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>Address</h4>
-                                <p
-                                    style={{
-                                        fontSize: '16px',
-                                        fontWeight: 600,
-                                        textDecoration: 'underline',
-                                        fontFamily: "Poppins"
-                                    }}
-                                >
-                                    {clubData?.clubName}
-                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
-                                    {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
-                                        .filter(Boolean)
-                                        .join(', ')}                                </p>
-                                <div className="ratio ratio-16x9 rounded-4 overflow-hidden mt-4">
-                                    <iframe
-                                        src={mapSrc}
-                                        width="600"
-                                        height="450"
-                                        allowFullScreen=""
-                                        loading="lazy"
-                                        referrerPolicy="no-referrer-when-downgrade"
-                                        title="The Good Club Map"
-                                    ></iframe>
-                                </div>
-                            </>
-                        )}
-
-                        {activeTab === 'reviews' && (
-                            <div className="container my-5">
-                                {/* Rating Overview */}
-                                <div className="row g-4">
-                                    <div className="col-md-12">
-                                        <div className="p-4 row rounded-4 bg-white h-100">
-                                            <div className="col-5 text-center d-flex align-items-center justify-content-center">
-                                                <div className="w-100">
-                                                    <h4 className='mb-4' style={{ fontSize: "16px", fontWeight: "500", fontFamily: "Poppins" }}>Overall Rating</h4>
-                                                    <div className="averageRating-count mb-3">{getReviewData?.averageRating || 0}</div>
-                                                    <div className="text-success mb-3">
-                                                        {[...Array(5)].map((_, i) => {
-                                                            const rating = getReviewData?.averageRating || 0;
-                                                            if (i < Math.floor(rating)) {
-                                                                return <StarIcon key={i} style={{ color: "#32B768" }} />;
-                                                            } else if (i < rating && rating % 1 >= 0.5) {
-                                                                return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
-                                                            } else {
-                                                                return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
-                                                            }
-                                                        })}
-                                                    </div>
-                                                    <div className="text-muted mt-2" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
-                                                        based on {getReviewData?.totalReviews || 0} reviews
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="col-7 border-start ps-4 d-flex align-items-center">
-                                                <div className="w-100">
-                                                    {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
-                                                        let width = "0%";
-                                                        let percent = 0;
-
-                                                        // Distribute percentages based on averageRating and ratingCategory
+                    {activeTab === 'reviews' && (
+                        <div className="container my-5">
+                            {/* Rating Overview */}
+                            <div className="row g-4">
+                                <div className="col-md-12">
+                                    <div className="p-4 row rounded-4 bg-white h-100">
+                                        <div className="col-5 text-center d-flex align-items-center justify-content-center">
+                                            <div className="w-100">
+                                                <h4 className='mb-4' style={{ fontSize: "16px", fontWeight: "500", fontFamily: "Poppins" }}>Overall Rating</h4>
+                                                <div className="averageRating-count mb-3">{getReviewData?.averageRating || 0}</div>
+                                                <div className="text-success mb-3">
+                                                    {[...Array(5)].map((_, i) => {
                                                         const rating = getReviewData?.averageRating || 0;
-                                                        if (label === getReviewData?.ratingCategory) {
-                                                            percent = Math.round(rating * 20); // e.g., 3.5 * 20 = 70% for "Good"
+                                                        if (i < Math.floor(rating)) {
+                                                            return <StarIcon key={i} style={{ color: "#32B768" }} />;
+                                                        } else if (i < rating && rating % 1 >= 0.5) {
+                                                            return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
                                                         } else {
-                                                            // Estimated distribution for other categories
-                                                            const basePercent = Math.round((5 - rating) * 20 / 4); // Spread remaining percentage
-                                                            percent = idx < ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
-                                                                ? basePercent * (3 - idx)
-                                                                : idx > ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
-                                                                    ? basePercent * (idx - 2)
-                                                                    : basePercent;
+                                                            return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
                                                         }
-                                                        width = `${percent}%`;
-
-                                                        return (
-                                                            <div className="d-flex align-items-center justify-content-between mb-3 w-100" key={idx}>
-                                                                <div className="me-2 " style={{ width: "150px", fontWeight: "500", fontSize: "16px", fontFamily: "Poppins", color: "#636364" }}>
-                                                                    {label}
-                                                                </div>
-                                                                <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
-                                                                    <div
-                                                                        className="progress-bar"
-                                                                        style={{
-                                                                            width,
-                                                                            backgroundColor:
-                                                                                idx === 0 ? "#3DBE64" : // Excellent (Green)
-                                                                                    idx === 1 ? "#7CBA3D" : // Very Good (Dark Green)
-                                                                                        idx === 2 ? "#ECD844" : // Good (Dark Green)
-                                                                                            idx === 3 ? "#FC702B" : // Average (Yellow)
-                                                                                                "#E9341F", // Poor (Red)
-                                                                        }}
-                                                                    ></div>
-                                                                </div>
-                                                                <div
-                                                                    style={{
-                                                                        color: "#000",
-                                                                        fontSize: "12px",
-                                                                        backgroundColor: "rgba(255, 255, 255, 0.7)",
-                                                                    }}
-                                                                >
-                                                                    {percent}%
-                                                                </div>
-                                                            </div>
-                                                        );
                                                     })}
+                                                </div>
+                                                <div className="text-muted mt-2" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                                                    based on {getReviewData?.totalReviews || 0} reviews
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                        <div className="col-7 border-start ps-4 d-flex align-items-center">
+                                            <div className="w-100">
+                                                {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
+                                                    let width = "0%";
+                                                    let percent = 0;
 
-                                    {/* Rate This Court */}
-                                    <div className="col-md-6">
-                                        {/* <div className="p-4 bg-white rounded-4 h-100">
+                                                    // Distribute percentages based on averageRating and ratingCategory
+                                                    const rating = getReviewData?.averageRating || 0;
+                                                    if (label === getReviewData?.ratingCategory) {
+                                                        percent = Math.round(rating * 20); // e.g., 3.5 * 20 = 70% for "Good"
+                                                    } else {
+                                                        // Estimated distribution for other categories
+                                                        const basePercent = Math.round((5 - rating) * 20 / 4); // Spread remaining percentage
+                                                        percent = idx < ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
+                                                            ? basePercent * (3 - idx)
+                                                            : idx > ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
+                                                                ? basePercent * (idx - 2)
+                                                                : basePercent;
+                                                    }
+                                                    width = `${percent}%`;
+
+                                                    return (
+                                                        <div className="d-flex align-items-center justify-content-between mb-3 w-100" key={idx}>
+                                                            <div className="me-2 " style={{ width: "150px", fontWeight: "500", fontSize: "16px", fontFamily: "Poppins", color: "#636364" }}>
+                                                                {label}
+                                                            </div>
+                                                            <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
+                                                                <div
+                                                                    className="progress-bar"
+                                                                    style={{
+                                                                        width,
+                                                                        backgroundColor:
+                                                                            idx === 0 ? "#3DBE64" : // Excellent (Green)
+                                                                                idx === 1 ? "#7CBA3D" : // Very Good (Dark Green)
+                                                                                    idx === 2 ? "#ECD844" : // Good (Dark Green)
+                                                                                        idx === 3 ? "#FC702B" : // Average (Yellow)
+                                                                                            "#E9341F", // Poor (Red)
+                                                                    }}
+                                                                ></div>
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    color: "#000",
+                                                                    fontSize: "12px",
+                                                                    backgroundColor: "rgba(255, 255, 255, 0.7)",
+                                                                }}
+                                                            >
+                                                                {percent}%
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Rate This Court */}
+                                <div className="col-md-6">
+                                    {/* <div className="p-4 bg-white rounded-4 h-100">
                                             <h5 style={{ fontSize: "20px", fontWeight: "600" }}>Rate this Court</h5>
 
                                             <div className="d-flex align-items-center gap-2 mt-2 fs-5">
@@ -495,127 +493,129 @@ const Home = () => {
                                                 </button>
                                             </div>
                                         </div> */}
-                                    </div>
-                                </div>
-
-                                {/* Customer Reviews */}
-                                <div className="mt-2">
-                                    <h4 className=" mb-3" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
-                                    <div className='  rounded-3 '
-                                        style={{
-                                            maxHeight: getReviewData?.reviews?.length >= 4 ? "500px" : "auto",
-                                            overflowY: getReviewData?.reviews?.length >= 4 ? "auto" : "visible"
-                                        }}
-                                    >
-
-                                        {getReviewData?.reviews?.map((review, i) => (
-                                            <div div className='p-3 bg-white mb-2 ps-4 d-flex justify-content-between align-items-start flex-wrap'>
-                                                <div >
-                                                    <div key={i} className="d-flex mb-3 align-items-start">
-                                                        <img
-                                                            src={review.avatar || 'https://t4.ftcdn.net/jpg/15/13/35/75/360_F_1513357508_F3lTOCrYHHjBB8Lb3K9IBfS4IPLyNcrJ.jpg'}
-                                                            alt={review?.userId?.name}
-                                                            className="rounded-circle me-3"
-                                                            width="60"
-                                                            height="60"
-                                                        />
-                                                        <div>
-                                                            <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500", fontFamily: "Poppins" }}>{review?.userId?.name?.charAt(0).toUpperCase() + review?.userId?.name?.slice(1) || review?.userId?.email}</h6>
-                                                            <div className=" mb-2">
-                                                                {[...Array(Math.floor(review?.reviewRating || 0))].map((_, i) => (
-                                                                    <StarIcon key={i} style={{ fontSize: "15px", color: "#32B768" }} />
-                                                                ))}
-                                                                {review?.reviewRating % 1 !== 0 && review?.reviewRating <= 5 && (
-                                                                    <StarHalfIcon key="half" style={{ fontSize: "15px", color: "#32B768" }} />
-                                                                )}
-                                                                {[...Array(Math.floor(5 - (review?.reviewRating || 0)))].map((_, i) => (
-                                                                    <StarBorderIcon key={`empty-${i}`} style={{ fontSize: "15px", color: '#ccc' }} />
-                                                                ))}
-                                                                <span className="ms-1 pt-3" style={{ fontSize: "10px", fontFamily: "Poppins", fontWeight: "500" }}>{review?.reviewRating || 0}</span>
-                                                            </div>
-
-                                                        </div>
-                                                    </div>
-                                                    <p className="mb-0 " style={{ maxWidth: "700px", fontWeight: "400", fontFamily: "Poppins", fontSize: "14px", color: "#626262" }}>
-                                                        {review?.reviewComment}
-                                                    </p>
-
-                                                </div>
-                                                <div className=" mt-3 mt-md-0" style={{fontSize:"16px",fontFamily:"Poppins",fontWeight:"500",color:"#374151"}}>
-                                                    Post Date : <strong>{formatDate(review?.createdAt)}</strong>
-                                                </div>
-                                            </div>
-
-                                        ))}
-
-                                    </div>
                                 </div>
                             </div>
-                        )}
 
-                        {activeTab === 'photos' && (
-                            <div className="container my-5">
-                                <div className="custom-gallery">
-                                    {clubData?.courtImage?.length > 0 ? (
-                                        galleryImages?.map((image, index) => (
-                                            <div
-                                                key={index}
-                                                className={`gallery-item item${index + 1}`}
-                                                onClick={() => {
-                                                    setPhotoIndex(index);
-                                                    setIsOpen(true);
-                                                }}
-                                                style={{ cursor: 'pointer' }}
-                                            >
-                                                {!loadedImages[index] && (
-                                                    <div className="image-loader youtube-style">
-                                                        <div className="youtube-spinner"></div>
+                            {/* Customer Reviews */}
+                            <div className="mt-2">
+                                <h4 className=" mb-3" style={{ fontSize: "22px", fontWeight: "600" }}>Customer reviews</h4>
+                                <div className='  rounded-3 '
+                                    style={{
+                                        maxHeight: getReviewData?.reviews?.length >= 4 ? "500px" : "auto",
+                                        overflowY: getReviewData?.reviews?.length >= 4 ? "auto" : "visible"
+                                    }}
+                                >
+
+                                    {getReviewData?.reviews?.map((review, i) => (
+                                        <div div className='p-3 bg-white mb-2 ps-4 d-flex justify-content-between align-items-start flex-wrap'>
+                                            <div className='col-9' >
+                                                <div key={i} className="d-flex mb-3 align-items-start">
+                                                    <img
+                                                        src={review.avatar || 'https://t4.ftcdn.net/jpg/15/13/35/75/360_F_1513357508_F3lTOCrYHHjBB8Lb3K9IBfS4IPLyNcrJ.jpg'}
+                                                        alt={review?.userId?.name}
+                                                        className="rounded-circle me-3"
+                                                        width="60"
+                                                        height="60"
+                                                    />
+                                                    <div>
+                                                        <h6 className="mb-1 " style={{ fontSize: "16px", fontWeight: "500", fontFamily: "Poppins" }}>{review?.userId?.name?.charAt(0).toUpperCase() + review?.userId?.name?.slice(1) || review?.userId?.email}</h6>
+                                                        <div className=" mb-2">
+                                                            {[...Array(Math.floor(review?.reviewRating || 0))].map((_, i) => (
+                                                                <StarIcon key={i} style={{ fontSize: "15px", color: "#32B768" }} />
+                                                            ))}
+                                                            {review?.reviewRating % 1 !== 0 && review?.reviewRating <= 5 && (
+                                                                <StarHalfIcon key="half" style={{ fontSize: "15px", color: "#32B768" }} />
+                                                            )}
+                                                            {[...Array(Math.floor(5 - (review?.reviewRating || 0)))].map((_, i) => (
+                                                                <StarBorderIcon key={`empty-${i}`} style={{ fontSize: "15px", color: '#ccc' }} />
+                                                            ))}
+                                                            <span className="ms-1 pt-3" style={{ fontSize: "10px", fontFamily: "Poppins", fontWeight: "500" }}>{review?.reviewRating || 0}</span>
+                                                        </div>
+
                                                     </div>
-                                                )}
-                                                <img
-                                                    src={image}
-                                                    alt={`Gallery ${index + 1}`}
-                                                    onLoad={() => handleImageLoad(index)}
-                                                    onError={() => handleImageLoad(index)}
-                                                    style={{ display: loadedImages[index] ? 'block' : 'none' }}
-                                                />
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p>{store?.userClub?.clubData?.data?.courts?.length === 0 ? 'No images yet!' : 'No images available'}</p>
-                                    )}
-                                </div>
+                                                </div>
 
-                                {/* Lightbox */}
-                                {isOpen && galleryImages.length > 0 && (
-                                    <Lightbox
-                                        mainSrc={galleryImages[photoIndex]}
-                                        nextSrc={galleryImages[(photoIndex + 1) % galleryImages.length]}
-                                        prevSrc={galleryImages[(photoIndex + galleryImages.length - 1) % galleryImages.length]}
-                                        onCloseRequest={() => setIsOpen(false)}
-                                        onMovePrevRequest={() =>
-                                            setPhotoIndex((photoIndex + galleryImages.length - 1) % galleryImages.length)
-                                        }
-                                        onMoveNextRequest={() =>
-                                            setPhotoIndex((photoIndex + 1) % galleryImages.length)
-                                        }
-                                        imagePadding={0} // Remove padding for edge-to-edge image
-                                        wrapperClassName="full-screen-lightbox" // Custom class for full-screen styling
-                                    />
+
+                                            </div>
+                                            <div className=" mt-3 col-3 mt-md-0 text-end" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>
+                                                Post Date : <strong>{formatDate(review?.createdAt)}</strong>
+                                            </div>
+                                            <div className="col-12">
+                                                <p className="mb-0 " style={{ fontWeight: "400", fontFamily: "Poppins", fontSize: "14px", color: "#626262" }}>
+                                                    {review?.reviewComment}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                    ))}
+
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'photos' && (
+                        <div className="container my-5">
+                            <div className="custom-gallery">
+                                {clubData?.courtImage?.length > 0 ? (
+                                    galleryImages?.map((image, index) => (
+                                        <div
+                                            key={index}
+                                            className={`gallery-item item${index + 1}`}
+                                            onClick={() => {
+                                                setPhotoIndex(index);
+                                                setIsOpen(true);
+                                            }}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            {!loadedImages[index] && (
+                                                <div className="image-loader youtube-style">
+                                                    <div className="youtube-spinner"></div>
+                                                </div>
+                                            )}
+                                            <img
+                                                src={image}
+                                                alt={`Gallery ${index + 1}`}
+                                                onLoad={() => handleImageLoad(index)}
+                                                onError={() => handleImageLoad(index)}
+                                                style={{ display: loadedImages[index] ? 'block' : 'none' }}
+                                            />
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p>{store?.userClub?.clubData?.data?.courts?.length === 0 ? 'No images yet!' : 'No images available'}</p>
                                 )}
                             </div>
 
-                        )}
+                            {/* Lightbox */}
+                            {isOpen && galleryImages.length > 0 && (
+                                <Lightbox
+                                    mainSrc={galleryImages[photoIndex]}
+                                    nextSrc={galleryImages[(photoIndex + 1) % galleryImages.length]}
+                                    prevSrc={galleryImages[(photoIndex + galleryImages.length - 1) % galleryImages.length]}
+                                    onCloseRequest={() => setIsOpen(false)}
+                                    onMovePrevRequest={() =>
+                                        setPhotoIndex((photoIndex + galleryImages.length - 1) % galleryImages.length)
+                                    }
+                                    onMoveNextRequest={() =>
+                                        setPhotoIndex((photoIndex + 1) % galleryImages.length)
+                                    }
+                                    imagePadding={0} // Remove padding for edge-to-edge image
+                                    wrapperClassName="full-screen-lightbox" // Custom class for full-screen styling
+                                />
+                            )}
+                        </div>
 
-                        {activeTab === 'call' && (
-                            <div>
-                                <h4 style={{ fontWeight: '600' }}>Call Us</h4>
-                                <a href="tel:+919999999999" className="btn btn-outline-dark px-4 py-2 rounded-pill">
-                                    📞 +91 99999 99999
-                                </a>
-                            </div>
-                        )}
-                    </div>
+                    )}
+
+                    {activeTab === 'call' && (
+                        <div>
+                            <h4 style={{ fontWeight: '600' }}>Call Us</h4>
+                            <a href="tel:+919999999999" className="btn btn-outline-dark px-4 py-2 rounded-pill">
+                                📞 +91 99999 99999
+                            </a>
+                        </div>
+                    )}
                 </div>
             </div>
         </>

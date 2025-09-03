@@ -3,7 +3,7 @@ import { Box, Button, Modal } from "@mui/material";
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from 'react-bootstrap';
 import { Usersignup } from '../../../redux/user/auth/authThunk';
-import { getMatchesUser } from '../../../redux/user/matches/thunk';
+import { addPlayers, getMatchesUser } from '../../../redux/user/matches/thunk';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { showSuccess } from '../../../helpers/Toast';
 

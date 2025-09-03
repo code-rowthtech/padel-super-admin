@@ -110,3 +110,30 @@ export const getLogo = createAsyncThunk(
     }
   }
 );
+
+export const updateUser = createAsyncThunk(
+  "auth/updateUser",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.put(Url.UPDATE_USER, data);
+      showSuccess(res?.data?.message);
+      return res?.data;
+    } catch (error) {
+      showError(error?.message || error);
+      return rejectWithValue(error)
+    }
+  }
+)
+
+export const getUserProfile = createAsyncThunk(
+  "auth/getUserProfile",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.get(Url.GET_USER,);
+      return res?.data;
+    } catch (error) {
+      showError(error?.message || error);
+      return rejectWithValue(error)
+    }
+  }
+)

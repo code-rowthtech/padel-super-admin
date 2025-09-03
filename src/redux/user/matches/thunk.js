@@ -18,7 +18,7 @@ export const createMatches = createAsyncThunk(
 );
 
 export const getMatches = createAsyncThunk(
-  "booking/getBooking",
+  "matches/getBooking",
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.get(`${Url.GET_BOOKING_API}`, data);
@@ -31,7 +31,7 @@ export const getMatches = createAsyncThunk(
 );
 
 export const getMatchesUser = createAsyncThunk(
-  "booking/getMatchesUser",
+  "matches/getMatchesUser",
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.get(`${Url.GET_OPENMATCH_USER}`, data);
@@ -44,7 +44,7 @@ export const getMatchesUser = createAsyncThunk(
 );
 
 export const getMatchesView = createAsyncThunk(
-  "booking/getMatchesView",
+  "matches/getMatchesView",
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.get(`${Url.VIEW_OPENMATCH}?_id=${data}`);
@@ -55,3 +55,29 @@ export const getMatchesView = createAsyncThunk(
     }
   }
 );
+
+export const addPlayers = createAsyncThunk(
+  "matches/addPlayers",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.put(Url.ADD_PLAYERS, data);
+      return res?.data;
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error)
+    }
+  }
+)
+
+export const removePlayers = createAsyncThunk(
+  "matches/removePlayers",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.put(`${Url.REMOVE_PLAYERS}`,data)
+      return res?.data;
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error)
+    }
+  }
+)

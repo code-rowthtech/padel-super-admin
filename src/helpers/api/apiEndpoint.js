@@ -17,6 +17,11 @@ export const GET_REVIEW_CLUB = "/api/review/getownerClubReview";
 export const CREATE_MATCHES = "/api/openmatch/createOpenMatch";
 export const GET_OPENMATCH_USER = "/api/openmatch/getAllOpenMatches";
 export const VIEW_OPENMATCH = "/api/openmatch/findByOpenMatchId";
+export const ADD_PLAYERS = "/api/openmatch/addPlayerToMatch"
+export const REMOVE_PLAYERS = "/api/openmatch/removePlayerFromMatch"
+export const UPDATE_USER = '/api/customer/updateCustomer'
+export const GET_USER = '/api/customer/getCustomer'
+
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 //-----------------------------------------------A_U_T_H----------------------------------------------//

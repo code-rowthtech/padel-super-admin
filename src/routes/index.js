@@ -28,6 +28,7 @@ const OpenmatchPayment = React.lazy(() =>
 const AmericanoUser = React.lazy(() =>
   import("../pages/user/americano/Americano")
 );
+const UserProfile = React.lazy(() => import("../pages/user/profile/Profile"))
 const Payment = React.lazy(() => import("../pages/user/payment/Payment"));
 const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
@@ -160,6 +161,10 @@ const AllRoutes = () => {
         {
           path: "americano",
           element: LoadComponent(AmericanoUser),
+        },
+        {
+          path: "user-profile",
+          element: LoadComponent(UserProfile),
         },
         {
           path: "unauthorized",
