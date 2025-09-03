@@ -83,3 +83,11 @@ export const formatTime = (timeStr) => {
     })
     .toLowerCase();
 };
+
+export const formatSlotTime = (timeString) => {
+  const timeParts = timeString.split(" ");
+  const hour = timeParts[0];
+  const period = timeParts[1].toLowerCase();
+
+  return `${hour}:00 ${period}`;
+};

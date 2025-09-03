@@ -5,7 +5,6 @@ import {
   Col,
   Container,
   Form,
-  InputGroup,
   ListGroup,
   Modal,
   OverlayTrigger,
@@ -20,6 +19,7 @@ import {
   getActiveCourts,
   manualBookingByOwner,
 } from "../../../../redux/thunks";
+import { Usersignup } from "../../../../redux/user/auth/authThunk";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ButtonLoading,
@@ -28,11 +28,13 @@ import {
 } from "../../../../helpers/loading/Loaders";
 import { showInfo } from "../../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
-import { format } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
+import { formatSlotTime } from "../../../../helpers/Formatting";
 
 const CreateMatch = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const Owner = getOwnerFromSession();
   const ownerId = Owner?.generatedBy ? Owner?.generatedBy : Owner?._id;
   const {
@@ -45,37 +47,96 @@ const CreateMatch = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-  const navigate = useNavigate();
   const [showUnavailable, setShowUnavailable] = useState(false);
-
-  // State for form values
-  const [skillLevel, setSkillLevel] = useState("");
-  const [racketSport, setRacketSport] = useState("");
-  const [padelTraining, setPadelTraining] = useState("");
-  const [ageGroup, setAgeGroup] = useState("");
-  const [volleySkill, setVolleySkill] = useState("");
-  const [reboundSkill, setReboundSkill] = useState("");
-
-  // State for users
-  const [users, setUsers] = useState([]);
-  const [newUserName, setNewUserName] = useState("");
-  const [newUserPhone, setNewUserPhone] = useState("");
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedLevel, setSelectedLevel] = useState("");
+  const [matchDetails, setMatchDetails] = useState({
+    skillLevel: "",
+    racketSport: "",
+    padelTraining: "",
+    ageGroup: "",
+    volleySkill: "",
+    reboundSkill: "",
+    players: [],
+  });
+  const [selectedCourts, setSelectedCourts] = useState([]);
+  const [selectedSlots, setSelectedSlots] = useState({});
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [selectedDay, setSelectedDay] = useState("");
+  const scrollRef = useRef(null);
+  const selectedButtonRef = useRef(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [newUser, setNewUser] = useState({ name: "", email: "", phone: "" });
+  const [addingPosition, setAddingPosition] = useState(null);
+  const [view, setView] = useState("selection");
 
-  // Close on outside click
-  const handleClickOutside = (e) => {
-    if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-      setIsOpen(false);
-    }
-  };
+  const steps = [
+    {
+      question: "On the following scale, where would you place yourself?",
+      options: ["Beginner", "Intermediate", "Advanced", "Professional"],
+      key: "skillLevel",
+    },
+    {
+      question: "Select the racket sport you have played before?",
+      options: ["Tennis", "Badminton", "Squash", "Others"],
+      key: "racketSport",
+    },
+    {
+      question: "Received or Receiving Padel Training?",
+      options: ["No", "InPast", "Currently"],
+      key: "padelTraining",
+    },
+    {
+      question: "How old are you?",
+      options: [
+        "Between 18 and 30 years",
+        "Between 31 and 40 years",
+        "Between 41 and 50 years",
+        "Over 50",
+      ],
+      key: "ageGroup",
+    },
+    {
+      question: "On the volley?",
+      options: [
+        "I hardly get to the net",
+        "I don't feel safe at the net, I make too many mistakes",
+        "I can volley forehand and backhand with some difficulties",
+        "I have good positioning at the net and I volley confidently",
+        "I don't know",
+      ],
+      key: "volleySkill",
+    },
+    {
+      question: "On the rebounds...",
+      options: [
+        "I don't know how to read the rebounds, I hit before it rebounds",
+        "I try, with difficulty, to hit the rebounds on the back wall",
+        "I return rebounds on the back wall, it is difficult for me to return the double wall ones",
+        "I return double-wall rebounds and reach for quick rebounds",
+        "I perform powerful wall descent shots with forehand and backhand",
+        "I don't know",
+      ],
+      key: "reboundSkill",
+    },
+  ];
 
+  // Close datepicker on outside click
   useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Generate dates for selection
   const today = new Date();
-  const dates = Array.from({ length: 41 })?.map((_, i) => {
+  const dates = Array.from({ length: 41 }).map((_, i) => {
     const date = new Date(today);
     date.setDate(date.getDate() + i);
     return {
@@ -96,15 +157,11 @@ const CreateMatch = () => {
     Sat: "Saturday",
   };
 
-  const [selectedCourts, setSelectedCourts] = useState([]);
-  const [selectedSlots, setSelectedSlots] = useState({});
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [selectedDay, setSelectedDay] = useState(dayFullNames[dates[0]?.day]);
-  const scrollRef = useRef(null);
-  const selectedButtonRef = useRef(null);
+  useEffect(() => {
+    setSelectedDay(dayFullNames[dates[0]?.day]);
+  }, []);
 
+  // Scroll handler for date selection
   const scroll = (direction) => {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({
@@ -114,8 +171,49 @@ const CreateMatch = () => {
     }
   };
 
-  const courts = activeCourtsData?.[0]?.courts;
-  const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes;
+  // Fetch owner registered club
+  useEffect(() => {
+    dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
+  }, [dispatch, ownerId]);
+
+  // Fetch active courts
+  useEffect(() => {
+    if (ownerClubData?.[0]?._id) {
+      dispatch(
+        getActiveCourts({
+          register_club_id: ownerClubData?.[0]?._id,
+          day: selectedDay,
+          date: selectedDate,
+        })
+      );
+    }
+  }, [dispatch, ownerClubData, selectedDay, selectedDate]);
+
+  // Auto-select first court
+  useEffect(() => {
+    const courts = activeCourtsData?.[0]?.courts;
+    if (courts?.length > 0 && selectedCourts.length === 0) {
+      setSelectedCourts([courts[0]._id]);
+    }
+  }, [activeCourtsData, selectedCourts]);
+
+  // Scroll to selected date
+  useEffect(() => {
+    if (selectedButtonRef.current && scrollRef.current) {
+      const container = scrollRef.current;
+      const selected = selectedButtonRef.current;
+      const offsetLeft = selected.offsetLeft;
+      const scrollWidth = container.clientWidth;
+
+      container.scrollTo({
+        left: offsetLeft - scrollWidth / 1 + selected.offsetWidth / 2,
+        behavior: "smooth",
+      });
+    }
+  }, [selectedDate]);
+
+  const maxSelectableDate = new Date();
+  maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
 
   const handleCourtSelect = (courtId) => {
     setSelectedCourts(courtId ? [courtId] : []);
@@ -157,70 +255,141 @@ const CreateMatch = () => {
     setSelectedSlots(newSelectedSlots);
   };
 
-  useEffect(() => {
-    dispatch(getOwnerRegisteredClub({ ownerId: ownerId })).unwrap();
-  }, []);
+  const handleNext = () => {
+    if (!selectedLevel) {
+      showInfo("Please select an option.");
+      return;
+    }
 
-  useEffect(() => {
-    if (ownerClubData?.[0]?._id) {
-      dispatch(
-        getActiveCourts({
-          register_club_id: ownerClubData?.[0]?._id,
-          day: selectedDay,
-          date: selectedDate,
-          courtId: selectedCourts[0],
+    setMatchDetails((prev) => ({
+      ...prev,
+      [steps[currentStep].key]: selectedLevel,
+    }));
+
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+      setSelectedLevel("");
+    } else {
+      setView("summary");
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      setSelectedLevel(matchDetails[steps[currentStep - 1].key] || "");
+    }
+  };
+
+  const handleShowModal = (position) => {
+    setAddingPosition(position);
+    setShowUserModal(true);
+  };
+
+  const handleAddUser = async () => {
+    const currentPlayersCount = matchDetails.players.filter((p) => p).length;
+    if (currentPlayersCount >= 4) {
+      showInfo("Maximum 4 players can be added.");
+      return;
+    }
+    if (!newUser.name || !newUser.email || !newUser.phone) {
+      showInfo("Please enter name, email, and phone number.");
+      return;
+    }
+
+    try {
+      const response = await dispatch(
+        Usersignup({
+          name: newUser.name,
+          email: newUser.email,
+          phone: newUser.phone,
         })
+      ).unwrap();
+      const newPlayer = { userId: { ...newUser, _id: response._id } };
+      const updatedPlayers = [...matchDetails.players];
+      updatedPlayers[addingPosition] = newPlayer;
+      setMatchDetails((prev) => ({ ...prev, players: updatedPlayers }));
+
+      // Store in session storage
+      sessionStorage.setItem(
+        "matchPlayers",
+        JSON.stringify(updatedPlayers.filter((p) => p))
+      );
+
+      setNewUser({ name: "", email: "", phone: "" });
+      setShowUserModal(false);
+      setAddingPosition(null);
+    } catch (error) {
+      showInfo("Failed to create user.");
+    }
+  };
+
+  const renderPlayer = (player, index) => {
+    if (!player) {
+      return (
+        <div className="text-center" key={index}>
+          <button
+            className="btn btn-outline-primary rounded-circle"
+            style={{
+              width: "100px",
+              height: "100px",
+              fontSize: "24px",
+              borderColor: "#0D6EFD",
+            }}
+            onClick={() => handleShowModal(index)}
+          >
+            +
+          </button>
+          <div className="fw-semibold small mt-2 text-primary">Add Player</div>
+        </div>
       );
     }
-  }, [selectedDay, selectedDate, ownerClubData?.[0]?._id, selectedCourts]);
 
-  useEffect(() => {
-    if (courts?.length > 0 && selectedCourts.length === 0) {
-      setSelectedCourts([courts[0]._id]);
-    }
-  }, [courts?.length]);
+    const { userId } = player;
+    const initial = userId.name.charAt(0).toUpperCase();
 
-  useEffect(() => {
-    if (selectedButtonRef.current && scrollRef.current) {
-      const container = scrollRef.current;
-      const selected = selectedButtonRef.current;
-      const offsetLeft = selected.offsetLeft;
-      const scrollWidth = container.clientWidth;
-
-      container.scrollTo({
-        left: offsetLeft - scrollWidth / 1 + selected.offsetWidth / 2,
-        behavior: "smooth",
-      });
-    }
-  }, [selectedDate]);
-
-  const maxSelectableDate = new Date();
-  maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
+    return (
+      <div className="text-center" key={index}>
+        <div
+          className="rounded-circle d-flex align-items-center justify-content-center"
+          style={{
+            width: "100px",
+            height: "100px",
+            backgroundColor: "#374151",
+            color: "white",
+            fontWeight: 600,
+            fontSize: "20px",
+          }}
+        >
+          {initial}
+        </div>
+        <div className="fw-semibold small mt-2">{userId.name}</div>
+        <span
+          className="badge rounded-pill"
+          style={{ backgroundColor: "#D1FAE5", color: "#059669" }}
+        >
+          {matchDetails.skillLevel.charAt(0).toUpperCase()}
+        </span>
+      </div>
+    );
+  };
 
   const validateForm = () => {
-    if (!skillLevel) {
-      showInfo("Please select skill level.");
-      return false;
-    }
-    if (!racketSport) {
-      showInfo("Please select racket sport.");
-      return false;
-    }
-    if (!padelTraining) {
-      showInfo("Please select padel training status.");
-      return false;
-    }
-    if (!ageGroup) {
-      showInfo("Please select age group.");
-      return false;
-    }
-    if (!volleySkill) {
-      showInfo("Please select volley skill.");
-      return false;
-    }
-    if (!reboundSkill) {
-      showInfo("Please select rebound skill.");
-      return false;
+    const requiredFields = [
+      "skillLevel",
+      "racketSport",
+      "padelTraining",
+      "ageGroup",
+      "volleySkill",
+      "reboundSkill",
+    ];
+    for (const field of requiredFields) {
+      if (!matchDetails[field]) {
+        showInfo(
+          `Please select ${field.replace(/([A-Z])/g, " $1").toLowerCase()}.`
+        );
+        return false;
+      }
     }
     return true;
   };
@@ -230,6 +399,8 @@ const CreateMatch = () => {
 
     const slotsPayload = [];
     let totalAmount = 0;
+    const courts = activeCourtsData?.[0]?.courts || [];
+
     Object.entries(selectedSlots).forEach(([courtId, times]) => {
       const court = courts.find((c) => c._id === courtId);
       const slotData = court?.slot?.[0];
@@ -268,69 +439,114 @@ const CreateMatch = () => {
         slot: slotsPayload,
         clubId: ownerClubData?.[0]?._id,
         ownerId: Owner?._id,
-        skillLevel,
+        skillLevel: matchDetails.skillLevel,
         playerDetails: [
-          racketSport,
-          padelTraining,
-          ageGroup,
-          volleySkill,
-          reboundSkill,
+          matchDetails.racketSport,
+          matchDetails.padelTraining,
+          matchDetails.ageGroup,
+          matchDetails.volleySkill,
+          matchDetails.reboundSkill,
         ],
-        users,
+        users: matchDetails.players.filter((p) => p).map((p) => p.userId),
       };
       await dispatch(manualBookingByOwner(payload)).unwrap();
       setSelectedSlots({});
       setSelectedCourts([]);
-      setUsers([]);
-      setSkillLevel("");
-      setRacketSport("");
-      setPadelTraining("");
-      setAgeGroup("");
-      setVolleySkill("");
-      setReboundSkill("");
+      setMatchDetails({
+        skillLevel: "",
+        racketSport: "",
+        padelTraining: "",
+        ageGroup: "",
+        volleySkill: "",
+        reboundSkill: "",
+        players: [],
+      });
+      setCurrentStep(0);
+      setSelectedLevel("");
+      sessionStorage.removeItem("matchPlayers");
     } catch (error) {
       console.log("Booking failed:", error);
     }
   };
 
-  const addUser = () => {
-    if (users.length >= 4) {
-      showInfo("Maximum 4 users can be added.");
-      return;
-    }
-    if (!newUserName || !newUserPhone) {
-      showInfo("Please enter name and phone number.");
-      return;
-    }
-    setUsers([...users, { name: newUserName, phone: newUserPhone }]);
-    setNewUserName("");
-    setNewUserPhone("");
-    setShowUserModal(false);
-  };
-
-  const removeUser = (index) => {
-    const updatedUsers = users.filter((_, i) => i !== index);
-    setUsers(updatedUsers);
-  };
-
-  const getSelectedCourtName = () => {
-    if (!selectedCourts[0]) return "";
-    const court = courts?.find((c) => c._id === selectedCourts[0]);
+  const getSelectedCourtName = (courtId) => {
+    const court = activeCourtsData?.[0]?.courts?.find((c) => c._id === courtId);
     return court?.courtName || "";
-  };
-
-  const getSelectedSlotsList = () => {
-    if (!selectedCourts[0]) return [];
-    return selectedSlots[selectedCourts[0]] || [];
   };
 
   const calculateTotal = () => {
     let total = 0;
-    getSelectedSlotsList().forEach((slot) => {
-      total += slot?.amount || 0;
-    });
+    Object.values(selectedSlots)
+      .flat()
+      .forEach((slot) => {
+        total += slot?.amount || 0;
+      });
     return total;
   };
+
+  const handleRemoveSlot = (courtId, slotId) => {
+    setSelectedSlots((prev) => {
+      const courtSlots = prev[courtId] || [];
+      const newCourtSlots = courtSlots.filter((s) => s._id !== slotId);
+      if (newCourtSlots.length === 0) {
+        const { [courtId]: _, ...rest } = prev;
+        return rest;
+      } else {
+        return { ...prev, [courtId]: newCourtSlots };
+      }
+    });
+  };
+
+  const renderBookingSummary = (withDelete = false) => (
+    <Card className="shadow-sm">
+      <Card.Body>
+        <h5 className="mb-3 text-dark">Booking Summary</h5>
+        {Object.keys(selectedSlots).length === 0 ? (
+          <p className="text-muted">No slots selected.</p>
+        ) : (
+          <>
+            {Object.entries(selectedSlots).map(([courtId, slots]) => (
+              <div key={courtId} className="mb-3">
+                <p>
+                  <strong>Court:</strong> {getSelectedCourtName(courtId)}{" "}
+                  <span className="text-muted small">
+                    | {format(new Date(selectedDate), "EEE, dd/MM/yyyy")}
+                  </span>
+                </p>
+                <p>
+                  <strong>Selected Slots:</strong>
+                </p>
+                <ListGroup className="mb-3">
+                  {slots.map((slot, index) => (
+                    <ListGroup.Item
+                      key={index}
+                      className="d-flex justify-content-between align-items-center"
+                    >
+                      <span>
+                        {slot.time} - Amount: ${slot.amount || 0}
+                        {slot.status === "booked" && (
+                          <span className="ms-2 text-danger">(Booked)</span>
+                        )}
+                      </span>
+                      {withDelete && (
+                        <FaTrash
+                          className="text-danger cursor-pointer"
+                          onClick={() => handleRemoveSlot(courtId, slot._id)}
+                        />
+                      )}
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              </div>
+            ))}
+            <p>
+              <strong>Total Amount:</strong> ${calculateTotal()}
+            </p>
+          </>
+        )}
+      </Card.Body>
+    </Card>
+  );
 
   return (
     <>
@@ -352,414 +568,414 @@ const CreateMatch = () => {
               </Button>
             </Col>
           </Row>
-          <Row>
-            <Col md={6}>
-              <Card className="shadow-sm mb-4">
-                <Card.Body>
-                  <h5 className="mb-3 text-dark">Select Court</h5>
-                  <div className="d-flex flex-wrap gap-2">
-                    {courts?.map((court) => (
-                      <Button
-                        key={court._id}
-                        variant={
-                          selectedCourts.includes(court._id) ? "dark" : "light"
-                        }
-                        className="rounded-pill px-4 py-2"
-                        onClick={() => handleCourtSelect(court._id)}
-                      >
-                        {court.courtName}
-                      </Button>
-                    ))}
-                  </div>
-                </Card.Body>
-              </Card>
-              <Card className="shadow-sm mb-4">
-                <Card.Body>
-                  <h5 className="mb-3 text-dark">Select Date</h5>
-                  <div className="position-relative d-inline-block me-2">
-                    <Button
-                      variant="light"
-                      className="rounded-circle p-2"
-                      onClick={() => setIsOpen(!isOpen)}
-                    >
-                      <i className="bi bi-calendar-week"></i>
-                    </Button>
-                    {isOpen && (
-                      <div
-                        className="position-absolute bg-white border rounded shadow p-2"
-                        ref={wrapperRef}
-                      >
-                        <DatePicker
-                          selected={startDate}
-                          onChange={(date) => {
-                            setStartDate(date);
-                            const iso = date.toISOString().split("T")[0];
-                            setSelectedDate(iso);
-                            const dayName = date.toLocaleDateString("en-US", {
-                              weekday: "short",
-                            });
-                            setSelectedDay(dayFullNames[dayName]);
-                            setIsOpen(false);
-                          }}
-                          minDate={new Date()}
-                          maxDate={maxSelectableDate}
-                          inline
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <Button variant="light" onClick={() => scroll("left")}>
-                      <i className="bi bi-chevron-left"></i>
-                    </Button>
-                    <div
-                      ref={scrollRef}
-                      className="d-flex gap-2 overflow-auto flex-grow-1"
-                      style={{ scrollbarWidth: "none" }}
-                    >
-                      {dates?.map((d, i) => (
+          {view === "selection" ? (
+            <Row>
+              <Col md={7}>
+                <Card className="shadow-sm mb-4">
+                  <Card.Body>
+                    <h5 className="mb-3 text-dark">Select Court</h5>
+                    <div className="d-flex flex-wrap gap-2">
+                      {activeCourtsData?.[0]?.courts?.map((court) => (
                         <Button
-                          key={i}
-                          ref={
-                            selectedDate === d.fullDate
-                              ? selectedButtonRef
-                              : null
-                          }
+                          key={court._id}
                           variant={
-                            selectedDate === d.fullDate ? "dark" : "light"
+                            selectedCourts.includes(court._id)
+                              ? "dark"
+                              : "light"
                           }
-                          className="text-center px-3 py-2 rounded"
-                          onClick={() => {
-                            setSelectedDate(d.fullDate);
-                            setSelectedDay(dayFullNames[d.day]);
-                          }}
+                          className="rounded-pill px-4 py-2"
+                          onClick={() => handleCourtSelect(court._id)}
                         >
-                          <div className="small">{d.day}</div>
-                          <div className="h5 mb-0">{d.date}</div>
-                          <div className="small">{d.month}</div>
+                          {court.courtName}
                         </Button>
                       ))}
                     </div>
-                    <Button variant="light" onClick={() => scroll("right")}>
-                      <i className="bi bi-chevron-right"></i>
-                    </Button>
-                  </div>
-                </Card.Body>
-              </Card>
-              <Card className="shadow-sm">
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="text-dark">Available Slots (60m)</h5>
-                    <Form.Check
-                      type="switch"
-                      label="Show Unavailable"
-                      checked={showUnavailable}
-                      onChange={(e) => setShowUnavailable(e.target.checked)}
-                    />
-                  </div>
-                  {activeCourtsLoading ? (
-                    <DataLoading height="10vh" />
-                  ) : slotTimes?.length === 0 ? (
-                    <div className="text-center text-danger">
-                      No slots available
+                  </Card.Body>
+                </Card>
+                <Card className="shadow-sm mb-4">
+                  <Card.Body>
+                    <h5 className="mb-3 text-dark">Select Date</h5>
+                    <div className="position-relative d-inline-block me-2">
+                      <Button
+                        variant="light"
+                        className="rounded-circle p-2"
+                        onClick={() => setIsOpen(!isOpen)}
+                      >
+                        <i className="bi bi-calendar-week"></i>
+                      </Button>
+                      {isOpen && (
+                        <div
+                          className="position-absolute bg-white border rounded shadow p-2"
+                          ref={wrapperRef}
+                        >
+                          <DatePicker
+                            selected={startDate}
+                            onChange={(date) => {
+                              setStartDate(date);
+                              const iso = date.toISOString().split("T")[0];
+                              setSelectedDate(iso);
+                              const dayName = date.toLocaleDateString("en-US", {
+                                weekday: "short",
+                              });
+                              setSelectedDay(dayFullNames[dayName]);
+                              setIsOpen(false);
+                            }}
+                            minDate={new Date()}
+                            maxDate={maxSelectableDate}
+                            inline
+                          />
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="d-flex flex-wrap gap-2">
-                      {slotTimes
-                        ?.map((slot) => {
-                          const slotDate = new Date(selectedDate);
-                          const [hourString, period] = slot.time
-                            .toLowerCase()
-                            .split(" ");
-                          let hour = parseInt(hourString);
-                          if (period === "pm" && hour !== 12) hour += 12;
-                          if (period === "am" && hour === 12) hour = 0;
-                          slotDate.setHours(hour, 0, 0, 0);
+                    <div className="d-flex align-items-center gap-2">
+                      <Button variant="light" onClick={() => scroll("left")}>
+                        <i className="bi bi-chevron-left"></i>
+                      </Button>
+                      <div
+                        ref={scrollRef}
+                        className="d-flex gap-2 overflow-auto flex-grow-1"
+                        style={{ scrollbarWidth: "none" }}
+                      >
+                        {dates?.map((d, i) => (
+                          <Button
+                            key={i}
+                            ref={
+                              selectedDate === d.fullDate
+                                ? selectedButtonRef
+                                : null
+                            }
+                            variant={
+                              selectedDate === d.fullDate ? "dark" : "light"
+                            }
+                            className="text-center px-3 py-2 rounded"
+                            onClick={() => {
+                              setSelectedDate(d.fullDate);
+                              setSelectedDay(dayFullNames[d.day]);
+                            }}
+                          >
+                            <div className="small">{d.day}</div>
+                            <div className="h5 mb-0">{d.date}</div>
+                            <div className="small">{d.month}</div>
+                          </Button>
+                        ))}
+                      </div>
+                      <Button variant="light" onClick={() => scroll("right")}>
+                        <i className="bi bi-chevron-right"></i>
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
+                <Card className="shadow-sm">
+                  <Card.Body>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h5 className="text-dark">Available Slots (60m)</h5>
+                      <Form.Check
+                        type="switch"
+                        label="Show Unavailable"
+                        checked={showUnavailable}
+                        onChange={(e) => setShowUnavailable(e.target.checked)}
+                      />
+                    </div>
+                    {activeCourtsLoading ? (
+                      <DataLoading height="10vh" />
+                    ) : activeCourtsData?.[0]?.slot?.[0]?.slotTimes?.length ===
+                      0 ? (
+                      <div className="text-center text-danger">
+                        No slots available
+                      </div>
+                    ) : (
+                      <div className="d-flex flex-wrap gap-2">
+                        {activeCourtsData?.[0]?.slot?.[0]?.slotTimes
+                          ?.map((slot) => {
+                            const slotDate = new Date(selectedDate);
+                            const [hourString, period] = slot.time
+                              .toLowerCase()
+                              .split(" ");
+                            let hour = parseInt(hourString);
+                            if (period === "pm" && hour !== 12) hour += 12;
+                            if (period === "am" && hour === 12) hour = 0;
+                            slotDate.setHours(hour, 0, 0, 0);
 
-                          const now = new Date();
-                          const isSameDay =
-                            slotDate.toDateString() === now.toDateString();
-                          const isPast =
-                            isSameDay && slotDate.getTime() < now.getTime();
-                          const isSelected = getSelectedSlotsList().some(
-                            (t) => t._id === slot._id
-                          );
-                          const isBooked = slot.status === "booked";
-                          const isAvailable =
-                            slot.availabilityStatus === "available";
-                          const hasAmount = slot.amount && slot.amount !== 0;
+                            const now = new Date();
+                            const isSameDay =
+                              slotDate.toDateString() === now.toDateString();
+                            const isPast =
+                              isSameDay && slotDate.getTime() < now.getTime();
+                            const isSelected = (
+                              selectedSlots[selectedCourts[0]] || []
+                            ).some((t) => t._id === slot._id);
+                            const isBooked = slot.status === "booked";
+                            const isAvailable =
+                              slot.availabilityStatus === "available";
+                            const hasAmount = slot.amount && slot.amount !== 0;
 
-                          return {
-                            slot,
-                            isPast,
-                            isSelected,
-                            isBooked,
-                            isAvailable,
-                            hasAmount,
-                          };
-                        })
-                        ?.filter(
-                          ({ isPast, isBooked, isAvailable, hasAmount }) =>
-                            showUnavailable ||
-                            (isAvailable && hasAmount && !isBooked && !isPast)
-                        )
-                        ?.map(
-                          (
-                            {
+                            return {
                               slot,
                               isPast,
                               isSelected,
                               isBooked,
                               isAvailable,
                               hasAmount,
-                            },
-                            i
-                          ) => {
-                            let tooltipText = "";
-                            if (!hasAmount)
-                              tooltipText = "Amount not available";
-                            else if (isBooked) tooltipText = "Booked";
-                            else if (isPast)
-                              tooltipText = "Cannot book past hours";
-                            else if (!isAvailable) tooltipText = "Unavailable";
-                            else tooltipText = "Book Now";
+                            };
+                          })
+                          ?.filter(
+                            ({ isPast, isBooked, isAvailable, hasAmount }) =>
+                              showUnavailable ||
+                              (isAvailable && hasAmount && !isBooked && !isPast)
+                          )
+                          ?.map(
+                            (
+                              {
+                                slot,
+                                isPast,
+                                isSelected,
+                                isBooked,
+                                isAvailable,
+                                hasAmount,
+                              },
+                              i
+                            ) => {
+                              let tooltipText = "";
+                              if (!hasAmount)
+                                tooltipText = "Amount not available";
+                              else if (isBooked) tooltipText = "Booked";
+                              else if (isPast)
+                                tooltipText = "Cannot book past hours";
+                              else if (!isAvailable)
+                                tooltipText = "Unavailable";
+                              else tooltipText = "Book Now";
 
-                            const button = (
-                              <Button
-                                variant={
-                                  isSelected
-                                    ? "dark"
-                                    : isBooked
-                                    ? "danger"
-                                    : isPast
-                                    ? "secondary"
-                                    : !isAvailable || !hasAmount
-                                    ? "warning"
-                                    : "light"
-                                }
-                                className="rounded-pill px-3 py-1"
-                                onClick={() => toggleTime(slot)}
-                                disabled={
-                                  isPast ||
-                                  isBooked ||
-                                  !hasAmount ||
-                                  !isAvailable
-                                }
-                              >
-                                {isBooked ? "Booked" : slot.time}
-                              </Button>
-                            );
+                              const button = (
+                                <Button
+                                  variant={
+                                    isSelected
+                                      ? "dark"
+                                      : isBooked
+                                      ? "danger"
+                                      : isPast
+                                      ? "secondary"
+                                      : !isAvailable || !hasAmount
+                                      ? "warning"
+                                      : "light"
+                                  }
+                                  className="rounded-pill px-3 py-1"
+                                  onClick={() => toggleTime(slot)}
+                                  disabled={
+                                    isPast ||
+                                    isBooked ||
+                                    !hasAmount ||
+                                    !isAvailable
+                                  }
+                                >
+                                  {isBooked
+                                    ? "Booked"
+                                    : formatSlotTime(slot.time)}
+                                </Button>
+                              );
 
-                            return isSelected || isBooked ? (
-                              <div key={i}>{button}</div>
-                            ) : (
-                              <OverlayTrigger
-                                key={i}
-                                placement="top"
-                                overlay={<Tooltip>{tooltipText}</Tooltip>}
-                              >
-                                {button}
-                              </OverlayTrigger>
-                            );
-                          }
-                        )}
-                    </div>
-                  )}
-                </Card.Body>
-              </Card>
-              <Row className="my-4">
-                <Card className="shadow-sm">
-                  <Card.Body>
-                    <h5 className="mb-3 text-dark">Booking Summary</h5>
-                    {selectedCourts.length === 0 ? (
-                      <p className="text-muted">No court selected.</p>
-                    ) : (
-                      <>
-                        <p>
-                          <strong>Court:</strong> {getSelectedCourtName()}
-                        </p>
-                        <p>
-                          <strong>Selected Slots:</strong>
-                        </p>
-                        <ListGroup className="mb-3">
-                          {getSelectedSlotsList()?.map((slot, index) => (
-                            <ListGroup.Item key={index}>
-                              {slot.time} - Amount: ${slot.amount || 0}
-                            </ListGroup.Item>
-                          ))}
-                        </ListGroup>
-                        <p>
-                          <strong>Total Amount:</strong> ${calculateTotal()}
-                        </p>
-                      </>
+                              return isSelected || isBooked ? (
+                                <div key={i}>{button}</div>
+                              ) : (
+                                <OverlayTrigger
+                                  key={i}
+                                  placement="top"
+                                  overlay={<Tooltip>{tooltipText}</Tooltip>}
+                                >
+                                  {button}
+                                </OverlayTrigger>
+                              );
+                            }
+                          )}
+                      </div>
                     )}
                   </Card.Body>
                 </Card>
-              </Row>
-
-              <Button
-                variant="success"
-                size="lg"
-                className="w-100"
-                onClick={handleConfirm}
-                disabled={manualBookingLoading}
-              >
-                {manualBookingLoading ? <ButtonLoading /> : "Confirm Booking"}
-              </Button>
-            </Col>
-            <Col md={6}>
-              <Card className="shadow-sm mb-4">
-                <Card.Body>
-                  <h5 className="mb-4 text-dark">Match Details</h5>
-                  <Form>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Skill Level</Form.Label>
-                      <Form.Select
-                        value={skillLevel}
-                        onChange={(e) => setSkillLevel(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Advanced">Advanced</option>
-                        <option value="Professional">Professional</option>
-                      </Form.Select>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Racket Sport Played Before</Form.Label>
-                      <Form.Select
-                        value={racketSport}
-                        onChange={(e) => setRacketSport(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        <option value="Tennis">Tennis</option>
-                        <option value="Badminton">Badminton</option>
-                        <option value="Squash">Squash</option>
-                        <option value="Others">Others</option>
-                      </Form.Select>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>
-                        Received or Receiving Padel Training?
-                      </Form.Label>
-                      <Form.Select
-                        value={padelTraining}
-                        onChange={(e) => setPadelTraining(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        <option value="No">No</option>
-                        <option value="InPast">Yes, In Past</option>
-                        <option value="Currently">Yes, Currently</option>
-                      </Form.Select>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Age Group</Form.Label>
-                      <Form.Select
-                        value={ageGroup}
-                        onChange={(e) => setAgeGroup(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        <option value="Between 18 and 30 years">
-                          Between 18 and 30 years
-                        </option>
-                        <option value="31 to 40 years">31 to 40 years</option>
-                        <option value="41 to 50 years">41 to 50 years</option>
-                        <option value="Over 50">Over 50</option>
-                      </Form.Select>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>On the Volley?</Form.Label>
-                      <Form.Select
-                        value={volleySkill}
-                        onChange={(e) => setVolleySkill(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        <option value="I hardly got to the net">
-                          I hardly got to the net
-                        </option>
-                        <option value="I don’t feel safe at the net, I make too many mistake">
-                          I don’t feel safe at the net, I make too many mistakes
-                        </option>
-                        <option value="I can volley forehand and backhand with some difficulties">
-                          I can volley forehand and backhand with some
-                          difficulties
-                        </option>
-                        <option value="I have good positioning at the net and I volley confidently">
-                          I have good positioning at the net and I volley
-                          confidently
-                        </option>
-                        <option value="I don’t know">I don’t know</option>
-                      </Form.Select>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>On the Rebounds...</Form.Label>
-                      <Form.Select
-                        value={reboundSkill}
-                        onChange={(e) => setReboundSkill(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        <option value="I don’t Know how to read the rebounds, I hit before it rebounds">
-                          I don’t know how to read the rebounds, I hit before it
-                          rebounds
-                        </option>
-                        <option value="I try, with difficulty, to hit the rebounds on the back wall">
-                          I try, with difficulty, to hit the rebounds on the
-                          back wall
-                        </option>
-                        <option value="I return rebounds on the back wall, it is difficulty for me to return the double wall ones">
-                          I return rebounds on the back wall, it is difficult
-                          for me to return the double wall ones
-                        </option>
-                        <option value="I return double- wall rebounds and reach for quick rebounds">
-                          I return double-wall rebounds and reach for quick
-                          rebounds
-                        </option>
-                        <option value="I perform powerful wall descent shots with forehand and backhand">
-                          I perform powerful wall descent shots with forehand
-                          and backhand
-                        </option>
-                        <option value="I don’t know">I don’t know</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Form>
-                </Card.Body>
-              </Card>
-              <Card className="shadow-sm">
-                <Card.Body>
-                  <h5 className="mb-3 text-dark">Add Players (Max 4)</h5>
-                  <Button
-                    variant="primary"
-                    className="mb-3"
-                    onClick={() => setShowUserModal(true)}
-                    disabled={users.length >= 4}
+                <Row className="my-4">{renderBookingSummary()}</Row>
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="w-100"
+                  onClick={handleConfirm}
+                  disabled={manualBookingLoading}
+                >
+                  {manualBookingLoading ? <ButtonLoading /> : "Confirm Booking"}
+                </Button>
+              </Col>
+              <Col md={5}>
+                <div
+                  style={{
+                    backgroundColor: "#f5f7ff",
+                    border: "none",
+                    borderRadius: "12px",
+                    maxWidth: "100%",
+                    height: "600px",
+                  }}
+                >
+                  <Card
+                    style={{
+                      backgroundColor: "#f5f7ff",
+                      border: "none",
+                      borderRadius: "12px",
+                      maxWidth: "100%",
+                      height: "600px",
+                    }}
                   >
-                    <FaPlus className="me-2" /> Add Player
-                  </Button>
-                  <ListGroup>
-                    {users?.map((user, index) => (
-                      <ListGroup.Item
-                        key={index}
-                        className="d-flex justify-content-between align-items-center"
+                    <div className="d-flex gap-2 mb-4 pt-4">
+                      {steps.map((_, index) => (
+                        <div
+                          key={index}
+                          className="step-bar"
+                          style={{
+                            flex: 1,
+                            height: "8px",
+                            borderRadius: "0px",
+                            backgroundColor:
+                              index <= currentStep ? "#1d4ed8" : "#c7d2fe",
+                          }}
+                        ></div>
+                      ))}
+                    </div>
+                    <div className="p-4">
+                      <h6
+                        className="mb-4 fw-semibold"
+                        style={{ color: "#374151", fontSize: "24px" }}
                       >
-                        {user.name} - {user.phone}
+                        {steps[currentStep].question}
+                      </h6>
+                      <Form style={{ height: "450px" }}>
+                        {steps[currentStep].options?.map((option, i) => (
+                          <div
+                            key={i}
+                            onClick={() => setSelectedLevel(option)}
+                            className="d-flex align-items-center justify-content-between mb-3 px-3 py-2 rounded shadow-sm border transition-all"
+                            style={{
+                              backgroundColor:
+                                selectedLevel === option ? "#eef2ff" : "#fff",
+                              borderColor:
+                                selectedLevel === option
+                                  ? "#4f46e5"
+                                  : "#e5e7eb",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <Form.Check
+                              type="radio"
+                              label={option}
+                              name={`step-${currentStep}`}
+                              id={`option-${currentStep}-${i}`}
+                              value={option}
+                              checked={selectedLevel === option}
+                              onChange={(e) => setSelectedLevel(e.target.value)}
+                              className="fw-semibold"
+                            />
+                          </div>
+                        ))}
+                      </Form>
+                    </div>
+                    <div className="d-flex justify-content-end align-items-center p-3">
+                      {currentStep > 0 && (
                         <Button
-                          variant="link"
-                          className="text-danger"
-                          onClick={() => removeUser(index)}
+                          className="rounded-pill px-4 me-2"
+                          style={{
+                            backgroundColor: "#374151",
+                            border: "none",
+                            color: "#fff",
+                          }}
+                          onClick={handleBack}
                         >
-                          <FaTrash />
+                          Back
                         </Button>
-                      </ListGroup.Item>
-                    ))}
-                  </ListGroup>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+                      )}
+                      <Button
+                        className="rounded-pill px-4"
+                        style={{
+                          backgroundColor:
+                            currentStep === steps.length - 1
+                              ? "#3DBE64"
+                              : "#10b981",
+                          border: "none",
+                          color: "#fff",
+                        }}
+                        disabled={!selectedLevel}
+                        onClick={handleNext}
+                      >
+                        {manualBookingLoading ? (
+                          <ButtonLoading />
+                        ) : currentStep === steps.length - 1 ? (
+                          "Submit"
+                        ) : (
+                          "Next"
+                        )}
+                      </Button>
+                    </div>
+                  </Card>
+                </div>
+                {currentStep === steps.length - 1 && view === "selection" && (
+                  <div className="mt-4">
+                    <h6 className="fw-bold mb-3">Players</h6>
+                    <div className="row align-items-center justify-content-between border rounded-4 p-4">
+                      <div className="col-6 d-flex justify-content-evenly">
+                        {renderPlayer(matchDetails.players[0], 0)}
+                        {renderPlayer(matchDetails.players[1], 1)}
+                      </div>
+                      <div className="col-6 d-flex justify-content-evenly border-start">
+                        {renderPlayer(matchDetails.players[2], 2)}
+                        {renderPlayer(matchDetails.players[3], 3)}
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <div className="fw-semibold small mt-2 text-muted">
+                          Team A
+                        </div>
+                        <div className="fw-semibold small mt-2 text-muted">
+                          Team B
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Col>
+            </Row>
+          ) : (
+            <Row>
+              <Col md={6}>
+                <div className="mt-4">
+                  <h6 className="fw-bold mb-3">Players</h6>
+                  <div className="row align-items-center justify-content-between border rounded-4 p-4">
+                    <div className="col-6 d-flex justify-content-evenly">
+                      {renderPlayer(matchDetails.players[0], 0)}
+                      {renderPlayer(matchDetails.players[1], 1)}
+                    </div>
+                    <div className="col-6 d-flex justify-content-evenly border-start">
+                      {renderPlayer(matchDetails.players[2], 2)}
+                      {renderPlayer(matchDetails.players[3], 3)}
+                    </div>
+                    <div className="d-flex justify-content-between">
+                      <div className="fw-semibold small mt-2 text-muted">
+                        Team A
+                      </div>
+                      <div className="fw-semibold small mt-2 text-muted">
+                        Team B
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Col>
+              <Col md={6}>
+                {renderBookingSummary(true)}
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="w-100 mt-4"
+                  onClick={handleConfirm}
+                  disabled={manualBookingLoading}
+                >
+                  {manualBookingLoading ? <ButtonLoading /> : "Confirm Booking"}
+                </Button>
+              </Col>
+            </Row>
+          )}
         </Container>
       )}
-
-      {/* Modal for adding user */}
       <Modal show={showUserModal} onHide={() => setShowUserModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Add Player</Modal.Title>
@@ -769,16 +985,30 @@ const CreateMatch = () => {
             <Form.Label>Name</Form.Label>
             <Form.Control
               type="text"
-              value={newUserName}
-              onChange={(e) => setNewUserName(e.target.value)}
+              value={newUser.name}
+              onChange={(e) =>
+                setNewUser((prev) => ({ ...prev, name: e.target.value }))
+              }
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Email</Form.Label>
+            <Form.Control
+              type="email"
+              value={newUser.email}
+              onChange={(e) =>
+                setNewUser((prev) => ({ ...prev, email: e.target.value }))
+              }
             />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Phone Number</Form.Label>
             <Form.Control
               type="tel"
-              value={newUserPhone}
-              onChange={(e) => setNewUserPhone(e.target.value)}
+              value={newUser.phone}
+              onChange={(e) =>
+                setNewUser((prev) => ({ ...prev, phone: e.target.value }))
+              }
             />
           </Form.Group>
         </Modal.Body>
@@ -786,7 +1016,7 @@ const CreateMatch = () => {
           <Button variant="secondary" onClick={() => setShowUserModal(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={addUser}>
+          <Button variant="primary" onClick={handleAddUser}>
             Add
           </Button>
         </Modal.Footer>

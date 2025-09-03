@@ -65,6 +65,7 @@ h1.display-5 {
 .icon-button {
   width: 70px;
   text-align: center;
+  cursor: pointer;
   /* color: #333; */
 }
 
@@ -145,11 +146,10 @@ h1.display-5 {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  border: 1px solid #e2e2e2;
+  border: 1px solid #0000001A;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 35px;
   color: #374151;
   background-color: #CBD6FF1A;
   transition: all 0.3s ease;
@@ -236,6 +236,25 @@ h1.display-5 {
   font-weight: 700;
   font-family: "Nunito" sans-serif;
 }
+
+.table-data .dropdown-item {
+  color: #374151;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.table-data .dropdown-item:hover,
+.table-data .dropdown-item:focus {
+  color: #1F41BB !important;
+  background-color: white !important;
+}
+
+.table-data .dropdown-item.active,
+.table-data .dropdown-item:active {
+  color: #1F41BB !important;
+  background-color: white !important;
+  font-weight: 550;
+}
+
 
 .table-data {
   font-size: 16px;
@@ -637,7 +656,7 @@ h1.display-5 {
 }
 
 .open-now-time {
-  font-size: 18px;
+  font-size: 16px;
   font-family: 'Poppins';
   font-weight: 500;
   color: #1C1B1F;
@@ -648,7 +667,8 @@ h1.display-5 {
   font-weight: 600;
   font-family: "Poppins";
 }
-.averageRating-count{
+
+.averageRating-count {
   font-weight: 600;
   font-family: "Poppins";
   font-size: 50px;

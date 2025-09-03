@@ -27,6 +27,7 @@ import { showInfo } from "../../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 import { format } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
+import { formatSlotTime } from "../../../../helpers/Formatting";
 
 const ManualBooking = () => {
   const dispatch = useDispatch();
@@ -690,7 +691,9 @@ const ManualBooking = () => {
                                     transition: "all 0.2s ease",
                                   }}
                                 >
-                                  {isBooked ? "Booked" : slot?.time}
+                                  {isBooked
+                                    ? "Booked"
+                                    : formatSlotTime(slot?.time)}
                                 </button>
                               </span>
                             );

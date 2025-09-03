@@ -27,7 +27,7 @@ import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
-
+import { formatSlotTime } from "../../../helpers/Formatting";
 const CourtAvailability = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
@@ -638,7 +638,7 @@ const CourtAvailability = () => {
                                 transition: "all 0.2s ease",
                               }}
                             >
-                              {isBooked ? "Booked" : slot?.time}
+                              {isBooked ? "Booked" : formatSlotTime(slot?.time)}
                             </button>
                           </span>
                         );

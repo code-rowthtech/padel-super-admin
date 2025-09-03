@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllOpenMatches, getMatchById } from "./thunk";
+import { createOpenMatch, getAllOpenMatches, getMatchById } from "./thunk";
 
 const initialState = {
   openMatchesData: null,
@@ -50,6 +50,22 @@ const openMatchesSlice = createSlice({
     builder.addCase(getMatchById.rejected, (state, action) => {
       state.openMatchesLoading = false;
       state.getMatchDetails = null;
+      state.openMatchesError = action.payload;
+    });
+    // -----------------------------------------------------//---- Create open Match
+    builder.addCase(createOpenMatch.pending, (state) => {
+      state.openMatchesLoading = true;
+      state.openMatchesData = null;
+      state.openMatchesError = null;
+    });
+    builder.addCase(createOpenMatch.fulfilled, (state, action) => {
+      state.openMatchesLoading = false;
+      state.openMatchesData = action.payload;
+      state.openMatchesError = null;
+    });
+    builder.addCase(createOpenMatch.rejected, (state, action) => {
+      state.openMatchesLoading = false;
+      state.openMatchesData = null;
       state.openMatchesError = action.payload;
     });
   },

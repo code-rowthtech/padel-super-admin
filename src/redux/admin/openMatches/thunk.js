@@ -63,3 +63,22 @@ export const getMatchById = createAsyncThunk(
     }
   }
 );
+
+export const createOpenMatch = createAsyncThunk(
+  "openMatches/createOpenMatch",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.post(Url.CREATE_OPEN_MATCH, data);
+      if (res?.status === 200) {
+        showSuccess(res?.data?.message);
+        return res?.data;
+      } else {
+        showError(res?.data?.message || "Booking Failed");
+        return rejectWithValue(res?.data?.message || "Booking Failed");
+      }
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error?.response?.data?.message || "Network error");
+    }
+  }
+);
