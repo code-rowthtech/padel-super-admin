@@ -68,6 +68,7 @@ const MatchDetails = () => {
 
   // Render player or empty slot
   const renderPlayer = (player, index) => {
+    console.log({ player });
     if (!player) {
       return (
         <div className="text-center" key={index}>
@@ -94,7 +95,7 @@ const MatchDetails = () => {
     }
 
     const { userId } = player;
-    const initial = userId.name.charAt(0).toUpperCase();
+    const initial = userId?.name?.charAt(0)?.toUpperCase();
 
     return (
       <div className="text-center" key={index}>
@@ -217,7 +218,9 @@ const MatchDetails = () => {
                 </div>
                 <div className="col">
                   <div className="text-muted">Price</div>
-                  <div className="fw-semibold">₹ 2000</div>
+                  <div className="fw-semibold">
+                    ₹ {getMatchDetails?.slot?.[0]?.slotTimes?.[0]?.amount}
+                  </div>
                 </div>
               </div>
             </div>
