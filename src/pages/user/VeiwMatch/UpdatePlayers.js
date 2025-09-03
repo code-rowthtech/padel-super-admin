@@ -91,7 +91,7 @@ const UpdatePlayers = ({ showModal, matchId, setShowModal, selectedDate, selecte
             aria-describedby="parent-modal-description"    >
             <Box sx={modalStyle}>
                 <h6 id="modal-title" className="mb-3 text-center" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
-                    User Information
+                    Player Information
                 </h6>
                 <form>
                     <div className="mb-3">

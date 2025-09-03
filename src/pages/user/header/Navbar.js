@@ -162,7 +162,7 @@ const Navbar = () => {
                                         <div className="fw-semibold">
                                             {userData?.name
                                                 ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                : User?.user?.response?.name}
+                                                : User?.user?.response?.name || 'User'}
                                         </div>
                                         <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
                                     </div>
