@@ -11,6 +11,7 @@ import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/ap
 import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
 import { IoIosLogOut } from 'react-icons/io';
 import { PiRanking } from "react-icons/pi";
+import { getUserProfile } from '../../../redux/user/auth/authThunk';
 
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -63,7 +64,11 @@ const Navbar = () => {
         };
     }, [store?.user?.status, store?.user?.response?.user]); // Depend on Redux store changes
 
-
+    useEffect(() => {
+        if (token) {
+            dispatch(getUserProfile())
+        }
+    }, [])
     return (
         <nav className="navbar navbar-expand-lg bg-white py-2">
             <div className="container py-1">
@@ -157,6 +162,7 @@ const Navbar = () => {
                                         className="rounded-circle"
                                         width="40"
                                         height="40"
+                                        loading="lazy"
                                     />
                                     <div className="text-start d-none d-sm-block">
                                         <div className="fw-semibold">

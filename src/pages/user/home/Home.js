@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { twoball, taness, logo, line } from '../../../assets/files';
+import { twoball, taness, line } from '../../../assets/files';
 import DirectionsIcon from '@mui/icons-material/Directions';
-import PhotoSizeSelectActualIcon from '@mui/icons-material/PhotoSizeSelectActual';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import PhoneIcon from '@mui/icons-material/Phone';
 import StarIcon from '@mui/icons-material/Star';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { FaArrowRight, FaStar, FaStarHalfAlt } from "react-icons/fa";
+import { FaArrowRight } from "react-icons/fa";
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import { Link, useNavigate } from 'react-router-dom';
 import 'animate.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/club/thunk';
-import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { Avatar } from '@mui/material';
-import { getLogo, getUserProfile } from '../../../redux/user/auth/authThunk';
-import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/apiCore';
+import { getLogo } from '../../../redux/user/auth/authThunk';
 import { MdWatchLater } from "react-icons/md";
 import { PiImagesSquareFill } from "react-icons/pi";
 
@@ -38,7 +35,6 @@ const Home = () => {
     const getReviewData = store?.userClub?.getReviewData?.data
     const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
     const [loadedImages, setLoadedImages] = useState({});
-    let token = isUserAuthenticated()
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
@@ -50,9 +46,6 @@ const Home = () => {
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }))
-        if (token) {
-            dispatch(getUserProfile())
-        }
     }, [])
 
     useEffect(() => {

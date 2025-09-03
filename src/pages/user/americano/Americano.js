@@ -171,6 +171,7 @@ const Americano = () => {
                                                                 src={player.profilePic}
                                                                 alt={player.userId?.name || "Player"}
                                                                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                                loading="lazy"
                                                             />
                                                         ) : (
                                                             <span style={{ color: "white", fontWeight: "600", fontSize: "16px" }}>
@@ -242,6 +243,7 @@ const Americano = () => {
                                                 zIndex: 999,
                                                 position: "relative",
                                             }}
+                                            loading="lazy"
                                         />
                                     </div>
                                 </div>

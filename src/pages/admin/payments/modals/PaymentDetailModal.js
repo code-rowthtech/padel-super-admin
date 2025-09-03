@@ -34,6 +34,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
           alt="Details"
           className="animated-img mb-1"
           style={{ width: "200px" }}
+          loading="lazy"
         />
         <h4>Payment Successful!</h4>
         <span>Your payment has been received successfully.</span>

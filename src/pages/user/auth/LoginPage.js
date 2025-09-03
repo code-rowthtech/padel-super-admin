@@ -103,6 +103,7 @@ const LoginPage = () => {
                                 height: "100vh",
                                 // objectFit: "contain",   // show full image, no cropping
                             }}
+                            loading="lazy"
                         />
                     </Col>
 

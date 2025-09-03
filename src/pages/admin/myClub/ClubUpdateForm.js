@@ -160,6 +160,7 @@ const ImageTile = ({ src, onRemove }) => (
       src={src}
       alt="preview"
       style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      loading="lazy"
     />
     <Button
       type="button"
