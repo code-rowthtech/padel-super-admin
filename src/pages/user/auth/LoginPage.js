@@ -57,7 +57,7 @@ const LoginPage = () => {
                                         type="tel"
                                         placeholder="Enter your Phone"
                                         className=" form-control py-3"
-                                        style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 4px 10px 0px #00000040' }}
+                                        style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
                                         value={phone}
                                         minLength={10}
                                         maxLength={10}
@@ -76,7 +76,7 @@ const LoginPage = () => {
                                     type="submit"
                                     className="w-100 text-white  border-0 py-3 rounded-pill "
                                     disabled={userAuthLoading}
-                                    style={{ backgroundColor: '#4CAF50', fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 4px 10px 0px #00000040' }}
+                                    style={{ backgroundColor: '#4CAF50', fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
 
                                 >
                                     {userAuthLoading ? <ButtonLoading /> : 'Get OTP'}
@@ -103,6 +103,7 @@ const LoginPage = () => {
                                 height: "100vh",
                                 // objectFit: "contain",   // show full image, no cropping
                             }}
+                            loading="lazy"
                         />
                     </Col>
 

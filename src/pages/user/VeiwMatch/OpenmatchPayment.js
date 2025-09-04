@@ -11,6 +11,7 @@ import { NewPlayers } from "./NewPlayers";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import { Alert, Button, Modal } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { showError, showSuccess } from "../../../helpers/Toast";
 
 const OpenmatchPayment = (props) => {
     const [modal, setModal] = useState(false);
@@ -44,8 +45,8 @@ const OpenmatchPayment = (props) => {
             setErrorShow(true);
             return;
         }
-        if (userPlayersData.length < 3) {
-            setError("Add at least 3 players to proceed.");
+        if (userPlayersData.length < 1) {
+            setError("Add at least 2 players to proceed.");
             setErrorShow(true)
             return;
         }
@@ -76,49 +77,51 @@ const OpenmatchPayment = (props) => {
         };
 
         dispatch(createMatches(formattedData)).unwrap().then((res) => {
-            if (res?.match?.status === true) return;
+            if (!res?.match?.clubId) return;
             try {
                 setIsLoading(true);
                 const name = User?.name;
                 const phoneNumber = User?.phoneNumber;
                 const email = User?.email;
                 if (!name || !phoneNumber || !email) {
-                    throw new Error("User ki information missing hai. Naam, phone, ya email daalein.");
+                    showError('User information missing !')
+                } else {
+                    const payload = {
+                        name,
+                        phoneNumber,
+                        email,
+                        register_club_id: savedClubId,
+                        ownerId: owner_id,
+                        paymentMethod: selectedPayment || "Gpay",
+                        type: "openMatch",
+                        slot: selectedCourts?.flatMap(court =>
+                            court.times.map(timeSlot => ({
+                                slotId: timeSlot?._id,
+                                businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
+                                    time: t?.time,
+                                    day: t?.day,
+                                })) || [],
+                                slotTimes: [{
+                                    time: timeSlot?.time,
+                                    amount: timeSlot?.amount || 1000,
+                                }],
+                                courtName: court?.courtName || "Court",
+                                courtId: court?._id,
+                                bookingDate: new Date(selectedDate?.fullDate).toISOString(),
+                            }))
+                        ) || [],
+                    };
+
+                    dispatch(createBooking(payload)).unwrap().then((res) => {
+                        localStorage.removeItem('players');
+                        navigate('/open-matches');
+                        setErrorShow(false);
+                        setIsLoading(true);
+                    });
+                    setModal(true);
                 }
 
-                const payload = {
-                    name,
-                    phoneNumber,
-                    email,
-                    register_club_id: savedClubId,
-                    ownerId: owner_id,
-                    paymentMethod: selectedPayment || "Gpay",
-                    type: "openMatch",
-                    slot: selectedCourts?.flatMap(court =>
-                        court.times.map(timeSlot => ({
-                            slotId: timeSlot?._id,
-                            businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
-                                time: t?.time,
-                                day: t?.day,
-                            })) || [],
-                            slotTimes: [{
-                                time: timeSlot?.time,
-                                amount: timeSlot?.amount || 1000,
-                            }],
-                            courtName: court?.courtName || "Court",
-                            courtId: court?._id,
-                            bookingDate: new Date(selectedDate?.fullDate).toISOString(),
-                        }))
-                    ) || [],
-                };
 
-                dispatch(createBooking(payload)).unwrap().then((res) => {
-                    localStorage.removeItem('players');
-                    navigate('/open-matches');
-                    setErrorShow(false);
-                    setIsLoading(true);
-                });
-                setModal(true);
             } catch (err) {
                 setError(err.message || err || "Booking ke dauraan error aaya.");
                 setModal(false);
@@ -732,7 +735,6 @@ const OpenmatchPayment = (props) => {
                                 <div>No courts selected</div>
                             )}
                         </div>
-                        {console.log({ selectedCourts })}
                         <div className="border-top pt-2 mb-3 mt-2 d-flex justify-content-between fw-bold">
                             <span style={{ fontSize: "16px", fontWeight: "600" }}>
                                 Total to pay

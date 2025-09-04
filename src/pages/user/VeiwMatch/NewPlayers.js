@@ -3,7 +3,7 @@ import { Box, Button, Modal } from "@mui/material";
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from 'react-bootstrap';
 import { Usersignup } from '../../../redux/user/auth/authThunk';
-import { getMatchesUser } from '../../../redux/user/matches/thunk';
+import { addPlayers, getMatchesUser } from '../../../redux/user/matches/thunk';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { showSuccess } from '../../../helpers/Toast';
 
@@ -88,7 +88,7 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                 >
                     <Box sx={modalStyle}>
                         <h6 id="modal-title" className="mb-3 text-center" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
-                            User Information
+                            Player Information
                         </h6>
                         <form>
                             <div className="mb-3">

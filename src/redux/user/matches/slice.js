@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createMatches, getMatches, getMatchesUser, getMatchesView } from "./thunk";
+import { addPlayers, createMatches, getMatches, getMatchesUser, getMatchesView, removePlayers } from "./thunk";
 
 const initialState = {
     matchesLoading: false,
@@ -78,6 +78,34 @@ const matchesSlice = createSlice({
                 state.viewMatchesData = action.payload;
             })
             .addCase(getMatchesView.rejected, (state, action) => {
+                state.viewMatchesLoading = false;
+                state.viewMatchesError = action.payload;
+            })
+
+             // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
+            .addCase(addPlayers.pending, (state) => {
+                state.viewMatchesLoading = true;
+                state.viewMatchesData = null;
+            })
+            .addCase(addPlayers.fulfilled, (state, action) => {
+                state.viewMatchesLoading = false;
+                state.viewMatchesData = action.payload;
+            })
+            .addCase(addPlayers.rejected, (state, action) => {
+                state.viewMatchesLoading = false;
+                state.viewMatchesError = action.payload;
+            })
+
+               // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
+            .addCase(removePlayers.pending, (state) => {
+                state.viewMatchesLoading = true;
+                state.viewMatchesData = null;
+            })
+            .addCase(removePlayers.fulfilled, (state, action) => {
+                state.viewMatchesLoading = false;
+                state.viewMatchesData = action.payload;
+            })
+            .addCase(removePlayers.rejected, (state, action) => {
                 state.viewMatchesLoading = false;
                 state.viewMatchesError = action.payload;
             })

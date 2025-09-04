@@ -22,6 +22,7 @@ export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
           alt="Success"
           className="animated-img"
           style={{ width: "260px" }}
+          loading="lazy"
         />
       </h3>
       <i
@@ -107,6 +108,7 @@ export const BookingConfirmationModal = ({ show, handleClose }) => (
           alt="Details"
           className="py-4 animated-img"
           style={{ width: "250px", marginBottom: "20px" }}
+          loading="lazy"
         />
         <div
           className="d-flex justify-content-between border align-items-center rounded-3 mb-4"
@@ -267,6 +269,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
         alt="Details"
         className="py-2 animated-img"
         style={{ width: "200px" }}
+        loading="lazy"
       />
       <div
         className="d-flex justify-content-between border align-items-center rounded-3 mb-2"

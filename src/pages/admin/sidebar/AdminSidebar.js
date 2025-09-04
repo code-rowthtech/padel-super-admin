@@ -76,6 +76,7 @@ const AdminSidebar = () => {
   useEffect(() => {
     dispatch(getLogo({ ownerId: ownerId }));
   }, []);
+
   useEffect(() => {
     setClubLogo(getLogoData?.logo?.logo?.[0]);
   }, [getLogoData?.logo?._id]);
@@ -98,6 +99,7 @@ const AdminSidebar = () => {
                   src={clubLogo}
                   alt="Profile"
                   className="rounded-circle "
+                  loading="lazy"
                   style={{
                     width: "100px",
                     height: "100px",

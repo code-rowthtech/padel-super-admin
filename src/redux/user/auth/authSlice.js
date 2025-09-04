@@ -8,6 +8,8 @@ import {
   loginUserNumber,
   getLogo,
   Usersignup,
+  updateUser,
+  getUserProfile,
 } from "./authThunk";
 import {
   setLoggedInUser,
@@ -88,7 +90,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-        // SignUp
+      // SignUp
       .addCase(Usersignup.pending, (state) => {
         state.userSignUpLoading = true;
         state.errorSignUp = null;
@@ -162,7 +164,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Get All Users
+      // Get Logo
       .addCase(getLogo.pending, (state) => {
         state.logoLoading = true;
         state.error = null;
@@ -175,7 +177,35 @@ const authSlice = createSlice({
       .addCase(getLogo.rejected, (state, action) => {
         state.logoLoading = false;
         state.error = action.payload;
-      });
+      })
+
+      // update profile
+      .addCase(updateUser.pending, (state) => {
+        state.userLoading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.userLoading = false;
+        state.user = action.payload;
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.userLoading = false;
+        state.error = action.payload;
+      })
+
+      // get profile
+      .addCase(getUserProfile.pending, (state) => {
+        state.userLoading = true;
+        state.error = null;
+      })
+      .addCase(getUserProfile.fulfilled, (state, action) => {
+        state.userLoading = false;
+        state.user = action.payload;
+      })
+      .addCase(getUserProfile.rejected, (state, action) => {
+        state.useroLoading = false;
+        state.error = action.payload;
+      })
 
   },
 });

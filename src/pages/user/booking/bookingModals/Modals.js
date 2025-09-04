@@ -26,7 +26,6 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
   };
-  console.log({ tableData });
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();

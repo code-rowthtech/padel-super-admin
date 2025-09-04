@@ -242,63 +242,65 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
               {errors.email}
             </Form.Control.Feedback>
           </Form.Group>
+          {!userData?._id && (
+            <>
+              {/* Password */}
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-medium">Password</Form.Label>
+                <InputGroup>
+                  <Form.Control
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    isInvalid={!!errors.password}
+                    placeholder={
+                      userData?._id ? "Leave blank to keep unchanged" : "******"
+                    }
+                    className="rounded-start-pill px-3 py-2"
+                  />
+                  <InputGroup.Text
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ cursor: "pointer" }}
+                    className="rounded-end-pill bg-white"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </InputGroup.Text>
+                  <Form.Control.Feedback type="invalid">
+                    {errors.password}
+                  </Form.Control.Feedback>
+                </InputGroup>
+              </Form.Group>
 
-          {/* Password */}
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-medium">Password</Form.Label>
-            <InputGroup>
-              <Form.Control
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                isInvalid={!!errors.password}
-                placeholder={
-                  userData?._id ? "Leave blank to keep unchanged" : "******"
-                }
-                className="rounded-start-pill px-3 py-2"
-              />
-              <InputGroup.Text
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ cursor: "pointer" }}
-                className="rounded-end-pill bg-white"
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </InputGroup.Text>
-              <Form.Control.Feedback type="invalid">
-                {errors.password}
-              </Form.Control.Feedback>
-            </InputGroup>
-          </Form.Group>
-
-          {/* Confirm Password */}
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-medium">Confirm Password</Form.Label>
-            <InputGroup>
-              <Form.Control
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                isInvalid={!!errors.confirmPassword}
-                placeholder={
-                  userData?._id ? "Leave blank to keep unchanged" : "******"
-                }
-                className="rounded-start-pill px-3 py-2"
-              />
-              <InputGroup.Text
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={{ cursor: "pointer" }}
-                className="rounded-end-pill bg-white"
-              >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </InputGroup.Text>
-              <Form.Control.Feedback type="invalid">
-                {errors.confirmPassword}
-              </Form.Control.Feedback>
-            </InputGroup>
-          </Form.Group>
-
+              {/* Confirm Password */}
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-medium">Confirm Password</Form.Label>
+                <InputGroup>
+                  <Form.Control
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    isInvalid={!!errors.confirmPassword}
+                    placeholder={
+                      userData?._id ? "Leave blank to keep unchanged" : "******"
+                    }
+                    className="rounded-start-pill px-3 py-2"
+                  />
+                  <InputGroup.Text
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ cursor: "pointer" }}
+                    className="rounded-end-pill bg-white"
+                  >
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </InputGroup.Text>
+                  <Form.Control.Feedback type="invalid">
+                    {errors.confirmPassword}
+                  </Form.Control.Feedback>
+                </InputGroup>
+              </Form.Group>
+            </>
+          )}
           <Button
             type="submit"
             disabled={authLoading || updateSubOwnerLoading}

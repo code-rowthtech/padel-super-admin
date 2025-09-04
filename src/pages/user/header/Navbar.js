@@ -11,16 +11,16 @@ import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/ap
 import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
 import { IoIosLogOut } from 'react-icons/io';
 import { PiRanking } from "react-icons/pi";
+import { getUserProfile } from '../../../redux/user/auth/authThunk';
 
 const Navbar = () => {
     const dispatch = useDispatch();
-
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
+    const User = useSelector((state) => state?.userAuth)
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
-    const User = getUserFromSession()
     let token = isUserAuthenticated()
     const logo = JSON.parse(localStorage.getItem("logo"));
     useEffect(() => {
@@ -64,7 +64,11 @@ const Navbar = () => {
         };
     }, [store?.user?.status, store?.user?.response?.user]); // Depend on Redux store changes
 
-
+    useEffect(() => {
+        if (token) {
+            dispatch(getUserProfile())
+        }
+    }, [])
     return (
         <nav className="navbar navbar-expand-lg bg-white py-2">
             <div className="container py-1">
@@ -153,19 +157,20 @@ const Navbar = () => {
                                     className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
                                 >
                                     <img
-                                        src={userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                        src={User?.user?.response?.profilePic || userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                         alt="user"
                                         className="rounded-circle"
                                         width="40"
                                         height="40"
+                                        loading="lazy"
                                     />
                                     <div className="text-start d-none d-sm-block">
                                         <div className="fw-semibold">
                                             {userData?.name
                                                 ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                : 'User'}
+                                                : User?.user?.response?.name || 'User'}
                                         </div>
-                                        <div className="text-muted small">+91 {userData?.phoneNumber || 'N/A'}</div>
+                                        <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
                                     </div>
                                     {isOpen ? (
                                         <FaChevronUp className="ms-2 text-muted" />
@@ -174,8 +179,8 @@ const Navbar = () => {
                                     )}
                                 </Dropdown.Toggle>
 
-                                <Dropdown.Menu className="table-data fw-medium" style={{ color: '#374151', width: "200px" }}>
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/profile">
+                                <Dropdown.Menu className="table-data mt-2 fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
                                         <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
                                     </Dropdown.Item>
 

@@ -347,7 +347,7 @@ const CreateMatches = () => {
             <DataLoading height={"30vh"} />
           ) : (
             <>
-              <div className="d-flex flex-wrap gap-2 mb-4">
+              <div className="d-flex flex-wrap gap-2 mb-4" key={currentCourtId}>
                 {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
                   (() => {
                     const selectedDateObj = new Date(selectedDate?.fullDate);
