@@ -34,7 +34,7 @@ const LoginPage = () => {
     }, [error]);
 
     return (
-        <div className="auth-wrapper">
+        <div className="auth-wrapper" style={{backgroundColor:"#F8F8F8"}}>
             <Container fluid className="vh-100 p-0">
                 <Row className="g-0 h-100">
                     {/* Left Form */}

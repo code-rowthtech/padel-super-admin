@@ -51,7 +51,6 @@ const Payment = ({ className = "" }) => {
         saturday: "Sat",
     };
 
-    // Update localGrandTotal and localTotalSlots when localSelectedCourts changes
     useEffect(() => {
         const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);
         const newGrandTotal = localSelectedCourts.reduce(
@@ -62,7 +61,6 @@ const Payment = ({ className = "" }) => {
         setLocalGrandTotal(newGrandTotal);
     }, [localSelectedCourts]);
 
-    // Redirect if no courtData
     useEffect(() => {
         if (!courtData) {
             navigate("/booking");
@@ -71,7 +69,6 @@ const Payment = ({ className = "" }) => {
         setLocalSelectedCourts(selectedCourts || []);
     }, [courtData, selectedCourts, navigate]);
 
-    // Clear error after 2 seconds
     useEffect(() => {
         const timer = setTimeout(() => {
             setErrorShow(false);
@@ -91,23 +88,28 @@ const Payment = ({ className = "" }) => {
             let updated = [...prev];
             if (updated[courtIndex]?.time) {
                 updated[courtIndex].time = updated[courtIndex].time.filter((_, i) => i !== slotIndex);
-                // Do not remove the court, even if time array is empty
             }
             return updated;
         });
     };
 
     const handlePayment = async () => {
-        const errors = [];
-        if (!name) errors.push("Name is required");
-        if (!phoneNumber) {
-            errors.push("Phone number must be 10 digits starting with 6, 7, 8, or 9");
-        }
-        if (!email) errors.push("Email is required");
-        if (!selectedPayment) errors.push("Payment method is required");
+        let errorMsg = "";
 
-        if (errors.length > 0) {
-            setError(errors.join(", "));
+        if (!name) {
+            errorMsg = "Name is required";
+        } else if (!email) {
+            errorMsg = "Email is required";
+        } else if (!phoneNumber) {
+            errorMsg = "Phone number is required";
+        } else if (!/^[6-9]\d{9}$/.test(phoneNumber)) {
+            errorMsg = "Phone number must be 10 digits starting with 6, 7, 8, or 9";
+        } else if (!selectedPayment) {
+            errorMsg = "Payment method is required";
+        }
+
+        if (errorMsg) {
+            setError(errorMsg);
             setErrorShow(true);
             return;
         }
@@ -126,7 +128,7 @@ const Payment = ({ className = "" }) => {
             const slotTimesData = courtData?.slot?.[0]?.slotTimes || [];
 
             const slotArray = localSelectedCourts.flatMap((court) => {
-                return court.time.map((timeSlot) => {
+                return court?.time?.map((timeSlot) => {
                     const matchingSlot = slotTimesData.find((slot) => slot.time === timeSlot.time);
                     return {
                         slotId: matchingSlot?._id || courtData?.slot?.[0]?._id,
@@ -165,12 +167,11 @@ const Payment = ({ className = "" }) => {
             };
 
             await dispatch(createBooking(payload)).unwrap();
-            if (user?.token && user?.name) {
-                // navigate("/booking-history");
-                setModal(true)
+            if (user?.name) {
+                setModal(true);
             } else {
                 await dispatch(loginUserNumber({ phoneNumber, name, email }));
-                setModal(true)
+                setModal(true);
             }
         } catch (err) {
             console.error("Payment Error:", err);
@@ -180,6 +181,7 @@ const Payment = ({ className = "" }) => {
             setIsLoading(false);
         }
     };
+
 
     // Button styling
     const width = 370;

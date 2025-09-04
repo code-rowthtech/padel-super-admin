@@ -360,8 +360,7 @@ const BookingHistory = () => {
                                                 className=" border-bottom"
                                             >
                                                 <td className="table-data py-2 ps-5 text-start" style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
-                                                    {formatDate(new Date())} {/* Adjust the date string as per slotItem?.bookingDate */}
-                                                    {(() => {
+                                                    {formatDate(booking?.bookingDate)} | {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
                                                             return time ? formatTime(time) : "";
