@@ -126,7 +126,7 @@ const AdminTopbar = () => {
             <Dropdown.Item as={NavLink} to="/admin/help-support">
               Help & Support
             </Dropdown.Item>
-            <Dropdown.Item as={NavLink} to="/admin/settings">
+            <Dropdown.Item as={NavLink} to="/admin/privacy">
               Privacy
             </Dropdown.Item>
             <Dropdown.Item

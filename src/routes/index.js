@@ -28,7 +28,7 @@ const OpenmatchPayment = React.lazy(() =>
 const AmericanoUser = React.lazy(() =>
   import("../pages/user/americano/Americano")
 );
-const UserProfile = React.lazy(() => import("../pages/user/profile/Profile"))
+const UserProfile = React.lazy(() => import("../pages/user/profile/Profile"));
 const Payment = React.lazy(() => import("../pages/user/payment/Payment"));
 const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
@@ -89,6 +89,10 @@ const CourtAvailability = React.lazy(() =>
 );
 const CreateMatch = React.lazy(() =>
   import("../pages/admin/open-matches/create/CreateMatch")
+);
+const Privacy = React.lazy(() => import("../pages/admin/privacy/Privacy"));
+const Support = React.lazy(() =>
+  import("../pages/admin/helpAndSupport/Support")
 );
 
 // Errors
@@ -315,6 +319,14 @@ const AllRoutes = () => {
             {
               path: "create-match",
               element: LoadComponent(CreateMatch),
+            },
+            {
+              path: "privacy",
+              element: LoadComponent(Privacy),
+            },
+            {
+              path: "help-support",
+              element: LoadComponent(Support),
             },
           ],
         },

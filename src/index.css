@@ -146,12 +146,12 @@ h1.display-5 {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  border: 1px solid #0000001A;
+  border: 1px solid #0000001a;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #374151;
-  background-color: #CBD6FF1A;
+  background-color: #cbd6ff1a;
   transition: all 0.3s ease;
 }
 
@@ -177,7 +177,6 @@ h1.display-5 {
 .image-zoom-hover img {
   transition: transform 0.5s ease;
 }
-
 
 .calendar-day-btn {
   flex: 0 0 91px !important;
@@ -244,17 +243,16 @@ h1.display-5 {
 
 .table-data .dropdown-item:hover,
 .table-data .dropdown-item:focus {
-  color: #1F41BB !important;
+  color: #1f41bb !important;
   background-color: white !important;
 }
 
 .table-data .dropdown-item.active,
 .table-data .dropdown-item:active {
-  color: #1F41BB !important;
+  color: #1f41bb !important;
   background-color: white !important;
   font-weight: 550;
 }
-
 
 .table-data {
   font-size: 16px;
@@ -319,8 +317,8 @@ h1.display-5 {
   text-align: center;
   font-weight: 400;
   font-size: 14px;
-  border-bottom: 0.5px solid #0000001A;
-  background-color: #FAFBFF !important;
+  border-bottom: 0.5px solid #0000001a;
+  background-color: #fafbff !important;
   /* Fixed the syntax error with quotes */
 }
 
@@ -352,7 +350,7 @@ h1.display-5 {
   font-weight: 400;
   font-size: 14px;
   border-bottom: 0.5px solid #0000001a;
-  background-color: #fafbff !important;
+  background-color: #fafbff;
   /* Fixed the syntax error with quotes */
 }
 
@@ -476,7 +474,6 @@ h1.display-5 {
   grid-area: img10;
 }
 
-
 /* Assign each image to its area */
 .item1 {
   grid-area: img1;
@@ -550,7 +547,6 @@ h1.display-5 {
 .image-loader {
   background: linear-gradient(180deg, #181818 0%, #282828 100%);
 }
-
 
 /* =======-Image hoveer effect for table  */
 .img-container {
@@ -640,7 +636,7 @@ h1.display-5 {
   font-family: "Poppins";
   height: 50px;
   width: 146px;
-  background: #3DBE64;
+  background: #3dbe64;
 }
 
 .nav-item {
@@ -652,14 +648,14 @@ h1.display-5 {
 .home-main-heading {
   font-weight: 700;
   font-family: "Poppins";
-  font-size: 70px
+  font-size: 70px;
 }
 
 .open-now-time {
   font-size: 16px;
-  font-family: 'Poppins';
+  font-family: "Poppins";
   font-weight: 500;
-  color: #1C1B1F;
+  color: #1c1b1f;
 }
 
 .home-upcoming-heading {
