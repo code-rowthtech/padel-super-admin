@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Alert } from "react-bootstrap";
+import { showSuccess } from "../../../helpers/Toast";
 import { Box, Button, Modal } from "@mui/material";
-import { useDispatch, useSelector } from 'react-redux';
-import { Alert } from 'react-bootstrap';
-import { Usersignup } from '../../../redux/user/auth/authThunk';
-import { addPlayers, getMatchesUser } from '../../../redux/user/matches/thunk';
-import { ButtonLoading } from '../../../helpers/loading/Loaders';
-import { showSuccess } from '../../../helpers/Toast';
+import { Usersignup } from "../../../redux/user/auth/authThunk";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
 const modalStyle = {
     position: 'absolute',
@@ -17,22 +16,22 @@ const modalStyle = {
     p: 4,
     borderRadius: 2,
     border: 'none',
-
+    zIndex: 1300, // Add this
 };
-export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot }) => {
+
+const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot }) => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [errorShow, setErrorShow] = useState(false);
     const [error, setError] = useState(null);
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
     const userLoading = useSelector((state) => state?.userAuth);
-
 
     const handleSubmit = () => {
         const errors = [];
         if (!name) errors.push("Name is required");
-        if (!phoneNumber) {
+        if (!phoneNumber || !/^[6-9][0-9]{9}$/.test(phoneNumber)) {
             errors.push("Phone number must be 10 digits starting with 6, 7, 8, or 9");
         }
         if (!email) errors.push("Email is required");
@@ -48,35 +47,36 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
             .unwrap()
             .then((res) => {
                 if (res?.status === "200") {
-                    const existingPlayers = localStorage.getItem('players')
-                        ? JSON.parse(localStorage.getItem('players'))
-                        : [];
-                    const playersArray = Array.isArray(existingPlayers) ? existingPlayers : [];
-                    const updatedPlayers = [...playersArray, res?.response];
-                    localStorage.setItem('players', JSON.stringify(updatedPlayers));
+                    const addedPlayers = localStorage.getItem('addedPlayers')
+                        ? JSON.parse(localStorage.getItem('addedPlayers'))
+                        : {};
+                    addedPlayers[activeSlot] = res?.response;
+                    localStorage.setItem('addedPlayers', JSON.stringify(addedPlayers));
                     setPhoneNumber('');
                     setName('');
                     setEmail('');
                     setShowAddMeForm(false);
                     setActiveSlot(null);
-                    showSuccess("Add Players Successfully");
+                    showSuccess("Player Added Successfully");
                 }
             }).catch((err) => {
                 setError(err?.response?.data?.message || "An error occurred. Please try again.");
                 setErrorShow(true);
-            })
+            });
     };
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setErrorShow(false);
-            setError('')
-        }, 2000);
-        return () => clearTimeout(timer);
-    }, [error, errorShow]);
+        if (errorShow) {
+            const timer = setTimeout(() => {
+                setErrorShow(false);
+                setError('');
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [errorShow]);
+
     return (
         <>
-            {showAddMeForm && (
                 <Modal
                     open={showAddMeForm}
                     onClose={() => {
@@ -137,7 +137,7 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                                                 return;
                                             }
                                             const formattedValue = value
-                                                .replace(/\s+/g, "") // Remove all spaces
+                                                .replace(/\s+/g, "")
                                                 .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
                                                     return first.toUpperCase() + rest.toLowerCase() + domain;
                                                 });
@@ -159,13 +159,13 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                                     </span>
                                     <input
                                         type="text"
-                                        maxLength={10} // Restrict to 10 digits
+                                        maxLength={10}
                                         value={phoneNumber}
                                         style={{ boxShadow: "none" }}
                                         onChange={(e) => {
-                                            const value = e.target.value.replace(/[^0-9]/g, ''); // Allow only digits
+                                            const value = e.target.value.replace(/[^0-9]/g, '');
                                             if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                                                setPhoneNumber(value); // Store only the digits
+                                                setPhoneNumber(value);
                                             }
                                         }}
                                         className="form-control border-0 p-2"
@@ -196,13 +196,12 @@ export const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setAct
                                 >
                                     {userLoading?.userSignUpLoading ? <ButtonLoading /> : "Submit"}
                                 </Button>
-
                             </div>
                         </form>
                     </Box>
                 </Modal>
-            )
-            }
         </>
-    )
-}
+    );
+};
+
+export default NewPlayers;

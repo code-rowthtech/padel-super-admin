@@ -83,29 +83,25 @@ const CreateMatches = () => {
     }
   };
 
-  // कोर्ट सेलेक्ट करने की लॉजिक
   const handleCourtSelect = (court) => {
-    setCurrentCourtId(court._id); // वर्तमान कोर्ट सेट करें
+    setCurrentCourtId(court._id); 
     setSelectedCourts((prev) => {
-      // अगर कोर्ट पहले से सेलेक्टेड है, तो उसे हटाएं
-      if (prev.some((c) => c._id === court._id)) {
-        return prev.filter((c) => c._id !== court._id);
+      if (!prev.some((c) => c._id === court._id)) {
+        return [
+          ...prev,
+          {
+            _id: court._id,
+            courtName: court.courtName,
+            type: court.type,
+            date: selectedDate?.fullDate,
+            times: [], 
+          },
+        ];
       }
-      // नया कोर्ट जोड़ें
-      return [
-        ...prev,
-        {
-          _id: court._id,
-          courtName: court.courtName,
-          type: court.type,
-          date: selectedDate?.fullDate,
-          times: [], // शुरू में कोई स्लॉट्स नहीं
-        },
-      ];
+      return prev; 
     });
   };
 
-  // स्लॉट्स को टॉगल करने की लॉजिक
   const toggleTime = (slot) => {
     setSelectedCourts((prev) => {
       const updatedCourts = prev.map((court) => {
@@ -114,9 +110,9 @@ const CreateMatches = () => {
           const newTimes = isSelected
             ? court.times.filter((t) => t._id !== slot._id)
             : [
-                ...court.times,
-                { _id: slot._id, time: slot.time, amount: slot.amount || 1000 },
-              ];
+              ...court.times,
+              { _id: slot._id, time: slot.time, amount: slot.amount || 1000 },
+            ];
           return { ...court, times: newTimes };
         }
         return court;
@@ -153,7 +149,6 @@ const CreateMatches = () => {
     }
   }, [selectedDate.day, currentCourtId, savedClubId, dispatch]);
 
-  // डिफॉल्ट रूप से पहला कोर्ट सेलेक्ट करें
   useEffect(() => {
     if (
       slotData?.data?.length > 0 &&
@@ -266,7 +261,6 @@ const CreateMatches = () => {
                         const formattedDate = date.toISOString().split("T")[0];
                         const day = date.toLocaleDateString("en-US", { weekday: "long" });
                         setSelectedDate({ fullDate: formattedDate, day: day });
-                        // डेट बदलने पर सभी कोर्ट्स के स्लॉट्स रीसेट करें
                         setSelectedCourts((prev) =>
                           prev.map((court) => ({ ...court, times: [] }))
                         );
@@ -309,7 +303,6 @@ const CreateMatches = () => {
                       onClick={() => {
                         setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                         setStartDate(new Date(d.fullDate));
-                        // डेट बदलने पर सभी कोर्ट्स के स्लॉट्स रीसेट करें
                         setSelectedCourts((prev) =>
                           prev.map((court) => ({ ...court, times: [] }))
                         );
@@ -329,7 +322,6 @@ const CreateMatches = () => {
               </button>
             </div>
           </div>
-          {/* Time Selector with Toggle */}
           <div className="d-flex justify-content-between align-items-center py-2">
             <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
               Available Slots for {selectedCourts.find((c) => c._id === currentCourtId)?.courtName || "Selected Court"}
@@ -488,14 +480,11 @@ const CreateMatches = () => {
                         key={court?._id}
                         onClick={() => handleCourtSelect(court)}
                         style={{ cursor: "pointer" }}
-                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-2 mb-1 px-2 ${
-                          selectedCourts.some((selCourt) => selCourt._id === court._id)
-                            ? "bg-success-subtle rounded"
-                            : ""
-                        }`}
+                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-2 mb-1 px-2 ${court._id === currentCourtId ? "bg-success-subtle rounded" : ""
+                          }`}
                       >
                         <div className="d-flex align-items-center gap-3">
-                          <Avatar src='https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0='/>
+                          <Avatar src='https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0=' />
                           <div>
                             <p className="mb-1 fw-semibold">{court?.courtName}</p>
                             <small className="text-muted">{court?.type}</small>
@@ -565,6 +554,7 @@ const CreateMatches = () => {
                         backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
                         borderColor: selectedLevel === option ? "#4f46e5" : "#e5e7eb",
                         cursor: "pointer",
+                        boxShadow:"none"
                       }}
                     >
                       <Form.Check
@@ -576,6 +566,7 @@ const CreateMatches = () => {
                         checked={selectedLevel === option}
                         onChange={(e) => setSelectedLevel(e.target.value)}
                         className="fw-semibold"
+                        style={{boxShadow:"none"}}
                       />
                     </div>
                   ))}

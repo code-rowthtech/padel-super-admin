@@ -14,6 +14,7 @@ import { getReviewClub } from "../../../redux/user/club/thunk";
 import "react-datepicker/dist/react-datepicker.css";
 import { player } from "../../../assets/files";
 import UpdatePlayers from "../VeiwMatch/UpdatePlayers";
+import { formatDate } from "../../../helpers/Formatting";
 
 const slotTime = [
     '4:00 AM', '5:00 AM', '6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -37,7 +38,7 @@ const Openmatches = () => {
     const [selectedTime, setSelectedTime] = useState(null); // Changed to single time
     const [selectedDate, setSelectedDate] = useState({
         fullDate: new Date().toISOString().split("T")[0],
-        day: new Date().toLocaleDateString("en-US", { weekday: "long" })
+        day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
     });
     const dateRefs = useRef({});
     const wrapperRef = useRef(null);
@@ -49,12 +50,14 @@ const Openmatches = () => {
     const reviewData = useSelector((state) => state.userClub?.getReviewData?.data);
     const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
     const [showModal, setShowModal] = useState(false);
-    const [matchId,setMatchId] = useState(null)
+    const [matchId, setMatchId] = useState(null)
+    const [teamName, setTeamName] = useState('')
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
             setIsOpen(false);
         }
     };
+    console.log({ matchesData });
 
     useEffect(() => {
         document.addEventListener("mousedown", handleClickOutside);
@@ -69,6 +72,21 @@ const Openmatches = () => {
     }, [dispatch]);
 
     useEffect(() => {
+        if (selectedDate?.fullDate && dateRefs.current[selectedDate?.fullDate]) {
+            const selectedIndex = dates.findIndex(d => d.fullDate === selectedDate.fullDate);
+            if (selectedIndex !== -1) {
+                const targetIndex = Math.max(0, Math.min(selectedIndex - Math.floor(visibleDays / 2), dates.length - visibleDays));
+                setStartIndex(targetIndex);
+                dateRefs.current[selectedDate?.fullDate].scrollIntoView({
+                    behavior: "smooth",
+                    inline: "center",
+                    block: "nearest",
+                });
+            }
+        }
+    }, [selectedDate]);
+
+    useEffect(() => {
         const payload = {
             matchDate: selectedDate?.fullDate,
             ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
@@ -78,11 +96,11 @@ const Openmatches = () => {
     }, [dispatch, selectedDate, selectedTime, selectedLevel]);
 
     const today = new Date();
-    const dates = Array.from({ length: 40 }).map((_, i) => {
+    const dates = Array.from({ length: 41 }).map((_, i) => {
         const date = new Date();
         date.setDate(today.getDate() + i);
         return {
-            day: date.toLocaleDateString("en-US", { weekday: "short" }),
+            day: date.toLocaleDateString("en-US", { weekday: "long" }),
             date: date.getDate(),
             month: date.toLocaleDateString("en-US", { month: "short" }),
             fullDate: date.toISOString().split("T")[0],
@@ -134,32 +152,176 @@ const Openmatches = () => {
     };
 
     const formatTimes = (slots) => {
-        return (
-            slots
-                ?.map((slot) => {
-                    const time = slot?.slotTimes?.[0]?.time;
-                    if (!time) return null;
+        if (!slots || slots.length === 0) return "N/A";
 
-                    if (/am|pm/i.test(time)) {
-                        return time.replace(/\s+/g, "").toUpperCase(); // "5PM"
-                    }
+        const formatted = slots
+            .slice(0, 3) // only first 5 slots
+            .map((slot) => {
+                const time = slot?.slotTimes?.[0]?.time;
+                if (!time) return null;
 
-                    const [hours, minutes] = time.split(":");
-                    const hour = parseInt(hours, 10);
-                    const period = hour >= 12 ? "PM" : "AM";
-                    const formattedHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                if (/am|pm/i.test(time)) {
+                    return time.replace(/\s+/g, "").toUpperCase(); // e.g. "5PM"
+                }
 
-                    return `${formattedHour}${period}`;
-                })
-                .filter(Boolean)
-                .join(",") || "N/A"
-        );
+                const [hours, minutes] = time.split(":");
+                const hour = parseInt(hours, 10);
+                const period = hour >= 12 ? "PM" : "AM";
+                const formattedHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+
+                return `${formattedHour}${period}`;
+            })
+            .filter(Boolean);
+
+        // Join first 5, then add "..." if more than 5
+        return formatted.join(",") + (slots.length > 3 ? "...." : "");
     };
-
 
     const filteredMatches = showUnavailableOnly
         ? matchesData?.data?.filter(match => match?.players?.length >= 4) || []
         : matchesData?.data || [];
+
+    const TagWrapper = ({ children }) => (
+        <div
+            className="d-flex align-items-center rounded-pill pe-3 me-0"
+            style={{
+                backgroundColor: "#fff",
+                borderRadius: "999px",
+                zIndex: 999,
+                position: "relative",
+                top: "0px", // lift tag above avatars
+                left: "20px",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+            }}
+        >
+            {children}
+        </div>
+    );
+
+    // Available Tag
+    const AvailableTag = ({ team, match, name }) => (
+        <TagWrapper>
+            <div
+                className="d-flex justify-content-center align-items-center rounded-circle"
+                style={{
+                    width: "40px",
+                    height: "40px",
+                    border: "1px solid #1D4ED8",
+                    color: "#1D4ED8",
+                    fontSize: "24px",
+                    fontWeight: "400",
+                    marginRight: "10px",
+                    cursor: "pointer",
+                }}
+                onClick={() => {
+                    setShowModal(true);
+                    setMatchId(match?._id);
+                    setTeamName(name);
+                }}
+            >
+                <span className="d-flex align-items-center mb-1">+</span>
+            </div>
+            <div className="d-flex flex-column align-items-start">
+                <span style={{ fontWeight: 600, color: "#1D4ED8", fontSize: "12px" }}>
+                    Available
+                </span>
+                <small style={{ fontSize: "10px", color: "#6B7280" }}>{team}</small>
+            </div>
+        </TagWrapper>
+    );
+
+    // First Player Tag
+    const FirstPlayerTag = ({ player }) => (
+        <TagWrapper>
+            <div
+                className="d-flex justify-content-center align-items-center rounded-circle overflow-hidden"
+                style={{
+                    width: "40px",
+                    height: "40px",
+                    // border: "1px solid #1D4ED8",
+                    marginRight: "10px",
+                }}
+            >
+                {player?.profilePic ? (
+                    <img
+                        src={player?.profilePic}
+                        alt={player?.name || "Player"}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                ) : (
+                    <span style={{ color: "#1D4ED8", fontWeight: "600", fontSize: "16px" }}>
+                        {player?.name ? player.name.charAt(0).toUpperCase() : "P"}
+                    </span>
+                )}
+            </div>
+            <div className="ps-0 text-start">
+                <p
+                    className="m-0"
+                    style={{ fontWeight: 600, color: "#111827", fontSize: "12px" }}
+                >
+                    {player?.name || "Player"}
+                </p>
+                <p
+                    className="m-0 mb-1 d-flex justify-content-center align-items-center rounded"
+                    style={{
+                        fontSize: "10px",
+                        color: "#6B7280",
+                        fontWeight: "500",
+                        width: "30px",
+                        backgroundColor: "#BEEDCC",
+                    }}
+                >
+                    0.43
+                </p>
+            </div>
+        </TagWrapper>
+    );
+
+    // Player Avatar (circle images)
+    const PlayerAvatar = ({ player, idx, total }) => (
+        <div
+            className="rounded-circle border d-flex align-items-center justify-content-center position-relative"
+            style={{
+                width: "40px",
+                height: "40px",
+                marginLeft: idx !== 0 ? "-15px" : "0", // Increased overlap
+                zIndex: total - idx,
+                backgroundColor: player?.userId?.profilePic ? "transparent" : "#374151",
+                overflow: "hidden",
+                border: "1px solid #E5E7EB",
+            }}
+        >
+            {player?.userId?.profilePic ? (
+                <img
+                    src={player?.userId?.profilePic}
+                    alt={player?.userId?.name || "Player"}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+            ) : (
+                <span
+                    style={{
+                        color: "white",
+                        fontWeight: "600",
+                        fontSize: "16px",
+                    }}
+                >
+                    {player?.userId?.name
+                        ? player.userId.name.charAt(0).toUpperCase()
+                        : "P"}
+                </span>
+            )}
+        </div>
+    );
+
+    const dayShortMap = {
+        Monday: "Mon",
+        Tuesday: "Tue",
+        Wednesday: "Wed",
+        Thursday: "Thu",
+        Friday: "Fri",
+        Saturday: "Sat",
+        Sunday: "Sun",
+    };
 
     return (
         <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
@@ -220,7 +382,7 @@ const Openmatches = () => {
                                     maxWidth: "650px",
                                 }}
                             >
-                                {dates.slice(startIndex, startIndex + visibleDays).map((d, i) => {
+                                {dates?.map((d, i) => {
                                     const isSelected = selectedDate?.fullDate === d.fullDate;
                                     return (
                                         <button
@@ -233,14 +395,12 @@ const Openmatches = () => {
                                                 minWidth: "85px",
                                             }}
                                             onClick={() => {
-                                                setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                                                setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                                                 setStartDate(new Date(d.fullDate));
-                                                setSelectedTime(null); // Reset time on date change
                                             }}
-                                            aria-label={`Select date ${d.day} ${d.date} ${d.month}`}
                                         >
                                             <div className="text-center">
-                                                <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{d.day}</div>
+                                                <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{dayShortMap[d.day]}</div>
                                                 <div style={{ fontSize: "26px", fontWeight: "500", fontFamily: "Poppins" }}>{d.date}</div>
                                                 <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{d.month}</div>
                                             </div>
@@ -317,110 +477,102 @@ const Openmatches = () => {
                                 <DataLoading height={300} />
                             ) : filteredMatches.length > 0 ? (
                                 filteredMatches?.map((match, index) => (
-                                    <div key={index} className="card border-0 shadow-sm mb-3 rounded-2" style={{ backgroundColor: "#CBD6FF1A" }}>
-                                        <div className="card-body px-4 py-3 d-flex justify-content-between flex-wrap">
-                                            <div>
+                                    <div
+                                        key={index}
+                                        className="card border-0 shadow-sm mb-3 rounded-2"
+                                        style={{ backgroundColor: "#CBD6FF1A" }}
+                                    >
+                                        <div className="row px-4 py-3 d-flex justify-content-between align-items-center flex-wrap">
+                                            {/* Left Side - Match Info */}
+                                            <div className="col-6">
                                                 <p className="mb-1" style={{ fontSize: "18px", fontWeight: "600" }}>
                                                     {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
                                                     <span className="fw-normal text-muted ms-3">
-                                                        {match?.skillLevel ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1) : 'N/A'}
+                                                        {match?.skillLevel
+                                                            ? match.skillLevel.charAt(0).toUpperCase() +
+                                                            match.skillLevel.slice(1)
+                                                            : "N/A"}
                                                     </span>
                                                 </p>
                                                 <p className="mb-1" style={{ fontSize: "15px", fontWeight: "500" }}>
-                                                    {match?.clubId?.clubName || 'Unknown Club'}
+                                                    {match?.clubId?.clubName || "Unknown Club"}
                                                 </p>
-                                                <p className="mb-0 text-muted" style={{ fontSize: "12px", fontWeight: "400" }}>
+                                                <p
+                                                    className="mb-0 text-muted"
+                                                    style={{ fontSize: "12px", fontWeight: "400" }}
+                                                >
                                                     <FaMapMarkerAlt className="me-2" />
-                                                    {match?.clubId?.city || 'N/A'} {match?.clubId?.zipCode || ''}
+                                                    {match?.clubId?.city || "N/A"} {match?.clubId?.zipCode || ""}
                                                 </p>
                                             </div>
-                                            <div className="gap-4 d-flex flex-wrap justify-content-end mt-3 mt-md-0">
-                                                <div className="text-end">
-                                                    <div className="d-flex align-items-center justify-content-end">
-                                                        {match?.players?.length < 4 && (
-                                                            <div className="text-end">
-                                                                <div className="d-flex align-items-center rounded-pill pe-3" style={{
-                                                                    backgroundColor: "#fff",
-                                                                    borderRadius: "999px",
-                                                                    zIndex: 999
-                                                                }}>
-                                                                    <div
-                                                                        className="d-flex justify-content-center align-items-center rounded-circle"
-                                                                        style={{
-                                                                            width: "40px",
-                                                                            height: "40px",
-                                                                            border: "1px solid #1D4ED8",
-                                                                            color: "#1D4ED8",
-                                                                            fontSize: "24px",
-                                                                            fontWeight: "400",
-                                                                            marginRight: "10px",
-                                                                            cursor:"pointer"
-                                                                        }}
-                                                                        onClick={() => {
-                                                                            setShowModal(true);
-                                                                            setMatchId(match?._id);
-                                                                        }}
-                                                                    >
-                                                                        <span className="d-flex align-items-center mb-1">+</span>
-                                                                    </div>
-                                                                    <div className="d-flex flex-column align-items-center">
-                                                                        <span style={{ fontWeight: 600, color: "#1D4ED8", fontSize: "10px" }}>
-                                                                            Available
-                                                                        </span>
-                                                                        <small style={{ fontSize: "8px", color: "#6B7280" }}>
-                                                                            Team {match?.players?.length < 2 ? "A" : "B"}
-                                                                        </small>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        {match?.players?.map((player, idx) => (
-                                                            <div
-                                                                key={idx}
-                                                                className="rounded-circle border d-flex align-items-center justify-content-center"
-                                                                style={{
-                                                                    width: "40px",
-                                                                    height: "40px",
-                                                                    marginLeft: idx !== 0 ? "-10px" : "0",
-                                                                    zIndex: match?.players?.length - idx,
-                                                                    backgroundColor: player?.profilePic ? "transparent" : "#1F41BB",
-                                                                    overflow: "hidden"
-                                                                }}
-                                                            >
-                                                                {player?.profilePic ? (
-                                                                    <img
-                                                                        src={player?.profilePic}
-                                                                        alt={player?.userId?.name || "Player"}
-                                                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                                                    />
-                                                                ) : (
-                                                                    <span style={{ color: "white", fontWeight: "600", fontSize: "16px" }}>
-                                                                        {player?.userId?.name ? player.userId.name.charAt(0).toUpperCase() : "P"}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        ))}
+
+                                            <div className="col-6 d-flex justify-content-end align-items-center">
+                                                <div className="d-flex flex-column align-items-end">
+                                                    <div className="d-flex align-items-center mb-2">
+                                                        {match?.teamA?.length === 1 || match?.teamA?.length === 0 ? (
+                                                            <AvailableTag team="Team A" match={match} name="teamA" />
+                                                        ) : match?.teamB?.length === 1 || match?.teamB?.length === 0 ? (
+                                                            <AvailableTag team="Team B" match={match} name="teamB" />
+                                                        ) : match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
+                                                            <FirstPlayerTag player={match?.teamA[0]?.userId} />
+                                                        ) : null}
+
+                                                        <div className="d-flex align-items-center ms-2">
+                                                            {[
+                                                                ...(match?.teamA?.filter((_, idx) =>
+                                                                    match?.teamA?.length === 2 && match?.teamB?.length === 2
+                                                                        ? idx !== 0
+                                                                        : true
+                                                                ) || []),
+                                                                ...(match?.teamB || []),
+                                                            ].map((player, idx, arr) => (
+                                                                <PlayerAvatar
+                                                                    key={`player-${idx}`}
+                                                                    player={player}
+                                                                    idx={idx}
+                                                                    total={arr.length}
+                                                                />
+                                                            ))}
+                                                        </div>
+
                                                     </div>
-                                                    <div className="text-primary text-end mb-3" style={{ fontSize: "20px", fontWeight: "500" }}>
-                                                        ₹ {calculateMatchPrice(match?.slot) || 0}
+
+                                                    <div className="d-flex align-items-center gap-3">
+                                                        <div
+                                                            className="text-primary"
+                                                            style={{ fontSize: "20px", fontWeight: "500" }}
+                                                        >
+                                                            ₹ {calculateMatchPrice(match?.slot) || 0}
+                                                        </div>
+                                                        <button
+                                                            className="btn rounded-pill px-4 text-white py-1"
+                                                            onClick={() =>
+                                                                navigate("/view-match", { state: { match } })
+                                                            }
+                                                            style={{
+                                                                backgroundColor: "#3DBE64",
+                                                                fontSize: "12px",
+                                                                fontWeight: "500",
+                                                            }}
+                                                            aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                        >
+                                                            View
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        className="btn rounded-pill px-4 text-white py-0 px-1"
-                                                        onClick={() => {
-                                                            navigate('/view-match', { state: { match } });
-                                                        }}
-                                                        style={{ backgroundColor: "#3DBE64", fontSize: "12px", fontWeight: "500" }}
-                                                        aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
-                                                    >
-                                                        View
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="d-flex flex-column justify-content-center align-items-center text-danger fw-medium" style={{ height: "250px", fontSize: "18px", fontFamily: "Poppins" }}>
+                                <div
+                                    className="d-flex flex-column justify-content-center align-items-center text-danger fw-medium"
+                                    style={{
+                                        height: "250px",
+                                        fontSize: "18px",
+                                        fontFamily: "Poppins",
+                                    }}
+                                >
                                     <p>No matches available</p>
                                 </div>
                             )}
@@ -513,20 +665,20 @@ const Openmatches = () => {
 
                                                 return (
                                                     <div className="d-flex align-items-center justify-content-between mb-1 w-100" key={idx}>
-                                                        <div className="me-2 fw-medium" style={{ width: "100px", fontSize: "12px", fontFamily: "Poppins" }}>
+                                                        <div className="me-2 fw-medium" style={{ width: "120px", fontSize: "12px", fontFamily: "Poppins" }}>
                                                             {label}
                                                         </div>
-                                                        <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
+                                                        <div className="progress me-3 w-100 " style={{ height: "8px", position: "relative" }}>
                                                             <div
                                                                 className="progress-bar"
                                                                 style={{
                                                                     width,
                                                                     backgroundColor:
-                                                                        idx === 0 ? "#3DBE64" : // Excellent (Green)
-                                                                            idx === 1 ? "#7CBA3D" : // Very Good (Dark Green)
-                                                                                idx === 2 ? "#ECD844" : // Good (Yellow)
-                                                                                    idx === 3 ? "#FC702B" : // Average (Orange)
-                                                                                        "#E9341F", // Poor (Red)
+                                                                        idx === 0 ? "#3DBE64" :
+                                                                            idx === 1 ? "#7CBA3D" :
+                                                                                idx === 2 ? "#ECD844" :
+                                                                                    idx === 3 ? "#FC702B" :
+                                                                                        "#E9341F",
                                                                 }}
                                                             ></div>
                                                         </div>
@@ -550,7 +702,7 @@ const Openmatches = () => {
                     </div>
                 </div>
             </div>
-            <UpdatePlayers showModal={showModal} matchId={matchId} setShowModal={setShowModal} selectedDate={selectedDate} selectedLevel={selectedLevel} selectedTime={selectedTime} />
+            <UpdatePlayers showModal={showModal} teamName={teamName} matchId={matchId} setShowModal={setShowModal} selectedDate={selectedDate} selectedLevel={selectedLevel} selectedTime={selectedTime} />
         </div>
     );
 };

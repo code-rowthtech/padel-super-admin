@@ -20,7 +20,7 @@ const modalStyle = {
     border: 'none',
 
 };
-const UpdatePlayers = ({ showModal, matchId, setShowModal, selectedDate, selectedTime, selectedLevel }) => {
+const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate, selectedTime, selectedLevel }) => {
     const dispatch = useDispatch()
     const [formData, setFormData] = useState({ name: "", email: "", phoneNumber: "" });
     const addLoading = useSelector((state) => state?.userAuth);
@@ -53,7 +53,7 @@ const UpdatePlayers = ({ showModal, matchId, setShowModal, selectedDate, selecte
             .unwrap()
             .then((res) => {
                 if (res?.status === "200") {
-                    dispatch(addPlayers({ matchId: matchId, playerId: res?.response?._id })).then(() => {
+                    dispatch(addPlayers({ matchId: matchId, playerId: res?.response?._id,team:teamName })).then(() => {
                         setShowModal(false);
                         dispatch(getMatchesView(matchId));
                         const payload = {
