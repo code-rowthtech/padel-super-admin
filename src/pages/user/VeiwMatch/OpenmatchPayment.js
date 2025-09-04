@@ -318,8 +318,6 @@ const OpenmatchPayment = (props) => {
                             <div className="col-6 d-flex gap-3 justify-content-center">
                                 {(() => {
                                     const leftComponents = [];
-
-                                    // Slot 1: Logged-in User (Fixed)
                                     if (User) {
                                         const player = userData || User;
                                         leftComponents.push(
@@ -346,7 +344,7 @@ const OpenmatchPayment = (props) => {
                                                     )}
                                                 </div>
                                                 <p className="mb-0 mt-2 fw-semibold">
-                                                    {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
+                                                    {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "User"}
                                                 </p>
                                                 <span className="badge bg-success-subtle text-success">{skillLabels[0]}</span>
                                             </div>
