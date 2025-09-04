@@ -68,7 +68,6 @@ const MatchDetails = () => {
 
   // Render player or empty slot
   const renderPlayer = (player, index) => {
-    console.log({ player });
     if (!player) {
       return (
         <div className="text-center" key={index}>

@@ -77,144 +77,166 @@ const OpenMatches = () => {
               </div>
             </button>
           </div>
-          {openMatchesData?.map((match, index) => (
-            <div
-              key={index}
-              className="card border-0 shadow-sm mb-3 rounded-3"
-              style={{ backgroundColor: "#CBD6FF1A" }}
-            >
-              <div className="card-body px-4 py-3 d-flex justify-content-between flex-wrap">
-                {/* Left Info */}
-                <div>
-                  <p className="mb-1 fw-semibold" style={{ fontSize: "16px" }}>
-                    {format(new Date(match?.matchDate), "dd MMM yyyy")} |{" "}
-                    {match?.matchTime || ""}
-                    <span className="text-muted ms-3 fw-normal">
-                      {match?.skillLevel?.charAt(0).toUpperCase() +
-                        match?.skillLevel?.slice(1) || ""}
-                    </span>
-                  </p>
-                  <p className="mb-1 fw-medium" style={{ fontSize: "15px" }}>
-                    {match?.clubId?.clubName}
-                  </p>
-                  <p className="mb-0 text-muted" style={{ fontSize: "13px" }}>
-                    <FaMapMarkerAlt className="me-1" />
-                    {match?.clubId?.state} {match?.clubId?.zipCode}
-                  </p>
-                </div>
-
-                {/* Right: Players & Price */}
-                <div className="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
-                  <div className="d-flex align-items-center justify-content-end mb-2">
-                    {match?.players?.length < 4 && (
-                      <div
-                        className="d-flex align-items-center rounded-pill pe-3 bg-white me-2"
-                        style={{ borderRadius: "999px", zIndex: 999 }}
+          {openMatchesData?.length > 0 ? (
+            <>
+              {openMatchesData?.map((match, index) => (
+                <div
+                  key={index}
+                  className="card border-0 shadow-sm mb-3 rounded-3"
+                  style={{ backgroundColor: "#CBD6FF1A" }}
+                >
+                  <div className="card-body px-4 py-3 d-flex justify-content-between flex-wrap">
+                    {/* Left Info */}
+                    <div>
+                      <p
+                        className="mb-1 fw-semibold"
+                        style={{ fontSize: "16px" }}
                       >
-                        <div
-                          className="d-flex justify-content-center align-items-center rounded-circle"
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            border: "1px solid #1D4ED8",
-                            color: "#1D4ED8",
-                            fontSize: "24px",
-                            fontWeight: "400",
-                            marginRight: "10px",
-                          }}
-                        >
-                          +
-                        </div>
-                        <div className="d-flex flex-column align-items-center">
-                          <span
-                            style={{
-                              fontWeight: 600,
-                              color: "#1D4ED8",
-                              fontSize: "10px",
-                            }}
-                          >
-                            Available
-                          </span>
-                          <small style={{ fontSize: "8px", color: "#6B7280" }}>
-                            {match?.teamInfo}
-                          </small>
-                        </div>
-                      </div>
-                    )}
+                        {format(new Date(match?.matchDate), "dd MMM yyyy")} |{" "}
+                        {match?.matchTime || ""}
+                        <span className="text-muted ms-3 fw-normal">
+                          {match?.skillLevel?.charAt(0).toUpperCase() +
+                            match?.skillLevel?.slice(1) || ""}
+                        </span>
+                      </p>
+                      <p
+                        className="mb-1 fw-medium"
+                        style={{ fontSize: "15px" }}
+                      >
+                        {match?.clubId?.clubName}
+                      </p>
+                      <p
+                        className="mb-0 text-muted"
+                        style={{ fontSize: "13px" }}
+                      >
+                        <FaMapMarkerAlt className="me-1" />
+                        {match?.clubId?.state} {match?.clubId?.zipCode}
+                      </p>
+                    </div>
 
-                    {match?.players?.map((item, idx) =>
-                      item?.profileImage ? (
+                    {/* Right: Players & Price */}
+                    <div className="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
+                      <div className="d-flex align-items-center justify-content-end mb-2">
+                        {match?.players?.length < 4 && (
+                          <div
+                            className="d-flex align-items-center rounded-pill pe-3 bg-white me-2"
+                            style={{ borderRadius: "999px", zIndex: 999 }}
+                          >
+                            <div
+                              className="d-flex justify-content-center align-items-center rounded-circle"
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                border: "1px solid #1D4ED8",
+                                color: "#1D4ED8",
+                                fontSize: "24px",
+                                fontWeight: "400",
+                                marginRight: "10px",
+                              }}
+                            >
+                              +
+                            </div>
+                            <div className="d-flex flex-column align-items-center">
+                              <span
+                                style={{
+                                  fontWeight: 600,
+                                  color: "#1D4ED8",
+                                  fontSize: "10px",
+                                }}
+                              >
+                                Available
+                              </span>
+                              <small
+                                style={{ fontSize: "8px", color: "#6B7280" }}
+                              >
+                                {match?.teamInfo}
+                              </small>
+                            </div>
+                          </div>
+                        )}
+
+                        {match?.players?.map((item, idx) =>
+                          item?.profileImage ? (
+                            <img
+                              key={`${match?._id}-${idx}`}
+                              src={item?.profileImage}
+                              alt="Court Images"
+                              className="rounded-circle border border-white d-flex align-items-center justify-content-center text-white"
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                marginLeft: idx !== 0 ? "-10px" : "0",
+                                zIndex: match?.players?.length - idx,
+                                position: "relative",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              key={`${match?._id}-${idx}`}
+                              className="rounded-circle border border-white d-flex align-items-center justify-content-center text-white"
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                marginLeft: idx !== 0 ? "-10px" : "0",
+                                zIndex: match?.players?.length - idx,
+                                position: "relative",
+                                backgroundColor: "black",
+                                fontWeight: "bold",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              {item?.userId?.name?.[0] || "U"}
+                            </div>
+                          )
+                        )}
+                        {/* {match?.clubId?.courtImage?.map((item, idx) => (
                         <img
                           key={`${match?._id}-${idx}`}
-                          src={item?.profileImage}
+                          src={item}
                           alt="Court Images"
-                          className="rounded-circle border border-white d-flex align-items-center justify-content-center text-white"
+                          className="rounded-circle border border-white"
                           style={{
                             width: "40px",
                             height: "40px",
                             marginLeft: idx !== 0 ? "-10px" : "0",
-                            zIndex: match?.players?.length - idx,
+                            zIndex: match?.clubId?.courtImage?.length - idx,
                             position: "relative",
                           }}
                         />
-                      ) : (
-                        <div
-                          key={`${match?._id}-${idx}`}
-                          className="rounded-circle border border-white d-flex align-items-center justify-content-center text-white"
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            marginLeft: idx !== 0 ? "-10px" : "0",
-                            zIndex: match?.players?.length - idx,
-                            position: "relative",
-                            backgroundColor: "black",
-                            fontWeight: "bold",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {item?.userId?.name?.[0] || "U"}
-                        </div>
-                      )
-                    )}
-                    {/* {match?.clubId?.courtImage?.map((item, idx) => (
-                      <img
-                        key={`${match?._id}-${idx}`}
-                        src={item}
-                        alt="Court Images"
-                        className="rounded-circle border border-white"
+                      ))} */}
+                      </div>
+
+                      <div
+                        className="text-primary fw-semibold"
+                        style={{ fontSize: "18px" }}
+                      >
+                        ₹ 2000
+                      </div>
+
+                      <Link
+                        to={`/admin/match-details/${match?._id}`}
+                        className="btn rounded-pill px-3 py-1 text-white"
                         style={{
-                          width: "40px",
-                          height: "40px",
-                          marginLeft: idx !== 0 ? "-10px" : "0",
-                          zIndex: match?.clubId?.courtImage?.length - idx,
-                          position: "relative",
+                          backgroundColor: "#3DBE64",
+                          fontSize: "12px",
+                          fontWeight: "500",
                         }}
-                      />
-                    ))} */}
+                      >
+                        View
+                      </Link>
+                    </div>
                   </div>
-
-                  <div
-                    className="text-primary fw-semibold"
-                    style={{ fontSize: "18px" }}
-                  >
-                    ₹ 2000
-                  </div>
-
-                  <Link
-                    to={`/admin/match-details/${match?._id}`}
-                    className="btn rounded-pill px-3 py-1 text-white"
-                    style={{
-                      backgroundColor: "#3DBE64",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    View
-                  </Link>
                 </div>
-              </div>
+              ))}
+            </>
+          ) : (
+            <div
+              className="d-flex text-danger justify-content-center align-items-center w-100"
+              style={{ height: "70vh" }}
+            >
+              No Open Matches were found !
             </div>
-          ))}
+          )}
         </div>
       )}
     </>

@@ -278,7 +278,7 @@ const Payments = () => {
                                 <span className="fw-medium text-nowrap">
                                   {formatDate(item?.bookingDate)}
                                 </span>
-                                <span className="text-muted small ms-1">
+                                <span className="text-muted ms-1">
                                   |{" "}
                                   {formatTime(
                                     renderSlotTimes(item?.slot?.[0]?.slotTimes)
