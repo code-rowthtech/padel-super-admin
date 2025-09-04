@@ -650,7 +650,6 @@ const OpenmatchPayment = (props) => {
                     </div>
                 </div>
 
-                {/* Right Section - Booking Summary */}
                 <div className="col-5 pe-0">
                     <div className="rounded-4 pt-4 px-5" style={{ backgroundColor: "#F5F5F566" }}>
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
