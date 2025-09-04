@@ -172,7 +172,9 @@ const SubOwner = () => {
         show={showUserModal}
         onHide={() => {
           setShowUserModal(false);
-          setSelectedUser(null);
+          setTimeout(() => {
+            setSelectedUser(null);
+          }, 200);
         }}
         userData={selectedUser}
       />

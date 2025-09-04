@@ -122,7 +122,6 @@ const Packages = () => {
   return (
     <Container
       fluid
-      className="py-4"
       style={{
         backgroundColor: "#f8fafc",
         fontFamily: "Inter, sans-serif",
@@ -213,7 +212,7 @@ const Packages = () => {
 
       <Row className="g-4">
         {/* Left: Plans */}
-        <Col sm={7}>
+        <Col sm={5}>
           <Stack gap={3} className="d-flex flex-row">
             {plans.map((plan) => (
               <Card
@@ -313,7 +312,7 @@ const Packages = () => {
         </Col>
 
         {/* Right: Packages */}
-        <Col sm={5}>
+        <Col sm={4}>
           {packageLoading ? (
             <DataLoading height="60vh" />
           ) : (
@@ -323,60 +322,51 @@ const Packages = () => {
                   {packages.map((pkg, index) => (
                     <Col xs={12} key={pkg?._id}>
                       <Card
-                        className={`border-0 shadow-sm ${
+                        className={`${
                           selectedPackage === index
-                            ? "border-2 border-primary"
-                            : ""
+                            ? "border-2 border-primary shadow"
+                            : "shadow-sm"
                         }`}
                         style={{
-                          borderRadius: "16px",
-                          backgroundColor: "#fff",
+                          borderRadius: "5px",
+                          backgroundColor: "#F8FAFF",
                           cursor: "pointer",
                         }}
                         onClick={() => setSelectedPackage(index)}
                       >
-                        <Card.Body className="d-flex align-items-center p-3">
-                          <div
-                            className="fw-bold text-primary"
-                            style={{ fontSize: "20px", minWidth: "90px" }}
-                          >
-                            ₹{pkg?.price}
-                          </div>
-                          <div className="flex-grow-1 ms-3">
-                            <h6 className="fw-bold mb-1">{pkg?.packageName}</h6>
+                        <Card.Body className="d-flex justify-content-between align-items-start">
+                          {/* Left Section (Price + Info) */}
+                          <div>
+                            <div
+                              className="fw-bold mb-2"
+                              style={{
+                                fontSize: "32px",
+                                lineHeight: "1",
+                                color: "#1F41BB",
+                              }}
+                            >
+                              ₹{pkg?.price}
+                            </div>
+                            <h5 className="fw-bold mb-1">{pkg?.packageName}</h5>
                             <p
-                              className="text-muted mb-1"
-                              style={{ fontSize: "12px" }}
+                              className="text-muted mb-0"
+                              style={{ fontSize: "14px", lineHeight: "1.4" }}
                             >
                               {pkg?.description}
                             </p>
-                            <div
-                              className="d-flex gap-4"
-                              style={{ fontSize: "12px", color: "#64748b" }}
-                            >
-                              <span>
-                                Slots:{" "}
-                                <strong style={{ color: "#0f172a" }}>
-                                  {pkg?.numberOfSlots}
-                                </strong>
-                              </span>
-                              <span>
-                                Validity:{" "}
-                                <strong style={{ color: "#0f172a" }}>
-                                  {pkg?.validity
-                                    ? `${pkg?.validity} ${
-                                        pkg?.validity > 1 ? "days" : "day"
-                                      }`
-                                    : "N/A"}
-                                </strong>
-                              </span>
-                            </div>
                           </div>
-                          <div className="d-flex flex-column align-items-center gap-2">
-                            <div className="d-flex">
+
+                          {/* Right Section (Icons + Details + Toggle) */}
+                          <div className="d-flex flex-column align-items-end h-100">
+                            {/* Icons */}
+                            <div className="d-flex mb-3">
                               <i
-                                className="bi bi-pencil text-success"
-                                style={{ fontSize: "16px", cursor: "pointer" }}
+                                className="bi bi-pencil"
+                                style={{
+                                  fontSize: "18px",
+                                  cursor: "pointer",
+                                  color: "#1F41BB",
+                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleEditPackage(pkg);
@@ -384,28 +374,95 @@ const Packages = () => {
                               ></i>
                               <i
                                 className="bi bi-trash text-danger mx-2"
-                                style={{ fontSize: "16px", cursor: "pointer" }}
+                                style={{ fontSize: "18px", cursor: "pointer" }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   confirmDeletePackage(pkg);
                                 }}
                               ></i>
+                              {/* <div className="ms-3">
+                                {pkg?._id === toggleLoadingId &&
+                                updatePackageLoading ? (
+                                  <ButtonLoading color="blue" size={10} />
+                                ) : (
+                                  <Form.Check
+                                    type="switch"
+                                    checked={pkg?.isActive}
+                                    disabled={toggleLoadingId === pkg?._id}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleStatus(pkg);
+                                    }}
+                                    style={{ "--bs-switch-bg": "#22c55e" }}
+                                  />
+                                )}
+                              </div> */}
+                              <div className="d-flex align-items-center">
+                                {pkg?._id === toggleLoadingId &&
+                                updatePackageLoading ? (
+                                  <ButtonLoading color="blue" size={10} />
+                                ) : (
+                                  <div
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleStatus(pkg);
+                                    }}
+                                    style={{
+                                      position: "relative",
+                                      width: "34px",
+                                      height: "16px",
+                                      borderRadius: "22px",
+                                      backgroundColor: pkg.isActive
+                                        ? "#22c55e"
+                                        : "#e2e8f0",
+                                      cursor: "pointer",
+                                      transition: "all 0.3s ease",
+                                      marginRight: "10px",
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        position: "absolute",
+                                        top: "1.4px",
+                                        left: pkg.isActive
+                                          ? "calc(100% - 16px)"
+                                          : "2px",
+                                        width: "13px",
+                                        height: "13px",
+                                        borderRadius: "50%",
+                                        backgroundColor: "#fff",
+                                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                                        transition: "all 0.3s ease",
+                                      }}
+                                    ></div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            {pkg?._id === toggleLoadingId &&
-                            updatePackageLoading ? (
-                              <ButtonLoading color="blue" size={10} />
-                            ) : (
-                              <Form.Check
-                                type="switch"
-                                checked={pkg?.isActive}
-                                disabled={toggleLoadingId === pkg?._id}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  handleToggleStatus(pkg);
-                                }}
-                                style={{ "--bs-switch-bg": "#22c55e" }}
-                              />
-                            )}
+
+                            {/* Slots + Validity */}
+                            <div
+                              className="text-end"
+                              style={{ fontSize: "14px", color: "#475569" }}
+                            >
+                              <div>
+                                Slots:{" "}
+                                <strong style={{ color: "#0f172a" }}>
+                                  {pkg?.numberOfSlots} Hrs
+                                </strong>
+                              </div>
+                              <div>
+                                Validity:{" "}
+                                <strong style={{ color: "#0f172a" }}>
+                                  {pkg?.validity
+                                    ? `${pkg?.validity} ${
+                                        pkg?.validity > 1 ? "Days" : "Day"
+                                      }`
+                                    : "N/A"}
+                                </strong>
+                              </div>
+                            </div>
                           </div>
                         </Card.Body>
                       </Card>

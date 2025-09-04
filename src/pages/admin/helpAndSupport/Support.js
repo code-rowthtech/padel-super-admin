@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-const CreateMatch = () => {
+const Support = () => {
   const navigate = useNavigate();
   return (
     <div
@@ -36,7 +36,7 @@ const CreateMatch = () => {
             letterSpacing: "1px",
           }}
         >
-          Create Match
+          Help & Support
         </div>
 
         {/* Tagline */}
@@ -97,7 +97,7 @@ const CreateMatch = () => {
           }}
           onClick={() => navigate(-1)}
         >
-          <i className="bi bi-arrow-left me-1"></i> Open Matches
+          <i className="bi bi-arrow-left me-1"></i> Back
         </button>
         {/* Footer Text */}
         <p
@@ -114,4 +114,4 @@ const CreateMatch = () => {
   );
 };
 
-export default CreateMatch;
+export default Support;

@@ -1,12 +1,11 @@
 import { Box, Button, Modal } from '@mui/material';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { Alert } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { Usersignup } from '../../../redux/user/auth/authThunk';
 import { addPlayers, getMatchesUser, getMatchesView } from '../../../redux/user/matches/thunk';
 import { showSuccess } from '../../../helpers/Toast';
-
 
 const modalStyle = {
     position: 'absolute',
@@ -18,11 +17,11 @@ const modalStyle = {
     p: 4,
     borderRadius: 2,
     border: 'none',
-
 };
-const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate, selectedTime, selectedLevel }) => {
-    const dispatch = useDispatch()
-    const [formData, setFormData] = useState({ name: "", email: "", phoneNumber: "" });
+
+const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDate, selectedTime, selectedLevel }) => {
+    const dispatch = useDispatch();
+    const [formData, setFormData] = useState({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
     const addLoading = useSelector((state) => state?.userAuth);
     const [errorShow, setErrorShow] = useState(false);
     const [error, setError] = useState(null);
@@ -35,13 +34,24 @@ const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate
         }
         return time;
     };
+
     const handleAddPlayer = () => {
         const errors = [];
-        if (!formData.name) errors.push("Name is required");
-        if (!formData.phoneNumber) {
+        if (!formData.name) {
+            errors.push("Name is required");
+        }
+        else if (!formData.phoneNumber) {
             errors.push("Phone number must be 10 digits starting with 6, 7, 8, or 9");
         }
-        if (!formData.email) errors.push("Email is required");
+        else if (!formData.email) {
+            errors.push("Email is required");
+        }
+        else if (!formData.gender) {
+            errors.push("Gender is required");
+        }
+        else if (!formData.level) {
+            errors.push("Select Level  is required");
+        }
         if (errors.length > 0) {
             setError(errors.join(", "));
             setErrorShow(true);
@@ -53,7 +63,7 @@ const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate
             .unwrap()
             .then((res) => {
                 if (res?.status === "200") {
-                    dispatch(addPlayers({ matchId: matchId, playerId: res?.response?._id,team:teamName })).then(() => {
+                    dispatch(addPlayers({ matchId: matchId, playerId: res?.response?._id, team: teamName })).then(() => {
                         setShowModal(false);
                         dispatch(getMatchesView(matchId));
                         const payload = {
@@ -65,22 +75,21 @@ const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate
                     });
                     showSuccess("Add Players Successfully");
                 }
-                setFormData({ name: "", email: "", phoneNumber: "" });
+                setFormData({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
             }).catch((err) => {
                 setError(err?.response?.data?.message || "An error occurred. Please try again.");
                 setErrorShow(true);
-            })
-
+            });
     };
-
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setErrorShow(false);
-            setError('')
+            setError('');
         }, 2000);
         return () => clearTimeout(timer);
     }, [error, errorShow]);
+
     return (
         <Modal
             open={showModal}
@@ -88,7 +97,8 @@ const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate
                 setShowModal(false);
             }}
             aria-labelledby="parent-modal-title"
-            aria-describedby="parent-modal-description"    >
+            aria-describedby="parent-modal-description"
+        >
             <Box sx={modalStyle}>
                 <h6 id="modal-title" className="mb-3 text-center" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                     Player Information
@@ -140,7 +150,7 @@ const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate
                                         return;
                                     }
                                     const formattedValue = value
-                                        .replace(/\s+/g, "") // Remove all spaces
+                                        .replace(/\s+/g, "")
                                         .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
                                             return first.toUpperCase() + rest.toLowerCase() + domain;
                                         });
@@ -162,11 +172,11 @@ const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate
                             </span>
                             <input
                                 type="text"
-                                maxLength={10} // Restrict to 10 digits
+                                maxLength={10}
                                 value={formData.phoneNumber}
                                 style={{ boxShadow: "none" }}
                                 onChange={(e) => {
-                                    const value = e.target.value.replace(/[^0-9]/g, ''); // Allow only digits
+                                    const value = e.target.value.replace(/[^0-9]/g, '');
                                     if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
                                         setFormData((prev) => ({ ...prev, phoneNumber: value }));
                                     }
@@ -178,7 +188,74 @@ const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate
                             />
                         </div>
                     </div>
-                    {errorShow && <Alert variant="danger">{error}</Alert>}
+                    <div className="mb-3">
+                        <label className="form-label">
+                            Gender <span className="text-danger">*</span>
+                        </label>
+                        <div className="d-flex gap-3">
+                            <div>
+                                <input
+                                    type="radio"
+                                    id="male"
+                                    name="gender"
+                                    value="Male"
+                                    checked={formData.gender === "Male"}
+                                    onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
+                                    className="form-check-input"
+                                    style={{ boxShadow: "none" }}
+                                />
+                                <label htmlFor="male" className="form-check-label ms-2">Male</label>
+                            </div>
+                            <div>
+                                <input
+                                    type="radio"
+                                    id="female"
+                                    name="gender"
+                                    value="Female"
+                                    checked={formData.gender === "Female"}
+                                    onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
+                                    className="form-check-input"
+                                    style={{ boxShadow: "none" }}
+                                />
+                                <label htmlFor="female" className="form-check-label ms-2">Female</label>
+                            </div>
+                            <div>
+                                <input
+                                    type="radio"
+                                    id="other"
+                                    name="other"
+                                    value="Other"
+                                    checked={formData.gender === "Other"}
+                                    onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
+                                    className="form-check-input"
+                                    style={{ boxShadow: "none" }}
+                                />
+                                <label htmlFor="other" className="form-check-label ms-2">Other</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mb-3">
+                        <label className="form-label">
+                            Select Level  <span className="text-danger">*</span>
+                        </label>
+                        <select
+                            value={formData.level}
+                            style={{ boxShadow: "none" }}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, level: e.target.value }))}
+                            className="form-control border p-2"
+                            aria-label="Select Level Name"
+                        >
+                            <option value="">Select Level </option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="A|B">A|B</option>
+                            <option value="B|C">B|C</option>
+                            <option value="C|D">C|D</option>
+                        </select>
+                    </div>
+                    {errorShow && <Alert variant="danger" className='position-absolute' style={{bottom:"20%",width:"87%"}}>{error}</Alert>}
                     <div className="d-flex justify-content-between">
                         <Button
                             variant="outlined"
@@ -198,11 +275,11 @@ const UpdatePlayers = ({ showModal, matchId,teamName, setShowModal, selectedDate
                         >
                             {addLoading?.userSignUpLoading ? <ButtonLoading /> : "Submit"}
                         </Button>
-
                     </div>
                 </form>
             </Box>
-        </Modal>)
-}
+        </Modal>
+    );
+};
 
-export default UpdatePlayers
+export default UpdatePlayers;

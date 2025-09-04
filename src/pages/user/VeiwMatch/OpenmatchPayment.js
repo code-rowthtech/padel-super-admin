@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { padal, club } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { createMatches } from "../../../redux/user/matches/thunk";
@@ -25,7 +25,9 @@ const OpenmatchPayment = (props) => {
     const { state } = useLocation();
     const User = getUserFromSession();
     const userData = useSelector((state) => state?.userAuth?.user?.response);
-    console.log(activeSlot,showAddMeForm,'modal');
+    const matchesLoading = useSelector((state) => state?.userMatchesReducer?.matchesLoading)
+    const bookingLoading = useSelector((state) => state?.userBooking?.bookingLoading)
+    console.log(activeSlot, showAddMeForm, 'modal');
     const navigate = useNavigate();
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || {});
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
@@ -48,13 +50,19 @@ const OpenmatchPayment = (props) => {
     }, [dispatch]);
 
     const handleBooking = () => {
-        if (!selectedPayment) {
+
+        if (Object.values(addedPlayers).filter(player => player !== undefined).length < 1) {
+            setError("Add at least 2 players to proceed.");
+            setErrorShow(true);
+            return;
+        }
+        else if (!selectedPayment) {
             setError("Select a payment method.");
             setErrorShow(true);
             return;
         }
-        if (Object.values(addedPlayers).filter(player => player !== undefined).length < 1) {
-            setError("Add at least 2 players to proceed.");
+        else if (selectedCourts?.some(court => court?.times && court.times.length > 0)) {
+            setError("Select a slot ");
             setErrorShow(true);
             return;
         }
@@ -141,7 +149,7 @@ const OpenmatchPayment = (props) => {
     const skillLabels = ["A/B", "B/C", "C/D", "D/E"];
 
     const handleAddMeClick = (slot) => {
-        console.log("handleAddMeClick called with slot:", slot,activeSlot, "current showAddMeForm:", showAddMeForm);
+        console.log("handleAddMeClick called with slot:", slot, activeSlot, "current showAddMeForm:", showAddMeForm);
         if (activeSlot === slot && showAddMeForm) {
             setShowAddMeForm(false);
             setActiveSlot(null);
@@ -149,7 +157,7 @@ const OpenmatchPayment = (props) => {
             setShowAddMeForm(true);
             setActiveSlot(slot);
         }
-        console.log("After update - showAddMeForm:", showAddMeForm, "activeSlot:",slot, activeSlot);
+        console.log("After update - showAddMeForm:", showAddMeForm, "activeSlot:", slot, activeSlot);
     };
 
     const formatDate = (dateString) => {
@@ -642,7 +650,6 @@ const OpenmatchPayment = (props) => {
                     </div>
                 </div>
 
-                {/* Right Section - Booking Summary */}
                 <div className="col-5 pe-0">
                     <div className="rounded-4 pt-4 px-5" style={{ backgroundColor: "#F5F5F566" }}>
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
@@ -728,12 +735,12 @@ const OpenmatchPayment = (props) => {
                                                 </div>
                                             ))
                                         ) : (
-                                            <div>No slots selected for this court</div>
+                                            <div>No slots selected for this court <Link className="text-primary" to="/create-matches">Add slot</Link> </div>
                                         )}
                                     </div>
                                 ))
                             ) : (
-                                <div>No courts selected</div>
+                                <div>No slot selected <Link className="text-primary" to="/create-matches">Add slot</Link> </div>
                             )}
                         </div>
                         <div className="border-top pt-2 mb-3 mt-2 d-flex justify-content-between fw-bold">
@@ -815,7 +822,7 @@ const OpenmatchPayment = (props) => {
                                         />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{isLoading ? <ButtonLoading /> : "Book Now"}</div>
+                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>

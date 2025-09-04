@@ -76,6 +76,7 @@ const AdminSidebar = () => {
   useEffect(() => {
     dispatch(getLogo({ ownerId: ownerId }));
   }, []);
+
   useEffect(() => {
     setClubLogo(getLogoData?.logo?.logo?.[0]);
   }, [getLogoData?.logo?._id]);
@@ -223,9 +224,19 @@ const AdminSidebar = () => {
 
         <NavLink
           to="/admin/open-matches"
-          className={linkClasses}
-          style={({ isActive }) => ({
-            backgroundColor: isActive ? "#333B48" : "transparent",
+          className={({ isActive }) =>
+            `d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2 cursor-pointer ${
+              isActive || location.pathname === "/admin/create-match"
+                ? "active-parent-link"
+                : ""
+            }`
+          }
+          style={() => ({
+            backgroundColor:
+              location.pathname === "/admin/open-matches" ||
+              location.pathname === "/admin/create-match"
+                ? "#333B48"
+                : "transparent",
             fontWeight: "600",
           })}
         >
@@ -245,11 +256,32 @@ const AdminSidebar = () => {
           Americano
         </NavLink>
 
-        <NavLink
+        {/* <NavLink
           to="/admin/packages"
           className={linkClasses}
           style={({ isActive }) => ({
             backgroundColor: isActive ? "#333B48" : "transparent",
+            fontWeight: "600",
+          })}
+        >
+          <LiaFileInvoiceDollarSolid className="me-4" />
+          Packages
+        </NavLink> */}
+        <NavLink
+          to="/admin/packages"
+          className={({ isActive }) =>
+            `d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2 cursor-pointer ${
+              isActive || location.pathname === "/admin/package-details"
+                ? "active-parent-link"
+                : ""
+            }`
+          }
+          style={() => ({
+            backgroundColor:
+              location.pathname === "/admin/packages" ||
+              location.pathname === "/admin/package-details"
+                ? "#333B48"
+                : "transparent",
             fontWeight: "600",
           })}
         >
