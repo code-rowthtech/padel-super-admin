@@ -76,7 +76,7 @@ const ViewMatch = ({ className = "" }) => {
                         )}
                     </div>
                     <p className="mb-0 mt-2 fw-semibold">
-                        {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : "Unknown"}
+                        {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : "User"}
                     </p>
                     <span className="badge bg-success-subtle text-success">{skillLabels[index % 2 === 0 ? 0 : 1]}</span>
                     {isRemovable && (
@@ -186,14 +186,14 @@ const ViewMatch = ({ className = "" }) => {
                             <div className="row mx-auto">
                                 {/* Team A */}
                                 <div className="col-6 d-flex gap-3 justify-content-center align-items-center">
-                                    {renderPlayerSlot(teamAData[0], 0, false, 'A')} {/* No remove icon for first player */}
-                                    {renderPlayerSlot(teamAData[1], 1, true, 'A')} {/* Always removable */}
+                                    {renderPlayerSlot(teamAData[0], 0, false, 'A')}
+                                    {renderPlayerSlot(teamAData[1], 1, true, 'A')} 
                                 </div>
 
                                 {/* Team B */}
                                 <div className="col-6 d-flex gap-3 align-items-start justify-content-center align-items-center border-start">
-                                    {renderPlayerSlot(teamBData[0], 2, true, 'B')} {/* Always removable */}
-                                    {renderPlayerSlot(teamBData[1], 3, true, 'B')} {/* Always removable */}
+                                    {renderPlayerSlot(teamBData[0], 2, true, 'B')} 
+                                    {renderPlayerSlot(teamBData[1], 3, true, 'B')} 
                                 </div>
                             </div>
                         )}
