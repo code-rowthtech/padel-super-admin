@@ -11,4 +11,8 @@ export * from "./admin/logo/thunk";
 export * from "./admin/openMatches/thunk";
 
 //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
-export * from "./admin/manualBooking/thunk";
+// export * from "./user/auth/authThunk";
+export * from "./user/booking/thunk";
+export * from "./user/club/thunk";
+export * from "./user/matches/thunk";
+export * from "./user/slot/thunk";

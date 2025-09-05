@@ -111,7 +111,10 @@ const Booking = () => {
             >
               <Tabs
                 value={tab}
-                onChange={(_, v) => setTab(v)}
+                onChange={(_, v) => {
+                  setTab(v);
+                  setCurrentPage(1);
+                }}
                 textColor="primary"
                 indicatorColor="primary"
                 sx={{

@@ -1,6 +1,6 @@
 import { Modal } from "react-bootstrap";
 import { modalSuccess } from "../../../../assets/files";
-import { formatDate } from "../../../../helpers/Formatting";
+import { formatDate, formatSlotTime } from "../../../../helpers/Formatting";
 
 export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
   <Modal
@@ -127,7 +127,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
               }}
             >
               {paymentDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-              {paymentDetails?.slot?.[0]?.slotTimes?.[0]?.time}{" "}
+              {formatSlotTime(paymentDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
             </p>
           </div>
         </div>

@@ -22,7 +22,6 @@ import { Link } from "react-router-dom";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
-import { format } from "date-fns";
 
 const Payments = () => {
   const [startDate, setStartDate] = useState(null);
@@ -38,6 +37,7 @@ const Payments = () => {
   const handleTabChange = (_, newValue) => {
     dispatch(resetBookingData());
     setTab(newValue);
+    setCurrentPage(1);
   };
 
   const DateButton = ({ value, onClick }) => (
