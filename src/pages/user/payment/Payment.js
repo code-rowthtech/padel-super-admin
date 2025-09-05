@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
-import { loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { loginUserNumber, Usersignup } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
@@ -74,7 +74,7 @@ const Payment = ({ className = "" }) => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setErrors({ name: "", phoneNumber: "", email: "", paymentMethod: "" });
-        }, 3000); // Clear errors after 3 seconds
+        }, 5000);
         return () => clearTimeout(timer);
     }, [errors]);
 
@@ -161,20 +161,29 @@ const Payment = ({ className = "" }) => {
                 slot: slotArray,
                 paymentMethod: selectedPayment,
             };
-
-            await dispatch(loginUserNumber({ phoneNumber: phoneNumber.toString(), name, email }))
-                .unwrap()
-                .then((res) => {
-                    if (res?.status === "200") {
-                        dispatch(createBooking(payload))
-                            .unwrap()
-                            .then((res) => {
-                                if (res?.success) {
-                                    setModal(true);
-                                }
-                            });
-                    }
-                });
+            if (user?.name && user?.token) {
+                dispatch(createBooking(payload))
+                    .unwrap()
+                    .then((res) => {
+                        if (res?.success) {
+                            setModal(true);
+                        }
+                    });
+            } else {
+                await dispatch(loginUserNumber({ phoneNumber: phoneNumber.toString(), name, email }))
+                    .unwrap()
+                    .then((res) => {
+                        if (res?.status === "200") {
+                            dispatch(createBooking(payload))
+                                .unwrap()
+                                .then((res) => {
+                                    if (res?.success) {
+                                        setModal(true);
+                                    }
+                                });
+                        }
+                    });
+            }
         } catch (err) {
             console.error("Payment Error:", err);
             setErrors((prev) => ({
