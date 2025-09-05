@@ -22,10 +22,11 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   const logo = JSON.parse(localStorage.getItem("logo"));
   const User = getUserFromSession()
   const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
-    if (!dateValue) return fallback; // Handle null or undefined
+    if (!dateValue) return fallback;
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
   };
+  console.log({ tableData });
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
@@ -51,7 +52,15 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
   };
 
   const handleContinue = () => {
-    dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason }))
+    dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
+      if (res?.status === '200') {
+        if (tableData?.booking?.bookingStatus === 'upcoming') {
+          dispatch(getBooking({ type: 'upcoming' }))
+        } else {
+          dispatch(getBooking())
+        }
+      }
+    })
   };
   useEffect(() => {
     if (bookingStatusData?.bookingStatusData?.status === "200" && bookingStatusData?.bookingStatusData?.message) {

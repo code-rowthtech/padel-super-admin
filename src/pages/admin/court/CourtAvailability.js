@@ -695,7 +695,7 @@ const CourtAvailability = () => {
                       </Form.Select>
                       <Button
                         variant="outline-primary"
-                        className="rounded-pill px-3 py-1 text-nowrap"
+                        className="rounded px-3 py-1 text-nowrap"
                         onClick={handleApplyToAll}
                         style={{
                           fontFamily: "Poppins",

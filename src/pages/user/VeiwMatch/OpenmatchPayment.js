@@ -35,7 +35,7 @@ const OpenmatchPayment = (props) => {
     const { slotData, finalSkillDetails, selectedDate, selectedCourts } = state || {};
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
-
+    console.log({ selectedCourts });
     const slot2Player = addedPlayers.slot2 ? addedPlayers.slot2._id : null;
     const slot3Player = addedPlayers.slot3 ? addedPlayers.slot3._id : null;
     const slot4Player = addedPlayers.slot4 ? addedPlayers.slot4._id : null;
@@ -61,8 +61,8 @@ const OpenmatchPayment = (props) => {
             setErrorShow(true);
             return;
         }
-        else if (selectedCourts?.some(court => court?.times && court.times.length > 0)) {
-            setError("Select a slot ");
+       else if (!selectedCourts || selectedCourts.length === 0 || selectedCourts.some(court => court.times.length === 0)) {
+            setError("Please select a slot");
             setErrorShow(true);
             return;
         }
@@ -110,7 +110,8 @@ const OpenmatchPayment = (props) => {
                         register_club_id: savedClubId,
                         ownerId: owner_id,
                         paymentMethod: selectedPayment || "Gpay",
-                        type: "openMatch",
+                        bookingType: "openMatch",
+                        bookingStatus: "upcoming",
                         slot: selectedCourts?.flatMap(court =>
                             court.times.map(timeSlot => ({
                                 slotId: timeSlot?._id,
@@ -498,7 +499,6 @@ const OpenmatchPayment = (props) => {
                                         );
                                     }
 
-                                    // Slot 4: Team B Second Player
                                     if (addedPlayers.slot4) {
                                         const player = addedPlayers.slot4;
                                         rightComponents.push(
@@ -535,7 +535,7 @@ const OpenmatchPayment = (props) => {
                                             <div
                                                 key="right-add-1"
                                                 className="text-center mx-auto"
-                                                onClick={() => handleAddMeClick("slot4")} // Changed to slot4
+                                                onClick={() => handleAddMeClick("slot4")}
                                                 style={{ cursor: "pointer" }}
                                             >
                                                 <div

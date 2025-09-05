@@ -5,7 +5,7 @@ import { modalDetails, modalSuccess } from "../../../../assets/files";
 import { formatDate } from "../../../../helpers/Formatting";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { FcCancel } from "react-icons/fc";
-
+import { formatSlotTime } from "../../../../helpers/Formatting";
 export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
   <Modal show={show} onHide={handleClose} centered backdrop="static">
     <div className="d-flex justify-content-between">
@@ -37,7 +37,7 @@ export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
         Your slot has been booked successfully.
       </p>
       <Button
-        onClick={openDetails}
+        onClick={handleClose}
         className="my-2"
         style={{
           backgroundColor: "#34C759",
@@ -52,7 +52,7 @@ export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
       >
         Continue
       </Button>
-      {/* <div>
+      <div className="mt-2">
         <button
           onClick={openDetails}
           className="dashboard-viewmore"
@@ -61,12 +61,12 @@ export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
             border: "none",
             color: "#007BFF",
             textDecoration: "underline",
-            fontSize: "14px",
+            fontSize: "16px",
           }}
         >
           View Booking Details
         </button>
-      </div> */}
+      </div>
     </Modal.Body>
   </Modal>
 );
@@ -386,7 +386,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             }}
           >
             {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-            {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
+            {formatSlotTime(bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
           </p>
           <p
             className="fw-bold mb-1"
@@ -643,7 +643,9 @@ export const BookingCancelModal = ({
                 className="fw-bold mb-1"
                 style={{ fontSize: "14px", fontFamily: "Poppins" }}
               >
-                {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time || "-"}
+                {formatSlotTime(
+                  bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time
+                ) || "-"}
               </p>
             </div>
           </div>
