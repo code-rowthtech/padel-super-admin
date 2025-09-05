@@ -84,10 +84,21 @@ export const formatTime = (timeStr) => {
     .toLowerCase();
 };
 
-export const formatSlotTime = (timeString) => {
-  const timeParts = timeString?.split(" ");
-  const hour = timeParts?.[0];
-  const period = timeParts?.[1]?.toLowerCase();
+// For single time format
+export const formatSingleTime = (timeString) => {
+  if (!timeString) return "";
+
+  const timeParts = timeString.trim().split(" ");
+  const hour = timeParts[0];
+  const period = timeParts[1]?.toLowerCase() || "";
 
   return `${hour}:00 ${period}`;
+};
+
+// For multiple times with separator
+export const formatSlotTime = (timeString) => {
+  if (!timeString) return "";
+
+  const times = timeString.split(",");
+  return times.map((time) => formatSingleTime(time)).join(" - ");
 };

@@ -57,7 +57,6 @@ const Openmatches = () => {
             setIsOpen(false);
         }
     };
-    console.log({ matchesData });
 
     useEffect(() => {
         document.addEventListener("mousedown", handleClickOutside);

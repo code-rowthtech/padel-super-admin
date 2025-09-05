@@ -111,10 +111,7 @@ const Profile = () => {
   };
 
   return (
-    <div
-      className="container py-4 px-5"
-      style={{ backgroundColor: "#F3F6FB", borderRadius: "12px" }}
-    >
+    <div className="container p-5">
       <div
         style={{
           background: "linear-gradient(to right, #A18CD1, #FBC2EB)",
@@ -122,6 +119,7 @@ const Profile = () => {
           borderTopLeftRadius: "12px",
           borderTopRightRadius: "12px",
         }}
+        className="mt-5"
       ></div>
 
       <form
