@@ -34,7 +34,7 @@ const LoginPage = () => {
     }, [error]);
 
     return (
-        <div className="auth-wrapper">
+        <div className="auth-wrapper" style={{backgroundColor:"#F8F8F8"}}>
             <Container fluid className="vh-100 p-0">
                 <Row className="g-0 h-100">
                     {/* Left Form */}
@@ -82,12 +82,6 @@ const LoginPage = () => {
                                     {userAuthLoading ? <ButtonLoading /> : 'Get OTP'}
                                 </Button>
 
-                                <div className="text-center mt-3">
-                                    <small className="text-muted">Didn’t receive the code? </small>
-                                    <a href="#" className="text-primary text-decoration-none fw-semibold">
-                                        Re-send
-                                    </a>
-                                </div>
                             </Form>
                         </div>
                     </Col>

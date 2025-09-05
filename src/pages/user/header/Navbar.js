@@ -62,13 +62,14 @@ const Navbar = () => {
         return () => {
             window.removeEventListener('storage', updateUserData);
         };
-    }, [store?.user?.status, store?.user?.response?.user]); // Depend on Redux store changes
+    }, [store?.user?.status, store?.user?.response?.user]); 
 
     useEffect(() => {
         if (token) {
             dispatch(getUserProfile())
         }
     }, [])
+    
     return (
         <nav className="navbar navbar-expand-lg bg-white py-2">
             <div className="container py-1">
@@ -192,7 +193,7 @@ const Navbar = () => {
                                         <MdSportsTennis size={20} style={{ minWidth: "24px" }} className="me-2" /> Open Matches
                                     </Dropdown.Item>
 
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/admin/help-support">
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/americano">
                                         <PiRanking size={20} style={{ minWidth: "24px" }} className="me-2" /> Americano
                                     </Dropdown.Item>
 

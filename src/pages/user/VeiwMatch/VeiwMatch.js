@@ -3,12 +3,11 @@ import DirectionsIcon from "@mui/icons-material/Directions";
 import { useLocation } from "react-router-dom";
 import { padal, club, player } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
-import {  getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
-import {  DataLoading } from "../../../helpers/loading/Loaders";
+import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
+import { DataLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
-import { FaTrash } from "react-icons/fa"; // For remove icon
+import { FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
-
 
 const ViewMatch = ({ className = "" }) => {
     const dispatch = useDispatch();
@@ -16,9 +15,13 @@ const ViewMatch = ({ className = "" }) => {
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
-    const userPlayersData = matchesData?.data?.players || []; // Players data
-    const clubData = matchesData?.data?.clubId || {}; // Club data
+    const teamAData = matchesData?.data?.teamA || [];
+    const teamBData = matchesData?.data?.teamB || [];
+    const clubData = matchesData?.data?.clubId || {};
     const [showModal, setShowModal] = useState(false);
+    const [teamName, setTeamName] = useState('');
+
+    console.log({ matchesData });
 
     useEffect(() => {
         if (state?.match?._id) {
@@ -39,16 +42,18 @@ const ViewMatch = ({ className = "" }) => {
     const matchTime = matchesData?.data?.matchTime || '5 am,6 am';
     const matchId = state?.match?._id;
 
-    const handleRemovePlayer = (playerId) => {
-        dispatch(removePlayers({ matchId: matchId, playerId: playerId })).then(() => {
+    const handleRemovePlayer = (playerId, team) => {
+        const teamName = team === 'A' ? 'teamA' : 'teamB';
+        dispatch(removePlayers({ matchId: matchId, playerId: playerId, team: teamName })).then(() => {
             dispatch(getMatchesView(matchId));
         });
     };
-    const renderPlayerSlot = (player, index, isRemovable) => {
+
+    const renderPlayerSlot = (player, index, isRemovable, team) => {
         if (player) {
-            const user = player.userId;
+            const user = player.userId || player;
             return (
-                <div key={index} className="text-center mx-auto mb-3 position-relative">
+                <div key={index} className="text-center d-flex justify-content-center align-items-center flex-column mx-auto mb-3 position-relative">
                     <div
                         className="rounded-circle border d-flex align-items-center justify-content-center"
                         style={{
@@ -71,13 +76,13 @@ const ViewMatch = ({ className = "" }) => {
                         )}
                     </div>
                     <p className="mb-0 mt-2 fw-semibold">
-                        {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : "Unknown"}
+                        {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : "User"}
                     </p>
-                    <span className="badge bg-success-subtle text-success">{skillLabels[index]}</span>
+                    <span className="badge bg-success-subtle text-success">{skillLabels[index % 2 === 0 ? 0 : 1]}</span>
                     {isRemovable && (
                         <button
                             className="position-absolute top-0 end-0 btn btn-danger btn-sm rounded-circle"
-                            onClick={() => handleRemovePlayer(user._id)}
+                            onClick={() => handleRemovePlayer(user._id, team)}
                             style={{ width: 24, height: 24, padding: 0 }}
                         >
                             <FaTrash size={12} />
@@ -85,21 +90,25 @@ const ViewMatch = ({ className = "" }) => {
                     )}
                 </div>
             );
-        } else {
+        } else if (
+            (team === 'A' && teamAData.length === 1 && index === 1) ||
+            (team === 'B' && (teamBData.length === 0 || teamBData.length === 1) && [2, 3].includes(index))
+        ) {
+            const name = team === 'A' ? "teamA" : "teamB";
             return (
                 <div key={index} className="text-center mx-auto mb-3">
                     <button
-                        className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ width: 80, height: 80 }}
-                        onClick={() => setShowModal(true)}
+                        className="btn bg-white rounded-circle d-flex align-items-center justify-content-center"
+                        style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
+                        onClick={() => { setShowModal(true); setTeamName(name); }}
                     >
-                        <i className="bi bi-plus fs-1"></i>
+                        <i className="bi bi-plus fs-1" style={{ color: "#1F41BB" }}></i>
                     </button>
-                    <p className="mb-0 mt-2 fw-semibold">Add Player</p>
-                    <span className="badge bg-success-subtle text-success">{skillLabels[index]}</span>
+                    <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>Add Me</p>
                 </div>
             );
         }
+        return null;
     };
 
     return (
@@ -176,15 +185,15 @@ const ViewMatch = ({ className = "" }) => {
                         {userLoading ? <DataLoading /> : (
                             <div className="row mx-auto">
                                 {/* Team A */}
-                                <div className="col-6 d-flex gap-3 justify-content-center">
-                                    {renderPlayerSlot(userPlayersData[0], 0, false)} {/* First player fixed, no remove */}
-                                    {renderPlayerSlot(userPlayersData[1], 1, true)} {/* Removable */}
+                                <div className="col-6 d-flex gap-3 justify-content-center align-items-center">
+                                    {renderPlayerSlot(teamAData[0], 0, false, 'A')}
+                                    {renderPlayerSlot(teamAData[1], 1, true, 'A')} 
                                 </div>
 
                                 {/* Team B */}
-                                <div className="col-6 d-flex gap-3 align-items-start justify-content-center border-start">
-                                    {renderPlayerSlot(userPlayersData[2], 2, true)} {/* Removable */}
-                                    {renderPlayerSlot(userPlayersData[3], 3, true)} {/* Removable */}
+                                <div className="col-6 d-flex gap-3 align-items-start justify-content-center align-items-center border-start">
+                                    {renderPlayerSlot(teamBData[0], 2, true, 'B')} 
+                                    {renderPlayerSlot(teamBData[1], 3, true, 'B')} 
                                 </div>
                             </div>
                         )}
@@ -234,7 +243,7 @@ const ViewMatch = ({ className = "" }) => {
                                 Type of Court
                             </p>
                             <p className="mb-0" style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}>
-                                {matchesData?.data?.matchType || "Doubles"}, Outdoor, Crystal
+                                {matchesData?.data?.matchType || "N/A"}
                             </p>
                         </div>
                     </div>
@@ -279,7 +288,7 @@ const ViewMatch = ({ className = "" }) => {
                                 {clubData?.address || "Unknown Address"}{clubData?.zipCode}
                             </p>
                         </div>
-                        {console.log({clubData})}
+                        {console.log({ clubData })}
 
                         <h6 className="border-top p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
                             Booking Summary
@@ -302,15 +311,13 @@ const ViewMatch = ({ className = "" }) => {
                                 <div>No slots available</div>
                             )}
                         </div>
-
-                       
                     </div>
                 </div>
             </div>
 
             {/* Add Player Modal */}
-            <UpdatePlayers showModal={showModal} matchId={matchId} setShowModal={setShowModal} />
-        </div >
+            <UpdatePlayers showModal={showModal} matchId={matchId} teamName={teamName} setShowModal={setShowModal} />
+        </div>
     );
 };
 

@@ -120,7 +120,7 @@ const Home = () => {
                                         backgroundBlendMode: 'multiply',
                                     }}
                                 >
-                                    <p className='mb-0 custom-title text-white'>Welcome To Good Court</p>
+                                    <p className='mb-0 custom-title text-white' style={{ fontWeight: "400" }}>Welcome To Good Court</p>
                                     <h1 className="home-main-heading">Your Game, <br />Your Court,<br />Just a Tap Away.</h1>
                                 </div>
                             </div>
@@ -179,16 +179,16 @@ const Home = () => {
 
                     {/* Left Column: About + Contact Info */}
                     <div className="col-lg-8 ">
-                        <div className="mb-4 d-flex align-items-center gap-3">
-                            <div className=''>
+                        <div className="mb-4 d-flex align-items-center justify-content-start gap-3">
+                            <div className='mb-4'>
                                 <Avatar>
                                     {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                                 </Avatar>
                             </div>
                             <div>
                                 <h5 className="mb-0">{clubData?.clubName || "Club Name"}</h5>
-                                <div className="d-flex align-items-center justify-content-center">
-                                    <p className="text-success">
+                                <div className="d-flex align-items-center justify-content-center text-nowrap" style={{}}>
+                                    <p className="text-success ">
                                         {[...Array(5)].map((_, i) => {
                                             const rating = getReviewData?.averageRating || 0;
                                             if (i < Math.floor(rating)) {
@@ -200,27 +200,29 @@ const Home = () => {
                                             }
                                         })}
                                     </p>
-                                    <p className="ms-2 mt-2 " style={{ fontSize: '17.5px', color: '#374151', fontWeight: "500", fontFamily: "Poppins" }}>
+                                    <p className="ms-2  mb-2 " style={{ fontSize: '17.5px', color: '#374151', fontWeight: "500", fontFamily: "Poppins" }}>
                                         {getReviewData?.averageRating}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About </h4>
-                        <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400" }}>
-                            {clubData?.clubName}  {clubData?.description}
-                        </p>
-                        <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400" }}>
-                            Join the community, feel the energy, and experience the good vibes!<br />
-                            #theGoodPeople
-                        </p>
-                        <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400", margin: "0px" }}>Join the Padel community group on WhatsApp </p>
-                        <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
-                        <p className='mt-4 '><a className='mt-4' href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
+                        <div className="w-75">
+                            <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About </h4>
+                            <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400" }}>
+                                {clubData?.clubName}  {clubData?.description}
+                            </p>
+                            <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400" }}>
+                                Join the community, feel the energy, and experience the good vibes!<br />
+                                #theGoodPeople
+                            </p>
+                            <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400", margin: "0px" }}>Join the Padel community group on WhatsApp </p>
+                            <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
+                            <p className='mt-4 '><a className='mt-4' href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
 
+                        </div>
                         {/* Tab Buttons */}
-                        <div className="d-flex gap-4 mt-5  mb-3 flex-wrap">
+                        <div className="d-flex gap-4 mt-5  mb-1 flex-wrap">
                             {/* Direction */}
                             <div
                                 onClick={() => setActiveTab('direction')}

@@ -1,53 +1,69 @@
 import { useEffect, useState } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { player, padal, club } from "../../../assets/files";
+import { padal, club } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { createMatches } from "../../../redux/user/matches/thunk";
-import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
-import { NewPlayers } from "./NewPlayers";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import { Alert, Button, Modal } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
-import { showError, showSuccess } from "../../../helpers/Toast";
+import { showError } from "../../../helpers/Toast";
+import NewPlayers from "./NewPlayers";
 
 const OpenmatchPayment = (props) => {
     const [modal, setModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState("");
     const [showAddMeForm, setShowAddMeForm] = useState(false);
     const [errorShow, setErrorShow] = useState(false);
-    const [activeSlot, setActiveSlot] = useState('slot-1');
+    const [activeSlot, setActiveSlot] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const { state } = useLocation();
     const User = getUserFromSession();
+    const userData = useSelector((state) => state?.userAuth?.user?.response);
+    const matchesLoading = useSelector((state) => state?.userMatchesReducer?.matchesLoading)
+    const bookingLoading = useSelector((state) => state?.userBooking?.bookingLoading)
+    console.log(activeSlot, showAddMeForm, 'modal');
     const navigate = useNavigate();
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || {});
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
-    const userPlayersData = localStorage.getItem('players') ? JSON.parse(localStorage.getItem('players')) : [];
+    const addedPlayers = localStorage.getItem('addedPlayers') ? JSON.parse(localStorage.getItem('addedPlayers')) : {};
     const { slotData, finalSkillDetails, selectedDate, selectedCourts } = state || {};
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
 
-    const playerIds = userPlayersData?.map(player => player._id) || [];
-    const players = User?._id ? [...playerIds, User._id] : playerIds;
+    const slot2Player = addedPlayers.slot2 ? addedPlayers.slot2._id : null;
+    const slot3Player = addedPlayers.slot3 ? addedPlayers.slot3._id : null;
+    const slot4Player = addedPlayers.slot4 ? addedPlayers.slot4._id : null;
+    // Ensure User._id is always first in players and Team A
+    const players = [User?._id, slot2Player, slot3Player, slot4Player].filter(id => id !== null);
+    const teamA = [User?._id, slot2Player].filter(id => id !== null);
+    const teamB = [slot3Player, slot4Player].filter(id => id !== null);
+    console.log(teamA, 'teama', teamB, 'teamb');
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
 
     const handleBooking = () => {
-        if (!selectedPayment) {
+
+        if (Object.values(addedPlayers).filter(player => player !== undefined).length < 1) {
+            setError("Add at least 2 players to proceed.");
+            setErrorShow(true);
+            return;
+        }
+        else if (!selectedPayment) {
             setError("Select a payment method.");
             setErrorShow(true);
             return;
         }
-        if (userPlayersData.length < 1) {
-            setError("Add at least 2 players to proceed.");
-            setErrorShow(true)
+        else if (selectedCourts?.some(court => court?.times && court.times.length > 0)) {
+            setError("Select a slot ");
+            setErrorShow(true);
             return;
         }
         const formattedData = {
@@ -73,18 +89,19 @@ const OpenmatchPayment = (props) => {
             skillDetails: finalSkillDetails?.slice(1),
             matchStatus: "open",
             matchTime: selectedCourts?.flatMap(court => court.times.map(time => time.time)).join(","),
-            players: players,
+            teamA: teamA,
+            teamB: teamB,
         };
 
         dispatch(createMatches(formattedData)).unwrap().then((res) => {
             if (!res?.match?.clubId) return;
             try {
                 setIsLoading(true);
-                const name = User?.name;
-                const phoneNumber = User?.phoneNumber;
-                const email = User?.email;
+                const name = userData?.name || User?.name;
+                const phoneNumber = userData?.phoneNumber || User?.phoneNumber;
+                const email = userData?.email || User?.email;
                 if (!name || !phoneNumber || !email) {
-                    showError('User information missing !')
+                    showError('User information missing!');
                 } else {
                     const payload = {
                         name,
@@ -113,15 +130,13 @@ const OpenmatchPayment = (props) => {
                     };
 
                     dispatch(createBooking(payload)).unwrap().then((res) => {
-                        localStorage.removeItem('players');
+                        localStorage.removeItem('addedPlayers');
                         navigate('/open-matches');
                         setErrorShow(false);
-                        setIsLoading(true);
+                        setIsLoading(false);
                     });
                     setModal(true);
                 }
-
-
             } catch (err) {
                 setError(err.message || err || "Booking ke dauraan error aaya.");
                 setModal(false);
@@ -134,6 +149,7 @@ const OpenmatchPayment = (props) => {
     const skillLabels = ["A/B", "B/C", "C/D", "D/E"];
 
     const handleAddMeClick = (slot) => {
+        console.log("handleAddMeClick called with slot:", slot, activeSlot, "current showAddMeForm:", showAddMeForm);
         if (activeSlot === slot && showAddMeForm) {
             setShowAddMeForm(false);
             setActiveSlot(null);
@@ -141,6 +157,7 @@ const OpenmatchPayment = (props) => {
             setShowAddMeForm(true);
             setActiveSlot(slot);
         }
+        console.log("After update - showAddMeForm:", showAddMeForm, "activeSlot:", slot, activeSlot);
     };
 
     const formatDate = (dateString) => {
@@ -151,16 +168,13 @@ const OpenmatchPayment = (props) => {
     };
 
     const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: 'Fri', formattedDate: '29 Aug' };
-    // सभी कोर्ट्स के स्लॉट्स को एक स्ट्रिंग में जोड़ें
     const matchTime = selectedCourts?.flatMap(court => court.times.map(time => time.time)).join(", ") || '5 am,6 am';
 
-    // कुल कीमत की गणना
     const totalAmount = selectedCourts?.reduce((total, court) =>
         total + court.times.reduce((sum, slot) => sum + Number(slot.amount || 1000), 0),
         0
     ) || 6000;
 
-    // Styling for button
     const width = 370;
     const height = 75;
     const circleRadius = height * 0.3;
@@ -179,8 +193,8 @@ const OpenmatchPayment = (props) => {
         border: "none",
         background: "transparent",
         cursor: "pointer",
-        opacity: (isLoading),
-        pointerEvents: (isLoading ? 'none' : 'auto'),
+        opacity: isLoading ? 0.7 : 1,
+        pointerEvents: isLoading ? 'none' : 'auto',
     };
 
     const svgStyle = {
@@ -208,12 +222,13 @@ const OpenmatchPayment = (props) => {
 
     useEffect(() => {
         if (errorShow) {
-            setInterval(() => {
-                setErrorShow(false)
-                setError('')
+            const timer = setTimeout(() => {
+                setErrorShow(false);
+                setError('');
             }, 3000);
+            return () => clearTimeout(timer);
         }
-    }, [errorShow])
+    }, [errorShow]);
 
     return (
         <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
@@ -311,10 +326,8 @@ const OpenmatchPayment = (props) => {
                             <div className="col-6 d-flex gap-3 justify-content-center">
                                 {(() => {
                                     const leftComponents = [];
-
-                                    // First slot: Logged-in User
                                     if (User) {
-                                        const player = User;
+                                        const player = userData || User;
                                         leftComponents.push(
                                             <div key="left-match-0" className="text-center mx-auto mb-3">
                                                 <div
@@ -339,7 +352,7 @@ const OpenmatchPayment = (props) => {
                                                     )}
                                                 </div>
                                                 <p className="mb-0 mt-2 fw-semibold">
-                                                    {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
+                                                    {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "User"}
                                                 </p>
                                                 <span className="badge bg-success-subtle text-success">{skillLabels[0]}</span>
                                             </div>
@@ -349,8 +362,7 @@ const OpenmatchPayment = (props) => {
                                             <div
                                                 key="left-add-match-0"
                                                 className="text-center mx-auto"
-                                                onClick={() => handleAddMeClick("slot-1")}
-                                                style={{ cursor: "pointer" }}
+                                                style={{ cursor: "not-allowed" }}
                                             >
                                                 <div
                                                     className="rounded-circle d-flex bg-white align-items-center justify-content-center"
@@ -361,16 +373,15 @@ const OpenmatchPayment = (props) => {
                                                     </span>
                                                 </div>
                                                 <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>
-                                                    Add Me
+                                                    User Required
                                                 </p>
                                             </div>
                                         );
                                     }
 
-                                    // Second slot: First player from userPlayersData
-                                    const userPlayersArray = Array.isArray(userPlayersData) ? userPlayersData : [];
-                                    if (userPlayersArray.length > 0 && userPlayersArray[0]) {
-                                        const player = userPlayersArray[0];
+                                    // Slot 2: Team A Second Player
+                                    if (addedPlayers.slot2) {
+                                        const player = addedPlayers.slot2;
                                         leftComponents.push(
                                             <div key="left-user-1" className="text-center mx-auto mb-3">
                                                 <div
@@ -405,7 +416,7 @@ const OpenmatchPayment = (props) => {
                                             <div
                                                 key="left-add-user-1"
                                                 className="text-center mx-auto"
-                                                onClick={() => handleAddMeClick("slot-2")}
+                                                onClick={() => handleAddMeClick("slot2")} // Changed to slot2
                                                 style={{ cursor: "pointer" }}
                                             >
                                                 <div
@@ -431,11 +442,10 @@ const OpenmatchPayment = (props) => {
                             <div className="col-6 d-flex gap-3 align-items-start justify-content-center border-start">
                                 {(() => {
                                     const rightComponents = [];
-                                    const userPlayersArray = Array.isArray(userPlayersData) ? userPlayersData : [];
 
-                                    // First slot: Second player from userPlayersData
-                                    if (userPlayersArray.length > 1 && userPlayersArray[1]) {
-                                        const player = userPlayersArray[1];
+                                    // Slot 3: Team B First Player
+                                    if (addedPlayers.slot3) {
+                                        const player = addedPlayers.slot3;
                                         rightComponents.push(
                                             <div key="right-user-0" className="text-center mx-auto mb-3">
                                                 <div
@@ -470,7 +480,7 @@ const OpenmatchPayment = (props) => {
                                             <div
                                                 key="right-add-0"
                                                 className="text-center mx-auto"
-                                                onClick={() => handleAddMeClick("slot-3")}
+                                                onClick={() => handleAddMeClick("slot3")} // Changed to slot3
                                                 style={{ cursor: "pointer" }}
                                             >
                                                 <div
@@ -488,9 +498,9 @@ const OpenmatchPayment = (props) => {
                                         );
                                     }
 
-                                    // Second slot: Third player from userPlayersData
-                                    if (userPlayersArray.length > 2 && userPlayersArray[2]) {
-                                        const player = userPlayersArray[2];
+                                    // Slot 4: Team B Second Player
+                                    if (addedPlayers.slot4) {
+                                        const player = addedPlayers.slot4;
                                         rightComponents.push(
                                             <div key="right-user-1" className="text-center mx-auto mb-3">
                                                 <div
@@ -525,7 +535,7 @@ const OpenmatchPayment = (props) => {
                                             <div
                                                 key="right-add-1"
                                                 className="text-center mx-auto"
-                                                onClick={() => handleAddMeClick("slot-4")}
+                                                onClick={() => handleAddMeClick("slot4")} // Changed to slot4
                                                 style={{ cursor: "pointer" }}
                                             >
                                                 <div
@@ -640,7 +650,6 @@ const OpenmatchPayment = (props) => {
                     </div>
                 </div>
 
-                {/* Right Section - Booking Summary */}
                 <div className="col-5 pe-0">
                     <div className="rounded-4 pt-4 px-5" style={{ backgroundColor: "#F5F5F566" }}>
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
@@ -710,7 +719,6 @@ const OpenmatchPayment = (props) => {
                             {selectedCourts && selectedCourts.length > 0 ? (
                                 selectedCourts?.map((court, courtIndex) => (
                                     <div key={court._id} className="court-section mb-3">
-
                                         {court.times && court.times.length > 0 ? (
                                             court.times.map((slotTime, slotIndex) => (
                                                 <div
@@ -727,12 +735,12 @@ const OpenmatchPayment = (props) => {
                                                 </div>
                                             ))
                                         ) : (
-                                            <div>No slots selected for this court</div>
+                                            <div>No slots selected for this court <Link className="text-primary" to="/create-matches">Add slot</Link> </div>
                                         )}
                                     </div>
                                 ))
                             ) : (
-                                <div>No courts selected</div>
+                                <div>No slot selected <Link className="text-primary" to="/create-matches">Add slot</Link> </div>
                             )}
                         </div>
                         <div className="border-top pt-2 mb-3 mt-2 d-flex justify-content-between fw-bold">
@@ -753,7 +761,6 @@ const OpenmatchPayment = (props) => {
                                 style={buttonStyle}
                                 onClick={handleBooking}
                                 className={props.className}
-                            // disabled={isLoading}
                             >
                                 <svg
                                     style={svgStyle}
@@ -815,7 +822,7 @@ const OpenmatchPayment = (props) => {
                                         />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{isLoading ? <ButtonLoading /> : "Book Now"}</div>
+                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
