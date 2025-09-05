@@ -2,10 +2,12 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { getAllOpenMatches } from "../../../redux/thunks";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 import { Col, Row } from "react-bootstrap";
+import { formatSlotTime } from "../../../helpers/Formatting";
+import AddPlayerModal from "./modal/AddPlayerModal";
 
 const OpenMatches = () => {
   const navigate = useNavigate();
@@ -13,6 +15,16 @@ const OpenMatches = () => {
   const { openMatchesData, openMatchesLoading } = useSelector(
     (state) => state.openMatches
   );
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState("");
+  const [matchId, setMatchId] = useState("");
+
+  const handlePlayerAdded = () => {
+    dispatch(getAllOpenMatches());
+    setShowModal(false);
+  };
+
   useEffect(() => {
     dispatch(getAllOpenMatches());
   }, []);
@@ -34,7 +46,7 @@ const OpenMatches = () => {
   );
 
   // Available Tag
-  const AvailableTag = ({ team }) => (
+  const AvailableTag = ({ team, id }) => (
     <TagWrapper>
       <div
         className="d-flex justify-content-center align-items-center rounded-circle"
@@ -46,7 +58,12 @@ const OpenMatches = () => {
           fontSize: "24px",
           fontWeight: "400",
           marginRight: "10px",
-          cursor: "not-allowed",
+          cursor: "pointer",
+        }}
+        onClick={() => {
+          setSelectedTeam(team);
+          setShowModal(true);
+          setMatchId(id);
         }}
       >
         <span className="d-flex align-items-center mb-1">+</span>
@@ -109,7 +126,7 @@ const OpenMatches = () => {
             backgroundColor: "#BEEDCC",
           }}
         >
-          0.43
+          {player?.level}
         </p>
       </div>
     </TagWrapper>
@@ -163,6 +180,7 @@ const OpenMatches = () => {
       return total + slotTimesTotal;
     }, 0);
   };
+
   return (
     <>
       {openMatchesLoading ? (
@@ -245,7 +263,32 @@ const OpenMatches = () => {
                             style={{ fontSize: "16px" }}
                           >
                             {format(new Date(match?.matchDate), "dd MMM yyyy")}{" "}
-                            | {match?.matchTime || ""}
+                            |{" "}
+                            {(() => {
+                              const slots = match?.matchTime?.split(",") || [];
+
+                              const formatTime = (time) => {
+                                // Trim spaces → "6 am"
+                                const trimmed = time.trim();
+
+                                // If it already has ":", just return
+                                if (trimmed.includes(":"))
+                                  return trimmed.toLowerCase();
+
+                                // Otherwise, add ":00" before am/pm
+                                return trimmed
+                                  .replace(/(am|pm)/i, ":00 $1")
+                                  .toLowerCase();
+                              };
+
+                              const formattedSlots = slots.map(formatTime);
+
+                              return formattedSlots.length > 3
+                                ? `${formattedSlots.slice(0, 3).join(", ")} +${
+                                    formattedSlots.length - 3
+                                  } more`
+                                : formattedSlots.join(", ");
+                            })()}
                             <span className="text-dark ms-3 fw-semibold">
                               {match?.skillLevel?.charAt(0).toUpperCase() +
                                 match?.skillLevel?.slice(1) || ""}
@@ -276,6 +319,7 @@ const OpenMatches = () => {
                                 // Both teams have empty slots
                                 <AvailableTag
                                   team="Team A | B"
+                                  id={match?._id}
                                   match={match}
                                   name="both"
                                 />
@@ -283,6 +327,7 @@ const OpenMatches = () => {
                                 // Only Team A has empty slots
                                 <AvailableTag
                                   team="Team A"
+                                  id={match?._id}
                                   match={match}
                                   name="teamA"
                                 />
@@ -292,6 +337,7 @@ const OpenMatches = () => {
                               // Only Team B has empty slots
                               <AvailableTag
                                 team="Team B"
+                                id={match?._id}
                                 match={match}
                                 name="teamB"
                               />
@@ -380,6 +426,13 @@ const OpenMatches = () => {
           )}
         </div>
       )}
+      <AddPlayerModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        team={selectedTeam}
+        matchId={matchId}
+        onPlayerAdded={handlePlayerAdded}
+      />
     </>
   );
 };

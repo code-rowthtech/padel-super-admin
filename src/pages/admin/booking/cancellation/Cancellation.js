@@ -129,6 +129,7 @@ const Cancellation = () => {
                 value={tab}
                 onChange={(_, v) => {
                   setTab(v);
+                  setCurrentPage(1);
                 }}
               >
                 <Tab label="Request" />
