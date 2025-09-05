@@ -226,7 +226,7 @@ const OpenmatchPayment = (props) => {
             const timer = setTimeout(() => {
                 setErrorShow(false);
                 setError('');
-            }, 3000);
+            }, 5000);
             return () => clearTimeout(timer);
         }
     }, [errorShow]);
