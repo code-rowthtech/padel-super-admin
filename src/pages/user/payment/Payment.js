@@ -6,7 +6,7 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
-import { Alert, Button, Modal } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import { booking_success_img } from "../../../assets/files";
 import { IoIosArrowDown } from "react-icons/io";
 
@@ -28,15 +28,17 @@ const Payment = ({ className = "" }) => {
     const userLoading = useSelector((state) => state?.userAuth);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const [name, setName] = useState(user?.name || "");
-    const [phoneNumber, setPhoneNumber] = useState(
-        user?.phoneNumber
-    );
+    const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
     const [email, setEmail] = useState(user?.email || "");
     const [selectedPayment, setSelectedPayment] = useState("");
-    const [error, setError] = useState(null);
+    const [errors, setErrors] = useState({
+        name: "",
+        phoneNumber: "",
+        email: "",
+        paymentMethod: "",
+    });
     const [isLoading, setIsLoading] = useState(false);
-    const [errorShow, setErrorShow] = useState(false);
-    const [modal, setModal] = useState(false)
+    const [modal, setModal] = useState(false);
     const dispatch = useDispatch();
     const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
     const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
@@ -71,11 +73,10 @@ const Payment = ({ className = "" }) => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setErrorShow(false);
-            setError('')
-        }, 2000);
+            setErrors({ name: "", phoneNumber: "", email: "", paymentMethod: "" });
+        }, 3000); // Clear errors after 3 seconds
         return () => clearTimeout(timer);
-    }, [error, errorShow]);
+    }, [errors]);
 
     const handleDeleteSlot = (courtIndex, slotIndex) => {
         const removedSlotId = localSelectedCourts[courtIndex]?.time[slotIndex]?._id;
@@ -94,29 +95,24 @@ const Payment = ({ className = "" }) => {
     };
 
     const handlePayment = async () => {
-        let errorMsg = "";
+        const newErrors = {
+            name: !name ? "Name is required" : "",
+            phoneNumber: !phoneNumber
+                ? "Phone number is required"
+                : !/^[6-9]\d{9}$/.test(phoneNumber)
+                    ? "Phone number must be 10 digits starting with 6, 7, 8, or 9"
+                    : "",
+            email: !email ? "Email is required" : "",
+            paymentMethod: !selectedPayment ? "Payment method is required" : "",
 
-        if (!name) {
-            errorMsg = "Name is required";
-        } else if (!email) {
-            errorMsg = "Email is required";
-        } else if (!phoneNumber) {
-            errorMsg = "Phone number is required";
-        } else if (!/^[6-9]\d{9}$/.test(phoneNumber)) {
-            errorMsg = "Phone number must be 10 digits starting with 6, 7, 8, or 9";
-        } else if (!selectedPayment) {
-            errorMsg = "Payment method is required";
-        }
+        };
 
-        if (errorMsg) {
-            setError(errorMsg);
-            setErrorShow(true);
+        setErrors(newErrors);
+        if (Object.values(newErrors).some((error) => error)) {
             return;
         }
 
         setIsLoading(true);
-        setError(null);
-        setErrorShow(false);
 
         try {
             const register_club_id = localStorage.getItem("register_club_id");
@@ -166,22 +162,29 @@ const Payment = ({ className = "" }) => {
                 paymentMethod: selectedPayment,
             };
 
-            await dispatch(createBooking(payload)).unwrap();
-            if (user?.name) {
-                setModal(true);
-            } else {
-                await dispatch(loginUserNumber({ phoneNumber, name, email }));
-                setModal(true);
-            }
+            await dispatch(loginUserNumber({ phoneNumber: phoneNumber.toString(), name, email }))
+                .unwrap()
+                .then((res) => {
+                    if (res?.status === "200") {
+                        dispatch(createBooking(payload))
+                            .unwrap()
+                            .then((res) => {
+                                if (res?.success) {
+                                    setModal(true);
+                                }
+                            });
+                    }
+                });
         } catch (err) {
             console.error("Payment Error:", err);
-            setError(err.message || "An error occurred during payment processing.");
-            setErrorShow(true);
+            setErrors((prev) => ({
+                ...prev,
+                general: err.message || "An error occurred during payment processing.",
+            }));
         } finally {
             setIsLoading(false);
         }
     };
-
 
     // Button styling
     const width = 370;
@@ -269,6 +272,11 @@ const Payment = ({ className = "" }) => {
                                         title="Name can only contain letters and single spaces between words"
                                         aria-label="Name"
                                     />
+                                    {errors.name && (
+                                        <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                                            {errors.name}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="col-md-4 mb-3 p-1">
                                     <label className="form-label">
@@ -277,26 +285,32 @@ const Payment = ({ className = "" }) => {
                                     <div className="input-group">
                                         <span className="input-group-text border-0 p-2" style={{ backgroundColor: "#F5F5F5" }}>
                                             <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
-                                            <span><IoIosArrowDown /></span>
+                                            <span>
+                                                <IoIosArrowDown />
+                                            </span>
                                         </span>
                                         <input
                                             type="text"
-                                            maxLength={10} // Restrict to 10 digits
+                                            maxLength={10}
                                             value={phoneNumber}
                                             style={{ boxShadow: "none" }}
                                             onChange={(e) => {
-                                                const value = e.target.value.replace(/[^0-9]/g, ''); // Allow only digits
+                                                const value = e.target.value.replace(/[^0-9]/g, "");
                                                 if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                                                    setPhoneNumber(value); // Store only the digits
+                                                    setPhoneNumber(value);
                                                 }
                                             }}
                                             className="form-control border-0 p-2"
                                             placeholder="+91"
                                             pattern="[6-9][0-9]{9}"
                                             title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
-                                        // disabled={user?.phoneNumber}
                                         />
                                     </div>
+                                    {errors.phoneNumber && (
+                                        <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                                            {errors.phoneNumber}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="col-md-4 mb-3 p-1">
                                     <label className="form-label">
@@ -308,15 +322,13 @@ const Payment = ({ className = "" }) => {
                                         style={{ boxShadow: "none" }}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            // Allow letters, numbers, @, and .; prevent spaces
                                             if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
                                                 if (value.length === 0) {
                                                     setEmail("");
                                                     return;
                                                 }
-                                                // Capitalize first letter before @, remove spaces
                                                 const formattedValue = value
-                                                    .replace(/\s+/g, "") // Remove all spaces
+                                                    .replace(/\s+/g, "")
                                                     .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
                                                         return first.toUpperCase() + rest.toLowerCase() + domain;
                                                     });
@@ -326,6 +338,11 @@ const Payment = ({ className = "" }) => {
                                         className="form-control border-0 p-2"
                                         placeholder="Enter your email"
                                     />
+                                    {errors.email && (
+                                        <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                                            {errors.email}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -355,15 +372,18 @@ const Payment = ({ className = "" }) => {
                                             value={method.id}
                                             className="form-check-input"
                                             checked={selectedPayment === method.id}
-                                            style={{ border: '4px solid #4D4DFF', width: '20px', height: '20px', boxShadow: "none" }}
+                                            style={{ border: "4px solid #4D4DFF", width: "20px", height: "20px", boxShadow: "none" }}
                                             onChange={(e) => setSelectedPayment(e.target.value)}
                                         />
                                     </label>
                                 ))}
                             </div>
+                            {errors.paymentMethod && (
+                                <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "8px" }}>
+                                    {errors.paymentMethod}
+                                </div>
+                            )}
                         </div>
-
-                        {/* {errorShow && <Alert variant="danger">{error}</Alert>} */}
                     </div>
                 </div>
 
@@ -378,13 +398,13 @@ const Payment = ({ className = "" }) => {
                                     <Avatar>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>
                                 )}
                             </div>
-                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                            <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
-                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
-                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
-                                    .filter(Boolean)
-                                    .join(', ')}
+                            </p>
+                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                                {clubData?.clubName}
+                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ", " : ""}
+                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode].filter(Boolean).join(", ")}
                             </p>
                         </div>
 
@@ -399,10 +419,10 @@ const Payment = ({ className = "" }) => {
                                             <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex">
-                                                        <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
-                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ''}
+                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "18px", color: "#374151" }}>
+                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
+                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "18px", color: "#374151" }}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
                                                                 const date = new Date(court.date);
@@ -411,10 +431,10 @@ const Payment = ({ className = "" }) => {
                                                                 return `${day} ${month}`;
                                                             })()}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
+                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "18px", color: "#374151" }}>
                                                             {timeSlot?.time} (60m)
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
+                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {court?.courtName}
                                                         </span>
                                                     </div>
@@ -423,10 +443,10 @@ const Payment = ({ className = "" }) => {
                                                             ₹{timeSlot?.amount || 2000}
                                                         </span>
                                                         <button
-                                                            className="btn btn-sm  text-danger delete-btn "
+                                                            className="btn btn-sm text-danger delete-btn"
                                                             onClick={() => handleDeleteSlot(index, timeIndex)}
                                                         >
-                                                            <i className="bi bi-trash-fill mb-2 "></i>
+                                                            <i className="bi bi-trash-fill mb-2"></i>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -435,40 +455,37 @@ const Payment = ({ className = "" }) => {
                                     </React.Fragment>
                                 ))
                             ) : (
-                                <div
-                                    className="d-flex justify-content-center align-items-center text-muted"
-                                    style={{ height: "25vh" }}
-                                >
-                                    <p
-                                        className="text-danger"
-                                        style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "600" }}
-                                    >
+                                <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: "25vh" }}>
+                                    <p className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "600" }}>
                                         No court selected
                                     </p>
                                 </div>
                             )}
                         </div>
-                        {localTotalSlots > 0 && (
-                            <div
-                                className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold"
-                                style={{ overflowX: "hidden" }}
-                            >
-                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
-                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {localTotalSlots}</span>
-                                <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>
-                                    ₹ {localGrandTotal}
-                                </span>
+                        {errors.courts && (
+                            <div className="text-danger" style={{ fontSize: "12px", marginTop: "8px" }}>
+                                {errors.courts}
                             </div>
                         )}
-                        {errorShow && <Alert variant="danger">{error}</Alert>}
+                        {localTotalSlots > 0 && (
+                            <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
+                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
+                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {localTotalSlots}</span>
+                                <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>₹ {localGrandTotal}</span>
+                            </div>
+                        )}
+                        {errors.general && (
+                            <div className="text-danger" style={{ fontSize: "12px", marginTop: "8px" }}>
+                                {errors.general}
+                            </div>
+                        )}
 
                         <div className="d-flex justify-content-center mt-3">
                             <button
                                 style={{
                                     ...buttonStyle,
                                     opacity: localSelectedCourts?.length > 0 && localTotalSlots > 0 ? 1 : 0.6,
-                                    cursor:
-                                        localSelectedCourts?.length > 0 && localTotalSlots > 0 ? "pointer" : "not-allowed",
+                                    cursor: localSelectedCourts?.length > 0 && localTotalSlots > 0 ? "pointer" : "not-allowed",
                                 }}
                                 onClick={handlePayment}
                                 className={className}
@@ -484,41 +501,31 @@ const Payment = ({ className = "" }) => {
                                     </defs>
                                     <path
                                         d={`M ${width * 0.76} ${height * 0.15} 
-                        C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
-                        C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
-                        C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
-                        C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} 
-                        C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} 
-                        C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} 
-                        C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} 
-                        C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} 
-                        C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} 
-                        C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} 
-                        L ${width * 0.08} ${height * 0.85} 
-                        C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
-                        C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
-                        L ${width * 0.76} ${height * 0.15} Z`}
+                      C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
+                      C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
+                      C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
+                      C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} 
+                      C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} 
+                      C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} 
+                      C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} 
+                      C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} 
+                      C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} 
+                      C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} 
+                      L ${width * 0.08} ${height * 0.85} 
+                      C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
+                      C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
+                      L ${width * 0.76} ${height * 0.15} Z`}
                                         fill={`url(#buttonGradient-${width}-${height})`}
                                     />
                                     <circle cx={circleX} cy={circleY} r={circleRadius} fill="#3DBE64" />
                                     <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                        <path
-                                            d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`}
-                                        />
-                                        <path
-                                            d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`}
-                                        />
-                                        <path
-                                            d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`}
-                                        />
+                                        <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
+                                        <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
+                                        <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
                                 <div style={contentStyle}>
-                                    {bookingStatus?.bookingLoading || isLoading || userLoading?.userAuthLoading ? (
-                                        <ButtonLoading />
-                                    ) : (
-                                        "Book Now"
-                                    )}
+                                    {bookingStatus?.bookingLoading || isLoading || userLoading?.userAuthLoading ? <ButtonLoading /> : "Book Now"}
                                 </div>
                             </button>
                         </div>
@@ -528,32 +535,22 @@ const Payment = ({ className = "" }) => {
 
             <Modal show={modal} onHide={() => setModal(false)} centered>
                 <div className="p-4 text-center">
-                    {/* Illustration */}
-                    <img
-                        src={booking_success_img}
-                        alt="Booking Success"
-                        style={{ width: "300px", height: "400px", marginBottom: "20px" }}
-                    />
-
-                    {/* Title */}
+                    <img src={booking_success_img} alt="Booking Success" style={{ width: "300px", height: "400px", marginBottom: "20px" }} />
                     <h4 className="tabel-title">Booking Successful!</h4>
                     <p className="text-dark fw-medium">Your slot has been booked successfully.</p>
-
-                    {/* Continue Button */}
                     <Button
-                        onClick={() => { setModal(false); navigate("/booking"); }}
+                        onClick={() => {
+                            setModal(false);
+                            navigate("/booking");
+                        }}
                         className="w-100 rounded-pill border-0 text-white py-3 mt-3"
                         style={{ backgroundColor: "#3DBE64", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
                     >
                         Continue
                     </Button>
-
-                    {/* Reminder Note */}
                     <p className="text-dark fw-medium mt-3" style={{ fontSize: "14px" }}>
                         You’ll receive a reminder before it starts.
                     </p>
-
-                    {/* Link */}
                     <Link to="/booking-history" className="text-primary fw-semibold">
                         View Booking Details
                     </Link>
