@@ -59,7 +59,7 @@ const Payments = () => {
   const payments = getBookingData?.bookings || [];
   const paymentDetails = getBookingDetailsData?.booking || {};
 
-  const status = tab === 0 ? "" : "refund";
+  const status = tab === 0 ? "" : "refunded";
   const sendDate = startDate && endDate;
 
   useEffect(() => {
