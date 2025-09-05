@@ -27,7 +27,6 @@ const OpenmatchPayment = (props) => {
     const userData = useSelector((state) => state?.userAuth?.user?.response);
     const matchesLoading = useSelector((state) => state?.userMatchesReducer?.matchesLoading)
     const bookingLoading = useSelector((state) => state?.userBooking?.bookingLoading)
-    console.log(activeSlot, showAddMeForm, 'modal');
     const navigate = useNavigate();
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || {});
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
@@ -35,15 +34,11 @@ const OpenmatchPayment = (props) => {
     const { slotData, finalSkillDetails, selectedDate, selectedCourts } = state || {};
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
-    console.log({ selectedCourts });
     const slot2Player = addedPlayers.slot2 ? addedPlayers.slot2._id : null;
     const slot3Player = addedPlayers.slot3 ? addedPlayers.slot3._id : null;
     const slot4Player = addedPlayers.slot4 ? addedPlayers.slot4._id : null;
-    // Ensure User._id is always first in players and Team A
-    const players = [User?._id, slot2Player, slot3Player, slot4Player].filter(id => id !== null);
     const teamA = [User?._id, slot2Player].filter(id => id !== null);
     const teamB = [slot3Player, slot4Player].filter(id => id !== null);
-    console.log(teamA, 'teama', teamB, 'teamb');
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
@@ -61,7 +56,7 @@ const OpenmatchPayment = (props) => {
             setErrorShow(true);
             return;
         }
-       else if (!selectedCourts || selectedCourts.length === 0 || selectedCourts.some(court => court.times.length === 0)) {
+        else if (!selectedCourts || selectedCourts.length === 0 || selectedCourts.some(court => court.times.length === 0)) {
             setError("Please select a slot");
             setErrorShow(true);
             return;
@@ -147,7 +142,6 @@ const OpenmatchPayment = (props) => {
         });
     };
 
-    const skillLabels = ["A/B", "B/C", "C/D", "D/E"];
 
     const handleAddMeClick = (slot) => {
         console.log("handleAddMeClick called with slot:", slot, activeSlot, "current showAddMeForm:", showAddMeForm);
@@ -330,7 +324,7 @@ const OpenmatchPayment = (props) => {
                                     if (User) {
                                         const player = userData || User;
                                         leftComponents.push(
-                                            <div key="left-match-0" className="text-center mx-auto mb-3">
+                                            <div key="left-match-0" className="d-flex flex-column justify-content-center align-items-center mx-auto mb-3">
                                                 <div
                                                     className="rounded-circle border d-flex align-items-center justify-content-center"
                                                     style={{
@@ -352,10 +346,10 @@ const OpenmatchPayment = (props) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="mb-0 mt-2 fw-semibold">
+                                                <p className="mb-3 mt-2 fw-semibold">
                                                     {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "User"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">{skillLabels[0]}</span>
+                                                <span className="badge bg-success-subtle text-success"></span>
                                             </div>
                                         );
                                     } else {
@@ -384,7 +378,7 @@ const OpenmatchPayment = (props) => {
                                     if (addedPlayers.slot2) {
                                         const player = addedPlayers.slot2;
                                         leftComponents.push(
-                                            <div key="left-user-1" className="text-center mx-auto mb-3">
+                                            <div key="left-user-1" className="d-flex flex-column justify-content-center align-items-center mx-auto mb-3">
                                                 <div
                                                     className="rounded-circle border d-flex align-items-center justify-content-center"
                                                     style={{
@@ -409,7 +403,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">{skillLabels[1]}</span>
+                                                <span className="badge bg-success-subtle text-success">{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -448,7 +442,7 @@ const OpenmatchPayment = (props) => {
                                     if (addedPlayers.slot3) {
                                         const player = addedPlayers.slot3;
                                         rightComponents.push(
-                                            <div key="right-user-0" className="text-center mx-auto mb-3">
+                                            <div key="right-user-0" className="d-flex flex-column justify-content-center align-items-center mx-auto mb-3">
                                                 <div
                                                     className="rounded-circle border d-flex align-items-center justify-content-center"
                                                     style={{
@@ -473,7 +467,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">{skillLabels[2]}</span>
+                                                <span className="badge bg-success-subtle text-success">{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -502,7 +496,7 @@ const OpenmatchPayment = (props) => {
                                     if (addedPlayers.slot4) {
                                         const player = addedPlayers.slot4;
                                         rightComponents.push(
-                                            <div key="right-user-1" className="text-center mx-auto mb-3">
+                                            <div key="right-user-1" className="d-flex flex-column justify-content-center align-items-center mx-auto mb-3">
                                                 <div
                                                     className="rounded-circle border d-flex align-items-center justify-content-center"
                                                     style={{
@@ -527,7 +521,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">{skillLabels[3]}</span>
+                                                <span className="badge bg-success-subtle text-success">{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -576,25 +570,25 @@ const OpenmatchPayment = (props) => {
                         <div className="d-flex gap-3 align-items-start">
                             <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
-                                <p className="mb-1" style={{ fontSize: "20px", fontWeight: "500" }}>
-                                    {clubData?.clubName || "The Good Club"}
+                                <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                                    {clubData?.clubName}
+                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                    {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                        .filter(Boolean)
+                                        .join(', ')}
                                 </p>
-                                <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
-                                    {clubData?.address || "sector 19 panchkula chandigarh"}
-                                    {clubData?.zipCode ? `, ${clubData.zipCode}` : ""}
-                                </p>
+
                                 <div
                                     className="mb-3"
                                     style={{ color: "#3DBE64", fontSize: "12px" }}
                                 >
                                     Opened
                                 </div>
-                                <a
-                                    href="#"
+                                <Link
                                     style={{ color: "#1F41BB", fontSize: "15px", fontWeight: "500" }}
                                 >
                                     More Info
-                                </a>
+                                </Link>
                             </div>
                             <div className="ms-auto">
                                 <DirectionsIcon
@@ -695,12 +689,12 @@ const OpenmatchPayment = (props) => {
                                     </Avatar>
                                 )}
                             </div>
-                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600" }}>
-                                {clubData?.clubName || "The Good Club"}
-                            </p>
-                            <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
-                                {clubData?.address || "sector 19 panchkula chandigarh"}
-                                {clubData?.zipCode ? `, ${clubData.zipCode}` : ""}
+                            <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                                {clubData?.clubName}
+                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                    .filter(Boolean)
+                                    .join(', ')}
                             </p>
                         </div>
 

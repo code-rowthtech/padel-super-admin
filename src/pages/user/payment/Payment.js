@@ -247,14 +247,14 @@ const Payment = ({ className = "" }) => {
                 <div className="col-7">
                     <div className="bg-white rounded">
                         {/* Info Section */}
-                        <div className="rounded-4 py-4 px-5 mb-4" style={{ backgroundColor: "#F5F5F566" }}>
-                            <h6 className="mb-3" style={{ fontSize: "20px", fontWeight: "600" }}>
+                        <div className="rounded-4 py-4 px-5 mb-4" style={{ backgroundColor: "#F5F5F566",border:errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
+                            <h6 className="mb-3" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
                                 Information
                             </h6>
                             <div className="row">
                                 <div className="col-md-4 mb-3 p-1">
-                                    <label className="form-label">
-                                        Name <span className="text-danger">*</span>
+                                    <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                        Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -287,9 +287,10 @@ const Payment = ({ className = "" }) => {
                                         </div>
                                     )}
                                 </div>
+
                                 <div className="col-md-4 mb-3 p-1">
-                                    <label className="form-label">
-                                        Phone No <span className="text-danger">*</span>
+                                    <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                        Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
                                     <div className="input-group">
                                         <span className="input-group-text border-0 p-2" style={{ backgroundColor: "#F5F5F5" }}>
@@ -322,8 +323,8 @@ const Payment = ({ className = "" }) => {
                                     )}
                                 </div>
                                 <div className="col-md-4 mb-3 p-1">
-                                    <label className="form-label">
-                                        Email <span className="text-danger">*</span>
+                                    <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                        Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
                                     <input
                                         type="email"
@@ -357,19 +358,31 @@ const Payment = ({ className = "" }) => {
                         </div>
 
                         {/* Payment Method Section */}
-                        <div className="rounded-4 py-4 px-5" style={{ backgroundColor: "#F5F5F566" }}>
-                            <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
+                        <div
+                            className="rounded-4 py-4 px-5"
+                            style={{
+                                backgroundColor: "#F5F5F566",
+                                border: errors.paymentMethod ? "2px solid red" : "none",
+                            }}
+                        >
+                            <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
                                 Payment Method
                             </h6>
+                            {errors.paymentMethod && (
+                                <div className="text-danger position-absolute" style={{ fontSize: "12px", bottom: "55%" }}>
+                                    {errors.paymentMethod}
+                                </div>
+                            )}
                             <div className="d-flex flex-column gap-3">
                                 {[
                                     { id: "Gpay", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
                                     { id: "Apple Pay", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
-                                    { id: "Paypal", name: "Paypal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
+                                    { id: "Paypal", name: "PayPal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
                                 ].map((method) => (
                                     <label
                                         key={method.id}
                                         className="d-flex justify-content-between align-items-center p-3 bg-white rounded-4 p-4"
+                                        style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5" }}
                                     >
                                         <div className="d-flex align-items-center gap-3">
                                             <img src={method.icon} alt={method.name} width={28} />
@@ -387,11 +400,7 @@ const Payment = ({ className = "" }) => {
                                     </label>
                                 ))}
                             </div>
-                            {errors.paymentMethod && (
-                                <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "8px" }}>
-                                    {errors.paymentMethod}
-                                </div>
-                            )}
+
                         </div>
                     </div>
                 </div>
@@ -400,24 +409,39 @@ const Payment = ({ className = "" }) => {
                 <div className="col-5">
                     <div className="border rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="text-center mb-3">
-                            <div className="d-flex justify-content-center" style={{ lineHeight: "90px" }}>
+                            <div className="d-flex justify-content-center">
                                 {logo ? (
-                                    <Avatar src={logo} alt="User Profile" />
+                                    <Avatar
+                                        src={logo}
+                                        alt="User Profile"
+                                        style={{ height: "112px", width: "112px", boxShadow: '0px 4px 11.4px 0px #0000002E' }}
+                                    />
                                 ) : (
-                                    <Avatar>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>
+                                    <Avatar
+                                        style={{
+                                            height: "112px",
+                                            width: "112px",
+                                            fontSize: "30px",
+                                            boxShadow: '0px 4px 11.4px 0px #0000002E'
+
+                                        }}
+                                    >
+                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                    </Avatar>
                                 )}
                             </div>
-                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>
+
+                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                            <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
-                            </p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
-                                {clubData?.clubName}
-                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ", " : ""}
-                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode].filter(Boolean).join(", ")}
+                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
+                                    .filter(Boolean)
+                                    .join(', ')}
                             </p>
                         </div>
 
-                        <h6 className="border-top p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
+                        <h6 className="border-top p-2 pt-3 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
                             Booking Summary
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
@@ -428,10 +452,10 @@ const Payment = ({ className = "" }) => {
                                             <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex">
-                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "18px", color: "#374151" }}>
-                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""}
+                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""},
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "18px", color: "#374151" }}>
+                                                        <span className="" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
                                                                 const date = new Date(court.date);
@@ -440,16 +464,16 @@ const Payment = ({ className = "" }) => {
                                                                 return `${day} ${month}`;
                                                             })()}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "18px", color: "#374151" }}>
+                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {timeSlot?.time} (60m)
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
                                                             {court?.courtName}
                                                         </span>
                                                     </div>
-                                                    <div className="d-flex align-items-center">
-                                                        <span className="ps-2" style={{ fontWeight: "600", color: "#1A237E" }}>
-                                                            ₹{timeSlot?.amount || 2000}
+                                                    <div className="d-flex align-items-center" style={{ color: "#1A237E" }}>
+                                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: 'Poppins' }}>
+                                                            {timeSlot?.amount || 2000}
                                                         </span>
                                                         <button
                                                             className="btn btn-sm text-danger delete-btn"
@@ -477,7 +501,7 @@ const Payment = ({ className = "" }) => {
                             </div>
                         )}
                         {localTotalSlots > 0 && (
-                            <div className="border-top pt-2 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
+                            <div className="border-top pt-3 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
                                 <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
                                 <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {localTotalSlots}</span>
                                 <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>₹ {localGrandTotal}</span>
@@ -542,25 +566,25 @@ const Payment = ({ className = "" }) => {
                 </div>
             </div>
 
-            <Modal show={modal} onHide={() => setModal(false)} centered>
+            <Modal show={modal} centered>
                 <div className="p-4 text-center">
-                    <img src={booking_success_img} alt="Booking Success" style={{ width: "300px", height: "400px", marginBottom: "20px" }} />
-                    <h4 className="tabel-title">Booking Successful!</h4>
-                    <p className="text-dark fw-medium">Your slot has been booked successfully.</p>
+                    <img src={booking_success_img} alt="Booking Success" style={{ width: "294px", height: "294px", marginBottom: "20px" }} />
+                    <h4 className="tabel-title" style={{ fontFamily: "Poppins" }}>Booking Successful!</h4>
+                    <p className="text-dark " style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>Your slot has been booked successfully.</p>
                     <Button
                         onClick={() => {
                             setModal(false);
-                            navigate("/booking");
+                            navigate("/booking", { replace: true });
                         }}
-                        className="w-100 rounded-pill border-0 text-white py-3 mt-3"
+                        className="w-75 rounded-pill border-0 text-white py-3 mt-4 mb-4"
                         style={{ backgroundColor: "#3DBE64", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
                     >
                         Continue
                     </Button>
-                    <p className="text-dark fw-medium mt-3" style={{ fontSize: "14px" }}>
+                    <p className="text-dark fw-medium mt-3 mb-1" style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>
                         You’ll receive a reminder before it starts.
                     </p>
-                    <Link to="/booking-history" className="text-primary fw-semibold">
+                    <Link to="/booking-history" replace className="nav-link" style={{ color: "#1F41BB", fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>
                         View Booking Details
                     </Link>
                 </div>

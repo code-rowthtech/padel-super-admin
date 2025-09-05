@@ -76,10 +76,16 @@ const ViewMatch = ({ className = "" }) => {
                         )}
                     </div>
                     <p className="mb-0 mt-2 fw-semibold">
-                        {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : "User"}
+                        {user?.name
+                            ? user.name.length > 14
+                                ? user.name.slice(0, 14) + "..."
+                                : user.name
+                            : "User"}
                     </p>
-                    <span className="badge bg-success-subtle text-success">{skillLabels[index % 2 === 0 ? 0 : 1]}</span>
-                    {isRemovable && (
+
+
+                    <span className="badge bg-success-subtle text-success">{user?.level}</span>
+                    {/* {isRemovable && (
                         <button
                             className="position-absolute top-0 end-0 btn btn-danger btn-sm rounded-circle"
                             onClick={() => handleRemovePlayer(user._id, team)}
@@ -87,7 +93,7 @@ const ViewMatch = ({ className = "" }) => {
                         >
                             <FaTrash size={12} />
                         </button>
-                    )}
+                    )} */}
                 </div>
             );
         } else if (
@@ -187,13 +193,13 @@ const ViewMatch = ({ className = "" }) => {
                                 {/* Team A */}
                                 <div className="col-6 d-flex gap-3 justify-content-center align-items-center">
                                     {renderPlayerSlot(teamAData[0], 0, false, 'A')}
-                                    {renderPlayerSlot(teamAData[1], 1, true, 'A')} 
+                                    {renderPlayerSlot(teamAData[1], 1, true, 'A')}
                                 </div>
 
                                 {/* Team B */}
                                 <div className="col-6 d-flex gap-3 align-items-start justify-content-center align-items-center border-start">
-                                    {renderPlayerSlot(teamBData[0], 2, true, 'B')} 
-                                    {renderPlayerSlot(teamBData[1], 3, true, 'B')} 
+                                    {renderPlayerSlot(teamBData[0], 2, true, 'B')}
+                                    {renderPlayerSlot(teamBData[1], 3, true, 'B')}
                                 </div>
                             </div>
                         )}

@@ -128,12 +128,12 @@ const Profile = () => {
   };
 
   const handleCancel = () => {
-    navigate("/admin/dashboard");
+    navigate("/");
   };
 
   return (
-    <div className="container py-4 px-5" style={{ backgroundColor: "#F3F6FB", borderRadius: "12px" }}>
-      <div
+    <div className="container py-4 mt-5 px-5" style={{  borderRadius: "12px" }}>
+      <div className="mt-5"
         style={{
           background: "linear-gradient(to right, #A18CD1, #FBC2EB)",
           height: "80px",
