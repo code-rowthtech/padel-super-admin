@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Container, Row, Col, Button, Card, Form, ProgressBar, FormCheck } from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Form, FormCheck } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
-import { FaChevronDown, FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaShoppingCart } from 'react-icons/fa';
+import { FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { getUserSlot } from '../../../redux/user/slot/thunk';
@@ -19,18 +19,19 @@ const CreateMatches = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedCourts, setSelectedCourts] = useState([]); // मल्टीपल कोर्ट्स के लिए
+  const [selectedCourts, setSelectedCourts] = useState([]);
   const [selectedDate, setSelectedDate] = useState({
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
   const [selectedLevel, setSelectedLevel] = useState("");
   const [skillDetails, setSkillDetails] = useState([]);
-  const [currentCourtId, setCurrentCourtId] = useState(null); // वर्तमान में सेलेक्टेड कोर्ट
+  const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
   const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
+  const [slotError, setSlotError] = useState("");
 
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -84,7 +85,7 @@ const CreateMatches = () => {
   };
 
   const handleCourtSelect = (court) => {
-    setCurrentCourtId(court._id); 
+    setCurrentCourtId(court._id);
     setSelectedCourts((prev) => {
       if (!prev.some((c) => c._id === court._id)) {
         return [
@@ -94,11 +95,11 @@ const CreateMatches = () => {
             courtName: court.courtName,
             type: court.type,
             date: selectedDate?.fullDate,
-            times: [], 
+            times: [],
           },
         ];
       }
-      return prev; 
+      return prev;
     });
   };
 
@@ -119,6 +120,7 @@ const CreateMatches = () => {
       });
       return updatedCourts;
     });
+    setSlotError(""); 
   };
 
   const maxSelectableDate = new Date();
@@ -189,23 +191,28 @@ const CreateMatches = () => {
         "I don't feel safe at the net, I make too many mistakes",
         'I can volley forehand and backhand with some difficulties',
         'I have good positioning at the net and I volley confidently',
-        'I don\'t know',
+        "I don't know",
       ],
     },
     {
       question: 'On the rebounds...',
       options: [
-        'I don\'t know how to read the rebounds, I hit before it rebounds',
+        "I don't know how to read the rebounds, I hit before it rebounds",
         'I try, with difficulty, to hit the rebounds on the back wall',
         'I return rebounds on the back wall, it is difficult for me to return the double wall ones',
         'I return double-wall rebounds and reach for quick rebounds',
         'I perform powerful wall descent shots with forehand and backhand',
-        'I don\'t know',
+        "I don't know",
       ],
     },
   ];
 
   const handleNext = () => {
+    if (selectedCourts.length === 0 || selectedCourts.every((court) => court.times.length === 0)) {
+      setSlotError("Please select at least one time slot for a court");
+      return;
+    }
+
     if (selectedLevel && currentStep < steps.length - 1) {
       setSkillDetails((prev) => {
         const newDetails = [...prev];
@@ -214,6 +221,7 @@ const CreateMatches = () => {
       });
       setCurrentStep(currentStep + 1);
       setSelectedLevel('');
+      setSlotError(""); 
     } else if (currentStep === steps.length - 1 && selectedLevel) {
       const finalSkillDetails = [...skillDetails];
       finalSkillDetails[currentStep] = selectedLevel;
@@ -228,8 +236,18 @@ const CreateMatches = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
       setSelectedLevel(skillDetails[currentStep - 1] || '');
+      setSlotError("");
     }
   };
+
+  useEffect(() => {
+    if (slotError) {
+      const timer = setTimeout(() => {
+        setSlotError("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [slotError]);
 
   return (
     <Container className="p-4 mb-5" style={{ minHeight: '100vh' }}>
@@ -324,7 +342,7 @@ const CreateMatches = () => {
           </div>
           <div className="d-flex justify-content-between align-items-center py-2">
             <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-              Available Slots for {selectedCourts.find((c) => c._id === currentCourtId)?.courtName || "Selected Court"}
+              Available Slots for <span style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400" }}>{selectedCourts.find((c) => c._id === currentCourtId)?.courtName || "Selected Court"}</span>
             </p>
             <FormCheck
               type="switch"
@@ -335,6 +353,7 @@ const CreateMatches = () => {
               style={{ marginBottom: 0 }}
             />
           </div>
+
           {slotLoading ? (
             <DataLoading height={"30vh"} />
           ) : (
@@ -416,7 +435,9 @@ const CreateMatches = () => {
                     <p className="text-danger text-center fw-medium">No slots available for this date.</p>
                   </div>
                 )}
+
               </div>
+
               <div>
                 <div className="d-flex justify-content-between align-items-center py-2">
                   <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
@@ -554,7 +575,7 @@ const CreateMatches = () => {
                         backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
                         borderColor: selectedLevel === option ? "#4f46e5" : "#e5e7eb",
                         cursor: "pointer",
-                        boxShadow:"none"
+                        boxShadow: "none"
                       }}
                     >
                       <Form.Check
@@ -566,11 +587,17 @@ const CreateMatches = () => {
                         checked={selectedLevel === option}
                         onChange={(e) => setSelectedLevel(e.target.value)}
                         className="fw-semibold"
-                        style={{boxShadow:"none"}}
+                        style={{ boxShadow: "none" }}
                       />
                     </div>
                   ))}
+                  {slotError && (
+                    <div className="text-danger text-start  w-100 position-absolute" style={{ fontSize: "16px", marginBottom: "10px",fontFamily:"Poppins",fontWeight:"600" }}>
+                      <p>{slotError}</p>
+                    </div>
+                  )}
                 </Form>
+
               </div>
               <div className="d-flex justify-content-end align-items-center p-3">
                 {currentStep > 0 && (
