@@ -144,7 +144,6 @@ const OpenmatchPayment = (props) => {
 
 
     const handleAddMeClick = (slot) => {
-        console.log("handleAddMeClick called with slot:", slot, activeSlot, "current showAddMeForm:", showAddMeForm);
         if (activeSlot === slot && showAddMeForm) {
             setShowAddMeForm(false);
             setActiveSlot(null);
@@ -152,7 +151,6 @@ const OpenmatchPayment = (props) => {
             setShowAddMeForm(true);
             setActiveSlot(slot);
         }
-        console.log("After update - showAddMeForm:", showAddMeForm, "activeSlot:", slot, activeSlot);
     };
 
     const formatDate = (dateString) => {

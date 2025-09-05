@@ -21,7 +21,6 @@ const ViewMatch = ({ className = "" }) => {
     const [showModal, setShowModal] = useState(false);
     const [teamName, setTeamName] = useState('');
 
-    console.log({ matchesData });
 
     useEffect(() => {
         if (state?.match?._id) {
@@ -294,7 +293,6 @@ const ViewMatch = ({ className = "" }) => {
                                 {clubData?.address || "Unknown Address"}{clubData?.zipCode}
                             </p>
                         </div>
-                        {console.log({ clubData })}
 
                         <h6 className="border-top p-2 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
                             Booking Summary
