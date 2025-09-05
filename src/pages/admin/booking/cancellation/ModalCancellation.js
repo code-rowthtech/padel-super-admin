@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Modal, Button, Row, Col, Form } from "react-bootstrap";
 import { modalSuccess } from "../../../../assets/files";
-import { formatDate } from "../../../../helpers/Formatting";
+import { formatDate, formatSlotTime } from "../../../../helpers/Formatting";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 
 export const BookingCancellationModal = ({
@@ -120,7 +120,7 @@ export const BookingCancellationModal = ({
             }}
           >
             {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-            {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
+            {formatSlotTime(bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
           </p>
         </div>
       </div>
@@ -399,7 +399,7 @@ export const BookingRefundModal = ({
               }}
             >
               {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-              {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
+              {formatSlotTime(bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
             </p>
           </div>
         </div>
@@ -677,7 +677,9 @@ export const CancelRequestModal = ({
               <p>
                 <strong>
                   {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-                  {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
+                  {formatSlotTime(
+                    bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time
+                  )}
                 </strong>
               </p>
             </div>
@@ -820,7 +822,9 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
               <p>
                 <strong>
                   {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-                  {bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time}
+                  {formatSlotTime(
+                    bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time
+                  )}
                 </strong>{" "}
               </p>
             </div>

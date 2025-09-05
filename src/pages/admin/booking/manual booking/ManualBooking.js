@@ -163,7 +163,6 @@ const ManualBooking = () => {
     const key = `manual-booking-slots-${selectedDate}`;
     sessionStorage.removeItem(key);
     setSelectedSlots({});
-    setSelectedCourts([]);
   };
 
   const cleanOldSessionStorage = () => {
@@ -313,6 +312,7 @@ const ManualBooking = () => {
       const payload = {
         slot: slotsPayload,
         register_club_id: ownerClubData?.[0]?._id,
+        bookingStatus: "upcoming",
         phoneNumber: phone,
         name: name,
         ownerId: Owner?._id,
@@ -934,7 +934,6 @@ const ManualBooking = () => {
                             setName("");
                             setPhone("");
                             setSelectedSlots({});
-                            setSelectedCourts([]);
                             clearSessionStorage();
                             setShowSuccess(false);
                           }}
