@@ -370,7 +370,6 @@ const Booking = ({ className = "" }) => {
         }
         setErrorMessage("");
 
-        // Get comma-separated court IDs
         const courtIds = selectedCourts.map(court => court._id).filter(id => id).join(',');
 
         navigate("/payment", {
@@ -609,13 +608,13 @@ const Booking = ({ className = "" }) => {
                                                 })
                                             ) : (
                                                 <div className="text-center">
-                                                    <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                                                    <p className="text-danger text-center fw-medium">No slots unavailable for this date.</p>
                                                 </div>
                                             );
                                         })()
                                     ) : (
                                         <div className="text-center">
-                                            <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                                            <p className="text-danger text-center fw-medium">No slots unavailable for this date.</p>
                                         </div>
                                     )}
                                 </div>
