@@ -40,7 +40,8 @@ const LoginPage = () => {
                     {/* Left Form */}
                     <Col
                         xs={12}
-                        md={6}
+                        md={12}
+                        lg={6}
                         className="d-flex flex-column justify-content-center align-items-center px-5"
                     >
                         <div className="w-100" style={{ maxWidth: '400px' }}>
@@ -56,7 +57,7 @@ const LoginPage = () => {
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
-                                        className=" form-control py-3"
+                                        className=" form-control py-md-3"
                                         style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
                                         value={phone}
                                         minLength={10}
@@ -74,7 +75,7 @@ const LoginPage = () => {
                                 <Button
 
                                     type="submit"
-                                    className="w-100 text-white  border-0 py-3 rounded-pill "
+                                    className="w-100 text-white  border-0 py-md-3 rounded-pill "
                                     disabled={userAuthLoading}
                                     style={{ backgroundColor: '#4CAF50', fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
 
@@ -87,7 +88,7 @@ const LoginPage = () => {
                     </Col>
 
                     {/* Right Image */}
-                    <Col md={6} className="d-none d-md-flex p-0 align-items-center justify-content-center">
+                    <Col md={6} className="d-none d-lg-block p-0 align-items-center justify-content-center">
                         <img
                             src={authImg}
                             alt="Auth"
@@ -95,7 +96,6 @@ const LoginPage = () => {
                             style={{
                                 width: "100%",
                                 height: "100vh",
-                                // objectFit: "contain",   // show full image, no cropping
                             }}
                             loading="lazy"
                         />
