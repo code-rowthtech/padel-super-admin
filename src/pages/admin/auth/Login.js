@@ -81,119 +81,145 @@ const LoginPage = () => {
 
   return (
     <Layout>
-      <div className="w-50">
-        <h2 className="fw-bold fs-4 mb-2">WELCOME BACK</h2>
-        <p className="text-muted mb-4">
-          Welcome back! Please enter your details.
-        </p>
+      <div className="w-md-50 w-sm-100">
+        <style>
+          {`
+            @media (max-width: 768px) {
+              .login-container {
+                width: 90% !important;
+                max-width: 400px !important;
+              }
+              .form-control {
+                padding: 12px 40px 12px 16px !important;
+                font-size: 16px !important;
+              }
+              .btn {
+                padding: 14px 12px !important;
+                min-height: 48px !important;
+              }
+            }
+          `}
+        </style>
+        <div className="login-container">
+          <h2 className="fw-bold fs-4 mb-2">WELCOME BACK</h2>
+          <p className="text-muted mb-4">
+            Welcome back! Please enter your details.
+          </p>
 
-        <Form onSubmit={handleLogin} noValidate>
-          <span className="p-1 small text-danger">{apiError}</span>
-          {/* Email */}
-          <Form.Group controlId="formEmail" className="mb-3 position-relative">
-            <Form.Control
-              type="email"
-              name="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              disabled={authLoading}
-              onChange={handleChange}
-              isInvalid={!!errors.email}
-              style={{ paddingRight: "40px", borderRadius: "8px" }}
-            />
-            {!errors.email && (
-              <FaEnvelope
-                style={{
-                  position: "absolute",
-                  right: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#aaa",
-                }}
+          <Form onSubmit={handleLogin} noValidate>
+            <span className="p-1 small text-danger">{apiError}</span>
+            {/* Email */}
+            <Form.Group
+              controlId="formEmail"
+              className="mb-3 position-relative"
+            >
+              <Form.Control
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                disabled={authLoading}
+                onChange={handleChange}
+                isInvalid={!!errors.email}
+                style={{ paddingRight: "40px", borderRadius: "8px" }}
               />
-            )}
-            <Form.Control.Feedback type="invalid">
-              {errors.email}
-            </Form.Control.Feedback>
-          </Form.Group>
+              {!errors.email && (
+                <FaEnvelope
+                  style={{
+                    position: "absolute",
+                    right: "14px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#aaa",
+                  }}
+                />
+              )}
+              <Form.Control.Feedback type="invalid">
+                {errors.email}
+              </Form.Control.Feedback>
+            </Form.Group>
 
-          {/* Password */}
-          <Form.Group
-            controlId="formPassword"
-            className="mb-3 position-relative"
-          >
-            <Form.Control
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="********"
-              value={formData.password}
-              onChange={handleChange}
-              disabled={authLoading}
-              isInvalid={!!errors.password}
-              style={{ paddingRight: "40px", borderRadius: "8px" }}
-            />
-            {!errors.password && (
-              <div
-                onClick={togglePassword}
-                style={{
-                  position: "absolute",
-                  right: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  cursor: "pointer",
-                  color: "#aaa",
-                }}
+            {/* Password */}
+            <Form.Group
+              controlId="formPassword"
+              className="mb-3 position-relative"
+            >
+              <Form.Control
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="********"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={authLoading}
+                isInvalid={!!errors.password}
+                style={{ paddingRight: "40px", borderRadius: "8px" }}
+              />
+              {!errors.password && (
+                <div
+                  onClick={togglePassword}
+                  style={{
+                    position: "absolute",
+                    right: "14px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    color: "#aaa",
+                  }}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </div>
+              )}
+              <Form.Control.Feedback type="invalid">
+                {errors.password}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            {/* Remember & Forgot */}
+            <div className="d-flex justify-content-between align-items-center mb-3 small">
+              <Form.Check
+                type="checkbox"
+                name="remember"
+                label="Remember me"
+                checked={formData.remember}
+                onChange={handleChange}
+                disabled={authLoading}
+              />
+              <Link
+                to="/admin/forgot-password"
+                className="text-decoration-none"
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </div>
-            )}
-            <Form.Control.Feedback type="invalid">
-              {errors.password}
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          {/* Remember & Forgot */}
-          <div className="d-flex justify-content-between align-items-center mb-3 small">
-            <Form.Check
-              type="checkbox"
-              name="remember"
-              label="Remember me"
-              checked={formData.remember}
-              onChange={handleChange}
+                Forgot password?
+              </Link>
+            </div>
+            {/* Submit Button */}
+            <Button
+              type="submit"
               disabled={authLoading}
-            />
-            <Link to="/admin/forgot-password" className="text-decoration-none">
-              Forgot password?
-            </Link>
-          </div>
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={authLoading}
-            className="w-100 fw-semibold"
-            style={{
-              padding: "12px",
-              borderRadius: "30px",
-              background: "linear-gradient(to right, #4caf50, #3f51b5)",
-              border: "none",
-              fontSize: "16px",
-            }}
-          >
-            {authLoading ? <ButtonLoading color="white" /> : "Sign in"}
-          </Button>
-        </Form>
+              className="w-100 fw-semibold"
+              style={{
+                padding: "12px",
+                borderRadius: "30px",
+                background: "linear-gradient(to right, #4caf50, #3f51b5)",
+                border: "none",
+                fontSize: "16px",
+              }}
+            >
+              {authLoading ? <ButtonLoading color="white" /> : "Sign in"}
+            </Button>
+          </Form>
 
-        {/* Sign Up */}
-        {/* <p className="mt-4 text-center small">
-          Don’t have an account?{" "}
-          <Link
-            to="/admin/sign-up"
-            className="fw-bold text-decoration-none"
-            style={{ color: "#3f51b5" }}
-          >
-            Sign up for free!
-          </Link>
-        </p> */}
+          {/* Sign Up */}
+          {/* <p className="mt-4 text-center small">
+            Don't have an account?{" "}
+            <Link
+              to="/admin/sign-up"
+              className="fw-bold text-decoration-none"
+              style={{ color: "#3f51b5" }}
+            >
+              Sign up for free!
+            </Link>
+          </p> */}
+        </div>
       </div>
     </Layout>
   );

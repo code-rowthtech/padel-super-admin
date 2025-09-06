@@ -1,26 +1,35 @@
 import { Outlet } from "react-router-dom";
+import { useState } from "react";
 import AdminTopbar from "../../pages/admin/header/AdminTopbar";
 import AdminSidebar from "../../pages/admin/sidebar/AdminSidebar";
 
 const AdminLayout = () => {
-    return (
-        <>
-           <style>{`
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  return (
+    <>
+      <style>{`
                 .admin-layout {
                     display: flex;
                     height: 100vh;
                     overflow: hidden;
                 }
 
-                .admin-layout > :first-child {
+                .admin-sidebar {
                     width: 250px;
                     position: fixed;
                     height: 100vh;
-                    background-color: #fff;
+                    background-color: #1C2434;
                     z-index: 1000;
-                    border-right: 1px solid #ddd;
+                    transition: width 0.3s ease, transform 0.3s ease;
+                    transform: translateX(0);
                 }
 
+                .admin-sidebar.collapsed {
+                    width: 70px;
+                }
+                    
                 .admin-main-content {
                     margin-left: 250px;
                     width: calc(100% - 250px);
@@ -28,16 +37,36 @@ const AdminLayout = () => {
                     flex-direction: column;
                     height: 100vh;
                     overflow: hidden;
+                    transition: margin-left 0.3s ease, width 0.3s ease;
                 }
 
-                .admin-main-content > :first-child {
+                .admin-main-content.sidebar-collapsed {
+                    margin-left: 70px;
+                    width: calc(100% - 70px);
+                }
+
+                .admin-main-content.sidebar-closed {
+                    margin-left: 0;
+                    width: 100%;
+                }
+
+                .admin-topbar {
                     height: 60px;
                     background-color: #fff;
-                    z-index: 1001;
+                    z-index: 999;
                     position: fixed;
                     width: calc(100% - 250px);
                     top: 0;
                     border-bottom: 1px solid #ddd;
+                    transition: width 0.3s ease;
+                }
+
+                .admin-topbar.sidebar-collapsed {
+                    width: calc(100% - 70px);
+                }
+
+                .admin-topbar.sidebar-closed {
+                    width: 100%;
                 }
 
                 .admin-scrollable-content {
@@ -47,20 +76,220 @@ const AdminLayout = () => {
                     height: calc(100vh - 60px);
                     background-color: #f8f9fa;
                 }
+
+                .sidebar-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    z-index: 999;
+                    display: none;
+                }
+
+                .sidebar-overlay.show {
+                    display: block;
+                }
+
+                @media (max-width: 768px) {
+                    .admin-sidebar {
+                        transform: translateX(-100%) !important;
+                        z-index: 1050;
+                        width: 250px !important;
+                    }
+                    
+                    .admin-sidebar.collapsed {
+                        width: 250px !important;
+                    }
+                    
+                    .admin-sidebar.mobile-open {
+                        transform: translateX(0) !important;
+                    }
+                    
+                    .admin-main-content,
+                    .admin-main-content.sidebar-collapsed {
+                        margin-left: 0;
+                        width: 100%;
+                    }
+                    
+                    .admin-topbar,
+                    .admin-topbar.sidebar-collapsed {
+                        width: 100%;
+                        padding-left: 15px;
+                        padding-right: 15px;
+                    }
+                    
+                    .admin-scrollable-content {
+                        padding: 15px;
+                    }
+                    
+                    /* Mobile table improvements */
+                    .table-responsive {
+                        font-size: 0.875rem;
+                    }
+                    
+                    .custom-table th,
+                    .custom-table td {
+                        padding: 0.5rem 0.25rem;
+                        vertical-align: middle;
+                        white-space: nowrap;
+                    }
+                    
+                    /* Mobile card-based table */
+                    .mobile-card-table {
+                        display: none;
+                    }
+                    
+                    .mobile-card-table .card {
+                        margin-bottom: 0.75rem;
+                        border: 1px solid #e9ecef;
+                        border-radius: 8px;
+                    }
+                    
+                    .mobile-card-table .card-body {
+                        padding: 0.75rem;
+                    }
+                    
+                    .mobile-card-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 0.25rem 0;
+                        border-bottom: 1px solid #f8f9fa;
+                    }
+                    
+                    .mobile-card-item:last-child {
+                        border-bottom: none;
+                    }
+                    
+                    .mobile-card-label {
+                        font-weight: 600;
+                        color: #6c757d;
+                        font-size: 0.8rem;
+                    }
+                    
+                    .mobile-card-value {
+                        font-size: 0.85rem;
+                        text-align: right;
+                    }
+                    
+                    /* Card improvements for mobile */
+                    .card {
+                        margin-bottom: 1rem;
+                        border-radius: 8px;
+                    }
+                    
+                    .card-body {
+                        padding: 1rem;
+                    }
+                    
+                    /* Mobile button improvements */
+                    .btn {
+                        font-size: 0.875rem;
+                        padding: 0.5rem 1rem;
+                    }
+                    
+                    /* Mobile form improvements */
+                    .form-control {
+                        font-size: 0.875rem;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .admin-scrollable-content {
+                        padding: 10px;
+                    }
+                    
+                    .admin-topbar {
+                        padding-left: 10px;
+                        padding-right: 10px;
+                    }
+                    
+                    /* Hide regular table on mobile */
+                    .table-responsive {
+                        display: none;
+                    }
+                    
+                    /* Show card-based table on mobile */
+                    .mobile-card-table {
+                        display: block;
+                    }
+                    
+                    .card-body {
+                        padding: 0.75rem;
+                    }
+                    
+                    /* Modal improvements for mobile */
+                    .modal-dialog {
+                        margin: 0.25rem;
+                        max-width: calc(100% - 0.5rem);
+                    }
+                    
+                    .modal-body {
+                        padding: 0.75rem;
+                    }
+                    
+                    .modal-header {
+                        padding: 0.75rem;
+                    }
+                    
+                    /* Form improvements for small mobile */
+                    .form-control {
+                        font-size: 0.8rem;
+                        padding: 0.5rem;
+                    }
+                    
+                    .btn {
+                        font-size: 0.8rem;
+                        padding: 0.5rem 0.75rem;
+                    }
+                    
+                    /* Court availability mobile */
+                    .calendar-day-btn {
+                        min-width: 70px !important;
+                        font-size: 0.75rem;
+                    }
+                    
+                    .calendar-day-btn div {
+                        font-size: 0.7rem !important;
+                    }
+                    
+                    /* Manual booking mobile */
+                    .manual-heading {
+                        font-size: 1.25rem !important;
+                    }
+                }
             `}</style>
 
-            <div className="admin-layout">
-                <AdminSidebar />
-                <div className="admin-main-content">
-                    <AdminTopbar />
-                    <div className="admin-scrollable-content">
-                        <Outlet />
-                    </div>
-                </div>
-            </div>
-
-        </>
-    );
+      <div className="admin-layout">
+        <div
+          className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
+          onClick={() => setSidebarOpen(false)}
+        />
+        <AdminSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          isCollapsed={sidebarCollapsed}
+        />
+        <div
+          className={`admin-main-content ${
+            sidebarCollapsed ? "sidebar-collapsed" : ""
+          }`}
+        >
+          <AdminTopbar
+            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            sidebarOpen={sidebarOpen}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+            sidebarCollapsed={sidebarCollapsed}
+          />
+          <div className="admin-scrollable-content">
+            <Outlet />
+          </div>
+        </div>
+      </div>
+    </>
+  );
 };
 
 export default AdminLayout;

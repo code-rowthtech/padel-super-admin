@@ -85,12 +85,22 @@ const ForgotPassword = () => {
             )}
           </Button>
 
-          <div className="text-center mt-3">
+          {/* <div className="text-center mt-3">
             <small>Don’t have an account? </small>
             <Link to="/admin/sign-up" className="text-primary fw-semibold">
               Sign up for free!
             </Link>
-          </div>
+          </div> */}
+          <p className="mt-3 text-center small">
+            Back to Login
+            <Link
+              to="/admin/login"
+              className="fw-bold text-decoration-none ms-2"
+              style={{ color: "#3f51b5" }}
+            >
+              Log in!
+            </Link>
+          </p>
         </Form>
       </div>
     </Layout>
