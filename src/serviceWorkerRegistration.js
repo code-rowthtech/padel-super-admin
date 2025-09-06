@@ -39,11 +39,9 @@ function registerValidSW(swUrl, config) {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
               // New content available; show refresh
-              console.log('New content is available and will be used.');
               if (config && config.onUpdate) config.onUpdate(registration);
             } else {
               // Content cached for offline use
-              console.log('Content is cached for offline use.');
               if (config && config.onSuccess) config.onSuccess(registration);
             }
           }

@@ -40,9 +40,9 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         else if (!formData.email) {
             errors.push("Email is required");
         }
-        else if (!formData.gender) {
-            errors.push("Gender is required");
-        }
+        // else if (!formData.gender) {
+        //     errors.push("Gender is required");
+        // }
         else if (!formData.level) {
             errors.push("Select Level Name is required");
         }
@@ -102,6 +102,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                     <h6 id="modal-title" className="mb-3 text-center" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                         Player Information
                     </h6>
+                    {errorShow && <Alert variant="danger" className='position-absolute' style={{ bottom: "80%", width: "87%",fontSize:"16px",fontFamily:"Poppins",fontWeight:"500" }}>{error}</Alert>}
                     <form>
                         <div className="mb-3">
                             <label className="form-label">
@@ -189,7 +190,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                         </div>
                         <div className="mb-3">
                             <label className="form-label">
-                                Gender <span className="text-danger">*</span>
+                                Gender
                             </label>
                             <div className="d-flex gap-3">
                                 <div>
@@ -254,7 +255,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                 <option value="C|D">C|D</option>
                             </select>
                         </div>
-                        {errorShow && <Alert variant="danger" className='position-absolute' style={{ bottom: "20%", width: "87%" }}>{error}</Alert>}                            <div className="d-flex justify-content-between">
+                        <div className="d-flex justify-content-between">
                             <Button
                                 variant="outlined"
                                 color="secondary"
