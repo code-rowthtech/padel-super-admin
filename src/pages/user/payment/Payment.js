@@ -161,7 +161,7 @@ const Payment = ({ className = "" }) => {
                 slot: slotArray,
                 paymentMethod: selectedPayment,
             };
-            if (user?.name && user?.token) {
+            if (!user?.name && !user?.token) {
                 dispatch(createBooking(payload))
                     .unwrap()
                     .then((res) => {
