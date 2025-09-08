@@ -204,17 +204,26 @@ h1.display-5 {
   line-height: 21px;
   padding: 0;
 }
-.all-matches{
+
+.all-matches {
   font-size: 20px;
   font-family: "Poppins";
   font-weight: 600;
 }
 
-.open-match-img-heading{
+.open-match-img-heading {
   font-size: 40px;
   font-weight: 600;
   font-family: "Poppins";
 }
+
+.step-heading {
+  font-size: 24px;
+  font-weight: 600;
+  font-family: "Poppins";
+  color: #374151;
+}
+
 /* Large screens: 6 slots per row */
 @media (min-width: 769px) {
   /* .slot-time-btn {
@@ -230,7 +239,7 @@ h1.display-5 {
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid #4949491A ;
+  border: 1px solid #4949491A;
 }
 
 .date-center-date {
@@ -258,11 +267,15 @@ h1.display-5 {
 
 .custom-title {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 500;
   color: #374151;
   font-family: "Poppins" sans-serif;
 }
 
+.custom-radio .form-check-input[type="radio"] {
+  border-color: #1F41BB;
+  cursor: pointer;
+}
 
 .dropdown-toggle::after {
   display: none !important;

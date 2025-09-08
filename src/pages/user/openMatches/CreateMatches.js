@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Container, Row, Col, Button, Card, Form, FormCheck } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, NavLink, useNavigate } from "react-router-dom";
 import { getUserSlot } from "../../../redux/user/slot/thunk";
@@ -111,9 +111,9 @@ const CreateMatches = () => {
           const newTimes = isSelected
             ? court.times.filter((t) => t._id !== slot._id)
             : [
-                ...court.times,
-                { _id: slot._id, time: slot.time, amount: slot.amount || 1000 },
-              ];
+              ...court.times,
+              { _id: slot._id, time: slot.time, amount: slot.amount || 1000 },
+            ];
           return { ...court, times: newTimes };
         }
         return court;
@@ -255,8 +255,8 @@ const CreateMatches = () => {
         {/* LEFT PANEL */}
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
-          <div className="calendar-strip">
-            <div className="mb-3" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
+          <div className="calendar-strip ">
+            <div className="mb-4" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
               Select Date
               <div className="position-relative d-inline-block" ref={wrapperRef}>
                 <span
@@ -305,27 +305,42 @@ const CreateMatches = () => {
                 }}
               >
                 {dates?.map((d, i) => {
+                  const formatDate = (date) => {
+                    return date.toISOString().split("T")[0];
+                  };
                   const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
                   return (
                     <button
                       ref={(el) => (dateRefs.current[d.fullDate] = el)}
                       key={i}
-                      className={`calendar-day-btn rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                      className={`calendar-day-btn me-1  ${isSelected ? "text-white" : "bg-light"}`}
                       style={{
-                        backgroundColor: isSelected ? "#374151" : undefined,
-                        border: "none",
-                        minWidth: "85px",
+                        backgroundColor: isSelected ? "#374151" : '#CBD6FF1A',
+                        boxShadow: isSelected ? '0px 4px 4px 0px #00000040' : '',
+                        border: isSelected ? '1px solid #4949491A' : '1px solid #4949491A',
+                        borderRadius: "8px",
+                        color: isSelected ? "#FFFFFF" : "#374151"
                       }}
                       onClick={() => {
                         setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                         setStartDate(new Date(d.fullDate));
                         setSelectedCourts((prev) => prev.map((court) => ({ ...court, times: [] })));
                       }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.border = "1px solid #3DBE64";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.border = "1px solid #4949491A";
+                        }
+                      }}
                     >
                       <div className="text-center">
-                        <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{dayShortMap[d.day]}</div>
-                        <div style={{ fontSize: "26px", fontWeight: "500", fontFamily: "Poppins" }}>{d.date}</div>
-                        <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{d.month}</div>
+                        <div className="date-center-day">{dayShortMap[d.day]}</div>
+                        <div className="date-center-date">{d.date}</div>
+                        <div className="date-center-day">{d.month}</div>
                       </div>
                     </button>
                   );
@@ -336,21 +351,29 @@ const CreateMatches = () => {
               </button>
             </div>
           </div>
-          <div className="d-flex justify-content-between align-items-center py-2">
-            <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-              Available Slots for{" "}
-              <span style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400" }}>
-                {selectedCourts.find((c) => c._id === currentCourtId)?.courtName || "Selected Court"}
-              </span>
+          <div className="d-flex justify-content-between align-items-center py-3">
+            <p className="mb-0" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+              Available Slots <span className="" style={{ fontWeight: "500", fontSize: "12px", fontFamily: "Poppins" }}>(60m)</span>
             </p>
-            <FormCheck
-              type="switch"
-              id="show-unavailable"
-              label="Show Unavailable Only"
-              checked={showUnavailableOnly}
-              onChange={(e) => setShowUnavailableOnly(e.target.checked)}
-              style={{ marginBottom: 0 }}
-            />
+            <div className="form-switch d-flex justify-content-center align-items-center gap-2 p-0">
+              <label
+                className="form-check-label mb-0"
+                htmlFor="flexSwitchCheckDefault"
+                style={{ whiteSpace: "nowrap", fontFamily: "Poppins" }}
+              >
+                Show Unavailable Slots
+              </label>
+              <input
+                className="form-check-input fs-5 ms-1 mb-1"
+                type="checkbox"
+                role="switch"
+                id="flexSwitchCheckDefault"
+                checked={showUnavailableOnly}
+                onChange={(e) => setShowUnavailableOnly(e.target.checked)}
+                style={{ boxShadow: "none" }}
+              />
+            </div>
+
           </div>
 
           {slotLoading ? (
@@ -363,6 +386,8 @@ const CreateMatches = () => {
                     const selectedDateObj = new Date(selectedDate?.fullDate);
                     const now = new Date();
                     const isToday = selectedDateObj.toDateString() === now.toDateString();
+                    const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
+                    const currentSlots = currentCourt ? currentCourt.times.length : 0;
 
                     const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter((slot) => {
                       const [hourString, period] = slot?.time?.toLowerCase().split(" ");
@@ -374,15 +399,11 @@ const CreateMatches = () => {
                       const isPast = isToday && slotDate.getTime() < now.getTime();
                       const isBooked = slot?.status === "booked";
                       const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
-                      const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
-                      const currentSlots = currentCourt ? currentCourt.times.length : 0;
                       const isLimitReached = currentSlots >= 15 && !currentCourt?.times.some((t) => t._id === slot._id);
 
-                      // When showUnavailableOnly is true, show only unavailable slots
                       if (showUnavailableOnly) {
                         return isPast || isBooked || !hasAmount || isLimitReached;
                       }
-                      // When showUnavailableOnly is false, show only available future slots
                       return !isPast && !isBooked && hasAmount && !isLimitReached;
                     });
 
@@ -398,32 +419,28 @@ const CreateMatches = () => {
                         const isBooked = slot?.status === "booked";
                         const isSelected = currentCourt?.times.some((t) => t._id === slot._id);
                         const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
-                        const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
-                        const currentSlots = currentCourt ? currentCourt.times.length : 0;
                         const isLimitReached = currentSlots >= 15 && !isSelected;
 
                         return (
                           <button
                             key={i}
                             className={`btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2`}
-                            onClick={() => toggleTime(slot)}
+                            onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
                             style={{
-                              backgroundColor: isSelected ? "#374151" : "#FAFBFF",
-                              color: isSelected ? "white" : "#000000",
-                              cursor: "pointer",
-                              opacity: 1,
+                              backgroundColor: isSelected ? "#374151" : isBooked ? "#CBD6FF1A" : isPast ? "#CBD6FF1A" : !hasAmount ? "#fff7df" : isLimitReached ? "#fff7df" : "#FAFBFF",
+                              color: isSelected ? "white" : isPast || isBooked || !hasAmount || isLimitReached ? "#888888" : "#000000",
+                              cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
+                              opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
                               border: "2px solid #CBD6FF1A",
                               transition: "border-color 0.2s ease",
                             }}
                             onMouseEnter={(e) => {
-                              if (!showUnavailableOnly) {
-                                e.currentTarget.style.border = "1px solid #000000";
+                              if (!isSelected && !showUnavailableOnly && !isPast && !isBooked && hasAmount && !isLimitReached) {
+                                e.currentTarget.style.border = "1px solid #3DBE64";
                               }
                             }}
                             onMouseLeave={(e) => {
-                              if (!showUnavailableOnly) {
-                                e.currentTarget.style.border = "2px solid #CBD6FF1A";
-                              }
+                              e.currentTarget.style.border = "2px solid #CBD6FF1A";
                             }}
                           >
                             {formatTime(slot?.time)}
@@ -451,18 +468,18 @@ const CreateMatches = () => {
 
           <div>
             <div className="d-flex justify-content-between align-items-center py-2">
-              <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
+              <p className="mb-0" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
                 Available Courts
               </p>
               <div>
                 <a
                   href="#"
                   className="text-decoration-none d-inline-flex align-items-center"
-                  style={{ color: "#1F41BB" }}
+                  style={{ color: "#1F41BB", fontFamily: "Poppins", fontSize: "12px", fontWeight: "500" }}
                   data-bs-toggle="modal"
                   data-bs-target="#courtLayoutModal"
                 >
-                  View Court Layout <i className="bi bi-arrow-right fs-5 ms-2"></i>
+                  View Court Layout  <FaArrowRight className="ms-2" />
                 </a>
                 <div
                   className="modal fade"
@@ -504,20 +521,33 @@ const CreateMatches = () => {
                 </div>
               </div>
             </div>
-            <div className="px-3">
-              {slotData?.data?.length > 0 &&
-                slotData?.data[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+            <div className="">
+              {slotData?.data?.length > 0 && slotData?.data[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
                 slotData.data[0]?.courts?.map((court) => (
                   <div
                     key={court?._id}
                     onClick={() => handleCourtSelect(court)}
-                    style={{ cursor: "pointer" }}
-                    className={`d-flex p-4 justify-content-between align-items-center border-bottom py-2 mb-1 px-2 ${court._id === currentCourtId ? "bg-success-subtle rounded" : ""
-                      }`}
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor: court._id === currentCourtId ? "#F1F4FF" : "white",
+                      borderBottom: "1px solid #e5e7eb",
+                      transition: "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
+                    }}
+                    className={`d-flex p-4 pe-3 justify-content-between align-items-center py-2 mb-1 px-2 ${court._id === currentCourtId ? "rounded" : ""}`}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#F1F4FF";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = court._id === currentCourtId ? "#F1F4FF" : "white";
+                      e.currentTarget.style.borderBottom = "1px solid #e5e7eb";
+                    }}
                   >
                     <div className="d-flex align-items-center gap-3">
-                      <Avatar src="https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0=" />
-                      <div>
+                      <Avatar
+                        src="https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0="
+                        alt={court.courtName}
+                      />
+                      <div className="ps-3">
                         <p className="mb-1 fw-semibold">{court?.courtName}</p>
                         <small className="text-muted">{court?.type}</small>
                       </div>
@@ -569,7 +599,7 @@ const CreateMatches = () => {
 
               <div className="p-4">
                 {/* Question */}
-                <h6 className="mb-4 fw-semibold" style={{ color: "#374151", fontSize: "24px" }}>
+                <h6 className="mb-4 step-heading" >
                   {steps[currentStep].question}
                 </h6>
 
@@ -579,26 +609,26 @@ const CreateMatches = () => {
                     <div
                       key={i}
                       onClick={() => setSelectedLevel(option)}
-                      className={`d-flex align-items-center justify-content-between mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
+                      className={`d-flex align-items-center mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
                       style={{
                         backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
                         borderColor: selectedLevel === option ? "#4f46e5" : "#e5e7eb",
                         cursor: "pointer",
-                        boxShadow: "none",
                       }}
                     >
                       <Form.Check
                         type="radio"
-                        label={option}
                         name={`step-${currentStep}`}
                         id={`option-${currentStep}-${i}`}
                         value={option}
                         checked={selectedLevel === option}
                         onChange={(e) => setSelectedLevel(e.target.value)}
-                        className="fw-semibold"
-                        style={{ boxShadow: "none" }}
+                        className="d-flex align-items-center gap-3 custom-radio border-primary"
+                        label={<span className="" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{option}</span>}
+                        style={{ cursor: "pointer" }}
                       />
                     </div>
+
                   ))}
                   {slotError && (
                     <div className="text-danger text-start w-100 position-absolute" style={{ fontSize: "16px", marginBottom: "10px", fontFamily: "Poppins", fontWeight: "600" }}>
