@@ -264,7 +264,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             }}
           >
             <div
-              className={`d-flex align-items-center ${
+              className={`d-flex align-items-center fs-6 ${
                 isCollapsed && window.innerWidth > 768 ? "" : "w-100"
               }`}
               style={{ fontWeight: "600" }}

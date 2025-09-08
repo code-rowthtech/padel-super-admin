@@ -81,15 +81,30 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
       .unwrap()
       .then((res) => {
         if (res?.status === "200") {
-          const addTeam = team === "Team A | B" ? mapTeam(selectedTeam) : team;
+          const mapTeam = (team) => {
+            switch (team) {
+              case "Team A":
+                return "teamA";
+              case "Team B":
+                return "teamB";
+              default:
+                return null;
+            }
+          };
+
+          const addTeam =
+            team === "Team A | B" ? mapTeam(selectedTeam) : mapTeam(team);
+          console.log({ addTeam, selectedTeam });
           dispatch(
             addPlayers({
               matchId,
               playerId: res?.response?._id,
               team: addTeam,
             })
-          ).then(() => {
-            onPlayerAdded();
+          ).then((res) => {
+            if (!res?.error) {
+              onPlayerAdded();
+            }
           });
         }
       })
@@ -296,9 +311,13 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
               aria-label="Level"
             >
               <option value="">Select Level</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+              <option value="A/B">A/B</option>
+              <option value="B/C">B/C</option>
+              <option value="C/D">C/D</option>
             </select>
             {errors.level && (
               <div className="invalid-feedback">{errors.level}</div>
