@@ -30,8 +30,11 @@ const ForgotPassword = () => {
     }
 
     try {
-      await dispatch(sendOtp({ email, type: "Forgot" })).unwrap();
-      navigate("/admin/verify-otp", { state: { email } });
+      await dispatch(sendOtp({ email, type: "Forgot" }))
+        .unwrap()
+        .then(() => {
+          navigate("/admin/verify-otp", { state: { email } });
+        });
     } catch (error) {
       setApiError(
         error || "Failed to send verification code. Please try again."
@@ -44,21 +47,27 @@ const ForgotPassword = () => {
       <div className="">
         <h2 className="fw-bold">FORGOT PASSWORD</h2>
         <p className="text-muted">Please enter your email address</p>
-
+        {emailError && (
+          <span className="text-danger p-0 m-0">{emailError}</span>
+        )}
+        {/* 
         {apiError && (
           <Alert variant="danger" className="p-0 px-1">
             {apiError}
           </Alert>
-        )}
-        {emailError && (
+        )} */}
+        {/* {emailError && (
           <Alert variant="warning" className="p-0 px-1">
             {emailError}
           </Alert>
-        )}
+        )} */}
 
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit} style={{ width: "314px" }}>
           <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
+            <Form.Label>
+              Email
+              {/* <span className="text-danger fs-5">*</span> */}
+            </Form.Label>
             <Form.Control
               type="email"
               placeholder="Enter your email"
@@ -66,13 +75,15 @@ const ForgotPassword = () => {
               onChange={(e) => setEmail(e.target.value)}
               isInvalid={!!emailError}
               required
+              style={{ borderRadius: "8px", height: "50px" }}
             />
           </Form.Group>
 
           <Button
             type="submit"
-            className="w-100 fw-semibold"
+            className="w-100 shadow fw-semibold"
             style={{
+              height: "50px",
               background: "linear-gradient(to right, #27ae60, #2e51f3)",
               border: "none",
               borderRadius: "25px",

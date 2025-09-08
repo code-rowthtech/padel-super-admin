@@ -1,7 +1,7 @@
 import { FaArrowLeft, FaShareAlt } from "react-icons/fa";
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { useNavigate, useParams } from "react-router-dom";
-import { getMatchById, addPlayers } from "../../../../redux/thunks";
+import { getMatchById } from "../../../../redux/thunks";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from "../../../../helpers/loading/Loaders";
@@ -96,7 +96,7 @@ const MatchDetails = () => {
             style={{
               width: "100px",
               height: "100px",
-              backgroundColor: "#374151",
+              backgroundColor: team === "teamA" ? "#0d6efd" : "#dc3545",
               color: "white",
               fontWeight: 600,
               fontSize: "20px",
@@ -133,7 +133,7 @@ const MatchDetails = () => {
   };
 
   return (
-    <div className="container-fluid py-3">
+    <div className="container-fluid ">
       {openMatchesLoading ? (
         <DataLoading height="80vh" />
       ) : (
@@ -368,10 +368,10 @@ const MatchDetails = () => {
                           )}
                         </div>
                         <div className="d-flex justify-content-between">
-                          <div className="fw-semibold small mt-2 text-muted">
+                          <div className="fw-bold small mt-2 text-primary">
                             Team A
                           </div>
-                          <div className="fw-semibold small mt-2 text-muted">
+                          <div className="fw-bold small mt-2 text-danger">
                             Team B
                           </div>
                         </div>
@@ -402,7 +402,7 @@ const MatchDetails = () => {
                       {/* VS Divider */}
                       <div className="text-center mb-3">
                         <span
-                          className="badge bg-primary px-3 py-2"
+                          className="badge bg-dark px-3 py-2"
                           style={{ fontSize: "12px" }}
                         >
                           VS
