@@ -224,6 +224,20 @@ h1.display-5 {
   color: #374151;
 }
 
+.booking-history-heading {
+  font-size: 36px;
+  font-family: "Poppins";
+  font-weight: 700;
+  color: #374151;
+}
+
+.booking-history-tab {
+  font-size: 18px !important;
+  font-family: "Poppins";
+  font-weight: 500;
+  height: 36px;
+}
+
 /* Large screens: 6 slots per row */
 @media (min-width: 769px) {
   /* .slot-time-btn {
@@ -333,6 +347,7 @@ h1.display-5 {
   color: #04103b;
 }
 
+
 /* Custom Table */
 
 .custom-scroll-container {
@@ -380,8 +395,8 @@ h1.display-5 {
   padding: 0.7rem 0px;
   /* Default padding for other columns */
   text-align: center;
-  font-weight: 400;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 18px;
   border-bottom: 0.5px solid #0000001a;
   background-color: #fafbff !important;
   /* Fixed the syntax error with quotes */
@@ -770,6 +785,13 @@ h1.display-5 {
   font-weight: 500;
 }
 
+.custom-heading-use {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: "Poppins";
+  color: #374151 !important;
+}
+
 @media (min-width: 368px) and (max-width: 768px) {
   .auth-wrapper {
     padding: 1rem;
@@ -809,6 +831,32 @@ h1.display-5 {
   .position-absolute.p-5 {
     padding: 2rem !important;
   }
+
+  .custom-heading-use {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .open-match-img-heading {
+    font-size: 30px;
+  }
+  .booking-history-heading{
+    font-size: 20px;
+  }
+  .booking-history-tab{
+    font-size: 14px !important;
+    height: 20px !important;
+  }
+  .step-heading{
+    font-size: 15px;
+  }
+  .booking-table thead th {
+  font-size: 12px;
+}
+
+.booking-table td {
+  font-size: 14px !important;
+}
 
   /* Tab buttons responsive - ensure single row */
   .icon-button {
@@ -934,12 +982,14 @@ h1.display-5 {
     margin: 1px !important;
   }
 
-  /* Slots 2 per row on mobile */
+  /* Slots 3 per row on mobile for openmatches */
   .slot-time-btn {
-    width: calc(50% - 8px) !important;
+    width: 90px !important;
     height: 35px !important;
     font-size: 12px !important;
     margin: 2px !important;
+    padding: 4px 8px !important;
+    line-height: 1.2 !important;
   }
 
   /* Court section - fix cart button */
@@ -1004,5 +1054,57 @@ h1.display-5 {
   /* Navbar mobile - profile only */
   .navbar-brand {
     margin-right: auto !important;
+  }
+
+  /* BookingHistory responsive */
+  .booking-history-heading {
+    font-size: 20px !important;
+  }
+
+  .step-heading {
+    font-size: 18px !important;
+  }
+
+  /* Tabs responsive */
+  .booking-history-tab {
+    font-size: 12px !important;
+    padding: 4px 12px !important;
+    min-width: auto !important;
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+
+  /* DatePicker responsive */
+  .custom-datepicker-input {
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+    height: 100% !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Table responsive */
+  .booking-table {
+    font-size: 12px !important;
+  }
+
+  .booking-table th {
+    padding: 8px 4px !important;
+    font-size: 10px !important;
+  }
+
+  .booking-table td {
+    padding: 8px 4px !important;
+    font-size: 10px !important;
+  }
+
+  .table-data {
+    font-size: 10px !important;
+  }
+
+  /* Search inputs responsive */
+  .form-control {
+    font-size: 12px !important;
   }
 }

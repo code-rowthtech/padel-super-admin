@@ -9,6 +9,7 @@ import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatTime } from "../../../helpers/Formatting";
 import Avatar from "@mui/material/Avatar";
+import { MdOutlineDateRange } from "react-icons/md";
 
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -256,15 +257,20 @@ const CreateMatches = () => {
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
           <div className="calendar-strip ">
-            <div className="mb-4" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
+            <div className="mb-4 custom-heading-use">
               Select Date
               <div className="position-relative d-inline-block" ref={wrapperRef}>
                 <span
-                  className="rounded p-1 ms-2 shadow bg-white"
-                  style={{ cursor: "pointer", width: "26px", height: "26px" }}
+                  className="rounded p-1 pt-0 ms-2 bg-white"
+                  style={{
+                    cursor: "pointer",
+                    width: "26px !important",
+                    height: "26px !important",
+                    boxShadow: "0px 4px 4px 0px #00000014",
+                  }}
                   onClick={() => setIsOpen(!isOpen)}
                 >
-                  <i className="bi bi-calendar2-week" style={{ width: "14px", height: "16px" }}></i>
+                  <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
                 </span>
                 {isOpen && (
                   <div
@@ -352,7 +358,7 @@ const CreateMatches = () => {
             </div>
           </div>
           <div className="d-flex justify-content-between align-items-center py-3">
-            <p className="mb-0" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+            <p className="mb-0 custom-heading-use" >
               Available Slots <span className="" style={{ fontWeight: "500", fontSize: "12px", fontFamily: "Poppins" }}>(60m)</span>
             </p>
             <div className="form-switch d-flex justify-content-center align-items-center gap-2 p-0">
@@ -468,7 +474,7 @@ const CreateMatches = () => {
 
           <div>
             <div className="d-flex justify-content-between align-items-center py-2">
-              <p className="mb-0" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+              <p className="mb-0 custom-heading-use">
                 Available Courts
               </p>
               <div>
@@ -604,7 +610,7 @@ const CreateMatches = () => {
                 </h6>
 
                 {/* Options */}
-                <Form style={{ height: "450px" }}>
+                <Form style={{ height: "350px", overflowY: "auto" }}>
                   {steps[currentStep].options?.map((option, i) => (
                     <div
                       key={i}
@@ -624,18 +630,36 @@ const CreateMatches = () => {
                         checked={selectedLevel === option}
                         onChange={(e) => setSelectedLevel(e.target.value)}
                         className="d-flex align-items-center gap-3 custom-radio border-primary"
-                        label={<span className="" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{option}</span>}
+                        label={
+                          <span
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: "500",
+                              fontFamily: "Poppins",
+                            }}
+                          >
+                            {option}
+                          </span>
+                        }
                         style={{ cursor: "pointer" }}
                       />
                     </div>
-
                   ))}
                   {slotError && (
-                    <div className="text-danger text-start w-100 position-absolute" style={{ fontSize: "16px", marginBottom: "10px", fontFamily: "Poppins", fontWeight: "600" }}>
+                    <div
+                      className="text-danger text-start w-100 position-absolute"
+                      style={{
+                        fontSize: "16px",
+                        marginBottom: "10px",
+                        fontFamily: "Poppins",
+                        fontWeight: "600",
+                      }}
+                    >
                       <p>{slotError}</p>
                     </div>
                   )}
                 </Form>
+
               </div>
               <div className="d-flex justify-content-end align-items-center p-3">
                 {currentStep > 0 && (
