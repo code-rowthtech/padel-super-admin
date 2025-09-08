@@ -186,10 +186,15 @@ const OpenMatches = () => {
       {openMatchesLoading ? (
         <DataLoading height={"80vh"} />
       ) : (
-        <div className="container-fluid">
+        <div className="container-fluid px-2 px-md-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3 className="fw-bold text-dark">Open Matches</h3>
-            <button
+            <h3
+              className="fw-bold text-dark mb-0"
+              style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)" }}
+            >
+              Open Matches
+            </h3>
+            {/* <button
               className="d-flex align-items-center position-relative p-0 border-0"
               style={{
                 borderRadius: "20px 10px 10px 20px",
@@ -197,6 +202,7 @@ const OpenMatches = () => {
                 cursor: "pointer",
                 transition: "all 0.3s ease",
                 background: "none",
+                flexShrink: 0,
               }}
               onClick={() => navigate("/admin/create-match")}
               onMouseEnter={(e) => {
@@ -208,7 +214,6 @@ const OpenMatches = () => {
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              {/* Circle Icon */}
               <div
                 className="p-1 rounded-circle bg-light"
                 style={{ position: "relative", left: "10px" }}
@@ -226,8 +231,6 @@ const OpenMatches = () => {
                   +
                 </div>
               </div>
-
-              {/* Text Section */}
               <div
                 className="d-flex align-items-center text-white fw-medium"
                 style={{
@@ -240,180 +243,280 @@ const OpenMatches = () => {
               >
                 Create Match
               </div>
-            </button>
+            </button> */}
           </div>
           {openMatchesData?.length > 0 ? (
             <>
-              <Row>
-                <Col md={7}>
+              <Row className="justify-content-center">
+                <Col md={11}>
                   {openMatchesData?.map((match, index) => (
                     <div
                       key={index}
-                      className="card shadow-sm mb-3 rounded-3 "
+                      className="card shadow-sm mb-3 rounded-3"
                       style={{
                         backgroundColor: "#CBD6FF1A",
                         border: "1px solid #0000001A",
                       }}
                     >
-                      <div className="card-body px-4 py-3 d-flex justify-content-between flex-wrap">
-                        {/* Left Info */}
-                        <div>
-                          <p
-                            className="mb-1 fw-bold"
-                            style={{ fontSize: "16px" }}
-                          >
-                            {format(new Date(match?.matchDate), "dd MMM yyyy")}{" "}
-                            |{" "}
-                            {(() => {
-                              const slots = match?.matchTime?.split(",") || [];
-
-                              const formatTime = (time) => {
-                                // Trim spaces → "6 am"
-                                const trimmed = time.trim();
-
-                                // If it already has ":", just return
-                                if (trimmed.includes(":"))
-                                  return trimmed.toLowerCase();
-
-                                // Otherwise, add ":00" before am/pm
-                                return trimmed
-                                  .replace(/(am|pm)/i, ":00 $1")
-                                  .toLowerCase();
-                              };
-
-                              const formattedSlots = slots.map(formatTime);
-
-                              return formattedSlots.length > 3
-                                ? `${formattedSlots.slice(0, 3).join(", ")} +${
-                                    formattedSlots.length - 3
-                                  } more`
-                                : formattedSlots.join(", ");
-                            })()}
-                            <span className="text-dark ms-3 fw-semibold">
-                              {match?.skillLevel?.charAt(0).toUpperCase() +
-                                match?.skillLevel?.slice(1) || ""}
-                            </span>
-                          </p>
-                          <p
-                            className="mb-1 fw-medium"
-                            style={{ fontSize: "15px" }}
-                          >
-                            {match?.clubId?.clubName}
-                          </p>
-                          <p
-                            className="mb-0 text-muted"
-                            style={{ fontSize: "13px" }}
-                          >
-                            <FaMapMarkerAlt className="me-1" />
-                            {match?.clubId?.state} {match?.clubId?.zipCode}
-                          </p>
-                        </div>
-
-                        {/* Right: Players & Price */}
-                        <div className="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
-                          <div className="d-flex align-items-center justify-content-end mb-1">
-                            {match?.teamA?.length === 1 ||
-                            match?.teamA?.length === 0 ? (
-                              match?.teamB?.length === 1 ||
-                              match?.teamB?.length === 0 ? (
-                                // Both teams have empty slots
-                                <AvailableTag
-                                  team="Team A | B"
-                                  id={match?._id}
-                                  match={match}
-                                  name="both"
-                                />
-                              ) : (
-                                // Only Team A has empty slots
-                                <AvailableTag
-                                  team="Team A"
-                                  id={match?._id}
-                                  match={match}
-                                  name="teamA"
-                                />
-                              )
-                            ) : match?.teamB?.length === 1 ||
-                              match?.teamB?.length === 0 ? (
-                              // Only Team B has empty slots
-                              <AvailableTag
-                                team="Team B"
-                                id={match?._id}
-                                match={match}
-                                name="teamB"
-                              />
-                            ) : match?.teamA?.length === 2 &&
-                              match?.teamB?.length === 2 ? (
-                              // Both teams are full
-                              <FirstPlayerTag
-                                player={match?.teamA[0]?.userId}
-                              />
-                            ) : null}
-
-                            <div className="d-flex align-items-center ms-2">
-                              {[
-                                ...(match?.teamA?.filter((_, idx) =>
-                                  match?.teamA?.length === 2 &&
-                                  match?.teamB?.length === 2
-                                    ? idx !== 0
-                                    : true
-                                ) || []),
-                                ...(match?.teamB || []),
-                              ].map((player, idx, arr) => (
-                                <PlayerAvatar
-                                  key={`player-${idx}`}
-                                  player={player}
-                                  idx={idx}
-                                  total={arr.length}
-                                />
-                              ))}
+                      <div className="card-body px-4 py-3">
+                        {/* Mobile Layout */}
+                        <div className="d-block d-md-none">
+                          {/* Top Row: Date/Info (left) & Players (right) */}
+                          <div className="d-flex justify-content-between align-items-start mb-3">
+                            <div className="flex-grow-1 me-3">
+                              <p
+                                className="mb-1 fw-bold"
+                                style={{ fontSize: "15px" }}
+                              >
+                                {format(
+                                  new Date(match?.matchDate),
+                                  "dd MMM yyyy"
+                                )}
+                              </p>
+                              <span
+                                className="badge bg-primary mb-2"
+                                style={{ fontSize: "10px" }}
+                              >
+                                {match?.skillLevel?.charAt(0).toUpperCase() +
+                                  match?.skillLevel?.slice(1) || ""}
+                              </span>
+                              <p
+                                className="mb-1 text-muted"
+                                style={{ fontSize: "12px" }}
+                              >
+                                {(() => {
+                                  const slots =
+                                    match?.matchTime?.split(",") || [];
+                                  const formatTime = (time) => {
+                                    const trimmed = time.trim();
+                                    if (trimmed.includes(":"))
+                                      return trimmed.toLowerCase();
+                                    return trimmed
+                                      .replace(/(am|pm)/i, ":00 $1")
+                                      .toLowerCase();
+                                  };
+                                  const formattedSlots = slots.map(formatTime);
+                                  return formattedSlots.length > 2
+                                    ? `${formattedSlots
+                                        .slice(0, 2)
+                                        .join(", ")} +${
+                                        formattedSlots.length - 2
+                                      } more`
+                                    : formattedSlots.join(", ");
+                                })()}
+                              </p>
+                              <p
+                                className="mb-1 fw-medium"
+                                style={{ fontSize: "13px" }}
+                              >
+                                {match?.clubId?.clubName}
+                              </p>
+                              <p
+                                className="mb-0 text-muted"
+                                style={{ fontSize: "11px" }}
+                              >
+                                <FaMapMarkerAlt className="me-1" />
+                                {match?.clubId?.state} {match?.clubId?.zipCode}
+                              </p>
                             </div>
 
-                            {/* {match?.clubId?.courtImage?.map((item, idx) => (
-                        <img
-                          key={`${match?._id}-${idx}`}
-                          src={item}
-                          alt="Court Images"
-                          className="rounded-circle border border-white"
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            marginLeft: idx !== 0 ? "-10px" : "0",
-                            zIndex: match?.clubId?.courtImage?.length - idx,
-                            position: "relative",
-                          }}
-                          loading="lazy"
-                        />
-                      ))} */}
+                            {/* Right Column: Players, Price, Button */}
+                            <div className="d-flex flex-column align-items-end">
+                              {/* Players Section */}
+                              <div className="d-flex align-items-center mb-2">
+                                {match?.teamA?.length === 1 ||
+                                match?.teamA?.length === 0 ? (
+                                  match?.teamB?.length === 1 ||
+                                  match?.teamB?.length === 0 ? (
+                                    <AvailableTag
+                                      team="Team A | B"
+                                      id={match?._id}
+                                    />
+                                  ) : (
+                                    <AvailableTag
+                                      team="Team A"
+                                      id={match?._id}
+                                    />
+                                  )
+                                ) : match?.teamB?.length === 1 ||
+                                  match?.teamB?.length === 0 ? (
+                                  <AvailableTag team="Team B" id={match?._id} />
+                                ) : match?.teamA?.length === 2 &&
+                                  match?.teamB?.length === 2 ? (
+                                  <FirstPlayerTag
+                                    player={match?.teamA[0]?.userId}
+                                  />
+                                ) : null}
+
+                                <div className="d-flex align-items-center ms-2">
+                                  {[
+                                    ...(match?.teamA?.filter((_, idx) =>
+                                      match?.teamA?.length === 2 &&
+                                      match?.teamB?.length === 2
+                                        ? idx !== 0
+                                        : true
+                                    ) || []),
+                                    ...(match?.teamB || []),
+                                  ].map((player, idx, arr) => (
+                                    <PlayerAvatar
+                                      key={`player-${idx}`}
+                                      player={player}
+                                      idx={idx}
+                                      total={arr.length}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Price */}
+                              <div
+                                className="fw-bold mb-2"
+                                style={{ color: "#1F41BB", fontSize: "16px" }}
+                              >
+                                ₹ {calculateTotalAmount(match?.slot)}
+                              </div>
+
+                              {/* View Button */}
+                              <Link
+                                to={`/admin/match-details/${match?._id}`}
+                                className="btn rounded-pill px-3 py-1 text-white"
+                                style={{
+                                  backgroundColor: "#3DBE64",
+                                  fontSize: "12px",
+                                  fontWeight: "600",
+                                  minWidth: "70px",
+                                }}
+                              >
+                                View
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desktop Layout - Original */}
+                        <div className="d-none d-md-flex justify-content-between flex-wrap">
+                          <div>
+                            <p
+                              className="mb-1 fw-bold"
+                              style={{ fontSize: "16px" }}
+                            >
+                              {format(
+                                new Date(match?.matchDate),
+                                "dd MMM yyyy"
+                              )}{" "}
+                              |{" "}
+                              {(() => {
+                                const slots =
+                                  match?.matchTime?.split(",") || [];
+                                const formatTime = (time) => {
+                                  const trimmed = time.trim();
+                                  if (trimmed.includes(":"))
+                                    return trimmed.toLowerCase();
+                                  return trimmed
+                                    .replace(/(am|pm)/i, ":00 $1")
+                                    .toLowerCase();
+                                };
+                                const formattedSlots = slots.map(formatTime);
+                                return formattedSlots.length > 3
+                                  ? `${formattedSlots
+                                      .slice(0, 3)
+                                      .join(", ")} +${
+                                      formattedSlots.length - 3
+                                    } more`
+                                  : formattedSlots.join(", ");
+                              })()}
+                              <span className="text-dark ms-3 fw-semibold">
+                                {match?.skillLevel?.charAt(0).toUpperCase() +
+                                  match?.skillLevel?.slice(1) || ""}
+                              </span>
+                            </p>
+                            <p
+                              className="mb-1 fw-medium"
+                              style={{ fontSize: "15px" }}
+                            >
+                              {match?.clubId?.clubName}
+                            </p>
+                            <p
+                              className="mb-0 text-muted"
+                              style={{ fontSize: "13px" }}
+                            >
+                              <FaMapMarkerAlt className="me-1" />
+                              {match?.clubId?.state} {match?.clubId?.zipCode}
+                            </p>
                           </div>
 
-                          <div
-                            className="fw-semibold"
-                            style={{
-                              color: "#1F41BB",
-                              fontSize: "18px",
-                              fontWeight: "500",
-                            }}
-                          >
-                            ₹ {calculateTotalAmount(match?.slot)}
-                          </div>
+                          <div className="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
+                            <div className="d-flex align-items-center justify-content-end mb-1">
+                              {match?.teamA?.length === 1 ||
+                              match?.teamA?.length === 0 ? (
+                                match?.teamB?.length === 1 ||
+                                match?.teamB?.length === 0 ? (
+                                  <AvailableTag
+                                    team="Team A | B"
+                                    id={match?._id}
+                                  />
+                                ) : (
+                                  <AvailableTag team="Team A" id={match?._id} />
+                                )
+                              ) : match?.teamB?.length === 1 ||
+                                match?.teamB?.length === 0 ? (
+                                <AvailableTag team="Team B" id={match?._id} />
+                              ) : match?.teamA?.length === 2 &&
+                                match?.teamB?.length === 2 ? (
+                                <FirstPlayerTag
+                                  player={match?.teamA[0]?.userId}
+                                />
+                              ) : null}
 
-                          <Link
-                            to={`/admin/match-details/${match?._id}`}
-                            className="btn rounded-pill px-4 py-1 text-white"
-                            style={{
-                              backgroundColor: "#3DBE64",
-                              fontSize: "12px",
-                              fontWeight: "600",
-                            }}
-                          >
-                            View
-                          </Link>
+                              <div className="d-flex align-items-center ms-2">
+                                {[
+                                  ...(match?.teamA?.filter((_, idx) =>
+                                    match?.teamA?.length === 2 &&
+                                    match?.teamB?.length === 2
+                                      ? idx !== 0
+                                      : true
+                                  ) || []),
+                                  ...(match?.teamB || []),
+                                ].map((player, idx, arr) => (
+                                  <PlayerAvatar
+                                    key={`player-${idx}`}
+                                    player={player}
+                                    idx={idx}
+                                    total={arr.length}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            <div
+                              className="fw-semibold"
+                              style={{
+                                color: "#1F41BB",
+                                fontSize: "18px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              ₹ {calculateTotalAmount(match?.slot)}
+                            </div>
+
+                            <Link
+                              to={`/admin/match-details/${match?._id}`}
+                              className="btn rounded-pill px-4 py-1 text-white"
+                              style={{
+                                backgroundColor: "#3DBE64",
+                                fontSize: "12px",
+                                fontWeight: "600",
+                              }}
+                            >
+                              View
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
                 </Col>
-                <Col md={6}></Col>
+                {/* <Col md={6}></Col> */}
               </Row>
             </>
           ) : (

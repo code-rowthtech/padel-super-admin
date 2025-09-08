@@ -149,7 +149,7 @@ const AdminDashboard = () => {
   return (
     <Container
       fluid
-      className="p-4"
+      className="p-2 p-md-4"
       style={{ background: "#f4f7fd", minHeight: "100vh" }}
     >
       {dashboardLoading ? (
@@ -158,7 +158,7 @@ const AdminDashboard = () => {
         <>
           <Row className="mb-4">
             {summaryCards.map((card, index) => (
-              <Col key={index} md={3} className="mb-3">
+              <Col key={index} xs={12} sm={6} lg={3} className="mb-3">
                 <Card className="shadow border-0 rounded-0 h-100">
                   <Card.Body className="d-flex justify-content-between">
                     <div className="mt-2">
@@ -214,18 +214,18 @@ const AdminDashboard = () => {
           </Row>
 
           <Row className="mb-4">
-            <Col md={7}>
+            <Col xs={12} lg={7} className="mb-4 mb-lg-0">
               <Card className="shadow-sm border-0 rounded-0">
                 <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center mb-3">
                     <h6
-                      className="mb-0"
-                      style={{ fontSize: "20px", fontWeight: "600" }}
+                      className="mb-2 mb-sm-0"
+                      style={{ fontSize: "18px", fontWeight: "600" }}
                     >
                       Total Revenue
                     </h6>
-                    <div className="d-flex">
-                      <div className="d-flex align-items-center me-3">
+                    <div className="d-flex flex-wrap gap-2">
+                      <div className="d-flex align-items-center">
                         <div
                           style={{
                             width: "12px",
@@ -239,7 +239,7 @@ const AdminDashboard = () => {
                           Loss
                         </span>
                       </div>
-                      <div className="d-flex align-items-center ">
+                      <div className="d-flex align-items-center">
                         <div
                           style={{
                             width: "12px",
@@ -255,10 +255,10 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={250}>
                     <LineChart
                       data={chartData}
-                      margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                      margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
                     >
                       <CartesianGrid
                         strokeDasharray="3 3"
@@ -271,7 +271,7 @@ const AdminDashboard = () => {
                         axisLine={{ stroke: "#e5e7eb" }}
                         tick={{
                           fill: "#6b7280",
-                          fontSize: 12,
+                          fontSize: 10,
                         }}
                       />
                       <YAxis
@@ -279,7 +279,7 @@ const AdminDashboard = () => {
                         axisLine={{ stroke: "#e5e7eb" }}
                         tick={{
                           fill: "#6b7280",
-                          fontSize: 12,
+                          fontSize: 10,
                         }}
                         tickFormatter={(value) => `$${value.toLocaleString()}`}
                       />
@@ -301,23 +301,23 @@ const AdminDashboard = () => {
                         dataKey="profit"
                         stroke="#4f46e5"
                         strokeWidth={2}
-                        dot={{ r: 4, fill: "#4f46e5", strokeWidth: 2 }}
-                        activeDot={{ r: 6, fill: "#4f46e5", strokeWidth: 0 }}
+                        dot={{ r: 3, fill: "#4f46e5", strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: "#4f46e5", strokeWidth: 0 }}
                       />
                       <Line
                         type="monotone"
                         dataKey="lose"
                         stroke="#ef4444"
                         strokeWidth={2}
-                        dot={{ r: 4, fill: "#ef4444", strokeWidth: 2 }}
-                        activeDot={{ r: 6, fill: "#ef4444", strokeWidth: 0 }}
+                        dot={{ r: 3, fill: "#ef4444", strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: "#ef4444", strokeWidth: 0 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
                 </Card.Body>
               </Card>
             </Col>
-            <Col md={5}>
+            <Col xs={12} lg={5}>
               <Card className="shadow-sm border-0">
                 <Card.Body>
                   <div className="d-flex justify-content-between mb-2">
@@ -337,51 +337,110 @@ const AdminDashboard = () => {
                   <div
                     className="custom-scroll-container"
                     style={{
-                      height: "290px",
+                      height: "250px",
                       overflowY: "auto",
                     }}
                   >
                     {dashboardCancelledBookings?.length > 0 ? (
-                      <Table
-                        responsive
-                        borderless
-                        size="sm"
-                        className="custom-table"
-                      >
-                        <thead>
-                          <tr className="text-center">
-                            <th>User Name</th>
-                            <th>Date</th>
-                            <th>Court No</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                      <>
+                        {/* Desktop Table */}
+                        <Table
+                          responsive
+                          borderless
+                          size="sm"
+                          className="custom-table d-none d-md-table"
+                        >
+                          <thead>
+                            <tr className="text-center">
+                              <th>User Name</th>
+                              <th>Date</th>
+                              <th>Court No</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {dashboardCancelledBookings?.map((item) => (
+                              <tr
+                                key={item?._id}
+                                className="table-data border-bottom"
+                              >
+                                <td className="text-truncate" style={{ maxWidth: "120px" }}>
+                                  {item?.userId?.name
+                                    ?.slice(0, 1)
+                                    ?.toUpperCase()
+                                    ?.concat(item?.userId?.name?.slice(1)) ||
+                                    "N/A"}
+                                </td>
+                                <td>
+                                  <div className="d-flex flex-column">
+                                    <span className="fw-medium small">
+                                      {formatDate(item?.bookingDate)}
+                                    </span>
+                                    <span className="text-muted small">
+                                      {formatTime(
+                                        renderSlotTimes(
+                                          item?.slot?.[0]?.slotTimes
+                                        )
+                                      )}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="text-truncate" style={{ maxWidth: "80px" }}>
+                                  {item?.slot[0]?.courtName || "-"}
+                                </td>
+                                <td style={{ cursor: "pointer" }}>
+                                  {loadingById === item?._id ? (
+                                    <ButtonLoading color="blue" size={7} />
+                                  ) : (
+                                    <>
+                                      <OverlayTrigger
+                                        placement="bottom"
+                                        overlay={
+                                          <BootstrapTooltip>
+                                            View Details
+                                          </BootstrapTooltip>
+                                        }
+                                      >
+                                        <FaEye
+                                          className="text-primary"
+                                          onClick={() =>
+                                            handleBookingDetails(item?._id, "")
+                                          }
+                                          size={16}
+                                        />
+                                      </OverlayTrigger>
+                                    </>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </Table>
+                        
+                        {/* Mobile Card Layout */}
+                        <div className="mobile-card-table d-block d-md-none">
                           {dashboardCancelledBookings?.map((item) => (
-                            <tr
-                              key={item?._id}
-                              className="table-data border-bottom"
-                            >
-                              <td>
-                                {item?.userId?.name
-                                  ?.slice(0, 1)
-                                  ?.toUpperCase()
-                                  ?.concat(item?.userId?.name?.slice(1)) ||
-                                  "N/A"}
-                              </td>{" "}
-                              <td>
-                                <div
-                                  style={{
-                                    display: "inline-grid", // shrink to content
-                                    gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
-                                    textAlign: "left", // keep text aligned from start
-                                  }}
-                                >
-                                  <span className="fw-medium text-nowrap">
+                            <div key={item?._id} className="card">
+                              <div className="card-body">
+                                <div className="mobile-card-item">
+                                  <span className="mobile-card-label">User:</span>
+                                  <span className="mobile-card-value">
+                                    {item?.userId?.name
+                                      ?.slice(0, 1)
+                                      ?.toUpperCase()
+                                      ?.concat(item?.userId?.name?.slice(1)) ||
+                                      "N/A"}
+                                  </span>
+                                </div>
+                                <div className="mobile-card-item">
+                                  <span className="mobile-card-label">Date:</span>
+                                  <span className="mobile-card-value">
                                     {formatDate(item?.bookingDate)}
                                   </span>
-                                  <span className="text-muted ms-1">
-                                    |{" "}
+                                </div>
+                                <div className="mobile-card-item">
+                                  <span className="mobile-card-label">Time:</span>
+                                  <span className="mobile-card-value">
                                     {formatTime(
                                       renderSlotTimes(
                                         item?.slot?.[0]?.slotTimes
@@ -389,36 +448,34 @@ const AdminDashboard = () => {
                                     )}
                                   </span>
                                 </div>
-                              </td>{" "}
-                              <td>{item?.slot[0]?.courtName || "-"}</td>
-                              <td style={{ cursor: "pointer" }}>
-                                {loadingById === item?._id ? (
-                                  <ButtonLoading color="blue" size={7} />
-                                ) : (
-                                  <>
-                                    <OverlayTrigger
-                                      placement="bottom"
-                                      overlay={
-                                        <BootstrapTooltip>
-                                          View Details
-                                        </BootstrapTooltip>
-                                      }
-                                    >
+                                <div className="mobile-card-item">
+                                  <span className="mobile-card-label">Court:</span>
+                                  <span className="mobile-card-value">
+                                    {item?.slot[0]?.courtName || "-"}
+                                  </span>
+                                </div>
+                                <div className="mobile-card-item">
+                                  <span className="mobile-card-label">Action:</span>
+                                  <div className="mobile-card-value">
+                                    {loadingById === item?._id ? (
+                                      <ButtonLoading color="blue" size={7} />
+                                    ) : (
                                       <FaEye
-                                        className="text-primary ms-1"
+                                        className="text-primary"
                                         onClick={() =>
                                           handleBookingDetails(item?._id, "")
                                         }
                                         size={18}
+                                        style={{ cursor: "pointer" }}
                                       />
-                                    </OverlayTrigger>
-                                  </>
-                                )}
-                              </td>
-                            </tr>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           ))}
-                        </tbody>
-                      </Table>
+                        </div>
+                      </>
                     ) : (
                       <div className="d-flex text-danger small justify-content-center align-items-center mt-5 pt-5">
                         No cancellations were found !
@@ -446,69 +503,150 @@ const AdminDashboard = () => {
                     </Link>
                   </div>
                   {dashboardRecentBookings?.length > 0 ? (
-                    <div className="custom-scroll-container">
-                      <Table
-                        responsive
-                        borderless
-                        size="sm"
-                        className="custom-table"
-                      >
-                        <thead>
-                          <tr className="text-center">
-                            <th>User Name</th>
-                            <th>Date</th>
-                            <th>Court No</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {dashboardRecentBookings?.map((item) => (
-                            <tr
-                              key={item._id}
-                              className="table-data border-bottom"
-                            >
-                              <td>
-                                {item?.userId?.name
-                                  ?.slice(0, 1)
-                                  ?.toUpperCase()
-                                  ?.concat(item?.userId?.name?.slice(1)) ||
-                                  "N/A"}
-                              </td>{" "}
-                              <td>
-                                <div
-                                  style={{
-                                    display: "inline-grid", // shrink to content
-                                    gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
-                                    textAlign: "left", // keep text aligned from start
-                                  }}
-                                >
-                                  <span className="fw-medium text-nowrap">
-                                    {formatDate(item?.bookingDate)}
-                                  </span>
-                                  <span className="text-muted ms-1">
-                                    |{" "}
-                                    {formatTime(
-                                      renderSlotTimes(
-                                        item?.slot?.[0]?.slotTimes
-                                      )
-                                    )}
-                                  </span>
-                                </div>
-                              </td>{" "}
-                              <td>{item?.slot[0]?.courtName || "-"}</td>
-                              <td style={{ cursor: "pointer" }}>
-                                {loadingById === item?._id ? (
-                                  <ButtonLoading color="blue" size={7} />
-                                ) : (
-                                  <>
-                                    <OverlayTrigger
-                                      placement="left"
-                                      overlay={
-                                        <BootstrapTooltip>
-                                          Cancel
-                                        </BootstrapTooltip>
-                                      }
-                                    >
+                    <>
+                      {/* Desktop Table */}
+                      <div className="custom-scroll-container d-none d-md-block">
+                        <Table
+                          responsive
+                          borderless
+                          size="sm"
+                          className="custom-table"
+                        >
+                          <thead>
+                            <tr className="text-center">
+                              <th>User Name</th>
+                              <th>Date</th>
+                              <th>Court No</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {dashboardRecentBookings?.map((item) => (
+                              <tr
+                                key={item._id}
+                                className="table-data border-bottom"
+                              >
+                                <td className="text-truncate" style={{ maxWidth: "120px" }}>
+                                  {item?.userId?.name
+                                    ?.slice(0, 1)
+                                    ?.toUpperCase()
+                                    ?.concat(item?.userId?.name?.slice(1)) ||
+                                    "N/A"}
+                                </td>
+                                <td>
+                                  <div className="d-flex flex-column">
+                                    <span className="fw-medium small">
+                                      {formatDate(item?.bookingDate)}
+                                    </span>
+                                    <span className="text-muted small">
+                                      {formatTime(
+                                        renderSlotTimes(
+                                          item?.slot?.[0]?.slotTimes
+                                        )
+                                      )}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="text-truncate" style={{ maxWidth: "80px" }}>
+                                  {item?.slot[0]?.courtName || "-"}
+                                </td>
+                                <td style={{ cursor: "pointer" }}>
+                                  {loadingById === item?._id ? (
+                                    <ButtonLoading color="blue" size={7} />
+                                  ) : (
+                                    <>
+                                      <OverlayTrigger
+                                        placement="left"
+                                        overlay={
+                                          <BootstrapTooltip>
+                                            Cancel
+                                          </BootstrapTooltip>
+                                        }
+                                      >
+                                        <MdOutlineCancel
+                                          onClick={() =>
+                                            handleBookingDetails(
+                                              item?._id,
+                                              "cancel"
+                                            )
+                                          }
+                                          className="text-danger me-1"
+                                          style={{ cursor: "pointer" }}
+                                          size={16}
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="bottom"
+                                        overlay={
+                                          <BootstrapTooltip>
+                                            View Details
+                                          </BootstrapTooltip>
+                                        }
+                                      >
+                                        <FaEye
+                                          className="text-primary ms-1"
+                                          onClick={() =>
+                                            handleBookingDetails(
+                                              item?._id,
+                                              "details"
+                                            )
+                                          }
+                                          size={16}
+                                        />
+                                      </OverlayTrigger>
+                                    </>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </Table>
+                      </div>
+                      
+                      {/* Mobile Card Layout */}
+                      <div className="mobile-card-table d-block d-md-none">
+                        {dashboardRecentBookings?.map((item) => (
+                          <div key={item._id} className="card">
+                            <div className="card-body">
+                              <div className="mobile-card-item">
+                                <span className="mobile-card-label">User:</span>
+                                <span className="mobile-card-value">
+                                  {item?.userId?.name
+                                    ?.slice(0, 1)
+                                    ?.toUpperCase()
+                                    ?.concat(item?.userId?.name?.slice(1)) ||
+                                    "N/A"}
+                                </span>
+                              </div>
+                              <div className="mobile-card-item">
+                                <span className="mobile-card-label">Date:</span>
+                                <span className="mobile-card-value">
+                                  {formatDate(item?.bookingDate)}
+                                </span>
+                              </div>
+                              <div className="mobile-card-item">
+                                <span className="mobile-card-label">Time:</span>
+                                <span className="mobile-card-value">
+                                  {formatTime(
+                                    renderSlotTimes(
+                                      item?.slot?.[0]?.slotTimes
+                                    )
+                                  )}
+                                </span>
+                              </div>
+                              <div className="mobile-card-item">
+                                <span className="mobile-card-label">Court:</span>
+                                <span className="mobile-card-value">
+                                  {item?.slot[0]?.courtName || "-"}
+                                </span>
+                              </div>
+                              <div className="mobile-card-item">
+                                <span className="mobile-card-label">Actions:</span>
+                                <div className="mobile-card-value">
+                                  {loadingById === item?._id ? (
+                                    <ButtonLoading color="blue" size={7} />
+                                  ) : (
+                                    <div className="d-flex gap-2">
                                       <MdOutlineCancel
                                         onClick={() =>
                                           handleBookingDetails(
@@ -516,21 +654,12 @@ const AdminDashboard = () => {
                                             "cancel"
                                           )
                                         }
-                                        className="text-danger me-1"
+                                        className="text-danger"
                                         style={{ cursor: "pointer" }}
                                         size={18}
                                       />
-                                    </OverlayTrigger>
-                                    <OverlayTrigger
-                                      placement="bottom"
-                                      overlay={
-                                        <BootstrapTooltip>
-                                          View Details
-                                        </BootstrapTooltip>
-                                      }
-                                    >
                                       <FaEye
-                                        className="text-primary ms-1"
+                                        className="text-primary"
                                         onClick={() =>
                                           handleBookingDetails(
                                             item?._id,
@@ -538,16 +667,17 @@ const AdminDashboard = () => {
                                           )
                                         }
                                         size={18}
+                                        style={{ cursor: "pointer" }}
                                       />
-                                    </OverlayTrigger>
-                                  </>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </Table>
-                    </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   ) : (
                     <div
                       className="d-flex text-danger small justify-content-center align-items-center"

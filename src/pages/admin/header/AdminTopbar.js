@@ -6,6 +6,7 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaUserCircle,
+  FaBars,
 } from "react-icons/fa";
 import { Dropdown } from "react-bootstrap";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
@@ -14,7 +15,7 @@ import { logout } from "../../../redux/admin/auth/slice";
 import { NavLink } from "react-router-dom";
 import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
 
-const AdminTopbar = () => {
+const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCollapsed }) => {
   const user = getOwnerFromSession();
   const [searchValue, setSearchValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -23,9 +24,26 @@ const AdminTopbar = () => {
 
   return (
     <header
-      className="d-flex justify-content-end align-items-center px-4 py-2"
+      className={`admin-topbar d-flex justify-content-between align-items-center px-3 px-md-4 py-2 ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
       style={{ backgroundColor: "#fff" }}
     >
+      {/* Mobile Hamburger Menu */}
+      <button
+        className="btn btn-link d-lg-none p-0 border-0 text-dark"
+        onClick={onToggleSidebar}
+        style={{ fontSize: "1.2rem" }}
+      >
+        <FaBars />
+      </button>
+
+      {/* Desktop Collapse Toggle */}
+      <button
+        className="btn btn-link d-none d-lg-block p-0 border-0 text-dark"
+        onClick={onToggleCollapse}
+        style={{ fontSize: "1.2rem" }}
+      >
+        <FaBars />
+      </button>
       {/* Search Bar */}
       {/* <div
         className="d-flex align-items-center px-3 py-2 "
@@ -54,7 +72,7 @@ const AdminTopbar = () => {
       </div> */}
 
       {/* User Dropdown + Bell Icon */}
-      <div className="d-flex align-items-center gap-4">
+      <div className="d-flex align-items-center gap-2 gap-md-4">
         <div
           className="d-flex rounded-circle align-items-center"
           style={{
@@ -71,7 +89,7 @@ const AdminTopbar = () => {
             variant="white"
             className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
           >
-            <div className="text-end d-none d-sm-block">
+            <div className="text-end d-none d-md-block">
               <div className="fw-semibold">
                 {user?.name || "Danielle Campbell"}
               </div>
@@ -97,15 +115,15 @@ const AdminTopbar = () => {
               </div>
             )}
             {isOpen ? (
-              <FaChevronUp className="ms-2 text-muted" />
+              <FaChevronUp className="ms-1 ms-md-2 text-muted d-none d-sm-inline" />
             ) : (
-              <FaChevronDown className="ms-2 text-muted" />
+              <FaChevronDown className="ms-1 ms-md-2 text-muted d-none d-sm-inline" />
             )}
           </Dropdown.Toggle>
 
           <Dropdown.Menu
             className="table-data fw-medium"
-            style={{ color: "#374151" }}
+            style={{ color: "#374151", minWidth: "200px" }}
           >
             <Dropdown.Item as={NavLink} to="/admin/profile">
               Edit Profile

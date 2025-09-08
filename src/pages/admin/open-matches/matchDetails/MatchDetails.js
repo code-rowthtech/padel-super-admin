@@ -1,4 +1,4 @@
-import { FaShareAlt } from "react-icons/fa";
+import { FaArrowLeft, FaShareAlt } from "react-icons/fa";
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { useNavigate, useParams } from "react-router-dom";
 import { getMatchById, addPlayers } from "../../../../redux/thunks";
@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from "../../../../helpers/loading/Loaders";
 import { padal } from "../../../../assets/files";
 import { format } from "date-fns";
-import { Col, Row } from "react-bootstrap";
+import { Button, Col, Row } from "react-bootstrap";
 import AddPlayerModal from "../modal/AddPlayerModal";
 
 const MatchDetails = () => {
@@ -138,179 +138,301 @@ const MatchDetails = () => {
         <DataLoading height="80vh" />
       ) : (
         <>
-          <Row className="mb-3">
-            <Col md={6}>
-              <h5
-                className="manual-heading"
-                style={{
-                  fontFamily: "Poppins",
-                  fontWeight: "700",
-                  color: "#374151",
-                }}
-              >
-                Open Matches
-              </h5>
-            </Col>
-            <Col md={6} className="d-flex justify-content-end">
-              <button
-                className="d-flex align-items-center position-relative p-0 border-0"
-                style={{
-                  borderRadius: "20px 10px 10px 20px",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  background: "none",
-                }}
-                onClick={() => navigate("/admin/create-match")}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = "0.9";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = "1";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
+          <div className="d-flex justify-content-between align-items-center mb-4 px-2 px-md-0">
+            <h5
+              className="manual-heading mb-0"
+              style={{
+                fontFamily: "Poppins",
+                fontWeight: "700",
+                color: "#374151",
+                fontSize: "clamp(1.25rem, 4vw, 1.5rem)",
+              }}
+            >
+              Match Deatils
+            </h5>
+            <Button
+              className="bg-transparent border-0"
+              onClick={() => {
+                navigate(-1);
+              }}
+              style={{
+                color: "#1F41BB",
+                fontSize: "18px",
+                fontWeight: "600",
+                fontFamily: "Poppins",
+              }}
+            >
+              <FaArrowLeft className="me-2" /> Back
+            </Button>
+            {/* <button
+              className="d-flex align-items-center position-relative p-0 border-0"
+              style={{
+                borderRadius: "20px 10px 10px 20px",
+                overflow: "hidden",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                background: "none",
+                flexShrink: 0,
+              }}
+              onClick={() => navigate("/admin/create-match")}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "0.9";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "1";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              <div
+                className="p-1 rounded-circle bg-light"
+                style={{ position: "relative", left: "10px" }}
               >
                 <div
-                  className="p-1 rounded-circle bg-light"
-                  style={{ position: "relative", left: "10px" }}
-                >
-                  <div
-                    className="d-flex justify-content-center align-items-center text-white fw-bold"
-                    style={{
-                      backgroundColor: "#194DD5",
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "50%",
-                      fontSize: "20px",
-                    }}
-                  >
-                    +
-                  </div>
-                </div>
-                <div
-                  className="d-flex align-items-center text-white fw-medium"
+                  className="d-flex justify-content-center align-items-center text-white fw-bold"
                   style={{
                     backgroundColor: "#194DD5",
-                    padding: "0 16px",
+                    width: "36px",
                     height: "36px",
-                    fontSize: "14px",
-                    fontFamily: "Nunito, sans-serif",
+                    borderRadius: "50%",
+                    fontSize: "20px",
                   }}
                 >
-                  Create Match
+                  +
                 </div>
-              </button>
-            </Col>
-          </Row>
-          <Row className="mt-5">
-            <Col md={7}>
+              </div>
               <div
-                className="p-4 rounded-4 shadow-sm mx-auto"
-                style={{ backgroundColor: "#fff", maxWidth: "1024px" }}
+                className="d-flex align-items-center text-white fw-medium"
+                style={{
+                  backgroundColor: "#194DD5",
+                  padding: "0 16px",
+                  height: "36px",
+                  fontSize: "14px",
+                  fontFamily: "Nunito, sans-serif",
+                }}
               >
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h5 className="fw-bold mb-0">
-                    {getMatchDetails?.clubId?.clubName}
-                  </h5>
-                  <div className="d-flex gap-2">
-                    <div
-                      className="d-flex justify-content-center align-items-center rounded-circle p-2 border"
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        borderColor: "#E5E7EB",
-                      }}
-                    >
-                      <FaShareAlt size={16} />
-                    </div>
-                    <div
-                      className="d-flex justify-content-center align-items-center text-white rounded-circle p-2"
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        backgroundColor: "#1F41BB",
-                      }}
-                    >
-                      <IoChatboxEllipsesOutline size={18} />
-                    </div>
-                  </div>
-                </div>
+                Create Match
+              </div>
+            </button> */}
+          </div>
+          <div className="mt-4 px-2 px-md-0">
+            <div className="row justify-content-center">
+              <div className="col-12 col-md-10 col-lg-8">
                 <div
-                  className="border rounded-3 p-3"
-                  style={{ backgroundColor: "#F9FBFF" }}
+                  className="p-3 p-md-4 rounded-4 shadow-sm"
+                  style={{ backgroundColor: "#fff" }}
                 >
-                  <div className="d-flex justify-content-between align-items-start mb-3">
-                    <div className="d-flex align-items-center gap-3">
-                      <img src={padal} alt="padel" width={32} loading="lazy" />
-                      <strong>PADEL</strong>
-                    </div>
-                    <div className="text-muted small">
-                      {getMatchDetails?.matchDate
-                        ? format(
-                            new Date(getMatchDetails?.matchDate),
-                            "EEE, dd MMM yyyy"
-                          )
-                        : "N/A"}{" "}
-                      |{" "}
-                      {getMatchDetails?.matchTime
-                        ? formatTime(getMatchDetails?.matchTime)
-                        : "N/A"}
-                    </div>
-                  </div>
-                  <div className="row text-center border-top p-1">
-                    <div className="col border-end">
-                      <div className="text-muted">Gender</div>
-                      <div className="fw-semibold">
-                        {getMatchDetails?.gender.charAt(0).toUpperCase() +
-                          getMatchDetails?.gender.slice(1)}
+                  <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center gap-3 mb-4">
+                    <h5
+                      className="fw-bold mb-0"
+                      style={{ fontSize: "clamp(1.1rem, 4vw, 1.25rem)" }}
+                    >
+                      {getMatchDetails?.clubId?.clubName}
+                    </h5>
+                    <div className="d-flex gap-2">
+                      <div
+                        className="d-flex justify-content-center align-items-center rounded-circle p-2 border"
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderColor: "#E5E7EB",
+                        }}
+                      >
+                        <FaShareAlt size={16} />
                       </div>
-                    </div>
-                    <div className="col border-end">
-                      <div className="text-muted">Level</div>
-                      <div className="fw-semibold">
-                        {getMatchDetails?.skillLevel?.charAt(0).toUpperCase() +
-                          getMatchDetails?.skillLevel?.slice(1)}
-                      </div>
-                    </div>
-                    <div className="col">
-                      <div className="text-muted">Price</div>
-                      <div className="fw-semibold">
-                        ₹ {calculateTotalAmount(getMatchDetails?.slot)}
+                      <div
+                        className="d-flex justify-content-center align-items-center text-white rounded-circle p-2"
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          backgroundColor: "#1F41BB",
+                        }}
+                      >
+                        <IoChatboxEllipsesOutline size={18} />
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="d-flex justify-content-between align-items-center bg-light mt-3 rounded-2 fw-medium p-2">
-                  <div className="text-muted">Court Number</div>
-                  <div className="me-1">
-                    {getMatchDetails?.slot?.[0]?.courtName.split(" ")[1]}
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <h6 className="fw-bold mb-3">Players</h6>
-                  <div className="row align-items-center justify-content-between border rounded-4 p-4">
-                    <div className="col-6 d-flex justify-content-evenly">
-                      {renderPlayer(getMatchDetails?.teamA?.[0], 0, "teamA")}
-                      {renderPlayer(getMatchDetails?.teamA?.[1], 1, "teamA")}
-                    </div>
-                    <div className="col-6 d-flex justify-content-evenly border-start">
-                      {renderPlayer(getMatchDetails?.teamB?.[0], 2, "teamB")}
-                      {renderPlayer(getMatchDetails?.teamB?.[1], 3, "teamB")}
-                    </div>
-                    <div className="d-flex justify-content-between">
-                      <div className="fw-semibold small mt-2 text-muted">
-                        Team A
+                  <div
+                    className="border rounded-3 p-3"
+                    style={{ backgroundColor: "#F9FBFF" }}
+                  >
+                    <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-2 mb-3">
+                      <div className="d-flex align-items-center gap-3">
+                        <img
+                          src={padal}
+                          alt="padel"
+                          width={32}
+                          loading="lazy"
+                        />
+                        <strong>PADEL</strong>
                       </div>
-                      <div className="fw-semibold small mt-2 text-muted">
-                        Team B
+                      <div
+                        className="text-muted"
+                        style={{ fontSize: "clamp(0.75rem, 3vw, 0.875rem)" }}
+                      >
+                        {getMatchDetails?.matchDate
+                          ? format(
+                              new Date(getMatchDetails?.matchDate),
+                              "EEE, dd MMM yyyy"
+                            )
+                          : "N/A"}{" "}
+                        |{" "}
+                        {getMatchDetails?.matchTime
+                          ? formatTime(getMatchDetails?.matchTime)
+                          : "N/A"}
+                      </div>
+                    </div>
+                    <div className="row text-center border-top p-2">
+                      <div className="col-4 border-end">
+                        <div
+                          className="text-muted"
+                          style={{ fontSize: "clamp(0.75rem, 3vw, 0.875rem)" }}
+                        >
+                          Gender
+                        </div>
+                        <div
+                          className="fw-semibold"
+                          style={{ fontSize: "clamp(0.875rem, 3vw, 1rem)" }}
+                        >
+                          {getMatchDetails?.gender.charAt(0).toUpperCase() +
+                            getMatchDetails?.gender.slice(1)}
+                        </div>
+                      </div>
+                      <div className="col-4 border-end">
+                        <div
+                          className="text-muted"
+                          style={{ fontSize: "clamp(0.75rem, 3vw, 0.875rem)" }}
+                        >
+                          Level
+                        </div>
+                        <div
+                          className="fw-semibold"
+                          style={{ fontSize: "clamp(0.875rem, 3vw, 1rem)" }}
+                        >
+                          {getMatchDetails?.skillLevel
+                            ?.charAt(0)
+                            .toUpperCase() +
+                            getMatchDetails?.skillLevel?.slice(1)}
+                        </div>
+                      </div>
+                      <div className="col-4">
+                        <div
+                          className="text-muted"
+                          style={{ fontSize: "clamp(0.75rem, 3vw, 0.875rem)" }}
+                        >
+                          Price
+                        </div>
+                        <div
+                          className="fw-semibold"
+                          style={{ fontSize: "clamp(0.875rem, 3vw, 1rem)" }}
+                        >
+                          ₹ {calculateTotalAmount(getMatchDetails?.slot)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center bg-light mt-3 rounded-2 fw-medium p-2">
+                    <div className="text-muted">Court Number</div>
+                    <div className="me-1">
+                      {getMatchDetails?.slot?.[0]?.courtName.split(" ")[1]}
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h6 className="fw-bold mb-3">Players</h6>
+
+                    {/* Desktop Layout */}
+                    <div className="d-none d-md-block">
+                      <div className="row align-items-center justify-content-between border rounded-4 p-4">
+                        <div className="col-6 d-flex justify-content-evenly">
+                          {renderPlayer(
+                            getMatchDetails?.teamA?.[0],
+                            0,
+                            "teamA"
+                          )}
+                          {renderPlayer(
+                            getMatchDetails?.teamA?.[1],
+                            1,
+                            "teamA"
+                          )}
+                        </div>
+                        <div className="col-6 d-flex justify-content-evenly border-start">
+                          {renderPlayer(
+                            getMatchDetails?.teamB?.[0],
+                            2,
+                            "teamB"
+                          )}
+                          {renderPlayer(
+                            getMatchDetails?.teamB?.[1],
+                            3,
+                            "teamB"
+                          )}
+                        </div>
+                        <div className="d-flex justify-content-between">
+                          <div className="fw-semibold small mt-2 text-muted">
+                            Team A
+                          </div>
+                          <div className="fw-semibold small mt-2 text-muted">
+                            Team B
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile Layout */}
+                    <div className="d-block d-md-none">
+                      {/* Team A */}
+                      <div className="border rounded-3 p-3 mb-3">
+                        <div className="fw-semibold small mb-3 text-muted text-center">
+                          Team A
+                        </div>
+                        <div className="d-flex justify-content-evenly">
+                          {renderPlayer(
+                            getMatchDetails?.teamA?.[0],
+                            0,
+                            "teamA"
+                          )}
+                          {renderPlayer(
+                            getMatchDetails?.teamA?.[1],
+                            1,
+                            "teamA"
+                          )}
+                        </div>
+                      </div>
+
+                      {/* VS Divider */}
+                      <div className="text-center mb-3">
+                        <span
+                          className="badge bg-primary px-3 py-2"
+                          style={{ fontSize: "12px" }}
+                        >
+                          VS
+                        </span>
+                      </div>
+
+                      {/* Team B */}
+                      <div className="border rounded-3 p-3">
+                        <div className="fw-semibold small mb-3 text-muted text-center">
+                          Team B
+                        </div>
+                        <div className="d-flex justify-content-evenly">
+                          {renderPlayer(
+                            getMatchDetails?.teamB?.[0],
+                            2,
+                            "teamB"
+                          )}
+                          {renderPlayer(
+                            getMatchDetails?.teamB?.[1],
+                            3,
+                            "teamB"
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </Col>
-          </Row>
+            </div>
+          </div>
           <AddPlayerModal
             show={showModal}
             onHide={() => setShowModal(false)}

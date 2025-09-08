@@ -310,47 +310,44 @@ const CourtAvailability = () => {
         <Loading />
       ) : (
         <Container className="p-0" fluid>
-          <Row className="mb-3">
-            <Col md={6}>
-              <h5
-                className="manual-heading"
-                style={{
-                  fontFamily: "Poppins",
-                  fontWeight: "700",
-                  color: "#374151",
-                }}
-              >
-                Court Availability
-              </h5>
-            </Col>
-            <Col md={6} className="text-end">
-              <Button
-                className="bg-transparent border-0"
-                onClick={() => {
-                  navigate(-1);
-                  dispatch(resetOwnerClub());
-                }}
-                style={{
-                  color: "#1F41BB",
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  fontFamily: "Poppins",
-                }}
-              >
-                <FaArrowLeft className="me-2" /> Back
-              </Button>
-            </Col>
-          </Row>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5
+              className="manual-heading mb-0"
+              style={{
+                fontFamily: "Poppins",
+                fontWeight: "700",
+                color: "#374151",
+              }}
+            >
+              Court Availability
+            </h5>
+            <Button
+              className="bg-transparent border-0"
+              onClick={() => {
+                navigate(-1);
+                dispatch(resetOwnerClub());
+              }}
+              style={{
+                color: "#1F41BB",
+                fontSize: "18px",
+                fontWeight: "600",
+                fontFamily: "Poppins",
+              }}
+            >
+              <FaArrowLeft className="me-2" /> Back
+            </Button>
+          </div>
           <Row className="mx-auto bg-white shadow-sm rounded-3">
-            <Col md={8} className="p-4">
+            <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
-              <div className="mb-4">
+              <div className="mb-3 mb-md-4">
                 <div
                   className="tabel-title mb-2"
                   style={{
                     fontFamily: "Poppins",
                     fontWeight: "600",
                     color: "#374151",
+                    fontSize: "14px",
                   }}
                 >
                   Select Court
@@ -364,7 +361,7 @@ const CourtAvailability = () => {
                       className="btn py-2 shadow-sm"
                       style={{
                         borderRadius: "12px",
-                        minWidth: "110px",
+                        minWidth: "90px",
                         transition: "all 0.2s ease-in-out",
                         backgroundColor: selectedCourts?.includes(court._id)
                           ? "#374151"
@@ -379,7 +376,7 @@ const CourtAvailability = () => {
                           ? "2px solid #374151"
                           : "1px solid #ccd2d9ff",
                         fontFamily: "Poppins",
-                        fontSize: "14px",
+                        fontSize: "12px",
                       }}
                     >
                       {court.courtName}
@@ -396,6 +393,7 @@ const CourtAvailability = () => {
                     fontFamily: "Poppins",
                     fontWeight: "600",
                     color: "#374151",
+                    fontSize: "14px",
                   }}
                 >
                   Select Date
@@ -470,7 +468,7 @@ const CourtAvailability = () => {
                           style={{
                             backgroundColor: isSelected ? "#374151" : undefined,
                             border: "none",
-                            minWidth: "85px",
+                            minWidth: "70px",
                             transition: "all 0.2s ease",
                             fontFamily: "Poppins",
                           }}
@@ -482,17 +480,17 @@ const CourtAvailability = () => {
                         >
                           <div className="text-center pb-2">
                             <div
-                              style={{ fontSize: "14px", fontWeight: "400" }}
+                              style={{ fontSize: "12px", fontWeight: "400" }}
                             >
                               {d?.day}
                             </div>
                             <div
-                              style={{ fontSize: "24px", fontWeight: "600" }}
+                              style={{ fontSize: "18px", fontWeight: "600" }}
                             >
                               {d?.date}
                             </div>
                             <div
-                              style={{ fontSize: "14px", fontWeight: "400" }}
+                              style={{ fontSize: "12px", fontWeight: "400" }}
                             >
                               {d?.month}
                             </div>
@@ -511,21 +509,22 @@ const CourtAvailability = () => {
               </div>
 
               {/* Time Selector */}
-              <div className="d-flex justify-content-between align-items-center py-2">
+              <div className="d-flex justify-content-between align-items-center mb-3">
                 <p
-                  className="mb-3 tabel-title"
+                  className="mb-0 tabel-title"
                   style={{
                     fontFamily: "Poppins",
                     fontWeight: "600",
                     color: "#374151",
+                    fontSize: "14px",
                   }}
                 >
                   Available Slots
                   <span className="fs-6 text-muted">(60m)</span>
                 </p>
-                <div className="form-switch d-flex align-items-center gap-2 p-0">
+                <div className="form-switch d-flex align-items-center gap-2">
                   <input
-                    className="form-check-input fs-5 mb-1"
+                    className="form-check-input"
                     type="checkbox"
                     role="switch"
                     id="flexSwitchCheckDefault"
@@ -536,7 +535,11 @@ const CourtAvailability = () => {
                   <label
                     className="table-data text-dark mb-0"
                     htmlFor="flexSwitchCheckDefault"
-                    style={{ whiteSpace: "nowrap", fontSize: "14px" }}
+                    style={{
+                      whiteSpace: "nowrap",
+                      fontSize: "13px",
+                      fontFamily: "Poppins",
+                    }}
                   >
                     Show Unavailable Slots
                   </label>
@@ -607,7 +610,7 @@ const CourtAvailability = () => {
                         const buttonEl = (
                           <span className="d-inline-block">
                             <button
-                              className={`btn border-0 rounded-pill table-data px-4 py-1 shadow-sm ${
+                              className={`btn border rounded-pill table-data px-4 py-1 shadow-sm ${
                                 isSelected
                                   ? "bg-dark text-white"
                                   : isPast
@@ -634,7 +637,7 @@ const CourtAvailability = () => {
                                   : undefined,
                                 cursor: isDisabled ? "not-allowed" : "pointer",
                                 fontFamily: "Poppins",
-                                fontSize: "14px",
+                                fontSize: "12px",
                                 transition: "all 0.2s ease",
                               }}
                             >
@@ -660,10 +663,10 @@ const CourtAvailability = () => {
                 </div>
               )}
             </Col>
-            <Col md={4} className="py-4 px-3">
+            <Col xs={12} lg={4} className="py-2 py-md-4 px-2 px-md-3">
               <div
-                className="shadow rounded-3 p-3 bg-white"
-                style={{ minHeight: "50vh" }}
+                className="shadow rounded-3 p-2 p-md-3 bg-white"
+                style={{ minHeight: "40vh" }}
               >
                 <div className="mt-2">
                   <h6
@@ -671,6 +674,7 @@ const CourtAvailability = () => {
                       fontFamily: "Poppins",
                       fontWeight: "600",
                       color: "#374151",
+                      fontSize: "14px",
                     }}
                   >
                     Selected Slots
@@ -683,7 +687,7 @@ const CourtAvailability = () => {
                         onChange={(e) => setCommonStatus(e.target.value)}
                         style={{
                           fontFamily: "Poppins",
-                          fontSize: "14px",
+                          fontSize: "12px",
                         }}
                       >
                         <option value="">Select Status</option>
@@ -699,7 +703,7 @@ const CourtAvailability = () => {
                         onClick={handleApplyToAll}
                         style={{
                           fontFamily: "Poppins",
-                          fontSize: "14px",
+                          fontSize: "12px",
                           fontWeight: "500",
                         }}
                       >
@@ -711,7 +715,7 @@ const CourtAvailability = () => {
                   {/* Selected Slots List */}
                   <div
                     style={{
-                      height: "33vh",
+                      height: "30vh",
                       overflowY: "auto",
                       paddingRight: "10px",
                     }}
@@ -721,8 +725,8 @@ const CourtAvailability = () => {
                         className="text-muted d-flex align-items-center justify-content-center py-3"
                         style={{
                           fontFamily: "Poppins",
-                          fontSize: "14px",
-                          height: "33vh",
+                          fontSize: "12px",
+                          height: "30vh",
                         }}
                       >
                         No slots selected
@@ -743,7 +747,7 @@ const CourtAvailability = () => {
                                     fontFamily: "Poppins",
                                     fontWeight: "500",
                                     color: "#374151",
-                                    fontSize: "14px",
+                                    fontSize: "12px",
                                   }}
                                 >
                                   {court?.courtName}
@@ -764,7 +768,7 @@ const CourtAvailability = () => {
                                   <span
                                     style={{
                                       fontFamily: "Poppins",
-                                      fontSize: "14px",
+                                      fontSize: "12px",
                                       flex: "1",
                                     }}
                                   >
@@ -780,10 +784,10 @@ const CourtAvailability = () => {
                                       )
                                     }
                                     style={{
-                                      width: "190px",
+                                      width: "140px",
                                       fontFamily: "Poppins",
-                                      fontSize: "14px",
-                                      marginRight: "10px",
+                                      fontSize: "11px",
+                                      marginRight: "5px",
                                     }}
                                   >
                                     {statusOptions.map((option) => (
@@ -818,10 +822,10 @@ const CourtAvailability = () => {
                       <button
                         className="btn btn-secondary rounded-pill px-4 py-2 shadow-sm"
                         style={{
-                          minWidth: "120px",
+                          minWidth: "100px",
                           fontWeight: "500",
                           fontFamily: "Poppins",
-                          fontSize: "14px",
+                          fontSize: "12px",
                         }}
                         onClick={() => {
                           setSelectedSlots({});
@@ -834,11 +838,11 @@ const CourtAvailability = () => {
                       <button
                         className="btn text-white rounded-pill px-4 py-2 shadow-sm"
                         style={{
-                          minWidth: "120px",
+                          minWidth: "100px",
                           fontWeight: "500",
                           backgroundColor: "#22c55e",
                           fontFamily: "Poppins",
-                          fontSize: "14px",
+                          fontSize: "12px",
                         }}
                         onClick={handleConfirm}
                       >
