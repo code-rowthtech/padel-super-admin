@@ -132,7 +132,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="container py-4 mt-5 px-5" style={{  borderRadius: "12px" }}>
+    <div className="container py-lg-4 mb-5 mt-lg-5 px-3 px-md-5" style={{  borderRadius: "12px" }}>
       <div className="mt-5"
         style={{
           background: "linear-gradient(to right, #A18CD1, #FBC2EB)",
@@ -142,7 +142,7 @@ const Profile = () => {
         }}
       ></div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-bottom shadow p-4">
+      <form onSubmit={handleSubmit} className="bg-white mb-5 rounded-bottom shadow p-3 p-md-4">
         <div className="d-flex align-items-center" style={{ marginTop: "-70px" }}>
           <div className="position-relative me-3">
             {formData.profileImage ? (
@@ -187,8 +187,8 @@ const Profile = () => {
         </div>
 
         <div className="row mt-4">
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Full Name</label>
+          <div className="col-12 col-md-4 mb-3">
+            <label className="label">Full Name</label>
             <input
               type="text"
               name="fullName"
@@ -197,8 +197,8 @@ const Profile = () => {
               className="form-control"
             />
           </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Email</label>
+          <div className="col-12 col-md-4 mb-3">
+            <label className=" label">Email</label>
             <input
               type="email"
               name="email"
@@ -207,8 +207,8 @@ const Profile = () => {
               className="form-control"
             />
           </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Phone Number</label>
+          <div className="col-12 col-md-4 mb-3">
+            <label className="label">Phone Number</label>
             <input
               type="text"
               name="phone"
@@ -225,8 +225,8 @@ const Profile = () => {
               maxLength={10}
             />
           </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Date of Birth</label>
+          <div className="col-12 col-md-4 mb-3">
+            <label className="label">Date of Birth</label>
             <input
               type="date"
               name="dob"
@@ -235,8 +235,8 @@ const Profile = () => {
               className="form-control"
             />
           </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Location / City</label>
+          <div className="col-12 col-md-4 mb-3">
+            <label className="label">Location / City</label>
             <input
               type="text"
               name="location"
@@ -245,8 +245,8 @@ const Profile = () => {
               className="form-control"
             />
           </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label d-block">Gender</label>
+          <div className="col-12 col-md-4 mb-3">
+            <label className="label d-block">Gender</label>
             {["Female", "Male", "Other"].map((g) => (
               <div key={g} className="form-check form-check-inline">
                 <input
@@ -263,7 +263,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="d-flex justify-content-end gap-3">
+        <div className="d-flex flex- flex-md-row justify-content-between justify-content-lg-end gap-3 mb-4">
           <button type="button" className="btn btn-secondary px-4" onClick={handleCancel}>
             Cancel
           </button>

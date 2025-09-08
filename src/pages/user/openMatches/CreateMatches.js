@@ -1,14 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Container, Row, Col, Button, Card, Form, FormCheck } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
-import { FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { useDispatch, useSelector } from 'react-redux';
-import { Navigate, NavLink, useNavigate } from 'react-router-dom';
-import { getUserSlot } from '../../../redux/user/slot/thunk';
-import { ButtonLoading, DataLoading } from '../../../helpers/loading/Loaders';
-import 'react-datepicker/dist/react-datepicker.css';
-import { formatTime } from '../../../helpers/Formatting';
-import Avatar from '@mui/material/Avatar';
+import React, { useEffect, useRef, useState } from "react";
+import { Container, Row, Col, Button, Card, Form, FormCheck } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import { FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { Navigate, NavLink, useNavigate } from "react-router-dom";
+import { getUserSlot } from "../../../redux/user/slot/thunk";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import "react-datepicker/dist/react-datepicker.css";
+import { formatTime } from "../../../helpers/Formatting";
+import Avatar from "@mui/material/Avatar";
 
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -111,16 +111,16 @@ const CreateMatches = () => {
           const newTimes = isSelected
             ? court.times.filter((t) => t._id !== slot._id)
             : [
-              ...court.times,
-              { _id: slot._id, time: slot.time, amount: slot.amount || 1000 },
-            ];
+                ...court.times,
+                { _id: slot._id, time: slot.time, amount: slot.amount || 1000 },
+              ];
           return { ...court, times: newTimes };
         }
         return court;
       });
       return updatedCourts;
     });
-    setSlotError(""); 
+    setSlotError("");
   };
 
   const maxSelectableDate = new Date();
@@ -145,7 +145,7 @@ const CreateMatches = () => {
           register_club_id: savedClubId,
           day: selectedDate.day,
           date: selectedDate.fullDate,
-          courtId: currentCourtId || '',
+          courtId: currentCourtId || "",
         })
       );
     }
@@ -173,35 +173,35 @@ const CreateMatches = () => {
 
   const steps = [
     {
-      question: 'On the following scale, where would you place yourself?',
-      options: ['Beginner', 'Intermediate', 'Advanced', 'Professional'],
+      question: "On the following scale, where would you place yourself?",
+      options: ["Beginner", "Intermediate", "Advanced", "Professional"],
     },
     {
-      question: 'Select the racket sport you have played before?',
-      options: ['Tennis', 'Badminton', 'Squash', 'Others'],
+      question: "Select the racket sport you have played before?",
+      options: ["Tennis", "Badminton", "Squash", "Others"],
     },
     {
-      question: 'How old are you?',
-      options: ['Between 18 and 30 years', 'Between 31 and 40 years', 'Between 41 and 50 years', 'Over 50'],
+      question: "How old are you?",
+      options: ["Between 18 and 30 years", "Between 31 and 40 years", "Between 41 and 50 years", "Over 50"],
     },
     {
-      question: 'On the volley?',
+      question: "On the volley?",
       options: [
-        'I hardly get to the net',
+        "I hardly get to the net",
         "I don't feel safe at the net, I make too many mistakes",
-        'I can volley forehand and backhand with some difficulties',
-        'I have good positioning at the net and I volley confidently',
+        "I can volley forehand and backhand with some difficulties",
+        "I have good positioning at the net and I volley confidently",
         "I don't know",
       ],
     },
     {
-      question: 'On the rebounds...',
+      question: "On the rebounds...",
       options: [
         "I don't know how to read the rebounds, I hit before it rebounds",
-        'I try, with difficulty, to hit the rebounds on the back wall',
-        'I return rebounds on the back wall, it is difficult for me to return the double wall ones',
-        'I return double-wall rebounds and reach for quick rebounds',
-        'I perform powerful wall descent shots with forehand and backhand',
+        "I try, with difficulty, to hit the rebounds on the back wall",
+        "I return rebounds on the back wall, it is difficult for me to return the double wall ones",
+        "I return double-wall rebounds and reach for quick rebounds",
+        "I perform powerful wall descent shots with forehand and backhand",
         "I don't know",
       ],
     },
@@ -220,13 +220,13 @@ const CreateMatches = () => {
         return newDetails;
       });
       setCurrentStep(currentStep + 1);
-      setSelectedLevel('');
-      setSlotError(""); 
+      setSelectedLevel("");
+      setSlotError("");
     } else if (currentStep === steps.length - 1 && selectedLevel) {
       const finalSkillDetails = [...skillDetails];
       finalSkillDetails[currentStep] = selectedLevel;
 
-      navigate('/match-payment', {
+      navigate("/match-payment", {
         state: { slotData, finalSkillDetails, selectedDate, selectedCourts },
       });
     }
@@ -235,7 +235,7 @@ const CreateMatches = () => {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      setSelectedLevel(skillDetails[currentStep - 1] || '');
+      setSelectedLevel(skillDetails[currentStep - 1] || "");
       setSlotError("");
     }
   };
@@ -250,7 +250,7 @@ const CreateMatches = () => {
   }, [slotError]);
 
   return (
-    <Container className="p-4 mb-5" style={{ minHeight: '100vh' }}>
+    <Container className="p-4 mb-5" style={{ minHeight: "100vh" }}>
       <Row>
         {/* LEFT PANEL */}
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
@@ -279,9 +279,7 @@ const CreateMatches = () => {
                         const formattedDate = date.toISOString().split("T")[0];
                         const day = date.toLocaleDateString("en-US", { weekday: "long" });
                         setSelectedDate({ fullDate: formattedDate, day: day });
-                        setSelectedCourts((prev) =>
-                          prev.map((court) => ({ ...court, times: [] }))
-                        );
+                        setSelectedCourts((prev) => prev.map((court) => ({ ...court, times: [] })));
                       }}
                       inline
                       maxDate={maxSelectableDate}
@@ -321,9 +319,7 @@ const CreateMatches = () => {
                       onClick={() => {
                         setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                         setStartDate(new Date(d.fullDate));
-                        setSelectedCourts((prev) =>
-                          prev.map((court) => ({ ...court, times: [] }))
-                        );
+                        setSelectedCourts((prev) => prev.map((court) => ({ ...court, times: [] })));
                       }}
                     >
                       <div className="text-center">
@@ -342,7 +338,10 @@ const CreateMatches = () => {
           </div>
           <div className="d-flex justify-content-between align-items-center py-2">
             <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-              Available Slots for <span style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400" }}>{selectedCourts.find((c) => c._id === currentCourtId)?.courtName || "Selected Court"}</span>
+              Available Slots for{" "}
+              <span style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400" }}>
+                {selectedCourts.find((c) => c._id === currentCourtId)?.courtName || "Selected Court"}
+              </span>
             </p>
             <FormCheck
               type="switch"
@@ -358,7 +357,7 @@ const CreateMatches = () => {
             <DataLoading height={"30vh"} />
           ) : (
             <>
-              <div className="d-flex flex-wrap gap-2 mb-4" key={currentCourtId}>
+              <div className="d-flex flex-wrap mb-4">
                 {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
                   (() => {
                     const selectedDateObj = new Date(selectedDate?.fullDate);
@@ -374,7 +373,17 @@ const CreateMatches = () => {
                       slotDate.setHours(hour, 0, 0, 0);
                       const isPast = isToday && slotDate.getTime() < now.getTime();
                       const isBooked = slot?.status === "booked";
-                      return showUnavailableOnly ? (isPast || isBooked) : true;
+                      const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
+                      const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
+                      const currentSlots = currentCourt ? currentCourt.times.length : 0;
+                      const isLimitReached = currentSlots >= 15 && !currentCourt?.times.some((t) => t._id === slot._id);
+
+                      // When showUnavailableOnly is true, show only unavailable slots
+                      if (showUnavailableOnly) {
+                        return isPast || isBooked || !hasAmount || isLimitReached;
+                      }
+                      // When showUnavailableOnly is false, show only available future slots
+                      return !isPast && !isBooked && hasAmount && !isLimitReached;
                     });
 
                     return filteredSlots.length > 0 ? (
@@ -387,37 +396,34 @@ const CreateMatches = () => {
                         slotDate.setHours(hour, 0, 0, 0);
                         const isPast = isToday && slotDate.getTime() < now.getTime();
                         const isBooked = slot?.status === "booked";
-                        const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
                         const isSelected = currentCourt?.times.some((t) => t._id === slot._id);
                         const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
+                        const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
                         const currentSlots = currentCourt ? currentCourt.times.length : 0;
                         const isLimitReached = currentSlots >= 15 && !isSelected;
 
                         return (
                           <button
                             key={i}
-                            className={`btn border-0 rounded-pill px-4 ${isBooked ? " bg-secondary-subtle" : isPast ? "bg-secondary-subtle" : ""}`}
-                            onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
+                            className={`btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2`}
+                            onClick={() => toggleTime(slot)}
                             style={{
-                              backgroundColor: isSelected
-                                ? "#374151"
-                                : isBooked
-                                  ? "#888888"
-                                  : isLimitReached
-                                    ? "#fff7df"
-                                    : !hasAmount
-                                      ? "#fff7df"
-                                      : isPast
-                                        ? "#CBD6FF1A"
-                                        : "#FAFBFF",
-                              border: "1px solid #CBD6FF1A",
-                              color: isSelected
-                                ? "white"
-                                : isPast || hasAmount || isBooked
-                                  ? "#888888"
-                                  : "#000000",
-                              cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
-                              opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
+                              backgroundColor: isSelected ? "#374151" : "#FAFBFF",
+                              color: isSelected ? "white" : "#000000",
+                              cursor: "pointer",
+                              opacity: 1,
+                              border: "2px solid #CBD6FF1A",
+                              transition: "border-color 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!showUnavailableOnly) {
+                                e.currentTarget.style.border = "1px solid #000000";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!showUnavailableOnly) {
+                                e.currentTarget.style.border = "2px solid #CBD6FF1A";
+                              }
                             }}
                           >
                             {formatTime(slot?.time)}
@@ -426,101 +432,104 @@ const CreateMatches = () => {
                       })
                     ) : (
                       <div className="text-center">
-                        <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                        <p className="text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "#d02727" }}>
+                          {showUnavailableOnly ? "No unavailable slots for this date." : "No available slots for this date."}
+                        </p>
                       </div>
                     );
                   })()
                 ) : (
                   <div className="text-center">
-                    <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                    <p className="text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "#d02727" }}>
+                      {showUnavailableOnly ? "No unavailable slots for this date." : "No available slots for this date."}
+                    </p>
                   </div>
                 )}
-
               </div>
+            </>
+          )}
 
+          <div>
+            <div className="d-flex justify-content-between align-items-center py-2">
+              <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
+                Available Courts
+              </p>
               <div>
-                <div className="d-flex justify-content-between align-items-center py-2">
-                  <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-                    Available Courts
-                  </p>
-                  <div>
-                    <a
-                      href="#"
-                      className="text-decoration-none d-inline-flex align-items-center"
-                      style={{ color: "#1F41BB" }}
-                      data-bs-toggle="modal"
-                      data-bs-target="#courtLayoutModal"
-                    >
-                      View Court Layout <i className="bi bi-arrow-right fs-5 ms-2"></i>
-                    </a>
-                    <div
-                      className="modal fade"
-                      id="courtLayoutModal"
-                      tabIndex="-1"
-                      aria-labelledby="courtLayoutModalLabel"
-                      aria-hidden="true"
-                    >
-                      <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content rounded-4 p-3">
-                          <div className="modal-header border-0 p-0">
-                            <div className="w-100 d-flex align-items-center justify-content-center position-relative">
-                              <h5 className="modal-title m-0" id="courtLayoutModalLabel">View Court Layout</h5>
-                              <button
-                                type="button"
-                                className="btn-close position-absolute end-0 me-2"
-                                data-bs-dismiss="modal"
-                                aria-label="Close"
-                              ></button>
-                            </div>
-                          </div>
-                          <div className="modal-body p-0 mt-4">
-                            <div className="row g-2">
-                              {Array.isArray(slotData?.data[0]?.courts) &&
-                                slotData?.data[0]?.courts?.map((court, index) => (
-                                  <div className="col-6" key={court._id || index}>
-                                    <div
-                                      className="border d-flex align-items-center justify-content-center"
-                                      style={{ height: "80px", borderWidth: "2px" }}
-                                    >
-                                      {court?.courtName}
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
+                <a
+                  href="#"
+                  className="text-decoration-none d-inline-flex align-items-center"
+                  style={{ color: "#1F41BB" }}
+                  data-bs-toggle="modal"
+                  data-bs-target="#courtLayoutModal"
+                >
+                  View Court Layout <i className="bi bi-arrow-right fs-5 ms-2"></i>
+                </a>
+                <div
+                  className="modal fade"
+                  id="courtLayoutModal"
+                  tabIndex="-1"
+                  aria-labelledby="courtLayoutModalLabel"
+                  aria-hidden="true"
+                >
+                  <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content rounded-4 p-3">
+                      <div className="modal-header border-0 p-0">
+                        <div className="w-100 d-flex align-items-center justify-content-center position-relative">
+                          <h5 className="modal-title m-0" id="courtLayoutModalLabel">View Court Layout</h5>
+                          <button
+                            type="button"
+                            className="btn-close position-absolute end-0 me-2"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                          ></button>
+                        </div>
+                      </div>
+                      <div className="modal-body p-0 mt-4">
+                        <div className="row g-2">
+                          {Array.isArray(slotData?.data[0]?.courts) &&
+                            slotData?.data[0]?.courts?.map((court, index) => (
+                              <div className="col-6" key={court._id || index}>
+                                <div
+                                  className="border d-flex align-items-center justify-content-center"
+                                  style={{ height: "80px", borderWidth: "2px" }}
+                                >
+                                  {court?.courtName}
+                                </div>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="px-3">
-                  {slotData?.data?.length > 0 &&
-                    slotData?.data[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                    slotData.data[0]?.courts?.map((court) => (
-                      <div
-                        key={court?._id}
-                        onClick={() => handleCourtSelect(court)}
-                        style={{ cursor: "pointer" }}
-                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-2 mb-1 px-2 ${court._id === currentCourtId ? "bg-success-subtle rounded" : ""
-                          }`}
-                      >
-                        <div className="d-flex align-items-center gap-3">
-                          <Avatar src='https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0=' />
-                          <div>
-                            <p className="mb-1 fw-semibold">{court?.courtName}</p>
-                            <small className="text-muted">{court?.type}</small>
-                          </div>
-                        </div>
-                        <p className="mb-0 fw-semibold">₹ 1000</p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4 text-muted">No courts available</div>
-                  )}
-                </div>
               </div>
-            </>
-          )}
+            </div>
+            <div className="px-3">
+              {slotData?.data?.length > 0 &&
+                slotData?.data[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                slotData.data[0]?.courts?.map((court) => (
+                  <div
+                    key={court?._id}
+                    onClick={() => handleCourtSelect(court)}
+                    style={{ cursor: "pointer" }}
+                    className={`d-flex p-4 justify-content-between align-items-center border-bottom py-2 mb-1 px-2 ${court._id === currentCourtId ? "bg-success-subtle rounded" : ""
+                      }`}
+                  >
+                    <div className="d-flex align-items-center gap-3">
+                      <Avatar src="https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0=" />
+                      <div>
+                        <p className="mb-1 fw-semibold">{court?.courtName}</p>
+                        <small className="text-muted">{court?.type}</small>
+                      </div>
+                    </div>
+                    <p className="mb-0 fw-semibold">₹ 1000</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-muted">No courts available</div>
+              )}
+            </div>
+          </div>
         </Col>
         {/* RIGHT PANEL */}
         <Col md={5}>
@@ -575,7 +584,7 @@ const CreateMatches = () => {
                         backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
                         borderColor: selectedLevel === option ? "#4f46e5" : "#e5e7eb",
                         cursor: "pointer",
-                        boxShadow: "none"
+                        boxShadow: "none",
                       }}
                     >
                       <Form.Check
@@ -592,12 +601,11 @@ const CreateMatches = () => {
                     </div>
                   ))}
                   {slotError && (
-                    <div className="text-danger text-start  w-100 position-absolute" style={{ fontSize: "16px", marginBottom: "10px",fontFamily:"Poppins",fontWeight:"600" }}>
+                    <div className="text-danger text-start w-100 position-absolute" style={{ fontSize: "16px", marginBottom: "10px", fontFamily: "Poppins", fontWeight: "600" }}>
                       <p>{slotError}</p>
                     </div>
                   )}
                 </Form>
-
               </div>
               <div className="d-flex justify-content-end align-items-center p-3">
                 {currentStep > 0 && (
