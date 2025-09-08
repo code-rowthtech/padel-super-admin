@@ -80,7 +80,7 @@ const VerifyOTP = () => {
       await dispatch(verifyOtp({ email, otp: fullOtp.trim() })).unwrap();
       navigate("/admin/reset-password", { state: { email } });
     } catch (err) {
-      showError("Something went wrong during OTP verification.");
+      // showError("Something went wrong during OTP verification.");
     }
   };
 
@@ -162,6 +162,7 @@ const VerifyOTP = () => {
           className="w-100 fw-semibold"
           disabled={authLoading || timer === 0}
           style={{
+            height: "50px",
             background: "linear-gradient(to right, #27ae60, #2e51f3)",
             border: "none",
             borderRadius: "25px",

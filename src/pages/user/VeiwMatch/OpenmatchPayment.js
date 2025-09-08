@@ -715,7 +715,7 @@ const OpenmatchPayment = (props) => {
                             </p>
                         </div>
 
-                        <h6 className="border-top p-2 mb-3 ps-0 all-matches" >
+                        <h6 className="border-top p-2 mb-3 ps-0 custom-heading-use" >
                             Booking Summary
                         </h6>
                         <div

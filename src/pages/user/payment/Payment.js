@@ -248,7 +248,7 @@ const Payment = ({ className = "" }) => {
                     <div className="bg-white rounded">
                         {/* Info Section */}
                         <div className="rounded-4 py-4 px-3 px-md-5 mb-4" style={{ backgroundColor: "#F5F5F566",border:errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
-                            <h6 className="mb-3" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+                            <h6 className="mb-3 custom-heading-use">
                                 Information
                             </h6>
                             <div className="row">
@@ -365,11 +365,11 @@ const Payment = ({ className = "" }) => {
                                 border: errors.paymentMethod ? "2px solid red" : "none",
                             }}
                         >
-                            <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+                            <h6 className="mb-4 custom-heading-use" >
                                 Payment Method
                             </h6>
                             {errors.paymentMethod && (
-                                <div className="text-danger position-absolute" style={{ fontSize: "12px", bottom: "55%" }}>
+                                <div className="text-danger position-" style={{ fontSize: "12px", }}>
                                     {errors.paymentMethod}
                                 </div>
                             )}
@@ -441,7 +441,7 @@ const Payment = ({ className = "" }) => {
                             </p>
                         </div>
 
-                        <h6 className="border-top p-2 pt-3 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
+                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use" >
                             Booking Summary
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
@@ -455,13 +455,13 @@ const Payment = ({ className = "" }) => {
                                                         <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {court?.day ? dayMap[court.day.toLowerCase()] : ""},
                                                         </span>
-                                                        <span className="" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
                                                                 const date = new Date(court.date);
                                                                 const day = date.toLocaleString("en-US", { day: "2-digit" });
                                                                 const month = date.toLocaleString("en-US", { month: "short" });
-                                                                return `${day} ${month}`;
+                                                                return `${day}${month}`;
                                                             })()}
                                                         </span>
                                                         <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>

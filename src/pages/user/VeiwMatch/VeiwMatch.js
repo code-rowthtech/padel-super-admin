@@ -313,7 +313,7 @@ const ViewMatch = ({ className = "" }) => {
                             </p>
                         </div>
 
-                        <h6 className="border-top p-2 mb-1 ps-0 all-matches" >
+                        <h6 className="border-top p-2 mb-1 ps-0 custom-heading-use" >
                             Booking Summary
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto" }}>
@@ -329,7 +329,7 @@ const ViewMatch = ({ className = "" }) => {
                                             >
                                                 <div>
                                                     <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
-                                                        {formatted.day},{formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {slotTime.time} (60m)</span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>{court.courtName}
+                                                        {formatted.day}, {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {slotTime.time} (60m)</span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>{court.courtName}
                                                     </span>
                                                 </div>
                                                 <div className="d-flex align-items-center gap-2">

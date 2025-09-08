@@ -47,7 +47,7 @@ const LoginPage = () => {
                             <h2 className="welcome-heading mb-2">WELCOME BACK</h2>
                             <p className="text-muted mb-4" style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}>Welcome back! Please enter your details.</p>
 
-                            <Form onSubmit={handleSubmit}>
+                            <Form onSubmit={handleSubmit} className='w-100'>
                                 {showAlert && <Alert variant="danger">{error}</Alert>}
 
 
@@ -56,7 +56,7 @@ const LoginPage = () => {
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
-                                        className=" form-control py-md-3"
+                                        className=" form-control  py-md-3"
                                         style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
                                         value={phone}
                                         minLength={10}

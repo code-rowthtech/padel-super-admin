@@ -101,18 +101,36 @@ const LoginPage = () => {
           `}
         </style>
         <div className="login-container">
-          <h2 className="fw-bold fs-4 mb-2">WELCOME BACK</h2>
-          <p className="text-muted mb-4">
+          <p
+            className="mb-0"
+            style={{
+              fontFamily: "Poppins",
+              fontWeight: 500,
+              fontSize: "34px",
+            }}
+          >
+            WELCOME BACK
+          </p>
+          <p
+            className="text-muted mb-2"
+            style={{
+              fontFamily: "Poppins",
+              fontWeight: 400,
+              fontSize: "14px",
+              paddingTop: "12px",
+            }}
+          >
             Welcome back! Please enter your details.
           </p>
 
-          <Form onSubmit={handleLogin} noValidate>
+          <Form onSubmit={handleLogin} noValidate style={{ width: "314px" }}>
             <span className="p-1 small text-danger">{apiError}</span>
             {/* Email */}
             <Form.Group
               controlId="formEmail"
               className="mb-3 position-relative"
             >
+              <Form.Label className="fw-medium">Email</Form.Label>
               <Form.Control
                 type="email"
                 name="email"
@@ -121,19 +139,23 @@ const LoginPage = () => {
                 disabled={authLoading}
                 onChange={handleChange}
                 isInvalid={!!errors.email}
-                style={{ paddingRight: "40px", borderRadius: "8px" }}
+                style={{
+                  paddingRight: "40px",
+                  borderRadius: "8px",
+                  height: "50px",
+                }}
               />
-              {!errors.email && (
+              {/* {!errors.email && (
                 <FaEnvelope
                   style={{
                     position: "absolute",
                     right: "14px",
-                    top: "50%",
+                    top: "75%",
                     transform: "translateY(-50%)",
                     color: "#aaa",
                   }}
                 />
-              )}
+              )} */}
               <Form.Control.Feedback type="invalid">
                 {errors.email}
               </Form.Control.Feedback>
@@ -144,6 +166,7 @@ const LoginPage = () => {
               controlId="formPassword"
               className="mb-3 position-relative"
             >
+              <Form.Label className="fw-medium">Password</Form.Label>
               <Form.Control
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -152,7 +175,11 @@ const LoginPage = () => {
                 onChange={handleChange}
                 disabled={authLoading}
                 isInvalid={!!errors.password}
-                style={{ paddingRight: "40px", borderRadius: "8px" }}
+                style={{
+                  paddingRight: "40px",
+                  borderRadius: "8px",
+                  height: "50px",
+                }}
               />
               {!errors.password && (
                 <div
@@ -160,7 +187,7 @@ const LoginPage = () => {
                   style={{
                     position: "absolute",
                     right: "14px",
-                    top: "50%",
+                    top: "73%",
                     transform: "translateY(-50%)",
                     cursor: "pointer",
                     color: "#aaa",
@@ -195,8 +222,9 @@ const LoginPage = () => {
             <Button
               type="submit"
               disabled={authLoading}
-              className="w-100 fw-semibold"
+              className="w-100 fw-semibold shadow"
               style={{
+                height: "50px",
                 padding: "12px",
                 borderRadius: "30px",
                 background: "linear-gradient(to right, #4caf50, #3f51b5)",

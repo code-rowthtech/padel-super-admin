@@ -253,7 +253,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 <Button
                   style={{ backgroundColor: '#3DBE64', fontWeight: '500', fontSize: '17px', border: '0' }}
                   onClick={() => setChangeContent(true)}
-                  className="rounded-pill py-2 w-100 px-4"
+                  className="rounded-pill py-lg-2 py-0 w-100 px-4"
                 >
                   Cancel Booking
                 </Button>

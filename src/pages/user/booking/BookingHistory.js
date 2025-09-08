@@ -15,7 +15,7 @@ import { Tab, Tabs } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { FaCalendarAlt, FaSearch, FaTimes } from "react-icons/fa";
-import { MdOutlineCancel } from "react-icons/md";
+import { MdOutlineCancel, MdOutlineDateRange } from "react-icons/md";
 import { FiEye } from "react-icons/fi";
 import {
     AcceptedRejectedModal,
@@ -175,13 +175,13 @@ const BookingHistory = () => {
 
     return (
         <Container>
-            <Row className="mb-3 mt-5">
+            <Row className="mb-lg-5 mb-3 mt-lg-5 mt-3">
                 <Col md={6}>
-                    <h2 className="manual-heading" style={{ fontWeight: "700", fontSize: "36px" }}>Booking History</h2>
+                    <h2 className=" booking-history-heading" >Booking History</h2>
                 </Col>
             </Row>
 
-            <Box className="mb-3" sx={{ bgcolor: "white" }}>
+            <Box className="mb-4" sx={{ bgcolor: "white" }}>
                 <AppBar
                     position="static"
                     color="default"
@@ -194,9 +194,14 @@ const BookingHistory = () => {
                         textColor="primary"
                         aria-label="booking history tabs"
                         TabIndicatorProps={{ style: { display: "none" } }}
+                        variant="scrollable"
+                        scrollButtons="auto"
                         sx={{
                             "& .MuiTabs-flexContainer": {
                                 justifyContent: "start",
+                            },
+                            "& .MuiTabs-scrollButtons": {
+                                display: "none",
                             },
                         }}
                     >
@@ -206,16 +211,18 @@ const BookingHistory = () => {
                                 label={tab.charAt(0).toUpperCase() + tab.slice(1)}
                                 value={tab}
                                 {...a11yProps(i)}
-                                className="fw-medium table-data me-1 ms-0"
+                                className="booking-history-tab me-1 ms-0"
                                 sx={{
                                     textTransform: "capitalize",
                                     borderRadius: "50px",
-                                    px: 3, // horizontal padding
-                                    py: 0, // vertical padding
-                                    mx: 0.5, // margin between tabs
-                                    fontSize: "16px",
-                                    fontWeight: 500,
-                                    fontFamily: "Poppins",
+                                    color: "#000000",
+                                    px: { xs: 1.5, md: 3 },
+                                    py: { xs: 0.5, md: 1 },
+                                    mx: 0.2,
+                                    minWidth: { xs: "auto", md: "auto" },
+                                    minHeight: { xs: "32px", md: "48px" },
+                                    height: { xs: "32px", md: "48px" },
+                                    fontSize: { xs: "12px", md: "14px" },
                                     "&.Mui-selected": {
                                         backgroundColor: "#CBD6FFA1",
                                         color: "primary.main",
@@ -232,18 +239,16 @@ const BookingHistory = () => {
                 </AppBar>
             </Box>
             <Row className="mb-3">
-                <Col md={6}>
-                    <h2 className="tabel-title mt-2" style={{ fontWeight: "600", fontSize: "24px" }}>
+                <Col xs={12} md={6} className="mb-3 mb-md-0">
+                    <h2 className="step-heading mt-2">
                         {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking
                     </h2>
                 </Col>
-                <Col
-                    md={6}
-                    className="d-flex gap-2 justify-content-end align-items-center"
-                >
+
+                <Col xs={12} md={6} className="d-flex flex-row gap-2 justify-content-md-end align-items-center">
                     <InputGroup className="rounded d-flex p-1 align-items-center" style={{ backgroundColor: "#FAFBFF" }}>
                         <InputGroup.Text className="bg-light border-0 px-">
-                            <FaCalendarAlt className="text-muted" />
+                            <MdOutlineDateRange size={16} className="text-muted" />
                         </InputGroup.Text>
                         <DatePicker
                             selected={searchDate}
@@ -267,7 +272,7 @@ const BookingHistory = () => {
 
                     <InputGroup
                         className="rounded overflow-hidden bg-light p-1"
-                        style={{ maxWidth: "300px", backgroundColor: "#F5F5F5" }}
+                        style={{ maxWidth: "250px", backgroundColor: "#F5F5F5" }}
                     >
                         <Form.Control
                             type="text"
@@ -275,10 +280,10 @@ const BookingHistory = () => {
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
                             className="border-0 bg-light shadow-none"
-                            style={{ backgroundColor: "#F5F5F5" }}
+                            style={{ backgroundColor: "#F5F5F5", fontSize: "14px" }}
                         />
                         <InputGroup.Text className="bg-light border-0">
-                            <FaSearch className="text-muted" />
+                            <FaSearch size={14} className="text-muted" />
                         </InputGroup.Text>
                     </InputGroup>
                 </Col>
@@ -300,7 +305,7 @@ const BookingHistory = () => {
                                     <th>
                                         <div className="dropdown-wrapper">
                                             <div
-                                                className="dropdown-header"
+                                                className="dropdown-header table-data"
                                                 onClick={() => setIsOpen(!isOpen)}
                                             >
                                                 Status{" "}
@@ -359,7 +364,7 @@ const BookingHistory = () => {
                                                 key={`${i}-${index}`}
                                                 className=" border-bottom"
                                             >
-                                                <td className="table-data py-2 ps-5 text-start" style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
+                                                <td className="table-data py-2 pt-3  ps-5 text-start" style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
                                                     {formatDate(booking?.bookingDate)} | {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
@@ -369,21 +374,22 @@ const BookingHistory = () => {
                                                         return times?.length > 5 ? ` ${displayed} ...` : displayed;
                                                     })()}
                                                 </td>
-                                                <td className="table-data  py-2">
+                                                <td className="table-data pt-3  py-2">
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
-                                                <td className="table-data py-2">
-                                                    {booking?.bookingType || "N/A"}
+                                                <td className="table-data pt-3 py-2">
+                                                    {booking?.bookingType.charAt(0).toUpperCase() +
+                                                        (booking?.bookingType?.slice(1)) || "N/A"}
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
-                                                    <td className="py-2">
+                                                    <td className="py-2 pt-3">
                                                         {booking?.cancellationReason?.charAt(0).toUpperCase() +
                                                             (booking?.cancellationReason?.slice(1) || "")}
                                                     </td>
                                                 )}
                                                 {activeTab === "completed" && (
-                                                    <td className="text-center py-2">
+                                                    <td className="text-center pt-3 py-2">
                                                         {[1, 2, 3, 4, 5].map((star) => {
                                                             const averageRating =
                                                                 booking?.customerReview?.reviewRating || 0;
@@ -441,7 +447,7 @@ const BookingHistory = () => {
 
                                                     </td>
                                                 )}
-                                                <td className="py-2"
+                                                <td className="py-2 pt-3"
                                                     style={{
                                                         color: "#1A237E",
                                                         fontSize: "16px",
@@ -452,7 +458,7 @@ const BookingHistory = () => {
                                                     ₹{booking?.totalAmount || "N/A"}
                                                 </td>
                                                 {activeTab === "cancelled" && (
-                                                    <td className="py-2"
+                                                    <td className="py-2 pt-3"
                                                         style={{
                                                             color:
                                                                 booking?.bookingStatus === "rejected"
@@ -472,7 +478,7 @@ const BookingHistory = () => {
                                                                 : "Requested"}
                                                     </td>
                                                 )}
-                                                <td className="text-center py-2">
+                                                <td className="text-center py-2 pt-3">
                                                     {activeTab === "completed" ? null : (
                                                         <>
                                                             {booking?.bookingStatus === "in-progress" ? (
