@@ -154,9 +154,14 @@ const OpenmatchPayment = (props) => {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) {
+            return { day: "Sun", formattedDate: "27Aug" };
+        }
         const date = new Date(dateString);
-        const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-        const formattedDate = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+        const day = date.toLocaleDateString("en-US", { weekday: "short" }); // e.g., Tue
+        const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}${date
+            .toLocaleDateString("en-US", { month: "short" })
+            }`; //
         return { day, formattedDate };
     };
 
@@ -344,10 +349,10 @@ const OpenmatchPayment = (props) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="mb-3 mt-2 fw-semibold">
+                                                <p className="mb-0 mt-2 fw-semibold">
                                                     {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "User"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success"></span>
+                                                <span className="badge bg-success-subtle text-success">A|B</span>
                                             </div>
                                         );
                                     } else {
@@ -551,10 +556,10 @@ const OpenmatchPayment = (props) => {
                         </div>
 
                         <div className="d-flex justify-content-between mt-3">
-                            <p className="text-muted mb-1" style={{ fontSize: "14px", fontWeight: "500" }}>
+                            <p className=" mb-1" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "blue" }}>
                                 Team A
                             </p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500" }}>
+                            <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "red" }}>
                                 Team B
                             </p>
                         </div>
@@ -583,6 +588,7 @@ const OpenmatchPayment = (props) => {
                                     Opened
                                 </div>
                                 <Link
+                                    to='#'
                                     style={{ color: "#1F41BB", fontSize: "15px", fontWeight: "500" }}
                                 >
                                     More Info
@@ -668,6 +674,7 @@ const OpenmatchPayment = (props) => {
                                         className="form-check-input"
                                         checked={selectedPayment === method.id}
                                         onChange={(e) => setSelectedPayment(e.target.value)}
+                                        style={{boxShadow:"none"}}
                                     />
                                 </label>
                             ))}
@@ -678,16 +685,28 @@ const OpenmatchPayment = (props) => {
                         style={{ backgroundColor: "#CBD6FF1A" }}
                     >
                         <div className="text-center mb-3">
-                            <div className="d-flex justify-content-center" style={{ lineHeight: '90px' }}>
+                            <div className="d-flex justify-content-center">
                                 {logo ? (
-                                    <Avatar src={logo} alt="User Profile" />
+                                    <Avatar
+                                        src={logo}
+                                        alt="User Profile"
+                                        style={{ height: "112px", width: "112px", boxShadow: '0px 4px 11.4px 0px #0000002E' }}
+                                    />
                                 ) : (
-                                    <Avatar>
+                                    <Avatar
+                                        style={{
+                                            height: "112px",
+                                            width: "112px",
+                                            fontSize: "30px",
+                                            boxShadow: '0px 4px 11.4px 0px #0000002E'
+                                        }}
+                                    >
                                         {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                                     </Avatar>
                                 )}
                             </div>
-                            <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                                 {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                 {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
@@ -696,10 +715,7 @@ const OpenmatchPayment = (props) => {
                             </p>
                         </div>
 
-                        <h6
-                            className="border-top p-2 mb-3 ps-0"
-                            style={{ fontSize: "20px", fontWeight: "600" }}
-                        >
+                        <h6 className="border-top p-2 mb-3 ps-0 all-matches" >
                             Booking Summary
                         </h6>
                         <div
@@ -712,37 +728,55 @@ const OpenmatchPayment = (props) => {
                                 selectedCourts?.map((court, courtIndex) => (
                                     <div key={court._id} className="court-section mb-3">
                                         {court.times && court.times.length > 0 ? (
-                                            court.times.map((slotTime, slotIndex) => (
-                                                <div
-                                                    key={slotTime._id}
-                                                    className="court-row d-flex justify-content-between align-items-center mb-2 px-2"
-                                                    style={{ cursor: "pointer" }}
-                                                >
-                                                    <div>
-                                                        <strong>{matchDate.day}, {matchDate.formattedDate} {slotTime.time} (60m)</strong> {court.courtName || `Court ${courtIndex + 1}`}
+                                            court.times.map((slotTime, slotIndex) => {
+                                                console.log({ court });
+                                                const formatted = formatDate(court?.date);
+                                                return (
+                                                    <div
+                                                        key={slotTime._id}
+                                                        className="court-row d-flex justify-content-between align-items-center mb-2 px-2"
+                                                        style={{
+                                                            cursor: "pointer",
+                                                            borderRadius: "4px",
+                                                            transition: "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
+                                                        }}
+
+                                                    >
+                                                        <div>
+                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "18px", color: "#374151" }}>
+                                                                {formatted.day}, {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {slotTime.time} (60m)
+                                                            </span>{" "}
+                                                            <span style={{ fontWeight: "400", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                                {court.courtName}
+                                                            </span>
+                                                        </div>
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            <div>₹ {slotTime.amount || 1000}</div>
+                                                        </div>
                                                     </div>
-                                                    <div className="d-flex align-items-center gap-2">
-                                                        <div>₹ {slotTime.amount || 1000}</div>
-                                                    </div>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         ) : (
-                                            <div>No slots selected for this court <Link className="text-primary" to="/create-matches">Add slot</Link> </div>
+                                            <div>
+                                                No slots selected for this court <Link className="text-primary" to="/create-matches">Add slot</Link>
+                                            </div>
                                         )}
                                     </div>
                                 ))
                             ) : (
-                                <div>No slot selected <Link className="text-primary" to="/create-matches">Add slot</Link> </div>
+                                <div>
+                                    No slot selected <Link className="text-primary" to="/create-matches">Add slot</Link>
+                                </div>
                             )}
                         </div>
-                        <div className="border-top pt-2 mb-3 mt-2 d-flex justify-content-between fw-bold">
-                            <span style={{ fontSize: "16px", fontWeight: "600" }}>
+                        <div className="border-top pt-2 mb-3 mt-2 d-flex justify-content-between align-items-center fw-bold">
+                            <p style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                                 Total to pay
-                            </span>
-                            <span style={{ fontSize: "16px", fontWeight: "600" }}>
+                            </p>
+                            <p style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                                 Slots: {selectedCourts?.reduce((total, court) => total + court.times.length, 0) || 0}
-                            </span>
-                            <span className="text-primary">₹ {totalAmount.toFixed(0)}</span>
+                            </p>
+                            <p className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "30px" }}>₹ <span className="" style={{ fontSize: "30px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{totalAmount.toFixed(0)}</span></p>
                         </div>
 
                         {errorShow && <Alert variant="danger">{error}</Alert>}

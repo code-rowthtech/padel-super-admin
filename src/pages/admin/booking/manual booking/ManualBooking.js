@@ -335,47 +335,44 @@ const ManualBooking = () => {
         <Loading />
       ) : (
         <Container className="p-0" fluid>
-          <Row className="mb-3">
-            <Col md={6}>
-              <h5
-                className="manual-heading"
-                style={{
-                  fontFamily: "Poppins",
-                  fontWeight: "700",
-                  color: "#374151",
-                }}
-              >
-                Manual Booking
-              </h5>
-            </Col>
-            <Col md={6} className="text-end">
-              <Button
-                className="bg-transparent border-0"
-                onClick={() => {
-                  clearSessionStorage();
-                  navigate("/admin/booking");
-                }}
-                style={{
-                  color: "#1F41BB",
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  fontFamily: "Poppins",
-                }}
-              >
-                <FaArrowLeft className="me-2" /> Back
-              </Button>
-            </Col>
-          </Row>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5
+              className="manual-heading mb-0"
+              style={{
+                fontFamily: "Poppins",
+                fontWeight: "700",
+                color: "#374151",
+              }}
+            >
+              Manual Booking
+            </h5>
+            <Button
+              className="bg-transparent border-0"
+              onClick={() => {
+                clearSessionStorage();
+                navigate("/admin/booking");
+              }}
+              style={{
+                color: "#1F41BB",
+                fontSize: "18px",
+                fontWeight: "600",
+                fontFamily: "Poppins",
+              }}
+            >
+              <FaArrowLeft className="me-2" /> Back
+            </Button>
+          </div>
           <Row className="mx-auto bg-white shadow-sm rounded-3">
-            <Col md={8} className="p-4">
+            <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
-              <div className="mb-4">
+              <div className="mb-3 mb-md-4">
                 <div
                   className="tabel-title mb-2"
                   style={{
                     fontFamily: "Poppins",
                     fontWeight: "600",
                     color: "#374151",
+                    fontSize: "14px",
                   }}
                 >
                   Select Court
@@ -389,7 +386,7 @@ const ManualBooking = () => {
                       className="btn py-2 shadow-sm"
                       style={{
                         borderRadius: "12px",
-                        minWidth: "110px",
+                        minWidth: "90px",
                         transition: "all 0.2s ease-in-out",
                         backgroundColor: selectedCourts?.includes(court._id)
                           ? "#374151"
@@ -404,7 +401,7 @@ const ManualBooking = () => {
                           ? "2px solid #374151"
                           : "1px solid #ccd2d9ff",
                         fontFamily: "Poppins",
-                        fontSize: "14px",
+                        fontSize: "12px",
                       }}
                     >
                       {court.courtName}
@@ -534,35 +531,42 @@ const ManualBooking = () => {
               </div>
 
               {/* Time Selector */}
-              <div className="d-flex justify-content-between align-items-center py-2">
-                <p
-                  className="mb-3 tabel-title"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
-                >
-                  Available Slots
-                  <span className="fs-6 text-muted">(60m)</span>
-                </p>
-                <div className="form-switch d-flex align-items-center gap-2 p-0">
-                  <input
-                    className="form-check-input fs-5 mb-1"
-                    type="checkbox"
-                    role="switch"
-                    id="flexSwitchCheckDefault"
-                    style={{ boxShadow: "none" }}
-                    checked={showUnavailable}
-                    onChange={(e) => setShowUnavailable(e.target.checked)}
-                  />
-                  <label
-                    className="table-data text-dark mb-0"
-                    htmlFor="flexSwitchCheckDefault"
-                    style={{ whiteSpace: "nowrap", fontSize: "14px" }}
+              <div className="mb-3">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <p
+                    className="mb-0 tabel-title"
+                    style={{
+                      fontFamily: "Poppins",
+                      fontWeight: "600",
+                      color: "#374151",
+                      fontSize: "14px",
+                    }}
                   >
-                    Show Unavailable Slots
-                  </label>
+                    Available Slots
+                    <span className="fs-6 text-muted">(60m)</span>
+                  </p>
+                  <div className="form-switch d-flex align-items-center gap-2">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      id="flexSwitchCheckDefault"
+                      style={{ boxShadow: "none" }}
+                      checked={showUnavailable}
+                      onChange={(e) => setShowUnavailable(e.target.checked)}
+                    />
+                    <label
+                      className="table-data text-dark mb-0"
+                      htmlFor="flexSwitchCheckDefault"
+                      style={{
+                        whiteSpace: "nowrap",
+                        fontSize: "13px",
+                        fontFamily: "Poppins",
+                      }}
+                    >
+                      Show Unavailable
+                    </label>
+                  </div>
                 </div>
               </div>
               {activeCourtsLoading ? (
@@ -662,7 +666,7 @@ const ManualBooking = () => {
                             const buttonEl = (
                               <span className="d-inline-block">
                                 <button
-                                  className={`btn border-0 rounded-pill table-data px-4 py-1 shadow-sm ${
+                                  className={`btn border rounded-pill table-data px-4 py-1 shadow-sm ${
                                     isBooked
                                       ? "bg-danger text-white"
                                       : isPast
@@ -719,10 +723,10 @@ const ManualBooking = () => {
                 </div>
               )}
             </Col>
-            <Col md={4} className="py-4 px-3">
+            <Col xs={12} lg={4} className="py-2 py-md-4 px-2 px-md-3">
               <div
-                className="shadow rounded-3 p-3 bg-white"
-                style={{ minHeight: "50vh" }}
+                className="shadow rounded-3 p-2 p-md-3 bg-white"
+                style={{ minHeight: "40vh" }}
               >
                 <div
                   className="tabel-title d-flex justify-content-between align-items-center mb-3"

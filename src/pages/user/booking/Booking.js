@@ -8,7 +8,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { Avatar } from "@mui/material";
-import { Alert } from "react-bootstrap";
 import { formatTime } from "../../../helpers/Formatting";
 import { format } from "date-fns";
 import { FiShoppingCart } from "react-icons/fi";
@@ -25,12 +24,13 @@ const Booking = ({ className = "" }) => {
     const dateRefs = useRef({});
     const dispatch = useDispatch();
     const store = useSelector((state) => state);
-    const clubData = store?.userClub?.clubData?.data?.courts[0] || []
+    const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
     const { slotData } = useSelector((state) => state?.userSlot);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorShow, setErrorShow] = useState(false);
     const logo = JSON.parse(localStorage.getItem("logo"));
+
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
             setIsOpen(false);
@@ -80,8 +80,7 @@ const Booking = ({ className = "" }) => {
         if (slotData?.message === "jwt token is expired") {
             setExpireModal(true);
         }
-    }, [slotData?.message === "jwt token is expired"]);
-
+    }, [slotData?.message]);
 
     const toggleTime = (time) => {
         const totalSlots = selectedCourts.reduce((acc, c) => acc + c.time.length, 0);
@@ -117,7 +116,7 @@ const Booking = ({ className = "" }) => {
                     return prev;
                 }
                 if (prev.length >= 15) {
-                    return prev; // Max 15 courts
+                    return prev;
                 }
                 const newCourt = {
                     ...court,
@@ -139,13 +138,12 @@ const Booking = ({ className = "" }) => {
             }
             setCurrentCourtId(court._id);
 
-            // Dispatch with only the clicked court's ID
             dispatch(
                 getUserSlot({
                     day: selectedDate?.day,
                     date: selectedDate?.fullDate,
                     register_club_id: localStorage.getItem("register_club_id") || "",
-                    courtId: court._id, // Only send the current/clicked court ID
+                    courtId: court._id,
                 })
             );
             return updatedCourts;
@@ -173,6 +171,7 @@ const Booking = ({ className = "" }) => {
             setSelectedTimes(prevTimes => prevTimes.filter((_, i) => i !== slotIndex));
         }
     };
+
     const width = 370;
     const height = 75;
     const circleRadius = height * 0.3;
@@ -221,10 +220,10 @@ const Booking = ({ className = "" }) => {
 
     const maxSelectableDate = new Date();
     maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
+    const clubId = localStorage.getItem("register_club_id");
 
     useEffect(() => {
-        const clubId = localStorage.getItem("register_club_id");
-        dispatch(getUserClub({ search: "" }))
+        dispatch(getUserClub({ search: "" }));
         dispatch(
             getUserSlot({
                 day: selectedDate.day,
@@ -239,8 +238,6 @@ const Booking = ({ className = "" }) => {
     }, []);
 
     useEffect(() => {
-        const clubId = localStorage.getItem("register_club_id");
-
         if (
             slotData?.data?.length > 0 &&
             slotData.data[0]?.courts?.length > 0 &&
@@ -265,7 +262,6 @@ const Booking = ({ className = "" }) => {
             setSelectedCourts([newCourt]);
             setCurrentCourtId(firstCourt._id);
 
-            // Dispatch with single court ID
             dispatch(
                 getUserSlot({
                     day: selectedDate?.day,
@@ -277,7 +273,6 @@ const Booking = ({ className = "" }) => {
         }
     }, [slotData, selectedDate, dispatch]);
 
-    // New useEffect to auto-add court entry on date change if not present
     useEffect(() => {
         if (currentCourtId && slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0) {
             const currentCourtOnDate = selectedCourts.find(c => c._id === currentCourtId && c.date === selectedDate.fullDate);
@@ -330,8 +325,6 @@ const Booking = ({ className = "" }) => {
     useEffect(() => {
         setSelectedTimes([]);
         if (selectedCourts?.length > 0) {
-
-            // Dispatch with only current court ID if exists
             if (currentCourtId) {
                 dispatch(
                     getUserSlot({
@@ -411,14 +404,15 @@ const Booking = ({ className = "" }) => {
 
     return (
         <>
-            <div className='container p-md-3 '>
+            <div className='container p-md-3'>
                 <div className="ps-0" style={{ height: "340px" }}>
                     <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{ height: '100%' }}>
-                        <img src={twoball} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover " style={{ borderRadius: "13px" }} />
+                        <img src={twoball} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover" style={{ borderRadius: "13px" }} />
                         <div
                             className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center text-white p-5"
                             style={{
-                                background: 'linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)', backgroundBlendMode: 'multiply'
+                                background: 'linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)',
+                                backgroundBlendMode: 'multiply'
                             }}
                         >
                             <p className='mb-0 ps-md-4' style={{ fontSize: "20px", fontFamily: "Poppins", fontWeight: "500" }}>BOOK YOUR SLOT</p>
@@ -427,15 +421,15 @@ const Booking = ({ className = "" }) => {
                     </div>
                 </div>
             </div>
-            <div className="container  d-flex mb-5 px-4">
-                <div className="row">
-                    <div className="col-7 py-4 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
+            <div className="container mb-5 px-4">
+                <div className="row g-4">
+                    <div className="col-lg-7 col-12 py-4 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
                         <div className="calendar-strip">
-                            <div className="mb-4" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
+                            <div className="mb-4" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins", color: "#374151" }}>
                                 Select Date
                                 <div className="position-relative d-inline-block" ref={wrapperRef}>
                                     <span
-                                        className="rounded p-1 ms-2  bg-white"
+                                        className="rounded p-1 ms-2 bg-white"
                                         style={{ cursor: "pointer", width: "26px", height: "26px", boxShadow: '0px 4px 4px 0px #00000014' }}
                                         onClick={() => setIsOpen(!isOpen)}
                                     >
@@ -476,7 +470,7 @@ const Booking = ({ className = "" }) => {
                                     style={{
                                         scrollBehavior: "smooth",
                                         whiteSpace: "nowrap",
-                                        maxWidth: "650px",
+                                        maxWidth: "100%",
                                     }}
                                 >
                                     {dates?.map((d, i) => {
@@ -488,24 +482,34 @@ const Booking = ({ className = "" }) => {
                                             <button
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
                                                 key={i}
-                                                className={`calendar-day-btn me-2 rounded  ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                                                className={`calendar-day-btn me-1  ${isSelected ? "text-white" : "bg-light"}`}
                                                 style={{
-                                                    backgroundColor: isSelected ? "#374151" : undefined,
+                                                    backgroundColor: isSelected ? "#374151" : '#CBD6FF1A',
                                                     boxShadow: isSelected ? '0px 4px 4px 0px #00000040' : '',
                                                     border: isSelected ? '1px solid #4949491A' : '1px solid #4949491A',
                                                     borderRadius: "8px",
-
+                                                    color: isSelected ? "#FFFFFF" : "#374151"
                                                 }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                                                     setStartDate(new Date(d.fullDate));
                                                     setSelectedTimes([]);
                                                 }}
+                                                onMouseEnter={(e) => {
+                                                    if (!isSelected) {
+                                                        e.currentTarget.style.border = "1px solid #3DBE64";
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (!isSelected) {
+                                                        e.currentTarget.style.border = "1px solid #4949491A";
+                                                    }
+                                                }}
                                             >
                                                 <div className="text-center">
-                                                    <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{dayShortMap[d.day]}</div>
-                                                    <div style={{ fontSize: "26px", fontWeight: "500", fontFamily: "Poppins" }}>{d.date}</div>
-                                                    <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{d.month}</div>
+                                                    <div className="date-center-day">{dayShortMap[d.day]}</div>
+                                                    <div className="date-center-date">{d.date}</div>
+                                                    <div className="date-center-day">{d.month}</div>
                                                 </div>
                                             </button>
                                         );
@@ -516,11 +520,11 @@ const Booking = ({ className = "" }) => {
                                 </button>
                             </div>
                         </div>
-                        <div className="d-flex justify-content-between align-items-center py-4">
+                        <div className="d-lg-flex text-center justify-content-between align-items-center py-4">
                             <p className="mb-0" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
                                 Available Slots <span className="" style={{ fontWeight: "500", fontSize: "12px", fontFamily: "Poppins" }}>(60m)</span>
                             </p>
-                            <div className="form-switch d-flex align-items-center gap-2 p-0">
+                            <div className="form-switch d-flex justify-content-center align-items-center gap-2 p-0">
                                 <label
                                     className="form-check-label mb-0"
                                     htmlFor="flexSwitchCheckDefault"
@@ -537,14 +541,13 @@ const Booking = ({ className = "" }) => {
                                     onChange={handleSwitchChange}
                                     style={{ boxShadow: "none" }}
                                 />
-
                             </div>
                         </div>
                         {slotLoading ? (
                             <DataLoading height={"20vh"} />
                         ) : (
                             <>
-                                <div className="d-flex flex-wrap  mb-4">
+                                <div className="d-flex flex-wrap mb-4">
                                     {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
                                         (() => {
                                             const selectedDateObj = new Date(selectedDate?.fullDate);
@@ -560,8 +563,15 @@ const Booking = ({ className = "" }) => {
                                                 slotDate.setHours(hour, 0, 0, 0);
                                                 const isPast = isToday && slotDate.getTime() < now.getTime();
                                                 const isBooked = slot?.status === "booked";
-                                                return showUnavailable ? (isPast || isBooked) : true;
+                                                const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
+                                                const currentCourt = selectedCourts.find(c => c._id === currentCourtId);
+                                                const currentSlots = currentCourt ? currentCourt.time.length : 0;
+                                                const isLimitReached = currentSlots >= 15 && !selectedTimes.some(t => t._id === slot._id);
+                                                return showUnavailable
+                                                    ? (isPast || isBooked || !hasAmount || isLimitReached)
+                                                    : (!isPast && !isBooked && hasAmount && !isLimitReached);
                                             });
+
                                             return filteredSlots.length > 0 ? (
                                                 filteredSlots.map((slot, i) => {
                                                     const [hourString, period] = slot?.time?.toLowerCase().split(" ");
@@ -576,7 +586,7 @@ const Booking = ({ className = "" }) => {
                                                     const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
                                                     const currentCourt = selectedCourts.find(c => c._id === currentCourtId);
                                                     const currentSlots = currentCourt ? currentCourt.time.length : 0;
-                                                    const isLimitReached = currentSlots === 15 && !isSelected;
+                                                    const isLimitReached = currentSlots >= 15 && !isSelected;
 
                                                     return (
                                                         <button
@@ -597,11 +607,23 @@ const Booking = ({ className = "" }) => {
                                                                                     : "#FAFBFF",
                                                                 color: isSelected
                                                                     ? "white"
-                                                                    : isPast || hasAmount || isBooked
+                                                                    : isPast || isBooked || !hasAmount || isLimitReached
                                                                         ? "#888888"
                                                                         : "#000000",
                                                                 cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
                                                                 opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
+                                                                border: showUnavailable ? "2px solid #CBD6FF1A" : "2px solid #CBD6FF1A",
+                                                                transition: "border-color 0.2s ease",
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                if (!showUnavailable && !isPast && !isBooked && hasAmount && !isLimitReached) {
+                                                                    e.currentTarget.style.border = "1px solid #3DBE64";
+                                                                }
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                if (!showUnavailable && !isPast && !isBooked && hasAmount && !isLimitReached) {
+                                                                    e.currentTarget.style.border = "1px solid #CBD6FF1A";
+                                                                }
                                                             }}
                                                         >
                                                             {formatTime(slot?.time)}
@@ -610,22 +632,21 @@ const Booking = ({ className = "" }) => {
                                                 })
                                             ) : (
                                                 <div className="text-center">
-                                                    <p className=" text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: '500',color:"#d02727" }}>No slots unavailable for this date.</p>
+                                                    <p className="text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: '500', color: "#d02727" }}>
+                                                        {showUnavailable ? "No unavailable slots for this date." : "No available slots for this date."}
+                                                    </p>
                                                 </div>
                                             );
                                         })()
                                     ) : (
                                         <div className="text-center">
-                                            <p className=" text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: '500',color:"#d02727" }}>No slots unavailable for this date.</p>
+                                            <p className="text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: '500', color: "#d02727" }}>
+                                                {showUnavailable ? "No unavailable slots for this date." : "No available slots for this date."}
+                                            </p>
                                         </div>
                                     )}
-                                    {errorShow && (
-                                        <div className="text-danger text-center   position-absolute" style={{ fontSize: "14px", bottom: "45%", fontFamily: "Poppins", fontWeight: "500" }}>
-                                            <p>{errorMessage}</p>
-                                        </div>
-                                    )}
-                                </div>
 
+                                </div>
                             </>
                         )}
                         <div>
@@ -666,7 +687,6 @@ const Booking = ({ className = "" }) => {
                                                 <div className="modal-body p-0 mt-4">
                                                     {Array.isArray(slotData?.data[0]?.courts) &&
                                                         slotData?.data[0]?.courts?.length === 4 ? (
-                                                        // Custom Layout for 4 courts
                                                         <div className="row g-2">
                                                             <div className="col-3">
                                                                 <div className="border rounded-3 d-flex align-items-center justify-content-center" style={{ height: "160px" }}>
@@ -688,7 +708,6 @@ const Booking = ({ className = "" }) => {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        // Fallback for other counts
                                                         <div className="row g-2">
                                                             {slotData?.data[0]?.courts?.map((court, index) => (
                                                                 <div className="col-6" key={court._id || index}>
@@ -703,26 +722,36 @@ const Booking = ({ className = "" }) => {
                                                         </div>
                                                     )}
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div className="mb-4">
-                                {slotData?.data?.length > 0 &&
-                                    slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                                {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
                                     slotData.data[0]?.courts?.map((court) => (
                                         <div
                                             key={court?._id}
                                             onClick={() => handleCourtSelect(court)}
-                                            style={{ cursor: "pointer" }}
-                                            className={`d-flex ps-3 pe-3 justify-content-between align-items-center border-bottom py-3  px-2 ${court._id === currentCourtId ? "bg-success-subtle rounded" : "bg-white"}`}
+                                            style={{
+                                                cursor: "pointer",
+                                                backgroundColor: court._id === currentCourtId ? "#F1F4FF" : "white",
+                                                borderBottom: "1px solid #e5e7eb",
+                                                transition: "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
+                                            }}
+                                            className={`d-flex ps-3 pe-3 justify-content-between align-items-center py-3 px-2 ${court._id === currentCourtId ? "rounded" : ""}`}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = "#F1F4FF";
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = court._id === currentCourtId ? "#F1F4FF" : "white";
+                                                e.currentTarget.style.borderBottom = "1px solid #e5e7eb";
+                                            }}
                                         >
                                             <div className="d-flex align-items-center gap-3">
                                                 <img
-                                                    src='https://www.brookstreet.co.uk/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBMEZCVXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--4accdb1f96a306357a7fdeec518b142d3d50f1f2/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJYW5CbkJqb0dSVlE2QzNKbGMybDZaVWtpRFRnd01IZzJOVEE4QmpzR1ZBPT0iLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--bcd925903d97179ca0141ad2735607ce8eed3d71/bs_court-ushers_800.jpg'
-                                                    alt={court.name}
+                                                    src="https://www.brookstreet.co.uk/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBMEZCVXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--4accdb1f96a306357a7fdeec518b142d3d50f1f2/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJYW5CbkJqb0dSVlE2QzNKbGMybDZaVWtpRFRnd01IZzJOVEE4QmpzR1ZBPT0iLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--bcd925903d97179ca0141ad2735607ce8eed3d71/bs_court-ushers_800.jpg"
+                                                    alt={court.courtName}
                                                     style={{
                                                         width: "45px",
                                                         height: "45px",
@@ -735,16 +764,15 @@ const Booking = ({ className = "" }) => {
                                                     <small className="text-muted">{court.type}</small>
                                                 </div>
                                             </div>
-                                            <div className="d-flex align-items-center justify-content-center gap-4">
+                                            <div className="d-flex align-items-center justify-content-end gap-4">
                                                 <p className="custom-title mb-0" style={{ fontWeight: "500" }}>₹ 1000</p>
                                                 <button
-                                                    className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center"
-                                                    style={{ width: "32px", height: "32px" }}
+                                                    className="btn rounded-circle cart-booking-btn d-flex align-items-center justify-content-center"
+                                                    style={{ padding: "0", backgroundColor: "#1F41BB", flexShrink: 0 }}
                                                 >
                                                     <FiShoppingCart size={17} color="white" />
                                                 </button>
                                             </div>
-
                                         </div>
                                     ))
                                 ) : (
@@ -752,9 +780,8 @@ const Booking = ({ className = "" }) => {
                                 )}
                             </div>
                         </div>
-
                     </div>
-                    <div className="col-5 ps-4">
+                    <div className="col-lg-5 col-12 ps-lg-4 ps-0 mt-4 mt-lg-0">
                         <div className="border w-100 rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                             <div className="text-center mb-3">
                                 <div className="d-flex justify-content-center">
@@ -771,16 +798,14 @@ const Booking = ({ className = "" }) => {
                                                 width: "112px",
                                                 fontSize: "30px",
                                                 boxShadow: '0px 4px 11.4px 0px #0000002E'
-
                                             }}
                                         >
                                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                                         </Avatar>
                                     )}
                                 </div>
-
                                 <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                                <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                     {clubData?.clubName}
                                     {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                     {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
@@ -800,16 +825,16 @@ const Booking = ({ className = "" }) => {
                                                             <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
                                                                 {court?.day ? dayShortMap[court?.day] : ""},
                                                             </span>
-                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
+                                                            <span className="" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
                                                                 {(() => {
                                                                     if (!court?.date) return "";
                                                                     const date = new Date(court.date);
                                                                     const day = date.toLocaleString("en-US", { day: "2-digit" });
                                                                     const month = date.toLocaleString("en-US", { month: "short" });
-                                                                    return `${day} ${month}`;
+                                                                    return `${day} ${month} `;
                                                                 })()}
                                                             </span>
-                                                            <span className="ps-" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
+                                                            <span className="ps-2" style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
                                                                 {timeSlot?.time} (60m)
                                                             </span>
                                                             <span className="ps-2" style={{ fontWeight: "500", fontFamily: 'Poppins', fontSize: "15px", color: "#374151" }}>
@@ -818,13 +843,13 @@ const Booking = ({ className = "" }) => {
                                                         </div>
                                                         <div className="d-flex align-items-center" style={{ color: "#1A237E" }}>
                                                             ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: 'Poppins' }}>
-                                                                {timeSlot?.amount || 2000}
+                                                                {timeSlot?.amount || 'N/A'}
                                                             </span>
                                                             <button
-                                                                className="btn btn-sm  text-danger delete-btn "
+                                                                className="btn btn-sm text-danger delete-btn"
                                                                 onClick={() => handleDeleteSlot(index, timeIndex)}
                                                             >
-                                                                <i className="bi bi-trash-fill mb-2 "></i>
+                                                                <i className="bi bi-trash-fill mb-2"></i>
                                                             </button>
                                                         </div>
                                                     </div>
@@ -833,13 +858,15 @@ const Booking = ({ className = "" }) => {
                                         </>
                                     ))
                                 ) : (
-                                    <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: "25vh" }}>
-                                        <p className="" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: '500',color:"#d02727" }}>
+                                    <div className="d-flex flex-column justify-content-center align-items-center text-muted" style={{ height: "25vh" }}>
+                                        <p className="" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: '500', color: "#d02727" }}>
                                             No slot selected
                                         </p>
+                                        {errorShow && (
+                                            <p className="text-danger text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>{errorMessage}</p>
+                                        )}
                                     </div>
                                 )}
-
                             </div>
                             {totalSlots > 0 && (
                                 <div className="border-top pt-3 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
@@ -899,7 +926,7 @@ const Booking = ({ className = "" }) => {
                                             <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                         </g>
                                     </svg>
-                                    <div style={contentStyle} >Book Now</div>
+                                    <div style={contentStyle}>Book Now</div>
                                 </button>
                             </div>
                         </div>
@@ -907,7 +934,6 @@ const Booking = ({ className = "" }) => {
                 </div>
             </div>
             <TokenExpire isTokenExpired={expireModal} />
-
         </>
     );
 };

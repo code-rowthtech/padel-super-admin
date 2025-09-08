@@ -162,9 +162,9 @@ const Payments = () => {
         ))}
       </Row>
       <Row className="mb-3">
-        <Col md={12}>
-          <div className="d-flex justify-content-between align-items-center">
-            <Box sx={{ bgcolor: "white" }}>
+        <Col xs={12}>
+          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
+            <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto" } }}>
               <AppBar
                 position="static"
                 color="default"
@@ -176,6 +176,13 @@ const Payments = () => {
                   onChange={handleTabChange}
                   indicatorColor="primary"
                   textColor="primary"
+                  variant="fullWidth"
+                  sx={{
+                    "& .MuiTab-root": {
+                      fontSize: { xs: "13px", sm: "14px", lg: "15px" },
+                      minWidth: { xs: "100px", sm: "120px" }
+                    }
+                  }}
                 >
                   <Tab className="fw-medium table-data" label="Recent" />
                   <Tab className="fw-medium table-data" label="Refund" />
@@ -184,35 +191,39 @@ const Payments = () => {
             </Box>
 
             <div className="d-flex align-items-center gap-2">
-              <span className="fw-semibold">From</span>
-              <DatePicker
-                selected={startDate}
-                onChange={(date) => {
-                  setStartDate(date);
-                  if (!date) setEndDate(null);
-                }}
-                selectsStart
-                startDate={startDate}
-                endDate={endDate}
-                customInput={<DateButton />}
-              />
-
-              <span className="fw-semibold">To</span>
-              <DatePicker
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                selectsEnd
-                startDate={startDate}
-                endDate={endDate}
-                minDate={startDate}
-                customInput={<DateButton />}
-              />
+              <div className="d-flex align-items-center gap-1">
+                <span className="fw-semibold small">From</span>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => {
+                    setStartDate(date);
+                    if (!date) setEndDate(null);
+                  }}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  customInput={<DateButton />}
+                />
+              </div>
+              <div className="d-flex align-items-center gap-1">
+                <span className="fw-semibold small">To</span>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate}
+                  customInput={<DateButton />}
+                />
+              </div>
               {sendDate && (
                 <i
                   className="bi bi-x-square-fill text-danger"
                   onClick={() => {
                     setStartDate(null, setEndDate(null));
                   }}
+                  style={{ cursor: "pointer" }}
                 ></i>
               )}
             </div>
@@ -232,90 +243,151 @@ const Payments = () => {
             ) : (
               <>
                 {payments?.length > 0 ? (
-                  <div className="custom-scroll-container">
-                    <Table
-                      responsive
-                      borderless
-                      size="sm"
-                      className="custom-table"
-                    >
-                      <thead>
-                        <tr>
-                          <th>User Name</th>
-                          <th>Contact</th>
-                          <th>Date</th>
-                          <th>Payment Method</th>
-                          {/* <th>Slot</th> */}
-                          {/* <th>Court No</th> */}
-                          <th>Amount</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {payments?.map((item, index) => (
-                          <tr
-                            key={item?._id}
-                            className="table-data border-bottom"
-                          >
-                            <td>
-                              {item?.userId?.name
-                                ? item.userId.name.charAt(0).toUpperCase() +
-                                  item.userId.name.slice(1)
-                                : "N/A"}
-                            </td>
-                            <td>
-                              {item?.userId?.countryCode || ""}{" "}
-                              {item?.userId?.phoneNumber || "N/A"}
-                            </td>
-                            <td>
-                              <div
-                                style={{
-                                  display: "inline-grid", // shrink to content
-                                  gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
-                                  textAlign: "left", // keep text aligned from start
-                                }}
-                              >
-                                <span className="fw-medium text-nowrap">
-                                  {formatDate(item?.bookingDate)}
-                                </span>
-                                <span className="text-muted ms-1">
-                                  |{" "}
-                                  {formatTime(
-                                    renderSlotTimes(item?.slot?.[0]?.slotTimes)
-                                  )}{" "}
-                                </span>
-                              </div>
-                            </td>
-                            <td>
-                              {item?.bookingType
-                                ?.slice(0, 1)
-                                ?.toUpperCase()
-                                ?.concat(item?.bookingType?.slice(1)) || "-"}
-                            </td>
-                            {/* <td>
-                              {item?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-                              {renderSlotTimes(item?.slot?.[0]?.slotTimes)}
-                            </td> */}
-                            {/* <td >
-                              {item?.slot?.[0]?.courtName || "-"}
-                            </td> */}
-                            <td>₹{item?.totalAmount}</td>
-
-                            <td
-                              style={{ cursor: "pointer" }}
-                              onClick={() => handlePaymentDetails(item?._id)}
-                            >
-                              {loadingPaymentId === item?._id ? (
-                                <ButtonLoading color="blue" size={7} />
-                              ) : (
-                                <FaEye className="text-primary" />
-                              )}
-                            </td>
+                  <>
+                    {/* Desktop Table */}
+                    <div className="custom-scroll-container d-none d-md-block">
+                      <Table
+                        responsive
+                        borderless
+                        size="sm"
+                        className="custom-table"
+                      >
+                        <thead>
+                          <tr>
+                            <th>User Name</th>
+                            <th>Contact</th>
+                            <th>Date</th>
+                            <th>Payment Method</th>
+                            <th>Amount</th>
+                            <th>Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {payments?.map((item, index) => (
+                            <tr
+                              key={item?._id}
+                              className="table-data border-bottom"
+                            >
+                              <td>
+                                {item?.userId?.name
+                                  ? item.userId.name.charAt(0).toUpperCase() +
+                                    item.userId.name.slice(1)
+                                  : "N/A"}
+                              </td>
+                              <td>
+                                {item?.userId?.countryCode || ""}{" "}
+                                {item?.userId?.phoneNumber || "N/A"}
+                              </td>
+                              <td>
+                                <div
+                                  style={{
+                                    display: "inline-grid",
+                                    gridTemplateColumns: "140px auto",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  <span className="fw-medium text-nowrap">
+                                    {formatDate(item?.bookingDate)}
+                                  </span>
+                                  <span className="text-muted ms-1">
+                                    |{" "}
+                                    {formatTime(
+                                      renderSlotTimes(item?.slot?.[0]?.slotTimes)
+                                    )}{" "}
+                                  </span>
+                                </div>
+                              </td>
+                              <td>
+                                {item?.bookingType
+                                  ?.slice(0, 1)
+                                  ?.toUpperCase()
+                                  ?.concat(item?.bookingType?.slice(1)) || "-"}
+                              </td>
+                              <td>₹{item?.totalAmount}</td>
+                              <td
+                                style={{ cursor: "pointer" }}
+                                onClick={() => handlePaymentDetails(item?._id)}
+                              >
+                                {loadingPaymentId === item?._id ? (
+                                  <ButtonLoading color="blue" size={7} />
+                                ) : (
+                                  <FaEye className="text-primary" />
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </div>
+                    
+                    {/* Mobile Card Layout */}
+                    <div className="mobile-card-table d-block d-md-none">
+                      {payments?.map((item) => (
+                        <div key={item?._id} className="card">
+                          <div className="card-body">
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">User:</span>
+                              <span className="mobile-card-value">
+                                {item?.userId?.name
+                                  ? item.userId.name.charAt(0).toUpperCase() +
+                                    item.userId.name.slice(1)
+                                  : "N/A"}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Contact:</span>
+                              <span className="mobile-card-value">
+                                {item?.userId?.countryCode || ""}{" "}
+                                {item?.userId?.phoneNumber || "N/A"}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Date:</span>
+                              <span className="mobile-card-value">
+                                {formatDate(item?.bookingDate)}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Time:</span>
+                              <span className="mobile-card-value">
+                                {formatTime(
+                                  renderSlotTimes(item?.slot?.[0]?.slotTimes)
+                                )}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Method:</span>
+                              <span className="mobile-card-value">
+                                {item?.bookingType
+                                  ?.slice(0, 1)
+                                  ?.toUpperCase()
+                                  ?.concat(item?.bookingType?.slice(1)) || "-"}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Amount:</span>
+                              <span className="mobile-card-value">₹{item?.totalAmount}</span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Action:</span>
+                              <div className="mobile-card-value">
+                                {loadingPaymentId === item?._id ? (
+                                  <ButtonLoading color="blue" size={7} />
+                                ) : (
+                                  <FaEye
+                                    className="text-primary"
+                                    onClick={() => handlePaymentDetails(item?._id)}
+                                    size={18}
+                                    style={{ cursor: "pointer" }}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 ) : (
                   <div
                     className="d-flex text-danger justify-content-center align-items-center"

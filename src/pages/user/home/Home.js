@@ -110,7 +110,7 @@ const Home = () => {
                     <div className="row g-4">
 
                         {/* Left Large Card */}
-                        <div className="col-lg-7 ps-0">
+                        <div className="col-lg-7 ps-md-0">
                             <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{ height: '100%' }}>
                                 <img src={twoball} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover rounded-3" />
                                 <div
@@ -222,7 +222,7 @@ const Home = () => {
 
                         </div>
                         {/* Tab Buttons */}
-                        <div className="d-flex gap-4 mt-5  mb-1 flex-wrap">
+                        <div className="d-flex gap-2 gap-md-4 mt-5 mb-1 justify-content-between justify-content-md-start">
                             {/* Direction */}
                             <div
                                 onClick={() => setActiveTab('direction')}

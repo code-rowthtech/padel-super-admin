@@ -18,7 +18,7 @@ import { IoTennisballOutline } from "react-icons/io5";
 import { getLogo, createLogo, updateLogo } from "../../../redux/thunks";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { DataLoading } from "../../../helpers/loading/Loaders";
-const AdminSidebar = () => {
+const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,6 +28,8 @@ const AdminSidebar = () => {
   // Tracks active status of dropdown based on location
   const [isBookingOpen, setBookingOpen] = useState(false);
   const [clubLogo, setClubLogo] = useState(null);
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
   const bookingPaths = ["/admin/booking", "/admin/cancellation"];
 
   useEffect(() => {
@@ -80,18 +82,33 @@ const AdminSidebar = () => {
   useEffect(() => {
     setClubLogo(getLogoData?.logo?.logo?.[0]);
   }, [getLogoData?.logo?._id]);
+  const handleNavigation = (path) => {
+    navigate(path);
+    if (window.innerWidth <= 768) {
+      onClose();
+    }
+  };
+
   return (
     <aside
-      className=" text-white vh-100 d-flex flex-column"
-      style={{ width: "250px", backgroundColor: "#1C2434" }}
+      className={`admin-sidebar text-white vh-100 d-flex flex-column ${
+        isOpen ? "mobile-open" : ""
+      } ${isCollapsed ? "collapsed" : ""}`}
+      style={{
+        width: isCollapsed ? "70px" : "250px",
+        backgroundColor: "#1C2434",
+      }}
     >
       <div
         className="d-flex align-items-center justify-content-center mb-2 pb-2"
         style={{ marginTop: "10px" }}
       >
-        <div className="position-relative me-3">
+        <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
           {getLogoLoading ? (
-            <DataLoading height="100px" color="white" />
+            <DataLoading
+              height={isCollapsed ? "40px" : "100px"}
+              color="white"
+            />
           ) : (
             <>
               {clubLogo ? (
@@ -101,28 +118,39 @@ const AdminSidebar = () => {
                   className="rounded-circle "
                   loading="lazy"
                   style={{
-                    width: "100px",
-                    height: "100px",
+                    width: isCollapsed
+                      ? "60px"
+                      : window.innerWidth <= 768
+                      ? "90px"
+                      : "110px",
+                    height: isCollapsed
+                      ? "60px"
+                      : window.innerWidth <= 768
+                      ? "90px"
+                      : "110px",
                     objectFit: "cover",
+                    cursor: "pointer",
                   }}
-                  onClick={() => {
-                    navigate("/admin/dashboard");
-                  }}
+                  onClick={() => handleNavigation("/admin/dashboard")}
                 />
               ) : (
                 <div className="bg-secondary rounded-circle p-2">
-                  <IoTennisballOutline size={80} />
+                  <IoTennisballOutline
+                    size={
+                      isCollapsed ? 24 : window.innerWidth <= 768 ? 110 : 80
+                    }
+                  />
                 </div>
               )}
             </>
           )}
-          {!getLogoLoading && (
+          {!getLogoLoading && (!isCollapsed || window.innerWidth <= 768) && (
             <label
               htmlFor="clubLogoUpload"
               className="position-absolute bottom-0 end-0 rounded-circle p-0"
               style={{
-                width: "25px",
-                height: "25px",
+                width: window.innerWidth <= 768 ? "30px" : "25px",
+                height: window.innerWidth <= 768 ? "30px" : "25px",
                 backgroundColor: "#565758",
                 opacity: 0.8,
                 display: "flex",
@@ -131,7 +159,12 @@ const AdminSidebar = () => {
                 cursor: "pointer",
               }}
             >
-              <FaEdit style={{ color: "white", fontSize: "14px" }} />
+              <FaEdit
+                style={{
+                  color: "white",
+                  fontSize: window.innerWidth <= 768 ? "16px" : "14px",
+                }}
+              />
             </label>
           )}
         </div>
@@ -145,38 +178,176 @@ const AdminSidebar = () => {
       </div>
 
       <nav className="flex-grow-1 mt-2">
-        <p className="px-4 py-0 mb-1" style={{ color: "#8A99AF" }}>
-          MENU
-        </p>
-        <NavLink
-          to="/admin/dashboard"
-          className={linkClasses}
-          style={({ isActive }) => ({
-            backgroundColor: isActive ? "#333B48" : "transparent",
-            fontWeight: "600",
-          })}
+        {!isCollapsed && (
+          <p className="px-4 py-0 mb-1" style={{ color: "#8A99AF" }}>
+            MENU
+          </p>
+        )}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed &&
+            window.innerWidth > 768 &&
+            setHoveredItem("dashboard")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
         >
-          <FaTachometerAlt className="me-4" />
-          Dashboard
-        </NavLink>
-
-        <button
-          onClick={() => setBookingOpen((prev) => !prev)}
-          className={`btn w-75  d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2 ${
-            isDropdownActive ? "#333B48" : "bg-transparent"
-          }`}
-        >
-          <div
-            className="d-flex align-items-center w-100"
-            style={{ fontWeight: "600" }}
+          <NavLink
+            to="/admin/dashboard"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "#333B48" : "transparent",
+              fontWeight: "600",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
           >
-            <FaCalendarAlt className="me-4" />
-            Booking
-          </div>
-          {isBookingOpen ? <FaChevronUp /> : <FaChevronDown />}
-        </button>
+            <FaTachometerAlt
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Dashboard"}
+          </NavLink>
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "dashboard" && (
+              <div
+                className="position-absolute bg-dark text-white px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "14px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Dashboard
+              </div>
+            )}
+        </div>
 
-        {isBookingOpen && (
+        <div
+          className="position-relative"
+          onMouseEnter={() => {
+            if (isCollapsed && window.innerWidth > 768) {
+              setHoveredItem("booking");
+              setShowDropdown(true);
+            }
+          }}
+          onMouseLeave={() => {
+            setHoveredItem(null);
+            if (isCollapsed && window.innerWidth > 768) setShowDropdown(false);
+          }}
+        >
+          <button
+            onClick={() => {
+              if (!isCollapsed || window.innerWidth <= 768) {
+                setBookingOpen((prev) => !prev);
+              }
+            }}
+            className={`btn ${
+              isCollapsed && window.innerWidth > 768
+                ? "w-auto d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2"
+                : "w-75 d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2"
+            } ${isDropdownActive ? "#333B48" : "bg-transparent"}`}
+            style={{
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            }}
+          >
+            <div
+              className={`d-flex align-items-center ${
+                isCollapsed && window.innerWidth > 768 ? "" : "w-100"
+              }`}
+              style={{ fontWeight: "600" }}
+            >
+              <FaCalendarAlt
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "Booking"}
+            </div>
+            {(!isCollapsed || window.innerWidth <= 768) &&
+              (isBookingOpen ? <FaChevronUp /> : <FaChevronDown />)}
+          </button>
+
+          {/* Desktop Collapsed Hover Dropdown */}
+          {isCollapsed && window.innerWidth > 768 && showDropdown && (
+            <div
+              className="position-absolute"
+              style={{
+                left: "60px",
+                top: "0",
+                zIndex: 1100,
+                backgroundColor: "#2D3748",
+                borderRadius: "8px",
+                padding: "8px",
+                minWidth: "150px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              }}
+              onMouseEnter={() => setShowDropdown(true)}
+              onMouseLeave={() => setShowDropdown(false)}
+            >
+              <NavLink
+                to="/admin/booking"
+                className="d-block px-3 py-2 text-white text-decoration-none rounded"
+                style={({ isActive }) => ({
+                  backgroundColor: isActiveLink ? "#333B48" : "transparent",
+                  fontWeight: "600",
+                  transition: "background-color 0.2s",
+                })}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#4A5568")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = isActiveLink
+                    ? "#333B48"
+                    : "transparent")
+                }
+                onClick={() => {
+                  setShowDropdown(false);
+                  window.innerWidth <= 768 && onClose();
+                }}
+              >
+                Bookings
+              </NavLink>
+              <NavLink
+                to="/admin/cancellation"
+                className="d-block px-3 py-2 text-white text-decoration-none rounded"
+                style={({ isActive }) => ({
+                  backgroundColor: isActive ? "#333B48" : "transparent",
+                  fontWeight: "600",
+                  transition: "background-color 0.2s",
+                })}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#4A5568")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor =
+                    location.pathname === "/admin/cancellation"
+                      ? "#333B48"
+                      : "transparent")
+                }
+                onClick={() => {
+                  setShowDropdown(false);
+                  window.innerWidth <= 768 && onClose();
+                }}
+              >
+                Cancellation
+              </NavLink>
+            </div>
+          )}
+        </div>
+
+        {isBookingOpen && (!isCollapsed || window.innerWidth <= 768) && (
           <div className="ms-4 d-flex flex-column me-2">
             <NavLink
               to="/admin/booking"
@@ -195,6 +366,7 @@ const AdminSidebar = () => {
                     }
                   : {}
               }
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
               Bookings
             </NavLink>
@@ -216,45 +388,120 @@ const AdminSidebar = () => {
                     }
                   : {}
               }
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
               Cancellation
             </NavLink>
           </div>
         )}
 
-        <NavLink
-          to="/admin/open-matches"
-          className={({ isActive }) =>
-            `d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2 cursor-pointer ${
-              isActive || location.pathname === "/admin/create-match"
-                ? "active-parent-link"
-                : ""
-            }`
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("matches")
           }
-          style={() => ({
-            backgroundColor:
-              location.pathname === "/admin/open-matches" ||
-              location.pathname === "/admin/create-match"
-                ? "#333B48"
-                : "transparent",
-            fontWeight: "600",
-          })}
+          onMouseLeave={() => setHoveredItem(null)}
         >
-          <LuSwords className="me-4" />
-          Open Matches
-        </NavLink>
+          <NavLink
+            to="/admin/open-matches"
+            className={({ isActive }) =>
+              `d-flex align-items-center ${
+                isCollapsed && window.innerWidth > 768
+                  ? "justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2"
+                  : "px-4 py-2 text-white text-decoration-none mx-3 rounded-2"
+              } cursor-pointer ${
+                isActive || location.pathname === "/admin/create-match"
+                  ? "active-parent-link"
+                  : ""
+              }`
+            }
+            style={() => ({
+              backgroundColor:
+                location.pathname === "/admin/open-matches" ||
+                location.pathname === "/admin/create-match"
+                  ? "#333B48"
+                  : "transparent",
+              fontWeight: "600",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <LuSwords
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Open Matches"}
+          </NavLink>
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "matches" && (
+              <div
+                className="position-absolute bg-dark text-white px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "14px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Open Matches
+              </div>
+            )}
+        </div>
 
-        <NavLink
-          to="/admin/americano"
-          className={linkClasses}
-          style={({ isActive }) => ({
-            backgroundColor: isActive ? "#333B48" : "transparent",
-            fontWeight: "600",
-          })}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed &&
+            window.innerWidth > 768 &&
+            setHoveredItem("americano")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
         >
-          <FaRankingStar className="me-4" />
-          Americano
-        </NavLink>
+          <NavLink
+            to="/admin/americano"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "#333B48" : "transparent",
+              fontWeight: "600",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <FaRankingStar
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Americano"}
+          </NavLink>
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "americano" && (
+              <div
+                className="position-absolute bg-dark text-white px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "14px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Americano
+              </div>
+            )}
+        </div>
 
         {/* <NavLink
           to="/admin/packages"
@@ -267,63 +514,209 @@ const AdminSidebar = () => {
           <LiaFileInvoiceDollarSolid className="me-4" />
           Packages
         </NavLink> */}
-        <NavLink
-          to="/admin/packages"
-          className={({ isActive }) =>
-            `d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2 cursor-pointer ${
-              isActive || location.pathname === "/admin/package-details"
-                ? "active-parent-link"
-                : ""
-            }`
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("packages")
           }
-          style={() => ({
-            backgroundColor:
-              location.pathname === "/admin/packages" ||
-              location.pathname === "/admin/package-details"
-                ? "#333B48"
-                : "transparent",
-            fontWeight: "600",
-          })}
+          onMouseLeave={() => setHoveredItem(null)}
         >
-          <LiaFileInvoiceDollarSolid className="me-4" />
-          Packages
-        </NavLink>
+          <NavLink
+            to="/admin/packages"
+            className={({ isActive }) =>
+              `d-flex align-items-center ${
+                isCollapsed && window.innerWidth > 768
+                  ? "justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2"
+                  : "px-4 py-2 text-white text-decoration-none mx-3 rounded-2"
+              } cursor-pointer ${
+                isActive || location.pathname === "/admin/package-details"
+                  ? "active-parent-link"
+                  : ""
+              }`
+            }
+            style={() => ({
+              backgroundColor:
+                location.pathname === "/admin/packages" ||
+                location.pathname === "/admin/package-details"
+                  ? "#333B48"
+                  : "transparent",
+              fontWeight: "600",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <LiaFileInvoiceDollarSolid
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Packages"}
+          </NavLink>
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "packages" && (
+              <div
+                className="position-absolute bg-dark text-white px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "14px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Packages
+              </div>
+            )}
+        </div>
 
-        <NavLink
-          to="/admin/users"
-          className={linkClasses}
-          style={({ isActive }) => ({
-            backgroundColor: isActive ? "#333B48" : "transparent",
-            fontWeight: "600",
-          })}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("users")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
         >
-          <FaUsersCog className="me-4" />
-          Users
-        </NavLink>
-        <NavLink
-          to="/admin/payments"
-          className={linkClasses}
-          style={({ isActive }) => ({
-            backgroundColor: isActive ? "#333B48" : "transparent",
-            fontWeight: "600",
-          })}
+          <NavLink
+            to="/admin/users"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "#333B48" : "transparent",
+              fontWeight: "600",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <FaUsersCog
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Users"}
+          </NavLink>
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "users" && (
+              <div
+                className="position-absolute bg-dark text-white px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "14px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Users
+              </div>
+            )}
+        </div>
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("payments")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
         >
-          <RiWallet3Line className="me-4" />
-          Payment
-        </NavLink>
+          <NavLink
+            to="/admin/payments"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "#333B48" : "transparent",
+              fontWeight: "600",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <RiWallet3Line
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Payment"}
+          </NavLink>
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "payments" && (
+              <div
+                className="position-absolute bg-dark text-white px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "14px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Payment
+              </div>
+            )}
+        </div>
 
-        <NavLink
-          to="/admin/login"
-          className={linkClasses}
-          style={({ isActive }) => ({
-            backgroundColor: isActive ? "#333B48" : "transparent",
-            fontWeight: "600",
-          })}
-          onClick={() => dispatch(logout())}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("logout")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
         >
-          <RiLogoutCircleLine className="me-4" />
-          Log out
-        </NavLink>
+          <NavLink
+            to="/admin/login"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "#333B48" : "transparent",
+              fontWeight: "600",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => {
+              dispatch(logout());
+              window.innerWidth <= 768 && onClose();
+            }}
+          >
+            <RiLogoutCircleLine
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Log out"}
+          </NavLink>
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "logout" && (
+              <div
+                className="position-absolute bg-dark text-white px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "14px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Log out
+              </div>
+            )}
+        </div>
       </nav>
     </aside>
   );

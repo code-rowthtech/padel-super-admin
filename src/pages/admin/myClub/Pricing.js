@@ -211,31 +211,34 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
         id={`day-${day}`}
         className="mb-3 d-flex justify-content-between align-items-center"
       >
-        {/* <Form.Label
-          id={`day-${day}`}
-          style={{
-            fontSize: "16px",
-            color: "#1F2937",
-            fontWeight: 500,
-            marginBottom: 13,
-          }}
-        >
-          {day}
-        </Form.Label> */}
-        <Form.Check.Input
-          id={`day-${day}`}
-          type="checkbox"
-          checked={!!formData.days[day]}
-          onChange={() => handleDayChange(day)}
-          style={{
-            width: "24px",
-            height: "24px",
-            borderRadius: "4px",
-            border: "2px solid #1F2937",
-            backgroundColor: formData.days[day] ? "#1F2937" : "transparent",
-            cursor: "pointer",
-          }}
-        />
+        <div className="d-flex align-items-center w-100">
+          <Form.Check.Input
+            id={`day-${day}`}
+            type="checkbox"
+            checked={!!formData.days[day]}
+            onChange={() => handleDayChange(day)}
+            style={{
+              width: "24px",
+              height: "24px",
+              borderRadius: "4px",
+              border: "2px solid #1F2937",
+              backgroundColor: formData.days[day] ? "#1F2937" : "transparent",
+              cursor: "pointer",
+            }}
+          />
+          <label
+            htmlFor={`day-${day}`}
+            className="d-block d-md-none ms-2 mb-0"
+            style={{
+              fontSize: "14px",
+              color: "#1F2937",
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            {day}
+          </label>
+        </div>
       </Form.Check>
     ));
   /** Render time slots for current slot type (Morning/Afternoon/Evening) */
@@ -563,10 +566,10 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
   return (
     <div className="py-3">
       <Row>
-        <Col md={2}>
-          <div style={containerStyle}>{renderDays()}</div>
+        <Col xs={12} md={2}>
+          <div style={containerStyle} className="mb-3 mb-md-0">{renderDays()}</div>
         </Col>
-        <Col md={8} className="position-relative">
+        <Col xs={12} md={8} className="position-relative">
           <div className="d-flex justify-content-end align-items-center">
             {/* <Form.Check
               type="checkbox"
@@ -581,7 +584,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
             /> */}
             <Form.Check
               type="checkbox"
-              className="d-flex justify-content-between align-items-center"
+              className="d-none d-md-flex justify-content-between align-items-center"
               style={{
                 position: "absolute",
                 top: "-3em",
@@ -603,8 +606,8 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                   cursor: "pointer",
                 }}
               />
-              <Form.Label
-                id="all-days"
+              <label
+                htmlFor="all-days"
                 className="mt-2 ms-2"
                 style={{
                   fontSize: "16px",
@@ -613,11 +616,72 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                 }}
               >
                 Select All
-              </Form.Label>
+              </label>
             </Form.Check>
           </div>
+          <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
+              <Form.Check
+                type="checkbox"
+                className="d-flex align-items-center"
+                id="all-days-mobile"
+              >
+                <Form.Check.Input
+                  type="checkbox"
+                  checked={selectAllChecked}
+                  id="all-days-mobile"
+                  onChange={(e) => handleSelectAllChange(e.target.checked)}
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "4px",
+                    border: "2px solid #1F2937",
+                    backgroundColor: selectAllChecked ? "#1F2937" : "transparent",
+                    cursor: "pointer",
+                  }}
+                />
+                <label
+                  htmlFor="all-days-mobile"
+                  className="ms-2 mb-0"
+                  style={{
+                    fontSize: "14px",
+                    color: "#1F2937",
+                    fontWeight: 500,
+                  }}
+                >
+                  Select All
+                </label>
+              </Form.Check>
+              
+              <Dropdown>
+                <Dropdown.Toggle
+                  variant="secondary"
+                  size="sm"
+                  style={{
+                    backgroundColor: "#F9FAFB",
+                    borderColor: "#E5E7EB",
+                    borderRadius: "8px",
+                    color: "#1F2937",
+                    fontSize: "12px"
+                  }}
+                >
+                  {formData.selectedSlots}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {["Morning", "Afternoon", "Evening"].map((slot) => (
+                    <Dropdown.Item
+                      key={slot}
+                      onClick={() => updateForm("selectedSlots", slot)}
+                      style={{ fontSize: "12px" }}
+                    >
+                      {slot} slots
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+          </div>
+            
           {!selectAllChecked && (
-            <Dropdown>
+            <Dropdown className="d-none d-md-block">
               <Dropdown.Toggle
                 variant="secondary"
                 style={{

@@ -1,14 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Container, Row, Col, Button, Card, Form, FormCheck } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
-import { FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { useDispatch, useSelector } from 'react-redux';
-import { Navigate, NavLink, useNavigate } from 'react-router-dom';
-import { getUserSlot } from '../../../redux/user/slot/thunk';
-import { ButtonLoading, DataLoading } from '../../../helpers/loading/Loaders';
-import 'react-datepicker/dist/react-datepicker.css';
-import { formatTime } from '../../../helpers/Formatting';
-import Avatar from '@mui/material/Avatar';
+import React, { useEffect, useRef, useState } from "react";
+import { Container, Row, Col, Button, Card, Form, FormCheck } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import { FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { Navigate, NavLink, useNavigate } from "react-router-dom";
+import { getUserSlot } from "../../../redux/user/slot/thunk";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import "react-datepicker/dist/react-datepicker.css";
+import { formatTime } from "../../../helpers/Formatting";
+import Avatar from "@mui/material/Avatar";
 
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -120,7 +120,7 @@ const CreateMatches = () => {
       });
       return updatedCourts;
     });
-    setSlotError(""); 
+    setSlotError("");
   };
 
   const maxSelectableDate = new Date();
@@ -145,7 +145,7 @@ const CreateMatches = () => {
           register_club_id: savedClubId,
           day: selectedDate.day,
           date: selectedDate.fullDate,
-          courtId: currentCourtId || '',
+          courtId: currentCourtId || "",
         })
       );
     }
@@ -173,35 +173,35 @@ const CreateMatches = () => {
 
   const steps = [
     {
-      question: 'On the following scale, where would you place yourself?',
-      options: ['Beginner', 'Intermediate', 'Advanced', 'Professional'],
+      question: "On the following scale, where would you place yourself?",
+      options: ["Beginner", "Intermediate", "Advanced", "Professional"],
     },
     {
-      question: 'Select the racket sport you have played before?',
-      options: ['Tennis', 'Badminton', 'Squash', 'Others'],
+      question: "Select the racket sport you have played before?",
+      options: ["Tennis", "Badminton", "Squash", "Others"],
     },
     {
-      question: 'How old are you?',
-      options: ['Between 18 and 30 years', 'Between 31 and 40 years', 'Between 41 and 50 years', 'Over 50'],
+      question: "How old are you?",
+      options: ["Between 18 and 30 years", "Between 31 and 40 years", "Between 41 and 50 years", "Over 50"],
     },
     {
-      question: 'On the volley?',
+      question: "On the volley?",
       options: [
-        'I hardly get to the net',
+        "I hardly get to the net",
         "I don't feel safe at the net, I make too many mistakes",
-        'I can volley forehand and backhand with some difficulties',
-        'I have good positioning at the net and I volley confidently',
+        "I can volley forehand and backhand with some difficulties",
+        "I have good positioning at the net and I volley confidently",
         "I don't know",
       ],
     },
     {
-      question: 'On the rebounds...',
+      question: "On the rebounds...",
       options: [
         "I don't know how to read the rebounds, I hit before it rebounds",
-        'I try, with difficulty, to hit the rebounds on the back wall',
-        'I return rebounds on the back wall, it is difficult for me to return the double wall ones',
-        'I return double-wall rebounds and reach for quick rebounds',
-        'I perform powerful wall descent shots with forehand and backhand',
+        "I try, with difficulty, to hit the rebounds on the back wall",
+        "I return rebounds on the back wall, it is difficult for me to return the double wall ones",
+        "I return double-wall rebounds and reach for quick rebounds",
+        "I perform powerful wall descent shots with forehand and backhand",
         "I don't know",
       ],
     },
@@ -220,13 +220,13 @@ const CreateMatches = () => {
         return newDetails;
       });
       setCurrentStep(currentStep + 1);
-      setSelectedLevel('');
-      setSlotError(""); 
+      setSelectedLevel("");
+      setSlotError("");
     } else if (currentStep === steps.length - 1 && selectedLevel) {
       const finalSkillDetails = [...skillDetails];
       finalSkillDetails[currentStep] = selectedLevel;
 
-      navigate('/match-payment', {
+      navigate("/match-payment", {
         state: { slotData, finalSkillDetails, selectedDate, selectedCourts },
       });
     }
@@ -235,7 +235,7 @@ const CreateMatches = () => {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      setSelectedLevel(skillDetails[currentStep - 1] || '');
+      setSelectedLevel(skillDetails[currentStep - 1] || "");
       setSlotError("");
     }
   };
@@ -250,13 +250,13 @@ const CreateMatches = () => {
   }, [slotError]);
 
   return (
-    <Container className="p-4 mb-5" style={{ minHeight: '100vh' }}>
+    <Container className="p-4 mb-5" style={{ minHeight: "100vh" }}>
       <Row>
         {/* LEFT PANEL */}
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
-          <div className="calendar-strip">
-            <div className="mb-3" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
+          <div className="calendar-strip ">
+            <div className="mb-4" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
               Select Date
               <div className="position-relative d-inline-block" ref={wrapperRef}>
                 <span
@@ -279,9 +279,7 @@ const CreateMatches = () => {
                         const formattedDate = date.toISOString().split("T")[0];
                         const day = date.toLocaleDateString("en-US", { weekday: "long" });
                         setSelectedDate({ fullDate: formattedDate, day: day });
-                        setSelectedCourts((prev) =>
-                          prev.map((court) => ({ ...court, times: [] }))
-                        );
+                        setSelectedCourts((prev) => prev.map((court) => ({ ...court, times: [] })));
                       }}
                       inline
                       maxDate={maxSelectableDate}
@@ -307,29 +305,42 @@ const CreateMatches = () => {
                 }}
               >
                 {dates?.map((d, i) => {
+                  const formatDate = (date) => {
+                    return date.toISOString().split("T")[0];
+                  };
                   const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
                   return (
                     <button
                       ref={(el) => (dateRefs.current[d.fullDate] = el)}
                       key={i}
-                      className={`calendar-day-btn rounded border ${isSelected ? "text-white" : "bg-light text-dark"}`}
+                      className={`calendar-day-btn me-1  ${isSelected ? "text-white" : "bg-light"}`}
                       style={{
-                        backgroundColor: isSelected ? "#374151" : undefined,
-                        border: "none",
-                        minWidth: "85px",
+                        backgroundColor: isSelected ? "#374151" : '#CBD6FF1A',
+                        boxShadow: isSelected ? '0px 4px 4px 0px #00000040' : '',
+                        border: isSelected ? '1px solid #4949491A' : '1px solid #4949491A',
+                        borderRadius: "8px",
+                        color: isSelected ? "#FFFFFF" : "#374151"
                       }}
                       onClick={() => {
                         setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                         setStartDate(new Date(d.fullDate));
-                        setSelectedCourts((prev) =>
-                          prev.map((court) => ({ ...court, times: [] }))
-                        );
+                        setSelectedCourts((prev) => prev.map((court) => ({ ...court, times: [] })));
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.border = "1px solid #3DBE64";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.border = "1px solid #4949491A";
+                        }
                       }}
                     >
                       <div className="text-center">
-                        <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{dayShortMap[d.day]}</div>
-                        <div style={{ fontSize: "26px", fontWeight: "500", fontFamily: "Poppins" }}>{d.date}</div>
-                        <div style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}>{d.month}</div>
+                        <div className="date-center-day">{dayShortMap[d.day]}</div>
+                        <div className="date-center-date">{d.date}</div>
+                        <div className="date-center-day">{d.month}</div>
                       </div>
                     </button>
                   );
@@ -340,30 +351,43 @@ const CreateMatches = () => {
               </button>
             </div>
           </div>
-          <div className="d-flex justify-content-between align-items-center py-2">
-            <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-              Available Slots for <span style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400" }}>{selectedCourts.find((c) => c._id === currentCourtId)?.courtName || "Selected Court"}</span>
+          <div className="d-flex justify-content-between align-items-center py-3">
+            <p className="mb-0" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+              Available Slots <span className="" style={{ fontWeight: "500", fontSize: "12px", fontFamily: "Poppins" }}>(60m)</span>
             </p>
-            <FormCheck
-              type="switch"
-              id="show-unavailable"
-              label="Show Unavailable Only"
-              checked={showUnavailableOnly}
-              onChange={(e) => setShowUnavailableOnly(e.target.checked)}
-              style={{ marginBottom: 0 }}
-            />
+            <div className="form-switch d-flex justify-content-center align-items-center gap-2 p-0">
+              <label
+                className="form-check-label mb-0"
+                htmlFor="flexSwitchCheckDefault"
+                style={{ whiteSpace: "nowrap", fontFamily: "Poppins" }}
+              >
+                Show Unavailable Slots
+              </label>
+              <input
+                className="form-check-input fs-5 ms-1 mb-1"
+                type="checkbox"
+                role="switch"
+                id="flexSwitchCheckDefault"
+                checked={showUnavailableOnly}
+                onChange={(e) => setShowUnavailableOnly(e.target.checked)}
+                style={{ boxShadow: "none" }}
+              />
+            </div>
+
           </div>
 
           {slotLoading ? (
             <DataLoading height={"30vh"} />
           ) : (
             <>
-              <div className="d-flex flex-wrap gap-2 mb-4" key={currentCourtId}>
+              <div className="d-flex flex-wrap mb-4">
                 {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
                   (() => {
                     const selectedDateObj = new Date(selectedDate?.fullDate);
                     const now = new Date();
                     const isToday = selectedDateObj.toDateString() === now.toDateString();
+                    const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
+                    const currentSlots = currentCourt ? currentCourt.times.length : 0;
 
                     const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter((slot) => {
                       const [hourString, period] = slot?.time?.toLowerCase().split(" ");
@@ -374,7 +398,13 @@ const CreateMatches = () => {
                       slotDate.setHours(hour, 0, 0, 0);
                       const isPast = isToday && slotDate.getTime() < now.getTime();
                       const isBooked = slot?.status === "booked";
-                      return showUnavailableOnly ? (isPast || isBooked) : true;
+                      const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
+                      const isLimitReached = currentSlots >= 15 && !currentCourt?.times.some((t) => t._id === slot._id);
+
+                      if (showUnavailableOnly) {
+                        return isPast || isBooked || !hasAmount || isLimitReached;
+                      }
+                      return !isPast && !isBooked && hasAmount && !isLimitReached;
                     });
 
                     return filteredSlots.length > 0 ? (
@@ -387,37 +417,30 @@ const CreateMatches = () => {
                         slotDate.setHours(hour, 0, 0, 0);
                         const isPast = isToday && slotDate.getTime() < now.getTime();
                         const isBooked = slot?.status === "booked";
-                        const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
                         const isSelected = currentCourt?.times.some((t) => t._id === slot._id);
                         const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
-                        const currentSlots = currentCourt ? currentCourt.times.length : 0;
                         const isLimitReached = currentSlots >= 15 && !isSelected;
 
                         return (
                           <button
                             key={i}
-                            className={`btn border-0 rounded-pill px-4 ${isBooked ? " bg-secondary-subtle" : isPast ? "bg-secondary-subtle" : ""}`}
+                            className={`btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2`}
                             onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
                             style={{
-                              backgroundColor: isSelected
-                                ? "#374151"
-                                : isBooked
-                                  ? "#888888"
-                                  : isLimitReached
-                                    ? "#fff7df"
-                                    : !hasAmount
-                                      ? "#fff7df"
-                                      : isPast
-                                        ? "#CBD6FF1A"
-                                        : "#FAFBFF",
-                              border: "1px solid #CBD6FF1A",
-                              color: isSelected
-                                ? "white"
-                                : isPast || hasAmount || isBooked
-                                  ? "#888888"
-                                  : "#000000",
+                              backgroundColor: isSelected ? "#374151" : isBooked ? "#CBD6FF1A" : isPast ? "#CBD6FF1A" : !hasAmount ? "#fff7df" : isLimitReached ? "#fff7df" : "#FAFBFF",
+                              color: isSelected ? "white" : isPast || isBooked || !hasAmount || isLimitReached ? "#888888" : "#000000",
                               cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
                               opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
+                              border: "2px solid #CBD6FF1A",
+                              transition: "border-color 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected && !showUnavailableOnly && !isPast && !isBooked && hasAmount && !isLimitReached) {
+                                e.currentTarget.style.border = "1px solid #3DBE64";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.border = "2px solid #CBD6FF1A";
                             }}
                           >
                             {formatTime(slot?.time)}
@@ -426,101 +449,117 @@ const CreateMatches = () => {
                       })
                     ) : (
                       <div className="text-center">
-                        <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                        <p className="text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "#d02727" }}>
+                          {showUnavailableOnly ? "No unavailable slots for this date." : "No available slots for this date."}
+                        </p>
                       </div>
                     );
                   })()
                 ) : (
                   <div className="text-center">
-                    <p className="text-danger text-center fw-medium">No slots available for this date.</p>
+                    <p className="text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "#d02727" }}>
+                      {showUnavailableOnly ? "No unavailable slots for this date." : "No available slots for this date."}
+                    </p>
                   </div>
                 )}
-
               </div>
+            </>
+          )}
 
+          <div>
+            <div className="d-flex justify-content-between align-items-center py-2">
+              <p className="mb-0" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+                Available Courts
+              </p>
               <div>
-                <div className="d-flex justify-content-between align-items-center py-2">
-                  <p className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
-                    Available Courts
-                  </p>
-                  <div>
-                    <a
-                      href="#"
-                      className="text-decoration-none d-inline-flex align-items-center"
-                      style={{ color: "#1F41BB" }}
-                      data-bs-toggle="modal"
-                      data-bs-target="#courtLayoutModal"
-                    >
-                      View Court Layout <i className="bi bi-arrow-right fs-5 ms-2"></i>
-                    </a>
-                    <div
-                      className="modal fade"
-                      id="courtLayoutModal"
-                      tabIndex="-1"
-                      aria-labelledby="courtLayoutModalLabel"
-                      aria-hidden="true"
-                    >
-                      <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content rounded-4 p-3">
-                          <div className="modal-header border-0 p-0">
-                            <div className="w-100 d-flex align-items-center justify-content-center position-relative">
-                              <h5 className="modal-title m-0" id="courtLayoutModalLabel">View Court Layout</h5>
-                              <button
-                                type="button"
-                                className="btn-close position-absolute end-0 me-2"
-                                data-bs-dismiss="modal"
-                                aria-label="Close"
-                              ></button>
-                            </div>
-                          </div>
-                          <div className="modal-body p-0 mt-4">
-                            <div className="row g-2">
-                              {Array.isArray(slotData?.data[0]?.courts) &&
-                                slotData?.data[0]?.courts?.map((court, index) => (
-                                  <div className="col-6" key={court._id || index}>
-                                    <div
-                                      className="border d-flex align-items-center justify-content-center"
-                                      style={{ height: "80px", borderWidth: "2px" }}
-                                    >
-                                      {court?.courtName}
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
+                <a
+                  href="#"
+                  className="text-decoration-none d-inline-flex align-items-center"
+                  style={{ color: "#1F41BB", fontFamily: "Poppins", fontSize: "12px", fontWeight: "500" }}
+                  data-bs-toggle="modal"
+                  data-bs-target="#courtLayoutModal"
+                >
+                  View Court Layout  <FaArrowRight className="ms-2" />
+                </a>
+                <div
+                  className="modal fade"
+                  id="courtLayoutModal"
+                  tabIndex="-1"
+                  aria-labelledby="courtLayoutModalLabel"
+                  aria-hidden="true"
+                >
+                  <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content rounded-4 p-3">
+                      <div className="modal-header border-0 p-0">
+                        <div className="w-100 d-flex align-items-center justify-content-center position-relative">
+                          <h5 className="modal-title m-0" id="courtLayoutModalLabel">View Court Layout</h5>
+                          <button
+                            type="button"
+                            className="btn-close position-absolute end-0 me-2"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                          ></button>
+                        </div>
+                      </div>
+                      <div className="modal-body p-0 mt-4">
+                        <div className="row g-2">
+                          {Array.isArray(slotData?.data[0]?.courts) &&
+                            slotData?.data[0]?.courts?.map((court, index) => (
+                              <div className="col-6" key={court._id || index}>
+                                <div
+                                  className="border d-flex align-items-center justify-content-center"
+                                  style={{ height: "80px", borderWidth: "2px" }}
+                                >
+                                  {court?.courtName}
+                                </div>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="px-3">
-                  {slotData?.data?.length > 0 &&
-                    slotData?.data[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                    slotData.data[0]?.courts?.map((court) => (
-                      <div
-                        key={court?._id}
-                        onClick={() => handleCourtSelect(court)}
-                        style={{ cursor: "pointer" }}
-                        className={`d-flex p-4 justify-content-between align-items-center border-bottom py-2 mb-1 px-2 ${court._id === currentCourtId ? "bg-success-subtle rounded" : ""
-                          }`}
-                      >
-                        <div className="d-flex align-items-center gap-3">
-                          <Avatar src='https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0=' />
-                          <div>
-                            <p className="mb-1 fw-semibold">{court?.courtName}</p>
-                            <small className="text-muted">{court?.type}</small>
-                          </div>
-                        </div>
-                        <p className="mb-0 fw-semibold">₹ 1000</p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4 text-muted">No courts available</div>
-                  )}
-                </div>
               </div>
-            </>
-          )}
+            </div>
+            <div className="">
+              {slotData?.data?.length > 0 && slotData?.data[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                slotData.data[0]?.courts?.map((court) => (
+                  <div
+                    key={court?._id}
+                    onClick={() => handleCourtSelect(court)}
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor: court._id === currentCourtId ? "#F1F4FF" : "white",
+                      borderBottom: "1px solid #e5e7eb",
+                      transition: "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
+                    }}
+                    className={`d-flex p-4 pe-3 justify-content-between align-items-center py-2 mb-1 px-2 ${court._id === currentCourtId ? "rounded" : ""}`}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#F1F4FF";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = court._id === currentCourtId ? "#F1F4FF" : "white";
+                      e.currentTarget.style.borderBottom = "1px solid #e5e7eb";
+                    }}
+                  >
+                    <div className="d-flex align-items-center gap-3">
+                      <Avatar
+                        src="https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0="
+                        alt={court.courtName}
+                      />
+                      <div className="ps-3">
+                        <p className="mb-1 fw-semibold">{court?.courtName}</p>
+                        <small className="text-muted">{court?.type}</small>
+                      </div>
+                    </div>
+                    <p className="mb-0 fw-semibold">₹ 1000</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-muted">No courts available</div>
+              )}
+            </div>
+          </div>
         </Col>
         {/* RIGHT PANEL */}
         <Col md={5}>
@@ -560,7 +599,7 @@ const CreateMatches = () => {
 
               <div className="p-4">
                 {/* Question */}
-                <h6 className="mb-4 fw-semibold" style={{ color: "#374151", fontSize: "24px" }}>
+                <h6 className="mb-4 step-heading" >
                   {steps[currentStep].question}
                 </h6>
 
@@ -570,34 +609,33 @@ const CreateMatches = () => {
                     <div
                       key={i}
                       onClick={() => setSelectedLevel(option)}
-                      className={`d-flex align-items-center justify-content-between mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
+                      className={`d-flex align-items-center mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
                       style={{
                         backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
                         borderColor: selectedLevel === option ? "#4f46e5" : "#e5e7eb",
                         cursor: "pointer",
-                        boxShadow: "none"
                       }}
                     >
                       <Form.Check
                         type="radio"
-                        label={option}
                         name={`step-${currentStep}`}
                         id={`option-${currentStep}-${i}`}
                         value={option}
                         checked={selectedLevel === option}
                         onChange={(e) => setSelectedLevel(e.target.value)}
-                        className="fw-semibold"
-                        style={{ boxShadow: "none" }}
+                        className="d-flex align-items-center gap-3 custom-radio border-primary"
+                        label={<span className="" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{option}</span>}
+                        style={{ cursor: "pointer" }}
                       />
                     </div>
+
                   ))}
                   {slotError && (
-                    <div className="text-danger text-start  w-100 position-absolute" style={{ fontSize: "16px", marginBottom: "10px",fontFamily:"Poppins",fontWeight:"600" }}>
+                    <div className="text-danger text-start w-100 position-absolute" style={{ fontSize: "16px", marginBottom: "10px", fontFamily: "Poppins", fontWeight: "600" }}>
                       <p>{slotError}</p>
                     </div>
                   )}
                 </Form>
-
               </div>
               <div className="d-flex justify-content-end align-items-center p-3">
                 {currentStep > 0 && (

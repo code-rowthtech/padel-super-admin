@@ -1,7 +1,7 @@
 import { logo } from '../../../assets/files';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Dropdown } from 'react-bootstrap';
-import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle } from 'react-icons/fa';
+import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle, FaBars } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
@@ -84,26 +84,13 @@ const Navbar = () => {
                     {/* <h4 className='text-dark fw-bold m-0' style={{ fontFamily: "Poppins" }}>Logo</h4> */}
                 </Link>
 
-                {/* Toggle button for mobile */}
-                <button
-                    className="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#mainNav"
-                    aria-controls="mainNav"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation"
-                >
-                    <span className="navbar-toggler-icon"></span>
-                </button>
-
-                {/* Navigation links */}
-                <div className="collapse navbar-collapse" id="mainNav">
-                    <ul className="navbar-nav w-100 ps-md-5 ps-0 ms-md-5 ms-0 mb-2 mb-lg-0 gap-5">
+                {/* Navigation links - Hidden on mobile */}
+                <div className="d-none me-auto d-lg-flex">
+                    <ul className="navbar-nav ps-md-5 ps-0 ms-md-5  ms-0 mb-2 mb-lg-0 gap-md-5">
                         <li className="nav-item">
                             <NavLink
                                 to="/home"
-                                className={`nav-link `}
+                                className={`nav-link`}
                                 style={({ isActive }) => ({
                                     color: isActive ? '#1F41BB' : '#374151',
                                     textDecoration: 'none',
@@ -115,7 +102,7 @@ const Navbar = () => {
                         <li className="nav-item">
                             <NavLink
                                 to="/booking"
-                                className={`nav-link `}
+                                className={`nav-link`}
                                 style={({ isActive }) => ({
                                     color: isActive ? '#1F41BB' : '#374151',
                                     textDecoration: 'none',
@@ -127,7 +114,7 @@ const Navbar = () => {
                         <li className="nav-item">
                             <NavLink
                                 to="/open-matches"
-                                className={`nav-link `}
+                                className={`nav-link`}
                                 style={({ isActive }) => ({
                                     color: isActive ? '#1F41BB' : '#374151',
                                     textDecoration: 'none',
@@ -149,52 +136,65 @@ const Navbar = () => {
                             </NavLink>
                         </li>
                     </ul>
+                </div>
 
-                    <div className="d-flex">
+                {/* Profile Section */}
+                <div className="d-flex">
                         {store?.user?.status === '200' || token ? (
                             <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
                                 <Dropdown.Toggle
                                     variant="white"
                                     className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
                                 >
-                                    <img
-                                        src={User?.user?.response?.profilePic || userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                                        alt="user"
-                                        className="rounded-circle"
-                                        width="40"
-                                        height="40"
-                                        loading="lazy"
-                                    />
-                                    <div className="text-start d-none d-sm-block">
-                                        <div className="fw-semibold">
-                                            {userData?.name
-                                                ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                : User?.user?.response?.name || 'User'}
+                                    {/* Menu icon for small screens */}
+                                    <FaBars size={24} className="text-dark d-lg-none" />
+                                    
+                                    {/* Profile for large screens */}
+                                    <div className="d-none d-lg-flex align-items-center gap-2">
+                                        <img
+                                            src={User?.user?.response?.profilePic || userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                            alt="user"
+                                            className="rounded-circle"
+                                            width="40"
+                                            height="40"
+                                            loading="lazy"
+                                        />
+                                        <div className="text-start">
+                                            <div className="fw-semibold">
+                                                {userData?.name
+                                                    ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
+                                                    : User?.user?.response?.name || 'User'}
+                                            </div>
+                                            <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
                                         </div>
-                                        <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
-                                    </div>
-                                    {isOpen ? (
-                                        <FaChevronUp className="ms-2 text-muted" />
-                                    ) : (
                                         <FaChevronDown className="ms-2 text-muted" />
-                                    )}
+                                    </div>
                                 </Dropdown.Toggle>
 
-                                <Dropdown.Menu className="table-data mt-2 fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                <Dropdown.Menu className="table-data mt-2  border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                    {/* Navigation items - visible on mobile */}
+                                    <div className="d-lg-none">
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/home">
+                                            <span className="me-2">🏠</span> Home
+                                        </Dropdown.Item>
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking">
+                                            <span className="me-2">📅</span> Booking
+                                        </Dropdown.Item>
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/open-matches">
+                                            <MdSportsTennis size={20} style={{ minWidth: "24px" }} className="me-2" /> Open Matches
+                                        </Dropdown.Item>
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/americano">
+                                            <PiRanking size={20} style={{ minWidth: "24px" }} className="me-2" /> Americano
+                                        </Dropdown.Item>
+                                        <hr className="my-2" />
+                                    </div>
+                                    
                                     <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
                                         <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
                                     </Dropdown.Item>
 
                                     <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
                                         <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
-                                    </Dropdown.Item>
-
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/open-matches">
-                                        <MdSportsTennis size={20} style={{ minWidth: "24px" }} className="me-2" /> Open Matches
-                                    </Dropdown.Item>
-
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/americano">
-                                        <PiRanking size={20} style={{ minWidth: "24px" }} className="me-2" /> Americano
                                     </Dropdown.Item>
 
                                     <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/admin/settings">
@@ -225,7 +225,6 @@ const Navbar = () => {
                                 </button>
                             </Link>
                         )}
-                    </div>
                 </div>
             </div>
         </nav>

@@ -65,12 +65,10 @@ const Cancellation = () => {
 
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
-  useEffect(() => {
-    dispatch(resetBookingData());
-  }, []);
   // Fetch bookings when tab changes or valid date range selected
   const sendDate = startDate && endDate;
   useEffect(() => {
+    dispatch(resetBookingData());
     const payload = { status, ownerId, page: currentPage };
     if (sendDate) {
       payload.startDate = formatDate(startDate);
@@ -117,60 +115,83 @@ const Cancellation = () => {
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
     <Container fluid className="px-4">
+      <h3
+        className="fw-bold text-dark mb-2"
+        style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)" }}
+      >
+        Cancellations
+      </h3>
       {/* Tabs + Date filters */}
       <Row className="mb-3">
-        <Col
-          md={12}
-          className="d-flex justify-content-between align-items-center"
-        >
-          <Box sx={{ bgcolor: "white" }}>
-            <AppBar position="static" color="default" elevation={0}>
-              <Tabs
-                value={tab}
-                onChange={(_, v) => {
-                  setTab(v);
-                  setCurrentPage(1);
-                }}
+        <Col xs={12}>
+          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
+            <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto" } }}>
+              <AppBar
+                position="static"
+                color="default"
+                className="bg-white border-bottom border-light"
+                elevation={0}
               >
-                <Tab label="Request" />
-                <Tab label="Cancelled" />
-                <Tab label="Rejected" />
-              </Tabs>
-            </AppBar>
-          </Box>
+                <Tabs
+                  value={tab}
+                  onChange={(_, v) => {
+                    setTab(v);
+                    setCurrentPage(1);
+                  }}
+                  indicatorColor="primary"
+                  textColor="primary"
+                  variant="fullWidth"
+                  sx={{
+                    "& .MuiTab-root": {
+                      fontSize: { xs: "13px", sm: "14px", lg: "15px" },
+                      minWidth: { xs: "80px", sm: "100px" },
+                    },
+                  }}
+                >
+                  <Tab className="fw-medium table-data" label="Request" />
+                  <Tab className="fw-medium table-data" label="Cancelled" />
+                  <Tab className="fw-medium table-data" label="Rejected" />
+                </Tabs>
+              </AppBar>
+            </Box>
 
-          <div className="d-flex align-items-center gap-2">
-            <span className="fw-semibold">From</span>
-            <DatePicker
-              selected={startDate}
-              onChange={(date) => {
-                setStartDate(date);
-                if (!date) setEndDate(null);
-              }}
-              selectsStart
-              startDate={startDate}
-              endDate={endDate}
-              customInput={<DateButton />}
-            />
-
-            <span className="fw-semibold">To</span>
-            <DatePicker
-              selected={endDate}
-              onChange={(date) => setEndDate(date)}
-              selectsEnd
-              startDate={startDate}
-              endDate={endDate}
-              minDate={startDate}
-              customInput={<DateButton />}
-            />
-            {sendDate && (
-              <i
-                className="bi bi-x-square-fill text-danger"
-                onClick={() => {
-                  setStartDate(null, setEndDate(null));
-                }}
-              ></i>
-            )}
+            <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center gap-1">
+                <span className="fw-semibold small">From</span>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => {
+                    setStartDate(date);
+                    if (!date) setEndDate(null);
+                  }}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  customInput={<DateButton />}
+                />
+              </div>
+              <div className="d-flex align-items-center gap-1">
+                <span className="fw-semibold small">To</span>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate}
+                  customInput={<DateButton />}
+                />
+              </div>
+              {sendDate && (
+                <i
+                  className="bi bi-x-square-fill text-danger"
+                  onClick={() => {
+                    setStartDate(null, setEndDate(null));
+                  }}
+                  style={{ cursor: "pointer" }}
+                ></i>
+              )}
+            </div>
           </div>
         </Col>
       </Row>
@@ -190,108 +211,147 @@ const Cancellation = () => {
             {getBookingLoading ? (
               <DataLoading height="60vh" />
             ) : bookings.length > 0 ? (
-              <div className="custom-scroll-container">
-                <Table responsive borderless size="sm" className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>User Name</th>
-                      <th>Contact</th>
-                      <th>Booking Date</th>
-                      {/* <th>Booking</th> */}
-                      <th>Court No</th>
-                      {/* <th>Slot</th> */}
-                      {/* <th>Amount</th> */}
-                      {/* {tab === 1 && <th>Refund Amount</th>} */}
-                      {/* <th>Date/Time</th> */}
-                      {/* <th>Cancellation Reason</th> */}
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookings?.map((item) => (
-                      <tr key={item?._id} className="table-data border-bottom">
-                        <td>
-                          {item?.userId?.name
-                            ? item.userId.name.charAt(0).toUpperCase() +
-                              item.userId.name.slice(1)
-                            : "N/A"}
-                        </td>
-                        <td>
-                          {item?.userId?.countryCode || ""}{" "}
-                          {item?.userId?.phoneNumber || "N/A"}
-                        </td>
-                        <td>
-                          <div
-                            style={{
-                              display: "inline-grid", // shrink to content
-                              gridTemplateColumns: "140px auto", // fixed col for date, flexible for time
-                              textAlign: "left", // keep text aligned from start
-                            }}
-                          >
-                            <span className="fw-medium text-nowrap">
-                              {formatDate(item?.bookingDate)}
-                            </span>
-                            <span className="text-muted ms-1">
-                              |{" "}
-                              {formatTime(
-                                renderSlotTimes(item?.slot?.[0]?.slotTimes)
-                              )}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* <td>
-                          {item?.bookingType
-                            ?.slice(0, 1)
-                            ?.toUpperCase()
-                            ?.concat(item?.bookingType?.slice(1)) || "-"}
-                        </td> */}
-                        <td>{item?.slot?.[0]?.courtName || "-"}</td>
-                        {/* <td>
-                          {item?.slot[0]?.businessHours?.[0]?.day || ""}{" "}
-                          {renderSlotTimes(item?.slot[0]?.slotTimes)}
-                        </td> */}
-                        {/* <td>₹{item?.totalAmount}</td> */}
-                        {/* {tab === 1 && <td>₹{item?.refundAmount}</td>} */}
-                        {/* <td>
-                          {format(
-                            new Date(item?.createdAt),
-                            "dd/MM/yyyy | hh:mm a"
-                          )}
-                        </td> */}
-                        {/* <td>
-                          <OverlayTrigger
-                            placement="left"
-                            overlay={
-                              <Tooltip>
-                                {item?.cancellationReason || "N/A"}
-                              </Tooltip>
-                            }
-                          >
-                            <span style={{ cursor: "default" }}>
-                              {item?.cancellationReason
-                                ? `${item.cancellationReason?.slice(0, 50)}...`
-                                : "N/A"}
-                            </span>
-                          </OverlayTrigger>
-                        </td> */}
-                        {/* {tab !== 1 && ( */}
-                        <td onClick={() => handleBookingDetails(item._id)}>
-                          {loadingBookingId === item._id ? (
-                            <ButtonLoading color="blue" size={7} />
-                          ) : (
-                            <FaEye
-                              className="text-primary"
-                              style={{ cursor: "pointer" }}
-                            />
-                          )}
-                        </td>
-                        {/* )} */}
+              <>
+                {/* Desktop Table */}
+                <div className="custom-scroll-container d-none d-md-block">
+                  <Table
+                    responsive
+                    borderless
+                    size="sm"
+                    className="custom-table"
+                  >
+                    <thead>
+                      <tr className="text-center">
+                        <th className="d-none d-lg-table-cell">User Name</th>
+                        <th className="d-lg-none">User</th>
+                        <th className="d-none d-md-table-cell">Contact</th>
+                        <th>Date</th>
+                        <th className="d-none d-lg-table-cell">Court No</th>
+                        <th className="d-lg-none">Court</th>
+                        <th>Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {bookings?.map((item) => (
+                        <tr
+                          key={item?._id}
+                          className="table-data border-bottom"
+                        >
+                          <td
+                            className="text-truncate"
+                            style={{ maxWidth: "120px" }}
+                          >
+                            {item?.userId?.name
+                              ? item.userId.name.charAt(0).toUpperCase() +
+                                item.userId.name.slice(1)
+                              : "N/A"}
+                          </td>
+                          <td className="d-none d-md-table-cell small">
+                            {item?.userId?.countryCode || ""}{" "}
+                            {item?.userId?.phoneNumber || "N/A"}
+                          </td>
+                          <td>
+                            <div className="d-flex flex-column">
+                              <span className="fw-medium small">
+                                {formatDate(item?.bookingDate)}
+                              </span>
+                              <span className="text-muted small">
+                                {formatTime(
+                                  renderSlotTimes(item?.slot?.[0]?.slotTimes)
+                                )}
+                              </span>
+                            </div>
+                          </td>
+                          <td
+                            className="text-truncate"
+                            style={{ maxWidth: "80px" }}
+                          >
+                            {item?.slot?.[0]?.courtName || "-"}
+                          </td>
+                          <td style={{ cursor: "pointer" }}>
+                            {loadingBookingId === item._id ? (
+                              <ButtonLoading color="blue" size={8} />
+                            ) : (
+                              <OverlayTrigger
+                                placement="bottom"
+                                overlay={<Tooltip>View Details</Tooltip>}
+                              >
+                                <FaEye
+                                  onClick={() => handleBookingDetails(item._id)}
+                                  className="text-primary"
+                                  style={{ cursor: "pointer" }}
+                                  size={16}
+                                />
+                              </OverlayTrigger>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card Layout */}
+                <div className="mobile-card-table d-block d-md-none">
+                  {bookings?.map((item) => (
+                    <div key={item?._id} className="card">
+                      <div className="card-body">
+                        <div className="mobile-card-item">
+                          <span className="mobile-card-label">User:</span>
+                          <span className="mobile-card-value">
+                            {item?.userId?.name
+                              ? item.userId.name.charAt(0).toUpperCase() +
+                                item.userId.name.slice(1)
+                              : "N/A"}
+                          </span>
+                        </div>
+                        <div className="mobile-card-item">
+                          <span className="mobile-card-label">Contact:</span>
+                          <span className="mobile-card-value">
+                            {item?.userId?.countryCode || ""}{" "}
+                            {item?.userId?.phoneNumber || "N/A"}
+                          </span>
+                        </div>
+                        <div className="mobile-card-item">
+                          <span className="mobile-card-label">Date:</span>
+                          <span className="mobile-card-value">
+                            {formatDate(item?.bookingDate)}
+                          </span>
+                        </div>
+                        <div className="mobile-card-item">
+                          <span className="mobile-card-label">Time:</span>
+                          <span className="mobile-card-value">
+                            {formatTime(
+                              renderSlotTimes(item?.slot?.[0]?.slotTimes)
+                            )}
+                          </span>
+                        </div>
+                        <div className="mobile-card-item">
+                          <span className="mobile-card-label">Court:</span>
+                          <span className="mobile-card-value">
+                            {item?.slot?.[0]?.courtName || "-"}
+                          </span>
+                        </div>
+                        <div className="mobile-card-item">
+                          <span className="mobile-card-label">Action:</span>
+                          <div className="mobile-card-value">
+                            {loadingBookingId === item._id ? (
+                              <ButtonLoading color="blue" size={7} />
+                            ) : (
+                              <FaEye
+                                className="text-primary"
+                                onClick={() => handleBookingDetails(item._id)}
+                                size={18}
+                                style={{ cursor: "pointer" }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             ) : (
               <div
                 className="d-flex text-danger justify-content-center align-items-center"

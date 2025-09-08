@@ -242,17 +242,17 @@ const Payment = ({ className = "" }) => {
     };
 
     return (
-        <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
-            <div className="row w-100">
-                <div className="col-7">
+        <div className="container mt-lg-4 mb-3 px-3 px-md-4">
+            <div className="row g-4">
+                <div className="col-12 col-lg-7">
                     <div className="bg-white rounded">
                         {/* Info Section */}
-                        <div className="rounded-4 py-4 px-5 mb-4" style={{ backgroundColor: "#F5F5F566",border:errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
+                        <div className="rounded-4 py-4 px-3 px-md-5 mb-4" style={{ backgroundColor: "#F5F5F566",border:errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
                             <h6 className="mb-3" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
                                 Information
                             </h6>
                             <div className="row">
-                                <div className="col-md-4 mb-3 p-1">
+                                <div className="col-12 col-md-4 mb-3 p-1">
                                     <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
@@ -288,7 +288,7 @@ const Payment = ({ className = "" }) => {
                                     )}
                                 </div>
 
-                                <div className="col-md-4 mb-3 p-1">
+                                <div className="col-12 col-md-4 mb-3 p-1">
                                     <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
@@ -322,7 +322,7 @@ const Payment = ({ className = "" }) => {
                                         </div>
                                     )}
                                 </div>
-                                <div className="col-md-4 mb-3 p-1">
+                                <div className="col-12 col-md-4 mb-3 p-1">
                                     <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
@@ -359,7 +359,7 @@ const Payment = ({ className = "" }) => {
 
                         {/* Payment Method Section */}
                         <div
-                            className="rounded-4 py-4 px-5"
+                            className="rounded-4 py-4 px-3 px-md-5"
                             style={{
                                 backgroundColor: "#F5F5F566",
                                 border: errors.paymentMethod ? "2px solid red" : "none",
@@ -406,7 +406,7 @@ const Payment = ({ className = "" }) => {
                 </div>
 
                 {/* Booking Summary */}
-                <div className="col-5">
+                <div className="col-12 col-lg-5">
                     <div className="border rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
@@ -513,7 +513,7 @@ const Payment = ({ className = "" }) => {
                             </div>
                         )}
 
-                        <div className="d-flex justify-content-center mt-3">
+                        <div className="d-flex justify-content-center mt-3 mb-4">
                             <button
                                 style={{
                                     ...buttonStyle,
@@ -576,7 +576,7 @@ const Payment = ({ className = "" }) => {
                             setModal(false);
                             navigate("/booking", { replace: true });
                         }}
-                        className="w-75 rounded-pill border-0 text-white py-3 mt-4 mb-4"
+                        className="w-75 rounded-pill border-0 text-white py-lg-3 mt-lg-4 mb-lg-4"
                         style={{ backgroundColor: "#3DBE64", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
                     >
                         Continue
