@@ -321,13 +321,13 @@ const OpenmatchPayment = (props) => {
 
                         <div className="row mx-auto">
                             {/* Team A */}
-                            <div className="col-6 d-flex gap-3 justify-content-center">
+                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 justify-content-center">
                                 {(() => {
                                     const leftComponents = [];
                                     if (User) {
                                         const player = userData || User;
                                         leftComponents.push(
-                                            <div key="left-match-0" className="d-flex flex-column justify-content-center align-items-center mx-auto mb-3">
+                                            <div key="left-match-0" className="d-flex flex-column  justify-content-center align-items-center mx-auto mb-3">
                                                 <div
                                                     className="rounded-circle border d-flex align-items-center justify-content-center"
                                                     style={{
@@ -437,7 +437,7 @@ const OpenmatchPayment = (props) => {
                             </div>
 
                             {/* Team B */}
-                            <div className="col-6 d-flex gap-3 align-items-start justify-content-center border-start">
+                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 align-items-start justify-content-center border-start">
                                 {(() => {
                                     const rightComponents = [];
 
@@ -570,7 +570,7 @@ const OpenmatchPayment = (props) => {
                         className="border rounded-3 p-3 mb-3"
                         style={{ backgroundColor: "#CBD6FF1A" }}
                     >
-                        <div className="d-flex gap-3 align-items-start">
+                        <div className="d-lg-flex gap-3 align-items-start text-center text-lg-start">
                             <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
                                 <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
@@ -681,7 +681,7 @@ const OpenmatchPayment = (props) => {
                         </div>
                     </div>
                     <div
-                        className="border rounded px-3 ms-2 pt-3 border-0"
+                        className="border rounded px-3 ms-2 pt-3 mb-5 mb-lg-0 border-0"
                         style={{ backgroundColor: "#CBD6FF1A" }}
                     >
                         <div className="text-center mb-3">
@@ -743,7 +743,7 @@ const OpenmatchPayment = (props) => {
 
                                                     >
                                                         <div>
-                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "18px", color: "#374151" }}>
+                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                                 {formatted.day}, {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {slotTime.time} (60m)
                                                             </span>{" "}
                                                             <span style={{ fontWeight: "400", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>

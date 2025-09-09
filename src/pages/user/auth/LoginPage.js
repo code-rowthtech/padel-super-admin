@@ -43,16 +43,16 @@ const LoginPage = () => {
                         lg={6}
                         className="d-flex flex-column  justify-content-lg-center align-items-center px-3 px-md-5"
                     >
-                        <div className="w-100 h-25  " style={{ maxWidth: '400px' }}>
+                        <div className="w-100 h-50   " style={{ maxWidth: '400px' }}>
                             <h2 className="welcome-heading mb-2">WELCOME BACK</h2>
                             <p className="text-muted mb-4" style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}>Welcome back! Please enter your details.</p>
 
-                            <Form onSubmit={handleSubmit} className='w-100'>
+                            <Form onSubmit={handleSubmit} className='w-100 text-start'>
                                 {showAlert && <Alert variant="danger">{error}</Alert>}
 
 
                                 <Form.Group className="mb-3" controlId="formPhone">
-                                    <Form.Label className="" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>Phone Number</Form.Label>
+                                    <Form.Label className="text-start" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>Phone Number</Form.Label>
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
