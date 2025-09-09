@@ -235,7 +235,7 @@ const Cancellation = () => {
                       {bookings?.map((item) => (
                         <tr
                           key={item?._id}
-                          className="table-data border-bottom"
+                          className="table-data border-bottom align-middle text-center"
                         >
                           <td
                             className="text-truncate"
@@ -251,11 +251,11 @@ const Cancellation = () => {
                             {item?.userId?.phoneNumber || "N/A"}
                           </td>
                           <td>
-                            <div className="d-flex flex-column">
+                            <div className="d-flex justify-content-center">
                               <span className="fw-medium small">
                                 {formatDate(item?.bookingDate)}
                               </span>
-                              <span className="text-muted small">
+                              <span className="text-muted small ms-2">
                                 {formatTime(
                                   renderSlotTimes(item?.slot?.[0]?.slotTimes)
                                 )}

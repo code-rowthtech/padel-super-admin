@@ -180,8 +180,8 @@ const Payments = () => {
                   sx={{
                     "& .MuiTab-root": {
                       fontSize: { xs: "13px", sm: "14px", lg: "15px" },
-                      minWidth: { xs: "100px", sm: "120px" }
-                    }
+                      minWidth: { xs: "100px", sm: "120px" },
+                    },
                   }}
                 >
                   <Tab className="fw-medium table-data" label="Recent" />
@@ -266,7 +266,7 @@ const Payments = () => {
                           {payments?.map((item, index) => (
                             <tr
                               key={item?._id}
-                              className="table-data border-bottom"
+                              className="table-data border-bottom align-middle text-center"
                             >
                               <td>
                                 {item?.userId?.name
@@ -290,10 +290,11 @@ const Payments = () => {
                                     {formatDate(item?.bookingDate)}
                                   </span>
                                   <span className="text-muted ms-1">
-                                    |{" "}
                                     {formatTime(
-                                      renderSlotTimes(item?.slot?.[0]?.slotTimes)
-                                    )}{" "}
+                                      renderSlotTimes(
+                                        item?.slot?.[0]?.slotTimes
+                                      )
+                                    )}
                                   </span>
                                 </div>
                               </td>
@@ -319,7 +320,7 @@ const Payments = () => {
                         </tbody>
                       </Table>
                     </div>
-                    
+
                     {/* Mobile Card Layout */}
                     <div className="mobile-card-table d-block d-md-none">
                       {payments?.map((item) => (
@@ -335,7 +336,9 @@ const Payments = () => {
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Contact:</span>
+                              <span className="mobile-card-label">
+                                Contact:
+                              </span>
                               <span className="mobile-card-value">
                                 {item?.userId?.countryCode || ""}{" "}
                                 {item?.userId?.phoneNumber || "N/A"}
@@ -366,7 +369,9 @@ const Payments = () => {
                             </div>
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Amount:</span>
-                              <span className="mobile-card-value">₹{item?.totalAmount}</span>
+                              <span className="mobile-card-value">
+                                ₹{item?.totalAmount}
+                              </span>
                             </div>
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Action:</span>
@@ -376,7 +381,9 @@ const Payments = () => {
                                 ) : (
                                   <FaEye
                                     className="text-primary"
-                                    onClick={() => handlePaymentDetails(item?._id)}
+                                    onClick={() =>
+                                      handlePaymentDetails(item?._id)
+                                    }
                                     size={18}
                                     style={{ cursor: "pointer" }}
                                   />

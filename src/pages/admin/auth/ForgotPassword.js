@@ -32,8 +32,10 @@ const ForgotPassword = () => {
     try {
       await dispatch(sendOtp({ email, type: "Forgot" }))
         .unwrap()
-        .then(() => {
-          navigate("/admin/verify-otp", { state: { email } });
+        .then((res) => {
+          if (res.status === "200") {
+            navigate("/admin/verify-otp", { state: { email } });
+          }
         });
     } catch (error) {
       setApiError(
@@ -81,7 +83,7 @@ const ForgotPassword = () => {
 
           <Button
             type="submit"
-            className="w-100 shadow fw-semibold"
+            className="w-100 shadow fw-semibold mt-3"
             style={{
               height: "50px",
               background: "linear-gradient(to right, #27ae60, #2e51f3)",
@@ -102,7 +104,7 @@ const ForgotPassword = () => {
               Sign up for free!
             </Link>
           </div> */}
-          <p className="mt-3 text-center small">
+          <p className="mt-4 text-center small">
             Back to Login
             <Link
               to="/admin/login"

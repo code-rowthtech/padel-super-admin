@@ -102,6 +102,21 @@ const VerifyOTP = () => {
       showError("Something went wrong while sending OTP.");
     }
   };
+
+  function maskEmail(email) {
+    const [localPart, domain] = email.split("@");
+    if (localPart.length <= 2) {
+      return localPart[0] + "*****@" + domain;
+    }
+    return (
+      localPart.substring(0, 2) +
+      "*****" +
+      localPart.substring(localPart.length - 1) +
+      "@" +
+      domain
+    );
+  }
+
   return (
     <Layout>
       {timer === 0 && (
@@ -122,7 +137,8 @@ const VerifyOTP = () => {
       <div style={{ width: "100%", maxWidth: 350, textAlign: "center" }}>
         <h3 className="fw-bold mb-2">Verify Otp</h3>
         <p className="text-muted mb-4">
-          A verification code has been sent to <strong>{email}</strong>
+          A verification code has been sent to{" "}
+          <strong>{maskEmail(email)}</strong>
         </p>
 
         <div
@@ -165,6 +181,7 @@ const VerifyOTP = () => {
             height: "50px",
             background: "linear-gradient(to right, #27ae60, #2e51f3)",
             border: "none",
+            fontFamily: "Poppins",
             borderRadius: "25px",
           }}
         >

@@ -567,7 +567,9 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
     <div className="py-3">
       <Row>
         <Col xs={12} md={2}>
-          <div style={containerStyle} className="mb-3 mb-md-0">{renderDays()}</div>
+          <div style={containerStyle} className="mb-3 mb-md-0">
+            {renderDays()}
+          </div>
         </Col>
         <Col xs={12} md={8} className="position-relative">
           <div className="d-flex justify-content-end align-items-center">
@@ -588,7 +590,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
               style={{
                 position: "absolute",
                 top: "-3em",
-                right: "18.5em",
+                right: "12em",
               }}
               id="all-days"
             >
@@ -620,66 +622,66 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
             </Form.Check>
           </div>
           <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
-              <Form.Check
+            <Form.Check
+              type="checkbox"
+              className="d-flex align-items-center"
+              id="all-days-mobile"
+            >
+              <Form.Check.Input
                 type="checkbox"
-                className="d-flex align-items-center"
+                checked={selectAllChecked}
                 id="all-days-mobile"
+                onChange={(e) => handleSelectAllChange(e.target.checked)}
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "4px",
+                  border: "2px solid #1F2937",
+                  backgroundColor: selectAllChecked ? "#1F2937" : "transparent",
+                  cursor: "pointer",
+                }}
+              />
+              <label
+                htmlFor="all-days-mobile"
+                className="ms-2 mb-0"
+                style={{
+                  fontSize: "14px",
+                  color: "#1F2937",
+                  fontWeight: 500,
+                }}
               >
-                <Form.Check.Input
-                  type="checkbox"
-                  checked={selectAllChecked}
-                  id="all-days-mobile"
-                  onChange={(e) => handleSelectAllChange(e.target.checked)}
-                  style={{
-                    width: "20px",
-                    height: "20px",
-                    borderRadius: "4px",
-                    border: "2px solid #1F2937",
-                    backgroundColor: selectAllChecked ? "#1F2937" : "transparent",
-                    cursor: "pointer",
-                  }}
-                />
-                <label
-                  htmlFor="all-days-mobile"
-                  className="ms-2 mb-0"
-                  style={{
-                    fontSize: "14px",
-                    color: "#1F2937",
-                    fontWeight: 500,
-                  }}
-                >
-                  Select All
-                </label>
-              </Form.Check>
-              
-              <Dropdown>
-                <Dropdown.Toggle
-                  variant="secondary"
-                  size="sm"
-                  style={{
-                    backgroundColor: "#F9FAFB",
-                    borderColor: "#E5E7EB",
-                    borderRadius: "8px",
-                    color: "#1F2937",
-                    fontSize: "12px"
-                  }}
-                >
-                  {formData.selectedSlots}
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {["Morning", "Afternoon", "Evening"].map((slot) => (
-                    <Dropdown.Item
-                      key={slot}
-                      onClick={() => updateForm("selectedSlots", slot)}
-                      style={{ fontSize: "12px" }}
-                    >
-                      {slot} slots
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
+                Select All
+              </label>
+            </Form.Check>
+
+            <Dropdown>
+              <Dropdown.Toggle
+                variant="secondary"
+                size="sm"
+                style={{
+                  backgroundColor: "#F9FAFB",
+                  borderColor: "#E5E7EB",
+                  borderRadius: "8px",
+                  color: "#1F2937",
+                  fontSize: "12px",
+                }}
+              >
+                {formData.selectedSlots}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {["Morning", "Afternoon", "Evening"].map((slot) => (
+                  <Dropdown.Item
+                    key={slot}
+                    onClick={() => updateForm("selectedSlots", slot)}
+                    style={{ fontSize: "12px" }}
+                  >
+                    {slot} slots
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
           </div>
-            
+
           {!selectAllChecked && (
             <Dropdown className="d-none d-md-block">
               <Dropdown.Toggle

@@ -215,7 +215,7 @@ const AdminDashboard = () => {
 
           <Row className="mb-4">
             <Col xs={12} lg={7} className="mb-4 mb-lg-0">
-              <Card className="shadow-sm border-0 rounded-0">
+              <Card className="shadow border-0 rounded-0">
                 <Card.Body>
                   <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center mb-3">
                     <h6
@@ -318,7 +318,7 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} lg={5}>
-              <Card className="shadow-sm border-0">
+              <Card className="shadow border-0">
                 <Card.Body>
                   <div className="d-flex justify-content-between">
                     <h6
@@ -362,7 +362,7 @@ const AdminDashboard = () => {
                             {dashboardCancelledBookings?.map((item) => (
                               <tr
                                 key={item?._id}
-                                className="table-data border-bottom"
+                                className="table-dat border-bottom"
                               >
                                 <td
                                   className="text-truncate"
@@ -375,7 +375,7 @@ const AdminDashboard = () => {
                                     "N/A"}
                                 </td>
                                 <td>
-                                  <div className="d-flex flex-column">
+                                  <div className="d-flex justify-content-center">
                                     <span className="fw-medium small">
                                       {formatDate(item?.bookingDate)}
                                     </span>
@@ -540,7 +540,7 @@ const AdminDashboard = () => {
                             {dashboardRecentBookings?.map((item) => (
                               <tr
                                 key={item._id}
-                                className="table-data border-bottom"
+                                className="table-data border-bottom align-middle text-center"
                               >
                                 <td
                                   className="text-truncate"
@@ -553,11 +553,11 @@ const AdminDashboard = () => {
                                     "N/A"}
                                 </td>
                                 <td>
-                                  <div className="d-flex flex-column">
+                                  <div className="d-flex justify-content-center">
                                     <span className="fw-medium small">
                                       {formatDate(item?.bookingDate)}
                                     </span>
-                                    <span className="text-muted small">
+                                    <span className="text-muted small ms-2">
                                       {formatTime(
                                         renderSlotTimes(
                                           item?.slot?.[0]?.slotTimes
