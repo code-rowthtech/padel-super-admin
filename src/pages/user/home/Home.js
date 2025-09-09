@@ -121,7 +121,7 @@ const Home = () => {
                                     }}
                                 >
                                     <p className='mb-0 custom-title text-white' style={{ fontWeight: "400" }}>Welcome To Good Court</p>
-                                    <h1 className="home-main-heading">Your Game, <br />Your Court,<br />Just a Tap Away.</h1>
+                                    <h1 className="home-main-heading ">Your Game, <br />Your Court,<br />Just a Tap Away.</h1>
                                 </div>
                             </div>
                         </div>

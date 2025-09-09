@@ -44,7 +44,7 @@ const ViewMatch = ({ className = "" }) => {
     const matchDate = matchesData?.data?.matchDate
         ? formatDate(matchesData.data.matchDate)
         : { day: "Sun", formattedDate: "27Aug" };
-    const matchTime = matchesData?.data?.matchTime || "5 am,6 am";
+    const matchTime = matchesData?.data?.matchTime || "5 am ,6 am";
     const matchId = state?.match?._id;
 
     const handleRemovePlayer = (playerId, team) => {
@@ -121,12 +121,12 @@ const ViewMatch = ({ className = "" }) => {
     };
 
     return (
-        <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
-            <div className="row w-100">
+        <div className="container mt-4 mb-5 px-md-4 flex-wrap">
+            <div className="row mx-auto">
                 {/* Left Section */}
                 <div className="col-7 py-3 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
                     <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h5 className="mb-0 all-matches" style={{ color: "#374151", fontSize: "26px" }}>
+                        <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
                             Details
                         </h5>
                         <div className="d-flex align-items-center gap-2">
@@ -148,7 +148,7 @@ const ViewMatch = ({ className = "" }) => {
                     {/* Game Info Row */}
                     <div className="rounded-4 border px-3 py-2 mb-3" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="d-flex justify-content-between align-items-start py-3">
-                            <div className="d-flex align-items-center gap-2">
+                            <div className="d-flex align-items-center justify-content-between gap-2">
                                 <img src={padal} alt="padel" width={24} />
                                 <span className="ms-2 all-matches" style={{ color: "#374151" }}>
                                     PADEL
@@ -194,13 +194,12 @@ const ViewMatch = ({ className = "" }) => {
                         {userLoading ? <DataLoading /> : (
                             <div className="row mx-auto">
                                 {/* Team A */}
-                                <div className="col-6 d-flex gap-3 justify-content-center align-items-center">
+                                <div className="col-6 d-md-flex gap-3 justify-content-center mt-3 mt-md-0 align-items-center">
                                     {renderPlayerSlot(teamAData[0], 0, false, "A")}
                                     {renderPlayerSlot(teamAData[1], 1, true, "A")}
                                 </div>
-
                                 {/* Team B */}
-                                <div className="col-6 d-flex gap-3 align-items-start justify-content-center align-items-center border-start">
+                                <div className="col-6 d-md-flex gap-3 justify-content-center align-items-center border-start border-0 border-lg-start">
                                     {renderPlayerSlot(teamBData[0], 2, true, "B")}
                                     {renderPlayerSlot(teamBData[1], 3, true, "B")}
                                 </div>
@@ -219,7 +218,7 @@ const ViewMatch = ({ className = "" }) => {
 
                     {/* Club Info */}
                     <div className="border rounded-3 p-3 mb-3" style={{ backgroundColor: "#CBD6FF1A" }}>
-                        <div className="d-flex gap-3 align-items-start">
+                        <div className="d-md-flex gap-3 align-items-md-start text-center text-md-start">
                             <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
                                 <p className="mb-1" style={{ fontSize: "20px", fontWeight: "500" }}>{clubData?.clubName || "Unknown Club"}</p>
@@ -271,14 +270,31 @@ const ViewMatch = ({ className = "" }) => {
                 </div>
 
                 {/* Right Section - Booking Summary */}
-                <div className="col-5 pe-0">
-                    <div className="row mb-4 align-items-center text-white rounded-4 px-3 ms-2 pt-3" style={{ background: "linear-gradient(to right, #101826, #1e293b)", overflow: "visible", position: "relative" }}>
-                        <div className="col-md-6 mb-4 mb-md-0">
+                <div className="col-5 pe-0 mb-5">
+                    <div
+                        className="row align-items-center text-white rounded-4 py-0 pt-2 ps-4"
+                        style={{
+                            background: "linear-gradient(to right, #101826, #1e293b)",
+                            overflow: "visible",
+                            position: "relative",
+                        }}
+                    >
+                        <div className="col-12 col-md-6 mb-4 text-lg-start text-center mb-md-0">
                             <h4 className="open-match-img-heading text-nowrap">Let the Battles <br /> Begin!</h4>
                             <p className="text-light">Great for competitive vibes.</p>
                         </div>
-                        <div className="col-md-6 text-center" style={{ position: "relative" }}>
-                            <img src={player} alt="Player" className="img-fluid" style={{ maxHeight: "390px", marginTop: "-20px", zIndex: 999, position: "relative" }} />
+                        <div className="col-12 col-md-6 text-center" style={{ position: "relative" }}>
+                            <img
+                                src={player} // Adjust path as needed
+                                alt="Player"
+                                className="img-fluid"
+                                style={{
+                                    maxHeight: "390px",
+                                    marginTop: "-20px",
+                                    zIndex: 999,
+                                    position: "relative",
+                                }}
+                            />
                         </div>
                     </div>
                     <div className="border rounded px-3 ms-2 pt-3 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
@@ -324,16 +340,16 @@ const ViewMatch = ({ className = "" }) => {
                                         return (
                                             <div
                                                 key={`${index}-${slotIndex}`}
-                                                className="court-row d-flex justify-content-between align-items-center mb-3 px-2"
+                                                className="court-row d-flex justify-content-between align-items-center mb-3 px-md-2"
                                                 style={{ cursor: "pointer" }}
                                             >
                                                 <div>
-                                                    <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "18px", color: "#374151" }}>
+                                                    <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
                                                         {formatted.day}, {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {slotTime.time} (60m)</span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>{court.courtName}
                                                     </span>
                                                 </div>
-                                                <div className="d-flex align-items-center gap-2">
-                                                    <p className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "18px" }}>₹ <span className="" style={{ fontSize: "18px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{slotTime.amount}</span></p>
+                                                <div className="d-flex align-items-center justify-content-center gap-2">
+                                                    <span className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "16px" }}>₹ <span className="" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{slotTime.amount}</span></span>
                                                 </div>
                                             </div>
                                         );

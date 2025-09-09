@@ -3,6 +3,34 @@ import { userApi } from "../../../helpers/api/apiCore";
 import { showError } from "../../../helpers/Toast";
 import * as Url from "../../../helpers/api/apiEndpoint";
 
+export const getUserSlotBooking = createAsyncThunk(
+  "club/getUserSlotBooking",
+  async ({ register_club_id, day, date, time }, { rejectWithValue }) => {
+    try {
+      if (!register_club_id || !day || !date) {
+        throw new Error("Missing required parameters: register_club_id, day, or date");
+      }
+
+      const queryParams = new URLSearchParams({
+        register_club_id,
+        day,
+        date,
+      });
+
+      if (time) {
+        queryParams.append("time", time);
+      }
+
+      const response = await userApi.get(`${Url.GET_SLOT_BOOKING_API}?${queryParams.toString()}`);
+
+      return response?.data;
+    } catch (error) {
+      // Display error message and reject with error data
+      showError(error?.message || "Something went wrong while fetching slots");
+      return rejectWithValue(error?.response?.data || error.message);
+    }
+  }
+);
 export const getUserSlot = createAsyncThunk(
   "club/getUserSlot",
   async ({ register_club_id, day, date, courtId }, { rejectWithValue }) => {
@@ -22,6 +50,31 @@ export const getUserSlot = createAsyncThunk(
       }
 
       const response = await userApi.get(`${Url.GET_SLOT_API}?${queryParams.toString()}`);
+
+      return response?.data;
+    } catch (error) {
+      // Display error message and reject with error data
+      showError(error?.message || "Something went wrong while fetching slots");
+      return rejectWithValue(error?.response?.data || error.message);
+    }
+  }
+);
+
+export const getUnavailableSlot = createAsyncThunk(
+  "club/getUnavailableSlot",
+  async ({ date, courtId ,register_club_id}, { rejectWithValue }) => {
+    try {
+      if (!courtId || !date || !register_club_id) {
+        throw new Error("Missing required parameters: courtId,date or register_club_id");
+      }
+
+      const queryParams = new URLSearchParams({
+        courtId,
+        date,
+        register_club_id
+      });
+
+      const response = await userApi.get(`${Url.GET_UNAVAILABLE_SLOT}?${queryParams.toString()}`);
 
       return response?.data;
     } catch (error) {

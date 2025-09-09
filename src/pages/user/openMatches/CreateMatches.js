@@ -251,7 +251,7 @@ const CreateMatches = () => {
   }, [slotError]);
 
   return (
-    <Container className="p-4 mb-5" style={{ minHeight: "100vh" }}>
+    <Container className="p-4 mb-5" >
       <Row>
         {/* LEFT PANEL */}
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
@@ -575,7 +575,7 @@ const CreateMatches = () => {
               border: "none",
               borderRadius: "12px",
               maxWidth: "100%",
-              height: "820px",
+              // height: "520px",
             }}
           >
             <Card
@@ -584,7 +584,7 @@ const CreateMatches = () => {
                 border: "none",
                 borderRadius: "12px",
                 maxWidth: "100%",
-                height: "820px",
+                height: "620px",
               }}
             >
               {/* Progress Bar */}

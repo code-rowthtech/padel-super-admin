@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { FaChevronDown, FaMapMarkerAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
@@ -16,6 +16,7 @@ import { player } from "../../../assets/files";
 import UpdatePlayers from "../VeiwMatch/UpdatePlayers";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { MdOutlineDateRange } from "react-icons/md";
+import debounce from "lodash/debounce";
 
 const slotTime = [
     '4:00 AM', '5:00 AM', '6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -36,7 +37,7 @@ const Openmatches = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
     const [selectedLevel, setSelectedLevel] = useState(null);
-    const [selectedTime, setSelectedTime] = useState(null); // Changed to single time
+    const [selectedTime, setSelectedTime] = useState(null);
     const [selectedDate, setSelectedDate] = useState({
         fullDate: new Date().toISOString().split("T")[0],
         day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
@@ -51,8 +52,16 @@ const Openmatches = () => {
     const reviewData = useSelector((state) => state.userClub?.getReviewData?.data);
     const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
     const [showModal, setShowModal] = useState(false);
-    const [matchId, setMatchId] = useState(null)
-    const [teamName, setTeamName] = useState('')
+    const [matchId, setMatchId] = useState(null);
+    const [teamName, setTeamName] = useState('');
+
+    const debouncedFetchMatches = useCallback(
+        debounce((payload) => {
+            dispatch(getMatchesUser(payload));
+        }, 300),
+        [dispatch]
+    );
+
     const handleClickOutside = (e) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
             setIsOpen(false);
@@ -84,7 +93,7 @@ const Openmatches = () => {
                 });
             }
         }
-    }, [selectedDate]);
+    }, [selectedDate?.fullDate]);
 
     useEffect(() => {
         const payload = {
@@ -92,8 +101,8 @@ const Openmatches = () => {
             ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
             ...(selectedLevel && { skillLevel: selectedLevel }),
         };
-        dispatch(getMatchesUser(payload));
-    }, [dispatch, selectedDate, selectedTime, selectedLevel]);
+        debouncedFetchMatches(payload);
+    }, [selectedDate, selectedTime, selectedLevel, debouncedFetchMatches]);
 
     const today = new Date();
     const dates = Array.from({ length: 41 }).map((_, i) => {
@@ -107,8 +116,14 @@ const Openmatches = () => {
         };
     });
 
+    const filteredMatches = useMemo(() => {
+        return showUnavailableOnly
+            ? matchesData?.data?.filter(match => match?.players?.length >= 4) || []
+            : matchesData?.data || [];
+    }, [showUnavailableOnly, matchesData]);
+
     const toggleTime = (time) => {
-        setSelectedTime(selectedTime === time ? null : time); // Toggle single time selection
+        setSelectedTime(selectedTime === time ? null : time);
     };
 
     const maxSelectableDate = new Date();
@@ -153,33 +168,23 @@ const Openmatches = () => {
 
     const formatTimes = (slots) => {
         if (!slots || slots.length === 0) return "N/A";
-
         const formatted = slots
-            .slice(0, 3) // only first 5 slots
+            .slice(0, 3)
             .map((slot) => {
                 const time = slot?.slotTimes?.[0]?.time;
                 if (!time) return null;
-
                 if (/am|pm/i.test(time)) {
-                    return time.replace(/\s+/g, "").toUpperCase(); // e.g. "5PM"
+                    return time.replace(/\s+/g, "").toUpperCase();
                 }
-
                 const [hours, minutes] = time.split(":");
                 const hour = parseInt(hours, 10);
                 const period = hour >= 12 ? "PM" : "AM";
                 const formattedHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-
                 return `${formattedHour}${period}`;
             })
             .filter(Boolean);
-
-        // Join first 5, then add "..." if more than 5
         return formatted.join(",") + (slots.length > 3 ? "...." : "");
     };
-
-    const filteredMatches = showUnavailableOnly
-        ? matchesData?.data?.filter(match => match?.players?.length >= 4) || []
-        : matchesData?.data || [];
 
     const TagWrapper = ({ children }) => (
         <div
@@ -189,7 +194,7 @@ const Openmatches = () => {
                 borderRadius: "999px",
                 zIndex: 999,
                 position: "relative",
-                top: "0px", // lift tag above avatars
+                top: "0px",
                 left: "20px",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             }}
@@ -198,7 +203,6 @@ const Openmatches = () => {
         </div>
     );
 
-    // Available Tag
     const AvailableTag = ({ team, match, name }) => (
         <TagWrapper>
             <div
@@ -221,7 +225,6 @@ const Openmatches = () => {
             >
                 <span>+</span>
             </div>
-
             <div className="d-flex flex-column align-items-start">
                 <span style={{ fontWeight: 600, color: "#1D4ED8", fontSize: "12px" }}>
                     Available
@@ -231,9 +234,7 @@ const Openmatches = () => {
         </TagWrapper>
     );
 
-    // First Player Tag
     const FirstPlayerTag = ({ player }) => (
-
         <TagWrapper>
             <div
                 className="d-flex justify-content-center align-items-center rounded-circle overflow-hidden"
@@ -278,14 +279,13 @@ const Openmatches = () => {
         </TagWrapper>
     );
 
-    // Player Avatar (circle images)
     const PlayerAvatar = ({ player, idx, total }) => (
         <div
             className="rounded-circle border d-flex align-items-center justify-content-center position-relative"
             style={{
                 width: "40px",
                 height: "40px",
-                marginLeft: idx !== 0 ? "-15px" : "0", // Increased overlap
+                marginLeft: idx !== 0 ? "-15px" : "0",
                 zIndex: total - idx,
                 backgroundColor: player?.userId?.profilePic ? "transparent" : "#374151",
                 overflow: "hidden",
@@ -330,7 +330,7 @@ const Openmatches = () => {
                 {/* Left Section */}
                 <div className="col-lg-7 col-12 py-4 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
                     <div className="calendar-strip">
-                        <div className="mb-4 custom-heading-use" >
+                        <div className="mb-4 custom-heading-use">
                             Select Date
                             <div className="position-relative d-inline-block" ref={wrapperRef}>
                                 <span
@@ -395,7 +395,7 @@ const Openmatches = () => {
                                         <button
                                             ref={(el) => (dateRefs.current[d.fullDate] = el)}
                                             key={i}
-                                            className={`calendar-day-btn me-1  ${isSelected ? "text-white" : "bg-light"}`}
+                                            className={`calendar-day-btn me-1 ${isSelected ? "text-white" : "bg-light"}`}
                                             style={{
                                                 backgroundColor: isSelected ? "#374151" : '#CBD6FF1A',
                                                 boxShadow: isSelected ? '0px 4px 4px 0px #00000040' : '',
@@ -441,7 +441,7 @@ const Openmatches = () => {
                         {slotTime?.map((time, idx) => (
                             <div className="col-4 col-md-2 d-flex justify-content-lg-center align-items-start mb-1" key={idx}>
                                 <button
-                                    className={`btn rounded-pill text-nowrap slot-time-btn text-center me-1 ms-1 mb-2  py-lg-1 py-0`}
+                                    className={` text-nowrap btn rounded-pill slot-time-btn text-center me-1 px-lg-4 ms-1 mb-2`}
                                     onClick={() => toggleTime(time)}
                                     style={{
                                         backgroundColor: selectedTime === time ? "#374151" : "#FAFBFF",
@@ -467,7 +467,7 @@ const Openmatches = () => {
                     {/* Match List */}
                     <div className="pb-4">
                         <div className="d-flex flex-column flex-md-row justify-content-start align-items-start align-items-md-center gap-3 mb-4">
-                            <h5 className="mb-0 custom-heading-use "  >All Matches</h5>
+                            <h5 className="mb-0 custom-heading-use">All Matches</h5>
                             <div className="dropdown">
                                 <button
                                     className="btn btn-light border py-1 px-3 d-flex align-items-center gap-2"
@@ -475,14 +475,21 @@ const Openmatches = () => {
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false"
                                     aria-label="Select skill level"
+                                    style={{ minWidth: "150px" }}
                                 >
-                                    <span className="me-3" style={{ fontSize: "10px", fontFamily: "Poppins", fontWeight: "500" }}>{selectedLevel?.charAt(0)?.toUpperCase() + selectedLevel?.slice(1) || "Choose level"}</span>
+                                    <span className="me-3" style={{ fontSize: "10px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                        {selectedLevel?.charAt(0)?.toUpperCase() + selectedLevel?.slice(1) || "Choose level"}
+                                    </span>
                                     <FaChevronDown style={{ fontSize: "10px" }} />
                                 </button>
                                 <ul className="dropdown-menu shadow-sm">
                                     {['beginner', 'intermediate', 'advanced', 'professional'].map((level) => (
                                         <li key={level}>
-                                            <button className="dropdown-item mb-3" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }} onClick={() => handleSelect(level)}>
+                                            <button
+                                                className="dropdown-item mb-3"
+                                                style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}
+                                                onClick={() => handleSelect(level)}
+                                            >
                                                 {level.charAt(0).toUpperCase() + level.slice(1)}
                                             </button>
                                         </li>
@@ -491,9 +498,9 @@ const Openmatches = () => {
                             </div>
                         </div>
 
-                        {/* Match Cards */}
                         <div
                             style={{
+                                minHeight: "480px",
                                 maxHeight: filteredMatches.length > 4 ? "480px" : "auto",
                                 overflowY: filteredMatches.length > 4 ? "auto" : "visible",
                                 scrollBehavior: "smooth",
@@ -501,26 +508,30 @@ const Openmatches = () => {
                             className="no-scrollbar"
                         >
                             {matchLoading ? (
-                                <DataLoading height={300} />
+                                <DataLoading height={480} />
                             ) : filteredMatches.length > 0 ? (
                                 filteredMatches?.map((match, index) => (
                                     <div
                                         key={index}
-                                        className="card border-0  mb-3 py-3 shadow-0  rounded-2"
-                                        style={{ backgroundColor: "#CBD6FF1A", border: ' 0.5px solid #0000001A', boxShadow: "none" }}
+                                        className="card border-0 mb-3 py-3 shadow-0 rounded-2"
+                                        style={{ backgroundColor: "#CBD6FF1A", border: '0.5px solid #0000001A', boxShadow: "none" }}
                                     >
-                                        <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items- flex-wrap">
+                                        <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items-center flex-wrap">
                                             <div className="col-6">
                                                 <p className="mb-3 all-match-time" style={{ fontWeight: "600" }}>
                                                     {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
-                                                    <span className=" text-muted all-match-name-level ms-3 d-none d-md-inline">
+                                                    <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
                                                         {match?.skillLevel
-                                                            ? match.skillLevel.charAt(0).toUpperCase() +
-                                                            match.skillLevel.slice(1)
+                                                            ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
                                                             : "N/A"}
                                                     </span>
                                                 </p>
-                                                <p className="mb-1 all-match-name-level" >
+                                                <p className="all-match-time mb-0 d-md-none d-lg-none">
+                                                    {match?.skillLevel
+                                                        ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
+                                                        : "N/A"}
+                                                </p>
+                                                <p className="mb-1 all-match-name-level">
                                                     {match?.clubId?.clubName || "Unknown Club"}
                                                 </p>
                                                 <p
@@ -528,8 +539,7 @@ const Openmatches = () => {
                                                     style={{ fontSize: "10px", fontWeight: "400" }}
                                                 >
                                                     <FaMapMarkerAlt className="me-1" style={{ fontSize: "8px" }} />
-                                                    {match?.clubId?.city.charAt(0)?.toUpperCase() +
-                                                        match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
+                                                    {match?.clubId?.city.charAt(0)?.toUpperCase() + match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
                                                 </p>
                                             </div>
 
@@ -561,21 +571,18 @@ const Openmatches = () => {
                                                                 />
                                                             ))}
                                                         </div>
-
                                                     </div>
 
                                                     <div className="d-flex flex-column align-items-center gap-1">
                                                         <div
                                                             className="text-primary all-matches"
-                                                            style={{ fontWeight: "500" }}
+                                                            style={{ fontWeight: "600", fontFamily: "none" }}
                                                         >
-                                                            ₹ {calculateMatchPrice(match?.slot) || 0}
+                                                            ₹ <span className="all-matches" style={{ fontWeight: "500" }}>{calculateMatchPrice(match?.slot) || 0}</span>
                                                         </div>
                                                         <button
-                                                            className="btn rounded-pill  d-flex justify-content-center align-items-center text-center  view-match-btn  text-white"
-                                                            onClick={() =>
-                                                                navigate("/view-match", { state: { match } })
-                                                            }
+                                                            className="btn rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-white"
+                                                            onClick={() => navigate("/view-match", { state: { match } })}
                                                             aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
                                                         >
                                                             View
@@ -590,7 +597,7 @@ const Openmatches = () => {
                                 <div
                                     className="d-flex flex-column justify-content-center align-items-center text-danger fw-medium"
                                     style={{
-                                        height: "250px",
+                                        minHeight: "250px",
                                         fontSize: "18px",
                                         fontFamily: "Poppins",
                                     }}
@@ -627,7 +634,7 @@ const Openmatches = () => {
                             </div>
                             <div className="col-12 col-md-6 text-center" style={{ position: "relative" }}>
                                 <img
-                                    src={player} // Adjust path as needed
+                                    src={player}
                                     alt="Player"
                                     className="img-fluid"
                                     style={{
@@ -644,7 +651,7 @@ const Openmatches = () => {
                                 <DataLoading />
                             ) : (
                                 <>
-                                    <div className="col-12 col-md-4 text-center d-lg-flex align-items- justify-content- mb-lg-3 mb-5 mb-md-0">
+                                    <div className="col-12 col-md-4 text-center d-lg-flex align-items-center justify-content-center mb-lg-3 mb-5 mb-md-0">
                                         <div className="w-100">
                                             <p style={{ fontSize: "16px", fontWeight: "500", color: "#636364" }}>Overall Rating</p>
                                             <div className="display-5 fw-bold mb-3">{reviewData?.averageRating || 0}</div>
@@ -665,13 +672,11 @@ const Openmatches = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="col-12 col-md-8  border-lg-start d-flex align-items-center">
+                                    <div className="col-12 col-md-8 border-lg-start d-flex align-items-center">
                                         <div className="w-100">
                                             {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
                                                 let width = "0%";
                                                 let percent = 0;
-
-                                                // Placeholder logic; replace with actual distribution if available
                                                 const rating = reviewData?.averageRating || 0;
                                                 if (label === reviewData?.ratingCategory) {
                                                     percent = Math.round(rating * 20);
@@ -690,7 +695,7 @@ const Openmatches = () => {
                                                         <div className="me-2 fw-medium" style={{ width: "120px", fontSize: "12px", fontFamily: "Poppins", color: "#636364" }}>
                                                             {label}
                                                         </div>
-                                                        <div className="progress me-3 w-100 " style={{ height: "8px", position: "relative" }}>
+                                                        <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
                                                             <div
                                                                 className="progress-bar"
                                                                 style={{
@@ -724,7 +729,15 @@ const Openmatches = () => {
                     </div>
                 </div>
             </div>
-            <UpdatePlayers showModal={showModal} teamName={teamName} matchId={matchId} setShowModal={setShowModal} selectedDate={selectedDate} selectedLevel={selectedLevel} selectedTime={selectedTime} />
+            <UpdatePlayers
+                showModal={showModal}
+                teamName={teamName}
+                matchId={matchId}
+                setShowModal={setShowModal}
+                selectedDate={selectedDate}
+                selectedLevel={selectedLevel}
+                selectedTime={selectedTime}
+            />
         </div>
     );
 };
