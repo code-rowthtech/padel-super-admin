@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import { twoball } from "../../../assets/files";
-import { FaArrowRight } from "react-icons/fa";
+import { FaArrowRight, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { getUserSlot } from "../../../redux/user/slot/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import { getUserClub } from "../../../redux/user/club/thunk";
@@ -12,13 +11,15 @@ import { format } from "date-fns";
 import { FiShoppingCart } from "react-icons/fi";
 import TokenExpire from "../../../helpers/TokenExpire";
 import "react-datepicker/dist/react-datepicker.css";
-import { MdOutlineDateRange } from "react-icons/md";
+import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
+import { getUnavailableSlot, getUserSlotBooking } from "../../../redux/user/slot/thunk";
+import { Button } from "react-bootstrap";
 
-// Helper function to format time for UI display (e.g., "10:00 pm")
-const formatTimeForDisplay = (time) => {
+// Helper function to format time for API (e.g., "4 pm")
+const formatTimeForAPI = (time) => {
     if (!time) return "";
     const [hourString, period] = time.toLowerCase().split(" ");
-    return `${hourString}:00 ${period}`;
+    return `${hourString} ${period}`; // Returns "4 pm" without ":00"
 };
 
 const Booking = ({ className = "" }) => {
@@ -32,13 +33,14 @@ const Booking = ({ className = "" }) => {
     const store = useSelector((state) => state);
     const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
     const { slotData } = useSelector((state) => state?.userSlot);
+    const unSlotLoading = useSelector((state) => state?.userSlot?.unSlotLoading);
+    const unSlotData = useSelector((state) => state?.userSlot?.unSlotData);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorShow, setErrorShow] = useState(false);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const dateRefs = useRef({});
 
-    // Calculate default time (current time + 1 hour) in "1 pm" format
     const getDefaultTime = () => {
         const now = new Date();
         now.setHours(now.getHours() + 1);
@@ -106,10 +108,18 @@ const Booking = ({ className = "" }) => {
         const isAlreadySelected = selectedTimes.some((t) => t._id === time._id);
 
         if (isAlreadySelected) {
-            setSelectedTimes(selectedTimes.filter((t) => t._id !== time._id));
-            setSelectedBuisness(selectedBuisness.filter((t) => t._id !== time._id));
-            setSelectedCourts([]); // Clear courts when deselecting slot
-            setCurrentCourtId(null);
+            const filteredTimes = selectedTimes.filter((t) => t._id !== time._id);
+            setSelectedTimes(filteredTimes);
+            setSelectedBuisness(filteredTimes);
+            const remainingTime = filteredTimes.length > 0 ? formatTimeForAPI(filteredTimes[0].time) : null;
+            dispatch(
+                getUserSlotBooking({
+                    day: selectedDate.day,
+                    date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
+                    register_club_id: localStorage.getItem("register_club_id") || "",
+                    time: remainingTime,
+                })
+            );
         } else {
             const newLength = selectedTimes.length + 1;
             if (totalSlots + newLength > 15) {
@@ -117,10 +127,18 @@ const Booking = ({ className = "" }) => {
                 setErrorShow(true);
                 return;
             }
-            setSelectedTimes([...selectedTimes, time]);
+            const newTimes = [...selectedTimes, time];
+            setSelectedTimes(newTimes);
             setSelectedBuisness([...selectedBuisness, time]);
-            setSelectedCourts([]); // Clear previous courts
-            setCurrentCourtId(null);
+            const formattedTime = formatTimeForAPI(time.time);
+            dispatch(
+                getUserSlotBooking({
+                    day: selectedDate.day,
+                    date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
+                    register_club_id: localStorage.getItem("register_club_id") || "",
+                    time: formattedTime,
+                })
+            );
         }
     };
 
@@ -129,15 +147,19 @@ const Booking = ({ className = "" }) => {
             const isSelectedOnDate = prev.some(
                 (c) => c._id === court._id && c.date === selectedDate.fullDate
             );
-            let updatedCourts;
-            if (!isSelectedOnDate) {
+            if (isSelectedOnDate) {
+                const updatedCourts = prev.filter(
+                    (c) => !(c._id === court._id && c.date === selectedDate.fullDate)
+                );
+                if (currentCourtId === court._id) {
+                    setCurrentCourtId(null);
+                }
+                return updatedCourts;
+            } else {
                 const totalSlots = prev.reduce((acc, c) => acc + c.time.length, 0);
-                if (totalSlots >= 15) {
+                if (totalSlots + selectedTimes.length > 15) {
                     setErrorMessage("Maximum 15 slots can be selected. Cannot add more courts.");
                     setErrorShow(true);
-                    return prev;
-                }
-                if (prev.length >= 15) {
                     return prev;
                 }
                 const newCourt = {
@@ -150,61 +172,55 @@ const Booking = ({ className = "" }) => {
                         amount: t.amount,
                     })),
                 };
-                updatedCourts = [...prev, newCourt];
-                // Call API with courtId when court is selected
-                dispatch(
-                    getUserSlot({
-                        day: selectedDate.day,
-                        date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-                        register_club_id: localStorage.getItem("register_club_id") || "",
-                        courtId: court._id,
-                    })
-                );
-            } else {
-                updatedCourts = prev.filter(
-                    (c) => !(c._id === court._id && c.date === selectedDate.fullDate)
-                );
-                // Call API when court is deselected
-                dispatch(
-                    getUserSlot({
-                        day: selectedDate.day,
-                        date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-                        register_club_id: localStorage.getItem("register_club_id") || "",
-                        courtId: null, // Send null or omit courtId when deselecting
-                    })
-                );
+                setCurrentCourtId(court._id);
+                return [...prev, newCourt];
             }
-            setCurrentCourtId(court._id);
-            return updatedCourts;
         });
     };
 
-    const handleDeleteSlot = (courtIndex, slotIndex) => {
-        const removedSlotId = selectedCourts[courtIndex]?.time[slotIndex]?._id;
-        if (!removedSlotId) {
-            console.error("Removed slot ID is undefined");
-            return;
-        }
-
+    const handleDeleteSlot = (courtId, date, timeId) => {
         setSelectedCourts((prev) => {
-            let updated = [...prev];
-            if (updated[courtIndex]?.time) {
-                updated[courtIndex].time = updated[courtIndex].time.filter(
-                    (_, i) => i !== slotIndex
-                );
-            }
-            return updated;
+            const newCourts = prev.map((c) => {
+                if (c._id === courtId && c.date === date) {
+                    const newTime = c.time.filter((t) => t._id !== timeId);
+                    return { ...c, time: newTime };
+                }
+                return c;
+            }).filter((c) => c.time.length > 0);
+            return newCourts;
         });
 
-        setSelectedBuisness((prev) => prev.filter((t) => t._id !== removedSlotId));
-        const isCurrent =
-            selectedCourts[courtIndex]._id === currentCourtId &&
-            selectedCourts[courtIndex].date === selectedDate.fullDate;
-        if (isCurrent) {
-            setSelectedTimes((prevTimes) =>
-                prevTimes.filter((_, i) => i !== slotIndex)
-            );
+        if (date === selectedDate.fullDate) {
+            setSelectedTimes((prev) => {
+                const newTimes = prev.filter((t) => t._id !== timeId);
+                const remainingTime = newTimes.length > 0 ? formatTimeForAPI(newTimes[0].time) : null;
+                dispatch(
+                    getUserSlotBooking({
+                        day: selectedDate.day,
+                        date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
+                        register_club_id: localStorage.getItem("register_club_id") || "",
+                        time: remainingTime,
+                    })
+                );
+                return newTimes;
+            });
+            setSelectedBuisness((prev) => prev.filter((t) => t._id !== timeId));
         }
+    };
+
+    const handleClearAll = () => {
+        setSelectedCourts([]);
+        setSelectedTimes([]);
+        setSelectedBuisness([]);
+        setCurrentCourtId(null);
+        dispatch(
+            getUserSlotBooking({
+                day: selectedDate.day,
+                date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
+                register_club_id: localStorage.getItem("register_club_id") || "",
+                time: null,
+            })
+        );
     };
 
     const width = 370;
@@ -257,11 +273,10 @@ const Booking = ({ className = "" }) => {
     maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
     const clubId = localStorage.getItem("register_club_id");
 
-    // Run only once on page load
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
         dispatch(
-            getUserSlot({
+            getUserSlotBooking({
                 day: selectedDate.day,
                 date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
                 register_club_id: clubId || "",
@@ -270,9 +285,8 @@ const Booking = ({ className = "" }) => {
 
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []); // Empty dependency array to run only once on mount
+    }, []);
 
-    // Handle date change and fetch slots
     useEffect(() => {
         if (selectedDate?.fullDate && dateRefs.current[selectedDate?.fullDate]) {
             dateRefs.current[selectedDate?.fullDate].scrollIntoView({
@@ -326,6 +340,19 @@ const Booking = ({ className = "" }) => {
         }
     }, [selectedDate, currentCourtId]);
 
+    useEffect(() => {
+        if (showUnavailable && selectedDate.day) {
+            const selectedCourtIds = selectedCourts.map(court => court._id).join(',');
+            dispatch(
+                getUnavailableSlot({
+                    date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
+                    courtId: selectedCourtIds,
+                    register_club_id: clubId || "",
+                })
+            );
+        }
+    }, [showUnavailable, selectedDate.day, selectedCourts]);
+
     const grandTotal = selectedCourts.reduce(
         (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
         0
@@ -333,7 +360,6 @@ const Booking = ({ className = "" }) => {
     const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
     const handleBookNow = () => {
-        const totalSlots = selectedCourts.reduce((acc, c) => acc + c.time.length, 0);
         if (totalSlots === 0) {
             setErrorMessage("Select a slot to enable booking");
             setErrorShow(true);
@@ -375,7 +401,15 @@ const Booking = ({ className = "" }) => {
     };
 
     const handleSwitchChange = () => {
-        setShowUnavailable(!showUnavailable);
+        if (selectedCourts.length > 0) {
+            setShowUnavailable(!showUnavailable);
+        }
+    };
+
+    const formatTimeForDisplay = (time) => {
+        if (!time) return "";
+        const [hourString, period] = time.toLowerCase().split(" ");
+        return `${hourString}:00 ${period}`;
     };
 
     return (
@@ -456,7 +490,7 @@ const Booking = ({ className = "" }) => {
                                                     setSelectedDate({ fullDate: formattedDate, day: day });
                                                     setSelectedTimes([]);
                                                     dispatch(
-                                                        getUserSlot({
+                                                        getUserSlotBooking({
                                                             day: day,
                                                             date: formattedDate,
                                                             register_club_id:
@@ -499,25 +533,19 @@ const Booking = ({ className = "" }) => {
                                         return (
                                             <button
                                                 key={i}
-                                                className={`calendar-day-btn me-1 ${isSelected ? "text-white" : "bg-light"
-                                                    }`}
+                                                className={`calendar-day-btn me-1 ${isSelected ? "text-white" : "bg-light"}`}
                                                 style={{
                                                     backgroundColor: isSelected ? "#374151" : "#CBD6FF1A",
-                                                    boxShadow: isSelected
-                                                        ? "0px 4px 4px 0px #00000040"
-                                                        : "",
-                                                    border: isSelected
-                                                        ? "1px solid #4949491A"
-                                                        : "1px solid #4949491A",
+                                                    boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
+                                                    border: isSelected ? "1px solid #4949491A" : "1px solid #4949491A",
                                                     borderRadius: "8px",
                                                     color: isSelected ? "#FFFFFF" : "#374151",
                                                 }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                                                     setStartDate(new Date(d.fullDate));
-                                                    setSelectedTimes([]);
                                                     dispatch(
-                                                        getUserSlot({
+                                                        getUserSlotBooking({
                                                             day: d?.day,
                                                             date: d?.fullDate,
                                                             register_club_id:
@@ -532,8 +560,7 @@ const Booking = ({ className = "" }) => {
                                                 }}
                                                 onMouseLeave={(e) => {
                                                     if (!isSelected) {
-                                                        e.currentTarget.style.border =
-                                                            "1px solid #4949491A";
+                                                        e.currentTarget.style.border = "1px solid #4949491A";
                                                     }
                                                 }}
                                             >
@@ -568,7 +595,9 @@ const Booking = ({ className = "" }) => {
                                     (60m)
                                 </span>
                             </p>
-                            <div className="form-switch d-flex justify-content-center align-items-center gap-2 p-0">
+                            <div className="form-switch d-flex justify-content-center align-items-center gap-2 p-0"
+                                title={selectedCourts?.length >0 ? "Please select a court" : ""}
+                            >
                                 <label
                                     className="form-check-label mb-0"
                                     htmlFor="flexSwitchCheckDefault"
@@ -576,6 +605,7 @@ const Booking = ({ className = "" }) => {
                                 >
                                     Show Unavailable Slots
                                 </label>
+
                                 <input
                                     className="form-check-input fs-5 ms-1 mb-1"
                                     type="checkbox"
@@ -583,155 +613,111 @@ const Booking = ({ className = "" }) => {
                                     id="flexSwitchCheckDefault"
                                     checked={showUnavailable}
                                     onChange={handleSwitchChange}
+                                    disabled={selectedCourts?.length === 0}
                                     style={{ boxShadow: "none" }}
                                 />
+
                             </div>
                         </div>
-                        {slotLoading ? (
+                        {unSlotLoading ? (
                             <DataLoading height={"20vh"} />
-                        ) : (
+                        ) : showUnavailable && unSlotData?.data?.length > 0 ? (
                             <div className="d-flex flex-wrap mb-4">
-                                {slotData?.data?.length > 0 &&
-                                    slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                                    (() => {
-                                        const selectedDateObj = new Date(selectedDate?.fullDate);
-                                        const now = new Date();
-                                        const isToday =
-                                            selectedDateObj.toDateString() === now.toDateString();
+                                {unSlotData?.data?.map((slot, i) => (
+                                    <button
+                                        key={i}
+                                        className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2 bg-secondary-subtle"
+                                        style={{
+                                            color: "#888888",
+                                            cursor: "not-allowed",
+                                            opacity: 0.6,
+                                            border: "2px solid #CBD6FF1A",
+                                            transition: "border-color 0.2s ease",
+                                        }}
+                                        disabled
+                                    >
+                                        {formatTimeForDisplay(slot.time)}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : showUnavailable && unSlotData?.data?.length === 0 ? (
+                            <div className="text-center">
+                                <p
+                                    className="text-center"
+                                    style={{
+                                        fontSize: "14px",
+                                        fontFamily: "Poppins",
+                                        fontWeight: "500",
+                                        color: "#d02727",
+                                    }}
+                                >
+                                    No unavailable slots for this date.
+                                </p>
+                            </div>
+                        ) : slotData?.data?.length > 0 &&
+                            slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
+                            (() => {
+                                const selectedDateObj = new Date(selectedDate?.fullDate);
+                                const now = new Date();
+                                now.setHours(now.getHours() + 1);
+                                const isToday = selectedDateObj.toDateString() === now.toDateString();
 
-                                        const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter(
-                                            (slot) => {
-                                                const [hourString, period] = slot?.time?.toLowerCase().split(" ");
-                                                let hour = parseInt(hourString);
-                                                if (period === "pm" && hour !== 12) hour += 12;
-                                                if (period === "am" && hour === 12) hour = 0;
-                                                const slotDate = new Date(selectedDateObj);
-                                                slotDate.setHours(hour, 0, 0, 0);
-                                                const isPast = isToday && slotDate.getTime() < now.getTime();
-                                                const isBooked = slot?.status === "booked";
-                                                const hasAmount =
-                                                    slot?.amount &&
-                                                    !isNaN(Number(slot.amount)) &&
-                                                    Number(slot.amount) > 0;
-                                                const currentSlots = selectedTimes.length;
-                                                const isLimitReached =
-                                                    currentSlots >= 15 &&
-                                                    !selectedTimes.some((t) => t._id === slot._id);
-                                                return showUnavailable
-                                                    ? isPast || isBooked || !hasAmount || isLimitReached
-                                                    : !isPast && !isBooked && hasAmount && !isLimitReached;
-                                            }
+                                const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter(
+                                    (slot) => {
+                                        if (!isToday) return true;
+                                        const [hourString, period] = slot?.time?.toLowerCase().split(" ");
+                                        let hour = parseInt(hourString);
+                                        if (period === "pm" && hour !== 12) hour += 12;
+                                        if (period === "am" && hour === 12) hour = 0;
+                                        const slotDate = new Date(selectedDateObj);
+                                        slotDate.setHours(hour, 0, 0, 0);
+                                        return slotDate.getTime() >= now.getTime();
+                                    }
+                                );
+
+                                return filteredSlots.length > 0 ? (
+                                    filteredSlots.map((slot, i) => {
+                                        const isSelected = selectedTimes.some((t) => t._id === slot._id);
+                                        const currentSlots = totalSlots;
+                                        const isLimitReached = currentSlots >= 15 && !isSelected;
+
+                                        return (
+                                            <button
+                                                key={i}
+                                                className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2"
+                                                onClick={() => toggleTime(slot)}
+                                                disabled={isLimitReached}
+                                                style={{
+                                                    backgroundColor: isSelected
+                                                        ? "#374151"
+                                                        : isLimitReached
+                                                            ? "#fff7df"
+                                                            : "#FAFBFF",
+                                                    color: isSelected
+                                                        ? "white"
+                                                        : isLimitReached
+                                                            ? "#888888"
+                                                            : "#000000",
+                                                    cursor: isLimitReached ? "not-allowed" : "pointer",
+                                                    opacity: isLimitReached ? 0.6 : 1,
+                                                    border: "2px solid #CBD6FF1A",
+                                                    transition: "border-color 0.2s ease",
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (!isLimitReached) {
+                                                        e.currentTarget.style.border = "1px solid #3DBE64";
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (!isLimitReached) {
+                                                        e.currentTarget.style.border = "2px solid #CBD6FF1A";
+                                                    }
+                                                }}
+                                            >
+                                                {formatTimeForDisplay(slot?.time)}
+                                            </button>
                                         );
-
-                                        return filteredSlots.length > 0 ? (
-                                            filteredSlots.map((slot, i) => {
-                                                const [hourString, period] = slot?.time?.toLowerCase().split(" ");
-                                                let hour = parseInt(hourString);
-                                                if (period === "pm" && hour !== 12) hour += 12;
-                                                if (period === "am" && hour === 12) hour = 0;
-                                                const slotDate = new Date(selectedDateObj);
-                                                slotDate.setHours(hour, 0, 0, 0);
-                                                const isPast = isToday && slotDate.getTime() < now.getTime();
-                                                const isBooked = slot?.status === "booked";
-                                                const isSelected = selectedTimes.some(
-                                                    (t) => t._id === slot._id
-                                                );
-                                                const hasAmount =
-                                                    slot?.amount &&
-                                                    !isNaN(Number(slot.amount)) &&
-                                                    Number(slot.amount) > 0;
-                                                const currentSlots = selectedTimes.length;
-                                                const isLimitReached = currentSlots >= 15 && !isSelected;
-
-                                                return (
-                                                    <button
-                                                        key={i}
-                                                        className={`btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2 ${isBooked
-                                                            ? "bg-secondary-subtle"
-                                                            : isPast
-                                                                ? "bg-secondary-subtle"
-                                                                : ""
-                                                            }`}
-                                                        onClick={() => {
-                                                            if (!isPast && !isBooked && hasAmount && !isLimitReached) {
-                                                                toggleTime(slot);
-                                                            }
-                                                        }}
-                                                        style={{
-                                                            backgroundColor: isSelected
-                                                                ? "#374151"
-                                                                : isBooked
-                                                                    ? "#888888"
-                                                                    : isLimitReached
-                                                                        ? "#fff7df"
-                                                                        : !hasAmount
-                                                                            ? "#fff7df"
-                                                                            : isPast
-                                                                                ? "#CBD6FF1A"
-                                                                                : "#FAFBFF",
-                                                            color: isSelected
-                                                                ? "white"
-                                                                : isPast || isBooked || !hasAmount || isLimitReached
-                                                                    ? "#888888"
-                                                                    : "#000000",
-                                                            cursor:
-                                                                isPast || isBooked || !hasAmount || isLimitReached
-                                                                    ? "not-allowed"
-                                                                    : "pointer",
-                                                            opacity:
-                                                                isPast || isBooked || !hasAmount || isLimitReached
-                                                                    ? 0.6
-                                                                    : 1,
-                                                            border: showUnavailable
-                                                                ? "2px solid #CBD6FF1A"
-                                                                : "2px solid #CBD6FF1A",
-                                                            transition: "border-color 0.2s ease",
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                            if (
-                                                                !showUnavailable &&
-                                                                !isPast &&
-                                                                !isBooked &&
-                                                                hasAmount &&
-                                                                !isLimitReached
-                                                            ) {
-                                                                e.currentTarget.style.border = "1px solid #3DBE64";
-                                                            }
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            if (
-                                                                !showUnavailable &&
-                                                                !isPast &&
-                                                                !isBooked &&
-                                                                hasAmount &&
-                                                                !isLimitReached
-                                                            ) {
-                                                                e.currentTarget.style.border = "2px solid #CBD6FF1A";
-                                                            }
-                                                        }}
-                                                    >
-                                                        {formatTimeForDisplay(slot?.time)}
-                                                    </button>
-                                                );
-                                            })
-                                        ) : (
-                                            <div className="text-center">
-                                                <p
-                                                    className="text-center"
-                                                    style={{
-                                                        fontSize: "14px",
-                                                        fontFamily: "Poppins",
-                                                        fontWeight: "500",
-                                                        color: "#d02727",
-                                                    }}
-                                                >
-                                                    {showUnavailable
-                                                        ? "No unavailable slots for this date."
-                                                        : "No available slots for this date."}
-                                                </p>
-                                            </div>
-                                        );
-                                    })()
+                                    })
                                 ) : (
                                     <div className="text-center">
                                         <p
@@ -743,12 +729,24 @@ const Booking = ({ className = "" }) => {
                                                 color: "#d02727",
                                             }}
                                         >
-                                            {showUnavailable
-                                                ? "No unavailable slots for this date."
-                                                : "No available slots for this date."}
+                                            No available slots for this date.
                                         </p>
                                     </div>
-                                )}
+                                );
+                            })()
+                        ) : (
+                            <div className="text-center">
+                                <p
+                                    className="text-center"
+                                    style={{
+                                        fontSize: "14px",
+                                        fontFamily: "Poppins",
+                                        fontWeight: "500",
+                                        color: "#d02727",
+                                    }}
+                                >
+                                    No slots available for this date.
+                                </p>
                             </div>
                         )}
                         <div>
@@ -851,79 +849,86 @@ const Booking = ({ className = "" }) => {
                             </div>
                             <div className="mb-4">
                                 {slotData?.data?.length > 0 ? (
-                                    slotData.data[0]?.courts?.map((court) => (
-                                        <div
-                                            key={court?._id}
-                                            onClick={() => handleCourtSelect(court)}
-                                            style={{
-                                                cursor: "pointer",
-                                                backgroundColor: selectedCourts.some(
+                                    slotLoading ? (
+                                        <DataLoading height={"40vh"} />) :
+                                        slotData.data[0]?.courts?.map((court) => (
+                                            <div
+                                                key={court?._id}
+                                                onClick={() => handleCourtSelect(court)}
+                                                style={{
+                                                    cursor: totalSlots >= 15 ? "not-allowed" : "pointer",
+                                                    backgroundColor: selectedCourts.some(
+                                                        (c) =>
+                                                            c._id === court._id && c.date === selectedDate.fullDate
+                                                    )
+                                                        ? "#F1F4FF"
+                                                        : "white",
+                                                    borderBottom: "1px solid #e5e7eb",
+                                                    transition:
+                                                        "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
+                                                }}
+                                                className={`d-flex ps-lg-3 pe-lg-3 justify-content-between align-items-center py-3 px-2 ${selectedCourts.some(
                                                     (c) =>
                                                         c._id === court._id && c.date === selectedDate.fullDate
                                                 )
-                                                    ? "#F1F4FF"
-                                                    : "white",
-                                                borderBottom: "1px solid #e5e7eb",
-                                                transition:
-                                                    "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
-                                            }}
-                                            className={`d-flex ps-lg-3 pe-lg-3 justify-content-between align-items-center py-3 px-2 ${selectedCourts.some(
-                                                (c) =>
-                                                    c._id === court._id && c.date === selectedDate.fullDate
-                                            )
-                                                ? "rounded"
-                                                : ""
-                                                }`}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.backgroundColor = "#F1F4FF";
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.backgroundColor = selectedCourts.some(
-                                                    (c) =>
-                                                        c._id === court._id && c.date === selectedDate.fullDate
-                                                )
-                                                    ? "#F1F4FF"
-                                                    : "white";
-                                                e.currentTarget.style.borderBottom = "1px solid #e5e7eb";
-                                            }}
-                                        >
-                                            <div className="d-flex align-items-center gap-3">
-                                                <img
-                                                    src="https://www.brookstreet.co.uk/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBMEZCVXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--4accdb1f96a306357a7fdeec518b142d3d50f1f2/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJYW5CbkJqb0dSVlE2QzNKbGMybDZaVWtpRFRnd01IZzJOVEE4QmpzR1ZBPT0iLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--bcd925903d97179ca0141ad2735607ce8eed3d71/bs_court-ushers_800.jpg"
-                                                    alt={court.courtName}
-                                                    style={{
-                                                        width: "45px",
-                                                        height: "45px",
-                                                        borderRadius: "50%",
-                                                        objectFit: "cover",
-                                                    }}
-                                                />
-                                                <div className="ps-lg-3">
-                                                    <div className="fw-semibold">{court?.courtName}</div>
-                                                    <div className="text-muted">{court.type}</div>
+                                                    ? "rounded"
+                                                    : ""
+                                                    }`}
+                                                onMouseEnter={(e) => {
+                                                    if (totalSlots < 15) {
+                                                        e.currentTarget.style.backgroundColor = "#F1F4FF";
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = selectedCourts.some(
+                                                        (c) =>
+                                                            c._id === court._id && c.date === selectedDate.fullDate
+                                                    )
+                                                        ? "#F1F4FF"
+                                                        : "white";
+                                                    e.currentTarget.style.borderBottom = "1px solid #e5e7eb";
+                                                }}
+                                            >
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <img
+                                                        src="https://www.brookstreet.co.uk/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBMEZCVXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--4accdb1f96a306357a7fdeec518b142d3d50f1f2/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJYW5CbkJqb0dSVlE2QzNKbGMybDZaVWtpRFRnd01IZzJOVEE4QmpzR1ZBPT0iLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--bcd925903d97179ca0141ad2735607ce8eed3d71/bs_court-ushers_800.jpg"
+                                                        alt={court.courtName}
+                                                        style={{
+                                                            width: "45px",
+                                                            height: "45px",
+                                                            borderRadius: "50%",
+                                                            objectFit: "cover",
+                                                        }}
+                                                    />
+                                                    <div className="ps-lg-3">
+                                                        <div className="fw-semibold">{court?.courtName}</div>
+                                                        <div className="text-muted">{court.type}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-end gap-4">
+                                                    <p className="custom-title mb-0" style={{ fontWeight: "500" }}>
+                                                        ₹ 1000
+                                                    </p>
+                                                    <button
+                                                        className="btn rounded-circle cart-booking-btn d-flex align-items-center justify-content-center"
+                                                        style={{
+                                                            padding: "0",
+                                                            backgroundColor: totalSlots >= 15 ? "#ccc" : "#1F41BB",
+                                                            flexShrink: 0,
+                                                        }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (totalSlots < 15) {
+                                                                handleCourtSelect(court);
+                                                            }
+                                                        }}
+                                                        disabled={totalSlots >= 15}
+                                                    >
+                                                        <FiShoppingCart size={17} color="white" />
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <div className="d-flex align-items-center justify-content-end gap-4">
-                                                <p className="custom-title mb-0" style={{ fontWeight: "500" }}>
-                                                    ₹ 1000
-                                                </p>
-                                                <button
-                                                    className="btn rounded-circle cart-booking-btn d-flex align-items-center justify-content-center"
-                                                    style={{
-                                                        padding: "0",
-                                                        backgroundColor: "#1F41BB",
-                                                        flexShrink: 0,
-                                                    }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleCourtSelect(court);
-                                                    }}
-                                                >
-                                                    <FiShoppingCart size={17} color="white" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
+                                        ))
                                 ) : (
                                     <div className="text-center py-4 text-muted">
                                         {selectedTimes.length === 0
@@ -998,12 +1003,22 @@ const Booking = ({ className = "" }) => {
                                         .join(", ")}
                                 </p>
                             </div>
-                            <h6 className="border-top p-2 mb-1 pt-3 ps-0 custom-heading-use">
-                                Booking summary
-                            </h6>
+                            <div className="d-flex border-top pt-2 justify-content-between align-items-center">
+                                <h6 className=" p-2 mb-1  ps-0 custom-heading-use">
+                                    Booking summary
+                                </h6>
+                                {totalSlots >= 10 && (
+                                    <Button
+                                        className="float-end btn border-0 rounded-pill"
+                                        style={{ cursor: "pointer", backgroundColor: "grey", fontSize: "10px", fontFamily: "Poppins" }}
+                                        onClick={handleClearAll}
+                                    >
+                                        Clear all
+                                    </Button>
+                                )}
+                            </div>
                             <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
-                                {selectedCourts?.length &&
-                                    selectedCourts.some((court) => court?.time?.length > 0) ? (
+                                {selectedCourts?.length > 0 &&
                                     selectedCourts.map((court, index) => (
                                         <>
                                             {court?.time?.map((timeSlot, timeIndex) => (
@@ -1018,7 +1033,7 @@ const Booking = ({ className = "" }) => {
                                                                     color: "#374151",
                                                                 }}
                                                             >
-                                                                {court?.day ? dayShortMap[court?.day] : ""},
+                                                                {court?.day ? dayShortMap[court?.day] : ""}
                                                             </span>
                                                             <span
                                                                 className="ps-1"
@@ -1075,19 +1090,18 @@ const Booking = ({ className = "" }) => {
                                                             >
                                                                 {timeSlot?.amount || "N/A"}
                                                             </span>
-                                                            <button
-                                                                className="btn btn-sm text-danger delete-btn"
-                                                                onClick={() => handleDeleteSlot(index, timeIndex)}
-                                                            >
-                                                                <i className="bi bi-trash-fill mb-2"></i>
-                                                            </button>
+                                                            <MdOutlineDeleteOutline
+                                                                className="ms-2"
+                                                                style={{ cursor: "pointer", color: "red" }}
+                                                                onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)}
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </>
-                                    ))
-                                ) : (
+                                    ))}
+                                {selectedCourts.length === 0 && (
                                     <div
                                         className="d-flex flex-column justify-content-center align-items-center text-muted"
                                         style={{ height: "25vh" }}
@@ -1166,31 +1180,19 @@ const Booking = ({ className = "" }) => {
                                         </defs>
                                         <path
                                             d={`M ${width * 0.76} ${height * 0.15} 
-             C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20
-                                                } ${width * 0.83} ${height * 0.30} 
-             C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34
-                                                } ${width * 0.84} ${height * 0.34} 
-             C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32
-                                                } ${width * 0.86} ${height * 0.30} 
-             C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15
-                                                } ${width * 0.92} ${height * 0.15} 
-             C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30
-                                                } ${width * 0.996} ${height * 0.50} 
-             C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85
-                                                } ${width * 0.92} ${height * 0.85} 
-             C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80
-                                                } ${width * 0.86} ${height * 0.70} 
-             C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66
-                                                } ${width * 0.84} ${height * 0.66} 
-             C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68
-                                                } ${width * 0.83} ${height * 0.70} 
-             C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85
-                                                } ${width * 0.76} ${height * 0.85} 
+             C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
+             C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
+             C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
+             C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} 
+             C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} 
+             C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} 
+             C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} 
+             C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} 
+             C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} 
+             C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} 
              L ${width * 0.08} ${height * 0.85} 
-             C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70
-                                                } ${width * 0.004} ${height * 0.50} 
-             C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15
-                                                } ${width * 0.08} ${height * 0.15} 
+             C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
+             C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
              L ${width * 0.76} ${height * 0.15} Z`}
                                             fill={`url(#buttonGradient-${width}-${height})`}
                                         />
@@ -1208,19 +1210,13 @@ const Booking = ({ className = "" }) => {
                                             strokeLinejoin="round"
                                         >
                                             <path
-                                                d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
-                                                    } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
-                                                    }`}
+                                                d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`}
                                             />
                                             <path
-                                                d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
-                                                    } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
-                                                    }`}
+                                                d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`}
                                             />
                                             <path
-                                                d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
-                                                    } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
-                                                    }`}
+                                                d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`}
                                             />
                                         </g>
                                     </svg>

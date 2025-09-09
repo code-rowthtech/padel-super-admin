@@ -815,8 +815,8 @@ h1.display-5 {
 
   /* HomePage top banner responsive */
   .home-main-heading {
-    font-size: 32px !important;
-    line-height: 38px;
+    font-size: 20px !important;
+    line-height: 20px;
   }
 
   .custom-title {
@@ -833,7 +833,7 @@ h1.display-5 {
   }
 
   .custom-heading-use {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 500;
   }
 
@@ -851,6 +851,9 @@ h1.display-5 {
     font-size: 15px;
   }
   .booking-table thead th {
+  font-size: 12px;
+}
+.all-match-time{
   font-size: 12px;
 }
 
@@ -1054,6 +1057,21 @@ h1.display-5 {
   /* Navbar mobile - profile only */
   .navbar-brand {
     margin-right: auto !important;
+  }
+
+  /* OpenmatchPayment responsive */
+  .border-md-start {
+    border-left: none !important;
+  }
+
+  /* Players section responsive */
+  .col-12.d-flex.flex-column {
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .col-12.d-flex.flex-column .d-flex.flex-column {
+    margin-bottom: 1rem !important;
   }
 
   /* BookingHistory responsive */

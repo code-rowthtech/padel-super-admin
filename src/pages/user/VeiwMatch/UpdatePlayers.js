@@ -12,11 +12,14 @@ const modalStyle = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 500,
+    width: { xs: '90%', sm: '80%', md: 500 },
+    maxWidth: '500px',
     bgcolor: 'background.paper',
-    p: 4,
+    p: { xs: 2, md: 4 },
     borderRadius: 2,
     border: 'none',
+    maxHeight: '90vh',
+    overflowY: 'auto',
 };
 
 const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDate, selectedTime, selectedLevel }) => {
@@ -103,7 +106,7 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
                 <h6 id="modal-title" className="mb-3 text-center" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                     Player Information
                 </h6>
-                {errorShow && <Alert variant="danger" className='position-absolute' style={{ bottom: "80%", width: "87%", fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{error}</Alert>}
+                {errorShow && <Alert variant="danger" className='mb-3' style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>{error}</Alert>}
                 <form>
                     <div className="mb-3">
                         <label className="form-label">
@@ -193,8 +196,8 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
                         <label className="form-label">
                             Gender
                         </label>
-                        <div className="d-flex gap-3">
-                            <div>
+                        <div className="d-flex flex-wrap gap-2 gap-md-3">
+                            <div className="d-flex align-items-center">
                                 <input
                                     type="radio"
                                     id="male"
@@ -207,7 +210,7 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
                                 />
                                 <label htmlFor="male" className="form-check-label ms-2">Male</label>
                             </div>
-                            <div>
+                            <div className="d-flex align-items-center">
                                 <input
                                     type="radio"
                                     id="female"
@@ -220,7 +223,7 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
                                 />
                                 <label htmlFor="female" className="form-check-label ms-2">Female</label>
                             </div>
-                            <div>
+                            <div className="d-flex align-items-center">
                                 <input
                                     type="radio"
                                     id="other"
@@ -256,19 +259,19 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
                             <option value="C|D">C|D</option>
                         </select>
                     </div>
-                    <div className="d-flex justify-content-between">
+                    <div className="d-flex flex-column flex-sm-row justify-content-between gap-2">
                         <Button
                             variant="outlined"
                             color="secondary"
                             onClick={() => {
                                 setShowModal(false);
                             }}
-                            sx={{ width: "45%" }}
+                            sx={{ width: { xs: "100%", sm: "45%" } }}
                         >
                             Cancel
                         </Button>
                         <Button
-                            sx={{ width: "45%" }}
+                            sx={{ width: { xs: "100%", sm: "45%" } }}
                             className="text-white"
                             style={{ backgroundColor: "#3DBE64" }}
                             onClick={() => handleAddPlayer()}
