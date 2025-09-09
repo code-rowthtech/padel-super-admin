@@ -161,7 +161,7 @@ const Payment = ({ className = "" }) => {
                 slot: slotArray,
                 paymentMethod: selectedPayment,
             };
-            if (user?.name && user?.token) {
+            if (!user?.name && !user?.token) {
                 dispatch(createBooking(payload))
                     .unwrap()
                     .then((res) => {
@@ -242,17 +242,17 @@ const Payment = ({ className = "" }) => {
     };
 
     return (
-        <div className="container mt-4 d-flex gap-4 px-4 flex-wrap">
-            <div className="row w-100">
-                <div className="col-7">
+        <div className="container mt-lg-4 mb-3 px-3 px-md-4">
+            <div className="row g-4">
+                <div className="col-12 col-lg-7">
                     <div className="bg-white rounded">
                         {/* Info Section */}
-                        <div className="rounded-4 py-4 px-5 mb-4" style={{ backgroundColor: "#F5F5F566",border:errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
-                            <h6 className="mb-3" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+                        <div className="rounded-4 py-4 px-3 px-md-5 mb-4" style={{ backgroundColor: "#F5F5F566",border:errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
+                            <h6 className="mb-3 custom-heading-use">
                                 Information
                             </h6>
                             <div className="row">
-                                <div className="col-md-4 mb-3 p-1">
+                                <div className="col-12 col-md-4 mb-3 p-1">
                                     <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
@@ -288,7 +288,7 @@ const Payment = ({ className = "" }) => {
                                     )}
                                 </div>
 
-                                <div className="col-md-4 mb-3 p-1">
+                                <div className="col-12 col-md-4 mb-3 p-1">
                                     <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
@@ -322,7 +322,7 @@ const Payment = ({ className = "" }) => {
                                         </div>
                                     )}
                                 </div>
-                                <div className="col-md-4 mb-3 p-1">
+                                <div className="col-12 col-md-4 mb-3 p-1">
                                     <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
@@ -359,17 +359,17 @@ const Payment = ({ className = "" }) => {
 
                         {/* Payment Method Section */}
                         <div
-                            className="rounded-4 py-4 px-5"
+                            className="rounded-4 py-4 px-3 px-md-5"
                             style={{
                                 backgroundColor: "#F5F5F566",
                                 border: errors.paymentMethod ? "2px solid red" : "none",
                             }}
                         >
-                            <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: '600', fontFamily: "Poppins" }}>
+                            <h6 className="mb-4 custom-heading-use" >
                                 Payment Method
                             </h6>
                             {errors.paymentMethod && (
-                                <div className="text-danger position-absolute" style={{ fontSize: "12px", bottom: "55%" }}>
+                                <div className="text-danger position-" style={{ fontSize: "12px", }}>
                                     {errors.paymentMethod}
                                 </div>
                             )}
@@ -406,7 +406,7 @@ const Payment = ({ className = "" }) => {
                 </div>
 
                 {/* Booking Summary */}
-                <div className="col-5">
+                <div className="col-12 col-lg-5">
                     <div className="border rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
@@ -441,7 +441,7 @@ const Payment = ({ className = "" }) => {
                             </p>
                         </div>
 
-                        <h6 className="border-top p-2 pt-3 mb-3 ps-0" style={{ fontSize: "20px", fontWeight: "600" }}>
+                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use" >
                             Booking Summary
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
@@ -455,13 +455,13 @@ const Payment = ({ className = "" }) => {
                                                         <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {court?.day ? dayMap[court.day.toLowerCase()] : ""},
                                                         </span>
-                                                        <span className="" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
                                                                 const date = new Date(court.date);
                                                                 const day = date.toLocaleString("en-US", { day: "2-digit" });
                                                                 const month = date.toLocaleString("en-US", { month: "short" });
-                                                                return `${day} ${month}`;
+                                                                return `${day}${month}`;
                                                             })()}
                                                         </span>
                                                         <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
@@ -513,7 +513,7 @@ const Payment = ({ className = "" }) => {
                             </div>
                         )}
 
-                        <div className="d-flex justify-content-center mt-3">
+                        <div className="d-flex justify-content-center mt-3 mb-4">
                             <button
                                 style={{
                                     ...buttonStyle,
@@ -576,7 +576,7 @@ const Payment = ({ className = "" }) => {
                             setModal(false);
                             navigate("/booking", { replace: true });
                         }}
-                        className="w-75 rounded-pill border-0 text-white py-3 mt-4 mb-4"
+                        className="w-75 rounded-pill border-0 text-white py-lg-3 mt-lg-4 mb-lg-4"
                         style={{ backgroundColor: "#3DBE64", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
                     >
                         Continue

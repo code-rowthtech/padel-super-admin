@@ -71,10 +71,12 @@ const VerifyOTP = () => {
   }, [error]);
 
   return (
-    <Row style={{ height: '100vh', margin: 0 }}>
+    <Row className='mx-auto' style={{ height: '100vh', margin: 0 }}>
       {/* Left Panel */}
       <Col
-        md={6}
+        md={12}
+        lg={6}
+        xs={12}
         style={{
           backgroundColor: '#F8F8F8',
           display: 'flex',
@@ -83,7 +85,7 @@ const VerifyOTP = () => {
           padding: "30px 0px",
         }}
       >
-        <div style={{ width: '100%', maxWidth: 390, textAlign: 'center', position: "relative" }}>
+        <div className='p-4 p-md-0' style={{ width: '100%', maxWidth: 390, textAlign: 'center', position: "relative" }}>
           <h2 className="welcome-heading mb-2">WELCOME BACK</h2>
           <div style={{ marginBottom: 30, color: '#666' }}>
             A verification code has been sent to <strong>+91*****{phone?.slice(5)}</strong>
@@ -154,7 +156,7 @@ const VerifyOTP = () => {
               boxShadow: ' 0px 4px 10px 0px #1A237E40',
 
             }}
-            className="w-100 text-white rounded-pill border-0 py-3"
+            className="w-100 text-white rounded-pill border-0 py-md-3"
           >
             {userAuthLoading ? <ButtonLoading /> : 'Verification Code'}
           </Button>
@@ -179,16 +181,17 @@ const VerifyOTP = () => {
       </Col>
 
       {/* Right Panel */}
-      <Col md={6} className="d-none d-md-flex p-0 align-items-center justify-content-center">
+      <Col lg={6} className="d-none d-lg-block p-0">
         <img
           src={authImg}
           alt="Auth"
           className="img-fluid"
           style={{
             width: "100%",
-            height: "100vh",
-            // objectFit: "contain",   // show full image, no cropping
+            height: "100%",
+            objectFit: "cover"
           }}
+          loading="lazy"
         />
       </Col>
     </Row>

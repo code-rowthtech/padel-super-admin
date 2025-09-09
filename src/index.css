@@ -177,18 +177,73 @@ h1.display-5 {
 .image-zoom-hover img {
   transition: transform 0.5s ease;
 }
-.form-check-label{
+
+.form-check-label {
   font-size: 12px;
   font-weight: 500;
   font-family: "Poppins";
 }
-.slot-time-btn{
+
+.slot-time-btn {
   width: 110px;
   height: 40px;
   border: 1px solid #CBD6FF1A;
   font-size: 14px;
   font-family: 500px;
   font-family: "Poppins";
+}
+
+.view-match-btn {
+  background-color: #3DBE64 !important;
+  width: 62px;
+  height: 21px;
+  border-radius: 25px;
+  font-family: "Poppins";
+  font-weight: 500 !important;
+  font-size: 12px !important;
+  line-height: 21px;
+  padding: 0;
+}
+
+.all-matches {
+  font-size: 20px;
+  font-family: "Poppins";
+  font-weight: 600;
+}
+
+.open-match-img-heading {
+  font-size: 40px;
+  font-weight: 600;
+  font-family: "Poppins";
+}
+
+.step-heading {
+  font-size: 24px;
+  font-weight: 600;
+  font-family: "Poppins";
+  color: #374151;
+}
+
+.booking-history-heading {
+  font-size: 36px;
+  font-family: "Poppins";
+  font-weight: 700;
+  color: #374151;
+}
+
+.booking-history-tab {
+  font-size: 18px !important;
+  font-family: "Poppins";
+  font-weight: 500;
+  height: 36px;
+}
+
+/* Large screens: 6 slots per row */
+@media (min-width: 769px) {
+  /* .slot-time-btn {
+    width: calc(16.666% - 8px) !important;
+    margin: 4px !important;
+  } */
 }
 
 .calendar-day-btn {
@@ -198,6 +253,19 @@ h1.display-5 {
   display: flex;
   justify-content: center;
   align-items: center;
+  border: 1px solid #4949491A;
+}
+
+.date-center-date {
+  font-size: 26px;
+  font-family: "Poppins";
+  font-weight: 500;
+}
+
+.date-center-day {
+  font-size: 14px;
+  font-family: "Poppins";
+  font-weight: 400;
 }
 
 .court-row .delete-btn {
@@ -213,15 +281,14 @@ h1.display-5 {
 
 .custom-title {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 500;
   color: #374151;
   font-family: "Poppins" sans-serif;
 }
 
-@media (max-width: 768px) {
-  .auth-wrapper {
-    padding: 1rem;
-  }
+.custom-radio .form-check-input[type="radio"] {
+  border-color: #1F41BB;
+  cursor: pointer;
 }
 
 .dropdown-toggle::after {
@@ -280,6 +347,7 @@ h1.display-5 {
   color: #04103b;
 }
 
+
 /* Custom Table */
 
 .custom-scroll-container {
@@ -327,8 +395,8 @@ h1.display-5 {
   padding: 0.7rem 0px;
   /* Default padding for other columns */
   text-align: center;
-  font-weight: 400;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 18px;
   border-bottom: 0.5px solid #0000001a;
   background-color: #fafbff !important;
   /* Fixed the syntax error with quotes */
@@ -642,6 +710,11 @@ h1.display-5 {
   font-family: "Poppins";
 }
 
+.cart-booking-btn {
+  width: 28px;
+  height: 28px;
+}
+
 .login-btn {
   font-size: 20px;
   font-weight: 600;
@@ -682,19 +755,356 @@ h1.display-5 {
   font-size: 50px;
 }
 
-.booking-img-heading{
+.booking-img-heading {
   font-family: 'Poppins';
   font-weight: 700;
   font-size: 60px;
 }
-.form-control::placeholder{
+
+.form-control::placeholder {
   font-weight: 400;
   font-family: "Poppins";
   font-size: 10px;
   color: #D9D9D9;
 }
-.form-control{
+
+.form-control {
   font-weight: 300;
   font-family: "Poppins";
   font-size: 14px;
+}
+
+.all-match-time {
+  font-size: 14px;
+  font-family: "Poppins";
+}
+
+.all-match-name-level {
+  font-size: 12px;
+  font-family: "Poppins";
+  font-weight: 500;
+}
+
+.custom-heading-use {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: "Poppins";
+  color: #374151 !important;
+}
+
+@media (min-width: 368px) and (max-width: 768px) {
+  .auth-wrapper {
+    padding: 1rem;
+  }
+
+  .login-btn {
+    font-size: 15px;
+    font-weight: 500;
+    height: 40px;
+    width: 100px;
+  }
+
+  .welcome-heading {
+    font-size: 20px;
+  }
+
+  .cart-booking-btn {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* HomePage top banner responsive */
+  .home-main-heading {
+    font-size: 32px !important;
+    line-height: 38px;
+  }
+
+  .custom-title {
+    font-size: 14px !important;
+  }
+
+  .home-upcoming-heading {
+    font-size: 20px !important;
+  }
+
+  /* Adjust padding for mobile */
+  .position-absolute.p-5 {
+    padding: 2rem !important;
+  }
+
+  .custom-heading-use {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .open-match-img-heading {
+    font-size: 30px;
+  }
+  .booking-history-heading{
+    font-size: 20px;
+  }
+  .booking-history-tab{
+    font-size: 14px !important;
+    height: 20px !important;
+  }
+  .step-heading{
+    font-size: 15px;
+  }
+  .booking-table thead th {
+  font-size: 12px;
+}
+
+.booking-table td {
+  font-size: 14px !important;
+}
+
+  /* Tab buttons responsive - ensure single row */
+  .icon-button {
+    width: auto !important;
+    min-width: 60px;
+    flex: 1;
+  }
+
+  .icon-circle {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .label {
+    font-size: 12px !important;
+  }
+
+  /* Photos gallery responsive */
+  .custom-gallery {
+    grid-template-areas:
+      "img1 img2"
+      "img3 img4"
+      "img5 img5"
+      "img6 img7"
+      "img8 img9"
+      "img10 img10" !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-auto-rows: 150px !important;
+    gap: 8px !important;
+  }
+
+  /* Reviews section responsive */
+  .averageRating-count {
+    font-size: 36px !important;
+  }
+
+  /* Adjust review cards for mobile */
+  .col-5,
+  .col-7 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  .border-start {
+    border-start: none !important;
+    border-top: 1px solid #dee2e6 !important;
+    padding-top: 1rem !important;
+    padding-left: 0 !important;
+  }
+
+  /* Booking page responsive */
+  .booking-img-heading {
+    font-size: 36px !important;
+    line-height: 42px;
+  }
+
+  /* Slot buttons responsive */
+  .slot-time-btn {
+    width: 90px !important;
+    height: 35px !important;
+    font-size: 12px !important;
+    margin: 2px !important;
+  }
+
+  /* Calendar day buttons responsive */
+  .calendar-day-btn {
+    flex: 0 0 70px !important;
+    height: 86px !important;
+    width: 90px !important;
+  }
+
+  /* Booking summary responsive */
+  .col-12.d-flex {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .col-12.d-flex>div:first-child {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  .col-12.d-flex>div:last-child {
+    align-self: flex-end !important;
+  }
+
+  /* Court list responsive */
+  .d-flex.ps-3.pe-3 {
+    padding: 1rem !important;
+  }
+
+  .d-flex.ps-3.pe-3 img {
+    width: 35px !important;
+    height: 35px !important;
+  }
+
+  /* Book now button responsive */
+  .d-flex.justify-content-center button {
+    width: 280px !important;
+    height: 60px !important;
+  }
+
+  /* DatePicker responsive */
+  .react-datepicker {
+    font-size: 14px !important;
+    width: 280px !important;
+  }
+
+  .react-datepicker__header {
+    padding: 8px !important;
+  }
+
+  .react-datepicker__current-month {
+    font-size: 16px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .react-datepicker__day {
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    margin: 1px !important;
+  }
+
+  /* Slots 3 per row on mobile for openmatches */
+  .slot-time-btn {
+    width: 90px !important;
+    height: 35px !important;
+    font-size: 12px !important;
+    margin: 2px !important;
+    padding: 4px 8px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Court section - fix cart button */
+  .btn.rounded-circle {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  .d-flex.align-items-center.justify-content-center.gap-4 {
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .d-flex.align-items-center.gap-3 img {
+    width: 35px !important;
+    height: 35px !important;
+  }
+
+  /* Booking summary responsive */
+  .col-12.d-flex {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .col-12.d-flex>div:first-child {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .col-12.d-flex>div:last-child {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .col-12.d-flex span {
+    font-size: 12px !important;
+  }
+
+  .border-top.pt-3 span {
+    font-size: 14px !important;
+  }
+
+  .border-top.pt-3 span:last-child {
+    font-size: 18px !important;
+  }
+
+  .delete-btn {
+    padding: 2px 4px !important;
+    min-width: auto !important;
+  }
+
+  /* Navbar mobile - profile only */
+  .navbar-brand {
+    margin-right: auto !important;
+  }
+
+  /* BookingHistory responsive */
+  .booking-history-heading {
+    font-size: 20px !important;
+  }
+
+  .step-heading {
+    font-size: 18px !important;
+  }
+
+  /* Tabs responsive */
+  .booking-history-tab {
+    font-size: 12px !important;
+    padding: 4px 12px !important;
+    min-width: auto !important;
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+
+  /* DatePicker responsive */
+  .custom-datepicker-input {
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+    height: 100% !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Table responsive */
+  .booking-table {
+    font-size: 12px !important;
+  }
+
+  .booking-table th {
+    padding: 8px 4px !important;
+    font-size: 10px !important;
+  }
+
+  .booking-table td {
+    padding: 8px 4px !important;
+    font-size: 10px !important;
+  }
+
+  .table-data {
+    font-size: 10px !important;
+  }
+
+  /* Search inputs responsive */
+  .form-control {
+    font-size: 12px !important;
+  }
 }

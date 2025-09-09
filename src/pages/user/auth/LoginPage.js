@@ -34,20 +34,20 @@ const LoginPage = () => {
     }, [error]);
 
     return (
-        <div className="auth-wrapper" style={{backgroundColor:"#F8F8F8"}}>
-            <Container fluid className="vh-100 p-0">
-                <Row className="g-0 h-100">
+        <div className="auth-wrapper" style={{ backgroundColor: "#F8F8F8", height: "100vh", overflow: "hidden" }}>
+            <Container fluid className="h-lg-100 p-0">
+                <Row className="g-0 h-lg-100  ">
                     {/* Left Form */}
                     <Col
                         xs={12}
-                        md={6}
-                        className="d-flex flex-column justify-content-center align-items-center px-5"
+                        lg={6}
+                        className="d-flex flex-column  justify-content-lg-center align-items-center px-3 px-md-5"
                     >
-                        <div className="w-100" style={{ maxWidth: '400px' }}>
+                        <div className="w-100 h-25  " style={{ maxWidth: '400px' }}>
                             <h2 className="welcome-heading mb-2">WELCOME BACK</h2>
                             <p className="text-muted mb-4" style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}>Welcome back! Please enter your details.</p>
 
-                            <Form onSubmit={handleSubmit}>
+                            <Form onSubmit={handleSubmit} className='w-100'>
                                 {showAlert && <Alert variant="danger">{error}</Alert>}
 
 
@@ -56,7 +56,7 @@ const LoginPage = () => {
                                     <Form.Control
                                         type="tel"
                                         placeholder="Enter your Phone"
-                                        className=" form-control py-3"
+                                        className=" form-control  py-md-3"
                                         style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
                                         value={phone}
                                         minLength={10}
@@ -72,12 +72,10 @@ const LoginPage = () => {
                                 </Form.Group>
 
                                 <Button
-
-                                    type="submit"
-                                    className="w-100 text-white  border-0 py-3 rounded-pill "
+                                    type='submit'
+                                    className="w-100 text-white border-0 py-md-3 rounded-pill"
                                     disabled={userAuthLoading}
-                                    style={{ backgroundColor: '#4CAF50', fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
-
+                                    style={{ backgroundColor: '#4CAF50', fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "white", boxShadow: '0px 3px 10px 0px #00000040' }}
                                 >
                                     {userAuthLoading ? <ButtonLoading /> : 'Get OTP'}
                                 </Button>
@@ -87,15 +85,15 @@ const LoginPage = () => {
                     </Col>
 
                     {/* Right Image */}
-                    <Col md={6} className="d-none d-md-flex p-0 align-items-center justify-content-center">
+                    <Col lg={6} className="d-none d-lg-block p-0">
                         <img
                             src={authImg}
                             alt="Auth"
                             className="img-fluid"
                             style={{
                                 width: "100%",
-                                height: "100vh",
-                                // objectFit: "contain",   // show full image, no cropping
+                                height: "100%",
+                                objectFit: "cover"
                             }}
                             loading="lazy"
                         />
