@@ -274,7 +274,7 @@ const ViewMatch = ({ className = "" }) => {
                 <div className="col-5 pe-0">
                     <div className="row mb-4 align-items-center text-white rounded-4 px-3 ms-2 pt-3" style={{ background: "linear-gradient(to right, #101826, #1e293b)", overflow: "visible", position: "relative" }}>
                         <div className="col-md-6 mb-4 mb-md-0">
-                            <h4 className="fw-bold">Let the Battles Begin!</h4>
+                            <h4 className="open-match-img-heading text-nowrap">Let the Battles <br /> Begin!</h4>
                             <p className="text-light">Great for competitive vibes.</p>
                         </div>
                         <div className="col-md-6 text-center" style={{ position: "relative" }}>
@@ -333,7 +333,7 @@ const ViewMatch = ({ className = "" }) => {
                                                     </span>
                                                 </div>
                                                 <div className="d-flex align-items-center gap-2">
-                                                    <p className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "30px" }}>₹ <span className="" style={{ fontSize: "30px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{slotTime.amount}</span></p>
+                                                    <p className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "18px" }}>₹ <span className="" style={{ fontSize: "18px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{slotTime.amount}</span></p>
                                                 </div>
                                             </div>
                                         );
