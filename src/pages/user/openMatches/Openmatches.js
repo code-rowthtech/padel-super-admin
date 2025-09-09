@@ -672,7 +672,7 @@ const Openmatches = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="col-12 col-md-8 border-lg-start d-flex align-items-center">
+                                    <div className="col-12 col-md-8 border-start d-flex align-items-center">
                                         <div className="w-100">
                                             {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
                                                 let width = "0%";
