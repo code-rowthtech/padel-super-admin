@@ -483,7 +483,7 @@ const CourtAvailability = () => {
                   <div className="d-flex align-items-center w-100 p-0 gap-2 mb-4">
                     {/* Month display instead of left button */}
                     <div
-                      className="text-center fw-bold"
+                      className="text-center fw-bold badge bg-secondary-subtle p-2"
                       style={{
                         writingMode: "vertical-lr",
                         transform: "rotate(180deg)",
@@ -491,7 +491,7 @@ const CourtAvailability = () => {
                         fontFamily: "Poppins",
                         fontSize: "14px",
                         color: "#374151",
-                        marginBottom: "20px",
+                        marginBottom: "24px",
                       }}
                     >
                       {currentMonth}
