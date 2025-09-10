@@ -14,7 +14,7 @@ const VerifyOTP = () => {
   const [showAlert, setShowAlert] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const phone = location.state?.phone;
+  const { phone, redirectTo, paymentState } = location.state || {};
   const { error, user, userAuthLoading } = useSelector((state) => state?.userAuth);
   const store = useSelector((state) => state?.userAuth);
   const dispatch = useDispatch();
@@ -28,11 +28,14 @@ const VerifyOTP = () => {
 
   useEffect(() => {
     if (store?.user?.status === "200") {
-      navigate('/home');
+      if (redirectTo && paymentState) {
+        navigate(redirectTo, { state: paymentState });
+      } else {
+        navigate('/home');
+      }
       dispatch(resetAuth());
     }
-  }, [store?.user?.status, navigate, dispatch]);
-
+  }, [store?.user?.status, navigate, dispatch, redirectTo, paymentState]);
   const handleChange = (index, value, event) => {
     if (/^\d?$/.test(value)) {
       const newOtp = [...otp];
