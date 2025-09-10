@@ -4,7 +4,7 @@ import DatePicker from "react-datepicker";
 import { FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, NavLink, useNavigate } from "react-router-dom";
-import { getUserSlot } from "../../../redux/user/slot/thunk";
+import { getUserSlotBooking } from "../../../redux/user/slot/thunk"; 
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatTime } from "../../../helpers/Formatting";
@@ -34,6 +34,7 @@ const CreateMatches = () => {
   const [skillDetails, setSkillDetails] = useState([]);
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
+  const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || []); // clubData जोड़ा
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
   const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
@@ -200,7 +201,7 @@ const CreateMatches = () => {
   useEffect(() => {
     if (savedClubId && selectedDate.day) {
       dispatch(
-        getUserSlot({
+        getUserSlotBooking({
           register_club_id: savedClubId,
           day: selectedDate.day,
           date: selectedDate.fullDate,
@@ -266,8 +267,14 @@ const CreateMatches = () => {
     },
   ];
 
+  const grandTotal = selectedCourts.reduce(
+    (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
+    0
+  ); // grandTotal जोड़ा
+  const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0); // totalSlots जोड़ा
+
   const handleNext = () => {
-    if (selectedCourts.length === 0 || selectedCourts.every((court) => court.times.length === 0)) {
+    if (selectedCourts.length === 0 || selectedCourts.every((court) => court.time.length === 0)) {
       setSlotError("Please select at least one time slot for a court");
       return;
     }
@@ -285,8 +292,31 @@ const CreateMatches = () => {
       const finalSkillDetails = [...skillDetails];
       finalSkillDetails[currentStep] = selectedLevel;
 
+      const courtIds = selectedCourts
+        .map((court) => court._id)
+        .filter((id) => id)
+        .join(","); // courtIds जोड़ा
+
       navigate("/match-payment", {
-        state: { slotData, finalSkillDetails, selectedDate, selectedCourts },
+        state: {
+          courtData: {
+            day: selectedDate?.day,
+            date: selectedDate?.fullDate,
+            time: selectedBuisness,
+            courtId: courtIds,
+            court: selectedCourts.map((c) => ({
+              _id: c._id || c.id,
+              ...c,
+            })),
+            slot: slotData?.data?.[0]?.slots,
+          },
+          clubData: clubData,
+          selectedCourts,
+          selectedDate,
+          grandTotal,
+          totalSlots,
+          finalSkillDetails, // CreateMatches के लिए अतिरिक्त डेटा
+        },
       });
     }
   };
@@ -314,13 +344,43 @@ const CreateMatches = () => {
     return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
   };
 
+  const formatTimeForDisplay = (time) => {
+    if (!time) return "";
+    const [hourString, period] = time.toLowerCase().split(" ");
+    return `${hourString}:00 ${period}`;
+  };
+
+  const parseTimeToHour = (timeStr) => {
+    if (!timeStr) return null;
+    const [hourStr, period] = timeStr.toLowerCase().split(" ");
+    let hour = parseInt(hourStr);
+    if (isNaN(hour)) return null;
+    if (period === "pm" && hour !== 12) hour += 12;
+    if (period === "am" && hour === 12) hour = 0;
+    return hour;
+  };
+
+  const isPastTime = (timeStr) => {
+    const slotHour = parseTimeToHour(timeStr);
+    if (slotHour === null) return false;
+    const selectedDateObj = new Date(selectedDate?.fullDate);
+    const now = new Date();
+    const isToday = selectedDateObj.toDateString() === now.toDateString();
+    if (isToday) {
+      const slotDateTime = new Date(selectedDateObj);
+      slotDateTime.setHours(slotHour, 0, 0, 0);
+      return slotDateTime < now;
+    }
+    return false;
+  };
+
   return (
-    <Container className="p-4 mb-5" >
+    <Container className="p-4 mb-5">
       <Row>
         {/* LEFT PANEL */}
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
-          <div className="calendar-strip ">
+          <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
               <div className="custom-heading-use">
                 Select Date
@@ -354,7 +414,7 @@ const CreateMatches = () => {
                           setSelectedDate({ fullDate: formattedDate, day: day });
                           setSelectedTimes({});
                           dispatch(
-                            getUserSlot({
+                            getUserSlotBooking({
                               day: day,
                               date: formattedDate,
                               register_club_id:
@@ -434,7 +494,7 @@ const CreateMatches = () => {
                         setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                         setStartDate(new Date(d.fullDate));
                         dispatch(
-                          getUserSlot({
+                          getUserSlotBooking({
                             day: d?.day,
                             date: d?.fullDate,
                             register_club_id:
@@ -461,211 +521,140 @@ const CreateMatches = () => {
               </div>
             </div>
             <hr />
-          </div>
-          <div className="d-flex justify-content-between align-items-center py-3">
-            <p className="mb-0 custom-heading-use" >
-              Available Slots <span className="" style={{ fontWeight: "500", fontSize: "12px", fontFamily: "Poppins" }}>(60m)</span>
-            </p>
-            <div className="form-switch d-flex justify-content-center align-items-center gap-2 p-0">
-              <label
-                className="form-check-label mb-0"
-                htmlFor="flexSwitchCheckDefault"
-                style={{ whiteSpace: "nowrap", fontFamily: "Poppins" }}
-              >
-                Show Unavailable Slots
-              </label>
-              <input
-                className="form-check-input fs-5 ms-1 mb-1"
-                type="checkbox"
-                role="switch"
-                id="flexSwitchCheckDefault"
-                checked={showUnavailableOnly}
-                onChange={(e) => setShowUnavailableOnly(e.target.checked)}
-                style={{ boxShadow: "none" }}
-              />
-            </div>
-
-          </div>
-
-          {slotLoading ? (
-            <DataLoading height={"30vh"} />
-          ) : (
-            <>
-              <div className="d-flex flex-wrap mb-4">
-                {slotData?.data?.length > 0 && slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                  (() => {
-                    const selectedDateObj = new Date(selectedDate?.fullDate);
-                    const now = new Date();
-                    const isToday = selectedDateObj.toDateString() === now.toDateString();
-                    const currentCourt = selectedCourts.find((c) => c._id === currentCourtId);
-                    const currentSlots = currentCourt ? currentCourt.times.length : 0;
-
-                    const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter((slot) => {
-                      const [hourString, period] = slot?.time?.toLowerCase().split(" ");
-                      let hour = parseInt(hourString);
-                      if (period === "pm" && hour !== 12) hour += 12;
-                      if (period === "am" && hour === 12) hour = 0;
-                      const slotDate = new Date(selectedDateObj);
-                      slotDate.setHours(hour, 0, 0, 0);
-                      const isPast = isToday && slotDate.getTime() < now.getTime();
-                      const isBooked = slot?.status === "booked";
-                      const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
-                      const isLimitReached = currentSlots >= 15 && !currentCourt?.times.some((t) => t._id === slot._id);
-
-                      if (showUnavailableOnly) {
-                        return isPast || isBooked || !hasAmount || isLimitReached;
-                      }
-                      return !isPast && !isBooked && hasAmount && !isLimitReached;
-                    });
-
-                    return filteredSlots.length > 0 ? (
-                      filteredSlots.map((slot, i) => {
-                        const [hourString, period] = slot?.time?.toLowerCase().split(" ");
-                        let hour = parseInt(hourString);
-                        if (period === "pm" && hour !== 12) hour += 12;
-                        if (period === "am" && hour === 12) hour = 0;
-                        const slotDate = new Date(selectedDateObj);
-                        slotDate.setHours(hour, 0, 0, 0);
-                        const isPast = isToday && slotDate.getTime() < now.getTime();
-                        const isBooked = slot?.status === "booked";
-                        const isSelected = currentCourt?.times.some((t) => t._id === slot._id);
-                        const hasAmount = slot?.amount && !isNaN(Number(slot.amount)) && Number(slot.amount) > 0;
-                        const isLimitReached = currentSlots >= 15 && !isSelected;
-
-                        return (
-                          <button
-                            key={i}
-                            className={`btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2`}
-                            onClick={() => !isPast && !isBooked && hasAmount && !isLimitReached && toggleTime(slot)}
-                            style={{
-                              backgroundColor: isSelected ? "#374151" : isBooked ? "#CBD6FF1A" : isPast ? "#CBD6FF1A" : !hasAmount ? "#fff7df" : isLimitReached ? "#fff7df" : "#FAFBFF",
-                              color: isSelected ? "white" : isPast || isBooked || !hasAmount || isLimitReached ? "#888888" : "#000000",
-                              cursor: isPast || isBooked || !hasAmount || isLimitReached ? "not-allowed" : "pointer",
-                              opacity: isPast || isBooked || !hasAmount || isLimitReached ? 0.6 : 1,
-                              border: "2px solid #CBD6FF1A",
-                              transition: "border-color 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isSelected && !showUnavailableOnly && !isPast && !isBooked && hasAmount && !isLimitReached) {
-                                e.currentTarget.style.border = "1px solid #3DBE64";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.border = "2px solid #CBD6FF1A";
-                            }}
-                          >
-                            {formatTime(slot?.time)}
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "#d02727" }}>
-                          {showUnavailableOnly ? "No unavailable slots for this date." : "No available slots for this date."}
-                        </p>
-                      </div>
-                    );
-                  })()
+            <div
+              className="d-flex flex-column gap-3 overflow-slot mt-md-4"
+              style={{
+                height: "400px",
+                overflowY: slotData?.data?.length > 3 ? "scroll" : "hidden",
+                overflowX: "hidden",
+              }}
+            >
+              {slotData?.data?.length > 0 ? (
+                slotLoading ? (
+                  <DataLoading height={"50vh"} />
                 ) : (
-                  <div className="text-center">
-                    <p className="text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "#d02727" }}>
-                      {showUnavailableOnly ? "No unavailable slots for this date." : "No available slots for this date."}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+                  <>
+                    {slotData?.data?.map((court) => {
+                      const filteredSlots = court?.slots?.filter((slot) =>
+                        showUnavailable
+                          ? slot.status === "booked" ||
+                          slot.availabilityStatus !== "available" ||
+                          isPastTime(slot.time)
+                          : slot.availabilityStatus === "available" &&
+                          slot.status !== "booked" &&
+                          !isPastTime(slot.time)
+                      );
 
-          <div>
-            <div className="d-flex justify-content-between align-items-center py-2">
-              <p className="mb-0 custom-heading-use">
-                Available Courts
-              </p>
-              <div>
-                <a
-                  href="#"
-                  className="text-decoration-none d-inline-flex align-items-center"
-                  style={{ color: "#1F41BB", fontFamily: "Poppins", fontSize: "12px", fontWeight: "500" }}
-                  data-bs-toggle="modal"
-                  data-bs-target="#courtLayoutModal"
-                >
-                  View Court Layout  <FaArrowRight className="ms-2" />
-                </a>
-                <div
-                  className="modal fade"
-                  id="courtLayoutModal"
-                  tabIndex="-1"
-                  aria-labelledby="courtLayoutModalLabel"
-                  aria-hidden="true"
-                >
-                  <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content rounded-4 p-3">
-                      <div className="modal-header border-0 p-0">
-                        <div className="w-100 d-flex align-items-center justify-content-center position-relative">
-                          <h5 className="modal-title m-0" id="courtLayoutModalLabel">View Court Layout</h5>
-                          <button
-                            type="button"
-                            className="btn-close position-absolute end-0 me-2"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"
-                          ></button>
-                        </div>
-                      </div>
-                      <div className="modal-body p-0 mt-4">
-                        <div className="row g-2">
-                          {Array.isArray(slotData?.data[0]?.courts) &&
-                            slotData?.data[0]?.courts?.map((court, index) => (
-                              <div className="col-6" key={court._id || index}>
-                                <div
-                                  className="border d-flex align-items-center justify-content-center"
-                                  style={{ height: "80px", borderWidth: "2px" }}
-                                >
-                                  {court?.courtName}
+                      return (
+                        <div
+                          className={`mb-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""} `}
+                          key={court._id}
+                        >
+                          {filteredSlots?.length > 0 ? (
+                            <>
+                              <div className="p-2 rounded">
+                                <div className="court-data d-flex gap-2">
+                                  <h5 className="all-matches mb-0">
+                                    {court?.courtName}
+                                  </h5>
+                                  <p className="court-para text-muted">
+                                    {court?.register_club_id?.courtType}
+                                  </p>
                                 </div>
                               </div>
-                            ))}
+
+                              {filteredSlots?.map((slot, i) => {
+                                const isSelected = selectedTimes[court._id]?.some(
+                                  (t) => t._id === slot._id
+                                );
+                                const currentSlots = totalSlots;
+                                const isLimitReached = currentSlots >= 15 && !isSelected;
+
+                                const isDisabled =
+                                  isLimitReached ||
+                                  slot.status === "booked" ||
+                                  slot.availabilityStatus !== "available" ||
+                                  isPastTime(slot.time);
+
+                                return (
+                                  <div className="col-md-2 col-3  p-lg-0 me-2 me-lg-0" key={i}>
+                                    <button
+                                      className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-3"
+                                      onClick={() => toggleTime(slot, court._id)}
+                                      disabled={isDisabled}
+                                      style={{
+                                        backgroundColor:
+                                          slot.status === "booked" ||
+                                            isPastTime(slot.time)
+                                            ? "#c9cfcfff"
+                                            : isSelected
+                                              ? "#374151"
+                                              : slot.availabilityStatus !== "available"
+                                                ? "#c9cfcfff"
+                                                : "#FAFBFF",
+                                        color:
+                                          slot.status === "booked" ||
+                                            isPastTime(slot.time) ||
+                                            isDisabled
+                                            ? "#000000"
+                                            : isSelected
+                                              ? "white"
+                                              : "#000000",
+                                        cursor: isDisabled ? "not-allowed" : "pointer",
+                                        opacity: isDisabled ? 0.6 : 1,
+                                        border: "2px solid #0f0f0f1a",
+                                        transition: "border-color 0.2s ease",
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (
+                                          !isDisabled &&
+                                          !isPastTime(slot.time) &&
+                                          slot.availabilityStatus === "available"
+                                        ) {
+                                          e.currentTarget.style.border =
+                                            "1px solid #3DBE64";
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (
+                                          !isDisabled &&
+                                          !isPastTime(slot.time) &&
+                                          slot.availabilityStatus === "available"
+                                        ) {
+                                          e.currentTarget.style.border =
+                                            "2px solid #0f0f0f1a";
+                                        }
+                                      }}
+                                    >
+                                      {formatTimeForDisplay(slot?.time)}
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </>
+                          ) : null}
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="">
-              {slotData?.data?.length > 0 && slotData?.data[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                slotData.data[0]?.courts?.map((court) => (
-                  <div
-                    key={court?._id}
-                    onClick={() => handleCourtSelect(court)}
-                    style={{
-                      cursor: "pointer",
-                      backgroundColor: court._id === currentCourtId ? "#F1F4FF" : "white",
-                      borderBottom: "1px solid #e5e7eb",
-                      transition: "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
-                    }}
-                    className={`d-flex p-4 pe-3 justify-content-between align-items-center py-2 mb-1 px-2 ${court._id === currentCourtId ? "rounded" : ""}`}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#F1F4FF";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = court._id === currentCourtId ? "#F1F4FF" : "white";
-                      e.currentTarget.style.borderBottom = "1px solid #e5e7eb";
-                    }}
-                  >
-                    <div className="d-flex align-items-center gap-3">
-                      <Avatar
-                        src="https://media.istockphoto.com/id/1473484607/photo/young-people-playing-padel-tennis.jpg?s=612x612&w=0&k=20&c=UBIT0LfJ0WDuYlOTwhH8LWVBMPo2qFAA9w8msCia0G0="
-                        alt={court.courtName}
-                      />
-                      <div className="ps-3">
-                        <p className="mb-1 fw-semibold">{court?.courtName}</p>
-                        <small className="text-muted">{court?.type}</small>
-                      </div>
-                    </div>
-                    <p className="mb-0 fw-semibold">₹ 1000</p>
-                  </div>
-                ))
+                      );
+                    })}
+
+                    {slotData?.data?.every(
+                      (court) =>
+                        !court?.slots?.some((slot) =>
+                          showUnavailable
+                            ? slot.status === "booked" ||
+                            slot.availabilityStatus !== "available" ||
+                            isPastTime(slot.time)
+                            : slot.availabilityStatus === "available" &&
+                            slot.status !== "booked" &&
+                            !isPastTime(slot.time)
+                        )
+                    ) && (
+                        <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                          No {showUnavailable ? "unavailable" : "available"} slots
+                        </div>
+                      )}
+                  </>
+                )
               ) : (
                 <div className="text-center py-4 text-muted">No courts available</div>
               )}
@@ -680,7 +669,6 @@ const CreateMatches = () => {
               border: "none",
               borderRadius: "12px",
               maxWidth: "100%",
-              // height: "520px",
             }}
           >
             <Card
@@ -710,9 +698,7 @@ const CreateMatches = () => {
 
               <div className="p-4">
                 {/* Question */}
-                <h6 className="mb-4 step-heading" >
-                  {steps[currentStep].question}
-                </h6>
+                <h6 className="mb-4 step-heading">{steps[currentStep].question}</h6>
 
                 {/* Options */}
                 <Form style={{ height: "350px", overflowY: "auto" }}>
@@ -764,7 +750,6 @@ const CreateMatches = () => {
                     </div>
                   )}
                 </Form>
-
               </div>
               <div className="d-flex justify-content-end align-items-center p-3">
                 {currentStep > 0 && (

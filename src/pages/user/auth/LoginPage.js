@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert, Spinner } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authImg } from '../../../assets/files';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
 import { logo } from '../../../assets/files';
@@ -14,15 +14,28 @@ const LoginPage = () => {
     const store = useSelector((state) => state?.userAuth)
     const navigate = useNavigate();
     const dispatch = useDispatch()
+    const location = useLocation();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const cleanedPhone = phone.replace(/\D/g, '').slice(0, 10);
-        dispatch(sendOtp({ phoneNumber: cleanedPhone, countryCode: "+91", type: "Signup" })).unwrap().then(() => {
-            navigate('/verify-otp', { state: { phone } });
-            dispatch(resetAuth())
-
-        })
+        dispatch(sendOtp({ phoneNumber: cleanedPhone, countryCode: "+91", type: "Signup" }))
+            .unwrap()
+            .then(() => {
+                const { redirectTo, paymentState } = location.state || {}; 
+                if (redirectTo && paymentState) {
+                    navigate('/verify-otp', {
+                        state: {
+                            phone,
+                            redirectTo,
+                            paymentState
+                        }
+                    });
+                } else {
+                    navigate('/verify-otp', { state: { phone } });
+                }
+                dispatch(resetAuth());
+            });
     };
 
     useEffect(() => {

@@ -13,6 +13,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { Button } from "react-bootstrap";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 // Helper function to format time for API (e.g., "4 pm")
 const formatTimeForAPI = (time) => {
@@ -24,7 +25,8 @@ const formatTimeForAPI = (time) => {
 const Booking = ({ className = "" }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
-    const [showUnavailable, setShowUnavailable] = useState(false);
+    const user = getUserFromSession();
+    const [showUnavailable, setShowUnavailable] = useState(false); // Default is off
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
     const scrollRef = useRef(null);
@@ -284,43 +286,74 @@ const Booking = ({ className = "" }) => {
     const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
     const handleBookNow = () => {
-        if (totalSlots === 0) {
-            setErrorMessage("Select a slot to enable booking");
-            setErrorShow(true);
-            return;
-        }
-        if (selectedCourts.length === 0) {
-            setErrorMessage("Select a court to enable booking");
-            setErrorShow(true);
-            return;
-        }
-        setErrorMessage("");
+        if (!user?.name || !user?.token) {
+            const courtIds = selectedCourts
+                .map((court) => court._id)
+                .filter((id) => id)
+                .join(",");
 
-        const courtIds = selectedCourts
-            .map((court) => court._id)
-            .filter((id) => id)
-            .join(",");
-
-        navigate("/payment", {
-            state: {
-                courtData: {
-                    day: selectedDate?.day,
-                    date: selectedDate?.fullDate,
-                    time: selectedBuisness,
-                    courtId: courtIds,
-                    court: selectedCourts.map((c) => ({
-                        _id: c._id || c.id,
-                        ...c,
-                    })),
-                    slot: slotData?.data?.[0]?.slots,
+            navigate('/login', {
+                state: {
+                    redirectTo: '/payment',
+                    paymentState: {
+                        courtData: {
+                            day: selectedDate?.day,
+                            date: selectedDate?.fullDate,
+                            time: selectedBuisness,
+                            courtId: courtIds,
+                            court: selectedCourts.map((c) => ({
+                                _id: c._id || c.id,
+                                ...c,
+                            })),
+                            slot: slotData?.data?.[0]?.slots,
+                        },
+                        clubData: clubData,
+                        selectedCourts,
+                        selectedDate,
+                        grandTotal,
+                        totalSlots,
+                    },
                 },
-                clubData: clubData,
-                selectedCourts,
-                selectedDate,
-                grandTotal,
-                totalSlots,
-            },
-        });
+            });
+        } else {
+            if (totalSlots === 0) {
+                setErrorMessage("Select a slot to enable booking");
+                setErrorShow(true);
+                return;
+            }
+            if (selectedCourts.length === 0) {
+                setErrorMessage("Select a court to enable booking");
+                setErrorShow(true);
+                return;
+            }
+            setErrorMessage("");
+
+            const courtIds = selectedCourts
+                .map((court) => court._id)
+                .filter((id) => id)
+                .join(",");
+
+            navigate("/payment", {
+                state: {
+                    courtData: {
+                        day: selectedDate?.day,
+                        date: selectedDate?.fullDate,
+                        time: selectedBuisness,
+                        courtId: courtIds,
+                        court: selectedCourts.map((c) => ({
+                            _id: c._id || c.id,
+                            ...c,
+                        })),
+                        slot: slotData?.data?.[0]?.slots,
+                    },
+                    clubData: clubData,
+                    selectedCourts,
+                    selectedDate,
+                    grandTotal,
+                    totalSlots,
+                },
+            });
+        }
     };
 
     const handleSwitchChange = () => {
@@ -479,7 +512,7 @@ const Booking = ({ className = "" }) => {
                             >
                                 <span
                                     className="text-muted"
-                                    style={{ transform: "rotate(270deg)", fontSize: "14px" ,fontWeight:"500"}}
+                                    style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}
                                 >
                                     {getCurrentMonth(selectedDate)}
                                 </span>
@@ -568,7 +601,7 @@ const Booking = ({ className = "" }) => {
 
                                             return (
                                                 <div
-                                                    className={`mb-3 row ps-2 pe-2 ${!showUnavailable ? 'border-bottom' : ""} `}
+                                                    className={`mb-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""} `}
                                                     key={court._id}
                                                 >
                                                     {filteredSlots?.length > 0 ? (
@@ -677,7 +710,9 @@ const Booking = ({ className = "" }) => {
                                     </>
                                 )
                             ) : (
-                                <div className="text-center py-4 text-muted">No courts available</div>
+                                <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                                    No courts available
+                                </div>
                             )}
                         </div>
 

@@ -33,9 +33,9 @@ export const getUserSlotBooking = createAsyncThunk(
 );
 export const getUserSlot = createAsyncThunk(
   "club/getUserSlot",
-  async ({ register_club_id, day, date,time  }, { rejectWithValue }) => {
+  async ({ register_club_id, day, date, time }, { rejectWithValue }) => {
     try {
-      if (!register_club_id || !day || !time || !date) {
+      if (!register_club_id || !day || !date) {
         throw new Error("Missing required parameters: register_club_id, day, or date");
       }
 
@@ -43,13 +43,11 @@ export const getUserSlot = createAsyncThunk(
         register_club_id,
         day,
         date,
-        time
       });
 
-      // if (courtId) {
-      //   queryParams.append("courtId", courtId);
-      // }
-
+      if (time) {
+        queryParams.append("time", time);
+      }
       const response = await userApi.get(`${Url.GET_SLOT_API}?${queryParams.toString()}`);
 
       return response?.data;
