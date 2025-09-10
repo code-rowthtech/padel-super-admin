@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import { twoball } from "../../../assets/files";
-import { FaArrowRight, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
@@ -12,7 +11,7 @@ import { FiShoppingCart } from "react-icons/fi";
 import TokenExpire from "../../../helpers/TokenExpire";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
-import { getUnavailableSlot, getUserSlotBooking } from "../../../redux/user/slot/thunk";
+import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { Button } from "react-bootstrap";
 
 // Helper function to format time for API (e.g., "4 pm")
@@ -25,7 +24,7 @@ const formatTimeForAPI = (time) => {
 const Booking = ({ className = "" }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
-    const [showUnavailable, setShowUnavailable] = useState(false);
+    const [showUnavailable, setShowUnavailable] = useState(false); // Default is off
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
     const scrollRef = useRef(null);
@@ -33,8 +32,6 @@ const Booking = ({ className = "" }) => {
     const store = useSelector((state) => state);
     const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
     const { slotData } = useSelector((state) => state?.userSlot);
-    const unSlotLoading = useSelector((state) => state?.userSlot?.unSlotLoading);
-    const unSlotData = useSelector((state) => state?.userSlot?.unSlotData);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorShow, setErrorShow] = useState(false);
@@ -52,10 +49,9 @@ const Booking = ({ className = "" }) => {
 
     const [defaultTime] = useState(getDefaultTime());
     const [expireModal, setExpireModal] = useState(false);
-    const [selectedTimes, setSelectedTimes] = useState([]);
+    const [selectedTimes, setSelectedTimes] = useState({});
     const [selectedBuisness, setSelectedBuisness] = useState([]);
     const [selectedCourts, setSelectedCourts] = useState([]);
-    const [currentCourtId, setCurrentCourtId] = useState(null);
     const [selectedDate, setSelectedDate] = useState({
         fullDate: new Date().toISOString().split("T")[0],
         day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
@@ -81,6 +77,12 @@ const Booking = ({ className = "" }) => {
         };
     });
 
+    const getCurrentMonth = (selectedDate) => {
+        if (!selectedDate) return "Month";
+        const dateObj = new Date(selectedDate.fullDate);
+        return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+    };
+
     const scroll = (direction) => {
         if (scrollRef.current) {
             const buttonWidth = 90;
@@ -103,79 +105,73 @@ const Booking = ({ className = "" }) => {
         }
     };
 
-    const toggleTime = (time) => {
-        const totalSlots = selectedCourts.reduce((acc, c) => acc + c.time.length, 0);
-        const isAlreadySelected = selectedTimes.some((t) => t._id === time._id);
+    const toggleTime = (time, courtId) => {
+        const totalSlots = selectedCourts.reduce((acc, c) => acc + (c.time?.length || 0), 0);
+        const currentCourtTimes = selectedTimes[courtId] || [];
+        const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
 
         if (isAlreadySelected) {
-            const filteredTimes = selectedTimes.filter((t) => t._id !== time._id);
-            setSelectedTimes(filteredTimes);
-            setSelectedBuisness(filteredTimes);
-            const remainingTime = filteredTimes.length > 0 ? formatTimeForAPI(filteredTimes[0].time) : null;
-            dispatch(
-                getUserSlotBooking({
-                    day: selectedDate.day,
-                    date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-                    register_club_id: localStorage.getItem("register_club_id") || "",
-                    time: remainingTime,
-                })
+            const filteredTimes = currentCourtTimes.filter((t) => t._id !== time._id);
+            setSelectedTimes({
+                ...selectedTimes,
+                [courtId]: filteredTimes,
+            });
+            setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
+            setSelectedCourts((prev) =>
+                prev
+                    .map((court) => {
+                        if (court._id === courtId && court.date === selectedDate.fullDate) {
+                            const newTime = court.time.filter((t) => t._id !== time._id);
+                            return { ...court, time: newTime };
+                        }
+                        return court;
+                    })
+                    .filter((court) => court.time.length > 0)
             );
         } else {
-            const newLength = selectedTimes.length + 1;
-            if (totalSlots + newLength > 15) {
+            const newLength = totalSlots + 1;
+            if (newLength > 15) {
                 setErrorMessage("Maximum 15 slots can be selected in total.");
                 setErrorShow(true);
                 return;
             }
-            const newTimes = [...selectedTimes, time];
-            setSelectedTimes(newTimes);
-            setSelectedBuisness([...selectedBuisness, time]);
-            const formattedTime = formatTimeForAPI(time.time);
-            dispatch(
-                getUserSlotBooking({
-                    day: selectedDate.day,
-                    date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-                    register_club_id: localStorage.getItem("register_club_id") || "",
-                    time: formattedTime,
-                })
-            );
-        }
-    };
+            const newTimes = [...currentCourtTimes, time];
+            setSelectedTimes({
+                ...selectedTimes,
+                [courtId]: newTimes,
+            });
+            setSelectedBuisness((prev) => [...prev, time]);
 
-    const handleCourtSelect = (court) => {
-        setSelectedCourts((prev) => {
-            const isSelectedOnDate = prev.some(
-                (c) => c._id === court._id && c.date === selectedDate.fullDate
-            );
-            if (isSelectedOnDate) {
-                const updatedCourts = prev.filter(
-                    (c) => !(c._id === court._id && c.date === selectedDate.fullDate)
-                );
-                if (currentCourtId === court._id) {
-                    setCurrentCourtId(null);
-                }
-                return updatedCourts;
-            } else {
-                const totalSlots = prev.reduce((acc, c) => acc + c.time.length, 0);
-                if (totalSlots + selectedTimes.length > 15) {
-                    setErrorMessage("Maximum 15 slots can be selected. Cannot add more courts.");
-                    setErrorShow(true);
-                    return prev;
-                }
-                const newCourt = {
-                    ...court,
-                    date: selectedDate?.fullDate,
-                    day: selectedDate?.day,
-                    time: selectedTimes.map((t) => ({
-                        _id: t._id,
-                        time: t.time,
-                        amount: t.amount,
-                    })),
-                };
-                setCurrentCourtId(court._id);
-                return [...prev, newCourt];
+            const currentCourt = slotData?.data?.find((court) => court._id === courtId);
+            if (currentCourt) {
+                setSelectedCourts((prev) => {
+                    const existingCourt = prev.find(
+                        (c) => c._id === courtId && c.date === selectedDate.fullDate
+                    );
+                    const newTimeEntry = {
+                        _id: time._id,
+                        time: time.time,
+                        amount: time.amount,
+                    };
+                    if (existingCourt) {
+                        return prev.map((court) =>
+                            court._id === courtId && court.date === selectedDate.fullDate
+                                ? { ...court, time: [...court.time, newTimeEntry] }
+                                : court
+                        );
+                    } else {
+                        const newCourt = {
+                            _id: currentCourt._id,
+                            courtName: currentCourt.courtName,
+                            date: selectedDate.fullDate,
+                            day: selectedDate.day,
+                            time: [newTimeEntry],
+                        };
+                        return [...prev, newCourt];
+                    }
+                });
             }
-        });
+        }
     };
 
     const handleDeleteSlot = (courtId, date, timeId) => {
@@ -192,17 +188,12 @@ const Booking = ({ className = "" }) => {
 
         if (date === selectedDate.fullDate) {
             setSelectedTimes((prev) => {
-                const newTimes = prev.filter((t) => t._id !== timeId);
-                const remainingTime = newTimes.length > 0 ? formatTimeForAPI(newTimes[0].time) : null;
-                dispatch(
-                    getUserSlotBooking({
-                        day: selectedDate.day,
-                        date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-                        register_club_id: localStorage.getItem("register_club_id") || "",
-                        time: remainingTime,
-                    })
-                );
-                return newTimes;
+                const currentCourtTimes = prev[courtId] || [];
+                const newTimes = currentCourtTimes.filter((t) => t._id !== timeId);
+                return {
+                    ...prev,
+                    [courtId]: newTimes,
+                };
             });
             setSelectedBuisness((prev) => prev.filter((t) => t._id !== timeId));
         }
@@ -210,9 +201,8 @@ const Booking = ({ className = "" }) => {
 
     const handleClearAll = () => {
         setSelectedCourts([]);
-        setSelectedTimes([]);
+        setSelectedTimes({});
         setSelectedBuisness([]);
-        setCurrentCourtId(null);
         dispatch(
             getUserSlotBooking({
                 day: selectedDate.day,
@@ -297,62 +287,6 @@ const Booking = ({ className = "" }) => {
         }
     }, [selectedDate]);
 
-    useEffect(() => {
-        if (currentCourtId && selectedTimes?.length >= 0) {
-            const timeOnly = selectedTimes?.map((item) => ({
-                _id: item?._id,
-                time: item?.time,
-                amount: item?.amount,
-            }));
-            setSelectedCourts((prev) =>
-                prev.map((court) => {
-                    if (
-                        court._id === currentCourtId &&
-                        court.date === selectedDate.fullDate
-                    ) {
-                        return {
-                            ...court,
-                            time: timeOnly,
-                        };
-                    }
-                    return court;
-                })
-            );
-        }
-    }, [selectedTimes, currentCourtId]);
-
-    useEffect(() => {
-        setSelectedTimes([]);
-        if (selectedCourts?.length > 0) {
-            const currentCourtOnDate = selectedCourts.find(
-                (c) => c._id === currentCourtId && c.date === selectedDate.fullDate
-            );
-            if (currentCourtOnDate) {
-                const currentTimes = currentCourtOnDate.time || [];
-                setSelectedTimes(
-                    currentTimes.map((t) => ({
-                        _id: t._id,
-                        time: t.time,
-                        amount: t.amount,
-                    }))
-                );
-            }
-        }
-    }, [selectedDate, currentCourtId]);
-
-    useEffect(() => {
-        if (showUnavailable && selectedDate.day) {
-            const selectedCourtIds = selectedCourts.map(court => court._id).join(',');
-            dispatch(
-                getUnavailableSlot({
-                    date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-                    courtId: selectedCourtIds,
-                    register_club_id: clubId || "",
-                })
-            );
-        }
-    }, [showUnavailable, selectedDate.day, selectedCourts]);
-
     const grandTotal = selectedCourts.reduce(
         (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
         0
@@ -388,28 +322,49 @@ const Booking = ({ className = "" }) => {
                         _id: c._id || c.id,
                         ...c,
                     })),
-                    slot: slotData?.data?.[0]?.slot,
+                    slot: slotData?.data?.[0]?.slots,
                 },
                 clubData: clubData,
                 selectedCourts,
                 selectedDate,
                 grandTotal,
                 totalSlots,
-                currentCourtId,
             },
         });
     };
 
     const handleSwitchChange = () => {
-        if (selectedCourts.length > 0) {
-            setShowUnavailable(!showUnavailable);
-        }
+        setShowUnavailable(!showUnavailable);
     };
 
     const formatTimeForDisplay = (time) => {
         if (!time) return "";
         const [hourString, period] = time.toLowerCase().split(" ");
         return `${hourString}:00 ${period}`;
+    };
+
+    const parseTimeToHour = (timeStr) => {
+        if (!timeStr) return null;
+        const [hourStr, period] = timeStr.toLowerCase().split(" ");
+        let hour = parseInt(hourStr);
+        if (isNaN(hour)) return null;
+        if (period === "pm" && hour !== 12) hour += 12;
+        if (period === "am" && hour === 12) hour = 0;
+        return hour;
+    };
+
+    const isPastTime = (timeStr) => {
+        const slotHour = parseTimeToHour(timeStr);
+        if (slotHour === null) return false;
+        const selectedDateObj = new Date(selectedDate?.fullDate);
+        const now = new Date();
+        const isToday = selectedDateObj.toDateString() === now.toDateString();
+        if (isToday) {
+            const slotDateTime = new Date(selectedDateObj);
+            slotDateTime.setHours(slotHour, 0, 0, 0);
+            return slotDateTime < now;
+        }
+        return false;
     };
 
     return (
@@ -445,7 +400,7 @@ const Booking = ({ className = "" }) => {
                                 BOOK YOUR SLOT
                             </p>
                             <h1 className="booking-img-heading ps-md-4">
-                                {clubData?.clubName || "The Good Club"}
+                                {clubData?.clubName || ""}
                             </h1>
                         </div>
                     </div>
@@ -454,11 +409,11 @@ const Booking = ({ className = "" }) => {
             <div className="container mb-5 px-4">
                 <div className="row g-4">
                     <div
-                        className="col-lg-7 col-12 py-4 rounded-3 px-4"
+                        className="col-lg-7 col-12 py-4 mb-5 rounded-3 px-4"
                         style={{ backgroundColor: "#F5F5F566" }}
                     >
-                        <div className="calendar-strip">
-                            <div className="mb-4 custom-heading-use">
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <div className="custom-heading-use">
                                 Select Date
                                 <div className="position-relative d-inline-block" ref={wrapperRef}>
                                     <span
@@ -488,7 +443,7 @@ const Booking = ({ className = "" }) => {
                                                         weekday: "long",
                                                     });
                                                     setSelectedDate({ fullDate: formattedDate, day: day });
-                                                    setSelectedTimes([]);
+                                                    setSelectedTimes({});
                                                     dispatch(
                                                         getUserSlotBooking({
                                                             day: day,
@@ -508,96 +463,7 @@ const Booking = ({ className = "" }) => {
                                     )}
                                 </div>
                             </div>
-                            <div className="d-flex align-items-center gap-2 mb-3">
-                                <button
-                                    className="btn btn-light p-0"
-                                    onClick={() => scroll("left")}
-                                >
-                                    <i className="bi bi-chevron-left"></i>
-                                </button>
-                                <div
-                                    ref={scrollRef}
-                                    className="d-flex gap-2 overflow-auto no-scrollbar"
-                                    style={{
-                                        scrollBehavior: "smooth",
-                                        whiteSpace: "nowrap",
-                                        maxWidth: "100%",
-                                    }}
-                                >
-                                    {dates?.map((d, i) => {
-                                        const formatDate = (date) => {
-                                            return date.toISOString().split("T")[0];
-                                        };
-                                        const isSelected =
-                                            formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
-                                        return (
-                                            <button
-                                                key={i}
-                                                className={`calendar-day-btn me-1 ${isSelected ? "text-white" : "bg-light"}`}
-                                                style={{
-                                                    backgroundColor: isSelected ? "#374151" : "#CBD6FF1A",
-                                                    boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
-                                                    border: isSelected ? "1px solid #4949491A" : "1px solid #4949491A",
-                                                    borderRadius: "8px",
-                                                    color: isSelected ? "#FFFFFF" : "#374151",
-                                                }}
-                                                onClick={() => {
-                                                    setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
-                                                    setStartDate(new Date(d.fullDate));
-                                                    dispatch(
-                                                        getUserSlotBooking({
-                                                            day: d?.day,
-                                                            date: d?.fullDate,
-                                                            register_club_id:
-                                                                localStorage.getItem("register_club_id") || "",
-                                                        })
-                                                    );
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    if (!isSelected) {
-                                                        e.currentTarget.style.border = "1px solid #3DBE64";
-                                                    }
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    if (!isSelected) {
-                                                        e.currentTarget.style.border = "1px solid #4949491A";
-                                                    }
-                                                }}
-                                            >
-                                                <div className="text-center">
-                                                    <div className="date-center-day">{dayShortMap[d.day]}</div>
-                                                    <div className="date-center-date">{d.date}</div>
-                                                    <div className="date-center-day">{d.month}</div>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button
-                                    className="btn btn-light p-0"
-                                    onClick={() => scroll("right")}
-                                >
-                                    <i className="bi bi-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div className="d-flex text-center justify-content-between align-items-center py-4">
-                            <p className="mb-0 custom-heading-use">
-                                Available Slots{" "}
-                                <span
-                                    className=""
-                                    style={{
-                                        fontWeight: "500",
-                                        fontSize: "12px",
-                                        fontFamily: "Poppins",
-                                    }}
-                                >
-                                    (60m)
-                                </span>
-                            </p>
-                            <div className="form-switch d-flex justify-content-center align-items-center gap-2 p-0"
-                                title={selectedCourts?.length >0 ? "Please select a court" : ""}
-                            >
+                            <div className="form-switch d-flex justify-content-center align-items-center gap-2">
                                 <label
                                     className="form-check-label mb-0"
                                     htmlFor="flexSwitchCheckDefault"
@@ -605,7 +471,6 @@ const Booking = ({ className = "" }) => {
                                 >
                                     Show Unavailable Slots
                                 </label>
-
                                 <input
                                     className="form-check-input fs-5 ms-1 mb-1"
                                     type="checkbox"
@@ -613,333 +478,221 @@ const Booking = ({ className = "" }) => {
                                     id="flexSwitchCheckDefault"
                                     checked={showUnavailable}
                                     onChange={handleSwitchChange}
-                                    disabled={selectedCourts?.length === 0}
                                     style={{ boxShadow: "none" }}
                                 />
-
                             </div>
                         </div>
-                        {unSlotLoading ? (
-                            <DataLoading height={"20vh"} />
-                        ) : showUnavailable && unSlotData?.data?.length > 0 ? (
-                            <div className="d-flex flex-wrap mb-4">
-                                {unSlotData?.data?.map((slot, i) => (
-                                    <button
-                                        key={i}
-                                        className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2 bg-secondary-subtle"
-                                        style={{
-                                            color: "#888888",
-                                            cursor: "not-allowed",
-                                            opacity: 0.6,
-                                            border: "2px solid #CBD6FF1A",
-                                            transition: "border-color 0.2s ease",
-                                        }}
-                                        disabled
-                                    >
-                                        {formatTimeForDisplay(slot.time)}
-                                    </button>
-                                ))}
-                            </div>
-                        ) : showUnavailable && unSlotData?.data?.length === 0 ? (
-                            <div className="text-center">
-                                <p
-                                    className="text-center"
-                                    style={{
-                                        fontSize: "14px",
-                                        fontFamily: "Poppins",
-                                        fontWeight: "500",
-                                        color: "#d02727",
-                                    }}
+                        <div className="d-flex align-items-center gap-2 mb-3">
+                            <div
+                                className="d-flex justify-content-center p-0 mb-4 align-items-center rounded-pill"
+                                style={{ backgroundColor: "#c9c8c8ff", width: "30px", height: "58px" }}
+                            >
+                                <span
+                                    className="text-muted"
+                                    style={{ transform: "rotate(270deg)", fontSize: "20px" }}
                                 >
-                                    No unavailable slots for this date.
-                                </p>
+                                    {getCurrentMonth(selectedDate)}
+                                </span>
                             </div>
-                        ) : slotData?.data?.length > 0 &&
-                            slotData?.data?.[0]?.slot?.[0]?.slotTimes?.length > 0 ? (
-                            (() => {
-                                const selectedDateObj = new Date(selectedDate?.fullDate);
-                                const now = new Date();
-                                now.setHours(now.getHours() + 1);
-                                const isToday = selectedDateObj.toDateString() === now.toDateString();
-
-                                const filteredSlots = slotData?.data?.[0]?.slot?.[0]?.slotTimes.filter(
-                                    (slot) => {
-                                        if (!isToday) return true;
-                                        const [hourString, period] = slot?.time?.toLowerCase().split(" ");
-                                        let hour = parseInt(hourString);
-                                        if (period === "pm" && hour !== 12) hour += 12;
-                                        if (period === "am" && hour === 12) hour = 0;
-                                        const slotDate = new Date(selectedDateObj);
-                                        slotDate.setHours(hour, 0, 0, 0);
-                                        return slotDate.getTime() >= now.getTime();
-                                    }
-                                );
-
-                                return filteredSlots.length > 0 ? (
-                                    filteredSlots.map((slot, i) => {
-                                        const isSelected = selectedTimes.some((t) => t._id === slot._id);
-                                        const currentSlots = totalSlots;
-                                        const isLimitReached = currentSlots >= 15 && !isSelected;
-
-                                        return (
-                                            <button
-                                                key={i}
-                                                className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-2"
-                                                onClick={() => toggleTime(slot)}
-                                                disabled={isLimitReached}
-                                                style={{
-                                                    backgroundColor: isSelected
-                                                        ? "#374151"
-                                                        : isLimitReached
-                                                            ? "#fff7df"
-                                                            : "#FAFBFF",
-                                                    color: isSelected
-                                                        ? "white"
-                                                        : isLimitReached
-                                                            ? "#888888"
-                                                            : "#000000",
-                                                    cursor: isLimitReached ? "not-allowed" : "pointer",
-                                                    opacity: isLimitReached ? 0.6 : 1,
-                                                    border: "2px solid #CBD6FF1A",
-                                                    transition: "border-color 0.2s ease",
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    if (!isLimitReached) {
-                                                        e.currentTarget.style.border = "1px solid #3DBE64";
-                                                    }
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    if (!isLimitReached) {
-                                                        e.currentTarget.style.border = "2px solid #CBD6FF1A";
-                                                    }
-                                                }}
-                                            >
-                                                {formatTimeForDisplay(slot?.time)}
-                                            </button>
-                                        );
-                                    })
-                                ) : (
-                                    <div className="text-center">
-                                        <p
-                                            className="text-center"
+                            <div
+                                ref={scrollRef}
+                                className="d-flex gap-2 overflow-auto"
+                                style={{
+                                    scrollBehavior: "smooth",
+                                    whiteSpace: "nowrap",
+                                    maxWidth: "100%",
+                                    overflowX: "scroll",
+                                }}
+                            >
+                                {dates?.map((d, i) => {
+                                    const formatDate = (date) => {
+                                        return date.toISOString().split("T")[0];
+                                    };
+                                    const isSelected =
+                                        formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                                    return (
+                                        <button
+                                            key={i}
+                                            ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                                            className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
                                             style={{
-                                                fontSize: "14px",
-                                                fontFamily: "Poppins",
-                                                fontWeight: "500",
-                                                color: "#d02727",
+                                                backgroundColor: isSelected ? "#374151" : "#FFFFFF",
+                                                boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
+                                                borderRadius: "15px",
+                                                color: isSelected ? "#FFFFFF" : "#374151",
+                                            }}
+                                            onClick={() => {
+                                                setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
+                                                setStartDate(new Date(d.fullDate));
+                                                dispatch(
+                                                    getUserSlotBooking({
+                                                        day: d?.day,
+                                                        date: d?.fullDate,
+                                                        register_club_id:
+                                                            localStorage.getItem("register_club_id") || "",
+                                                    })
+                                                );
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                if (!isSelected) {
+                                                    e.currentTarget.style.border = "1px solid #3DBE64";
+                                                }
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.border = "1px solid #4949491A";
                                             }}
                                         >
-                                            No available slots for this date.
-                                        </p>
-                                    </div>
-                                );
-                            })()
-                        ) : (
-                            <div className="text-center">
-                                <p
-                                    className="text-center"
-                                    style={{
-                                        fontSize: "14px",
-                                        fontFamily: "Poppins",
-                                        fontWeight: "500",
-                                        color: "#d02727",
-                                    }}
-                                >
-                                    No slots available for this date.
-                                </p>
-                            </div>
-                        )}
-                        <div>
-                            <div className="d-flex justify-content-between align-items-center py-2">
-                                <p className="mb-0 custom-heading-use">Available Courts</p>
-                                <div>
-                                    <a
-                                        href="#"
-                                        className="text-decoration-none d-inline-flex align-items-center"
-                                        style={{
-                                            color: "#1F41BB",
-                                            fontFamily: "Poppins",
-                                            fontSize: "12px",
-                                            fontWeight: "500",
-                                        }}
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#courtLayoutModal"
-                                    >
-                                        View Court Layout <FaArrowRight className="ms-2" />
-                                    </a>
-                                    <div
-                                        className="modal fade"
-                                        id="courtLayoutModal"
-                                        tabIndex="-1"
-                                        aria-labelledby="courtLayoutModalLabel"
-                                        aria-hidden="true"
-                                    >
-                                        <div className="modal-dialog modal-dialog-centered">
-                                            <div className="modal-content rounded-4 p-3">
-                                                <div className="modal-header border-0 p-0">
-                                                    <div className="w-100 d-flex align-items-center justify-content-center position-relative">
-                                                        <h5
-                                                            className="modal-title m-0"
-                                                            id="courtLayoutModalLabel"
-                                                        >
-                                                            View Court Layout
-                                                        </h5>
-                                                        <button
-                                                            type="button"
-                                                            className="btn-close position-absolute end-0 me-2"
-                                                            data-bs-dismiss="modal"
-                                                            aria-label="Close"
-                                                        ></button>
-                                                    </div>
-                                                </div>
-                                                <div className="modal-body p-0 mt-4">
-                                                    {Array.isArray(slotData?.data[0]?.courts) &&
-                                                        slotData?.data[0]?.courts?.length === 4 ? (
-                                                        <div className="row g-2">
-                                                            <div className="col-3">
-                                                                <div
-                                                                    className="border rounded-3 d-flex align-items-center justify-content-center"
-                                                                    style={{ height: "160px" }}
-                                                                >
-                                                                    {slotData?.data[0]?.courts[0]?.courtName}
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-6 d-flex flex-column gap-2">
-                                                                <div
-                                                                    className="border rounded-3 d-flex align-items-center justify-content-center"
-                                                                    style={{ height: "75px" }}
-                                                                >
-                                                                    {slotData?.data[0]?.courts[1]?.courtName}
-                                                                </div>
-                                                                <div
-                                                                    className="border rounded-3 d-flex align-items-center justify-content-center"
-                                                                    style={{ height: "75px" }}
-                                                                >
-                                                                    {slotData?.data[0]?.courts[2]?.courtName}
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-3">
-                                                                <div
-                                                                    className="border rounded-3 d-flex align-items-center justify-content-center"
-                                                                    style={{ height: "160px" }}
-                                                                >
-                                                                    {slotData?.data[0]?.courts[3]?.courtName}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="row g-2">
-                                                            {slotData?.data[0]?.courts?.map((court, index) => (
-                                                                <div className="col-6" key={court._id || index}>
-                                                                    <div
-                                                                        className="border rounded-3 d-flex align-items-center justify-content-center"
-                                                                        style={{ height: "80px" }}
-                                                                    >
-                                                                        {court?.courtName}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
+                                            <div className="text-center">
+                                                <div className="date-center-date">{d.date}</div>
+                                                <div className="date-center-day">{dayShortMap[d.day]}</div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-4">
-                                {slotData?.data?.length > 0 ? (
-                                    slotLoading ? (
-                                        <DataLoading height={"40vh"} />) :
-                                        slotData.data[0]?.courts?.map((court) => (
-                                            <div
-                                                key={court?._id}
-                                                onClick={() => handleCourtSelect(court)}
-                                                style={{
-                                                    cursor: totalSlots >= 15 ? "not-allowed" : "pointer",
-                                                    backgroundColor: selectedCourts.some(
-                                                        (c) =>
-                                                            c._id === court._id && c.date === selectedDate.fullDate
-                                                    )
-                                                        ? "#F1F4FF"
-                                                        : "white",
-                                                    borderBottom: "1px solid #e5e7eb",
-                                                    transition:
-                                                        "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
-                                                }}
-                                                className={`d-flex ps-lg-3 pe-lg-3 justify-content-between align-items-center py-3 px-2 ${selectedCourts.some(
-                                                    (c) =>
-                                                        c._id === court._id && c.date === selectedDate.fullDate
-                                                )
-                                                    ? "rounded"
-                                                    : ""
-                                                    }`}
-                                                onMouseEnter={(e) => {
-                                                    if (totalSlots < 15) {
-                                                        e.currentTarget.style.backgroundColor = "#F1F4FF";
-                                                    }
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = selectedCourts.some(
-                                                        (c) =>
-                                                            c._id === court._id && c.date === selectedDate.fullDate
-                                                    )
-                                                        ? "#F1F4FF"
-                                                        : "white";
-                                                    e.currentTarget.style.borderBottom = "1px solid #e5e7eb";
-                                                }}
-                                            >
-                                                <div className="d-flex align-items-center gap-3">
-                                                    <img
-                                                        src="https://www.brookstreet.co.uk/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBMEZCVXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--4accdb1f96a306357a7fdeec518b142d3d50f1f2/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJYW5CbkJqb0dSVlE2QzNKbGMybDZaVWtpRFRnd01IZzJOVEE4QmpzR1ZBPT0iLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--bcd925903d97179ca0141ad2735607ce8eed3d71/bs_court-ushers_800.jpg"
-                                                        alt={court.courtName}
-                                                        style={{
-                                                            width: "45px",
-                                                            height: "45px",
-                                                            borderRadius: "50%",
-                                                            objectFit: "cover",
-                                                        }}
-                                                    />
-                                                    <div className="ps-lg-3">
-                                                        <div className="fw-semibold">{court?.courtName}</div>
-                                                        <div className="text-muted">{court.type}</div>
-                                                    </div>
-                                                </div>
-                                                <div className="d-flex align-items-center justify-content-end gap-4">
-                                                    <p className="custom-title mb-0" style={{ fontWeight: "500" }}>
-                                                        ₹ 1000
-                                                    </p>
-                                                    <button
-                                                        className="btn rounded-circle cart-booking-btn d-flex align-items-center justify-content-center"
-                                                        style={{
-                                                            padding: "0",
-                                                            backgroundColor: totalSlots >= 15 ? "#ccc" : "#1F41BB",
-                                                            flexShrink: 0,
-                                                        }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            if (totalSlots < 15) {
-                                                                handleCourtSelect(court);
-                                                            }
-                                                        }}
-                                                        disabled={totalSlots >= 15}
-                                                    >
-                                                        <FiShoppingCart size={17} color="white" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))
-                                ) : (
-                                    <div className="text-center py-4 text-muted">
-                                        {selectedTimes.length === 0
-                                            ? "Please select a slot to see available courts"
-                                            : "No courts available for the selected slot"}
-                                    </div>
-                                )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
+                        <hr />
+                        <div
+                            className="d-flex flex-column gap-3 overflow-slot mt-md-4"
+                            style={{
+                                height: "400px",
+                                overflowY: slotData?.data?.length > 3 ? "scroll" : "hidden",
+                                overflowX: "hidden",
+                            }}
+                        >
+                            {slotData?.data?.length > 0 ? (
+                                slotLoading ? (
+                                    <DataLoading height={"50vh"} />
+                                ) : (
+                                    <>
+                                        {slotData?.data?.map((court) => {
+                                            const filteredSlots = court?.slots?.filter((slot) =>
+                                                showUnavailable
+                                                    ? slot.status === "booked" ||
+                                                    slot.availabilityStatus !== "available" ||
+                                                    isPastTime(slot.time)
+                                                    : slot.availabilityStatus === "available" &&
+                                                    slot.status !== "booked" &&
+                                                    !isPastTime(slot.time)
+                                            );
+
+                                            return (
+                                                <div
+                                                    className="mb-3 row ps-2 pe-2 border-bottom"
+                                                    key={court._id}
+                                                >
+                                                    {filteredSlots?.length > 0 ? (
+                                                        <>
+                                                            <div className="p-2 rounded">
+                                                                <div className="court-data d-flex gap-2">
+                                                                    <h5 className="all-matches mb-0">
+                                                                        {court?.courtName}
+                                                                    </h5>
+                                                                    <p className="court-para text-muted">
+                                                                        {court?.register_club_id?.courtType}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+
+                                                            {filteredSlots?.map((slot, i) => {
+                                                                const isSelected = selectedTimes[court._id]?.some(
+                                                                    (t) => t._id === slot._id
+                                                                );
+                                                                const currentSlots = totalSlots;
+                                                                const isLimitReached = currentSlots >= 15 && !isSelected;
+
+                                                                const isDisabled =
+                                                                    isLimitReached ||
+                                                                    slot.status === "booked" ||
+                                                                    slot.availabilityStatus !== "available" ||
+                                                                    isPastTime(slot.time);
+
+                                                                return (
+                                                                    <div className="col-md-2 col-3  p-lg-0 me-2 me-lg-0" key={i}>
+                                                                        <button
+                                                                            className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-3"
+                                                                            onClick={() => toggleTime(slot, court._id)}
+                                                                            disabled={isDisabled}
+                                                                            style={{
+                                                                                backgroundColor:
+                                                                                    slot.status === "booked" ||
+                                                                                        isPastTime(slot.time)
+                                                                                        ? "#c9cfcfff"
+                                                                                        : isSelected
+                                                                                            ? "#374151"
+                                                                                            : slot.availabilityStatus !== "available"
+                                                                                                ? "#c9cfcfff"
+                                                                                                : "#FAFBFF",
+                                                                                color:
+                                                                                    slot.status === "booked" ||
+                                                                                        isPastTime(slot.time) ||
+                                                                                        isDisabled
+                                                                                        ? "#000000"
+                                                                                        : isSelected
+                                                                                            ? "white"
+                                                                                            : "#000000",
+                                                                                cursor: isDisabled ? "not-allowed" : "pointer",
+                                                                                opacity: isDisabled ? 0.6 : 1,
+                                                                                border: "2px solid #0f0f0f1a",
+                                                                                transition: "border-color 0.2s ease",
+                                                                            }}
+                                                                            onMouseEnter={(e) => {
+                                                                                if (
+                                                                                    !isDisabled &&
+                                                                                    !isPastTime(slot.time) &&
+                                                                                    slot.availabilityStatus === "available"
+                                                                                ) {
+                                                                                    e.currentTarget.style.border =
+                                                                                        "1px solid #3DBE64";
+                                                                                }
+                                                                            }}
+                                                                            onMouseLeave={(e) => {
+                                                                                if (
+                                                                                    !isDisabled &&
+                                                                                    !isPastTime(slot.time) &&
+                                                                                    slot.availabilityStatus === "available"
+                                                                                ) {
+                                                                                    e.currentTarget.style.border =
+                                                                                        "2px solid #0f0f0f1a";
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            {formatTimeForDisplay(slot?.time)}
+                                                                        </button>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </>
+                                                    ) : null}
+                                                </div>
+                                            );
+                                        })}
+
+                                        {slotData?.data?.every(
+                                            (court) =>
+                                                !court?.slots?.some((slot) =>
+                                                    showUnavailable
+                                                        ? slot.status === "booked" ||
+                                                        slot.availabilityStatus !== "available" ||
+                                                        isPastTime(slot.time)
+                                                        : slot.availabilityStatus === "available" &&
+                                                        slot.status !== "booked" &&
+                                                        !isPastTime(slot.time)
+                                                )
+                                        ) && (
+                                                <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                                                    No {showUnavailable ? "unavailable" : "available"} slots
+                                                </div>
+                                            )}
+                                    </>
+                                )
+                            ) : (
+                                <div className="text-center py-4 text-muted">No courts available</div>
+                            )}
+                        </div>
+
                     </div>
-                    <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
+                    <div className="col-lg-5 mb-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
                         <div
                             className="border w-100 rounded px-3 py-5 border-0"
                             style={{ backgroundColor: "#CBD6FF1A" }}
@@ -1004,8 +757,8 @@ const Booking = ({ className = "" }) => {
                                 </p>
                             </div>
                             <div className="d-flex border-top pt-2 justify-content-between align-items-center">
-                                <h6 className=" p-2 mb-1  ps-0 custom-heading-use">
-                                    Booking summary
+                                <h6 className="p-2 mb-1 ps-0 custom-heading-use">
+                                    Booking Summary
                                 </h6>
                                 {totalSlots >= 10 && (
                                     <Button
@@ -1013,14 +766,14 @@ const Booking = ({ className = "" }) => {
                                         style={{ cursor: "pointer", backgroundColor: "grey", fontSize: "10px", fontFamily: "Poppins" }}
                                         onClick={handleClearAll}
                                     >
-                                        Clear all
+                                        Clear All
                                     </Button>
                                 )}
                             </div>
                             <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
                                 {selectedCourts?.length > 0 &&
                                     selectedCourts.map((court, index) => (
-                                        <>
+                                        <div key={index}>
                                             {court?.time?.map((timeSlot, timeIndex) => (
                                                 <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                     <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
@@ -1099,7 +852,7 @@ const Booking = ({ className = "" }) => {
                                                     </div>
                                                 </div>
                                             ))}
-                                        </>
+                                        </div>
                                     ))}
                                 {selectedCourts.length === 0 && (
                                     <div
@@ -1107,7 +860,6 @@ const Booking = ({ className = "" }) => {
                                         style={{ height: "25vh" }}
                                     >
                                         <p
-                                            className=""
                                             style={{
                                                 fontSize: "14px",
                                                 fontFamily: "Poppins",
@@ -1180,20 +932,20 @@ const Booking = ({ className = "" }) => {
                                         </defs>
                                         <path
                                             d={`M ${width * 0.76} ${height * 0.15} 
-             C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
-             C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
-             C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
-             C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} 
-             C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} 
-             C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} 
-             C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} 
-             C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} 
-             C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} 
-             C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} 
-             L ${width * 0.08} ${height * 0.85} 
-             C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
-             C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
-             L ${width * 0.76} ${height * 0.15} Z`}
+                                             C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
+                                             C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
+                                             C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
+                                             C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} 
+                                             C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} 
+                                             C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} 
+                                             C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} 
+                                             C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} 
+                                             C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} 
+                                             C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} 
+                                             L ${width * 0.08} ${height * 0.85} 
+                                             C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
+                                             C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
+                                             L ${width * 0.76} ${height * 0.15} Z`}
                                             fill={`url(#buttonGradient-${width}-${height})`}
                                         />
                                         <circle

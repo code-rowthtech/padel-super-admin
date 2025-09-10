@@ -304,6 +304,42 @@ const CourtAvailability = () => {
     }
   };
 
+  const [currentMonth, setCurrentMonth] = useState(
+    new Date().toLocaleDateString("en-US", { month: "long" })
+  );
+
+  // Update the scrollRef useEffect to detect month changes
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        const scrollLeft = scrollRef.current.scrollLeft;
+        const containerWidth = scrollRef.current.clientWidth;
+        const scrollWidth = scrollRef.current.scrollWidth;
+        const scrollPercentage = scrollLeft / (scrollWidth - containerWidth);
+
+        // Calculate which date is roughly in the middle of the visible area
+        const visibleIndex = Math.floor(scrollPercentage * (dates.length - 1));
+        const visibleDate = dates[visibleIndex]?.fullDate;
+
+        if (visibleDate) {
+          const month = new Date(visibleDate).toLocaleDateString("en-US", {
+            month: "long",
+          });
+          setCurrentMonth(month);
+        }
+      }
+    };
+
+    const scrollContainer = scrollRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", handleScroll);
+      // Initial month calculation
+      handleScroll();
+
+      return () => scrollContainer.removeEventListener("scroll", handleScroll);
+    }
+  }, [dates]);
+
   return (
     <>
       {ownerClubLoading ? (
@@ -387,124 +423,151 @@ const CourtAvailability = () => {
 
               {/* Date Selector */}
               <div className="calendar-strip">
-                <div
-                  className="tabel-title mb-3"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                    fontSize: "14px",
-                  }}
-                >
-                  Select Date
+                <div className="calendar-strip">
                   <div
-                    className="position-relative d-inline-block"
-                    ref={wrapperRef}
+                    className="tabel-title mb-3"
+                    style={{
+                      fontFamily: "Poppins",
+                      fontWeight: "600",
+                      color: "#374151",
+                    }}
                   >
-                    <span
-                      className="rounded px-1 ms-2 shadow-sm"
-                      style={{
-                        cursor: "pointer",
-                        width: "26px",
-                        height: "26px",
-                        backgroundColor: "rgb(229, 233, 236)",
-                      }}
-                      onClick={() => setIsOpen(!isOpen)}
+                    Select Date
+                    <div
+                      className="position-relative d-inline-block"
+                      ref={wrapperRef}
                     >
-                      <i
-                        className="bi bi-calendar2-week"
-                        style={{ width: "14px", height: "16px" }}
-                      ></i>
-                    </span>
-                    {isOpen && (
-                      <div
-                        className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
-                        style={{ top: "100%", left: "0", minWidth: "100%" }}
+                      <span
+                        className="rounded px-1 ms-2 shadow-sm"
+                        style={{
+                          cursor: "pointer",
+                          width: "26px",
+                          height: "26px",
+                          backgroundColor: "rgb(229, 233, 236)",
+                        }}
+                        onClick={() => setIsOpen(!isOpen)}
                       >
-                        <DatePicker
-                          selected={startDate}
-                          onChange={(date) => {
-                            setStartDate(date);
-                            const iso = date.toISOString().split("T")[0];
-                            setSelectedDate(iso);
-                            const dayName = date.toLocaleDateString("en-US", {
-                              weekday: "short",
-                            });
-                            setSelectedDay(dayFullNames[dayName]);
-                            setIsOpen(false);
-                            setSelectedSlots({}); // Clear selected slots on date change
-                          }}
-                          minDate={new Date()}
-                          maxDate={maxSelectableDate}
-                          inline
-                          dropdownMode="select"
-                          calendarClassName="custom-calendar w-100 shadow-sm"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="d-flex align-items-center w-100 p-0 gap-2 mb-4">
-                  <button
-                    className="btn btn-light p-2 shadow-sm"
-                    onClick={() => scroll("left")}
-                  >
-                    <i className="bi bi-chevron-left"></i>
-                  </button>
-                  <div
-                    ref={scrollRef}
-                    className="d-flex gap-2 overflow-auto flex-grow-1"
-                    style={{ scrollbarWidth: "none" }}
-                  >
-                    {dates?.map((d, i) => {
-                      const isSelected = selectedDate === d?.fullDate;
-                      return (
-                        <button
-                          key={i}
-                          ref={isSelected ? selectedButtonRef : null}
-                          className={`calendar-day-btn border px-3 py-2 rounded shadow-sm ${
-                            isSelected ? "text-white" : "bg-light text-dark"
-                          }`}
-                          style={{
-                            backgroundColor: isSelected ? "#374151" : undefined,
-                            border: "none",
-                            minWidth: "70px",
-                            transition: "all 0.2s ease",
-                            fontFamily: "Poppins",
-                          }}
-                          onClick={() => {
-                            setSelectedDate(d?.fullDate);
-                            setSelectedDay(dayFullNames[d?.day]);
-                            setSelectedSlots({}); // Clear selected slots on date change
-                          }}
+                        <i
+                          className="bi bi-calendar2-week"
+                          style={{ width: "14px", height: "16px" }}
+                        ></i>
+                      </span>
+                      {isOpen && (
+                        <div
+                          className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
+                          style={{ top: "100%", left: "0", minWidth: "100%" }}
                         >
-                          <div className="text-center pb-2">
-                            <div
-                              style={{ fontSize: "12px", fontWeight: "400" }}
-                            >
-                              {d?.day}
-                            </div>
-                            <div
-                              style={{ fontSize: "18px", fontWeight: "600" }}
-                            >
-                              {d?.date}
-                            </div>
-                            <div
-                              style={{ fontSize: "12px", fontWeight: "400" }}
-                            >
-                              {d?.month}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                          <DatePicker
+                            selected={startDate}
+                            onChange={(date) => {
+                              setStartDate(date);
+                              const iso = date.toISOString().split("T")[0];
+                              setSelectedDate(iso);
+                              const dayName = date.toLocaleDateString("en-US", {
+                                weekday: "short",
+                              });
+                              setSelectedDay(dayFullNames[dayName]);
+                              setIsOpen(false);
+                            }}
+                            minDate={new Date()}
+                            maxDate={maxSelectableDate}
+                            inline
+                            dropdownMode="select"
+                            calendarClassName="custom-calendar w-100 shadow-sm"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <button
-                    className="btn btn-light p-2 shadow-sm"
-                    onClick={() => scroll("right")}
-                  >
-                    <i className="bi bi-chevron-right"></i>
-                  </button>
+                  {/* Replace the date selector section with this code */}
+                  <div className="d-flex align-items-center w-100 p-0 gap-2 mb-4">
+                    {/* Month display instead of left button */}
+                    <div
+                      className="text-center fw-bold"
+                      style={{
+                        writingMode: "vertical-lr",
+                        transform: "rotate(180deg)",
+                        minWidth: "24px",
+                        fontFamily: "Poppins",
+                        fontSize: "14px",
+                        color: "#374151",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      {currentMonth}
+                    </div>
+
+                    {/* Scrollable dates container */}
+                    <div
+                      ref={scrollRef}
+                      className="d-flex gap-2 flex-grow-1"
+                      style={{
+                        overflowX: "auto",
+                        scrollbarWidth: "thin",
+                        scrollbarColor: "#cbd5e1 #f1f5f9",
+                        paddingBottom: "4px", // Space for scrollbar
+                      }}
+                    >
+                      {dates?.map((d, i) => {
+                        const isSelected = selectedDate === d.fullDate;
+                        return (
+                          <button
+                            key={i}
+                            ref={isSelected ? selectedButtonRef : null}
+                            className={`calendar-day-btn border px-3 py-2 mb-2 rounded shadow-sm ${
+                              isSelected ? "text-white" : "bg-light text-dark"
+                            }`}
+                            style={{
+                              backgroundColor: isSelected
+                                ? "#374151"
+                                : undefined,
+                              border: "none",
+                              minWidth: "85px",
+                              transition: "all 0.2s ease",
+                              fontFamily: "Poppins",
+                              flexShrink: 0,
+                            }}
+                            onClick={() => {
+                              setSelectedDate(d.fullDate);
+                              setSelectedDay(dayFullNames[d.day]);
+                            }}
+                          >
+                            <div className="text-center pb-2">
+                              <div
+                                style={{ fontSize: "24px", fontWeight: "600" }}
+                              >
+                                {d.date}
+                              </div>
+                              <div
+                                style={{ fontSize: "14px", fontWeight: "400" }}
+                              >
+                                {d.day}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <style>
+                    {`
+                                   .custom-scrollbar::-webkit-scrollbar {
+                                     height: 6px;
+                                   }
+                                   .custom-scrollbar::-webkit-scrollbar-track {
+                                     background: #f1f5f9;
+                                     border-radius: 3px;
+                                   }
+                                   .custom-scrollbar::-webkit-scrollbar-thumb {
+                                     background: #cbd5e1;
+                                     border-radius: 3px;
+                                   }
+                                   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                                     background: #94a3b8;
+                                     cursor: pointer;
+                                   }
+                                 `}
+                  </style>
                 </div>
               </div>
 

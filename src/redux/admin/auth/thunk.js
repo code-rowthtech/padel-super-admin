@@ -23,7 +23,7 @@ export const sendOtp = createAsyncThunk(
     try {
       const res = await ownerApi.post(Url.SEND_OTP, data);
 
-      if (res?.data?.status === 200) {
+      if (res?.data?.status === "200") {
         showSuccess(res?.data?.message);
         return res?.data;
       } else {

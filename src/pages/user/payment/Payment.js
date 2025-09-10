@@ -22,7 +22,7 @@ const loadRazorpay = (callback) => {
 const Payment = ({ className = "" }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { courtData, clubData, selectedCourts, selectedDate, grandTotal, totalSlots, currentCourtId } = location.state || {};
+    const { courtData, clubData, selectedCourts, selectedDate, grandTotal, totalSlots } = location.state || {};
     const user = getUserFromSession();
     const bookingStatus = useSelector((state) => state?.userBooking);
     const userLoading = useSelector((state) => state?.userAuth);
@@ -89,6 +89,9 @@ const Payment = ({ className = "" }) => {
             let updated = [...prev];
             if (updated[courtIndex]?.time) {
                 updated[courtIndex].time = updated[courtIndex].time.filter((_, i) => i !== slotIndex);
+                if (updated[courtIndex].time.length === 0) {
+                    updated = updated.filter((_, i) => i !== courtIndex);
+                }
             }
             return updated;
         });
@@ -102,9 +105,10 @@ const Payment = ({ className = "" }) => {
                 : !/^[6-9]\d{9}$/.test(phoneNumber)
                     ? "Phone number must be 10 digits starting with 6, 7, 8, or 9"
                     : "",
-            email: !email ? "Email is required" : "",
+            email: !email ? "Email is required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+                ? "Invalid email format"
+                : "",
             paymentMethod: !selectedPayment ? "Payment method is required" : "",
-
         };
 
         setErrors(newErrors);
@@ -121,34 +125,28 @@ const Payment = ({ className = "" }) => {
                 throw new Error("Club information is missing. Please select a club first.");
             }
 
-            const slotTimesData = courtData?.slot?.[0]?.slotTimes || [];
-
             const slotArray = localSelectedCourts.flatMap((court) => {
-                return court?.time?.map((timeSlot) => {
-                    const matchingSlot = slotTimesData.find((slot) => slot.time === timeSlot.time);
-                    return {
-                        slotId: matchingSlot?._id || courtData?.slot?.[0]?._id,
-                        businessHours:
-                            courtData?.slot?.[0]?.businessHours?.map((t) => ({
-                                time: t?.time,
-                                day: t?.day,
-                            })) || [
-                                {
-                                    time: "6:00 AM To 11:00 PM",
-                                    day: "Monday",
-                                },
-                            ],
-                        slotTimes: [
-                            {
-                                time: timeSlot?.time,
-                                amount: timeSlot?.amount ?? 2000,
-                            },
-                        ],
-                        courtName: court?.courtName,
-                        courtId: court?._id,
-                        bookingDate: court?.date,
-                    };
-                });
+                return court?.time?.map((timeSlot) => ({
+                    slotId: timeSlot._id, // Use timeSlot._id directly from selectedCourts
+                    businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
+                        time: t?.time,
+                        day: t?.day,
+                    })) || [
+                        {
+                            time: "6:00 AM To 11:00 PM",
+                            day: "Monday",
+                        },
+                    ],
+                    slotTimes: [
+                        {
+                            time: timeSlot?.time,
+                            amount: timeSlot?.amount ?? 2000,
+                        },
+                    ],
+                    courtName: court?.courtName,
+                    courtId: court?._id,
+                    bookingDate: court?.date,
+                }));
             });
 
             const payload = {
@@ -161,15 +159,8 @@ const Payment = ({ className = "" }) => {
                 slot: slotArray,
                 paymentMethod: selectedPayment,
             };
+
             if (!user?.name && !user?.token) {
-                dispatch(createBooking(payload))
-                    .unwrap()
-                    .then((res) => {
-                        if (res?.success) {
-                            setModal(true);
-                        }
-                    });
-            } else {
                 await dispatch(loginUserNumber({ phoneNumber: phoneNumber.toString(), name, email }))
                     .unwrap()
                     .then((res) => {
@@ -181,6 +172,14 @@ const Payment = ({ className = "" }) => {
                                         setModal(true);
                                     }
                                 });
+                        }
+                    });
+            } else {
+                dispatch(createBooking(payload))
+                    .unwrap()
+                    .then((res) => {
+                        if (res?.success) {
+                            setModal(true);
                         }
                     });
             }
@@ -247,7 +246,7 @@ const Payment = ({ className = "" }) => {
                 <div className="col-12 col-lg-7">
                     <div className="bg-white rounded">
                         {/* Info Section */}
-                        <div className="rounded-4 py-4 px-3 px-md-5 mb-4" style={{ backgroundColor: "#F5F5F566",border:errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
+                        <div className="rounded-4 py-4 px-3 px-md-5 mb-4" style={{ backgroundColor: "#F5F5F566", border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
                             <h6 className="mb-3 custom-heading-use">
                                 Information
                             </h6>
@@ -365,11 +364,11 @@ const Payment = ({ className = "" }) => {
                                 border: errors.paymentMethod ? "2px solid red" : "none",
                             }}
                         >
-                            <h6 className="mb-4 custom-heading-use" >
+                            <h6 className="mb-4 custom-heading-use">
                                 Payment Method
                             </h6>
                             {errors.paymentMethod && (
-                                <div className="text-danger position-" style={{ fontSize: "12px", }}>
+                                <div className="text-danger position-" style={{ fontSize: "12px" }}>
                                     {errors.paymentMethod}
                                 </div>
                             )}
@@ -400,7 +399,6 @@ const Payment = ({ className = "" }) => {
                                     </label>
                                 ))}
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -423,16 +421,16 @@ const Payment = ({ className = "" }) => {
                                             width: "112px",
                                             fontSize: "30px",
                                             boxShadow: '0px 4px 11.4px 0px #0000002E'
-
                                         }}
                                     >
                                         {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                                     </Avatar>
                                 )}
                             </div>
-
-                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                            <p className=" mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>
+                                {clubData?.clubName}
+                            </p>
+                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                                 {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                 {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
@@ -441,7 +439,7 @@ const Payment = ({ className = "" }) => {
                             </p>
                         </div>
 
-                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use" >
+                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use">
                             Booking Summary
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
@@ -453,7 +451,7 @@ const Payment = ({ className = "" }) => {
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex">
                                                         <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""},
+                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""}
                                                         </span>
                                                         <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {(() => {
@@ -570,7 +568,9 @@ const Payment = ({ className = "" }) => {
                 <div className="p-4 text-center">
                     <img src={booking_success_img} alt="Booking Success" style={{ width: "294px", height: "294px", marginBottom: "20px" }} />
                     <h4 className="tabel-title" style={{ fontFamily: "Poppins" }}>Booking Successful!</h4>
-                    <p className="text-dark " style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>Your slot has been booked successfully.</p>
+                    <p className="text-dark" style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>
+                        Your slot has been booked successfully.
+                    </p>
                     <Button
                         onClick={() => {
                             setModal(false);
