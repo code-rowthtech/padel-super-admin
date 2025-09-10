@@ -160,7 +160,7 @@ const Payment = ({ className = "" }) => {
                 paymentMethod: selectedPayment,
             };
 
-            if (!user?.name && !user?.token) {
+            if (user?.name && user?.token) {
                 await dispatch(loginUserNumber({ phoneNumber: phoneNumber.toString(), name, email }))
                     .unwrap()
                     .then((res) => {
@@ -451,7 +451,7 @@ const Payment = ({ className = "" }) => {
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex">
                                                         <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""}
+                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""},
                                                         </span>
                                                         <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {(() => {

@@ -21,10 +21,15 @@ const CreateMatches = () => {
   const store = useSelector((state) => state);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedCourts, setSelectedCourts] = useState([]);
+  const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedDate, setSelectedDate] = useState({
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
+  const [errorShow, setErrorShow] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [selectedBuisness, setSelectedBuisness] = useState([]);
+  const [showUnavailable, setShowUnavailable] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("");
   const [skillDetails, setSkillDetails] = useState([]);
   const [currentCourtId, setCurrentCourtId] = useState(null);
@@ -85,6 +90,10 @@ const CreateMatches = () => {
     }
   };
 
+  const handleSwitchChange = () => {
+    setShowUnavailable(!showUnavailable);
+  };
+
   const handleCourtSelect = (court) => {
     setCurrentCourtId(court._id);
     setSelectedCourts((prev) => {
@@ -104,24 +113,73 @@ const CreateMatches = () => {
     });
   };
 
-  const toggleTime = (slot) => {
-    setSelectedCourts((prev) => {
-      const updatedCourts = prev.map((court) => {
-        if (court._id === currentCourtId) {
-          const isSelected = court.times.some((t) => t._id === slot._id);
-          const newTimes = isSelected
-            ? court.times.filter((t) => t._id !== slot._id)
-            : [
-              ...court.times,
-              { _id: slot._id, time: slot.time, amount: slot.amount || 1000 },
-            ];
-          return { ...court, times: newTimes };
-        }
-        return court;
+  const toggleTime = (time, courtId) => {
+    const totalSlots = selectedCourts.reduce((acc, c) => acc + (c.time?.length || 0), 0);
+    const currentCourtTimes = selectedTimes[courtId] || [];
+    const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
+
+    if (isAlreadySelected) {
+      const filteredTimes = currentCourtTimes.filter((t) => t._id !== time._id);
+      setSelectedTimes({
+        ...selectedTimes,
+        [courtId]: filteredTimes,
       });
-      return updatedCourts;
-    });
-    setSlotError("");
+      setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
+      setSelectedCourts((prev) =>
+        prev
+          .map((court) => {
+            if (court._id === courtId && court.date === selectedDate.fullDate) {
+              const newTime = court.time.filter((t) => t._id !== time._id);
+              return { ...court, time: newTime };
+            }
+            return court;
+          })
+          .filter((court) => court.time.length > 0)
+      );
+    } else {
+      const newLength = totalSlots + 1;
+      if (newLength > 15) {
+        setErrorMessage("Maximum 15 slots can be selected in total.");
+        setErrorShow(true);
+        return;
+      }
+      const newTimes = [...currentCourtTimes, time];
+      setSelectedTimes({
+        ...selectedTimes,
+        [courtId]: newTimes,
+      });
+      setSelectedBuisness((prev) => [...prev, time]);
+
+      const currentCourt = slotData?.data?.find((court) => court._id === courtId);
+      if (currentCourt) {
+        setSelectedCourts((prev) => {
+          const existingCourt = prev.find(
+            (c) => c._id === courtId && c.date === selectedDate.fullDate
+          );
+          const newTimeEntry = {
+            _id: time._id,
+            time: time.time,
+            amount: time.amount,
+          };
+          if (existingCourt) {
+            return prev.map((court) =>
+              court._id === courtId && court.date === selectedDate.fullDate
+                ? { ...court, time: [...court.time, newTimeEntry] }
+                : court
+            );
+          } else {
+            const newCourt = {
+              _id: currentCourt._id,
+              courtName: currentCourt.courtName,
+              date: selectedDate.fullDate,
+              day: selectedDate.day,
+              time: [newTimeEntry],
+            };
+            return [...prev, newCourt];
+          }
+        });
+      }
+    }
   };
 
   const maxSelectableDate = new Date();
@@ -250,6 +308,12 @@ const CreateMatches = () => {
     }
   }, [slotError]);
 
+  const getCurrentMonth = (selectedDate) => {
+    if (!selectedDate) return "Month";
+    const dateObj = new Date(selectedDate.fullDate);
+    return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+  };
+
   return (
     <Container className="p-4 mb-5" >
       <Row>
@@ -257,80 +321,126 @@ const CreateMatches = () => {
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
           <div className="calendar-strip ">
-            <div className="mb-4 custom-heading-use">
-              Select Date
-              <div className="position-relative d-inline-block" ref={wrapperRef}>
-                <span
-                  className="rounded p-1 pt-0 ms-2 bg-white"
-                  style={{
-                    cursor: "pointer",
-                    width: "26px !important",
-                    height: "26px !important",
-                    boxShadow: "0px 4px 4px 0px #00000014",
-                  }}
-                  onClick={() => setIsOpen(!isOpen)}
-                >
-                  <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
-                </span>
-                {isOpen && (
-                  <div
-                    className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
-                    style={{ top: "100%", left: "0", minWidth: "100%" }}
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <div className="custom-heading-use">
+                Select Date
+                <div className="position-relative d-inline-block" ref={wrapperRef}>
+                  <span
+                    className="rounded p-1 pt-0 ms-2 bg-white"
+                    style={{
+                      cursor: "pointer",
+                      width: "26px !important",
+                      height: "26px !important",
+                      boxShadow: "0px 4px 4px 0px #00000014",
+                    }}
+                    onClick={() => setIsOpen(!isOpen)}
                   >
-                    <DatePicker
-                      selected={startDate}
-                      onChange={(date) => {
-                        setStartDate(date);
-                        setIsOpen(false);
-                        const formattedDate = date.toISOString().split("T")[0];
-                        const day = date.toLocaleDateString("en-US", { weekday: "long" });
-                        setSelectedDate({ fullDate: formattedDate, day: day });
-                        setSelectedCourts((prev) => prev.map((court) => ({ ...court, times: [] })));
-                      }}
-                      inline
-                      maxDate={maxSelectableDate}
-                      minDate={new Date()}
-                      dropdownMode="select"
-                      calendarClassName="custom-calendar w-100 shadow-sm"
-                    />
-                  </div>
-                )}
+                    <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
+                  </span>
+                  {isOpen && (
+                    <div
+                      className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
+                      style={{ top: "100%", left: "0", minWidth: "100%" }}
+                    >
+                      <DatePicker
+                        selected={startDate}
+                        onChange={(date) => {
+                          setStartDate(date);
+                          setIsOpen(false);
+                          const formattedDate = date.toISOString().split("T")[0];
+                          const day = date.toLocaleDateString("en-US", {
+                            weekday: "long",
+                          });
+                          setSelectedDate({ fullDate: formattedDate, day: day });
+                          setSelectedTimes({});
+                          dispatch(
+                            getUserSlot({
+                              day: day,
+                              date: formattedDate,
+                              register_club_id:
+                                localStorage.getItem("register_club_id") || "",
+                            })
+                          );
+                        }}
+                        inline
+                        maxDate={maxSelectableDate}
+                        minDate={new Date()}
+                        dropdownMode="select"
+                        calendarClassName="custom-calendar w-100 shadow-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="form-switch d-flex justify-content-center align-items-center gap-2">
+                <label
+                  className="form-check-label mb-0"
+                  htmlFor="flexSwitchCheckDefault"
+                  style={{ whiteSpace: "nowrap", fontFamily: "Poppins" }}
+                >
+                  Show Unavailable Slots
+                </label>
+                <input
+                  className="form-check-input fs-5 ms-1 mb-1"
+                  type="checkbox"
+                  role="switch"
+                  id="flexSwitchCheckDefault"
+                  checked={showUnavailable}
+                  onChange={handleSwitchChange}
+                  style={{ boxShadow: "none" }}
+                />
               </div>
             </div>
             <div className="d-flex align-items-center gap-2 mb-3">
-              <button className="btn btn-light p-0" onClick={() => scroll("left")}>
-                <i className="bi bi-chevron-left"></i>
-              </button>
+              <div
+                className="d-flex justify-content-center p-0 mb-4 align-items-center rounded-pill"
+                style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}
+              >
+                <span
+                  className="text-muted"
+                  style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}
+                >
+                  {getCurrentMonth(selectedDate)}
+                </span>
+              </div>
               <div
                 ref={scrollRef}
-                className="d-flex gap-2 overflow-auto no-scrollbar"
+                className="d-flex gap-1 overflow-auto"
                 style={{
                   scrollBehavior: "smooth",
                   whiteSpace: "nowrap",
-                  maxWidth: "650px",
+                  maxWidth: "100%",
+                  overflowX: "scroll",
                 }}
               >
                 {dates?.map((d, i) => {
                   const formatDate = (date) => {
                     return date.toISOString().split("T")[0];
                   };
-                  const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                  const isSelected =
+                    formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
                   return (
                     <button
-                      ref={(el) => (dateRefs.current[d.fullDate] = el)}
                       key={i}
-                      className={`calendar-day-btn me-1  ${isSelected ? "text-white" : "bg-light"}`}
+                      ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                      className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
                       style={{
-                        backgroundColor: isSelected ? "#374151" : '#CBD6FF1A',
-                        boxShadow: isSelected ? '0px 4px 4px 0px #00000040' : '',
-                        border: isSelected ? '1px solid #4949491A' : '1px solid #4949491A',
-                        borderRadius: "8px",
-                        color: isSelected ? "#FFFFFF" : "#374151"
+                        backgroundColor: isSelected ? "#374151" : "#FFFFFF",
+                        boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
+                        borderRadius: "12px",
+                        color: isSelected ? "#FFFFFF" : "#374151",
                       }}
                       onClick={() => {
                         setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                         setStartDate(new Date(d.fullDate));
-                        setSelectedCourts((prev) => prev.map((court) => ({ ...court, times: [] })));
+                        dispatch(
+                          getUserSlot({
+                            day: d?.day,
+                            date: d?.fullDate,
+                            register_club_id:
+                              localStorage.getItem("register_club_id") || "",
+                          })
+                        );
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
@@ -338,24 +448,19 @@ const CreateMatches = () => {
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.border = "1px solid #4949491A";
-                        }
+                        e.currentTarget.style.border = "1px solid #4949491A";
                       }}
                     >
                       <div className="text-center">
-                        <div className="date-center-day">{dayShortMap[d.day]}</div>
                         <div className="date-center-date">{d.date}</div>
-                        <div className="date-center-day">{d.month}</div>
+                        <div className="date-center-day">{dayShortMap[d.day]}</div>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <button className="btn btn-light p-0" onClick={() => scroll("right")}>
-                <i className="bi bi-chevron-right"></i>
-              </button>
             </div>
+            <hr />
           </div>
           <div className="d-flex justify-content-between align-items-center py-3">
             <p className="mb-0 custom-heading-use" >

@@ -24,7 +24,7 @@ const formatTimeForAPI = (time) => {
 const Booking = ({ className = "" }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
-    const [showUnavailable, setShowUnavailable] = useState(false); // Default is off
+    const [showUnavailable, setShowUnavailable] = useState(false);
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
     const scrollRef = useRef(null);
@@ -81,16 +81,6 @@ const Booking = ({ className = "" }) => {
         if (!selectedDate) return "Month";
         const dateObj = new Date(selectedDate.fullDate);
         return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
-    };
-
-    const scroll = (direction) => {
-        if (scrollRef.current) {
-            const buttonWidth = 90;
-            scrollRef.current.scrollBy({
-                left: direction === "left" ? -buttonWidth : buttonWidth,
-                behavior: "smooth",
-            });
-        }
     };
 
     useEffect(() => {
@@ -409,7 +399,7 @@ const Booking = ({ className = "" }) => {
             <div className="container mb-5 px-4">
                 <div className="row g-4">
                     <div
-                        className="col-lg-7 col-12 py-4 mb-5 rounded-3 px-4"
+                        className="col-lg-7 col-12 py-4  rounded-3 px-4"
                         style={{ backgroundColor: "#F5F5F566" }}
                     >
                         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -485,18 +475,18 @@ const Booking = ({ className = "" }) => {
                         <div className="d-flex align-items-center gap-2 mb-3">
                             <div
                                 className="d-flex justify-content-center p-0 mb-4 align-items-center rounded-pill"
-                                style={{ backgroundColor: "#c9c8c8ff", width: "30px", height: "58px" }}
+                                style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}
                             >
                                 <span
                                     className="text-muted"
-                                    style={{ transform: "rotate(270deg)", fontSize: "20px" }}
+                                    style={{ transform: "rotate(270deg)", fontSize: "14px" ,fontWeight:"500"}}
                                 >
                                     {getCurrentMonth(selectedDate)}
                                 </span>
                             </div>
                             <div
                                 ref={scrollRef}
-                                className="d-flex gap-2 overflow-auto"
+                                className="d-flex gap-1 overflow-auto"
                                 style={{
                                     scrollBehavior: "smooth",
                                     whiteSpace: "nowrap",
@@ -518,7 +508,7 @@ const Booking = ({ className = "" }) => {
                                             style={{
                                                 backgroundColor: isSelected ? "#374151" : "#FFFFFF",
                                                 boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
-                                                borderRadius: "15px",
+                                                borderRadius: "12px",
                                                 color: isSelected ? "#FFFFFF" : "#374151",
                                             }}
                                             onClick={() => {
@@ -578,7 +568,7 @@ const Booking = ({ className = "" }) => {
 
                                             return (
                                                 <div
-                                                    className="mb-3 row ps-2 pe-2 border-bottom"
+                                                    className={`mb-3 row ps-2 pe-2 ${!showUnavailable ? 'border-bottom' : ""} `}
                                                     key={court._id}
                                                 >
                                                     {filteredSlots?.length > 0 ? (
@@ -692,7 +682,7 @@ const Booking = ({ className = "" }) => {
                         </div>
 
                     </div>
-                    <div className="col-lg-5 mb-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
+                    <div className="col-lg-5  col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
                         <div
                             className="border w-100 rounded px-3 py-5 border-0"
                             style={{ backgroundColor: "#CBD6FF1A" }}
@@ -786,7 +776,7 @@ const Booking = ({ className = "" }) => {
                                                                     color: "#374151",
                                                                 }}
                                                             >
-                                                                {court?.day ? dayShortMap[court?.day] : ""}
+                                                                {court?.day ? dayShortMap[court?.day] : ""},
                                                             </span>
                                                             <span
                                                                 className="ps-1"
