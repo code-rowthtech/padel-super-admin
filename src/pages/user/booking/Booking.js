@@ -553,7 +553,7 @@ const Booking = ({ className = "" }) => {
                         </div>
                         <hr />
                         <div
-                            className="d-flex flex-column gap-3 overflow-slot mt-4"
+                            className="d-flex flex-column gap-3 overflow-slot mt-md-4"
                             style={{
                                 height: "400px",
                                 overflowY: slotData?.data?.length > 3 ? "scroll" : "hidden",
@@ -608,7 +608,7 @@ const Booking = ({ className = "" }) => {
                                                                     isPastTime(slot.time);
 
                                                                 return (
-                                                                    <div className="col-2 p-0" key={i}>
+                                                                    <div className="col-md-2 col-3  p-lg-0 me-2 me-lg-0" key={i}>
                                                                         <button
                                                                             className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-3"
                                                                             onClick={() => toggleTime(slot, court._id)}

@@ -130,6 +130,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                       : "110px",
                     objectFit: "cover",
                     cursor: "pointer",
+                    marginTop: "13px",
                   }}
                   onClick={() => handleNavigation("/admin/dashboard")}
                 />
@@ -210,7 +211,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           >
             <FaTachometerAlt
               className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Dashboard"}
           </NavLink>
@@ -271,7 +272,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             >
               <FaCalendarAlt
                 className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
               />
               {(!isCollapsed || window.innerWidth <= 768) && "Booking"}
             </div>
@@ -430,7 +431,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           >
             <LuSwords
               className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Open Matches"}
           </NavLink>
@@ -480,7 +481,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           >
             <FaRankingStar
               className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Americano"}
           </NavLink>
@@ -549,7 +550,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           >
             <LiaFileInvoiceDollarSolid
               className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Packages"}
           </NavLink>
@@ -597,7 +598,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           >
             <FaUsersCog
               className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Users"}
           </NavLink>
@@ -644,7 +645,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           >
             <RiWallet3Line
               className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Payment"}
           </NavLink>
@@ -695,7 +696,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           >
             <RiLogoutCircleLine
               className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 16}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Log out"}
           </NavLink>

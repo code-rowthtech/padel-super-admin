@@ -215,7 +215,7 @@ const AdminDashboard = () => {
 
           <Row className="mb-4">
             <Col xs={12} lg={7} className="mb-4 mb-lg-0">
-              <Card className="shadow-sm border-0 rounded-0">
+              <Card className="shadow border-0 rounded-0">
                 <Card.Body>
                   <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center mb-3">
                     <h6
@@ -318,9 +318,9 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} lg={5}>
-              <Card className="shadow-sm border-0">
+              <Card className="shadow border-0">
                 <Card.Body>
-                  <div className="d-flex justify-content-between mb-2">
+                  <div className="d-flex justify-content-between">
                     <h6
                       className="mb-3"
                       style={{ fontSize: "20px", fontWeight: "600" }}
@@ -362,9 +362,12 @@ const AdminDashboard = () => {
                             {dashboardCancelledBookings?.map((item) => (
                               <tr
                                 key={item?._id}
-                                className="table-data border-bottom"
+                                className="table-dat border-bottom"
                               >
-                                <td className="text-truncate" style={{ maxWidth: "120px" }}>
+                                <td
+                                  className="text-truncate"
+                                  style={{ maxWidth: "120px" }}
+                                >
                                   {item?.userId?.name
                                     ?.slice(0, 1)
                                     ?.toUpperCase()
@@ -372,7 +375,7 @@ const AdminDashboard = () => {
                                     "N/A"}
                                 </td>
                                 <td>
-                                  <div className="d-flex flex-column">
+                                  <div className="d-flex justify-content-center">
                                     <span className="fw-medium small">
                                       {formatDate(item?.bookingDate)}
                                     </span>
@@ -385,7 +388,10 @@ const AdminDashboard = () => {
                                     </span>
                                   </div>
                                 </td>
-                                <td className="text-truncate" style={{ maxWidth: "80px" }}>
+                                <td
+                                  className="text-truncate"
+                                  style={{ maxWidth: "80px" }}
+                                >
                                   {item?.slot[0]?.courtName || "-"}
                                 </td>
                                 <td style={{ cursor: "pointer" }}>
@@ -416,14 +422,16 @@ const AdminDashboard = () => {
                             ))}
                           </tbody>
                         </Table>
-                        
+
                         {/* Mobile Card Layout */}
                         <div className="mobile-card-table d-block d-md-none">
                           {dashboardCancelledBookings?.map((item) => (
                             <div key={item?._id} className="card">
                               <div className="card-body">
                                 <div className="mobile-card-item">
-                                  <span className="mobile-card-label">User:</span>
+                                  <span className="mobile-card-label">
+                                    User:
+                                  </span>
                                   <span className="mobile-card-value">
                                     {item?.userId?.name
                                       ?.slice(0, 1)
@@ -433,13 +441,17 @@ const AdminDashboard = () => {
                                   </span>
                                 </div>
                                 <div className="mobile-card-item">
-                                  <span className="mobile-card-label">Date:</span>
+                                  <span className="mobile-card-label">
+                                    Date:
+                                  </span>
                                   <span className="mobile-card-value">
                                     {formatDate(item?.bookingDate)}
                                   </span>
                                 </div>
                                 <div className="mobile-card-item">
-                                  <span className="mobile-card-label">Time:</span>
+                                  <span className="mobile-card-label">
+                                    Time:
+                                  </span>
                                   <span className="mobile-card-value">
                                     {formatTime(
                                       renderSlotTimes(
@@ -449,13 +461,17 @@ const AdminDashboard = () => {
                                   </span>
                                 </div>
                                 <div className="mobile-card-item">
-                                  <span className="mobile-card-label">Court:</span>
+                                  <span className="mobile-card-label">
+                                    Court:
+                                  </span>
                                   <span className="mobile-card-value">
                                     {item?.slot[0]?.courtName || "-"}
                                   </span>
                                 </div>
                                 <div className="mobile-card-item">
-                                  <span className="mobile-card-label">Action:</span>
+                                  <span className="mobile-card-label">
+                                    Action:
+                                  </span>
                                   <div className="mobile-card-value">
                                     {loadingById === item?._id ? (
                                       <ButtonLoading color="blue" size={7} />
@@ -524,9 +540,12 @@ const AdminDashboard = () => {
                             {dashboardRecentBookings?.map((item) => (
                               <tr
                                 key={item._id}
-                                className="table-data border-bottom"
+                                className="table-data border-bottom align-middle text-center"
                               >
-                                <td className="text-truncate" style={{ maxWidth: "120px" }}>
+                                <td
+                                  className="text-truncate"
+                                  style={{ maxWidth: "120px" }}
+                                >
                                   {item?.userId?.name
                                     ?.slice(0, 1)
                                     ?.toUpperCase()
@@ -534,11 +553,11 @@ const AdminDashboard = () => {
                                     "N/A"}
                                 </td>
                                 <td>
-                                  <div className="d-flex flex-column">
+                                  <div className="d-flex justify-content-center">
                                     <span className="fw-medium small">
                                       {formatDate(item?.bookingDate)}
                                     </span>
-                                    <span className="text-muted small">
+                                    <span className="text-muted small ms-2">
                                       {formatTime(
                                         renderSlotTimes(
                                           item?.slot?.[0]?.slotTimes
@@ -547,7 +566,10 @@ const AdminDashboard = () => {
                                     </span>
                                   </div>
                                 </td>
-                                <td className="text-truncate" style={{ maxWidth: "80px" }}>
+                                <td
+                                  className="text-truncate"
+                                  style={{ maxWidth: "80px" }}
+                                >
                                   {item?.slot[0]?.courtName || "-"}
                                 </td>
                                 <td style={{ cursor: "pointer" }}>
@@ -602,7 +624,7 @@ const AdminDashboard = () => {
                           </tbody>
                         </Table>
                       </div>
-                      
+
                       {/* Mobile Card Layout */}
                       <div className="mobile-card-table d-block d-md-none">
                         {dashboardRecentBookings?.map((item) => (
@@ -628,20 +650,22 @@ const AdminDashboard = () => {
                                 <span className="mobile-card-label">Time:</span>
                                 <span className="mobile-card-value">
                                   {formatTime(
-                                    renderSlotTimes(
-                                      item?.slot?.[0]?.slotTimes
-                                    )
+                                    renderSlotTimes(item?.slot?.[0]?.slotTimes)
                                   )}
                                 </span>
                               </div>
                               <div className="mobile-card-item">
-                                <span className="mobile-card-label">Court:</span>
+                                <span className="mobile-card-label">
+                                  Court:
+                                </span>
                                 <span className="mobile-card-value">
                                   {item?.slot[0]?.courtName || "-"}
                                 </span>
                               </div>
                               <div className="mobile-card-item">
-                                <span className="mobile-card-label">Actions:</span>
+                                <span className="mobile-card-label">
+                                  Actions:
+                                </span>
                                 <div className="mobile-card-value">
                                   {loadingById === item?._id ? (
                                     <ButtonLoading color="blue" size={7} />
