@@ -247,25 +247,34 @@ h1.display-5 {
 }
 
 .calendar-day-btn {
-  flex: 0 0 91px !important;
-  height: 92px !important;
-  width: 90px;
+  /* flex: 0 0 91px !important; */
+  height: 58px !important;
+  max-width: 48px !important;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 1px 19px !important;
   border: 1px solid #4949491A;
 }
 
 .date-center-date {
-  font-size: 26px;
+  font-size: 16px;
   font-family: "Poppins";
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 22px;
 }
 
 .date-center-day {
   font-size: 14px;
   font-family: "Poppins";
-  font-weight: 400;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.court-para {
+  font-size: 16px;
+  font-weight: 500;
+  font-family: "Poppins";
 }
 
 .court-row .delete-btn {
@@ -840,26 +849,31 @@ h1.display-5 {
   .open-match-img-heading {
     font-size: 30px;
   }
-  .booking-history-heading{
+
+  .booking-history-heading {
     font-size: 20px;
   }
-  .booking-history-tab{
+
+  .booking-history-tab {
     font-size: 14px !important;
     height: 20px !important;
   }
-  .step-heading{
+
+  .step-heading {
     font-size: 15px;
   }
-  .booking-table thead th {
-  font-size: 12px;
-}
-.all-match-time{
-  font-size: 12px;
-}
 
-.booking-table td {
-  font-size: 14px !important;
-}
+  .booking-table thead th {
+    font-size: 12px;
+  }
+
+  .all-match-time {
+    font-size: 12px;
+  }
+
+  .booking-table td {
+    font-size: 14px !important;
+  }
 
   /* Tab buttons responsive - ensure single row */
   .icon-button {
@@ -1125,4 +1139,30 @@ h1.display-5 {
   .form-control {
     font-size: 12px !important;
   }
+}
+
+/* date scroll css */
+.overflow-auto::-webkit-scrollbar {
+  height: 8px;
+  margin: 20px 0px;
+}
+
+.overflow-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb {
+  background: #c9c8c8ff;
+  border-radius: 4px;
+}
+
+.overflow-slot::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+.overflow-slot {
+  scrollbar-width: none;
+  /* Firefox */
 }

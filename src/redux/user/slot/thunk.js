@@ -60,30 +60,7 @@ export const getUserSlot = createAsyncThunk(
   }
 );
 
-export const getUnavailableSlot = createAsyncThunk(
-  "club/getUnavailableSlot",
-  async ({ date, courtId ,register_club_id}, { rejectWithValue }) => {
-    try {
-      if (!courtId || !date || !register_club_id) {
-        throw new Error("Missing required parameters: courtId,date or register_club_id");
-      }
 
-      const queryParams = new URLSearchParams({
-        courtId,
-        date,
-        register_club_id
-      });
-
-      const response = await userApi.get(`${Url.GET_UNAVAILABLE_SLOT}?${queryParams.toString()}`);
-
-      return response?.data;
-    } catch (error) {
-      // Display error message and reject with error data
-      showError(error?.message || "Something went wrong while fetching slots");
-      return rejectWithValue(error?.response?.data || error.message);
-    }
-  }
-);
 
 export const getMatchesSlot = createAsyncThunk(
   "club/getMathcesSlot",
