@@ -42,6 +42,7 @@ const Openmatches = () => {
         fullDate: new Date().toISOString().split("T")[0],
         day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
     });
+    const scrollRef = useRef(null);
     const dateRefs = useRef({});
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
@@ -323,6 +324,11 @@ const Openmatches = () => {
         Saturday: "Sat",
         Sunday: "Sun",
     };
+    const getCurrentMonth = (selectedDate) => {
+        if (!selectedDate) return "Month";
+        const dateObj = new Date(selectedDate.fullDate);
+        return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+    };
 
     return (
         <div className="container mt-lg-4 px-3 px-md-4">
@@ -371,37 +377,43 @@ const Openmatches = () => {
                             </div>
                         </div>
                         <div className="d-flex align-items-center gap-2 mb-3">
-                            <button
-                                className="btn btn-light p-0"
-                                onClick={() => scroll("left")}
-                                aria-label="Scroll to previous dates"
-                            >
-                                <i className="bi bi-chevron-left"></i>
-                            </button>
                             <div
-                                className="d-flex gap-2 overflow-auto no-scrollbar"
+                                className="d-flex justify-content-center p-0 mb-4 align-items-center rounded-pill"
+                                style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}
+                            >
+                                <span
+                                    className="text-muted"
+                                    style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}
+                                >
+                                    {getCurrentMonth(selectedDate)}
+                                </span>
+                            </div>
+                            <div
+                                ref={scrollRef}
+                                className="d-flex gap-1 overflow-auto"
                                 style={{
                                     scrollBehavior: "smooth",
                                     whiteSpace: "nowrap",
-                                    maxWidth: "650px",
+                                    maxWidth: "100%",
+                                    overflowX: "scroll",
                                 }}
                             >
                                 {dates?.map((d, i) => {
                                     const formatDate = (date) => {
                                         return date.toISOString().split("T")[0];
                                     };
-                                    const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                                    const isSelected =
+                                        formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
                                     return (
                                         <button
-                                            ref={(el) => (dateRefs.current[d.fullDate] = el)}
                                             key={i}
-                                            className={`calendar-day-btn me-1 ${isSelected ? "text-white" : "bg-light"}`}
+                                            ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                                            className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
                                             style={{
-                                                backgroundColor: isSelected ? "#374151" : '#CBD6FF1A',
-                                                boxShadow: isSelected ? '0px 4px 4px 0px #00000040' : '',
-                                                border: isSelected ? '1px solid #4949491A' : '1px solid #4949491A',
-                                                borderRadius: "8px",
-                                                color: isSelected ? "#FFFFFF" : "#374151"
+                                                backgroundColor: isSelected ? "#374151" : "#FFFFFF",
+                                                boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
+                                                borderRadius: "15px",
+                                                color: isSelected ? "#FFFFFF" : "#374151",
                                             }}
                                             onClick={() => {
                                                 setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
@@ -413,27 +425,17 @@ const Openmatches = () => {
                                                 }
                                             }}
                                             onMouseLeave={(e) => {
-                                                if (!isSelected) {
-                                                    e.currentTarget.style.border = "1px solid #4949491A";
-                                                }
+                                                e.currentTarget.style.border = "1px solid #4949491A";
                                             }}
                                         >
                                             <div className="text-center">
-                                                <div className="date-center-day">{dayShortMap[d.day]}</div>
                                                 <div className="date-center-date">{d.date}</div>
-                                                <div className="date-center-day">{d.month}</div>
+                                                <div className="date-center-day">{dayShortMap[d.day]}</div>
                                             </div>
                                         </button>
                                     );
                                 })}
                             </div>
-                            <button
-                                className="btn btn-light p-0"
-                                onClick={() => scroll("right")}
-                                aria-label="Scroll to next dates"
-                            >
-                                <i className="bi bi-chevron-right"></i>
-                            </button>
                         </div>
                     </div>
 
@@ -446,13 +448,11 @@ const Openmatches = () => {
                                     style={{
                                         backgroundColor: selectedTime === time ? "#374151" : "#FAFBFF",
                                         color: selectedTime === time ? "white" : "#000000",
-                                        border: "1px solid #CBD6FF1A",
+                                        border: "2px solid #0f0f0f1a",
                                         transition: "border-color 0.2s ease",
                                     }}
                                     onMouseEnter={(e) => {
-                                        if (selectedTime !== time) {
                                             e.currentTarget.style.border = "1px solid #3DBE64";
-                                        }
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.border = "1px solid #CBD6FF1A";

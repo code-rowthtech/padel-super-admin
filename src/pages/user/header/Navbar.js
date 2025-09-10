@@ -62,14 +62,14 @@ const Navbar = () => {
         return () => {
             window.removeEventListener('storage', updateUserData);
         };
-    }, [store?.user?.status, store?.user?.response?.user]); 
+    }, [store?.user?.status, store?.user?.response?.user]);
 
     useEffect(() => {
         if (token) {
             dispatch(getUserProfile())
         }
     }, [])
-    
+
     return (
         <nav className="navbar navbar-expand-lg bg-white py-2">
             <div className="container py-1">
@@ -140,91 +140,91 @@ const Navbar = () => {
 
                 {/* Profile Section */}
                 <div className="d-flex">
-                        {store?.user?.status === '200' || token ? (
-                            <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
-                                <Dropdown.Toggle
-                                    variant="white"
-                                    className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
-                                >
-                                    {/* Menu icon for small screens */}
-                                    <FaBars size={24} className="text-dark d-lg-none" />
-                                    
-                                    {/* Profile for large screens */}
-                                    <div className="d-none d-lg-flex align-items-center gap-2">
-                                        <img
-                                            src={User?.user?.response?.profilePic || userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                                            alt="user"
-                                            className="rounded-circle"
-                                            width="40"
-                                            height="40"
-                                            loading="lazy"
-                                        />
-                                        <div className="text-start">
-                                            <div className="fw-semibold">
-                                                {userData?.name
-                                                    ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                    : User?.user?.response?.name || 'User'}
-                                            </div>
-                                            <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
+                    {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
+                        <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
+                            <Dropdown.Toggle
+                                variant="white"
+                                className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
+                            >
+                                {/* Menu icon for small screens */}
+                                <FaBars size={24} className="text-dark d-lg-none" />
+
+                                {/* Profile for large screens */}
+                                <div className="d-none d-lg-flex align-items-center gap-2">
+                                    <img
+                                        src={User?.user?.response?.profilePic || userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                        alt="user"
+                                        className="rounded-circle"
+                                        width="40"
+                                        height="40"
+                                        loading="lazy"
+                                    />
+                                    <div className="text-start">
+                                        <div className="fw-semibold">
+                                            {userData?.name
+                                                ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
+                                                : User?.user?.response?.name || 'User'}
                                         </div>
-                                        <FaChevronDown className="ms-2 text-muted" />
+                                        <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
                                     </div>
-                                </Dropdown.Toggle>
+                                    <FaChevronDown className="ms-2 text-muted" />
+                                </div>
+                            </Dropdown.Toggle>
 
-                                <Dropdown.Menu className="table-data mt-2  border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
-                                    {/* Navigation items - visible on mobile */}
-                                    <div className="d-lg-none">
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/home">
-                                            <span className="me-2">🏠</span> Home
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking">
-                                            <span className="me-2">📅</span> Booking
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/open-matches">
-                                            <MdSportsTennis size={20} style={{ minWidth: "24px" }} className="me-2" /> Open Matches
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/americano">
-                                            <PiRanking size={20} style={{ minWidth: "24px" }} className="me-2" /> Americano
-                                        </Dropdown.Item>
-                                        <hr className="my-2" />
-                                    </div>
-                                    
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
-                                        <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
+                            <Dropdown.Menu className="table-data mt-2  border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                {/* Navigation items - visible on mobile */}
+                                <div className="d-lg-none">
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/home">
+                                        <span className="me-2">🏠</span> Home
                                     </Dropdown.Item>
-
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
-                                        <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking">
+                                        <span className="me-2">📅</span> Booking
                                     </Dropdown.Item>
-
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/admin/settings">
-                                        <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/open-matches">
+                                        <MdSportsTennis size={20} style={{ minWidth: "24px" }} className="me-2" /> Open Matches
                                     </Dropdown.Item>
-
-                                    <Dropdown.Item
-                                        className='mb-2 d-flex align-items-center'
-                                        onClick={() => {
-                                            dispatch(logoutUser());
-                                            localStorage.removeItem('padel_user');
-                                            localStorage.removeItem('logo');
-                                            setUserData(null);
-                                            navigate('/home');
-                                        }}
-                                    >
-                                        <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/americano">
+                                        <PiRanking size={20} style={{ minWidth: "24px" }} className="me-2" /> Americano
                                     </Dropdown.Item>
-                                </Dropdown.Menu>
+                                    <hr className="my-2" />
+                                </div>
 
-                            </Dropdown>
-                        ) : (
-                            <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
-                                <button
-                                    className=" login-btn px-4 border-0   rounded-pill text-white"
+                                <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
+                                    <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
+                                </Dropdown.Item>
+
+                                <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
+                                    <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
+                                </Dropdown.Item>
+
+                                <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/admin/settings">
+                                    <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
+                                </Dropdown.Item>
+
+                                <Dropdown.Item
+                                    className='mb-2 d-flex align-items-center'
+                                    onClick={() => {
+                                        dispatch(logoutUser());
+                                        localStorage.removeItem('padel_user');
+                                        localStorage.removeItem('logo');
+                                        setUserData(null);
+                                        navigate('/home');
+                                    }}
                                 >
-                                    Login
-                                </button>
-                            </Link>
-                        )}
+                                    <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
+                                </Dropdown.Item>
+                            </Dropdown.Menu>
+
+                        </Dropdown>
+                    ) : (
+                        <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
+                            <button
+                                className=" login-btn px-4 border-0   rounded-pill text-white"
+                            >
+                                Login
+                            </button>
+                        </Link>
+                    )}
                 </div>
             </div>
         </nav>
