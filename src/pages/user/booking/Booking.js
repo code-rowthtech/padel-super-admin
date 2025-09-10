@@ -24,7 +24,7 @@ const formatTimeForAPI = (time) => {
 const Booking = ({ className = "" }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
-    const [showUnavailable, setShowUnavailable] = useState(false);
+    const [showUnavailable, setShowUnavailable] = useState(false); // Default is off
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
     const scrollRef = useRef(null);
@@ -568,7 +568,7 @@ const Booking = ({ className = "" }) => {
 
                                             return (
                                                 <div
-                                                    className={`mb-3 row ps-2 pe-2 ${!showUnavailable ? 'border-bottom' : ""} `}
+                                                    className={`mb-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""} `}
                                                     key={court._id}
                                                 >
                                                     {filteredSlots?.length > 0 ? (

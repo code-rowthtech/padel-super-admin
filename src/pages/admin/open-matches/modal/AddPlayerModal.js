@@ -94,7 +94,6 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
 
           const addTeam =
             team === "Team A | B" ? mapTeam(selectedTeam) : mapTeam(team);
-          console.log({ addTeam, selectedTeam });
           dispatch(
             addPlayers({
               matchId,

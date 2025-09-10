@@ -132,11 +132,11 @@ const Payment = ({ className = "" }) => {
                         time: t?.time,
                         day: t?.day,
                     })) || [
-                        {
-                            time: "6:00 AM To 11:00 PM",
-                            day: "Monday",
-                        },
-                    ],
+                            {
+                                time: "6:00 AM To 11:00 PM",
+                                day: "Monday",
+                            },
+                        ],
                     slotTimes: [
                         {
                             time: timeSlot?.time,
@@ -175,11 +175,17 @@ const Payment = ({ className = "" }) => {
                         }
                     });
             } else {
-                dispatch(createBooking(payload))
+                dispatch(Usersignup({ phoneNumber: phoneNumber.toString(), name, email }))
                     .unwrap()
                     .then((res) => {
-                        if (res?.success) {
-                            setModal(true);
+                        if (res?.status === "200") {
+                            dispatch(createBooking(payload))
+                                .unwrap()
+                                .then((res) => {
+                                    if (res?.success) {
+                                        setModal(true);
+                                    }
+                                });
                         }
                     });
             }

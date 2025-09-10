@@ -11,6 +11,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, userLoading, userError } = useSelector((state) => state?.userAuth);
+    const store = useSelector((state) => state?.userAuth);
 
   // Format date for input
   const formatDateForInput = (isoDate) => {
@@ -24,13 +25,13 @@ const Profile = () => {
 
   // Initial form data state
   const initialFormData = {
-    fullName: user?.response?.name || User?.name || "",
-    email: user?.response?.email || User?.email || "",
-    phone: user?.response?.phoneNumber || User?.phoneNumber || "",
+    fullName: user?.response?.name || store?.userSignUp?.response?.name || User?.name || "",
+    email: user?.response?.email || store?.userSignUp?.response?.email || User?.email || "",
+    phone: user?.response?.phoneNumber || store?.userSignUp?.response?.phoneNumber || User?.phoneNumber || "",
     dob: formatDateForInput(user?.response?.dob) || "",
     location: "Chandigarh",
     gender: user?.response?.gender || User?.gender || "",
-    profileImage: user?.response?.profilePic || User?.profilePic || "",
+    profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic || "",
   };
 
   const [formData, setFormData] = useState(initialFormData);
