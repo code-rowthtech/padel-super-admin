@@ -528,7 +528,7 @@ const CreateMatches = () => {
 
                       return (
                         <div
-                          className={`mb-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""} `}
+                          className={`mb-md-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""} `}
                           key={court._id}
                         >
                           {filteredSlots?.length > 0 ? (
