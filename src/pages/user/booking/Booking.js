@@ -286,7 +286,12 @@ const Booking = ({ className = "" }) => {
     const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
     const handleBookNow = () => {
-        if (!user?.name || !user?.token) {
+        if (totalSlots === 0) {
+            setErrorMessage("Select a slot to enable booking");
+            setErrorShow(true);
+            return;
+        }
+        else if (!user?.name || !user?.token) {
             const courtIds = selectedCourts
                 .map((court) => court._id)
                 .filter((id) => id)
@@ -440,7 +445,7 @@ const Booking = ({ className = "" }) => {
                 <div className="row g-4">
                     <div
                         className="col-lg-7 col-12 py-4  rounded-3 px-4"
-                        style={{ backgroundColor: "#F5F5F566",border:errorMessage && errorShow ? "1px solid red" :"" }}
+                        style={{ backgroundColor: "#F5F5F566", border: errorMessage && errorShow ? "1px solid red" : "" }}
                     >
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <div className="custom-heading-use">
@@ -723,7 +728,7 @@ const Booking = ({ className = "" }) => {
                                                 )
                                         ) && (
                                                 <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                                                    No {showUnavailable ? "unavailable" : "available"} slots
+                                                     {showUnavailable ? "All slots are available" : "No available slots"} 
                                                 </div>
                                             )}
                                     </>

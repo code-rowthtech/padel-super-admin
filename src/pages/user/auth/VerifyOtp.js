@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Row, Col, Form, Alert } from 'react-bootstrap';
+import { Button, Row, Col, Form, Alert, Collapse, Container } from 'react-bootstrap';
 import { authImg } from '../../../assets/files';
 import { showError, showSuccess, showInfo } from '../../../helpers/Toast';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,6 +38,7 @@ const VerifyOTP = () => {
       dispatch(resetAuth());
     }
   }, [store?.user?.status, navigate, dispatch, redirectTo, paymentState]);
+
   const handleChange = (index, value, event) => {
     if (/^\d?$/.test(value)) {
       const newOtp = [...otp];
@@ -76,130 +77,131 @@ const VerifyOTP = () => {
   }, [error]);
 
   return (
-    <Row className='mx-auto' style={{ height: '100vh', margin: 0 }}>
-      {/* Left Panel */}
-      <Col
-        md={12}
-        lg={6}
-        xs={12}
-        style={{
-          backgroundColor: '#F8F8F8',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: "30px 0px",
-        }}
-      >
-        <div className='p-4 p-md-0' style={{ width: '100%', maxWidth: 390, textAlign: 'center', position: "relative" }}>
-          <h2 className="welcome-heading mb-2">WELCOME BACK</h2>
-          <div style={{ marginBottom: 30, color: '#666' }}>
-            A verification code has been sent to <strong>+91*****{phone?.slice(5)}</strong>
-          </div>
-
-          {/* Error Alert positioned absolutely */}
-          {showAlert && (
-            <Alert
-              variant="danger"
-              style={{
-                position: "absolute",
-                top: "-40px",   // adjust as needed
-                left: 0,
-                right: 0,
-                margin: "auto",
-                width: "100%",
-                maxWidth: 390,
-              }}
-            >
-              {error}
-            </Alert>
-          )}
-
-          {/* OTP display (info alert) */}
-          {timer > 0 && store?.otp?.response && (
-            <Alert variant="info" className="py-1">
-              Your OTP is: {store?.otp?.response}
-            </Alert>
-          )}
-
-          {/* OTP Inputs */}
-          <div className='mb-3' style={{ display: 'flex', justifyContent: 'space-evenly', gap: 6 }}>
-            {otp.map((digit, index) => (
-              <Form.Control
-                key={index}
-                id={`otp-${index}`}
-                type="text"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleChange(index, e.target.value, e)}
-                onKeyDown={(e) => handleChange(index, e.target.value, e)}
-                style={{
-                  width: 50,
-                  height: 50,
-                  fontSize: 24,
-                  textAlign: 'center',
-                  borderRadius: '4px',
-                  boxShadow: '0px 1px 6.5px 0px #0000001F inset',
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Timer */}
-          <div style={{ marginTop: 20, marginBottom: 20, color: '#555', fontWeight: "500" }}>
-            {timer !== 0 && <>00:{String(timer).padStart(2, '0')} Sec</>}
-          </div>
-
-          {/* Verify Button */}
-          <Button
-            onClick={handleSubmit}
+    <div className="auth-wrapper h-100" style={{ backgroundColor: "#F8F8F8", overflow: "hidden" }}>
+      <Container fluid className="h-lg-100 p-0">
+        <Row className="g-0 h-lg-100  ">      {/* Left Panel */}
+          <Col
+            md={12}
+            lg={6}
+            xs={12}
             style={{
-              backgroundColor: '#4CAF50',
-              fontSize: "16px",
-              fontWeight: "600",
-              fontFamily: "Poppins",
-              color: "#636364",
-              boxShadow: ' 0px 4px 10px 0px #1A237E40',
-
+              backgroundColor: '#F8F8F8',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center', // Center content vertically
+              alignItems: 'center', // Center content horizontally
             }}
-            className="w-100 text-white rounded-pill border-0 py-md-3"
           >
-            {userAuthLoading ? <ButtonLoading /> : 'Verification Code'}
-          </Button>
+            <div className="w-100 h-50 text-center   " style={{ maxWidth: '400px' }}>
+              <Collapse in={showAlert}>
+                <div style={{ marginBottom: '20px' }}>
+                  <Alert
+                    variant="danger"
+                    style={{
+                      width: '100%',
+                      maxWidth: 390,
+                      margin: '0 auto',
+                    }}
+                  >
+                    {error}
+                  </Alert>
+                </div>
+              </Collapse>
 
-          {/* Re-send */}
-          {timer === 0 && (
-            <div style={{ marginTop: 15 }}>
-              <span style={{ color: '#777' }}>Didn’t receive code? </span>
-              <span
-                onClick={() => {
-                  dispatch(sendOtp({ phoneNumber: phone, countryCode: "+91", type: "Signup" }));
-                  setTimer(60);
-                }}
-                style={{ color: '#007bff', cursor: 'pointer' }}
+              <h2 className="welcome-heading mb-2" style={{ fontSize: '24px', fontWeight: '600' }}>
+                WELCOME BACK
+              </h2>
+              <div style={{ marginBottom: 30, color: '#666' }}>
+                A verification code has been sent to <strong>+91*****{phone?.slice(5)}</strong>
+              </div>
+
+              {timer > 0 && store?.otp?.response && (
+                <Alert variant="info" className="py-1" style={{ marginBottom: '20px' }}>
+                  Your OTP is: {store?.otp?.response}
+                </Alert>
+              )}
+
+              <div
+                className="mb-3"
+                style={{ display: 'flex', justifyContent: 'space-evenly', gap: 6 }}
               >
-                Re-send
-              </span>
+                {otp.map((digit, index) => (
+                  <Form.Control
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleChange(index, e.target.value, e)}
+                    onKeyDown={(e) => handleChange(index, e.target.value, e)}
+                    style={{
+                      width: 50,
+                      height: 50,
+                      fontSize: 24,
+                      textAlign: 'center',
+                      borderRadius: '4px',
+                      boxShadow: '0px 1px 6.5px 0px #0000001F inset',
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Timer */}
+              <div style={{ marginTop: 20, marginBottom: 20, color: '#555', fontWeight: '500' }}>
+                {timer !== 0 && <>00:{String(timer).padStart(2, '0')} Sec</>}
+              </div>
+
+              {/* Verify Button */}
+              <Button
+                onClick={handleSubmit}
+                style={{
+                  backgroundColor: '#4CAF50',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  fontFamily: 'Poppins',
+                  color: '#fff', // Changed to white for better contrast
+                  boxShadow: '0px 4px 10px 0px #1A237E40',
+                }}
+                className="w-100 rounded-pill border-0 py-md-3"
+              >
+                {userAuthLoading ? <ButtonLoading /> : 'Verification Code'}
+              </Button>
+
+              {/* Re-send */}
+              {timer === 0 && (
+                <div style={{ marginTop: 15 }}>
+                  <span style={{ color: '#777' }}>Didn’t receive code? </span>
+                  <span
+                    onClick={() => {
+                      dispatch(sendOtp({ phoneNumber: phone, countryCode: '+91', type: 'Signup' }));
+                      setTimer(60);
+                    }}
+                    style={{ color: '#007bff', cursor: 'pointer' }}
+                  >
+                    Re-send
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </Col>
 
-      </Col>
-
-      {/* Right Panel */}
-      <Col lg={6} className="d-none d-lg-block p-0">
-        <img
-          src={authImg}
-          alt="Auth"
-          className="img-fluid"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover"
-          }}
-          loading="lazy"
-        />
-      </Col>
-    </Row>
+          {/* Right Panel */}
+          <Col lg={6} className="d-none d-lg-block p-0">
+            <img
+              src={authImg}
+              alt="Auth"
+              className="img-fluid"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+              loading="lazy"
+            />
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

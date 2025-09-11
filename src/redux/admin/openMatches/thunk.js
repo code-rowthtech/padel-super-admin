@@ -18,9 +18,9 @@ export const getAllOpenMatches = createAsyncThunk(
         `${Url.GET_OPEN_MATCHES}?${buildQuery(params)}`
       );
       // Destructure response data
-      const { status, data, message } = res.data || {};
+      const { status, message } = res.data || {};
       if (status === 200 || "200") {
-        return data;
+        return res.data;
       }
 
       const errorMessage = message || "Failed to get Open Matches";
