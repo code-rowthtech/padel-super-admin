@@ -737,17 +737,17 @@ const OpenmatchPayment = (props) => {
                                                             transition: "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
                                                         }}
                                                     >
-                                                        <div className="d-flex gap-2">
+                                                        <div className="d-flex ">
                                                             <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                                {dayShortMap[court.day] || court.day}
+                                                                {dayShortMap[court.day] || court.day},
                                                             </span>
-                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                                 {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)}
                                                             </span>
-                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                                 {slotTime.time} (60m)
                                                             </span>
-                                                            <span style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
+                                                            <span className="ps-1" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
                                                                 {court.courtName}
                                                             </span>
                                                         </div>
