@@ -611,106 +611,107 @@ const Booking = ({ className = "" }) => {
                                                     !isPastTime(slot.time)
                                             );
 
+                                            // Only render court section if there are available slots
+                                            if (filteredSlots?.length === 0) {
+                                                return null; // Hide the entire court section, including borders
+                                            }
+
                                             return (
                                                 <div
-                                                    className={`mb-md-3 row ps-2  pe-2 ${!court?.slots || !showUnavailable ? 'border-bottom' : ""} `}
+                                                    className={`mb-md-3 row ps-2 pe-2 ${!court?.slots || !showUnavailable ? 'border-bottom' : ""}`}
                                                     key={court._id}
                                                 >
-                                                    {filteredSlots?.length > 0 ? (
-                                                        <>
-                                                            <div className="p-2 rounded">
-                                                                <div className="court-data d-flex gap-2">
-                                                                    <h5 className="all-matches mb-0">
-                                                                        {court?.courtName}
-                                                                    </h5>
-                                                                    <p className="court-para text-muted">
-                                                                        {court?.register_club_id?.courtType}
-                                                                    </p>
-                                                                    {errorShow && (
-                                                                        <p
-                                                                            className="text-danger text-center"
-                                                                            style={{
-                                                                                fontSize: "14px",
-                                                                                fontFamily: "Poppins",
-                                                                                fontWeight: "500",
-                                                                            }}
-                                                                        >
-                                                                            {errorMessage}
-                                                                        </p>
-                                                                    )}
-                                                                </div>
-                                                            </div>
+                                                    <div className="p-2 rounded">
+                                                        <div className="court-data d-flex gap-2">
+                                                            <h5 className="all-matches mb-0">
+                                                                {court?.courtName}
+                                                            </h5>
+                                                            <p className="court-para text-muted">
+                                                                {court?.register_club_id?.courtType}
+                                                            </p>
+                                                            {errorShow && (
+                                                                <p
+                                                                    className="text-danger text-center"
+                                                                    style={{
+                                                                        fontSize: "14px",
+                                                                        fontFamily: "Poppins",
+                                                                        fontWeight: "500",
+                                                                    }}
+                                                                >
+                                                                    {errorMessage}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
 
-                                                            {filteredSlots?.map((slot, i) => {
-                                                                const isSelected = selectedTimes[court._id]?.some(
-                                                                    (t) => t._id === slot._id
-                                                                );
-                                                                const currentSlots = totalSlots;
-                                                                const isLimitReached = currentSlots >= 15 && !isSelected;
+                                                    {filteredSlots?.map((slot, i) => {
+                                                        const isSelected = selectedTimes[court._id]?.some(
+                                                            (t) => t._id === slot._id
+                                                        );
+                                                        const currentSlots = totalSlots;
+                                                        const isLimitReached = currentSlots >= 15 && !isSelected;
 
-                                                                const isDisabled =
-                                                                    isLimitReached ||
-                                                                    slot.status === "booked" ||
-                                                                    slot.availabilityStatus !== "available" ||
-                                                                    isPastTime(slot.time);
+                                                        const isDisabled =
+                                                            isLimitReached ||
+                                                            slot.status === "booked" ||
+                                                            slot.availabilityStatus !== "available" ||
+                                                            isPastTime(slot.time);
 
-                                                                return (
-                                                                    <div className="col-md-2 col-3  p-lg-0 me-2 me-lg-0" key={i}>
-                                                                        <button
-                                                                            className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-md-3 mb-lg-3 mb-2"
-                                                                            onClick={() => toggleTime(slot, court._id)}
-                                                                            disabled={isDisabled}
-                                                                            style={{
-                                                                                backgroundColor:
-                                                                                    slot.status === "booked" ||
-                                                                                        isPastTime(slot.time)
+                                                        return (
+                                                            <div className="col-md-2 col-3 p-lg-0 me-2 me-lg-0" key={i}>
+                                                                <button
+                                                                    className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-md-3 mb-lg-3 mb-2"
+                                                                    onClick={() => toggleTime(slot, court._id)}
+                                                                    disabled={isDisabled}
+                                                                    style={{
+                                                                        backgroundColor:
+                                                                            slot.status === "booked" ||
+                                                                                isPastTime(slot.time)
+                                                                                ? "#c9cfcfff"
+                                                                                : isSelected
+                                                                                    ? "#374151"
+                                                                                    : slot.availabilityStatus !== "available"
                                                                                         ? "#c9cfcfff"
-                                                                                        : isSelected
-                                                                                            ? "#374151"
-                                                                                            : slot.availabilityStatus !== "available"
-                                                                                                ? "#c9cfcfff"
-                                                                                                : "#FAFBFF",
-                                                                                color:
-                                                                                    slot.status === "booked" ||
-                                                                                        isPastTime(slot.time) ||
-                                                                                        isDisabled
-                                                                                        ? "#000000"
-                                                                                        : isSelected
-                                                                                            ? "white"
-                                                                                            : "#000000",
-                                                                                cursor: isDisabled ? "not-allowed" : "pointer",
-                                                                                opacity: isDisabled ? 0.6 : 1,
-                                                                                border: "2px solid #0f0f0f1a",
-                                                                                transition: "border-color 0.2s ease",
-                                                                            }}
-                                                                            onMouseEnter={(e) => {
-                                                                                if (
-                                                                                    !isDisabled &&
-                                                                                    !isPastTime(slot.time) &&
-                                                                                    slot.availabilityStatus === "available"
-                                                                                ) {
-                                                                                    e.currentTarget.style.border =
-                                                                                        "1px solid #3DBE64";
-                                                                                }
-                                                                            }}
-                                                                            onMouseLeave={(e) => {
-                                                                                if (
-                                                                                    !isDisabled &&
-                                                                                    !isPastTime(slot.time) &&
-                                                                                    slot.availabilityStatus === "available"
-                                                                                ) {
-                                                                                    e.currentTarget.style.border =
-                                                                                        "2px solid #0f0f0f1a";
-                                                                                }
-                                                                            }}
-                                                                        >
-                                                                            {formatTimeForDisplay(slot?.time)}
-                                                                        </button>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </>
-                                                    ) : null}
+                                                                                        : "#FAFBFF",
+                                                                        color:
+                                                                            slot.status === "booked" ||
+                                                                                isPastTime(slot.time) ||
+                                                                                isDisabled
+                                                                                ? "#000000"
+                                                                                : isSelected
+                                                                                    ? "white"
+                                                                                    : "#000000",
+                                                                        cursor: isDisabled ? "not-allowed" : "pointer",
+                                                                        opacity: isDisabled ? 0.6 : 1,
+                                                                        border: "2px solid #0f0f0f1a",
+                                                                        transition: "border-color 0.2s ease",
+                                                                    }}
+                                                                    onMouseEnter={(e) => {
+                                                                        if (
+                                                                            !isDisabled &&
+                                                                            !isPastTime(slot.time) &&
+                                                                            slot.availabilityStatus === "available"
+                                                                        ) {
+                                                                            e.currentTarget.style.border =
+                                                                                "1px solid #3DBE64";
+                                                                        }
+                                                                    }}
+                                                                    onMouseLeave={(e) => {
+                                                                        if (
+                                                                            !isDisabled &&
+                                                                            !isPastTime(slot.time) &&
+                                                                            slot.availabilityStatus === "available"
+                                                                        ) {
+                                                                            e.currentTarget.style.border =
+                                                                                "2px solid #0f0f0f1a";
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {formatTimeForDisplay(slot?.time)}
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             );
                                         })}
@@ -727,10 +728,10 @@ const Booking = ({ className = "" }) => {
                                                         !isPastTime(slot.time)
                                                 )
                                         ) && (
-                                                <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                                                     {showUnavailable ? "All slots are available" : "No available slots"} 
-                                                </div>
-                                            )}
+                                            <div className="d-flex justify-content-center align-items-center h-100 py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                                                {showUnavailable ? "All slots are available" : "No available slots"}
+                                            </div>
+                                        )}
                                     </>
                                 )
                             ) : (

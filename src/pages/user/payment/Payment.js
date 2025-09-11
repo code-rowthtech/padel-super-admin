@@ -28,7 +28,9 @@ const Payment = ({ className = "" }) => {
     const userLoading = useSelector((state) => state?.userAuth);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const [name, setName] = useState(user?.name || "");
-    const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
+    const [phoneNumber, setPhoneNumber] = useState(
+        user?.phoneNumber ? `+91 ${user.phoneNumber}` : ""
+    );
     const [email, setEmail] = useState(user?.email || "");
     const [selectedPayment, setSelectedPayment] = useState("");
     const [errors, setErrors] = useState({
@@ -98,11 +100,12 @@ const Payment = ({ className = "" }) => {
     };
 
     const handlePayment = async () => {
+        const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "") || "";
         const newErrors = {
             name: !name ? "Name is required" : "",
-            phoneNumber: !phoneNumber
+            phoneNumber: !rawPhoneNumber
                 ? "Phone number is required"
-                : !/^[6-9]\d{9}$/.test(phoneNumber)
+                : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
                     ? "Phone number must be 10 digits starting with 6, 7, 8, or 9"
                     : "",
             email: !email ? "Email is required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -132,11 +135,11 @@ const Payment = ({ className = "" }) => {
                         time: t?.time,
                         day: t?.day,
                     })) || [
-                        {
-                            time: "6:00 AM To 11:00 PM",
-                            day: "Monday",
-                        },
-                    ],
+                            {
+                                time: "6:00 AM To 11:00 PM",
+                                day: "Monday",
+                            },
+                        ],
                     slotTimes: [
                         {
                             time: timeSlot?.time,
@@ -151,7 +154,7 @@ const Payment = ({ className = "" }) => {
 
             const payload = {
                 name,
-                phoneNumber,
+                phoneNumber:rawPhoneNumber,
                 email,
                 register_club_id,
                 bookingStatus: "upcoming",
@@ -161,7 +164,7 @@ const Payment = ({ className = "" }) => {
             };
 
             if (user?.name && user?.token) {
-                await dispatch(loginUserNumber({ phoneNumber: phoneNumber.toString(), name, email }))
+                await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber.toString(), name, email }))
                     .unwrap()
                     .then((res) => {
                         if (res?.status === "200") {
@@ -300,19 +303,22 @@ const Payment = ({ className = "" }) => {
                                         </span>
                                         <input
                                             type="text"
-                                            maxLength={10}
+                                            maxLength={13} // +91 (3 chars) + space (1 char) + 9 digits = 13
                                             value={phoneNumber}
                                             style={{ boxShadow: "none" }}
                                             onChange={(e) => {
-                                                const value = e.target.value.replace(/[^0-9]/g, "");
-                                                if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                                                    setPhoneNumber(value);
+                                                const inputValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric chars
+                                                if (inputValue === "" || /^[6-9][0-9]{0,9}$/.test(inputValue)) {
+                                                    const formattedValue = inputValue === ""
+                                                        ? ""
+                                                        : `+91 ${inputValue}`; // Prepend +91 and add space
+                                                    setPhoneNumber(formattedValue);
                                                 }
                                             }}
                                             className="form-control border-0 p-2"
                                             placeholder="+91"
-                                            pattern="[6-9][0-9]{9}"
-                                            title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
+                                            pattern="[+][0-9]{2}\s[6-9][0-9]{9}" // Updated pattern for +91 followed by space and 10 digits
+                                            title="Phone number must be in the format +91 followed by 10 digits starting with 6, 7, 8, or 9"
                                         />
                                     </div>
                                     {errors.phoneNumber && (
@@ -365,7 +371,7 @@ const Payment = ({ className = "" }) => {
                             }}
                         >
                             <h6 className="mb-4 custom-heading-use">
-                                Payment Method <span className="text-danger" style={{fontSize:"12px",fontFamily:"Poppins",fontWeight:"500"}}>{errors.paymentMethod ? errors?.paymentMethod : ""}</span>
+                                Payment Method <span className="text-danger" style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500" }}>{errors.paymentMethod ? errors?.paymentMethod : ""}</span>
                             </h6>
                             <div className="d-flex flex-column gap-3">
                                 {[
