@@ -34,7 +34,7 @@ const CreateMatches = () => {
   const [skillDetails, setSkillDetails] = useState([]);
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
-  const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || []); // clubData जोड़ा
+  const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || []); 
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
   const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
@@ -93,25 +93,6 @@ const CreateMatches = () => {
 
   const handleSwitchChange = () => {
     setShowUnavailable(!showUnavailable);
-  };
-
-  const handleCourtSelect = (court) => {
-    setCurrentCourtId(court._id);
-    setSelectedCourts((prev) => {
-      if (!prev.some((c) => c._id === court._id)) {
-        return [
-          ...prev,
-          {
-            _id: court._id,
-            courtName: court.courtName,
-            type: court.type,
-            date: selectedDate?.fullDate,
-            times: [],
-          },
-        ];
-      }
-      return prev;
-    });
   };
 
   const toggleTime = (time, courtId) => {
@@ -315,7 +296,7 @@ const CreateMatches = () => {
           selectedDate,
           grandTotal,
           totalSlots,
-          finalSkillDetails, // CreateMatches के लिए अतिरिक्त डेटा
+          finalSkillDetails, 
         },
       });
     }

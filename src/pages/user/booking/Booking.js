@@ -321,11 +321,6 @@ const Booking = ({ className = "" }) => {
                 setErrorShow(true);
                 return;
             }
-            if (selectedCourts.length === 0) {
-                setErrorMessage("Select a court to enable booking");
-                setErrorShow(true);
-                return;
-            }
             setErrorMessage("");
 
             const courtIds = selectedCourts
@@ -390,6 +385,18 @@ const Booking = ({ className = "" }) => {
         return false;
     };
 
+    useEffect(() => {
+        if (errorShow || errorMessage) {
+            const timer = setTimeout(() => {
+                setErrorMessage('');
+                setErrorShow(false);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [errorShow, errorMessage]);
+
+
     return (
         <>
             <div className="container p-md-3">
@@ -433,7 +440,7 @@ const Booking = ({ className = "" }) => {
                 <div className="row g-4">
                     <div
                         className="col-lg-7 col-12 py-4  rounded-3 px-4"
-                        style={{ backgroundColor: "#F5F5F566" }}
+                        style={{ backgroundColor: "#F5F5F566",border:errorMessage && errorShow ? "1px solid red" :"" }}
                     >
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <div className="custom-heading-use">
@@ -614,6 +621,18 @@ const Booking = ({ className = "" }) => {
                                                                     <p className="court-para text-muted">
                                                                         {court?.register_club_id?.courtType}
                                                                     </p>
+                                                                    {errorShow && (
+                                                                        <p
+                                                                            className="text-danger text-center"
+                                                                            style={{
+                                                                                fontSize: "14px",
+                                                                                fontFamily: "Poppins",
+                                                                                fontWeight: "500",
+                                                                            }}
+                                                                        >
+                                                                            {errorMessage}
+                                                                        </p>
+                                                                    )}
                                                                 </div>
                                                             </div>
 
@@ -894,18 +913,7 @@ const Booking = ({ className = "" }) => {
                                         >
                                             No slot selected
                                         </p>
-                                        {errorShow && (
-                                            <p
-                                                className="text-danger text-center"
-                                                style={{
-                                                    fontSize: "14px",
-                                                    fontFamily: "Poppins",
-                                                    fontWeight: "500",
-                                                }}
-                                            >
-                                                {errorMessage}
-                                            </p>
-                                        )}
+
                                     </div>
                                 )}
                             </div>

@@ -43,6 +43,7 @@ const ManualBooking = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
+  const dateRefs = useRef({});
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -365,6 +366,12 @@ const ManualBooking = () => {
     }
   }, [dates]);
 
+  const getCurrentMonth = (selectedDate) => {
+    if (!selectedDate) return "Month";
+    const dateObj = new Date(selectedDate);
+    return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+  };
+
   return (
     <>
       {ownerClubLoading ? (
@@ -403,13 +410,7 @@ const ManualBooking = () => {
               {/* Court Selector */}
               <div className="mb-3 mb-md-4">
                 <div
-                  className="tabel-title mb-2"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                    fontSize: "14px",
-                  }}
+                  className="all-matches mb-2"
                 >
                   Select Court
                 </div>
@@ -449,12 +450,7 @@ const ManualBooking = () => {
               {/* Date Selector */}
               <div className="calendar-strip">
                 <div
-                  className="tabel-title mb-3"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
+                  className="all-matches mb-3"
                 >
                   Select Date
                   <div
@@ -504,92 +500,69 @@ const ManualBooking = () => {
                   </div>
                 </div>
                 {/* Replace the date selector section with this code */}
-                <div className="d-flex align-items-center w-100 p-0 gap-2 mb-4">
-                  {/* Month display instead of left button */}
+                <div className="d-flex align-items-center gap-2 mb-3">
                   <div
-                    className="text-center fw-bold badge bg-secondary-subtle p-2"
-                    style={{
-                      writingMode: "vertical-lr",
-                      transform: "rotate(180deg)",
-                      minWidth: "24px",
-                      fontFamily: "Poppins",
-                      fontSize: "14px",
-                      color: "#374151",
-                      marginBottom: "24px",
-                    }}
+                    className="d-flex justify-content-center p-0 mb-4 align-items-center rounded-pill"
+                    style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}
                   >
-                    {currentMonth}
+                    <span
+                      className="text-muted"
+                      style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}
+                    >
+                      {getCurrentMonth(selectedDate)}
+                    </span>
                   </div>
-
-                  {/* Scrollable dates container */}
                   <div
                     ref={scrollRef}
-                    className="d-flex gap-2 flex-grow-1"
+                    className="d-flex gap-1 overflow-auto"
                     style={{
-                      overflowX: "auto",
-                      scrollbarWidth: "thin",
-                      scrollbarColor: "#cbd5e1 #f1f5f9",
-                      paddingBottom: "4px", // Space for scrollbar
+                      scrollBehavior: "smooth",
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
+                      overflowX: "scroll",
                     }}
                   >
                     {dates?.map((d, i) => {
-                      const isSelected = selectedDate === d.fullDate;
+                      const formatDate = (date) => {
+                        return date.toISOString().split("T")[0];
+                      };
+                      const isSelected =
+                        formatDate(new Date(selectedDate)) === d.fullDate;
+
                       return (
                         <button
                           key={i}
-                          ref={isSelected ? selectedButtonRef : null}
-                          className={`calendar-day-btn border px-3 py-2 mb-2 rounded shadow-sm ${
-                            isSelected ? "text-white" : "bg-light text-dark"
-                          }`}
+                          ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                          className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
                           style={{
-                            backgroundColor: isSelected ? "#374151" : undefined,
-                            border: "none",
-                            minWidth: "85px",
-                            transition: "all 0.2s ease",
-                            fontFamily: "Poppins",
-                            flexShrink: 0,
+                            backgroundColor: isSelected ? "#374151" : "#FFFFFF",
+                            boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
+                            borderRadius: "12px",
+                            color: isSelected ? "#FFFFFF" : "#374151",
                           }}
                           onClick={() => {
                             setSelectedDate(d.fullDate);
                             setSelectedDay(dayFullNames[d.day]);
                           }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.border = "1px solid #3DBE64";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.border = "1px solid #4949491A";
+                          }}
                         >
-                          <div className="text-center pb-2">
-                            <div
-                              style={{ fontSize: "24px", fontWeight: "600" }}
-                            >
-                              {d.date}
-                            </div>
-                            <div
-                              style={{ fontSize: "14px", fontWeight: "400" }}
-                            >
-                              {d.day}
-                            </div>
+                          <div className="text-center">
+                            <div className="date-center-date">{d.date}</div>
+                            <div className="date-center-day">{d.day}</div>
                           </div>
                         </button>
                       );
                     })}
                   </div>
                 </div>
-                <style>
-                  {`
-                   .custom-scrollbar::-webkit-scrollbar {
-                     height: 6px;
-                   }
-                   .custom-scrollbar::-webkit-scrollbar-track {
-                     background: #f1f5f9;
-                     border-radius: 3px;
-                   }
-                   .custom-scrollbar::-webkit-scrollbar-thumb {
-                     background: #cbd5e1;
-                     border-radius: 3px;
-                   }
-                   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                     background: #94a3b8;
-                     cursor: pointer;
-                   }
-                 `}
-                </style>
+                <hr />
               </div>
 
               {/* Time Selector */}
@@ -607,27 +580,23 @@ const ManualBooking = () => {
                     Available Slots
                     <span className="fs-6 text-muted">(60m)</span>
                   </p>
-                  <div className="form-switch d-flex align-items-center gap-2">
+                  <div className="form-switch d-flex justify-content-lg-center align-items-center gap-2">
+                    <label
+                      className="form-check-label "
+                      htmlFor="flexSwitchCheckDefault"
+                      style={{ whiteSpace: "nowrap", fontFamily: "Poppins" }}
+                    >
+                      Show Unavailable Slots
+                    </label>
                     <input
-                      className="form-check-input"
+                      className="form-check-input fs-5 ms-1 mb-2"
                       type="checkbox"
                       role="switch"
                       id="flexSwitchCheckDefault"
-                      style={{ boxShadow: "none" }}
                       checked={showUnavailable}
                       onChange={(e) => setShowUnavailable(e.target.checked)}
+                      style={{ boxShadow: "none" }}
                     />
-                    <label
-                      className="table-data text-dark mb-0"
-                      htmlFor="flexSwitchCheckDefault"
-                      style={{
-                        whiteSpace: "nowrap",
-                        fontSize: "13px",
-                        fontFamily: "Poppins",
-                      }}
-                    >
-                      Show Unavailable
-                    </label>
                   </div>
                 </div>
               </div>
@@ -728,15 +697,14 @@ const ManualBooking = () => {
                             const buttonEl = (
                               <span className="d-inline-block">
                                 <button
-                                  className={`btn border rounded-pill table-data px-4 py-1 shadow-sm ${
-                                    isBooked
-                                      ? "bg-danger text-white"
-                                      : isPast
+                                  className={`btn border rounded-pill table-data px-4 py-1 shadow-sm ${isBooked
+                                    ? "bg-danger text-white"
+                                    : isPast
                                       ? "bg-secondary-subtle"
                                       : !isAvailable || !hasAmount
-                                      ? "bg-warning"
-                                      : ""
-                                  }`}
+                                        ? "bg-warning"
+                                        : ""
+                                    }`}
                                   onClick={() => toggleTime(slot)}
                                   disabled={
                                     isPast ||
@@ -791,12 +759,7 @@ const ManualBooking = () => {
                 style={{ minHeight: "40vh" }}
               >
                 <div
-                  className="tabel-title d-flex justify-content-between align-items-center mb-3"
-                  style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
-                    color: "#374151",
-                  }}
+                  className="all-matches d-flex justify-content-between align-items-center mb-3"
                 >
                   Selected Bookings
                   {Object.entries(selectedSlots)?.length > 0 && (
@@ -821,7 +784,7 @@ const ManualBooking = () => {
                 >
                   {Object.entries(selectedSlots)?.length === 0 ? (
                     <div
-                      className="d-flex text-muted justify-content-center align-items-center"
+                      className="d-flex text-danger justify-content-center align-items-center"
                       style={{ height: "26vh" }}
                     >
                       No selections yet

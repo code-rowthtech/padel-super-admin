@@ -365,13 +365,8 @@ const Payment = ({ className = "" }) => {
                             }}
                         >
                             <h6 className="mb-4 custom-heading-use">
-                                Payment Method
+                                Payment Method <span className="text-danger" style={{fontSize:"12px",fontFamily:"Poppins",fontWeight:"500"}}>{errors.paymentMethod ? errors?.paymentMethod : ""}</span>
                             </h6>
-                            {errors.paymentMethod && (
-                                <div className="text-danger position-" style={{ fontSize: "12px" }}>
-                                    {errors.paymentMethod}
-                                </div>
-                            )}
                             <div className="d-flex flex-column gap-3">
                                 {[
                                     { id: "Gpay", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
