@@ -1,6 +1,7 @@
 import { BrowserRouter } from 'react-router-dom';
 import { AllRoutes } from './index';
 import NetworkHandler from '../helpers/network/NetworkHandler';
+import AppWrapper from '../AppWrapper';
 
 const Routes = () => (
     <BrowserRouter future={{
@@ -8,7 +9,9 @@ const Routes = () => (
         v7_relativeSplatPath: true
     }}>
         <NetworkHandler>
-            <AllRoutes />
+            <AppWrapper>
+                <AllRoutes />
+            </AppWrapper>
         </NetworkHandler>
     </BrowserRouter>
 );

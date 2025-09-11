@@ -1,13 +1,12 @@
 import Routes from "./routes/Routes";
-import CustomButton from "./pages/user/button";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useEffect } from "react";
+
 function App() {
+  // Handle unhandled chunk load error
   window.addEventListener("unhandledrejection", (event) => {
     const reason = event.reason;
     if (reason && /Loading chunk [\d]+ failed/.test(reason.message)) {
-      // Navigate to fallback route or render directly
       window.location.href = "/no-internet";
     }
   });
@@ -15,7 +14,6 @@ function App() {
   return (
     <>
       <Routes />
-      {/* <CustomButton /> */}
       <ToastContainer
         position="top-right"
         autoClose={3000}

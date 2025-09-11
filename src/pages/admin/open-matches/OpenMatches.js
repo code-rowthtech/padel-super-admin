@@ -8,6 +8,7 @@ import { DataLoading } from "../../../helpers/loading/Loaders";
 import { Col, Row } from "react-bootstrap";
 import { formatSlotTime } from "../../../helpers/Formatting";
 import AddPlayerModal from "./modal/AddPlayerModal";
+import Pagination from "../../../helpers/Pagination";
 
 const OpenMatches = () => {
   const navigate = useNavigate();
@@ -15,10 +16,11 @@ const OpenMatches = () => {
   const { openMatchesData, openMatchesLoading } = useSelector(
     (state) => state.openMatches
   );
-
+  console.log({ openMatchesData });
   const [showModal, setShowModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState("");
   const [matchId, setMatchId] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handlePlayerAdded = () => {
     dispatch(getAllOpenMatches());
@@ -181,6 +183,11 @@ const OpenMatches = () => {
     }, 0);
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    dispatch(getAllOpenMatches({ page: pageNumber }))
+  };
+
   return (
     <>
       {openMatchesLoading ? (
@@ -195,11 +202,11 @@ const OpenMatches = () => {
               Open Matches
             </h3>
           </div>
-          {openMatchesData?.length > 0 ? (
+          {openMatchesData?.data?.length > 0 ? (
             <>
               <Row className="justify-content-center">
                 <Col md={11}>
-                  {openMatchesData?.map((match, index) => (
+                  {openMatchesData?.data?.map((match, index) => (
                     <div
                       key={index}
                       className="card shadow-sm mb-3 rounded-3"
@@ -248,10 +255,9 @@ const OpenMatches = () => {
                                   const formattedSlots = slots.map(formatTime);
                                   return formattedSlots.length > 2
                                     ? `${formattedSlots
-                                        .slice(0, 2)
-                                        .join(", ")} +${
-                                        formattedSlots.length - 2
-                                      } more`
+                                      .slice(0, 2)
+                                      .join(", ")} +${formattedSlots.length - 2
+                                    } more`
                                     : formattedSlots.join(", ");
                                 })()}
                               </p>
@@ -275,9 +281,9 @@ const OpenMatches = () => {
                               {/* Players Section */}
                               <div className="d-flex align-items-center mb-2">
                                 {match?.teamA?.length === 1 ||
-                                match?.teamA?.length === 0 ? (
+                                  match?.teamA?.length === 0 ? (
                                   match?.teamB?.length === 1 ||
-                                  match?.teamB?.length === 0 ? (
+                                    match?.teamB?.length === 0 ? (
                                     <AvailableTag
                                       team="Team A | B"
                                       id={match?._id}
@@ -302,7 +308,7 @@ const OpenMatches = () => {
                                   {[
                                     ...(match?.teamA?.filter((_, idx) =>
                                       match?.teamA?.length === 2 &&
-                                      match?.teamB?.length === 2
+                                        match?.teamB?.length === 2
                                         ? idx !== 0
                                         : true
                                     ) || []),
@@ -369,10 +375,9 @@ const OpenMatches = () => {
                                 const formattedSlots = slots.map(formatTime);
                                 return formattedSlots.length > 3
                                   ? `${formattedSlots
-                                      .slice(0, 3)
-                                      .join(", ")} +${
-                                      formattedSlots.length - 3
-                                    } more`
+                                    .slice(0, 3)
+                                    .join(", ")} +${formattedSlots.length - 3
+                                  } more`
                                   : formattedSlots.join(", ");
                               })()}
                               <span className="text-dark ms-3 fw-semibold">
@@ -398,9 +403,9 @@ const OpenMatches = () => {
                           <div className="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
                             <div className="d-flex align-items-center justify-content-end mb-1">
                               {match?.teamA?.length === 1 ||
-                              match?.teamA?.length === 0 ? (
+                                match?.teamA?.length === 0 ? (
                                 match?.teamB?.length === 1 ||
-                                match?.teamB?.length === 0 ? (
+                                  match?.teamB?.length === 0 ? (
                                   <AvailableTag
                                     team="Team A | B"
                                     id={match?._id}
@@ -422,7 +427,7 @@ const OpenMatches = () => {
                                 {[
                                   ...(match?.teamA?.filter((_, idx) =>
                                     match?.teamA?.length === 2 &&
-                                    match?.teamB?.length === 2
+                                      match?.teamB?.length === 2
                                       ? idx !== 0
                                       : true
                                   ) || []),
@@ -467,6 +472,16 @@ const OpenMatches = () => {
                   ))}
                 </Col>
                 {/* <Col md={6}></Col> */}
+              </Row>
+              <Row className=" mb-5">
+                <Col className="d-flex mb-3 justify-content-center">
+                  <Pagination
+                    totalRecords={openMatchesData?.totalPages}
+                    defaultLimit={1}
+                    handlePageChange={handlePageChange}
+                    currentPage={currentPage || 1}
+                  />
+                </Col>
               </Row>
             </>
           ) : (

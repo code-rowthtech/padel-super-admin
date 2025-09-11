@@ -228,8 +228,9 @@ const Openmatches = () => {
                     setTeamName(name);
                 }}
             >
-                <span>+</span>
+                <span className="mb-1" >+</span>
             </div>
+
             <div className="d-flex flex-column align-items-start">
                 <span style={{ fontWeight: 600, color: "#1D4ED8", fontSize: "12px" }}>
                     Available
@@ -447,23 +448,24 @@ const Openmatches = () => {
                         {slotTime?.map((time, idx) => (
                             <div className="col-4 col-md-2 d-flex justify-content-lg-center align-items-start mb-1" key={idx}>
                                 <button
-                                    className={` text-nowrap btn rounded-pill slot-time-btn text-center me-1 px-lg-4 ms-1 mb-2`}
+                                    className="text-nowrap btn rounded-pill slot-time-btn text-center me-1 px-lg-4 ms-1 mb-2"
                                     onClick={() => toggleTime(time)}
                                     style={{
                                         backgroundColor: selectedTime === time ? "#374151" : "#FAFBFF",
                                         color: selectedTime === time ? "white" : "#000000",
-                                        border: "2px solid #0f0f0f1a",
+                                        border: "2px solid #0f0f0f1a", // default border
                                         transition: "border-color 0.2s ease",
                                     }}
                                     onMouseEnter={(e) => {
-                                        e.currentTarget.style.border = "1px solid #3DBE64";
+                                        e.currentTarget.style.border = "2px solid #3DBE64"; // hover border
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.currentTarget.style.border = "1px solid #CBD6FF1A";
+                                        e.currentTarget.style.border = "2px solid #0f0f0f1a"; // restore default
                                     }}
                                 >
                                     {formatTime(time)}
                                 </button>
+
                             </div>
                         ))}
                     </div>
