@@ -27,7 +27,6 @@ const openMatchesSlice = createSlice({
       state.openMatchesError = null;
     });
     builder.addCase(getAllOpenMatches.fulfilled, (state, action) => {
-      console.log({action});
       state.openMatchesLoading = false;
       state.openMatchesData = action.payload;
       state.openMatchesError = null;

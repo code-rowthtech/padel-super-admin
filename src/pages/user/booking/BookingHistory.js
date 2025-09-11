@@ -637,7 +637,7 @@ const BookingHistory = () => {
             </Row>
 
             <Row className=" mb-5">
-                <Col className="d-flex mb-3 justify-content-center">
+                <Col className="d-flex mb-5 justify-content-center">
                     <Pagination
                         totalRecords={totalRecords}
                         defaultLimit={10}

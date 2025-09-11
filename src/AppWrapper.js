@@ -6,19 +6,12 @@ import { useSelector } from "react-redux";
 
 const AppWrapper = ({ children }) => {
   const navigate = useNavigate();
-  const location = useLocation(); // Get current route
+  const location = useLocation(); 
   const user = getUserFromSession();
   const store = useSelector((state) => state?.userAuth);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    console.log("User from session:", user); // Debug user
-    console.log("Store:", store); // Debug store
-
-    // Show alert only if:
-    // 1. User is logged in (store.user.status === "200")
-    // 2. Name or email is missing
-    // 3. Not on /login page
     if (
       store?.user?.status === "200" &&
       (!user?.name || !user?.email) &&
@@ -27,17 +20,17 @@ const AppWrapper = ({ children }) => {
     ) {
       setOpen(true);
     } else {
-      setOpen(false); // Hide alert for /login, logout, or complete user data
+      setOpen(false); 
     }
   }, [store?.user?.status, user, location.pathname]);
 
   const handleGoToProfile = () => {
-    setOpen(false); // Close alert
-    navigate("/user-profile"); // Navigate to profile page
+    setOpen(false); 
+    navigate("/user-profile");
   };
 
   const handleClose = () => {
-    setOpen(false); // Close alert
+    setOpen(false); 
   };
 
   return (

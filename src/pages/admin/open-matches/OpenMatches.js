@@ -16,7 +16,6 @@ const OpenMatches = () => {
   const { openMatchesData, openMatchesLoading } = useSelector(
     (state) => state.openMatches
   );
-  console.log({ openMatchesData });
   const [showModal, setShowModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState("");
   const [matchId, setMatchId] = useState("");

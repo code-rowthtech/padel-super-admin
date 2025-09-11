@@ -64,9 +64,7 @@ const Navbar = () => {
     }, [store?.user?.status, store?.user?.response?.user,]);
 
     useEffect(() => {
-        if (token) {
-            dispatch(getUserProfile())
-        }
+        dispatch(getUserProfile())
     }, [])
 
     return (
