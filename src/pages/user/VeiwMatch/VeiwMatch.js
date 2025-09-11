@@ -105,9 +105,9 @@ const ViewMatch = ({ className = "" }) => {
         ) {
             const name = team === "A" ? "teamA" : "teamB";
             return (
-                <div key={index} className="text-center mx-auto mb-3">
+                <div key={index} className="text-center d-flex align-items-center flex-column mx-auto mb-3">
                     <button
-                        className="btn bg-white rounded-circle d-flex align-items-center justify-content-center"
+                        className=" bg-white rounded-circle d-flex align-items-center justify-content-center"
                         style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
                         onClick={() => { setShowModal(true); setTeamName(name); }}
                     >

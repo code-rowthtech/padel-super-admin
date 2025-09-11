@@ -354,7 +354,7 @@ const OpenmatchPayment = (props) => {
                                 {(() => {
                                     const leftComponents = [];
                                     if (User) {
-                                        const player = userData || User;
+                                        const player = User  ;
                                         leftComponents.push(
                                             <div key="left-match-0" className="d-flex flex-column justify-content-center align-items-center mx-auto mb-3">
                                                 <div

@@ -608,7 +608,7 @@ const Booking = ({ className = "" }) => {
 
                                             return (
                                                 <div
-                                                    className={`mb-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""} `}
+                                                    className={`mb-md-3 row ps-2  pe-2 ${!court?.slots || !showUnavailable ? 'border-bottom' : ""} `}
                                                     key={court._id}
                                                 >
                                                     {filteredSlots?.length > 0 ? (
@@ -652,7 +652,7 @@ const Booking = ({ className = "" }) => {
                                                                 return (
                                                                     <div className="col-md-2 col-3  p-lg-0 me-2 me-lg-0" key={i}>
                                                                         <button
-                                                                            className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-3"
+                                                                            className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-md-3 mb-lg-3 mb-2"
                                                                             onClick={() => toggleTime(slot, court._id)}
                                                                             disabled={isDisabled}
                                                                             style={{
