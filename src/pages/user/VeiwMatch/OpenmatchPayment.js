@@ -114,7 +114,7 @@ const OpenmatchPayment = (props) => {
                 const name = userData?.name || User?.name;
                 const phoneNumber = userData?.phoneNumber || User?.phoneNumber;
                 const email = userData?.email || User?.email;
-                if (!name || !phoneNumber || !email) {
+                if (!phoneNumber ) {
                     showError('User information missing!');
                     setIsLoading(false);
                     return;
