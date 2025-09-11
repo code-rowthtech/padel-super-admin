@@ -30,6 +30,8 @@ const VerifyOTP = () => {
     if (store?.user?.status === "200") {
       if (redirectTo && paymentState) {
         navigate(redirectTo, { state: paymentState });
+      } else if (redirectTo) {
+        navigate(redirectTo);
       } else {
         navigate('/home');
       }

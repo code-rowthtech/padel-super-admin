@@ -150,7 +150,11 @@ const Openmatches = () => {
         if (user?.id || user?._id) {
             navigate('/create-matches');
         } else {
-            navigate('/login');
+            navigate('/login', {
+                state: {
+                    redirectTo: '/create-matches',
+                }
+            });
         }
     };
 
@@ -452,7 +456,7 @@ const Openmatches = () => {
                                         transition: "border-color 0.2s ease",
                                     }}
                                     onMouseEnter={(e) => {
-                                            e.currentTarget.style.border = "1px solid #3DBE64";
+                                        e.currentTarget.style.border = "1px solid #3DBE64";
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.border = "1px solid #CBD6FF1A";

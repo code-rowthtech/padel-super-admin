@@ -22,13 +22,20 @@ const LoginPage = () => {
         dispatch(sendOtp({ phoneNumber: cleanedPhone, countryCode: "+91", type: "Signup" }))
             .unwrap()
             .then(() => {
-                const { redirectTo, paymentState } = location.state || {}; 
+                const { redirectTo, paymentState } = location.state || {};
                 if (redirectTo && paymentState) {
                     navigate('/verify-otp', {
                         state: {
                             phone,
                             redirectTo,
                             paymentState
+                        }
+                    });
+                } else if (redirectTo) {
+                    navigate('/verify-otp', {
+                        state: {
+                            phone,
+                            redirectTo,
                         }
                     });
                 } else {
