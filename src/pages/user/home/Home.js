@@ -200,7 +200,7 @@ const Home = () => {
                                             }
                                         })}
                                     </p>
-                                    <p className="ms-2  mb-2 " style={{ fontSize: '17.5px', color: '#374151', fontWeight: "500", fontFamily: "Poppins" }}>
+                                    <p className="ms-2 pt-1  " style={{ fontSize: '17.5px', color: '#374151', fontWeight: "500", fontFamily: "Poppins" }}>
                                         {getReviewData?.averageRating}
                                     </p>
                                 </div>
