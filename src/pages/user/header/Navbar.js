@@ -23,9 +23,8 @@ const Navbar = () => {
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
     let token = isUserAuthenticated()
     const logo = JSON.parse(localStorage.getItem("logo"));
-    console.log(userData,store,User,'p7p');
     useEffect(() => {
-        if (store?.userSignUp?.status === "200", store?.user?.status === '200' && store?.user?.response?.user) {
+        if (store?.user?.status === '200' && store?.user?.response?.user) {
             setUserData(store.user.response.user);
         } else {
             const userLocal = localStorage.getItem('padel_user');
@@ -42,7 +41,6 @@ const Navbar = () => {
             }
         }
 
-        // Listen for storage changes (optional, if cross-tab sync is needed)
         const updateUserData = () => {
             const userLocal = localStorage.getItem('padel_user');
             if (userLocal) {
@@ -63,7 +61,7 @@ const Navbar = () => {
         return () => {
             window.removeEventListener('storage', updateUserData);
         };
-    }, [store?.user?.status, store?.user?.response?.user,store?.userSignUp?.status === "200",]);
+    }, [store?.user?.status, store?.user?.response?.user,]);
 
     useEffect(() => {
         if (token) {
@@ -141,7 +139,7 @@ const Navbar = () => {
 
                 {/* Profile Section */}
                 <div className="d-flex">
-                    {store?.userSignUp?.status === "200" ||store?.user?.status === '200' || token || store?.user?.status === 200 ? (
+                    {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
                         <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
                             <Dropdown.Toggle
                                 variant="white"
@@ -153,7 +151,7 @@ const Navbar = () => {
                                 {/* Profile for large screens */}
                                 <div className="d-none d-lg-flex align-items-center gap-2">
                                     <img
-                                        src={User?.user?.response?.profilePic || store?.userSignUp?.response?.profilePic || userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                        src={User?.user?.response?.profilePic || userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                         alt="user"
                                         className="rounded-circle"
                                         width="40"
@@ -164,9 +162,9 @@ const Navbar = () => {
                                         <div className="fw-semibold">
                                             {userData?.name
                                                 ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                : User?.user?.response?.name || store?.userSignUp?.response?.name || 'User'}
+                                                : User?.user?.response?.name || 'User'}
                                         </div>
-                                        <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || store?.userSignUp?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
+                                        <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
                                     </div>
                                     <FaChevronDown className="ms-2 text-muted" />
                                 </div>

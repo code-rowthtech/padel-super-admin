@@ -194,56 +194,6 @@ const OpenMatches = () => {
             >
               Open Matches
             </h3>
-            {/* <button
-              className="d-flex align-items-center position-relative p-0 border-0"
-              style={{
-                borderRadius: "20px 10px 10px 20px",
-                overflow: "hidden",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                background: "none",
-                flexShrink: 0,
-              }}
-              onClick={() => navigate("/admin/create-match")}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "0.9";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "1";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              <div
-                className="p-1 rounded-circle bg-light"
-                style={{ position: "relative", left: "10px" }}
-              >
-                <div
-                  className="d-flex justify-content-center align-items-center text-white fw-bold"
-                  style={{
-                    backgroundColor: "#194DD5",
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "50%",
-                    fontSize: "20px",
-                  }}
-                >
-                  +
-                </div>
-              </div>
-              <div
-                className="d-flex align-items-center text-white fw-medium"
-                style={{
-                  backgroundColor: "#194DD5",
-                  padding: "0 16px",
-                  height: "36px",
-                  fontSize: "14px",
-                  fontFamily: "Nunito, sans-serif",
-                }}
-              >
-                Create Match
-              </div>
-            </button> */}
           </div>
           {openMatchesData?.length > 0 ? (
             <>
