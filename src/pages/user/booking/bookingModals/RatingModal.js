@@ -20,7 +20,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
     const addReviewLoading = store?.userClub?.reviewLoading;
     const hasReview = !!tableData?.booking?.customerReview;
     const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
-        if (!dateValue) return fallback; // Handle null or undefined
+        if (!dateValue) return fallback; 
         const date = new Date(dateValue);
         return isValid(date) ? format(date, formatString) : fallback;
     };
@@ -37,7 +37,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
     }, [show, hasReview, tableData?.booking?.customerReview, initialRating, defaultMessage]);
 
     const handleSubmit = () => {
-        if (hasReview) return; // prevent submit if already reviewed
+        if (hasReview) return; 
         const club_id = localStorage.getItem("register_club_id");
         const payload = {
             reviewComment: review,
@@ -149,7 +149,6 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                     style={{ width: "200px" }}
                 />
 
-                {/* Court & Booking details */}
                 <div className="rounded-3 border mb-2 p-2" style={{ borderColor: "#1A73E8", borderWidth: "1px", borderStyle: "solid" }}>
                     <p className="text-start m-0 table-data">🎉 You Played very well</p>
                     <p className="text-start" style={{ fontSize: "10px", fontWeight: "400", fontFamily: "Poppins", color: "#374151" }}>Your Slots are Successfully booked.</p>

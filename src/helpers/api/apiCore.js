@@ -102,7 +102,7 @@ const ownerAxios = axios.create({ baseURL: config.API_URL });
 let sessionHandled = false;
 
 const handleExpiredSession = (userType) => {
-  if (sessionHandled) return; // already handled
+  if (sessionHandled) return; 
   sessionHandled = true;
 
   if (userType === "user") {
@@ -119,27 +119,7 @@ const handleExpiredSession = (userType) => {
     window.location.href = "/";
   }
 };
-// Shared error handler
-// const errorInterceptor = (err) => {
-//   if (!navigator.onLine) {
-//     window.location.href = "/no-internet";
-//     return Promise.reject("No internet connection");
-//   }
 
-//   const { response } = err;
-//   const status = response?.status;
-//   const message =
-//     response?.data?.message ||
-//     {
-//       400: "Error",
-//       401: "Invalid credentials",
-//       403: "Access Forbidden",
-//       404: "Sorry! the data you are looking for could not be found",
-//     }[status] ||
-//     err.message;
-
-//   return Promise.reject(message);
-// };
 
 const errorInterceptor = (err) => {
   if (!navigator.onLine) {
@@ -150,7 +130,6 @@ const errorInterceptor = (err) => {
   const { response } = err;
   const status = response?.status;
 
-  // Handle expired token once
   if (status === 401) {
     const path = window.location.pathname.toLowerCase();
     if (path.startsWith("/admin")) {

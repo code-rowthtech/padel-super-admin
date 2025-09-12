@@ -184,6 +184,7 @@ const Profile = () => {
             accept="image/*"
             onChange={handleImageChange}
             hidden
+            style={{boxShadow:"none"}}
           />
         </div>
 
@@ -196,6 +197,7 @@ const Profile = () => {
               value={formData.fullName}
               onChange={handleChange}
               className="form-control"
+              style={{boxShadow:"none"}}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -206,6 +208,7 @@ const Profile = () => {
               value={formData.email}
               onChange={handleChange}
               className="form-control"
+              style={{boxShadow:"none"}}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -224,6 +227,7 @@ const Profile = () => {
               }}
               className="form-control"
               maxLength={10}
+              style={{boxShadow:"none"}}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -234,6 +238,7 @@ const Profile = () => {
               value={formData.dob}
               onChange={handleChange}
               className="form-control"
+              style={{boxShadow:"none"}}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -244,6 +249,7 @@ const Profile = () => {
               value={formData.location}
               onChange={handleChange}
               className="form-control"
+              style={{boxShadow:"none"}}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -257,6 +263,7 @@ const Profile = () => {
                   value={g}
                   checked={formData.gender === g}
                   onChange={handleChange}
+                  style={{boxShadow:"none"}}
                 />
                 <label className="form-check-label">{g}</label>
               </div>
