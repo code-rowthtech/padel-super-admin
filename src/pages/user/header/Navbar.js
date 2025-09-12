@@ -64,8 +64,10 @@ const Navbar = () => {
     }, [store?.user?.status, store?.user?.response?.user,]);
 
     useEffect(() => {
-        dispatch(getUserProfile())
-    }, [])
+        if (User?.token) {
+            dispatch(getUserProfile())
+        }
+    }, [User?.token])
 
     return (
         <nav className="navbar navbar-expand-lg bg-white py-2">
