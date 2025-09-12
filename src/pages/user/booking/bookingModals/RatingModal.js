@@ -152,7 +152,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                 {/* Court & Booking details */}
                 <div className="rounded-3 border mb-2 p-2" style={{ borderColor: "#1A73E8", borderWidth: "1px", borderStyle: "solid" }}>
                     <p className="text-start m-0 table-data">🎉 You Played very well</p>
-                    <p className="text-start" style={{fontSize:"10px",fontWeight:"400",fontFamily:"Poppins",color:"#374151"}}>Your Slots are Successfully booked.</p>
+                    <p className="text-start" style={{ fontSize: "10px", fontWeight: "400", fontFamily: "Poppins", color: "#374151" }}>Your Slots are Successfully booked.</p>
                     <div className="d-flex p-0 justify-content-between">
                         <div className="text-start">
                             <p className="text-muted mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>Court Name</p>
@@ -198,8 +198,10 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                 </div>
 
                 {/* Review input */}
-                <div className="mt-1 text-start">
-                    <p className="mb-2" style={{ fontWeight: "600", color: "#374151" }}>Write a message</p>
+                <div className="mt-1 text-start position-relative">
+                    <p className="mb-2" style={{ fontWeight: "600", color: "#374151" }}>
+                        Write a message
+                    </p>
                     <Form.Control
                         as="textarea"
                         rows={3}
@@ -207,8 +209,28 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                         style={{ boxShadow: "none", fontWeight: "600" }}
                         placeholder="Write Here"
                         value={review}
-                        onChange={(e) => setReview(e.target.value)}
+                        onChange={(e) => {
+                            let inputValue = e.target.value;
+                            if (inputValue.length > 0) {
+                                inputValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
+                            }
+                            if (inputValue.length <= 250) {
+                                setReview(inputValue);
+                            }
+                        }}
                     />
+                    <div
+                        style={{
+                            position: "absolute",
+                            bottom: "10px",
+                            right: "10px",
+                            fontSize: "12px",
+                            color: "#6B7280",
+                            fontWeight: "500",
+                        }}
+                    >
+                        {review.length}/250
+                    </div>
                 </div>
 
                 {/* Button */}
