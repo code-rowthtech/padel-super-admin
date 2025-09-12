@@ -415,7 +415,7 @@ const BookingHistory = () => {
                                                     </td>
                                                 )}
                                                 {activeTab === "completed" && (
-                                                    <td>
+                                                    <td className="py-2 pt-3">
                                                         <OverlayTrigger
                                                             placement="top"
                                                             overlay={
@@ -479,42 +479,71 @@ const BookingHistory = () => {
                                                     </td>
                                                 )}
                                                 <td className="text-center py-2 pt-3">
-                                                    {activeTab === "completed" ? null : (
-                                                        <div className="d-flex align-items-center justify-content-center gap-2">
-                                                            {booking?.bookingStatus === "in-progress" ? (
-                                                                <span
-                                                                    style={{
-                                                                        color: "#F29410",
-                                                                        fontSize: "12px",
-                                                                        fontWeight: "500",
-                                                                        fontFamily: "Poppins",
-                                                                    }}
-                                                                >
-                                                                    Request For Cancellation
-                                                                </span>
-                                                            ) : booking?.bookingStatus === "refunded" ? (
-                                                                <span
-                                                                    style={{
-                                                                        color: "darkcyan",
-                                                                        fontSize: "12px",
-                                                                        fontWeight: "600",
-                                                                        fontFamily: "Poppins",
-                                                                    }}
-                                                                >
-                                                                    Cancelled
-                                                                </span>
-                                                            ) : booking?.bookingStatus === "rejected" ? (
-                                                                <span
-                                                                    style={{
-                                                                        color: "red",
-                                                                        fontSize: "12px",
-                                                                        fontWeight: "600",
-                                                                        fontFamily: "Poppins",
-                                                                    }}
-                                                                >
-                                                                    Rejected
-                                                                </span>
-                                                            ) : booking?.bookingStatus === "completed" ? (
+                                                    <div className="d-flex align-items-center justify-content-center gap-2">
+                                                        {/* Status Display or Cancel Icon */}
+                                                        {activeTab !== "completed" && booking?.bookingStatus !== "completed" ? (
+                                                            <>
+                                                                {booking?.bookingStatus === "in-progress" ? (
+                                                                    <span
+                                                                        style={{
+                                                                            color: "#F29410",
+                                                                            fontSize: "12px",
+                                                                            fontWeight: "500",
+                                                                            fontFamily: "Poppins",
+                                                                        }}
+                                                                    >
+                                                                        Request For Cancellation
+                                                                    </span>
+                                                                ) : booking?.bookingStatus === "refunded" ? (
+                                                                    <span
+                                                                        style={{
+                                                                            color: "darkcyan",
+                                                                            fontSize: "12px",
+                                                                            fontWeight: "600",
+                                                                            fontFamily: "Poppins",
+                                                                        }}
+                                                                    >
+                                                                        Cancelled
+                                                                    </span>
+                                                                ) : booking?.bookingStatus === "rejected" ? (
+                                                                    <span
+                                                                        style={{
+                                                                            color: "red",
+                                                                            fontSize: "12px",
+                                                                            fontWeight: "600",
+                                                                            fontFamily: "Poppins",
+                                                                        }}
+                                                                    >
+                                                                        Rejected
+                                                                    </span>
+                                                                ) : booking?.bookingStatus === "upcoming" &&
+                                                                    activeTab !== "upcoming" ? (
+                                                                    <span
+                                                                        className="text-info"
+                                                                        style={{
+                                                                            fontSize: "12px",
+                                                                            fontWeight: "600",
+                                                                            fontFamily: "Poppins",
+                                                                        }}
+                                                                    >
+                                                                        Upcoming
+                                                                    </span>
+                                                                ) : (
+                                                                    <MdOutlineCancel
+                                                                        size={20}
+                                                                        onClick={() => {
+                                                                            setSelectedBooking(booking);
+                                                                            setChangeCancelShow(true);
+                                                                            setCourtData({ slotItem, booking });
+                                                                            setModalCancel(true);
+                                                                        }}
+                                                                        className="text-danger"
+                                                                        style={{ cursor: "pointer" }}
+                                                                    />
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            booking?.bookingStatus === "completed" && (
                                                                 <span
                                                                     className="text-success"
                                                                     style={{
@@ -525,93 +554,69 @@ const BookingHistory = () => {
                                                                 >
                                                                     Completed
                                                                 </span>
-                                                            ) : booking?.bookingStatus === "upcoming" &&
-                                                                activeTab !== "upcoming" ? (
-                                                                <span
-                                                                    className="text-info"
-                                                                    style={{
-                                                                        fontSize: "12px",
-                                                                        fontWeight: "600",
-                                                                        fontFamily: "Poppins",
-                                                                    }}
-                                                                >
-                                                                    Upcoming
-                                                                </span>
-                                                            ) : (
-                                                                <MdOutlineCancel
-                                                                    size={20}
-                                                                    onClick={() => {
-                                                                        setSelectedBooking(booking);
-                                                                        setChangeCancelShow(true);
-                                                                        setCourtData({ slotItem, booking });
-                                                                        setModalCancel(true);
-                                                                    }}
-                                                                    className="text-danger"
-                                                                    style={{ cursor: "pointer" }}
-                                                                />
-                                                            )}
+                                                            )
+                                                        )}
 
-                                                            {/* 👁 Eye Icon */}
-                                                            <span style={{ minWidth: "24px", display: "flex", justifyContent: "center" }}>
-                                                                <FiEye
-                                                                    size={20}
-                                                                    className="text-muted"
-                                                                    onClick={() => {
-                                                                        if (activeTab === "cancelled") {
-                                                                            if (booking?.bookingStatus === "in-progress") {
-                                                                                setModalCancel(true);
-                                                                                setCourtData({ slotItem, booking });
-                                                                            } else if (booking?.bookingStatus === "refunded") {
-                                                                                setAcceptedRejected(true);
-                                                                                setStatusData({ booking, slotItem });
-                                                                            } else {
-                                                                                setAcceptedRejected(true);
-                                                                                setStatusData({ booking, slotItem });
-                                                                            }
-                                                                        } else if (["upcoming", "cancelled"].includes(activeTab)) {
-                                                                            if (
-                                                                                booking?.bookingStatus === "refunded" ||
-                                                                                booking?.bookingStatus === "rejected"
-                                                                            ) {
-                                                                                setAcceptedRejected(true);
-                                                                                setStatusData({ booking, slotItem });
-                                                                            } else if (booking?.customerReview?._id) {
-                                                                                setModalCancel(true);
-                                                                                setCourtData({ slotItem, booking });
-                                                                            } else {
-                                                                                setModalCancel(true);
-                                                                                setCourtData({ slotItem, booking });
-                                                                            }
-                                                                        } else if (activeTab === "completed") {
+                                                        {/* Eye Icon */}
+                                                        <span style={{ minWidth: "24px", display: "flex", justifyContent: "center" }}>
+                                                            <FiEye
+                                                                size={20}
+                                                                className="text-muted"
+                                                                onClick={() => {
+                                                                    if (activeTab === "cancelled") {
+                                                                        if (booking?.bookingStatus === "in-progress") {
+                                                                            setModalCancel(true);
+                                                                            setCourtData({ slotItem, booking });
+                                                                        } else if (booking?.bookingStatus === "refunded") {
+                                                                            setAcceptedRejected(true);
+                                                                            setStatusData({ booking, slotItem });
+                                                                        } else {
+                                                                            setAcceptedRejected(true);
+                                                                            setStatusData({ booking, slotItem });
+                                                                        }
+                                                                    } else if (["upcoming", "cancelled"].includes(activeTab)) {
+                                                                        if (
+                                                                            booking?.bookingStatus === "refunded" ||
+                                                                            booking?.bookingStatus === "rejected"
+                                                                        ) {
+                                                                            setAcceptedRejected(true);
+                                                                            setStatusData({ booking, slotItem });
+                                                                        } else if (booking?.customerReview?._id) {
+                                                                            setModalCancel(true);
+                                                                            setCourtData({ slotItem, booking });
+                                                                        } else {
+                                                                            setModalCancel(true);
+                                                                            setCourtData({ slotItem, booking });
+                                                                        }
+                                                                    } else if (activeTab === "completed") {
+                                                                        setShowRatingModal(true);
+                                                                        setStatusData({ booking, slotItem });
+                                                                    } else if (activeTab === "all") {
+                                                                        if (booking?.customerReview?._id) {
+                                                                            setModalCancel(true);
+                                                                            setCourtData({ slotItem, booking });
+                                                                        } else if (booking?.bookingStatus === "completed") {
                                                                             setShowRatingModal(true);
                                                                             setStatusData({ booking, slotItem });
-                                                                        } else if (activeTab === "all") {
-                                                                            if (booking?.customerReview?._id) {
-                                                                                setModalCancel(true);
-                                                                                setCourtData({ slotItem, booking });
-                                                                            } else if (booking?.bookingStatus === "completed") {
-                                                                                setShowRatingModal(true);
-                                                                                setStatusData({ booking, slotItem });
-                                                                            } else if (
-                                                                                booking?.bookingStatus === "refunded" ||
-                                                                                booking?.bookingStatus === "rejected"
-                                                                            ) {
-                                                                                setAcceptedRejected(true);
-                                                                                setStatusData({ booking, slotItem });
-                                                                            } else if (booking?.bookingStatus === "in-progress") {
-                                                                                setModalCancel(true);
-                                                                                setCourtData({ slotItem, booking });
-                                                                            } else {
-                                                                                setModalCancel(true);
-                                                                                setCourtData({ slotItem, booking });
-                                                                            }
+                                                                        } else if (
+                                                                            booking?.bookingStatus === "refunded" ||
+                                                                            booking?.bookingStatus === "rejected"
+                                                                        ) {
+                                                                            setAcceptedRejected(true);
+                                                                            setStatusData({ booking, slotItem });
+                                                                        } else if (booking?.bookingStatus === "in-progress") {
+                                                                            setModalCancel(true);
+                                                                            setCourtData({ slotItem, booking });
+                                                                        } else {
+                                                                            setModalCancel(true);
+                                                                            setCourtData({ slotItem, booking });
                                                                         }
-                                                                    }}
-                                                                    style={{ cursor: "pointer" }}
-                                                                />
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                                    }
+                                                                }}
+                                                                style={{ cursor: "pointer" }}
+                                                            />
+                                                        </span>
+                                                    </div>
                                                 </td>
 
                                             </tr>
