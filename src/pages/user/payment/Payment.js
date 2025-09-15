@@ -130,7 +130,7 @@ const Payment = ({ className = "" }) => {
 
             const slotArray = localSelectedCourts.flatMap((court) => {
                 return court?.time?.map((timeSlot) => ({
-                    slotId: timeSlot._id, // Use timeSlot._id directly from selectedCourts
+                    slotId: timeSlot._id, 
                     businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
                         time: t?.time,
                         day: t?.day,
@@ -431,17 +431,17 @@ const Payment = ({ className = "" }) => {
                             <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                             </p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                            {/* <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                                 {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                 {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
                                     .filter(Boolean)
                                     .join(', ')}
-                            </p>
+                            </p> */}
                         </div>
 
                         <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use">
-                            Booking Summary
+                            Booking Summary {localTotalSlots && <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {localTotalSlots}</span>}
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
                             {localSelectedCourts?.length > 0 ? (
@@ -451,9 +451,9 @@ const Payment = ({ className = "" }) => {
                                             <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex">
-                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                        {/* <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {court?.day ? dayMap[court.day.toLowerCase()] : ""},
-                                                        </span>
+                                                        </span> */}
                                                         <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
@@ -464,7 +464,7 @@ const Payment = ({ className = "" }) => {
                                                             })()}
                                                         </span>
                                                         <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                            {timeSlot?.time} (60m)
+                                                            {timeSlot?.time}
                                                         </span>
                                                         <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
                                                             {court?.courtName}
@@ -502,7 +502,7 @@ const Payment = ({ className = "" }) => {
                         {localTotalSlots > 0 && (
                             <div className="border-top pt-3 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
                                 <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
-                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {localTotalSlots}</span>
+                               
                                 <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>₹ {localGrandTotal}</span>
                             </div>
                         )}

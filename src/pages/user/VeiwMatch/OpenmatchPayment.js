@@ -13,6 +13,7 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { showError } from "../../../helpers/Toast";
 import NewPlayers from "./NewPlayers";
 import { MdOutlineDeleteOutline } from "react-icons/md";
+import { IoMdTime } from "react-icons/io";
 
 const OpenmatchPayment = (props) => {
     const [modal, setModal] = useState(false);
@@ -34,7 +35,7 @@ const OpenmatchPayment = (props) => {
     const addedPlayers = localStorage.getItem('addedPlayers') ? JSON.parse(localStorage.getItem('addedPlayers')) : {};
     // Provide default values to prevent undefined errors
     const { slotData = {}, finalSkillDetails = [], selectedDate = {}, selectedCourts = [] } = state || {};
-
+    console.log({ finalSkillDetails });
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
     const slot2Player = addedPlayers.slot2 ? addedPlayers.slot2._id : null;
@@ -95,8 +96,11 @@ const OpenmatchPayment = (props) => {
             clubId: savedClubId,
             matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
             skillLevel: finalSkillDetails?.[0] || "Open Match",
-            skillDetails: finalSkillDetails?.slice(1) || [],
-            matchStatus: "open",
+            skillDetails: finalSkillDetails
+                ?.slice(1)
+                ?.map((detail, index) =>
+                    index === 0 && Array.isArray(detail) ? detail.join(", ") : detail
+                ) || [], matchStatus: "open",
             matchTime: selectedCourts.flatMap(court => court.time.map(time => time.time)).join(","),
             teamA: teamA,
             teamB: teamB,
@@ -114,7 +118,7 @@ const OpenmatchPayment = (props) => {
                 const name = userData?.name || User?.name;
                 const phoneNumber = userData?.phoneNumber || User?.phoneNumber;
                 const email = userData?.email || User?.email;
-                if (!phoneNumber ) {
+                if (!phoneNumber) {
                     showError('User information missing!');
                     setIsLoading(false);
                     return;
@@ -308,8 +312,8 @@ const OpenmatchPayment = (props) => {
                     </div>
 
                     {/* Game Info Row */}
-                    <div className="rounded-4 border px-3 py-2 mb-3" style={{ backgroundColor: "#CBD6FF1A" }}>
-                        <div className="d-flex justify-content-between align-items-start py-3">
+                    <div className="rounded-4 border px-3 py-2 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <div className="d-flex justify-content-between align-items-start py-2">
                             <div className="d-flex align-items-center gap-2">
                                 <img src={padal} alt="padel" width={24} />
                                 <span className="ms-2" style={{ fontSize: "18px", fontWeight: "600" }}>
@@ -321,15 +325,15 @@ const OpenmatchPayment = (props) => {
                             </small>
                         </div>
                         <div className="row text-center border-top">
-                            <div className="col py-3">
+                            <div className="col py-2">
                                 <p className="mb-1 text-muted small">Gender</p>
                                 <p className="mb-0 fw-semibold">Mixed</p>
                             </div>
-                            <div className="col border-start border-end py-3">
+                            <div className="col border-start border-end py-2">
                                 <p className="mb-1 text-muted small">Level</p>
                                 <p className="mb-0 fw-semibold">{finalSkillDetails?.[0] || "Open Match"}</p>
                             </div>
-                            <div className="col py-3">
+                            <div className="col py-2">
                                 <p className="mb-1 text-muted small">Price</p>
                                 <p className="mb-0 fw-semibold">₹ {totalAmount.toFixed(0)}</p>
                             </div>
@@ -337,16 +341,16 @@ const OpenmatchPayment = (props) => {
                     </div>
 
                     {/* Court Number */}
-                    <div className="d-flex justify-content-between rounded-3 p-3 mb-3 border" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    <div className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <p className="text-muted mb-1" style={{ fontSize: "15px", fontWeight: "500" }}>
                             Open Match
                         </p>
                     </div>
 
                     {/* Players Section */}
-                    <div className="p-3 rounded-3 mb-3 " style={{ backgroundColor: "#CBD6FF1A", border: error && Object.values(addedPlayers).filter(player => player !== undefined).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff" }}>
+                    <div className="p-3 rounded-3 mb-2 " style={{ backgroundColor: "#CBD6FF1A", border: error && Object.values(addedPlayers).filter(player => player !== undefined).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff" }}>
                         <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: "600" }}>
-                            Players <span className="text-danger" style={{fontSize:"15px",fontFamily:"Poppins",fontWeight:"500"}}>{error && Object.values(addedPlayers).filter(player => player !== undefined).length < 1 ? "Add at least 2 players to proceed.":""}</span>
+                            Players <span className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "500" }}>{error && Object.values(addedPlayers).filter(player => player !== undefined).length < 1 ? "Add at least 2 players to proceed." : ""}</span>
                         </h6>
                         <div className="row mx-auto">
                             {/* Team A */}
@@ -354,7 +358,7 @@ const OpenmatchPayment = (props) => {
                                 {(() => {
                                     const leftComponents = [];
                                     if (User) {
-                                        const player = User  ;
+                                        const player = User;
                                         leftComponents.push(
                                             <div key="left-match-0" className="d-flex flex-column justify-content-center align-items-center mx-auto mb-3">
                                                 <div
@@ -381,7 +385,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "User"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">A|B</span>
+                                                <span className="badge bg-success-subtle text-success">{finalSkillDetails?.slice(-1)}</span>
                                             </div>
                                         );
                                     } else {
@@ -585,7 +589,7 @@ const OpenmatchPayment = (props) => {
                             </div>
                         </div>
 
-                        <div className="d-flex justify-content-between mt-3">
+                        <div className="d-flex justify-content-between mt-2">
                             <p className="mb-1" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "blue" }}>
                                 Team A
                             </p>
@@ -600,9 +604,10 @@ const OpenmatchPayment = (props) => {
                         <div className="d-lg-flex gap-3 align-items-start text-center text-lg-start">
                             <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
+                                <h3 style={{ fontSize: "18px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</h3>
                                 <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
-                                    {clubData?.clubName}
-                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
+
+                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ' ' : ''}
                                     {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
                                         .filter(Boolean)
                                         .join(', ')}
@@ -654,7 +659,7 @@ const OpenmatchPayment = (props) => {
                 <div className="col-5 pe-0">
                     <div className="rounded-4 pt-4 px-5" style={{ backgroundColor: "#F5F5F566", border: error && !selectedPayment ? "1px solid red" : "" }}>
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
-                            Payment Method <span className="text-danger" style={{fontSize:"15px",fontFamily:"Poppins",fontWeight:"500"}}>{error && !selectedPayment ? "Add at least 2 players to proceed.":""}</span>
+                            Payment Method <span className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "500" }}>{error && !selectedPayment ? "Add at least 2 players to proceed." : ""}</span>
                         </h6>
                         <div className="d-flex flex-column gap-3">
                             {[
@@ -708,13 +713,13 @@ const OpenmatchPayment = (props) => {
                             <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                             </p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                            {/* <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                                 {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                 {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
                                     .filter(Boolean)
                                     .join(', ')}
-                            </p>
+                            </p> */}
                         </div>
 
                         <h6 className="border-top p-2 mb-3 ps-0 custom-heading-use">
@@ -738,14 +743,14 @@ const OpenmatchPayment = (props) => {
                                                         }}
                                                     >
                                                         <div className="d-flex ">
-                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                            {/* <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                                 {dayShortMap[court.day] || court.day},
-                                                            </span>
-                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                            </span> */}
+                                                            <span className="" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                                 {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)}
                                                             </span>
                                                             <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                                {slotTime.time} (60m)
+                                                                {slotTime.time}
                                                             </span>
                                                             <span className="ps-1" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
                                                                 {court.courtName}
@@ -776,16 +781,32 @@ const OpenmatchPayment = (props) => {
                                 </div>
                             )}
                         </div>
-                        <div className="border-top pt-2 mb-3 mt-2 d-flex justify-content-between align-items-center fw-bold">
+                        <div className="border-top pt-2 mb-0  mt-2 d-flex justify-content-between align-items-center fw-bold">
                             <p style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                                 Total to pay
                             </p>
-                            <p style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
-                                Slots: {selectedCourts.length > 0 ? selectedCourts.reduce((total, court) => total + court.time.length, 0) : 0}
+
+                            <p className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "25px" }}>
+                                ₹ <span style={{ fontSize: "25px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{totalAmount.toFixed(0)}</span>
                             </p>
-                            <p className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "30px" }}>
-                                ₹ <span style={{ fontSize: "30px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{totalAmount.toFixed(0)}</span>
-                            </p>
+                        </div>
+                        <div
+                            className=" d-flex justify-content-between fw-bold"
+                            style={{ overflowX: "hidden" }}
+                        >
+                            <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                                Total Slots
+                            </span>
+
+                            <span
+                                style={{
+                                    fontSize: "16px",
+                                    fontWeight: "600",
+                                    color: "#1A237E",
+                                }}
+                            >
+                                <IoMdTime /> {selectedCourts.length > 0 ? selectedCourts.reduce((total, court) => total + court.time.length, 0) : 0}
+                            </span>
                         </div>
 
                         {/* {errorShow && <Alert variant="danger">{error}</Alert>} */}

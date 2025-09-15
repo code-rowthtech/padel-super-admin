@@ -445,10 +445,10 @@ const Openmatches = () => {
                     </div>
 
                     <div className="row mb-4 mx-auto">
-                        {slotTime?.map((time, idx) => (
-                            <div className="col-4 col-md-2 d-flex justify-content-lg-center align-items-start mb-1" key={idx}>
+                        {slotTime?.map((time, i) => (
+                            <div className="col-auto p-lg-0  me-lg-0" key={i}>
                                 <button
-                                    className="text-nowrap btn rounded-pill slot-time-btn text-center me-1 px-lg-4 ms-1 mb-2"
+                                    className="btn rounded-pill slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
                                     onClick={() => toggleTime(time)}
                                     style={{
                                         backgroundColor: selectedTime === time ? "#374151" : "#FAFBFF",
@@ -483,7 +483,7 @@ const Openmatches = () => {
                                     aria-label="Select skill level"
                                     style={{ minWidth: "150px" }}
                                 >
-                                    <span className="me-3" style={{ fontSize: "10px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                    <span className="me-3" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>
                                         {selectedLevel?.charAt(0)?.toUpperCase() + selectedLevel?.slice(1) || "Choose level"}
                                     </span>
                                     <FaChevronDown style={{ fontSize: "10px" }} />
@@ -493,7 +493,7 @@ const Openmatches = () => {
                                         <li key={level}>
                                             <button
                                                 className="dropdown-item mb-3"
-                                                style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}
+                                                style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins" }}
                                                 onClick={() => handleSelect(level)}
                                             >
                                                 {level.charAt(0).toUpperCase() + level.slice(1)}

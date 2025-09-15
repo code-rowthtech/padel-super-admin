@@ -8,6 +8,7 @@ import { Usersignup } from "../../../../redux/user/auth/authThunk";
 import { resetAuth } from "../../../../redux/user/auth/authSlice";
 import { showError } from "../../../../helpers/Toast";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
+import Select from "react-select";
 
 const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
   const dispatch = useDispatch();
@@ -117,6 +118,55 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
       });
   };
 
+  const lavel = [
+    {
+      code: "A",
+      title: "Top Player",
+    },
+    {
+      code: "B1",
+      title: "Experienced Player",
+    },
+    {
+      code: "B2",
+      title: "Advanced Player",
+    },
+    {
+      code: "C1",
+      title: "Confident Player",
+    },
+    {
+      code: "C2",
+      title: "Intermediate Player",
+    },
+    {
+      code: "D1",
+      title: "Amateur Player",
+    },
+    {
+      code: "D2",
+      title: "Novice Player",
+    },
+    {
+      code: "E",
+      title: "Entry Level",
+    },
+  ]
+
+  const levelOptions = lavel.map((item) => ({
+    value: item.code,
+    label: (
+      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <span style={{ color: "#1d4ed8", fontWeight: "600", fontSize: "15px", fontFamily: "Poppins" }}>
+          {item.code}
+        </span>
+        <span style={{ color: "#374151", fontSize: "13px" }}>
+          {item.title}
+        </span>
+      </div>
+    )
+  }));
+
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static" size="lg">
       <Modal.Header className="border-0 pb-0">
@@ -149,9 +199,8 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
                 style={{ boxShadow: "none" }}
                 disabled={userSignUpLoading}
                 onChange={(e) => setSelectedTeam(e.target.value)}
-                className={`form-control border p-2 ${
-                  errors.team ? "is-invalid" : ""
-                }`}
+                className={`form-control border p-2 ${errors.team ? "is-invalid" : ""
+                  }`}
                 aria-label="Select Team"
               >
                 <option value="">Select Team</option>
@@ -188,9 +237,8 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
                     setFormData((prev) => ({ ...prev, name: formattedValue }));
                   }
                 }}
-                className={`form-control border p-2 ${
-                  errors.name ? "is-invalid" : ""
-                }`}
+                className={`form-control border p-2 ${errors.name ? "is-invalid" : ""
+                  }`}
                 placeholder="Enter your name"
                 pattern="[A-Za-z\s]+"
                 title="Name can only contain letters and single spaces between words"
@@ -215,9 +263,8 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
                     setFormData((prev) => ({ ...prev, email: value }));
                   }
                 }}
-                className={`form-control border p-2 ${
-                  errors.email ? "is-invalid" : ""
-                }`}
+                className={`form-control border p-2 ${errors.email ? "is-invalid" : ""
+                  }`}
                 placeholder="Enter your email"
                 aria-label="Email"
               />
@@ -252,9 +299,8 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
                       setFormData((prev) => ({ ...prev, phoneNumber: value }));
                     }
                   }}
-                  className={`form-control border-0 p-2 ${
-                    errors.phoneNumber ? "is-invalid" : ""
-                  }`}
+                  className={`form-control border-0 p-2 ${errors.phoneNumber ? "is-invalid" : ""
+                    }`}
                   placeholder="Enter phone number"
                   pattern="[6-9][0-9]{9}"
                   title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
@@ -297,27 +343,14 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
             <label className="form-label fw-medium">
               Level <span className="text-danger">*</span>
             </label>
-            <select
-              value={formData.level}
+            <Select
+              options={levelOptions}
+              value={levelOptions.find((opt) => opt.value === formData.level)}
+              onChange={(option) => setFormData((prev) => ({ ...prev, level: option.value }))}
+              className="basic-single"
+              classNamePrefix="select"
               style={{ boxShadow: "none" }}
-              disabled={userSignUpLoading}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, level: e.target.value }))
-              }
-              className={`form-control border p-2 ${
-                errors.level ? "is-invalid" : ""
-              }`}
-              aria-label="Level"
-            >
-              <option value="">Select Level</option>
-              <option value="A">A</option>
-              <option value="B">B</option>
-              <option value="C">C</option>
-              <option value="D">D</option>
-              <option value="A/B">A/B</option>
-              <option value="B/C">B/C</option>
-              <option value="C/D">C/D</option>
-            </select>
+            />
             {errors.level && (
               <div className="invalid-feedback">{errors.level}</div>
             )}

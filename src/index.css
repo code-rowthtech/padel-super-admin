@@ -185,12 +185,12 @@ h1.display-5 {
 }
 
 .slot-time-btn {
-  width: 110px;
+  width: 90px;
   height: 40px;
   border: 1px solid #cbd6ff1a;
   font-size: 14px;
-  font-family: 500px;
-  font-family: "Poppins";
+  font-weight: 500;
+  font-family: "Poppins", sans-serif;
 }
 
 .view-match-btn {
@@ -240,10 +240,10 @@ h1.display-5 {
 
 /* Large screens: 6 slots per row */
 @media (min-width: 769px) {
-  /* .slot-time-btn {
-    width: calc(16.666% - 8px) !important;
-    margin: 4px !important;
-  } */
+.slot-time-btn {
+    width: 90px; /* पहले से सेट चौड़ाई बरकरार */
+    margin: 4px; /* आपके कमेंटेड कोड से लिया गया */
+  }
 }
 
 .calendar-day-btn {

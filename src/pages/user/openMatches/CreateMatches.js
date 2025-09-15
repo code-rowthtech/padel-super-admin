@@ -4,7 +4,7 @@ import DatePicker from "react-datepicker";
 import { FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, NavLink, useNavigate } from "react-router-dom";
-import { getUserSlotBooking } from "../../../redux/user/slot/thunk"; 
+import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatTime } from "../../../helpers/Formatting";
@@ -30,11 +30,11 @@ const CreateMatches = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedBuisness, setSelectedBuisness] = useState([]);
   const [showUnavailable, setShowUnavailable] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState([]);
   const [skillDetails, setSkillDetails] = useState([]);
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
-  const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || []); 
+  const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || []);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
   const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
@@ -153,6 +153,7 @@ const CreateMatches = () => {
             const newCourt = {
               _id: currentCourt._id,
               courtName: currentCourt.courtName,
+              type: currentCourt.type,
               date: selectedDate.fullDate,
               day: selectedDate.day,
               time: [newTimeEntry],
@@ -223,7 +224,12 @@ const CreateMatches = () => {
     },
     {
       question: "How old are you?",
-      options: ["Between 18 and 30 years", "Between 31 and 40 years", "Between 41 and 50 years", "Over 50"],
+      options: [
+        "Between 18 and 30 years",
+        "Between 31 and 40 years",
+        "Between 41 and 50 years",
+        "Over 50",
+      ],
     },
     {
       question: "On the volley?",
@@ -246,13 +252,52 @@ const CreateMatches = () => {
         "I don't know",
       ],
     },
+    {
+      question: "Which Padel Player Are You?",
+      options: [
+        {
+          code: "A",
+          title: "Top Player",
+        },
+        {
+          code: "B1",
+          title: "Experienced Player",
+        },
+        {
+          code: "B2",
+          title: "Advanced Player",
+        },
+        {
+          code: "C1",
+          title: "Confident Player",
+        },
+        {
+          code: "C2",
+          title: "Intermediate Player",
+        },
+        {
+          code: "D1",
+          title: "Amateur Player",
+        },
+        {
+          code: "D2",
+          title: "Novice Player",
+        },
+        {
+          code: "E",
+          title: "Entry Level",
+        },
+      ],
+    }
+
   ];
+
 
   const grandTotal = selectedCourts.reduce(
     (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
     0
-  ); // grandTotal जोड़ा
-  const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0); // totalSlots जोड़ा
+  );
+  const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
   const handleNext = () => {
     if (selectedCourts.length === 0 || selectedCourts.every((court) => court.time.length === 0)) {
@@ -260,7 +305,19 @@ const CreateMatches = () => {
       return;
     }
 
-    if (selectedLevel && currentStep < steps.length - 1) {
+    if (currentStep === 1) {
+      // For "Select the racket sport you have played before?" step
+      if (selectedLevel.length > 0) {
+        setSkillDetails((prev) => {
+          const newDetails = [...prev];
+          newDetails[currentStep] = selectedLevel;
+          return newDetails;
+        });
+        setCurrentStep(currentStep + 1);
+        setSelectedLevel([]);
+        setSlotError("");
+      }
+    } else if (selectedLevel && currentStep < steps.length - 1) {
       setSkillDetails((prev) => {
         const newDetails = [...prev];
         newDetails[currentStep] = selectedLevel;
@@ -276,7 +333,7 @@ const CreateMatches = () => {
       const courtIds = selectedCourts
         .map((court) => court._id)
         .filter((id) => id)
-        .join(","); // courtIds जोड़ा
+        .join(",");
 
       navigate("/match-payment", {
         state: {
@@ -296,7 +353,7 @@ const CreateMatches = () => {
           selectedDate,
           grandTotal,
           totalSlots,
-          finalSkillDetails, 
+          finalSkillDetails,
         },
       });
     }
@@ -305,7 +362,7 @@ const CreateMatches = () => {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      setSelectedLevel(skillDetails[currentStep - 1] || "");
+      setSelectedLevel(skillDetails[currentStep - 1] || (currentStep === 1 ? [] : ""));
       setSlotError("");
     }
   };
@@ -504,11 +561,11 @@ const CreateMatches = () => {
             <hr />
             <div
               className="d-flex flex-column gap-3 overflow-slot mt-md-4"
-              style={{
-                height: "400px",
-                overflowY: slotData?.data?.length > 3 ? "scroll" : "hidden",
-                overflowX: "hidden",
-              }}
+            // style={{
+            //   height: "400px",
+            //   overflowY: slotData?.data?.length > 3 ? "scroll" : "hidden",
+            //   overflowX: "hidden",
+            // }}
             >
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
@@ -518,9 +575,7 @@ const CreateMatches = () => {
                     {slotData?.data?.map((court) => {
                       const filteredSlots = court?.slots?.filter((slot) =>
                         showUnavailable
-                          ? slot.status === "booked" ||
-                          slot.availabilityStatus !== "available" ||
-                          isPastTime(slot.time)
+                          ? true // सभी स्लॉट्स दिखाएं जब showUnavailable ऑन हो
                           : slot.availabilityStatus === "available" &&
                           slot.status !== "booked" &&
                           !isPastTime(slot.time)
@@ -558,9 +613,9 @@ const CreateMatches = () => {
                                   isPastTime(slot.time);
 
                                 return (
-                                  <div className="col-md-2 col-3  p-lg-0 me-2 me-lg-0" key={i}>
+                                  <div className="col-auto p-lg-0  me-lg-0" key={i}>
                                     <button
-                                      className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-3"
+                                      className="btn rounded-pill slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
                                       onClick={() => toggleTime(slot, court._id)}
                                       disabled={isDisabled}
                                       style={{
@@ -622,9 +677,7 @@ const CreateMatches = () => {
                       (court) =>
                         !court?.slots?.some((slot) =>
                           showUnavailable
-                            ? slot.status === "booked" ||
-                            slot.availabilityStatus !== "available" ||
-                            isPastTime(slot.time)
+                            ? true // सभी स्लॉट्स चेक करें
                             : slot.availabilityStatus === "available" &&
                             slot.status !== "booked" &&
                             !isPastTime(slot.time)
@@ -683,40 +736,138 @@ const CreateMatches = () => {
 
                 {/* Options */}
                 <Form style={{ height: "350px", overflowY: "auto" }}>
-                  {steps[currentStep].options?.map((option, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setSelectedLevel(option)}
-                      className={`d-flex align-items-center mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
-                      style={{
-                        backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
-                        borderColor: selectedLevel === option ? "#4f46e5" : "#e5e7eb",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Form.Check
-                        type="radio"
-                        name={`step-${currentStep}`}
-                        id={`option-${currentStep}-${i}`}
-                        value={option}
-                        checked={selectedLevel === option}
-                        onChange={(e) => setSelectedLevel(e.target.value)}
-                        className="d-flex align-items-center gap-3 custom-radio border-primary"
-                        label={
-                          <span
-                            style={{
-                              fontSize: "14px",
-                              fontWeight: "500",
-                              fontFamily: "Poppins",
-                            }}
-                          >
-                            {option}
-                          </span>
-                        }
-                        style={{ cursor: "pointer" }}
-                      />
-                    </div>
-                  ))}
+                  {currentStep === 1 ? (
+                    // Step 1 → Checkbox format
+                    steps[currentStep].options?.map((option, i) => (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setSelectedLevel((prev) =>
+                            prev.includes(option)
+                              ? prev.filter((item) => item !== option)
+                              : [...prev, option]
+                          );
+                        }}
+                        className={`d-flex align-items-center mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
+                        style={{
+                          backgroundColor: selectedLevel.includes(option) ? "#eef2ff" : "#fff",
+                          borderColor: selectedLevel.includes(option) ? "#4f46e5" : "#e5e7eb",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Form.Check
+                          type="checkbox"
+                          id={`option-${currentStep}-${i}`}
+                          checked={selectedLevel.includes(option)}
+                          onChange={(e) =>
+                            setSelectedLevel((prev) =>
+                              e.target.checked
+                                ? [...prev, option]
+                                : prev.filter((item) => item !== option)
+                            )
+                          }
+                          className="d-flex align-items-center gap-3 custom-checkbox border-primary"
+                          label={
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                fontFamily: "Poppins",
+                              }}
+                            >
+                              {option}
+                            </span>
+                          }
+                          style={{ cursor: "pointer" }}
+                        />
+                      </div>
+                    ))
+                  ) : currentStep === steps.length - 1 ? (
+                    // 🔥 Last Step → Special format with Code + Title + Description
+                    steps[currentStep].options?.map((option, i) => (
+                      <div
+                        key={i}
+                        onClick={() => setSelectedLevel(option.code)}
+                        className={`d-flex align-items-start mb-3 p-3 rounded shadow-sm border transition-all`}
+                        style={{
+                          backgroundColor: selectedLevel === option.code ? "#eef2ff" : "#fff",
+                          borderColor: selectedLevel === option.code ? "#4f46e5" : "#e5e7eb",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Form.Check
+                          type="radio"
+                          name={`step-${currentStep}`}
+                          id={`option-${currentStep}-${i}`}
+                          value={option.code}
+                          checked={selectedLevel === option.code}
+                          onChange={(e) => setSelectedLevel(e.target.value)}
+                          className="d-flex align-items-center gap-3 custom-radio border-primary"
+                          label={
+                            <div className="d-flex align-items-center gap-3">
+                              {/* Left side big Code (A, B1, etc.) */}
+                              <span
+                                style={{
+                                  fontSize: "24px",
+                                  fontWeight: "700",
+                                  color: "#1d4ed8",
+                                  minWidth: "40px",
+                                }}
+                              >
+                                {option.code}
+                              </span>
+
+                              {/* Right side Title + Description in one line */}
+                              <span style={{ fontSize: "13px", fontWeight: "400", color: "#374151" }}>
+                                <strong style={{ fontSize: "14px", fontWeight: "600", marginRight: "5px" }}>
+                                  {option.title}:
+                                </strong>
+                                {option.description}
+                              </span>
+                            </div>
+                          }
+                        />
+
+                      </div>
+                    ))
+                  ) : (
+                    // All other steps → Normal radio format
+                    steps[currentStep].options?.map((option, i) => (
+                      <div
+                        key={i}
+                        onClick={() => setSelectedLevel(option)}
+                        className={`d-flex align-items-center mb-3 px-3 py-2 rounded shadow-sm border transition-all`}
+                        style={{
+                          backgroundColor: selectedLevel === option ? "#eef2ff" : "#fff",
+                          borderColor: selectedLevel === option ? "#4f46e5" : "#e5e7eb",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Form.Check
+                          type="radio"
+                          name={`step-${currentStep}`}
+                          id={`option-${currentStep}-${i}`}
+                          value={option}
+                          checked={selectedLevel === option}
+                          onChange={(e) => setSelectedLevel(e.target.value)}
+                          className="d-flex align-items-center gap-3 custom-radio border-primary"
+                          label={
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                fontFamily: "Poppins",
+                              }}
+                            >
+                              {option}
+                            </span>
+                          }
+                          style={{ cursor: "pointer" }}
+                        />
+                      </div>
+                    ))
+                  )}
+
                   {slotError && (
                     <div
                       className="text-danger text-start w-100 position-absolute"
@@ -731,6 +882,7 @@ const CreateMatches = () => {
                     </div>
                   )}
                 </Form>
+
               </div>
               <div className="d-flex justify-content-end align-items-center p-3">
                 {currentStep > 0 && (
@@ -753,7 +905,7 @@ const CreateMatches = () => {
                     border: "none",
                     color: "#fff",
                   }}
-                  disabled={!selectedLevel}
+                  disabled={!selectedLevel || (currentStep === 1 && selectedLevel.length === 0)}
                   onClick={handleNext}
                 >
                   {userMatches?.matchesLoading ? (

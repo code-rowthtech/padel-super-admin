@@ -60,3 +60,24 @@ export const getRecentBookingsForDashboard = createAsyncThunk(
     }
   }
 );
+
+export const getRevenueForDashboard = createAsyncThunk(
+  "dashboard/getRevenueForDashboard",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(Url.GET_REVENUE_DASHBOARD);
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data?.data;
+      }
+      const errorMessage = message || "error fetching Bookings";
+      showError(errorMessage);
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message;
+      // showError(error);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+

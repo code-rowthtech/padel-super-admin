@@ -146,8 +146,8 @@ const ViewMatch = ({ className = "" }) => {
                     </div>
 
                     {/* Game Info Row */}
-                    <div className="rounded-4 border px-3 py-2 mb-3" style={{ backgroundColor: "#CBD6FF1A" }}>
-                        <div className="d-flex justify-content-between align-items-start py-3">
+                    <div className="rounded-4 border px-3 py-2 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <div className="d-flex justify-content-between align-items-start py-2">
                             <div className="d-flex align-items-center justify-content-between gap-2">
                                 <img src={padal} alt="padel" width={24} />
                                 <span className="ms-2 all-matches" style={{ color: "#374151" }}>
@@ -159,15 +159,15 @@ const ViewMatch = ({ className = "" }) => {
                             </small>
                         </div>
                         <div className="row text-center border-top">
-                            <div className="col py-3">
+                            <div className="col py-2">
                                 <p className="mb-1 text-muted small">Gender</p>
                                 <p className="mb-0 fw-semibold">{matchesData?.data?.gender || "Any"}</p>
                             </div>
-                            <div className="col border-start border-end py-3">
+                            <div className="col border-start border-end py-2">
                                 <p className="mb-1 text-muted small">Level</p>
                                 <p className="mb-0 fw-semibold">{matchesData?.data?.skillLevel || "Intermediate"}</p>
                             </div>
-                            <div className="col py-3">
+                            <div className="col py-2">
                                 <p className="mb-1 text-muted small">Price</p>
                                 <p className="mb-0 fw-semibold">₹ {matchesData?.data?.slot
                                     ?.reduce((total, court) => {
@@ -179,15 +179,15 @@ const ViewMatch = ({ className = "" }) => {
                     </div>
 
                     {/* Court Number */}
-                    <div className="d-flex justify-content-between rounded-3 p-3 mb-3 border" style={{ backgroundColor: "#CBD6FF1A" }}>
-                        <p className="text-muted mb-1" style={{ fontSize: "15px", fontWeight: "500" }}>
+                    <div className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <p className="text-muted mb-0" style={{ fontSize: "15px", fontWeight: "500" }}>
                             {matchesData?.data?.matchStatus || "Open Match"}
                         </p>
                     </div>
 
                     {/* Players Section */}
-                    <div className="p-3 rounded-3 mb-3 border" style={{ backgroundColor: "#CBD6FF1A" }}>
-                        <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
+                    <div className="p-3 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
                             Players
                         </h6>
 
@@ -206,7 +206,7 @@ const ViewMatch = ({ className = "" }) => {
                             </div>
                         )}
 
-                        <div className="d-flex justify-content-between mt-3">
+                        <div className="d-flex justify-content-between mt-2">
                             <p className=" mb-1" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "blue" }}>
                                 Team A
                             </p>
@@ -221,7 +221,7 @@ const ViewMatch = ({ className = "" }) => {
                         <div className="d-md-flex gap-3 align-items-md-start text-center text-md-start">
                             <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
-                                <p className="mb-1" style={{ fontSize: "20px", fontWeight: "500" }}>{clubData?.clubName || "Unknown Club"}</p>
+                                <h3 className="mb-0" style={{ fontSize: "18px", fontWeight: "600",fontFamily:"Poppins" }}>{clubData?.clubName}</h3>
                                 <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
                                     {clubData?.address || "Unknown Address"}
                                 </p>
@@ -320,13 +320,13 @@ const ViewMatch = ({ className = "" }) => {
                                 )}
                             </div>
                             <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
+                            {/* <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                                 {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
                                 {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
                                     .filter(Boolean)
                                     .join(', ')}
-                            </p>
+                            </p> */}
                         </div>
 
                         <h6 className="border-top p-2 mb-1 ps-0 custom-heading-use" >
@@ -345,7 +345,7 @@ const ViewMatch = ({ className = "" }) => {
                                             >
                                                 <div>
                                                     <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
-                                                        {formatted.day}, {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {slotTime.time} (60m)</span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>{court.courtName}
+                                                       {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {slotTime.time} </span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>{court.courtName}
                                                     </span>
                                                 </div>
                                                 <div className="d-flex align-items-center justify-content-center gap-2">

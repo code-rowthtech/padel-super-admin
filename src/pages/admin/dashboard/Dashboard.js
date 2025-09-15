@@ -1,4 +1,3 @@
-// DashboardPage.js
 import { useEffect, useState } from "react";
 import {
   Container,
@@ -9,15 +8,7 @@ import {
   OverlayTrigger,
   Tooltip as BootstrapTooltip,
 } from "react-bootstrap";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, defs } from "recharts";
 import { FaArrowUp, FaArrowDown, FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import {
@@ -33,38 +24,34 @@ import {
   getRecentBookingsForDashboard,
   getBookingDetailsById,
   updateBookingStatus,
+  getRevenueForDashboard,
 } from "../../../redux/thunks";
 import { useSelector, useDispatch } from "react-redux";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import {
-  BookingCancelModal,
   BookingDetailsModal,
+  BookingCancelModal,
 } from "../booking/manual booking/BookingModal";
 import {
   BookingCancellationModal,
   CancelRequestModal,
 } from "../booking/cancellation/ModalCancellation";
 
-const chartData = [
-  { year: "2020", lose: 2000, profit: 4000 },
-  { year: "2021", lose: 2500, profit: 4800 },
-  { year: "2022", lose: 2800, profit: 5000 },
-  { year: "2023", lose: 4000, profit: 6800 },
-  { year: "2024", lose: 3200, profit: 5300 },
-  { year: "2025", lose: 3000, profit: 4900 },
-];
+
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
 
   const {
     dashboardLoading,
+    dashboardRevenueLoading,
+    dashboardRevenue,
     dashboardCounts,
     dashboardRecentBookings,
     dashboardCancelledBookings,
   } = useSelector((state) => state.dashboard);
-
+  console.log(dashboardRevenue, dashboardRevenueLoading, 'dashboardRevenue');
   const formatNumber = (num) => {
     if (!num) return "0";
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -116,6 +103,7 @@ const AdminDashboard = () => {
     dispatch(getCountDataForDashboard());
     dispatch(getCancelledBookingsForDashboard());
     dispatch(getRecentBookingsForDashboard());
+    dispatch(getRevenueForDashboard())
   }, [dispatch]);
 
   const renderSlotTimes = (slotTimes) =>
@@ -128,8 +116,8 @@ const AdminDashboard = () => {
       type === "details"
         ? setShowBookingDetails(true)
         : type === "cancel"
-        ? setShowBookingCancel(true)
-        : setShowCancellation(true);
+          ? setShowBookingCancel(true)
+          : setShowCancellation(true);
     } catch (error) {
       console.error("Failed to fetch booking details:", error);
     } finally {
@@ -146,6 +134,85 @@ const AdminDashboard = () => {
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
 
+  const formatDateMonth = (dateString) => {
+    if (!dateString) return "";
+
+    const date = new Date(dateString);
+
+    const day = date.getDate();
+    const month = date.toLocaleString("en-US", { month: "short" }); // Jan, Feb, Mar...
+
+    // ordinal suffix add karna
+    const getOrdinal = (n) => {
+      if (n > 3 && n < 21) return "th"; // 11th, 12th, 13th
+      switch (n % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    };
+
+    return `${day}${getOrdinal(day)} ${month} `;
+  };
+
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+
+  const monthMap = {
+    January: "Jan",
+    February: "Feb",
+    March: "Mar",
+    April: "Apr",
+    May: "May",
+    June: "Jun",
+    July: "Jul",
+    August: "Aug",
+    September: "Sep",
+    October: "Oct",
+    November: "Nov",
+    December: "Dec",
+  };
+
+  let chartData = months.map((month) => ({
+    month,
+    Booking: 0,
+    Cancelation: 0, // Will be scaled later
+    totalAmount: 0,
+    TotalValue: 0,
+    year: 2025,
+  }));
+
+  // Aggregate booking & amount data
+  dashboardRevenue?.forEach((item) => {
+    const shortMonth = monthMap[item.month];
+    const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
+    if (monthIndex !== -1) {
+      chartData[monthIndex].Booking += item.totalBookings || 0;
+      chartData[monthIndex].totalAmount += item.totalAmount || 0;
+      chartData[monthIndex].TotalValue = chartData[monthIndex].Booking + chartData[monthIndex].totalAmount;
+      chartData[monthIndex].year = item.year || 2025;
+    }
+  });
+
+  // Aggregate cancelations with scaling
+  dashboardCancelledBookings?.forEach((item) => {
+    const date = new Date(item.cancellationDate);
+    if (isNaN(date.getTime())) {
+      console.error("Invalid cancellationDate:", item.cancellationDate);
+      return; // Skip if date is invalid
+    }
+    const shortMonth = months[date.getMonth()];
+    const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
+    if (monthIndex !== -1) {
+      chartData[monthIndex].originalCancelation += 1; // Increment original count
+      chartData[monthIndex].Cancelation += 1; // Only count, no scaling
+    } else {
+      console.warn("Month not found for cancellationDate:", item.cancellationDate);
+    }
+  });
   return (
     <Container
       fluid
@@ -203,9 +270,6 @@ const AdminDashboard = () => {
                       <div className="mb-4 text-end text-dark">
                         {card.bigicon}
                       </div>
-                      {/* <Link to="#" className="dashboard-viewmore">
-                    View More
-                  </Link> */}
                     </div>
                   </Card.Body>
                 </Card>
@@ -215,28 +279,28 @@ const AdminDashboard = () => {
 
           <Row className="mb-4">
             <Col xs={12} lg={7} className="mb-4 mb-lg-0">
-              <Card className="shadow border-0 rounded-0">
+              <Card className="shadow border-0 rounded-3">
                 <Card.Body>
-                  <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center mb-3">
+                  <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center mb-4">
                     <h6
                       className="mb-2 mb-sm-0"
-                      style={{ fontSize: "18px", fontWeight: "600" }}
+                      style={{ fontSize: "18px", fontWeight: "700", color: "#1f2937" }}
                     >
-                      Total Revenue
+                      Revenue Overview
                     </h6>
-                    <div className="d-flex flex-wrap gap-2">
+                    <div className="d-flex flex-wrap gap-3">
                       <div className="d-flex align-items-center">
                         <div
                           style={{
                             width: "12px",
                             height: "12px",
-                            backgroundColor: "#ef4444",
+                            background: "linear-gradient(45deg, #4f46e5, #9333ea)",
                             borderRadius: "50%",
-                            marginRight: "6px",
+                            marginRight: "8px",
                           }}
                         ></div>
-                        <span style={{ fontSize: "0.85rem", color: "#ef4444" }}>
-                          Loss
+                        <span style={{ fontSize: "0.9rem", color: "#4f46e5", fontWeight: "500" }}>
+                          Bookings
                         </span>
                       </div>
                       <div className="d-flex align-items-center">
@@ -244,73 +308,84 @@ const AdminDashboard = () => {
                           style={{
                             width: "12px",
                             height: "12px",
-                            backgroundColor: "#4f46e5",
+                            background: "linear-gradient(45deg, #ef4444, #dc2626)",
                             borderRadius: "50%",
-                            marginRight: "6px",
+                            marginRight: "8px",
                           }}
                         ></div>
-                        <span style={{ fontSize: "0.85rem", color: "#4f46e5" }}>
-                          Profit
+                        <span style={{ fontSize: "0.9rem", color: "#ef4444", fontWeight: "500" }}>
+                          Cancelations
                         </span>
                       </div>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart
-                      data={chartData}
-                      margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="#e5e7eb"
-                      />
+
+                  <ResponsiveContainer width="100%" height={350}>
+                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                      <defs>
+                        <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.6} />
+                          <stop offset="100%" stopColor="#9333ea" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="cancelationGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#ef4444" stopOpacity={0.6} />
+                          <stop offset="100%" stopColor="#dc2626" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+
+                      <CartesianGrid strokeDasharray="5 5" stroke="#e5e7eb" />
                       <XAxis
-                        dataKey="year"
+                        dataKey="month"
                         tickLine={false}
-                        axisLine={{ stroke: "#e5e7eb" }}
-                        tick={{
-                          fill: "#6b7280",
-                          fontSize: 10,
-                        }}
+                        axisLine={{ stroke: "#d1d5db" }}
+                        tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
                       />
                       <YAxis
+                        type="number"
+                        domain={[1000, 20000]} // Fixed range from 1000 to 20000
                         tickLine={false}
-                        axisLine={{ stroke: "#e5e7eb" }}
-                        tick={{
-                          fill: "#6b7280",
-                          fontSize: 10,
-                        }}
-                        tickFormatter={(value) => `$${value.toLocaleString()}`}
+                        axisLine={{ stroke: "#d1d5db" }}
+                        tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
+                        tickFormatter={(value) => `₹${value.toLocaleString()}`}
                       />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "#ffffff",
+                          borderRadius: "10px",
                           border: "1px solid #e5e7eb",
-                          borderRadius: "8px",
-                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                          padding: "10px",
                         }}
                         formatter={(value, name) => [
-                          `$${value.toLocaleString()}`,
-                          name === "profit" ? "Profit" : "Loss",
+                          `₹${value.toLocaleString()}`,
+                          name === "TotalValue" ? "Total Value" : "Cancelation Count",
                         ]}
-                        labelFormatter={(label) => `Year: ${label}`}
+                        labelFormatter={(label, payload) => {
+                          const dataPointTotal = payload && payload.find(p => p.dataKey === "TotalValue");
+                          const totalAmount = dataPointTotal ? dataPointTotal.payload.totalAmount ?? 0 : 0;
+                          const booking = dataPointTotal ? dataPointTotal.payload.Booking ?? 0 : 0;
+                          return `Month: ${label} | Total Amount: ₹${totalAmount.toLocaleString()} | Bookings: ${booking}`;
+                        }}
                       />
+
+                      {/* Lines */}
                       <Line
                         type="monotone"
-                        dataKey="profit"
+                        dataKey="TotalValue"
                         stroke="#4f46e5"
-                        strokeWidth={2}
-                        dot={{ r: 3, fill: "#4f46e5", strokeWidth: 2 }}
-                        activeDot={{ r: 5, fill: "#4f46e5", strokeWidth: 0 }}
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 6 }}
+                        connectNulls={true}
                       />
                       <Line
                         type="monotone"
-                        dataKey="lose"
+                        dataKey="Cancelation"
                         stroke="#ef4444"
-                        strokeWidth={2}
-                        dot={{ r: 3, fill: "#ef4444", strokeWidth: 2 }}
-                        activeDot={{ r: 5, fill: "#ef4444", strokeWidth: 0 }}
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 6 }}
+                        connectNulls={true}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -335,7 +410,7 @@ const AdminDashboard = () => {
                     </Link>
                   </div>
                   <div
-                    className="custom-scroll-container"
+                    className="custom-scroll-container p-0"
                     style={{
                       height: "250px",
                       overflowY: "auto",
@@ -352,6 +427,7 @@ const AdminDashboard = () => {
                         >
                           <thead>
                             <tr className="text-center">
+                              <th>Sr No.</th>
                               <th>User Name</th>
                               <th>Date</th>
                               <th>Court No</th>
@@ -359,13 +435,19 @@ const AdminDashboard = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {dashboardCancelledBookings?.map((item) => (
+                            {dashboardCancelledBookings?.map((item, idx) => (
                               <tr
                                 key={item?._id}
                                 className="table-dat border-bottom"
                               >
                                 <td
-                                  className="text-truncate"
+                                  className="text-truncate py-2"
+                                  style={{ maxWidth: "120px" }}
+                                >
+                                  {idx + 1}
+                                </td>
+                                <td
+                                  className="text-truncate py-2"
                                   style={{ maxWidth: "120px" }}
                                 >
                                   {item?.userId?.name
@@ -374,12 +456,12 @@ const AdminDashboard = () => {
                                     ?.concat(item?.userId?.name?.slice(1)) ||
                                     "N/A"}
                                 </td>
-                                <td>
+                                <td className="text-truncate py-2">
                                   <div className="d-flex justify-content-center">
                                     <span className="fw-medium small">
-                                      {formatDate(item?.bookingDate)}
+                                      {formatDateMonth(item?.bookingDate)}
                                     </span>
-                                    <span className="text-muted small">
+                                    <span className="text-muted ps-1 small">
                                       {formatTime(
                                         renderSlotTimes(
                                           item?.slot?.[0]?.slotTimes
@@ -389,12 +471,12 @@ const AdminDashboard = () => {
                                   </div>
                                 </td>
                                 <td
-                                  className="text-truncate"
+                                  className="text-truncate py-2"
                                   style={{ maxWidth: "80px" }}
                                 >
                                   {item?.slot[0]?.courtName || "-"}
                                 </td>
-                                <td style={{ cursor: "pointer" }}>
+                                <td className='py-2' style={{ cursor: "pointer" }}>
                                   {loadingById === item?._id ? (
                                     <ButtonLoading color="blue" size={7} />
                                   ) : (
@@ -530,6 +612,7 @@ const AdminDashboard = () => {
                         >
                           <thead>
                             <tr className="text-center">
+                              <th>Sr No.</th>
                               <th>User Name</th>
                               <th>Date</th>
                               <th>Court No</th>
@@ -537,11 +620,17 @@ const AdminDashboard = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {dashboardRecentBookings?.map((item) => (
+                            {dashboardRecentBookings?.map((item, idx) => (
                               <tr
                                 key={item._id}
                                 className="table-data border-bottom align-middle text-center"
                               >
+                                <td
+                                  className="text-truncate"
+                                  style={{ maxWidth: "120px" }}
+                                >
+                                  {idx + 1}
+                                </td>
                                 <td
                                   className="text-truncate"
                                   style={{ maxWidth: "120px" }}
@@ -555,7 +644,7 @@ const AdminDashboard = () => {
                                 <td>
                                   <div className="d-flex justify-content-center">
                                     <span className="fw-medium small">
-                                      {formatDate(item?.bookingDate)}
+                                      {formatDateMonth(item?.bookingDate)}
                                     </span>
                                     <span className="text-muted small ms-2">
                                       {formatTime(
@@ -707,7 +796,7 @@ const AdminDashboard = () => {
                       className="d-flex text-danger small justify-content-center align-items-center"
                       style={{ height: "20vh" }}
                     >
-                      No rencent bookings were found
+                      No recent bookings were found
                     </div>
                   )}
                 </Card.Body>

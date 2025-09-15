@@ -89,7 +89,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
               color: "#1F2937",
             }}
           >
-            {tableData?.booking?.bookingStatus ? "Cancellation Request" : ""}
+            {tableData?.booking?.bookingStatus === 'upcoming' ? "Booking Details" : tableData?.booking?.bookingStatus ? "Cancellation Request" : ""}
           </h4>
           <i
             className="bi bi-x fs-2 text-danger fw-bold"
@@ -125,7 +125,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
               <p className="mt-3">
                 {{
                   "in-progress": "Your cancellation request is pending for action.",
-                  "upcoming": "Your booking is starting soon!",
+                  "upcoming": "Your slot has been booked",
                 }[tableData?.booking?.bookingStatus] || ""}
               </p>
             </div>

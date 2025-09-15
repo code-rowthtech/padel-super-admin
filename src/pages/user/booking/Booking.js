@@ -14,6 +14,7 @@ import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { Button } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { IoMdTime } from "react-icons/io";
 
 // Helper function to format time for API (e.g., "4 pm")
 const formatTimeForAPI = (time) => {
@@ -588,11 +589,11 @@ const Booking = ({ className = "" }) => {
                         </div>
                         <hr />
                         <div
-                            className="d-flex flex-column gap-3 overflow-slot mt-md-4"
+                            className="d-flex flex-column gap-3 overflow-slot mt-md-2"
                             style={{
-                                height: "400px",
-                                overflowY: slotData?.data?.length > 3 ? "scroll" : "hidden",
-                                overflowX: "hidden",
+                                // height: "500px",
+                                // overflowY: slotData?.data?.length > 5 ? "scroll" : "hidden",
+                                // overflowX: "hidden",
                             }}
                         >
                             {slotData?.data?.length > 0 ? (
@@ -603,9 +604,7 @@ const Booking = ({ className = "" }) => {
                                         {slotData?.data?.map((court) => {
                                             const filteredSlots = court?.slots?.filter((slot) =>
                                                 showUnavailable
-                                                    ? slot.status === "booked" ||
-                                                    slot.availabilityStatus !== "available" ||
-                                                    isPastTime(slot.time)
+                                                    ? true // सभी स्लॉट्स दिखाएं जब showUnavailable ऑन हो
                                                     : slot.availabilityStatus === "available" &&
                                                     slot.status !== "booked" &&
                                                     !isPastTime(slot.time)
@@ -618,7 +617,7 @@ const Booking = ({ className = "" }) => {
 
                                             return (
                                                 <div
-                                                    className={`mb-md-3 row ps-2 pe-2 ${!court?.slots || !showUnavailable ? 'border-bottom' : ""}`}
+                                                    className={` row ps-2 pe-2 ${!court?.slots || !showUnavailable ? 'border-bottom' : ""}`}
                                                     key={court._id}
                                                 >
                                                     <div className="p-2 rounded">
@@ -658,9 +657,9 @@ const Booking = ({ className = "" }) => {
                                                             isPastTime(slot.time);
 
                                                         return (
-                                                            <div className="col-md-2 col-3 p-lg-0 me-2 me-lg-0" key={i}>
+                                                            <div className="col-auto p-lg-0 me-lg-0" key={i}>
                                                                 <button
-                                                                    className="btn rounded-pill slot-time-btn text-center me-1 ms-1 mb-md-3 mb-lg-3 mb-2"
+                                                                    className="btn rounded-pill slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
                                                                     onClick={() => toggleTime(slot, court._id)}
                                                                     disabled={isDisabled}
                                                                     style={{
@@ -728,10 +727,10 @@ const Booking = ({ className = "" }) => {
                                                         !isPastTime(slot.time)
                                                 )
                                         ) && (
-                                            <div className="d-flex justify-content-center align-items-center h-100 py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                                                {showUnavailable ? "All slots are available" : "No available slots"}
-                                            </div>
-                                        )}
+                                                <div className="d-flex justify-content-center align-items-center h-100 py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                                                    {showUnavailable ? "All slots are available" : "No available slots"}
+                                                </div>
+                                            )}
                                     </>
                                 )
                             ) : (
@@ -783,7 +782,7 @@ const Booking = ({ className = "" }) => {
                                 >
                                     {clubData?.clubName}
                                 </p>
-                                <p
+                                {/* <p
                                     className="mb-0"
                                     style={{
                                         fontSize: "14px",
@@ -804,7 +803,7 @@ const Booking = ({ className = "" }) => {
                                     ]
                                         .filter(Boolean)
                                         .join(", ")}
-                                </p>
+                                </p> */}
                             </div>
                             <div className="d-flex border-top pt-2 justify-content-between align-items-center">
                                 <h6 className="p-2 mb-1 ps-0 custom-heading-use">
@@ -828,7 +827,7 @@ const Booking = ({ className = "" }) => {
                                                 <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                     <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                         <div className="d-flex">
-                                                            <span
+                                                            {/* <span
                                                                 style={{
                                                                     fontWeight: "600",
                                                                     fontFamily: "Poppins",
@@ -837,9 +836,9 @@ const Booking = ({ className = "" }) => {
                                                                 }}
                                                             >
                                                                 {court?.day ? dayShortMap[court?.day] : ""},
-                                                            </span>
+                                                            </span> */}
                                                             <span
-                                                                className="ps-1"
+                                                                className=""
                                                                 style={{
                                                                     fontWeight: "600",
                                                                     fontFamily: "Poppins",
@@ -868,7 +867,7 @@ const Booking = ({ className = "" }) => {
                                                                     color: "#374151",
                                                                 }}
                                                             >
-                                                                {timeSlot?.time} (60m)
+                                                                {timeSlot?.time}
                                                             </span>
                                                             <span
                                                                 className="ps-2"
@@ -924,26 +923,45 @@ const Booking = ({ className = "" }) => {
                                 )}
                             </div>
                             {totalSlots > 0 && (
-                                <div
-                                    className="border-top pt-3 mt-2 d-flex justify-content-between fw-bold"
-                                    style={{ overflowX: "hidden" }}
-                                >
-                                    <span style={{ fontSize: "16px", fontWeight: "600" }}>
-                                        Total to Pay
-                                    </span>
-                                    <span style={{ fontSize: "16px", fontWeight: "600" }}>
-                                        Slots {totalSlots}
-                                    </span>
-                                    <span
-                                        style={{
-                                            fontSize: "22px",
-                                            fontWeight: "600",
-                                            color: "#1A237E",
-                                        }}
+                                <>
+                                    <div
+                                        className="border-top pt-3 mt-2 d-flex justify-content-between fw-bold"
+                                        style={{ overflowX: "hidden" }}
                                     >
-                                        ₹ {grandTotal}
-                                    </span>
-                                </div>
+                                        <span style={{ fontSize: "16px", fontWeight: "600" }}>
+                                            Total to Pay
+                                        </span>
+
+                                        <span
+                                            style={{
+                                                fontSize: "22px",
+                                                fontWeight: "600",
+                                                color: "#1A237E",
+                                            }}
+                                        >
+                                            ₹ {grandTotal}
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        className=" d-flex justify-content-between fw-bold"
+                                        style={{ overflowX: "hidden" }}
+                                    >
+                                        <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                                            Total Slots
+                                        </span>
+
+                                        <span
+                                            style={{
+                                                fontSize: "16px",
+                                                fontWeight: "600",
+                                                color: "#1A237E",
+                                            }}
+                                        >
+                                            <IoMdTime /> {totalSlots}
+                                        </span>
+                                    </div>
+                                </>
                             )}
                             <div className="d-flex justify-content-center mt-3">
                                 <button
