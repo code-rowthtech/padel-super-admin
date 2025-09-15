@@ -116,11 +116,19 @@ const ManualBooking = () => {
     }
 
     const courtId = selectedCourts[0];
-    const courtSlots = selectedSlots[courtId] || [];
+    const dateSlots = selectedSlots[selectedDate] || {};
+    const courtData = dateSlots[courtId] || { slots: [], businessHours: [] };
+    const courtSlots = courtData.slots;
     const exists = courtSlots.some((t) => t._id === slot?._id);
 
+    const totalSlots = Object.values(selectedSlots).reduce(
+      (acc, ds) =>
+        acc +
+        Object.values(ds).reduce((acc2, cd) => acc2 + cd.slots.length, 0),
+      0
+    );
+
     if (!exists) {
-      const totalSlots = Object.values(selectedSlots).flat().length;
       if (totalSlots >= 15) {
         showInfo("Maximum 15 slots can be selected at a time.");
         return;
@@ -134,56 +142,92 @@ const ManualBooking = () => {
       newCourtSlots = [...courtSlots, slot];
     }
 
-    let newSelectedSlots;
+    const court = courts.find((c) => c._id === courtId);
+    const slotData = court?.slot?.[0];
+    const formattedBusinessHours =
+      slotData?.businessHours?.map((bh) => ({
+        time: bh.time,
+        day: bh.day,
+      })) || [];
+
+    const newCourtData = {
+      slots: newCourtSlots,
+      businessHours: formattedBusinessHours,
+    };
+
+    let newDateSlots;
     if (newCourtSlots.length === 0) {
-      const { [courtId]: _, ...rest } = selectedSlots;
+      const { [courtId]: _, ...rest } = dateSlots;
+      newDateSlots = rest;
+    } else {
+      newDateSlots = { ...dateSlots, [courtId]: newCourtData };
+    }
+
+    let newSelectedSlots;
+    if (Object.keys(newDateSlots).length === 0) {
+      const { [selectedDate]: _, ...rest } = selectedSlots;
       newSelectedSlots = rest;
     } else {
-      newSelectedSlots = { ...selectedSlots, [courtId]: newCourtSlots };
+      newSelectedSlots = { ...selectedSlots, [selectedDate]: newDateSlots };
     }
 
     setSelectedSlots(newSelectedSlots);
   };
 
-  const removeSlot = (courtId, slotId) => {
-    const courtSlots = selectedSlots[courtId] || [];
-    const newCourtSlots = courtSlots.filter((t) => t._id !== slotId);
+  const removeSlot = (date, courtId, slotId) => {
+    const dateSlots = selectedSlots[date] || {};
+    const courtData = dateSlots[courtId] || { slots: [] };
+    const newCourtSlots = courtData.slots.filter((t) => t._id !== slotId);
+
+    const newCourtData = { ...courtData, slots: newCourtSlots };
+
+    let newDateSlots;
+    if (newCourtSlots.length === 0) {
+      const { [courtId]: _, ...rest } = dateSlots;
+      newDateSlots = rest;
+    } else {
+      newDateSlots = { ...dateSlots, [courtId]: newCourtData };
+    }
 
     let newSelectedSlots;
-    if (newCourtSlots.length === 0) {
-      const { [courtId]: _, ...rest } = selectedSlots;
+    if (Object.keys(newDateSlots).length === 0) {
+      const { [date]: _, ...rest } = selectedSlots;
       newSelectedSlots = rest;
     } else {
-      newSelectedSlots = { ...selectedSlots, [courtId]: newCourtSlots };
+      newSelectedSlots = { ...selectedSlots, [date]: newDateSlots };
     }
 
     setSelectedSlots(newSelectedSlots);
   };
 
   const clearSessionStorage = () => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    sessionStorage.removeItem(key);
     setSelectedSlots({});
   };
 
-  const cleanOldSessionStorage = () => {
-    const today = new Date().setHours(0, 0, 0, 0);
-    for (let i = sessionStorage.length - 1; i >= 0; i--) {
-      const key = sessionStorage.key(i);
-      if (key && key.startsWith("manual-booking-slots-")) {
-        const dateStr = key.split("manual-booking-slots-")[1];
-        const itemDate = new Date(dateStr).setHours(0, 0, 0, 0);
-        if (itemDate <= today) {
-          sessionStorage.removeItem(key);
-        }
-      }
-    }
-  };
+  const KEY = "manual-booking-slots";
 
   useEffect(() => {
-    cleanOldSessionStorage();
+    const saved = sessionStorage.getItem(KEY);
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      const today = new Date().setHours(0, 0, 0, 0);
+      parsed = Object.fromEntries(
+        Object.entries(parsed).filter(
+          ([date]) => new Date(date).setHours(0, 0, 0, 0) >= today
+        )
+      );
+      setSelectedSlots(parsed);
+    }
     dispatch(getOwnerRegisteredClub({ ownerId: ownerId })).unwrap();
   }, []);
+
+  useEffect(() => {
+    if (Object.keys(selectedSlots).length > 0) {
+      sessionStorage.setItem(KEY, JSON.stringify(selectedSlots));
+    } else {
+      sessionStorage.removeItem(KEY);
+    }
+  }, [selectedSlots]);
 
   useEffect(() => {
     if (ownerClubData?.[0]?._id) {
@@ -203,52 +247,6 @@ const ManualBooking = () => {
       setSelectedCourts([courts[0]._id]);
     }
   }, [courts?.length]);
-
-  useEffect(() => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    const saved = sessionStorage.getItem(key);
-    if (saved) {
-      const parsedSlots = JSON.parse(saved);
-      const totalSlots = Object.values(parsedSlots).flat().length;
-      if (totalSlots <= 15) {
-        setSelectedSlots(parsedSlots);
-      } else {
-        showInfo(
-          "Loaded slots exceed maximum limit of 15. Truncating selection."
-        );
-        const truncatedSlots = {};
-        let count = 0;
-        for (const [courtId, slots] of Object.entries(parsedSlots)) {
-          if (count >= 15) break;
-          const slotsToAdd = slots.slice(0, 15 - count);
-          if (slotsToAdd.length > 0) {
-            truncatedSlots[courtId] = slotsToAdd;
-            count += slotsToAdd.length;
-          }
-        }
-        setSelectedSlots(truncatedSlots);
-        sessionStorage.setItem(key, JSON.stringify(truncatedSlots));
-      }
-    } else {
-      setSelectedSlots({});
-    }
-  }, [selectedDate]);
-
-  useEffect(() => {
-    const key = `manual-booking-slots-${selectedDate}`;
-    sessionStorage.setItem(key, JSON.stringify(selectedSlots));
-  }, [selectedSlots, selectedDate]);
-
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      cleanOldSessionStorage();
-      const key = `manual-booking-slots-${selectedDate}`;
-      sessionStorage.removeItem(key);
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [selectedDate]);
 
   useEffect(() => {
     if (selectedButtonRef.current && scrollRef.current) {
@@ -278,28 +276,27 @@ const ManualBooking = () => {
     }
 
     const slotsPayload = [];
-    Object.entries(selectedSlots).forEach(([courtId, times]) => {
-      const court = courts.find((c) => c._id === courtId);
-      const slotData = court?.slot?.[0];
-      const formattedBusinessHours =
-        slotData?.businessHours?.map((bh) => ({
-          time: bh.time,
-          day: bh.day,
-        })) || [];
+    Object.entries(selectedSlots).forEach(([date, dateSlots]) => {
+      Object.entries(dateSlots).forEach(([courtId, courtData]) => {
+        const { slots, businessHours } = courtData;
+        const court = courts.find((c) => c._id === courtId) || {
+          courtName: "Unknown",
+        };
 
-      times.forEach((timeSlot) => {
-        slotsPayload.push({
-          slotId: timeSlot?._id,
-          businessHours: formattedBusinessHours,
-          slotTimes: [
-            {
-              time: timeSlot?.time,
-              amount: timeSlot?.amount || 0,
-            },
-          ],
-          courtName: court?.courtName,
-          courtId: court?._id,
-          bookingDate: new Date(selectedDate).toISOString(),
+        slots.forEach((timeSlot) => {
+          slotsPayload.push({
+            slotId: timeSlot?._id,
+            businessHours: businessHours,
+            slotTimes: [
+              {
+                time: timeSlot?.time,
+                amount: timeSlot?.amount || 0,
+              },
+            ],
+            courtName: court?.courtName,
+            courtId: court?._id,
+            bookingDate: new Date(date).toISOString(),
+          });
         });
       });
     });
@@ -323,8 +320,7 @@ const ManualBooking = () => {
       setName("");
       setPhone("");
       setSelectedSlots({});
-      setSelectedCourts([]);
-      sessionStorage.removeItem(`manual-booking-slots-${selectedDate}`);
+      sessionStorage.removeItem(KEY);
     } catch (error) {
       console.log("Booking failed:", error);
     }
@@ -614,6 +610,11 @@ const ManualBooking = () => {
                   ) : (
                     <>
                       {(() => {
+                        const dateSlots = selectedSlots[selectedDate] || {};
+                        const courtId = selectedCourts[0];
+                        const courtSlots =
+                          dateSlots[courtId]?.slots || [];
+
                         const filteredSlots = slotTimes
                           ?.map((slot) => {
                             const slotDate = new Date(selectedDate);
@@ -630,9 +631,7 @@ const ManualBooking = () => {
                               slotDate.toDateString() === now.toDateString();
                             const isPast =
                               isSameDay && slotDate.getTime() < now.getTime();
-                            const courtSelectedSlots =
-                              selectedSlots[selectedCourts[0]];
-                            const isSelected = courtSelectedSlots?.some(
+                            const isSelected = courtSlots?.some(
                               (t) => t._id === slot?._id
                             );
                             const isBooked = slot?.status === "booked";
@@ -782,7 +781,7 @@ const ManualBooking = () => {
                     fontSize: "14px",
                   }}
                 >
-                  {Object.entries(selectedSlots)?.length === 0 ? (
+                  {Object.keys(selectedSlots)?.length === 0 ? (
                     <div
                       className="d-flex text-danger justify-content-center align-items-center"
                       style={{ height: "26vh" }}
@@ -791,62 +790,70 @@ const ManualBooking = () => {
                     </div>
                   ) : (
                     <ListGroup variant="flush">
-                      {Object.entries(selectedSlots).map(([courtId, slots]) => {
-                        const court = courts.find((c) => c?._id === courtId);
-                        return (
-                          <React.Fragment key={courtId}>
-                            <ListGroup.Item
-                              variant="secondary"
-                              className="fw-bold fs-6 py-1 bg-light rounded-top"
-                              style={{ fontFamily: "Poppins" }}
-                            >
-                              <div className="d-flex justify-content-between">
-                                <span>{court?.courtName}</span>
-                                <span>
-                                  {format(
-                                    new Date(selectedDate),
-                                    "EEE, dd/MM/yyyy"
-                                  )}
-                                </span>
-                              </div>
-                            </ListGroup.Item>
-                            {slots?.map((slot) => (
-                              <ListGroup.Item
-                                key={slot?._id}
-                                className="d-flex justify-content-between align-items-center py-1 px-2 fs-6"
-                                style={{
-                                  fontFamily: "Poppins",
-                                  transition: "all 0.2s ease",
-                                }}
-                              >
-                                <span style={{ fontSize: "14px" }}>
-                                  {slot?.time}
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                  }}
+                      {Object.entries(selectedSlots)
+                        .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
+                        .map(([date, dateSlots]) =>
+                          Object.entries(dateSlots).map(([courtId, courtData]) => {
+                            const court =
+                              courts.find((c) => c?._id === courtId) || { courtName: "Unknown" };
+                            const slots = courtData?.slots;
+                            return (
+                              <React.Fragment key={`${date}-${courtId}`}>
+                                <ListGroup.Item
+                                  variant="secondary"
+                                  className="fw-bold fs-6 py-1 bg-light rounded-top"
+                                  style={{ fontFamily: "Poppins" }}
                                 >
-                                  ₹{slot?.amount}
-                                </span>
-                                <Button
-                                  variant="outline-danger"
-                                  size="sm"
-                                  className="px-1 py-0 border-0"
-                                  onClick={() => removeSlot(courtId, slot?._id)}
-                                >
-                                  <FaTrash size={12} />
-                                </Button>
-                              </ListGroup.Item>
-                            ))}
-                          </React.Fragment>
-                        );
-                      })}
+                                  <div className="d-flex justify-content-between">
+                                    <span>{court?.courtName}</span>
+                                    <span>
+                                      {format(
+                                        new Date(date),
+                                        "EEE, dd/MM/yyyy"
+                                      )}
+                                    </span>
+                                  </div>
+                                </ListGroup.Item>
+                                {slots?.map((slot) => (
+                                  <ListGroup.Item
+                                    key={slot?._id}
+                                    className="d-flex justify-content-between align-items-center py-1 px-2 fs-6"
+                                    style={{
+                                      fontFamily: "Poppins",
+                                      transition: "all 0.2s ease",
+                                    }}
+                                  >
+                                    <span style={{ fontSize: "14px" }}>
+                                      {slot?.time}
+                                    </span>
+                                    <span
+                                      style={{
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                      }}
+                                    >
+                                      ₹{slot?.amount}
+                                    </span>
+                                    <Button
+                                      variant="outline-danger"
+                                      size="sm"
+                                      className="px-1 py-0 border-0"
+                                      onClick={() => removeSlot(date, courtId, slot?._id)}
+                                    >
+                                      <FaTrash size={12} />
+                                    </Button>
+                                  </ListGroup.Item>
+                                ))}
+                              </React.Fragment>
+                            );
+                          })
+                        )}
                     </ListGroup>
                   )}
                 </div>
-                {Object.values(selectedSlots).flat().length > 0 && (
+                {Object.values(selectedSlots).some(
+                  (ds) => Object.values(ds).some(({ slots }) => slots.length > 0)
+                ) && (
                   <div className="mt-2 p-2 rounded shadow-sm bg-light">
                     <div className="d-flex justify-content-between align-items-center">
                       <span
@@ -866,12 +873,29 @@ const ManualBooking = () => {
                         }}
                       >
                         ₹
-                        {Object.values(selectedSlots)
-                          .flat()
-                          .reduce((acc, s) => acc + (s.amount || 0), 0)}
+                        {Object.values(selectedSlots).reduce(
+                          (acc, dateSlots) =>
+                            acc +
+                            Object.values(dateSlots).reduce(
+                              (acc2, { slots }) =>
+                                acc2 +
+                                slots.reduce((acc3, s) => acc3 + (s.amount || 0), 0),
+                              0
+                            ),
+                          0
+                        )}
                       </span>
                       <span style={{ fontSize: "14px", color: "#374151" }}>
-                        {Object.values(selectedSlots).flat().length} Slots
+                        {Object.values(selectedSlots).reduce(
+                          (acc, dateSlots) =>
+                            acc +
+                            Object.values(dateSlots).reduce(
+                              (acc2, { slots }) => acc2 + slots.length,
+                              0
+                            ),
+                          0
+                        )}{" "}
+                        Slots
                       </span>
                     </div>
                     <div className="mt-2">

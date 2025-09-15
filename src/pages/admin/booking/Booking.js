@@ -174,6 +174,7 @@ const Booking = () => {
                     "& .MuiTab-root": {
                       fontSize: { xs: "13px", sm: "14px", lg: "15px" },
                       minWidth: { xs: "100px", sm: "120px" },
+                      textTransform: "none",
                     },
                   }}
                 >
@@ -206,6 +207,7 @@ const Booking = () => {
                   >
                     <thead>
                       <tr className="text-center">
+                        <th className="d-lg-table-cell">Sr No.</th>
                         <th className="d-none d-lg-table-cell">User Name</th>
                         <th className="d-lg-none">User</th>
                         <th className="d-none d-md-table-cell">Contact</th>
@@ -216,11 +218,17 @@ const Booking = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {bookings?.map((item) => (
+                      {bookings?.map((item, idx) => (
                         <tr
                           key={item?._id}
                           className="table-data border-bottom align-middle text-center"
                         >
+                          <td
+                            className="text-truncate"
+                            style={{ maxWidth: "120px" }}
+                          >
+                            {idx + 1}
+                          </td>
                           <td
                             className="text-truncate"
                             style={{ maxWidth: "120px" }}

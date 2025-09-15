@@ -256,7 +256,7 @@ const MatchDetails = () => {
                     className="border rounded-3 p-3"
                     style={{ backgroundColor: "#F9FBFF" }}
                   >
-                    <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-2 mb-3">
+                    <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-2 mb-2">
                       <div className="d-flex align-items-center gap-3">
                         <img
                           src={padal}
@@ -283,7 +283,7 @@ const MatchDetails = () => {
                       </div>
                     </div>
                     <div className="row text-center border-top p-2">
-                      <div className="col-4 border-end">
+                      <div className="col-4 border-end py-1">
                         <div
                           className="text-muted"
                           style={{ fontSize: "clamp(0.75rem, 3vw, 0.875rem)" }}
@@ -298,7 +298,7 @@ const MatchDetails = () => {
                             getMatchDetails?.gender.slice(1)}
                         </div>
                       </div>
-                      <div className="col-4 border-end">
+                      <div className="col-4 border-end py-1">
                         <div
                           className="text-muted"
                           style={{ fontSize: "clamp(0.75rem, 3vw, 0.875rem)" }}
@@ -315,7 +315,7 @@ const MatchDetails = () => {
                             getMatchDetails?.skillLevel?.slice(1)}
                         </div>
                       </div>
-                      <div className="col-4">
+                      <div className="col-4 py-1">
                         <div
                           className="text-muted"
                           style={{ fontSize: "clamp(0.75rem, 3vw, 0.875rem)" }}

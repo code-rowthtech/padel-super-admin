@@ -3,6 +3,7 @@ import {
   getCountDataForDashboard,
   getCancelledBookingsForDashboard,
   getRecentBookingsForDashboard,
+  getRevenueForDashboard,
 } from "./thunk";
 
 const initialState = {
@@ -11,6 +12,9 @@ const initialState = {
   dashboardRecentBookings: null,
   dashboardLoading: false,
   dashboardError: null,
+  dashboardRevenue: null,
+  dashboardRevenueLoading: false,
+  dashboardRevenueError: null,
 };
 
 const dashboardSlice = createSlice({
@@ -23,6 +27,9 @@ const dashboardSlice = createSlice({
       state.dashboardError = null;
       state.dashboardCancelledBookings = null;
       state.dashboardRecentBookings = null;
+      state.dashboardRevenue = null;
+      state.dashboardRevenueLoading = false;  
+      state.dashboardRevenueError = null;
     },
   },
   extraReducers: (builder) => {
@@ -65,6 +72,20 @@ const dashboardSlice = createSlice({
       .addCase(getRecentBookingsForDashboard.rejected, (state, action) => {
         state.dashboardLoading = false;
         state.dashboardError = action.payload;
+      })
+
+        // -----------------------------------------------------//---- Get revinue dashboard
+      .addCase(getRevenueForDashboard.pending, (state) => {
+        state.dashboardRevenueLoading = true;
+        state.dashboardError = null;
+      })
+      .addCase(getRevenueForDashboard.fulfilled, (state, action) => {
+        state.dashboardRevenueLoading = false;
+        state.dashboardRevenue = action.payload;
+      })
+      .addCase(getRevenueForDashboard.rejected, (state, action) => {
+        state.ddashboardRevenueLoading = false;
+        state.ddashboardRevenueError = action.payload;
       });
   },
 });

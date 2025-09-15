@@ -5,6 +5,7 @@ import { showSuccess } from "../../../helpers/Toast";
 import { Box, Button, Modal } from "@mui/material";
 import { Usersignup } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import Select from "react-select";
 
 const modalStyle = {
     position: 'absolute',
@@ -90,6 +91,55 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         }
     }, [errorShow]);
 
+    const lavel = [
+        {
+            code: "A",
+            title: "Top Player",
+        },
+        {
+            code: "B1",
+            title: "Experienced Player",
+        },
+        {
+            code: "B2",
+            title: "Advanced Player",
+        },
+        {
+            code: "C1",
+            title: "Confident Player",
+        },
+        {
+            code: "C2",
+            title: "Intermediate Player",
+        },
+        {
+            code: "D1",
+            title: "Amateur Player",
+        },
+        {
+            code: "D2",
+            title: "Novice Player",
+        },
+        {
+            code: "E",
+            title: "Entry Level",
+        },
+    ]
+
+    const levelOptions = lavel.map((item) => ({
+        value: item.code,
+        label: (
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <span style={{ color: "#1d4ed8", fontWeight: "600", fontSize: "15px", fontFamily: "Poppins" }}>
+                    {item.code}
+                </span>
+                <span style={{ color: "#374151", fontSize: "13px" }}>
+                    {item.title}
+                </span>
+            </div>
+        )
+    }));
+
     return (
         <>
             <Modal
@@ -105,7 +155,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                     <h6 id="modal-title" className="mb-3 text-center" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                         Player Information
                     </h6>
-                    {errorShow && <Alert variant="danger" className='mb-3' style={{ fontSize:"14px",fontFamily:"Poppins",fontWeight:"500" }}>{error}</Alert>}
+                    {errorShow && <Alert variant="danger" className='mb-3' style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>{error}</Alert>}
                     <form>
                         <div className="mb-3">
                             <label className="form-label">
@@ -195,68 +245,43 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             <label className="form-label">
                                 Gender
                             </label>
-                            <div className="d-flex flex-wrap gap-2 gap-md-3">
-                                <div className="d-flex align-items-center">
-                                    <input
-                                        type="radio"
-                                        id="male"
-                                        name="gender"
-                                        value="Male"
-                                        checked={formData.gender === "Male"}
-                                        onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
-                                        className="form-check-input"
-                                        style={{ boxShadow: "none" }}
-                                    />
-                                    <label htmlFor="male" className="form-check-label ms-2">Male</label>
-                                </div>
-                                <div className="d-flex align-items-center">
-                                    <input
-                                        type="radio"
-                                        id="female"
-                                        name="gender"
-                                        value="Female"
-                                        checked={formData.gender === "Female"}
-                                        onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
-                                        className="form-check-input"
-                                        style={{ boxShadow: "none" }}
-                                    />
-                                    <label htmlFor="female" className="form-check-label ms-2">Female</label>
-                                </div>
-                                <div className="d-flex align-items-center">
-                                    <input
-                                        type="radio"
-                                        id="other"
-                                        name="other"
-                                        value="Other"
-                                        checked={formData.gender === "Other"}
-                                        onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
-                                        className="form-check-input"
-                                        style={{ boxShadow: "none" }}
-                                    />
-                                    <label htmlFor="other" className="form-check-label ms-2">Other</label>
-                                </div>
+                            <div className="d-flex flex-wrap gap-3">
+                                {["Male", "Female", "Other"].map((gender) => (
+                                    <div key={gender} className="form-check">
+                                        <input
+                                            className="form-check-input"
+                                            type="radio"
+                                            name="gender"
+                                            id={gender}
+                                            value={gender}
+                                            checked={formData.gender === gender}
+                                            disabled={userLoading?.userSignUpLoading }
+                                            onChange={(e) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    gender: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                        <label className="form-check-label" htmlFor={gender}>
+                                            {gender}
+                                        </label>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                         <div className="mb-3">
                             <label className="form-label">
                                 Select Level  <span className="text-danger">*</span>
                             </label>
-                            <select
-                                value={formData.level}
+                            <Select
+                                options={levelOptions}
+                                value={levelOptions.find((opt) => opt.value === formData.level)}
+                                onChange={(option) => setFormData((prev) => ({ ...prev, level: option.value }))}
+                                className="basic-single"
+                                classNamePrefix="select"
                                 style={{ boxShadow: "none" }}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, level: e.target.value }))}
-                                className="form-control border p-2"
-                                aria-label="Select Label Name"
-                            >
-                                <option value="">Select Level </option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
-                                <option value="A|B">A|B</option>
-                                <option value="B|C">B|C</option>
-                                <option value="C|D">C|D</option>
-                            </select>
+                            />
                         </div>
                         <div className="d-flex flex-column flex-sm-row justify-content-between gap-2">
                             <Button
