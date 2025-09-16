@@ -15,6 +15,66 @@ import NewPlayers from "./NewPlayers";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IoMdTime } from "react-icons/io";
 
+// Function to convert time string (e.g., "1 pm") to minutes for comparison
+const convertTo24Hour = (timeStr) => {
+    const [time, period] = timeStr.split(" ");
+    let [hours] = time.split(":").map(Number);
+    if (period.toLowerCase() === "pm" && hours !== 12) hours += 12;
+    if (period.toLowerCase() === "am" && hours === 12) hours = 0;
+    return hours * 60; // Convert to minutes for comparison
+};
+
+// Function to format time to "8:00 AM" format
+const formatTime = (timeStr) => {
+    return timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
+};
+
+// Function to get the latest valid time
+const getLatestTime = (courts, currentDate, currentTime) => {
+    const currentDateStr = currentDate.toISOString().split("T")[0]; // e.g., "2025-09-16"
+    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes(); // e.g., 10:10 AM = 610 minutes
+
+    // Collect all times with their court and date
+    let allTimes = [];
+    courts.forEach((court) => {
+        court.time.forEach((timeObj) => {
+            allTimes.push({
+                time: timeObj.time,
+                date: court.date,
+                courtName: court.courtName,
+            });
+        });
+    });
+
+    // Filter times for today that are later than current time
+    let todayTimes = allTimes
+        .filter((t) => t.date === currentDateStr)
+        .filter((t) => convertTo24Hour(t.time) > currentMinutes);
+
+    // If there are valid times today, pick the latest
+    if (todayTimes.length > 0) {
+        const latestToday = todayTimes.reduce((latest, curr) => {
+            return convertTo24Hour(curr.time) > convertTo24Hour(latest.time) ? curr : latest;
+        });
+        return formatTime(latestToday.time);
+    }
+
+    // If no valid times today, find the earliest time from future dates
+    const futureTimes = allTimes.filter((t) => t.date > currentDateStr);
+    if (futureTimes.length > 0) {
+        const earliestFuture = futureTimes.reduce((earliest, curr) => {
+            return curr.date < earliest.date ||
+                (curr.date === earliest.date && convertTo24Hour(curr.time) < convertTo24Hour(earliest.time))
+                ? curr
+                : earliest;
+        });
+        return formatTime(earliestFuture.time);
+    }
+
+    // Fallback if no valid times found
+    return "No available times";
+};
+
 const OpenmatchPayment = (props) => {
     const [modal, setModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState("");
@@ -32,7 +92,9 @@ const OpenmatchPayment = (props) => {
     const navigate = useNavigate();
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || {});
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
-    const addedPlayers = localStorage.getItem('addedPlayers') ? JSON.parse(localStorage.getItem('addedPlayers')) : {};
+    const addedPlayers = localStorage.getItem("addedPlayers")
+        ? JSON.parse(localStorage.getItem("addedPlayers"))
+        : {};
     // Provide default values to prevent undefined errors
     const { slotData = {}, finalSkillDetails = [], selectedDate = {}, selectedCourts = [] } = state || {};
     console.log({ finalSkillDetails });
@@ -41,8 +103,8 @@ const OpenmatchPayment = (props) => {
     const slot2Player = addedPlayers.slot2 ? addedPlayers.slot2._id : null;
     const slot3Player = addedPlayers.slot3 ? addedPlayers.slot3._id : null;
     const slot4Player = addedPlayers.slot4 ? addedPlayers.slot4._id : null;
-    const teamA = [User?._id, slot2Player].filter(id => id !== null);
-    const teamB = [slot3Player, slot4Player].filter(id => id !== null);
+    const teamA = [User?._id, slot2Player].filter((id) => id !== null);
+    const teamB = [slot3Player, slot4Player].filter((id) => id !== null);
 
     const dayShortMap = {
         Monday: "Mon",
@@ -58,12 +120,12 @@ const OpenmatchPayment = (props) => {
         dispatch(getUserClub({ search: "" }));
         // Cleanup function to remove addedPlayers from localStorage when component unmounts
         return () => {
-            localStorage.removeItem('addedPlayers');
+            localStorage.removeItem("addedPlayers");
         };
     }, [dispatch]);
 
     const handleBooking = () => {
-        if (Object.values(addedPlayers).filter(player => player !== undefined).length < 1) {
+        if (Object.values(addedPlayers).filter((player) => player !== undefined).length < 1) {
             setError("Add at least 2 players to proceed.");
             setErrorShow(true);
             return;
@@ -71,23 +133,26 @@ const OpenmatchPayment = (props) => {
             setError("Select a payment method.");
             setErrorShow(true);
             return;
-        } else if (!selectedCourts || selectedCourts.length === 0 || selectedCourts.some(court => court.time?.length === 0)) {
+        } else if (!selectedCourts || selectedCourts.length === 0 || selectedCourts.some((court) => court.time?.length === 0)) {
             setError("Please select a slot");
             setErrorShow(true);
             return;
         }
         const formattedData = {
-            slot: selectedCourts.flatMap(court =>
-                court.time.map(timeSlot => ({
+            slot: selectedCourts.flatMap((court) =>
+                court.time.map((timeSlot) => ({
                     slotId: timeSlot?._id,
-                    businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
-                        time: t?.time,
-                        day: t?.day,
-                    })) || [],
-                    slotTimes: [{
-                        time: timeSlot?.time,
-                        amount: timeSlot?.amount || 1000,
-                    }],
+                    businessHours:
+                        slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
+                            time: t?.time,
+                            day: t?.day,
+                        })) || [],
+                    slotTimes: [
+                        {
+                            time: timeSlot?.time,
+                            amount: timeSlot?.amount || 1000,
+                        },
+                    ],
                     courtName: court?.courtName,
                     courtId: court?._id,
                     bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
@@ -96,82 +161,91 @@ const OpenmatchPayment = (props) => {
             clubId: savedClubId,
             matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
             skillLevel: finalSkillDetails?.[0] || "Open Match",
-            skillDetails: finalSkillDetails
-                ?.slice(1)
-                ?.map((detail, index) =>
-                    index === 0 && Array.isArray(detail) ? detail.join(", ") : detail
-                ) || [], matchStatus: "open",
-            matchTime: selectedCourts.flatMap(court => court.time.map(time => time.time)).join(","),
+            skillDetails:
+                finalSkillDetails
+                    ?.slice(1)
+                    ?.map((detail, index) => (index === 0 && Array.isArray(detail) ? detail.join(", ") : detail)) || [],
+            matchStatus: "open",
+            matchTime: selectedCourts.flatMap((court) => court.time.map((time) => time.time)).join(","),
             teamA: teamA,
             teamB: teamB,
         };
 
         setIsLoading(true);
-        dispatch(createMatches(formattedData)).unwrap().then((res) => {
-            if (!res?.match?.clubId) {
-                setError("Failed to create match: Invalid club ID.");
-                setErrorShow(true);
-                setIsLoading(false);
-                return;
-            }
-            try {
-                const name = userData?.name || User?.name;
-                const phoneNumber = userData?.phoneNumber || User?.phoneNumber;
-                const email = userData?.email || User?.email;
-                if (!phoneNumber) {
-                    showError('User information missing!');
+        dispatch(createMatches(formattedData))
+            .unwrap()
+            .then((res) => {
+                if (!res?.match?.clubId) {
+                    setError("Failed to create match: Invalid club ID.");
+                    setErrorShow(true);
                     setIsLoading(false);
                     return;
                 }
-                const payload = {
-                    name,
-                    phoneNumber,
-                    email,
-                    register_club_id: savedClubId,
-                    ownerId: owner_id,
-                    paymentMethod: selectedPayment || "Gpay",
-                    bookingType: "openMatch",
-                    bookingStatus: "upcoming",
-                    slot: selectedCourts.flatMap(court =>
-                        court.time.map(timeSlot => ({
-                            slotId: timeSlot?._id,
-                            businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
-                                time: t?.time,
-                                day: t?.day,
-                            })) || [],
-                            slotTimes: [{
-                                time: timeSlot?.time,
-                                amount: timeSlot?.amount || 1000,
-                            }],
-                            courtName: court?.courtName || "Court",
-                            courtId: court?._id,
-                            bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
-                        }))
-                    ) || [],
-                };
+                try {
+                    const name = userData?.name || User?.name;
+                    const phoneNumber = userData?.phoneNumber || User?.phoneNumber;
+                    const email = userData?.email || User?.email;
+                    if (!phoneNumber) {
+                        showError("User information missing!");
+                        setIsLoading(false);
+                        return;
+                    }
+                    const payload = {
+                        name,
+                        phoneNumber,
+                        email,
+                        register_club_id: savedClubId,
+                        ownerId: owner_id,
+                        paymentMethod: selectedPayment || "Gpay",
+                        bookingType: "openMatch",
+                        bookingStatus: "upcoming",
+                        slot: selectedCourts.flatMap((court) =>
+                            court.time.map((timeSlot) => ({
+                                slotId: timeSlot?._id,
+                                businessHours:
+                                    slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
+                                        time: t?.time,
+                                        day: t?.day,
+                                    })) || [],
+                                slotTimes: [
+                                    {
+                                        time: timeSlot?.time,
+                                        amount: timeSlot?.amount || 1000,
+                                    },
+                                ],
+                                courtName: court?.courtName || "Court",
+                                courtId: court?._id,
+                                bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
+                            }))
+                        ) || [],
+                    };
 
-                dispatch(createBooking(payload)).unwrap().then((res) => {
-                    localStorage.removeItem('addedPlayers');
-                    navigate('/open-matches');
-                    setErrorShow(false);
-                    setIsLoading(false);
-                }).catch((err) => {
+                    dispatch(createBooking(payload))
+                        .unwrap()
+                        .then((res) => {
+                            localStorage.removeItem("addedPlayers");
+                            navigate("/open-matches");
+                            setErrorShow(false);
+                            setIsLoading(false);
+                        })
+                        .catch((err) => {
+                            setError(err.message || "Booking ke dauraan error aaya.");
+                            setErrorShow(true);
+                            setIsLoading(false);
+                        });
+                    setModal(true);
+                } catch (err) {
                     setError(err.message || "Booking ke dauraan error aaya.");
                     setErrorShow(true);
+                    setModal(false);
                     setIsLoading(false);
-                });
-                setModal(true);
-            } catch (err) {
-                setError(err.message || "Booking ke dauraan error aaya.");
+                }
+            })
+            .catch((err) => {
+                setError(err.message || "Match creation failed.");
                 setErrorShow(true);
-                setModal(false);
                 setIsLoading(false);
-            }
-        }).catch((err) => {
-            setError(err.message || "Match creation failed.");
-            setErrorShow(true);
-            setIsLoading(false);
-        });
+            });
     };
 
     const handleAddMeClick = (slot) => {
@@ -184,8 +258,6 @@ const OpenmatchPayment = (props) => {
         }
     };
 
-
-
     const formatDate = (dateString) => {
         if (!dateString) {
             return { day: "Sun", formattedDate: "27Aug" };
@@ -196,25 +268,27 @@ const OpenmatchPayment = (props) => {
         return { day, formattedDate };
     };
 
-    const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: 'Fri', formattedDate: '29Aug' };
-    const matchTime = selectedCourts.length > 0 ? selectedCourts.flatMap(court => court.time.map(time => time.time)).join(", ") : '5 am,6 am';
+    const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: "Fri", formattedDate: "29Aug" };
+    const matchTime = selectedCourts.length > 0
+        ? selectedCourts.flatMap((court) => court.time.map((time) => time.time)).join(", ")
+        : "5 am,6 am";
 
     const totalAmount = selectedCourts.length > 0
-        ? selectedCourts.reduce((total, court) =>
-            total + court.time.reduce((sum, slot) => sum + Number(slot.amount || 1000), 0),
-            0
-        )
+        ? selectedCourts.reduce((total, court) => total + court.time.reduce((sum, slot) => sum + Number(slot.amount || 1000), 0), 0)
         : 0;
+
     const handleDeleteSlot = (courtId, slotId) => {
-        const updatedCourts = selectedCourts.map(court => {
-            if (court._id === courtId) {
-                return {
-                    ...court,
-                    time: court.time.filter(slot => slot._id !== slotId),
-                };
-            }
-            return court;
-        }).filter(court => court.time.length > 0); // Remove courts with no slots
+        const updatedCourts = selectedCourts
+            .map((court) => {
+                if (court._id === courtId) {
+                    return {
+                        ...court,
+                        time: court.time.filter((slot) => slot._id !== slotId),
+                    };
+                }
+                return court;
+            })
+            .filter((court) => court.time.length > 0); // Remove courts with no slots
 
         // Update state with navigate to preserve the modified selectedCourts
         navigate("/match-payment", {
@@ -244,7 +318,7 @@ const OpenmatchPayment = (props) => {
         background: "transparent",
         cursor: "pointer",
         opacity: isLoading ? 0.7 : 1,
-        pointerEvents: isLoading ? 'none' : 'auto',
+        pointerEvents: isLoading ? "none" : "auto",
     };
 
     const svgStyle = {
@@ -274,7 +348,7 @@ const OpenmatchPayment = (props) => {
         if (errorShow) {
             const timer = setTimeout(() => {
                 setErrorShow(false);
-                setError('');
+                setError("");
             }, 5000);
             return () => clearTimeout(timer);
         }
@@ -282,9 +356,13 @@ const OpenmatchPayment = (props) => {
 
     useEffect(() => {
         if (error) {
-
+            // Handle error if needed
         }
-    }, [error])
+    }, [error]);
+
+    // Get the latest time for display
+    const currentDate = new Date("2025-09-16T10:10:00+05:30"); // Current date and time (16 Sep 2025, 10:10 AM IST)
+    const latestTime = getLatestTime(selectedCourts, currentDate, currentDate);
 
     return (
         <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
@@ -321,7 +399,8 @@ const OpenmatchPayment = (props) => {
                                 </span>
                             </div>
                             <small className="text-muted" style={{ fontWeight: "500" }}>
-                                {matchDate.day}, {matchDate.formattedDate} | {matchTime?.slice(0, 20)}{matchTime.length > 20 ? "..." : ""} (60m)
+                                {matchDate.day}, {matchDate.formattedDate} | {matchTime?.slice(0, 20)}
+                                {matchTime.length > 20 ? "..." : ""} (60m)
                             </small>
                         </div>
                         <div className="row text-center border-top">
@@ -348,9 +427,18 @@ const OpenmatchPayment = (props) => {
                     </div>
 
                     {/* Players Section */}
-                    <div className="p-3 rounded-3 mb-2 " style={{ backgroundColor: "#CBD6FF1A", border: error && Object.values(addedPlayers).filter(player => player !== undefined).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff" }}>
+                    <div
+                        className="p-3 rounded-3 mb-2 "
+                        style={{
+                            backgroundColor: "#CBD6FF1A",
+                            border: error && Object.values(addedPlayers).filter((player) => player !== undefined).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff",
+                        }}
+                    >
                         <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: "600" }}>
-                            Players <span className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "500" }}>{error && Object.values(addedPlayers).filter(player => player !== undefined).length < 1 ? "Add at least 2 players to proceed." : ""}</span>
+                            Players{" "}
+                            <span className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                {error && Object.values(addedPlayers).filter((player) => player !== undefined).length < 1 ? "Add at least 2 players to proceed." : ""}
+                            </span>
                         </h6>
                         <div className="row mx-auto">
                             {/* Team A */}
@@ -390,11 +478,7 @@ const OpenmatchPayment = (props) => {
                                         );
                                     } else {
                                         leftComponents.push(
-                                            <div
-                                                key="left-add-match-0"
-                                                className="text-center mx-auto"
-                                                style={{ cursor: "not-allowed" }}
-                                            >
+                                            <div key="left-add-match-0" className="text-center mx-auto" style={{ cursor: "not-allowed" }}>
                                                 <div
                                                     className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                                     style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
@@ -606,11 +690,8 @@ const OpenmatchPayment = (props) => {
                             <div className="flex-grow-1">
                                 <h3 style={{ fontSize: "18px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</h3>
                                 <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
-
-                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ' ' : ''}
-                                    {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
-                                        .filter(Boolean)
-                                        .join(', ')}
+                                    {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? " " : ""}
+                                    {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode].filter(Boolean).join(", ")}
                                 </p>
                                 <div className="mb-3" style={{ color: "#3DBE64", fontSize: "12px" }}>
                                     Opened
@@ -649,7 +730,7 @@ const OpenmatchPayment = (props) => {
                                 End registration
                             </p>
                             <p className="mb-0" style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}>
-                                Today at 10:00 PM
+                                Today at {latestTime}
                             </p>
                         </div>
                     </div>
@@ -657,9 +738,15 @@ const OpenmatchPayment = (props) => {
 
                 {/* Right Section */}
                 <div className="col-5 pe-0">
-                    <div className="rounded-4 pt-4 px-5" style={{ backgroundColor: "#F5F5F566", border: error && !selectedPayment ? "1px solid red" : "" }}>
+                    <div
+                        className="rounded-4 pt-4 px-5"
+                        style={{ backgroundColor: "#F5F5F566", border: error && !selectedPayment ? "1px solid red" : "" }}
+                    >
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
-                            Payment Method <span className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "500" }}>{error && !selectedPayment ? "Add at least 2 players to proceed." : ""}</span>
+                            Payment Method{" "}
+                            <span className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                {error && !selectedPayment ? "Add at least 2 players to proceed." : ""}
+                            </span>
                         </h6>
                         <div className="d-flex flex-column gap-3">
                             {[
@@ -667,10 +754,7 @@ const OpenmatchPayment = (props) => {
                                 { id: "apple", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
                                 { id: "paypal", name: "Paypal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
                             ].map((method) => (
-                                <label
-                                    key={method.id}
-                                    className="d-flex justify-content-between align-items-center p-3 bg-white rounded-4 p-4"
-                                >
+                                <label key={method.id} className="d-flex justify-content-between align-items-center p-3 bg-white rounded-4 p-4">
                                     <div className="d-flex align-items-center gap-3">
                                         <img src={method.icon} alt={method.name} width={28} />
                                         <span className="fw-medium">{method.name}</span>
@@ -692,18 +776,14 @@ const OpenmatchPayment = (props) => {
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
                                 {logo ? (
-                                    <Avatar
-                                        src={logo}
-                                        alt="User Profile"
-                                        style={{ height: "112px", width: "112px", boxShadow: '0px 4px 11.4px 0px #0000002E' }}
-                                    />
+                                    <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} />
                                 ) : (
                                     <Avatar
                                         style={{
                                             height: "112px",
                                             width: "112px",
                                             fontSize: "30px",
-                                            boxShadow: '0px 4px 11.4px 0px #0000002E'
+                                            boxShadow: "0px 4px 11.4px 0px #0000002E",
                                         }}
                                     >
                                         {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
@@ -713,24 +793,16 @@ const OpenmatchPayment = (props) => {
                             <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                             </p>
-                            {/* <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
-                                {clubData?.clubName}
-                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
-                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
-                                    .filter(Boolean)
-                                    .join(', ')}
-                            </p> */}
                         </div>
 
-                        <h6 className="border-top p-2 mb-3 ps-0 custom-heading-use">
-                            Booking Summary
-                        </h6>
+                        <h6 className="border-top p-2 mb-3 ps-0 custom-heading-use">Booking Summary</h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto" }}>
                             {selectedCourts.length > 0 ? (
                                 selectedCourts.map((court, courtIndex) => (
                                     <div key={court._id} className="court-section mb-3">
                                         {court.time && court.time.length > 0 ? (
                                             court.time.map((slotTime, slotIndex) => {
+                                                console.log(selectedCourts, "rahul");
                                                 const formatted = formatDate(court.date);
                                                 return (
                                                     <div
@@ -742,24 +814,19 @@ const OpenmatchPayment = (props) => {
                                                             transition: "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
                                                         }}
                                                     >
-                                                        <div className="d-flex ">
-                                                            {/* <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                                {dayShortMap[court.day] || court.day},
-                                                            </span> */}
+                                                        <div className="d-flex">
                                                             <span className="" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                                 {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)}
                                                             </span>
                                                             <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                                {slotTime.time}
+                                                                {formatTime(slotTime.time)}
                                                             </span>
                                                             <span className="ps-1" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
                                                                 {court.courtName}
                                                             </span>
                                                         </div>
                                                         <div className="d-flex align-items-center gap-2" style={{ color: "#1A237E" }}>
-                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins" }}>
-                                                                ₹ {slotTime.amount || 1000}
-                                                            </span>
+                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins" }}>₹ {slotTime.amount || 1000}</span>
                                                             <MdOutlineDeleteOutline
                                                                 style={{ cursor: "pointer", color: "red" }}
                                                                 onClick={() => handleDeleteSlot(court._id, slotTime._id)}
@@ -781,52 +848,24 @@ const OpenmatchPayment = (props) => {
                                 </div>
                             )}
                         </div>
-                        <div className="border-top pt-2 mb-0  mt-2 d-flex justify-content-between align-items-center fw-bold">
-                            <p style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
-                                Total to pay
+                        <div className="border-top pt-2 mb-0 mt-2 d-flex justify-content-between align-items-center fw-bold">
+                            <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
+                                Total to pay{" "}
+                                <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                                    Total Slots {selectedCourts.length > 0 ? selectedCourts.reduce((total, court) => total + court.time.length, 0) : 0}
+                                </span>
                             </p>
-
                             <p className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "25px" }}>
                                 ₹ <span style={{ fontSize: "25px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{totalAmount.toFixed(0)}</span>
                             </p>
                         </div>
-                        <div
-                            className=" d-flex justify-content-between fw-bold"
-                            style={{ overflowX: "hidden" }}
-                        >
-                            <span style={{ fontSize: "14px", fontWeight: "600" }}>
-                                Total Slots
-                            </span>
-
-                            <span
-                                style={{
-                                    fontSize: "16px",
-                                    fontWeight: "600",
-                                    color: "#1A237E",
-                                }}
-                            >
-                                <IoMdTime /> {selectedCourts.length > 0 ? selectedCourts.reduce((total, court) => total + court.time.length, 0) : 0}
-                            </span>
-                        </div>
-
-                        {/* {errorShow && <Alert variant="danger">{error}</Alert>} */}
 
                         {/* Book Now Button */}
                         <div className="d-flex justify-content-center mt-3">
                             <button style={buttonStyle} onClick={handleBooking} className={props.className}>
-                                <svg
-                                    style={svgStyle}
-                                    viewBox={`0 0 ${width} ${height}`}
-                                    preserveAspectRatio="none"
-                                >
+                                <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                     <defs>
-                                        <linearGradient
-                                            id={`buttonGradient-${width}-${height}`}
-                                            x1="0%"
-                                            y1="0%"
-                                            x2="100%"
-                                            y2="0%"
-                                        >
+                                        <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
                                             <stop offset="0%" stopColor="#3DBE64" />
                                             <stop offset="50%" stopColor="#3DBE64" />
                                             <stop offset="100%" stopColor="#3DBE64" />

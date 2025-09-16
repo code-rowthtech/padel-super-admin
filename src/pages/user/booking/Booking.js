@@ -925,42 +925,28 @@ const Booking = ({ className = "" }) => {
                             {totalSlots > 0 && (
                                 <>
                                     <div
-                                        className="border-top pt-3 mt-2 d-flex justify-content-between fw-bold"
+                                        className="border-top pt-3 mt-2 d-flex justify-content-between align-items-center fw-bold"
                                         style={{ overflowX: "hidden" }}
                                     >
-                                        <span style={{ fontSize: "16px", fontWeight: "600" }}>
-                                            Total to Pay
-                                        </span>
+                                        <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
+                                            Total to Pay   <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                                                 Slots {totalSlots}
+                                            </span>
+                                        </p>
 
-                                        <span
+
+                                        <p
                                             style={{
-                                                fontSize: "22px",
+                                                fontSize: "25px",
                                                 fontWeight: "600",
                                                 color: "#1A237E",
                                             }}
                                         >
                                             ₹ {grandTotal}
-                                        </span>
+                                        </p>
                                     </div>
 
-                                    <div
-                                        className=" d-flex justify-content-between fw-bold"
-                                        style={{ overflowX: "hidden" }}
-                                    >
-                                        <span style={{ fontSize: "14px", fontWeight: "600" }}>
-                                            Total Slots
-                                        </span>
 
-                                        <span
-                                            style={{
-                                                fontSize: "16px",
-                                                fontWeight: "600",
-                                                color: "#1A237E",
-                                            }}
-                                        >
-                                            <IoMdTime /> {totalSlots}
-                                        </span>
-                                    </div>
                                 </>
                             )}
                             <div className="d-flex justify-content-center mt-3">

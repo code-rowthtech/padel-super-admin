@@ -130,7 +130,7 @@ const Payment = ({ className = "" }) => {
 
             const slotArray = localSelectedCourts.flatMap((court) => {
                 return court?.time?.map((timeSlot) => ({
-                    slotId: timeSlot._id, 
+                    slotId: timeSlot._id,
                     businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
                         time: t?.time,
                         day: t?.day,
@@ -154,10 +154,11 @@ const Payment = ({ className = "" }) => {
 
             const payload = {
                 name,
-                phoneNumber:rawPhoneNumber,
+                phoneNumber: rawPhoneNumber,
                 email,
                 register_club_id,
                 bookingStatus: "upcoming",
+                bookingType:'user',
                 ownerId: owner_id,
                 slot: slotArray,
                 paymentMethod: selectedPayment,
@@ -441,7 +442,7 @@ const Payment = ({ className = "" }) => {
                         </div>
 
                         <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use">
-                            Booking Summary {localTotalSlots && <span style={{ fontSize: "16px", fontWeight: "600" }}>Slots {localTotalSlots}</span>}
+                            Booking Summary 
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
                             {localSelectedCourts?.length > 0 ? (
@@ -500,10 +501,13 @@ const Payment = ({ className = "" }) => {
                             </div>
                         )}
                         {localTotalSlots > 0 && (
-                            <div className="border-top pt-3 mt-2 d-flex justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
-                                <span style={{ fontSize: "16px", fontWeight: "600" }}>Total to Pay</span>
-                               
-                                <span style={{ fontSize: "22px", fontWeight: "600", color: "#1A237E" }}>₹ {localGrandTotal}</span>
+                            <div className="border-top pt-3 mt-2 d-flex align-items-center justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
+                                <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
+                                    Total to Pay   <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                                        Slots {localTotalSlots}
+                                    </span>
+                                </p>
+                                <p style={{ fontSize: "25px", fontWeight: "600", color: "#1A237E" }}>₹ {localGrandTotal}</p>
                             </div>
                         )}
                         {errors.general && (

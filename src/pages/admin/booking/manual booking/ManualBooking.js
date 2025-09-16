@@ -311,6 +311,7 @@ const ManualBooking = () => {
         slot: slotsPayload,
         register_club_id: ownerClubData?.[0]?._id,
         bookingStatus: "upcoming",
+        bookingType: "manual",
         phoneNumber: phone,
         name: name,
         ownerId: Owner?._id,
