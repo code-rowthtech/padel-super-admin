@@ -414,7 +414,7 @@ const Booking = ({ className = "" }) => {
                             </div>
                         </div>
                         <div className="d-flex align-items-center gap-2 border-bottom">
-                            <div className="d-flex justify-content-center p-0 mb-4 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
+                            <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
                                 <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
                             </div>
                             <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
@@ -512,11 +512,11 @@ const Booking = ({ className = "" }) => {
                                                                         color: (slot.status === "booked" || isPastTime(slot.time) || isDisabled) ? "#000000" : isSelected ? "white" : "#000000",
                                                                         cursor: isDisabled ? "not-allowed" : "pointer",
                                                                         opacity: isDisabled ? 0.6 : 1,
-                                                                        border: "2px solid #0f0f0f1a",
+                                                                        border: "1px solid #4949491A",
                                                                         transition: "border-color 0.2s ease",
                                                                     }}
                                                                     onMouseEnter={(e) => !isDisabled && !isPastTime(slot.time) && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #3DBE64")}
-                                                                    onMouseLeave={(e) => !isDisabled && !isPastTime(slot.time) && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "2px solid #0f0f0f1a")}
+                                                                    onMouseLeave={(e) => !isDisabled && !isPastTime(slot.time) && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "2px solid #4949491A")}
                                                                 >
                                                                     {formatTimeForDisplay(slot?.time)}
                                                                 </button>
@@ -527,15 +527,16 @@ const Booking = ({ className = "" }) => {
                                             );
                                         })}
 
+                                        {/* Check if no available slots exist */}
                                         {slotData?.data.every((court) =>
                                             !court?.slots?.some((slot) =>
                                                 showUnavailable
-                                                    ? slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time)
+                                                    ? true
                                                     : slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time)
                                             )
                                         ) && (
                                                 <div className="d-flex justify-content-center align-items-center h-100 py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                                                    {showUnavailable ? "All slots are available" : "No available slots"}
+                                                    Koi available slot nahi hai
                                                 </div>
                                             )}
                                     </>

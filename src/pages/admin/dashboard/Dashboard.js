@@ -279,40 +279,11 @@ const AdminDashboard = () => {
                     >
                       Revenue Overview
                     </h6>
-                    <div className="d-flex flex-wrap gap-3">
-                      <div className="d-flex align-items-center">
-                        <div
-                          style={{
-                            width: "12px",
-                            height: "12px",
-                            background: "linear-gradient(45deg, #4f46e5, #9333ea)",
-                            borderRadius: "50%",
-                            marginRight: "8px",
-                          }}
-                        ></div>
-                        <span style={{ fontSize: "0.9rem", color: "#4f46e5", fontWeight: "500" }}>
-                          Bookings
-                        </span>
-                      </div>
-                      <div className="d-flex align-items-center">
-                        <div
-                          style={{
-                            width: "12px",
-                            height: "12px",
-                            background: "linear-gradient(45deg, #ef4444, #dc2626)",
-                            borderRadius: "50%",
-                            marginRight: "8px",
-                          }}
-                        ></div>
-                        <span style={{ fontSize: "0.9rem", color: "#ef4444", fontWeight: "500" }}>
-                          Cancelations
-                        </span>
-                      </div>
-                    </div>
+                   
                   </div>
 
                   <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={chartData} margin={{ top: 20, right: 20, left: 50, bottom: 20 }}>
+                    <BarChart data={chartData} margin={{ top: 20, right: 20, left: 50, bottom: 20, backgroundColor: "#e91414ff" }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                       <XAxis
                         dataKey="month"
@@ -331,14 +302,14 @@ const AdminDashboard = () => {
                         minTickGap={0}
                         tickLine={false}
                         axisLine={{ stroke: "#d1d5db" }}
-                        width={50}  // 👈 extra space for labels
+                        width={50}
                         tick={{ fill: "#374151", fontSize: 14, fontWeight: "500" }}
                       />
-
-                      <Tooltip
+                      <Tooltip contentStyle={{ backgroundColor: "white", border: "none" }}
+                        cursor={{ fill: "transparent" }}
                         content={({ label, payload }) => {
                           if (payload && payload.length > 0) {
-                            const dataPoint = payload[0].payload; 
+                            const dataPoint = payload[0].payload;
                             return (
                               <div
                                 style={{
@@ -362,25 +333,15 @@ const AdminDashboard = () => {
                           return null;
                         }}
                       />
-
-                      <Legend
-                        verticalAlign="top"
-                        height={40}
-                        wrapperStyle={{ paddingBottom: "10px", color: "#374151", fontSize: 14, fontWeight: "500" }}
-                        onClick={(e) => {
-                          if (e.dataKey === "Booking") setViewMode("Bookings");
-                          else if (e.dataKey === "Cancelation") setViewMode("Cancellations");
-                          else setViewMode("both");
-                        }}
-                      />
                       <Bar
                         dataKey="Booking"
                         name="Bookings"
                         fill="#3b82f6"
                         barSize={25}
                         radius={[4, 4, 0, 0]}
+                        isAnimationActive={false} // Hover pe background change disable
                       />
-                     
+
                     </BarChart>
                   </ResponsiveContainer>
 
