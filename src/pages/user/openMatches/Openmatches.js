@@ -17,6 +17,8 @@ import UpdatePlayers from "../VeiwMatch/UpdatePlayers";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { MdOutlineDateRange } from "react-icons/md";
 import debounce from "lodash/debounce";
+import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 const slotTime = [
     '4:00 AM', '5:00 AM', '6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -358,25 +360,29 @@ const Openmatches = () => {
                                 </span>
                                 {isOpen && (
                                     <div
-                                        className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
+                                        className="position-absolute mt-2 z-3 bg-white border rounded shadow"
                                         style={{ top: "100%", left: "0", minWidth: "100%" }}
                                     >
-                                        <DatePicker
-                                            selected={startDate}
-                                            onChange={(date) => {
-                                                setStartDate(date);
-                                                setIsOpen(false);
-                                                const formattedDate = date.toISOString().split("T")[0];
-                                                const day = date.toLocaleDateString("en-US", { weekday: "long" });
-                                                setSelectedDate({ fullDate: formattedDate, day });
-                                                setSelectedTime(null);
-                                            }}
-                                            inline
-                                            maxDate={maxSelectableDate}
-                                            minDate={new Date()}
-                                            dropdownMode="select"
-                                            calendarClassName="custom-calendar w-100 shadow-sm"
-                                        />
+                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                            <StaticDatePicker
+                                                displayStaticWrapperAs="desktop"
+                                                value={startDate}
+                                                onChange={(date) => {
+                                                    setStartDate(date);
+                                                    setIsOpen(false);
+                                                    const formattedDate = date.toISOString().split("T")[0];
+                                                    const day = date.toLocaleDateString("en-US", { weekday: "long" });
+                                                    setSelectedDate({ fullDate: formattedDate, day });
+                                                    setSelectedTime(null);
+                                                }}
+                                                minDate={new Date()}
+                                                maxDate={maxSelectableDate}
+                                                slotProps={{
+                                                    actionBar: { actions: [] },
+                                                }}
+                                            />
+                                        </LocalizationProvider>
+
                                     </div>
                                 )}
                             </div>

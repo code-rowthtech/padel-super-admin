@@ -10,6 +10,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { formatTime } from "../../../helpers/Formatting";
 import Avatar from "@mui/material/Avatar";
 import { MdOutlineDateRange } from "react-icons/md";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -466,6 +468,45 @@ const CreateMatches = () => {
                         dropdownMode="select"
                         calendarClassName="custom-calendar w-100 shadow-sm"
                       />
+                    </div>
+                  )}
+
+                  {isOpen && (
+                    <div
+                      className="position-absolute mt-2 z-3 bg-white border rounded shadow"
+                      style={{ top: "100%", left: "0", minWidth: "100%" }}
+                    >
+                      <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <StaticDatePicker
+                          displayStaticWrapperAs="desktop"
+                          value={startDate}
+                          onChange={(date) => {
+                            setStartDate(date);
+                            setIsOpen(false);
+                            const formattedDate = date.toISOString().split("T")[0];
+                            const day = date.toLocaleDateString("en-US", {
+                              weekday: "long",
+                            });
+                            setSelectedDate({ fullDate: formattedDate, day: day });
+                            setSelectedTimes({});
+                            dispatch(
+                              getUserSlotBooking({
+                                day: day,
+                                date: formattedDate,
+                                register_club_id:
+                                  localStorage.getItem("register_club_id") || "",
+                              })
+                            );
+                          }}
+                          inline
+                          maxDate={maxSelectableDate}
+                          minDate={new Date()}
+                          slotProps={{
+                            actionBar: { actions: [] },
+                          }}
+                        />
+                      </LocalizationProvider>
+
                     </div>
                   )}
                 </div>

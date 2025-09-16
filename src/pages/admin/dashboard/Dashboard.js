@@ -379,16 +379,8 @@ const AdminDashboard = () => {
                         fill="#3b82f6"
                         barSize={25}
                         radius={[4, 4, 0, 0]}
-                        hide={viewMode === "Cancellations"}
                       />
-                      <Bar
-                        dataKey="Cancelation"
-                        name="Cancellations"
-                        fill="#ef4444"
-                        barSize={25}
-                        radius={[4, 4, 0, 0]}
-                        hide={viewMode === "Bookings"}
-                      />
+                     
                     </BarChart>
                   </ResponsiveContainer>
 
