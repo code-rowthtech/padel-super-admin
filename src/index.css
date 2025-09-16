@@ -1169,3 +1169,24 @@ h1.display-5 {
   /* Firefox */
 }
 
+.custom-tabs .nav-link {
+  background-color: transparent;
+  border: none !important;
+  transition: background-color 0.3s ease;
+  color: #000000;
+  border-radius: 30px !important;
+}
+
+.custom-tabs .nav-link:hover {
+  background-color: #c0b9b9;
+}
+
+.custom-tabs .nav-link.active {
+  background-color: #FFF2EC !important;
+  color: #fff;
+}
+
+.tab-title {
+  display: flex;
+  align-items: center;
+}
