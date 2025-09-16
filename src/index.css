@@ -240,9 +240,11 @@ h1.display-5 {
 
 /* Large screens: 6 slots per row */
 @media (min-width: 769px) {
-.slot-time-btn {
-    width: 90px; /* पहले से सेट चौड़ाई बरकरार */
-    margin: 4px; /* आपके कमेंटेड कोड से लिया गया */
+  .slot-time-btn {
+    width: 90px;
+    /* पहले से सेट चौड़ाई बरकरार */
+    margin: 4px;
+    /* आपके कमेंटेड कोड से लिया गया */
   }
 }
 
@@ -870,6 +872,7 @@ h1.display-5 {
   .all-match-time {
     font-size: 12px;
   }
+
   .booking-table td {
     font-size: 14px !important;
   }
@@ -951,12 +954,12 @@ h1.display-5 {
     gap: 8px !important;
   }
 
-  .col-12.d-flex > div:first-child {
+  .col-12.d-flex>div:first-child {
     flex-wrap: wrap !important;
     gap: 4px !important;
   }
 
-  .col-12.d-flex > div:last-child {
+  .col-12.d-flex>div:last-child {
     align-self: flex-end !important;
   }
 
@@ -1039,12 +1042,12 @@ h1.display-5 {
     flex-wrap: nowrap !important;
   }
 
-  .col-12.d-flex > div:first-child {
+  .col-12.d-flex>div:first-child {
     flex: 1 !important;
     min-width: 0 !important;
   }
 
-  .col-12.d-flex > div:last-child {
+  .col-12.d-flex>div:last-child {
     flex-shrink: 0 !important;
     display: flex !important;
     align-items: center !important;
@@ -1165,3 +1168,4 @@ h1.display-5 {
   scrollbar-width: none;
   /* Firefox */
 }
+
