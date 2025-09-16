@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import DatePicker from "react-datepicker";
+// import DatePicker from "react-datepicker";
 import { twoball } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import { getUserClub } from "../../../redux/user/club/thunk";
-import { Avatar } from "@mui/material";
+import { Avatar, TextField } from "@mui/material";
 import { format } from "date-fns";
 import { FiShoppingCart } from "react-icons/fi";
 import TokenExpire from "../../../helpers/TokenExpire";
@@ -16,7 +16,8 @@ import { Button, Tab, Tabs } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { IoMdTime } from "react-icons/fi";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-
+import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 // Helper functions
 const formatTimeForAPI = (time) => (time ? `${time.toLowerCase().split(" ")[0]} ${time.toLowerCase().split(" ")[1]}` : "");
 const parseTimeToHour = (timeStr) => {
@@ -118,10 +119,10 @@ const Booking = ({ className = "" }) => {
                     const newTimeEntry = { _id: time._id, time: time.time, amount: time.amount };
                     return existingCourt
                         ? prev.map((court) =>
-                              court._id === courtId && court.date === selectedDate.fullDate
-                                  ? { ...court, time: [...court.time, newTimeEntry] }
-                                  : court
-                          )
+                            court._id === courtId && court.date === selectedDate.fullDate
+                                ? { ...court, time: [...court.time, newTimeEntry] }
+                                : court
+                        )
                         : [...prev, { _id: currentCourt._id, courtName: currentCourt.courtName, date: selectedDate.fullDate, day: selectedDate.day, time: [newTimeEntry] }];
                 });
             }
@@ -318,8 +319,8 @@ const Booking = ({ className = "" }) => {
                     showUnavailable
                         ? true
                         : slot.availabilityStatus === "available" &&
-                          slot.status !== "booked" &&
-                          !isPastTime(slot.time)
+                        slot.status !== "booked" &&
+                        !isPastTime(slot.time)
                 ).filter((slot) => {
                     const slotHour = parseTimeToHour(slot?.time);
                     switch (tab.eventKey) {
@@ -370,24 +371,39 @@ const Booking = ({ className = "" }) => {
                                         <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
                                     </span>
                                     {isOpen && (
-                                        <div className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100" style={{ top: "100%", left: "0", minWidth: "100%" }}>
-                                            <DatePicker
-                                                selected={startDate}
-                                                onChange={(date) => {
-                                                    setStartDate(date);
-                                                    setIsOpen(false);
-                                                    const formattedDate = date.toISOString().split("T")[0];
-                                                    const day = date.toLocaleDateString("en-US", { weekday: "long" });
-                                                    setSelectedDate({ fullDate: formattedDate, day });
-                                                    setSelectedTimes({});
-                                                    dispatch(getUserSlotBooking({ day, date: formattedDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
-                                                }}
-                                                inline
-                                                maxDate={maxSelectableDate}
-                                                minDate={new Date()}
-                                                dropdownMode="select"
-                                                calendarClassName="custom-calendar w-100 shadow-sm"
-                                            />
+                                        <div
+                                            className="position-absolute mt-2 z-3 bg-white border rounded shadow"
+                                            style={{ top: "100%", left: "0", minWidth: "100%" }}
+                                        >
+                                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                                <StaticDatePicker
+                                                    displayStaticWrapperAs="desktop"
+                                                    value={startDate}
+                                                    onChange={(date) => {
+                                                        setStartDate(date);
+                                                        setIsOpen(false);
+
+                                                        const formattedDate = date.toISOString().split("T")[0];
+                                                        const day = date.toLocaleDateString("en-US", { weekday: "long" });
+
+                                                        setSelectedDate({ fullDate: formattedDate, day });
+                                                        setSelectedTimes({});
+
+                                                        dispatch(
+                                                            getUserSlotBooking({
+                                                                day,
+                                                                date: formattedDate,
+                                                                register_club_id: localStorage.getItem("register_club_id") || "",
+                                                            })
+                                                        );
+                                                    }}
+                                                    minDate={new Date()}
+                                                    slotProps={{
+                                                        actionBar: { actions: [] },
+                                                    }}
+                                                />
+                                            </LocalizationProvider>
+
                                         </div>
                                     )}
                                 </div>
@@ -443,8 +459,8 @@ const Booking = ({ className = "" }) => {
                                                 showUnavailable
                                                     ? true
                                                     : slot.availabilityStatus === "available" &&
-                                                      slot.status !== "booked" &&
-                                                      !isPastTime(slot.time)
+                                                    slot.status !== "booked" &&
+                                                    !isPastTime(slot.time)
                                             ).filter((slot) => filterSlotsByTab(slot, key));
 
                                             if (filteredSlots?.length === 0) return null;
@@ -518,10 +534,10 @@ const Booking = ({ className = "" }) => {
                                                     : slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time)
                                             )
                                         ) && (
-                                            <div className="d-flex justify-content-center align-items-center h-100 py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                                                {showUnavailable ? "All slots are available" : "No available slots"}
-                                            </div>
-                                        )}
+                                                <div className="d-flex justify-content-center align-items-center h-100 py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                                                    {showUnavailable ? "All slots are available" : "No available slots"}
+                                                </div>
+                                            )}
                                     </>
                                 )
                             ) : (
