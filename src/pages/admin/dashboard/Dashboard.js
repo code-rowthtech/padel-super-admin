@@ -179,9 +179,8 @@ const AdminDashboard = () => {
   let chartData = months.map((month) => ({
     month,
     Booking: 0,
-    Cancelation: 0, // Will be scaled later
     totalAmount: 0,
-    TotalValue: 0,
+    Cancelation: 0, // Re-added for chart
     year: 2025,
   }));
 
@@ -192,12 +191,11 @@ const AdminDashboard = () => {
     if (monthIndex !== -1) {
       chartData[monthIndex].Booking += item.totalBookings || 0;
       chartData[monthIndex].totalAmount += item.totalAmount || 0;
-      chartData[monthIndex].TotalValue = chartData[monthIndex].Booking + chartData[monthIndex].totalAmount;
       chartData[monthIndex].year = item.year || 2025;
     }
   });
 
-  // Aggregate cancelations with scaling
+  // Aggregate cancelations
   dashboardCancelledBookings?.forEach((item) => {
     const date = new Date(item.cancellationDate);
     if (isNaN(date.getTime())) {
@@ -207,8 +205,7 @@ const AdminDashboard = () => {
     const shortMonth = months[date.getMonth()];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      chartData[monthIndex].originalCancelation += 1; // Increment original count
-      chartData[monthIndex].Cancelation += 1; // Only count, no scaling
+      chartData[monthIndex].Cancelation += 1; // Increment cancelation count
     } else {
       console.warn("Month not found for cancellationDate:", item.cancellationDate);
     }
@@ -341,12 +338,23 @@ const AdminDashboard = () => {
                         tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
                       />
                       <YAxis
+                        yAxisId="left"
                         type="number"
-                        domain={[1000, 20000]} // Fixed range from 1000 to 20000
+                        domain={[0, 30000]} // For totalAmount (monetary value)
                         tickLine={false}
                         axisLine={{ stroke: "#d1d5db" }}
                         tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
                         tickFormatter={(value) => `₹${value.toLocaleString()}`}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        type="number"
+                        domain={[0, 20]} // Adjusted for cancelation count (e.g., max 20 cancellations)
+                        tickLine={false}
+                        axisLine={{ stroke: "#d1d5db" }}
+                        tick={{ fill: "#ef4444", fontSize: 12, fontWeight: "500" }}
+                        tickFormatter={(value) => value.toFixed(0)} // Show as integer count
                       />
                       <Tooltip
                         contentStyle={{
@@ -357,26 +365,28 @@ const AdminDashboard = () => {
                           padding: "10px",
                         }}
                         formatter={(value, name) => [
-                          `₹${value.toLocaleString()}`,
-                          name === "TotalValue" ? "Total Value" : "Cancelation Count",
+                          name === "totalAmount" ? `₹${value.toLocaleString()}` : value,
+                          name === "totalAmount" ? "Total Amount" : "Cancellations",
                         ]}
                         labelFormatter={(label, payload) => {
-                          const dataPointTotal = payload && payload.find(p => p.dataKey === "TotalValue");
-                          const totalAmount = dataPointTotal ? dataPointTotal.payload.totalAmount ?? 0 : 0;
-                          const booking = dataPointTotal ? dataPointTotal.payload.Booking ?? 0 : 0;
-                          return `Month: ${label} | Total Amount: ₹${totalAmount.toLocaleString()} | Bookings: ${booking}`;
+                          const dataPoint = payload && payload.find((p) => p.dataKey === "totalAmount");
+                          const totalAmount = dataPoint ? dataPoint.payload.totalAmount ?? 0 : 0;
+                          const booking = dataPoint ? dataPoint.payload.Booking ?? 0 : 0;
+                          const cancelation = dataPoint ? dataPoint.payload.Cancelation ?? 0 : 0;
+                          return `Month: ${label} | Total Amount: ₹${totalAmount.toLocaleString()} | Bookings: ${booking} | Cancellations: ${cancelation}`;
                         }}
                       />
 
                       {/* Lines */}
                       <Line
                         type="monotone"
-                        dataKey="TotalValue"
+                        dataKey="totalAmount"
                         stroke="#4f46e5"
                         strokeWidth={3}
                         dot={{ r: 4 }}
                         activeDot={{ r: 6 }}
                         connectNulls={true}
+                        yAxisId="left"
                       />
                       <Line
                         type="monotone"
@@ -386,6 +396,7 @@ const AdminDashboard = () => {
                         dot={{ r: 4 }}
                         activeDot={{ r: 6 }}
                         connectNulls={true}
+                        yAxisId="right"
                       />
                     </LineChart>
                   </ResponsiveContainer>
