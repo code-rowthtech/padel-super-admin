@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginUserNumber, sendOtp, verifyOtp } from '../../../redux/user/auth/authThunk';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { resetAuth } from '../../../redux/user/auth/authSlice';
-import { ButtonLoading, Loading } from '../../../helpers/loading/Loaders';
+import { ButtonLoading, DataLoading, Loading } from '../../../helpers/loading/Loaders';
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '']);
@@ -45,27 +45,23 @@ const VerifyOTP = () => {
       newOtp[index] = value;
       setOtp(newOtp);
 
-      // Move focus to the next input if a digit is entered and not on the last field
       if (value && index < 3) {
         document.getElementById(`otp-${index + 1}`).focus();
       }
-      // Move focus to the previous input if the field is cleared and not on the first field
       else if (!value && index > 0 && event?.key === 'Backspace') {
         document.getElementById(`otp-${index - 1}`).focus();
       }
+      else if (index === 3 && value && newOtp.every(digit => digit)) {
+        const otpValue = Number(newOtp.join(''));
+        dispatch(verifyOtp({ otp: otpValue, phoneNumber: phone }))
+          .unwrap()
+          .then((res) => {
+            if (res?.status == 200) {
+              dispatch(loginUserNumber({ phoneNumber: phone }));
+            }
+          });
+      }
     }
-  };
-
-  const otpValue = Number(otp.join(''));
-
-  const handleSubmit = () => {
-    dispatch(verifyOtp({ otp: otpValue, phoneNumber: phone }))
-      .unwrap()
-      .then((res) => {
-        if (res?.status == 200) {
-          dispatch(loginUserNumber({ phoneNumber: phone }));
-        }
-      });
   };
 
   useEffect(() => {
@@ -79,7 +75,7 @@ const VerifyOTP = () => {
   return (
     <div className="auth-wrapper h-100" style={{ backgroundColor: "#F8F8F8", overflow: "hidden" }}>
       <Container fluid className="h-lg-100 p-0">
-        <Row className="g-0 h-lg-100  ">      {/* Left Panel */}
+        <Row className="g-0 h-lg-100 ">      {/* Left Panel */}
           <Col
             md={12}
             lg={6}
@@ -122,50 +118,39 @@ const VerifyOTP = () => {
               )}
 
               <div
-                className="mb-3"
+                className={`mb-3`}
                 style={{ display: 'flex', justifyContent: 'space-evenly', gap: 6 }}
               >
-                {otp.map((digit, index) => (
-                  <Form.Control
-                    key={index}
-                    id={`otp-${index}`}
-                    type="text"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleChange(index, e.target.value, e)}
-                    onKeyDown={(e) => handleChange(index, e.target.value, e)}
-                    style={{
-                      width: 50,
-                      height: 50,
-                      fontSize: 24,
-                      textAlign: 'center',
-                      borderRadius: '4px',
-                      boxShadow: '0px 1px 6.5px 0px #0000001F inset',
-                    }}
-                  />
-                ))}
+                {userAuthLoading ? <DataLoading /> :
+                  otp.map((digit, index) => (
+                    <Form.Control
+                      key={index}
+                      id={`otp-${index}`}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      className='opt-input'
+                      disabled={timer === 0 || userAuthLoading}
+                      onChange={(e) => handleChange(index, e.target.value, e)}
+                      onKeyDown={(e) => handleChange(index, e.target.value, e)}
+                      style={{
+                        width: 50,
+                        height: 50,
+                        fontSize: 24,
+                        textAlign: 'center',
+                        borderRadius: '4px',
+                        boxShadow: '0px 1px 6.5px 0px #0000001F inset',
+                      }}
+                    />
+                  ))
+
+                }
               </div>
 
               {/* Timer */}
               <div style={{ marginTop: 20, marginBottom: 20, color: '#555', fontWeight: '500' }}>
                 {timer !== 0 && <>00:{String(timer).padStart(2, '0')} Sec</>}
               </div>
-
-              {/* Verify Button */}
-              <Button
-                onClick={handleSubmit}
-                style={{
-                  backgroundColor: '#4CAF50',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  fontFamily: 'Poppins',
-                  color: '#fff', // Changed to white for better contrast
-                  boxShadow: '0px 4px 10px 0px #1A237E40',
-                }}
-                className="w-100 rounded-pill border-0 py-md-3"
-              >
-                {userAuthLoading ? <ButtonLoading /> : 'Verification Code'}
-              </Button>
 
               {/* Re-send */}
               {timer === 0 && (

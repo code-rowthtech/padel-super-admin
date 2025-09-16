@@ -312,7 +312,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={chartData} margin={{ top: 20, right: 20, left: 40, bottom: 20 }}>
+                    <BarChart data={chartData} margin={{ top: 20, right: 20, left: 50, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                       <XAxis
                         dataKey="month"
@@ -324,55 +324,45 @@ const AdminDashboard = () => {
                         padding={{ left: 10, right: 10 }}
                       />
                       <YAxis
-                        yAxisId="left"
                         type="number"
-                        domain={[0, 50]} // Count scale (10, 20, 30, 40, 50)
+                        domain={[0, 50]}
+                        ticks={[0, 10, 20, 30, 40, 50]}
+                        allowDecimals={false}
+                        minTickGap={0}
                         tickLine={false}
                         axisLine={{ stroke: "#d1d5db" }}
+                        width={50}  // 👈 extra space for labels
                         tick={{ fill: "#374151", fontSize: 14, fontWeight: "500" }}
-                        tickCount={6} // Ensure 6 ticks
-                        ticks={[0, 10, 20, 30, 40, 50]} // Explicitly set ticks as per your request
                       />
 
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#ffffff",
-                          borderRadius: "8px",
-                          border: "1px solid #e5e7eb",
-                          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                          padding: "10px",
-                          fontSize: 14,
-                        }}
-                        formatter={(value, name) => [
-                          name === "totalAmount",
-                          name === "totalAmount",
-                        ]}
-                        labelFormatter={(label, payload) => {
+                        content={({ label, payload }) => {
                           if (payload && payload.length > 0) {
-                            const dataPoint = payload[0].payload; // First payload has the data
-                            const totalAmount = dataPoint.totalAmount || 0;
-                            const booking = dataPoint.Booking || 0;
-                            const cancelation = dataPoint.Cancelation || 0;
+                            const dataPoint = payload[0].payload; 
                             return (
-                              <div>
-                                <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400" }}>
-                                  Month : <span>{label}</span>
-                                </p>
-                                <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400", color: "#4f46e5" }}>
-                                  Booking : <span>{booking}</span>
-                                </p>
-                                <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400", color: "#dc2626" }}>
-                                  Cancellations : <span>{cancelation}</span>
-                                </p>
-                                <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                  Total Amount : <span>₹{totalAmount.toLocaleString()}</span>
+                              <div
+                                style={{
+                                  backgroundColor: "#fff",
+                                  border: "1px solid #e5e7eb",
+                                  borderRadius: "8px",
+                                  padding: "10px",
+                                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                <p style={{ margin: 0, fontWeight: "500" }}>Month: {label}</p>
+                                <p style={{ margin: 0, color: "#3b82f6" }}>Booking: {dataPoint.Booking}</p>
+                                <p style={{ margin: 0, color: "#ef4444" }}>Cancellations: {dataPoint.Cancelation}</p>
+                                <p style={{ margin: 0, fontWeight: "600" }}>
+                                  Total Amount: ₹{(dataPoint.totalAmount || 0).toLocaleString()}
                                 </p>
                               </div>
                             );
                           }
-                          return `Month: ${label}`;
+                          return null;
                         }}
                       />
+
                       <Legend
                         verticalAlign="top"
                         height={40}
@@ -401,6 +391,7 @@ const AdminDashboard = () => {
                       />
                     </BarChart>
                   </ResponsiveContainer>
+
                 </Card.Body>
               </Card>
             </Col>
