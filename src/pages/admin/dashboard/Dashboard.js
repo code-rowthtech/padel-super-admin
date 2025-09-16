@@ -8,7 +8,7 @@ import {
   OverlayTrigger,
   Tooltip as BootstrapTooltip,
 } from "react-bootstrap";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, defs } from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, defs, Bar, BarChart } from "recharts";
 import { FaArrowUp, FaArrowDown, FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import {
@@ -92,10 +92,9 @@ const AdminDashboard = () => {
     },
   ];
   const [loadingById, setLoadingById] = useState(null);
-
+  const [viewMode, setViewMode] = useState("both");
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [showBookingCancel, setShowBookingCancel] = useState(false);
-
   const [showCancellation, setShowCancellation] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
 
@@ -180,7 +179,7 @@ const AdminDashboard = () => {
     month,
     Booking: 0,
     totalAmount: 0,
-    Cancelation: 0, // Re-added for chart
+    Cancelation: 0,
     year: 2025,
   }));
 
@@ -189,25 +188,20 @@ const AdminDashboard = () => {
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      chartData[monthIndex].Booking += item.totalBookings || 0;
-      chartData[monthIndex].totalAmount += item.totalAmount || 0;
+      chartData[monthIndex].Booking = (chartData[monthIndex].Booking || 0) + (item.totalBookings || 0); // Ensure updates to 11
+      chartData[monthIndex].totalAmount = (chartData[monthIndex].totalAmount || 0) + (item.totalAmount || 0);
       chartData[monthIndex].year = item.year || 2025;
     }
   });
 
   // Aggregate cancelations
-  dashboardCancelledBookings?.forEach((item) => {
-    const date = new Date(item.cancellationDate);
-    if (isNaN(date.getTime())) {
-      console.error("Invalid cancellationDate:", item.cancellationDate);
-      return; // Skip if date is invalid
-    }
-    const shortMonth = months[date.getMonth()];
+  dashboardRevenue?.forEach((item) => {
+    const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      chartData[monthIndex].Cancelation += 1; // Increment cancelation count
-    } else {
-      console.warn("Month not found for cancellationDate:", item.cancellationDate);
+      chartData[monthIndex].Cancelation = (chartData[monthIndex].Cancelation || 0) + (item.cancelBookings || 0); // Ensure updates to 2
+      // Note: cancelAmount is not used in chart, but can be added to chartData if needed
+      chartData[monthIndex].year = item.year || 2025;
     }
   });
   return (
@@ -318,87 +312,94 @@ const AdminDashboard = () => {
                   </div>
 
                   <ResponsiveContainer width="100%" height={350}>
-                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-                      <defs>
-                        <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.6} />
-                          <stop offset="100%" stopColor="#9333ea" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="cancelationGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#ef4444" stopOpacity={0.6} />
-                          <stop offset="100%" stopColor="#dc2626" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-
-                      <CartesianGrid strokeDasharray="5 5" stroke="#e5e7eb" />
+                    <BarChart data={chartData} margin={{ top: 20, right: 20, left: 40, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                       <XAxis
                         dataKey="month"
                         tickLine={false}
                         axisLine={{ stroke: "#d1d5db" }}
-                        tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
+                        tick={{ fill: "#374151", fontSize: 14, fontWeight: "600" }}
+                        interval={0}
+                        height={50}
+                        padding={{ left: 10, right: 10 }}
                       />
                       <YAxis
                         yAxisId="left"
                         type="number"
-                        domain={[0, 30000]} // For totalAmount (monetary value)
+                        domain={[0, 50]} // Count scale (10, 20, 30, 40, 50)
                         tickLine={false}
                         axisLine={{ stroke: "#d1d5db" }}
-                        tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
-                        tickFormatter={(value) => `₹${value.toLocaleString()}`}
+                        tick={{ fill: "#374151", fontSize: 14, fontWeight: "500" }}
+                        tickCount={6} // Ensure 6 ticks
+                        ticks={[0, 10, 20, 30, 40, 50]} // Explicitly set ticks as per your request
                       />
-                      <YAxis
-                        yAxisId="right"
-                        orientation="right"
-                        type="number"
-                        domain={[0, 20]} // Adjusted for cancelation count (e.g., max 20 cancellations)
-                        tickLine={false}
-                        axisLine={{ stroke: "#d1d5db" }}
-                        tick={{ fill: "#ef4444", fontSize: 12, fontWeight: "500" }}
-                        tickFormatter={(value) => value.toFixed(0)} // Show as integer count
-                      />
+
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "#ffffff",
-                          borderRadius: "10px",
+                          borderRadius: "8px",
                           border: "1px solid #e5e7eb",
-                          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                           padding: "10px",
+                          fontSize: 14,
                         }}
                         formatter={(value, name) => [
-                          name === "totalAmount" ? `₹${value.toLocaleString()}` : value,
-                          name === "totalAmount" ? "Total Amount" : "Cancellations",
+                          name === "totalAmount",
+                          name === "totalAmount",
                         ]}
                         labelFormatter={(label, payload) => {
-                          const dataPoint = payload && payload.find((p) => p.dataKey === "totalAmount");
-                          const totalAmount = dataPoint ? dataPoint.payload.totalAmount ?? 0 : 0;
-                          const booking = dataPoint ? dataPoint.payload.Booking ?? 0 : 0;
-                          const cancelation = dataPoint ? dataPoint.payload.Cancelation ?? 0 : 0;
-                          return `Month: ${label} | Total Amount: ₹${totalAmount.toLocaleString()} | Bookings: ${booking} | Cancellations: ${cancelation}`;
+                          if (payload && payload.length > 0) {
+                            const dataPoint = payload[0].payload; // First payload has the data
+                            const totalAmount = dataPoint.totalAmount || 0;
+                            const booking = dataPoint.Booking || 0;
+                            const cancelation = dataPoint.Cancelation || 0;
+                            return (
+                              <div>
+                                <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400" }}>
+                                  Month : <span>{label}</span>
+                                </p>
+                                <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400", color: "#4f46e5" }}>
+                                  Booking : <span>{booking}</span>
+                                </p>
+                                <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "400", color: "#dc2626" }}>
+                                  Cancellations : <span>{cancelation}</span>
+                                </p>
+                                <p className="mb-0" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                  Total Amount : <span>₹{totalAmount.toLocaleString()}</span>
+                                </p>
+                              </div>
+                            );
+                          }
+                          return `Month: ${label}`;
                         }}
                       />
-
-                      {/* Lines */}
-                      <Line
-                        type="monotone"
-                        dataKey="totalAmount"
-                        stroke="#4f46e5"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                        activeDot={{ r: 6 }}
-                        connectNulls={true}
-                        yAxisId="left"
+                      <Legend
+                        verticalAlign="top"
+                        height={40}
+                        wrapperStyle={{ paddingBottom: "10px", color: "#374151", fontSize: 14, fontWeight: "500" }}
+                        onClick={(e) => {
+                          if (e.dataKey === "Booking") setViewMode("Bookings");
+                          else if (e.dataKey === "Cancelation") setViewMode("Cancellations");
+                          else setViewMode("both");
+                        }}
                       />
-                      <Line
-                        type="monotone"
+                      <Bar
+                        dataKey="Booking"
+                        name="Bookings"
+                        fill="#3b82f6"
+                        barSize={25}
+                        radius={[4, 4, 0, 0]}
+                        hide={viewMode === "Cancellations"}
+                      />
+                      <Bar
                         dataKey="Cancelation"
-                        stroke="#ef4444"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                        activeDot={{ r: 6 }}
-                        connectNulls={true}
-                        yAxisId="right"
+                        name="Cancellations"
+                        fill="#ef4444"
+                        barSize={25}
+                        radius={[4, 4, 0, 0]}
+                        hide={viewMode === "Bookings"}
                       />
-                    </LineChart>
+                    </BarChart>
                   </ResponsiveContainer>
                 </Card.Body>
               </Card>
