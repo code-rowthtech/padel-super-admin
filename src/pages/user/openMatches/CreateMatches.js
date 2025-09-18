@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Container, Row, Col, Button, Card, Form, FormCheck } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, NavLink, useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
@@ -414,6 +414,10 @@ const CreateMatches = () => {
     return false;
   };
 
+  const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+  const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+
+
   return (
     <Container className="p-4 mb-5">
       <Row>
@@ -530,76 +534,41 @@ const CreateMatches = () => {
                 />
               </div>
             </div>
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <div
-                className="d-flex justify-content-center p-0 mb-4 align-items-center rounded-pill"
-                style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}
-              >
-                <span
-                  className="text-muted"
-                  style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}
-                >
-                  {getCurrentMonth(selectedDate)}
-                </span>
+            <div className="d-flex align-items-center gap-2 border-bottom">
+              <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
+                <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
               </div>
-              <div
-                ref={scrollRef}
-                className="d-flex gap-1 overflow-auto"
-                style={{
-                  scrollBehavior: "smooth",
-                  whiteSpace: "nowrap",
-                  maxWidth: "100%",
-                  overflowX: "scroll",
-                }}
-              >
-                {dates?.map((d, i) => {
-                  const formatDate = (date) => {
-                    return date.toISOString().split("T")[0];
-                  };
-                  const isSelected =
-                    formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
-                  return (
-                    <button
-                      key={i}
-                      ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                      className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
-                      style={{
-                        backgroundColor: isSelected ? "#374151" : "#FFFFFF",
-                        boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
-                        borderRadius: "12px",
-                        color: isSelected ? "#FFFFFF" : "#374151",
-                      }}
-                      onClick={() => {
-                        setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
-                        setStartDate(new Date(d.fullDate));
-                        dispatch(
-                          getUserSlotBooking({
-                            day: d?.day,
-                            date: d?.fullDate,
-                            register_club_id:
-                              localStorage.getItem("register_club_id") || "",
-                          })
-                        );
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.border = "1px solid #3DBE64";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.border = "1px solid #4949491A";
-                      }}
-                    >
-                      <div className="text-center">
-                        <div className="date-center-date">{d.date}</div>
-                        <div className="date-center-day">{dayShortMap[d.day]}</div>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
+                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><FaArrowLeft className="mt-2" size={20} /></button>
+                <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+                  {dates.map((d, i) => {
+                    const formatDate = (date) => date.toISOString().split("T")[0];
+                    const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                    return (
+                      <button
+                        key={i}
+                        ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                        className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
+                        style={{ backgroundColor: isSelected ? "#374151" : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151" }}
+                        onClick={() => {
+                          setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                          setStartDate(new Date(d.fullDate));
+                          dispatch(getUserSlotBooking({ day: d.day, date: d.fullDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
+                        }}
+                        onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
+                        onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
+                      >
+                        <div className="text-center">
+                          <div className="date-center-date">{d.date}</div>
+                          <div className="date-center-day">{dayShortMap[d.day]}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><FaArrowRight className="mt-2" size={20} /></button>
               </div>
             </div>
-            <hr />
             <div
               className="d-flex flex-column gap-3 overflow-slot mt-md-4"
             // style={{
@@ -656,7 +625,7 @@ const CreateMatches = () => {
                                 return (
                                   <div className="col-auto p-lg-0  me-lg-0" key={i}>
                                     <button
-                                      className="btn rounded-pill slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
+                                      className="btn rounded-3 slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
                                       onClick={() => toggleTime(slot, court._id)}
                                       disabled={isDisabled}
                                       style={{

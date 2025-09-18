@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { FaChevronDown, FaMapMarkerAlt } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaChevronDown, FaMapMarkerAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
@@ -135,14 +135,6 @@ const Openmatches = () => {
     const [startIndex, setStartIndex] = useState(0);
     const visibleDays = 7;
 
-    const scroll = (direction) => {
-        if (direction === "left" && startIndex > 0) {
-            setStartIndex(startIndex - 1);
-        }
-        if (direction === "right" && startIndex < dates.length - visibleDays) {
-            setStartIndex(startIndex + 1);
-        }
-    };
 
     const handleSelect = (level) => {
         setSelectedLevel(level);
@@ -337,12 +329,16 @@ const Openmatches = () => {
         return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
     };
 
+    const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+    const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+
+
     return (
         <div className="container mt-lg-4 px-3 px-md-4">
             <div className="row g-4">
                 {/* Left Section */}
                 <div className="col-lg-7 col-12 py-4 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
-                    <div className="calendar-strip">
+                    <div className="calendar-strip mb-3">
                         <div className="mb-4 custom-heading-use">
                             Select Date
                             <div className="position-relative d-inline-block" ref={wrapperRef}>
@@ -387,65 +383,39 @@ const Openmatches = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="d-flex align-items-center gap-2 mb-3">
-                            <div
-                                className="d-flex justify-content-center p-0 mb-4 align-items-center rounded-pill"
-                                style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}
-                            >
-                                <span
-                                    className="text-muted"
-                                    style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}
-                                >
-                                    {getCurrentMonth(selectedDate)}
-                                </span>
+                        <div className="d-flex align-items-center gap-2 border-bottom">
+                            <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
+                                <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
                             </div>
-                            <div
-                                ref={scrollRef}
-                                className="d-flex gap-1 overflow-auto"
-                                style={{
-                                    scrollBehavior: "smooth",
-                                    whiteSpace: "nowrap",
-                                    maxWidth: "100%",
-                                    overflowX: "scroll",
-                                }}
-                            >
-                                {dates?.map((d, i) => {
-                                    const formatDate = (date) => {
-                                        return date.toISOString().split("T")[0];
-                                    };
-                                    const isSelected =
-                                        formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
-                                    return (
-                                        <button
-                                            key={i}
-                                            ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                                            className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
-                                            style={{
-                                                backgroundColor: isSelected ? "#374151" : "#FFFFFF",
-                                                boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
-                                                borderRadius: "15px",
-                                                color: isSelected ? "#FFFFFF" : "#374151",
-                                            }}
-                                            onClick={() => {
-                                                setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
-                                                setStartDate(new Date(d.fullDate));
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (!isSelected) {
-                                                    e.currentTarget.style.border = "1px solid #3DBE64";
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.border = "1px solid #4949491A";
-                                            }}
-                                        >
-                                            <div className="text-center">
-                                                <div className="date-center-date">{d.date}</div>
-                                                <div className="date-center-day">{dayShortMap[d.day]}</div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
+                            <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
+                                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><FaArrowLeft className="mt-2" size={20} /></button>
+                                <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+                                    {dates.map((d, i) => {
+                                        const formatDate = (date) => date.toISOString().split("T")[0];
+                                        const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                                        return (
+                                            <button
+                                                key={i}
+                                                ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                                                className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
+                                                style={{ backgroundColor: isSelected ? "#374151" : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151" }}
+                                                onClick={() => {
+                                                    setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                                                    setStartDate(new Date(d.fullDate));
+                                                    dispatch(getMatchesUser({matchDate:d.fullDate}));
+                                                }}
+                                                onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
+                                                onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
+                                            >
+                                                <div className="text-center">
+                                                    <div className="date-center-date">{d.date}</div>
+                                                    <div className="date-center-day">{dayShortMap[d.day]}</div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><FaArrowRight className="mt-2" size={20} /></button>
                             </div>
                         </div>
                     </div>
@@ -454,7 +424,7 @@ const Openmatches = () => {
                         {slotTime?.map((time, i) => (
                             <div className="col-auto p-lg-0  me-lg-0" key={i}>
                                 <button
-                                    className="btn rounded-pill slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
+                                    className="btn rounded-3 slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
                                     onClick={() => toggleTime(time)}
                                     style={{
                                         backgroundColor: selectedTime === time ? "#374151" : "#FAFBFF",
