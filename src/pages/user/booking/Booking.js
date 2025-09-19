@@ -7,27 +7,48 @@ import { DataLoading } from '../../../helpers/loading/Loaders';
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { Avatar, TextField } from "@mui/material";
 import { format } from "date-fns";
-import { FiShoppingCart } from "react-icons/fi";
 import TokenExpire from "../../../helpers/TokenExpire";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { Button, Tab, Tabs } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
-import { IoMdTime } from "react-icons/fi";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-// Helper functions
-const formatTimeForAPI = (time) => (time ? `${time.toLowerCase().split(" ")[0]} ${time.toLowerCase().split(" ")[1]}` : "");
+
 const parseTimeToHour = (timeStr) => {
     if (!timeStr) return null;
-    const [hourStr, period] = timeStr.toLowerCase().split(" ");
-    let hour = parseInt(hourStr);
-    if (isNaN(hour)) return null;
-    if (period === "pm" && hour !== 12) hour += 12;
-    if (period === "am" && hour === 12) hour = 0;
+    let hour;
+    let period = "am"; 
+
+    if (typeof timeStr === "string") {
+        const timeParts = timeStr.toLowerCase().split(" ");
+        if (timeParts.length > 1) {
+            [hour, period] = [timeParts[0], timeParts[1]];
+        } else {
+            hour = timeStr; 
+        }
+
+        hour = parseInt(hour.split(":")[0]); 
+        if (isNaN(hour)) return null;
+
+        if (period === "pm" && hour !== 12) hour += 12;
+        if (period === "am" && hour === 12) hour = 0;
+    }
+    console.log(`Parsed Time: ${timeStr}, Hour: ${hour}, Period: ${period}`); 
     return hour;
+};
+
+const filterSlotsByTab = (slot, eventKey) => {
+    const slotHour = parseTimeToHour(slot?.time);
+    if (slotHour === null) return false;
+    switch (eventKey) {
+        case 'morning': return slotHour >= 0 && slotHour < 12; 
+        case 'noon': return slotHour >= 12 && slotHour < 17; 
+        case 'night': return slotHour >= 17 && slotHour <= 23; 
+        default: return true;
+    }
 };
 
 const Booking = ({ className = "" }) => {
@@ -47,7 +68,7 @@ const Booking = ({ className = "" }) => {
     const [errorShow, setErrorShow] = useState(false);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const dateRefs = useRef({});
-    const [key, setKey] = useState('Noon');
+    const [key, setKey] = useState('morning'); 
     const [defaultTime] = useState(() => {
         const now = new Date();
         now.setHours(now.getHours() + 1);
@@ -153,7 +174,6 @@ const Booking = ({ className = "" }) => {
                 day: selectedDate.day,
                 date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
                 register_club_id: localStorage.getItem("register_club_id") || "",
-                time: null,
             })
         );
     };
@@ -304,48 +324,31 @@ const Booking = ({ className = "" }) => {
         }
     }, [errorShow, errorMessage]);
 
-    const [tabCounts, setTabCounts] = useState({});
+    const [tabCounts, setTabCounts] = useState([0, 0, 0]); 
     const tabData = [
-        { eventKey: 'Morning', label: 'Morning', count: 0 },
-        { eventKey: 'Noon', label: 'Noon', count: 0 },
-        { eventKey: 'Night', label: 'Night', count: 0 },
+        { eventKey: 'morning', label: 'Morning' },
+        { eventKey: 'noon', label: 'Noon' }, 
+        { eventKey: 'night', label: 'Night' },
     ];
 
     useEffect(() => {
-        const newTabCounts = {};
-        slotData?.data?.forEach((court, courtIndex) => {
-            const counts = tabData.map((tab) => {
-                return court?.slots?.filter((slot) =>
-                    showUnavailable
-                        ? true
-                        : slot.availabilityStatus === "available" &&
-                        slot.status !== "booked" &&
-                        !isPastTime(slot.time)
-                ).filter((slot) => {
-                    const slotHour = parseTimeToHour(slot?.time);
-                    switch (tab.eventKey) {
-                        case 'Morning': return slotHour >= 6 && slotHour < 12;
-                        case 'Noon': return slotHour >= 12 && slotHour < 18;
-                        case 'Night': return slotHour >= 18 || slotHour < 6;
-                        default: return true;
+        const counts = [0, 0, 0]; 
+        slotData?.data?.forEach((court) => {
+            court?.slots?.forEach((slot) => {
+                if (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) {
+                    const slotHour = parseTimeToHour(slot.time);
+                    console.log(`Slot: ${slot.time}, Hour: ${slotHour}, Availability: ${slot.availabilityStatus}, Status: ${slot.status}`); // Detailed debug
+                    if (slotHour !== null) {
+                        if (slotHour >= 0 && slotHour < 12) counts[0]++; 
+                        else if (slotHour >= 12 && slotHour < 17) counts[1]++; 
+                        else if (slotHour >= 17 && slotHour <= 23) counts[2]++; 
                     }
-                }).length || 0;
+                }
             });
-            newTabCounts[court._id] = counts;
         });
-        setTabCounts(newTabCounts);
+        console.log("Tab Counts:", counts); 
+        setTabCounts(counts);
     }, [slotData, showUnavailable]);
-
-    const filterSlotsByTab = (slots, eventKey) => {
-        const slotHour = parseTimeToHour(slots?.time);
-        if (slotHour === null) return false;
-        switch (eventKey) {
-            case 'Morning': return slotHour >= 6 && slotHour < 12;
-            case 'Noon': return slotHour >= 12 && slotHour < 18;
-            case 'Night': return slotHour >= 18 || slotHour < 6;
-            default: return true;
-        }
-    };
 
     return (
         <>
@@ -388,7 +391,6 @@ const Booking = ({ className = "" }) => {
 
                                                         setSelectedDate({ fullDate: formattedDate, day });
                                                         setSelectedTimes({});
-
                                                         dispatch(
                                                             getUserSlotBooking({
                                                                 day,
@@ -403,7 +405,6 @@ const Booking = ({ className = "" }) => {
                                                     }}
                                                 />
                                             </LocalizationProvider>
-
                                         </div>
                                     )}
                                 </div>
@@ -413,7 +414,7 @@ const Booking = ({ className = "" }) => {
                                 <input className="form-check-input fs-5 ms-1 mb-1" type="checkbox" role="switch" id="flexSwitchCheckDefault" checked={showUnavailable} onChange={handleSwitchChange} style={{ boxShadow: "none" }} />
                             </div>
                         </div>
-                        <div className="d-flex align-items-center gap-2 border-bottom">
+                        <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
                             <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
                                 <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
                             </div>
@@ -448,6 +449,26 @@ const Booking = ({ className = "" }) => {
                                 <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><FaArrowRight className="mt-2" size={20} /></button>
                             </div>
                         </div>
+
+                        {/* Global Tabs above courts */}
+                        <div className="mb-3">
+                            <Tabs id="custom-tabs" activeKey={key} onSelect={(k) => setKey(k)} className="border p-1 rounded-3 custom-tabs" fill>
+                                {tabData.map((tab, index) => (
+                                    <Tab
+                                        className="rounded-3 text-center"
+                                        key={tab.eventKey}
+                                        eventKey={tab.eventKey}
+                                        disabled={tabCounts[index] === 0}
+                                        title={
+                                            <span className="tab-titl text-center" style={{ fontSize: "13px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                                {tab.label} <b className="text-warning">({tabCounts[index]})</b>
+                                            </span>
+                                        }
+                                    />
+                                ))}
+                            </Tabs>
+                        </div>
+
                         <div className="d-flex flex-column gap-3 overflow-slot">
                             {slotData?.data?.length > 0 ? (
                                 slotLoading ? (
@@ -455,17 +476,16 @@ const Booking = ({ className = "" }) => {
                                 ) : (
                                     <>
                                         {slotData?.data.map((court) => {
-                                            const filteredSlots = court?.slots?.filter((slot) =>
+                                            const baseFilteredSlots = court?.slots?.filter((slot) =>
                                                 showUnavailable
                                                     ? true
                                                     : slot.availabilityStatus === "available" &&
                                                     slot.status !== "booked" &&
                                                     !isPastTime(slot.time)
-                                            ).filter((slot) => filterSlotsByTab(slot, key));
+                                            );
+                                            const filteredSlots = baseFilteredSlots.filter((slot) => filterSlotsByTab(slot, key)); // Filter by selected tab
 
                                             if (filteredSlots?.length === 0) return null;
-
-                                            const courtTabCounts = tabCounts[court._id] || tabData.map(() => 0);
 
                                             return (
                                                 <div className={`row ps-2 pe-2 ${!court?.slots || !showUnavailable ? 'border-bottom' : ""}`} key={court._id}>
@@ -474,24 +494,6 @@ const Booking = ({ className = "" }) => {
                                                             <h5 className="all-matches mb-0">{court?.courtName}</h5>
                                                             <p className="court-para text-muted">{court?.register_club_id?.courtType}</p>
                                                             {errorShow && <p className="text-danger text-center" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>{errorMessage}</p>}
-                                                        </div>
-                                                        <div>
-                                                            <Tabs id="custom-tabs" activeKey={key} onSelect={(k) => setKey(k)} className="mb-3 border rounded-pill custom-tabs" fill>
-                                                                {tabData.map((tab, index) => (
-                                                                    <Tab
-                                                                        className="rounded-pill"
-                                                                        key={tab.eventKey}
-                                                                        eventKey={tab.eventKey}
-                                                                        disabled={courtTabCounts[index] === 0}
-                                                                        title={
-                                                                            <span className="tab-title">
-                                                                                <span className="me-2">{tab.icon}</span>
-                                                                                {tab.label} ({courtTabCounts[index] === 0 ? 0 : courtTabCounts[index]})
-                                                                            </span>
-                                                                        }
-                                                                    />
-                                                                ))}
-                                                            </Tabs>
                                                         </div>
                                                     </div>
 
@@ -527,16 +529,14 @@ const Booking = ({ className = "" }) => {
                                             );
                                         })}
 
-                                        {/* Check if no available slots exist */}
                                         {slotData?.data.every((court) =>
                                             !court?.slots?.some((slot) =>
-                                                showUnavailable
-                                                    ? true
-                                                    : slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time)
+                                                (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) &&
+                                                filterSlotsByTab(slot, key)
                                             )
                                         ) && (
                                                 <div className="d-flex justify-content-center align-items-center h-100 py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                                                    Koi available slot nahi hai
+                                                    No Available Slot
                                                 </div>
                                             )}
                                     </>
