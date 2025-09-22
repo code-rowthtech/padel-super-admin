@@ -422,7 +422,7 @@ const Openmatches = () => {
 
                     <div className="row mb-4 mx-auto">
                         {slotTime?.map((time, i) => (
-                            <div className="col-auto p-lg-0  me-lg-0" key={i}>
+                            <div className="col-lg-auto col-3 p-lg-0  me-lg-0" key={i}>
                                 <button
                                     className="btn rounded-3 slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
                                     onClick={() => toggleTime(time)}
