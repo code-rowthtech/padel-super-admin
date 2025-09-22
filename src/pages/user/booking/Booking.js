@@ -377,6 +377,10 @@ const Booking = ({ className = "" }) => {
         setKey(defaultTab);
     }, [slotData, showUnavailable]);
 
+    const formatTime = (timeStr) => {
+        return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
+    };
+
     return (
         <>
             <div className="container p-md-3">
@@ -595,7 +599,9 @@ const Booking = ({ className = "" }) => {
                                                         <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>{timeSlot.time}</span>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                            {formatTime(timeSlot.time)}
+                                                        </span>
                                                         <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>{court.courtName}</span>
                                                     </div>
                                                     <div style={{ color: "#1A237E" }}>
@@ -615,7 +621,7 @@ const Booking = ({ className = "" }) => {
                             {totalSlots > 0 && (
                                 <div className="border-top pt-3 mt-2 d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden" }}>
                                     <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
-                                        Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Slots {totalSlots}</span>
+                                        Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
                                     </p>
                                     <p style={{ fontSize: "25px", fontWeight: "600", color: "#1A237E" }}>₹ {grandTotal}</p>
                                 </div>

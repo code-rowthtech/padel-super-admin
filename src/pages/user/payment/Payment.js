@@ -158,7 +158,7 @@ const Payment = ({ className = "" }) => {
                 email,
                 register_club_id,
                 bookingStatus: "upcoming",
-                bookingType:'user',
+                bookingType: 'user',
                 ownerId: owner_id,
                 slot: slotArray,
                 paymentMethod: selectedPayment,
@@ -242,6 +242,9 @@ const Payment = ({ className = "" }) => {
         justifyContent: "center",
         height: "100%",
         paddingRight: `${circleRadius * 2}px`,
+    };
+    const formatTime = (timeStr) => {
+        return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
     };
 
     return (
@@ -442,7 +445,7 @@ const Payment = ({ className = "" }) => {
                         </div>
 
                         <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use">
-                            Booking Summary 
+                            Booking Summary
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
                             {localSelectedCourts?.length > 0 ? (
@@ -464,8 +467,9 @@ const Payment = ({ className = "" }) => {
                                                                 return `${day}${month}`;
                                                             })()}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                            {timeSlot?.time}
+
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                            {formatTime(timeSlot.time)}
                                                         </span>
                                                         <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
                                                             {court?.courtName}
