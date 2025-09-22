@@ -54,6 +54,10 @@ const ViewMatch = ({ className = "" }) => {
         });
     };
 
+    const formatTime = (timeStr) => {
+        return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
+    };
+
     const renderPlayerSlot = (player, index, isRemovable, team) => {
         if (player) {
             const user = player.userId || player;
@@ -221,7 +225,7 @@ const ViewMatch = ({ className = "" }) => {
                         <div className="d-md-flex gap-3 align-items-md-start text-center text-md-start">
                             <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
-                                <h3 className="mb-0" style={{ fontSize: "18px", fontWeight: "600",fontFamily:"Poppins" }}>{clubData?.clubName}</h3>
+                                <h3 className="mb-0" style={{ fontSize: "18px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</h3>
                                 <p className="small mb-0" style={{ fontSize: "15px", fontWeight: "400" }}>
                                     {clubData?.address || "Unknown Address"}
                                 </p>
@@ -345,7 +349,7 @@ const ViewMatch = ({ className = "" }) => {
                                             >
                                                 <div>
                                                     <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
-                                                       {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {slotTime.time} </span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>{court.courtName}
+                                                        {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {formatTime(slotTime.time)} </span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>{court.courtName}
                                                     </span>
                                                 </div>
                                                 <div className="d-flex align-items-center justify-content-center gap-2">
