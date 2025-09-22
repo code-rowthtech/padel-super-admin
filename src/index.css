@@ -1198,3 +1198,8 @@ h1.display-5 {
   display: flex;
   align-items: center;
 }
+.custom-checkbox input[type="checkbox"] {
+  border: 1px solid #1f41bb !important;
+  width: 18px;
+  height: 18px;
+}

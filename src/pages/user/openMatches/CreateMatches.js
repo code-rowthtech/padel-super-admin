@@ -766,7 +766,7 @@ const CreateMatches = () => {
                                 : prev.filter((item) => item !== option)
                             )
                           }
-                          className="d-flex align-items-center gap-3 custom-checkbox border-primary"
+                          className="d-flex align-items-center gap-3 custom-checkbox"
                           label={
                             <span
                               style={{
