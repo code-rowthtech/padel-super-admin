@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Container, Row, Col, Button, Card, Form, FormCheck, Tabs, Tab } from "react-bootstrap";
+import { Container, Row, Col, Button, Card, Form, FormCheck } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import { FaArrowLeft, FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,29 +12,6 @@ import Avatar from "@mui/material/Avatar";
 import { MdOutlineDateRange } from "react-icons/md";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
-
-// Function to parse time string to hour for tab categorization
-const parseTimeToHour = (timeStr) => {
-  if (!timeStr) return null;
-  const [hourStr, period] = timeStr.toLowerCase().split(" ");
-  let hour = parseInt(hourStr);
-  if (isNaN(hour)) return null;
-  if (period === "pm" && hour !== 12) hour += 12;
-  if (period === "am" && hour === 12) hour = 0;
-  return hour;
-};
-
-// Function to filter slots by tab (Morning, Noon, Night)
-const filterSlotsByTab = (slot, eventKey) => {
-  const slotHour = parseTimeToHour(slot?.time);
-  if (slotHour === null) return false;
-  switch (eventKey) {
-    case 'morning': return slotHour >= 0 && slotHour < 12;
-    case 'noon': return slotHour >= 12 && slotHour < 17;
-    case 'night': return slotHour >= 17 && slotHour <= 23;
-    default: return true;
-  }
-};
 
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -62,15 +39,8 @@ const CreateMatches = () => {
   const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || []);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
+  const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
   const [slotError, setSlotError] = useState("");
-  const [key, setKey] = useState('morning'); // Default tab set to morning
-  const [tabCounts, setTabCounts] = useState([0, 0, 0]); // Counts for Morning, Noon, Night
-
-  const tabData = [
-    { eventKey: 'morning', label: 'Morning' },
-    { eventKey: 'noon', label: 'Noon' },
-    { eventKey: 'night', label: 'Night' },
-  ];
 
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -245,34 +215,6 @@ const CreateMatches = () => {
     }
   }, [slotData, selectedDate?.fullDate]);
 
-  // Calculate tab counts and set default tab
-  useEffect(() => {
-    const counts = [0, 0, 0];
-    slotData?.data?.forEach((court) => {
-      court?.slots?.forEach((slot) => {
-        if (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) {
-          const slotHour = parseTimeToHour(slot.time);
-          if (slotHour !== null) {
-            if (slotHour >= 0 && slotHour < 12) counts[0]++;
-            else if (slotHour >= 12 && slotHour < 17) counts[1]++;
-            else if (slotHour >= 17 && slotHour <= 23) counts[2]++;
-          }
-        }
-      });
-    });
-    setTabCounts(counts);
-
-    // Set default tab to morning if it has data, otherwise the first tab with data
-    let defaultTab = 'morning';
-    if (counts[0] === 0) {
-      const firstAvailableIndex = counts.findIndex(count => count > 0);
-      if (firstAvailableIndex !== -1) {
-        defaultTab = tabData[firstAvailableIndex].eventKey;
-      }
-    }
-    setKey(defaultTab);
-  }, [slotData, showUnavailable]);
-
   const steps = [
     {
       question: "On the following scale, where would you place yourself?",
@@ -315,17 +257,43 @@ const CreateMatches = () => {
     {
       question: "Which Padel Player Are You?",
       options: [
-        { code: "A", title: "Top Player" },
-        { code: "B1", title: "Experienced Player" },
-        { code: "B2", title: "Advanced Player" },
-        { code: "C1", title: "Confident Player" },
-        { code: "C2", title: "Intermediate Player" },
-        { code: "D1", title: "Amateur Player" },
-        { code: "D2", title: "Novice Player" },
-        { code: "E", title: "Entry Level" },
+        {
+          code: "A",
+          title: "Top Player",
+        },
+        {
+          code: "B1",
+          title: "Experienced Player",
+        },
+        {
+          code: "B2",
+          title: "Advanced Player",
+        },
+        {
+          code: "C1",
+          title: "Confident Player",
+        },
+        {
+          code: "C2",
+          title: "Intermediate Player",
+        },
+        {
+          code: "D1",
+          title: "Amateur Player",
+        },
+        {
+          code: "D2",
+          title: "Novice Player",
+        },
+        {
+          code: "E",
+          title: "Entry Level",
+        },
       ],
-    },
+    }
+
   ];
+
 
   const grandTotal = selectedCourts.reduce(
     (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
@@ -340,6 +308,7 @@ const CreateMatches = () => {
     }
 
     if (currentStep === 1) {
+      // For "Select the racket sport you have played before?" step
       if (selectedLevel.length > 0) {
         setSkillDetails((prev) => {
           const newDetails = [...prev];
@@ -421,6 +390,16 @@ const CreateMatches = () => {
     return `${hourString}:00 ${period}`;
   };
 
+  const parseTimeToHour = (timeStr) => {
+    if (!timeStr) return null;
+    const [hourStr, period] = timeStr.toLowerCase().split(" ");
+    let hour = parseInt(hourStr);
+    if (isNaN(hour)) return null;
+    if (period === "pm" && hour !== 12) hour += 12;
+    if (period === "am" && hour === 12) hour = 0;
+    return hour;
+  };
+
   const isPastTime = (timeStr) => {
     const slotHour = parseTimeToHour(timeStr);
     if (slotHour === null) return false;
@@ -437,6 +416,7 @@ const CreateMatches = () => {
 
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+
 
   return (
     <Container className="p-4 mb-5">
@@ -461,6 +441,40 @@ const CreateMatches = () => {
                   >
                     <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
                   </span>
+                  {isOpen && (
+                    <div
+                      className="position-absolute mt-2 z-3 bg-white border rounded shadow h-100"
+                      style={{ top: "100%", left: "0", minWidth: "100%" }}
+                    >
+                      <DatePicker
+                        selected={startDate}
+                        onChange={(date) => {
+                          setStartDate(date);
+                          setIsOpen(false);
+                          const formattedDate = date.toISOString().split("T")[0];
+                          const day = date.toLocaleDateString("en-US", {
+                            weekday: "long",
+                          });
+                          setSelectedDate({ fullDate: formattedDate, day: day });
+                          setSelectedTimes({});
+                          dispatch(
+                            getUserSlotBooking({
+                              day: day,
+                              date: formattedDate,
+                              register_club_id:
+                                localStorage.getItem("register_club_id") || "",
+                            })
+                          );
+                        }}
+                        inline
+                        maxDate={maxSelectableDate}
+                        minDate={new Date()}
+                        dropdownMode="select"
+                        calendarClassName="custom-calendar w-100 shadow-sm"
+                      />
+                    </div>
+                  )}
+
                   {isOpen && (
                     <div
                       className="position-absolute mt-2 z-3 bg-white border rounded shadow"
@@ -488,13 +502,15 @@ const CreateMatches = () => {
                               })
                             );
                           }}
-                          minDate={new Date()}
+                          inline
                           maxDate={maxSelectableDate}
+                          minDate={new Date()}
                           slotProps={{
                             actionBar: { actions: [] },
                           }}
                         />
                       </LocalizationProvider>
+
                     </div>
                   )}
                 </div>
@@ -526,6 +542,7 @@ const CreateMatches = () => {
                 <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><FaArrowLeft className="mt-2" size={20} /></button>
                 <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                   {dates.map((d, i) => {
+                    const formatDate = (date) => date.toISOString().split("T")[0];
                     const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
                     return (
                       <button
@@ -552,31 +569,14 @@ const CreateMatches = () => {
                 <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><FaArrowRight className="mt-2" size={20} /></button>
               </div>
             </div>
-            {/* Tabs for Morning, Noon, Night */}
-            <div className="mb-3">
-              <Tabs
-                id="custom-tabs"
-                activeKey={key}
-                onSelect={(k) => setKey(k)}
-                className="border p-1 rounded-3 custom-tabs"
-                fill
-              >
-                {tabData.map((tab, index) => (
-                  <Tab
-                    className="rounded-3 text-center"
-                    key={tab.eventKey}
-                    eventKey={tab.eventKey}
-                    disabled={tabCounts[index] === 0}
-                    title={
-                      <span className="tab-titl text-center" style={{ fontSize: "13px", fontWeight: "500", fontFamily: "Poppins" }}>
-                        {tab.label} <b className="text-warning">({tabCounts[index]})</b>
-                      </span>
-                    }
-                  />
-                ))}
-              </Tabs>
-            </div>
-            <div className="d-flex flex-column gap-3 overflow-slot mt-md-4">
+            <div
+              className="d-flex flex-column gap-3 overflow-slot mt-md-4"
+            // style={{
+            //   height: "400px",
+            //   overflowY: slotData?.data?.length > 3 ? "scroll" : "hidden",
+            //   overflowX: "hidden",
+            // }}
+            >
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
                   <DataLoading height={"50vh"} />
@@ -585,113 +585,118 @@ const CreateMatches = () => {
                     {slotData?.data?.map((court) => {
                       const filteredSlots = court?.slots?.filter((slot) =>
                         showUnavailable
-                          ? true
+                          ? true // सभी स्लॉट्स दिखाएं जब showUnavailable ऑन हो
                           : slot.availabilityStatus === "available" &&
-                            slot.status !== "booked" &&
-                            !isPastTime(slot.time)
-                      ).filter((slot) => filterSlotsByTab(slot, key)); // Apply tab filter
+                          slot.status !== "booked" &&
+                          !isPastTime(slot.time)
+                      );
 
                       return (
-                        filteredSlots?.length > 0 ? (
-                          <div
-                            className={`mb-md-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""}`}
-                            key={court._id}
-                          >
-                            <div className="p-2 rounded">
-                              <div className="court-data d-flex gap-2">
-                                <h5 className="all-matches mb-0">
-                                  {court?.courtName}
-                                </h5>
-                                <p className="court-para text-muted">
-                                  {court?.register_club_id?.courtType}
-                                </p>
-                              </div>
-                            </div>
-                            {filteredSlots?.map((slot, i) => {
-                              const isSelected = selectedTimes[court._id]?.some(
-                                (t) => t._id === slot._id
-                              );
-                              const currentSlots = totalSlots;
-                              const isLimitReached = currentSlots >= 15 && !isSelected;
-                              const isDisabled =
-                                isLimitReached ||
-                                slot.status === "booked" ||
-                                slot.availabilityStatus !== "available" ||
-                                isPastTime(slot.time);
-
-                              return (
-                                <div className="col-lg-auto col-3 p-lg-0 me-lg-0" key={i}>
-                                  <button
-                                    className="btn rounded-3 slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
-                                    onClick={() => toggleTime(slot, court._id)}
-                                    disabled={isDisabled}
-                                    style={{
-                                      backgroundColor:
-                                        slot.status === "booked" ||
-                                        isPastTime(slot.time)
-                                          ? "#c9cfcfff"
-                                          : isSelected
-                                          ? "#374151"
-                                          : slot.availabilityStatus !== "available"
-                                          ? "#c9cfcfff"
-                                          : "#FAFBFF",
-                                      color:
-                                        slot.status === "booked" ||
-                                        isPastTime(slot.time) ||
-                                        isDisabled
-                                          ? "#000000"
-                                          : isSelected
-                                          ? "white"
-                                          : "#000000",
-                                      cursor: isDisabled ? "not-allowed" : "pointer",
-                                      opacity: isDisabled ? 0.6 : 1,
-                                      border: "2px solid #0f0f0f1a",
-                                      transition: "border-color 0.2s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (
-                                        !isDisabled &&
-                                        !isPastTime(slot.time) &&
-                                        slot.availabilityStatus === "available"
-                                      ) {
-                                        e.currentTarget.style.border =
-                                          "1px solid #3DBE64";
-                                      }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (
-                                        !isDisabled &&
-                                        !isPastTime(slot.time) &&
-                                        slot.availabilityStatus === "available"
-                                      ) {
-                                        e.currentTarget.style.border =
-                                          "2px solid #0f0f0f1a";
-                                      }
-                                    }}
-                                  >
-                                    {formatTimeForDisplay(slot?.time)}
-                                  </button>
+                        <div
+                          className={`mb-md-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""} `}
+                          key={court._id}
+                        >
+                          {filteredSlots?.length > 0 ? (
+                            <>
+                              <div className="p-2 rounded">
+                                <div className="court-data d-flex gap-2">
+                                  <h5 className="all-matches mb-0">
+                                    {court?.courtName}
+                                  </h5>
+                                  <p className="court-para text-muted">
+                                    {court?.register_club_id?.courtType}
+                                  </p>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        ) : null
+                              </div>
+
+                              {filteredSlots?.map((slot, i) => {
+                                const isSelected = selectedTimes[court._id]?.some(
+                                  (t) => t._id === slot._id
+                                );
+                                const currentSlots = totalSlots;
+                                const isLimitReached = currentSlots >= 15 && !isSelected;
+
+                                const isDisabled =
+                                  isLimitReached ||
+                                  slot.status === "booked" ||
+                                  slot.availabilityStatus !== "available" ||
+                                  isPastTime(slot.time);
+
+                                return (
+                                  <div className="col-lg-auto col-3 p-lg-0  me-lg-0" key={i}>
+                                    <button
+                                      className="btn rounded-3 slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
+                                      onClick={() => toggleTime(slot, court._id)}
+                                      disabled={isDisabled}
+                                      style={{
+                                        backgroundColor:
+                                          slot.status === "booked" ||
+                                            isPastTime(slot.time)
+                                            ? "#c9cfcfff"
+                                            : isSelected
+                                              ? "#374151"
+                                              : slot.availabilityStatus !== "available"
+                                                ? "#c9cfcfff"
+                                                : "#FAFBFF",
+                                        color:
+                                          slot.status === "booked" ||
+                                            isPastTime(slot.time) ||
+                                            isDisabled
+                                            ? "#000000"
+                                            : isSelected
+                                              ? "white"
+                                              : "#000000",
+                                        cursor: isDisabled ? "not-allowed" : "pointer",
+                                        opacity: isDisabled ? 0.6 : 1,
+                                        border: "2px solid #0f0f0f1a",
+                                        transition: "border-color 0.2s ease",
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (
+                                          !isDisabled &&
+                                          !isPastTime(slot.time) &&
+                                          slot.availabilityStatus === "available"
+                                        ) {
+                                          e.currentTarget.style.border =
+                                            "1px solid #3DBE64";
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (
+                                          !isDisabled &&
+                                          !isPastTime(slot.time) &&
+                                          slot.availabilityStatus === "available"
+                                        ) {
+                                          e.currentTarget.style.border =
+                                            "2px solid #0f0f0f1a";
+                                        }
+                                      }}
+                                    >
+                                      {formatTimeForDisplay(slot?.time)}
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </>
+                          ) : null}
+                        </div>
                       );
                     })}
+
                     {slotData?.data?.every(
                       (court) =>
                         !court?.slots?.some((slot) =>
-                          (showUnavailable ||
-                            (slot.availabilityStatus === "available" &&
-                              slot.status !== "booked" &&
-                              !isPastTime(slot.time))) &&
-                          filterSlotsByTab(slot, key)
+                          showUnavailable
+                            ? true // सभी स्लॉट्स चेक करें
+                            : slot.availabilityStatus === "available" &&
+                            slot.status !== "booked" &&
+                            !isPastTime(slot.time)
                         )
                     ) && (
-                      <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                        No {showUnavailable ? "unavailable" : "available"} slots
-                      </div>
-                    )}
+                        <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                          No {showUnavailable ? "unavailable" : "available"} slots
+                        </div>
+                      )}
                   </>
                 )
               ) : (
@@ -734,10 +739,15 @@ const CreateMatches = () => {
                   ></div>
                 ))}
               </div>
+
               <div className="p-4">
+                {/* Question */}
                 <h6 className="mb-4 step-heading">{steps[currentStep].question}</h6>
+
+                {/* Options */}
                 <Form style={{ height: "350px", overflowY: "auto" }}>
                   {currentStep === 1 ? (
+                    // Step 1 → Checkbox format
                     steps[currentStep].options?.map((option, i) => (
                       <div
                         key={i}
@@ -783,6 +793,7 @@ const CreateMatches = () => {
                       </div>
                     ))
                   ) : currentStep === steps.length - 1 ? (
+                    // 🔥 Last Step → Special format with Code + Title + Description
                     steps[currentStep].options?.map((option, i) => (
                       <div
                         key={i}
@@ -804,6 +815,7 @@ const CreateMatches = () => {
                           className="d-flex align-items-center gap-3 custom-radio border-primary"
                           label={
                             <div className="d-flex align-items-center gap-3">
+                              {/* Left side big Code (A, B1, etc.) */}
                               <span
                                 style={{
                                   fontSize: "24px",
@@ -814,6 +826,8 @@ const CreateMatches = () => {
                               >
                                 {option.code}
                               </span>
+
+                              {/* Right side Title + Description in one line */}
                               <span style={{ fontSize: "13px", fontWeight: "400", color: "#374151" }}>
                                 <strong style={{ fontSize: "14px", fontWeight: "600", marginRight: "5px" }}>
                                   {option.title}:
@@ -823,9 +837,11 @@ const CreateMatches = () => {
                             </div>
                           }
                         />
+
                       </div>
                     ))
                   ) : (
+                    // All other steps → Normal radio format
                     steps[currentStep].options?.map((option, i) => (
                       <div
                         key={i}
@@ -861,6 +877,7 @@ const CreateMatches = () => {
                       </div>
                     ))
                   )}
+
                   {slotError && (
                     <div
                       className="text-danger text-start w-100 position-absolute"
@@ -875,6 +892,7 @@ const CreateMatches = () => {
                     </div>
                   )}
                 </Form>
+
               </div>
               <div className="d-flex justify-content-end align-items-center p-3">
                 {currentStep > 0 && (

@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
-import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
+import { getUserSlot, getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { Button, Tab, Tabs } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
@@ -20,23 +20,29 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 const parseTimeToHour = (timeStr) => {
     if (!timeStr) return null;
     let hour;
-    let period = "am"; 
+    let period = "am";
 
     if (typeof timeStr === "string") {
-        const timeParts = timeStr.toLowerCase().split(" ");
-        if (timeParts.length > 1) {
-            [hour, period] = [timeParts[0], timeParts[1]];
+        const timeStrLower = timeStr.toLowerCase();
+        if (timeStrLower.endsWith("am") || timeStrLower.endsWith("pm")) {
+            period = timeStrLower.slice(-2);
+            hour = timeStrLower.slice(0, -2).trim();
         } else {
-            hour = timeStr; 
+            const timeParts = timeStrLower.split(" ");
+            if (timeParts.length > 1) {
+                hour = timeParts[0];
+                period = timeParts[1];
+            } else {
+                hour = timeStrLower;
+            }
         }
-
-        hour = parseInt(hour.split(":")[0]); 
+        hour = parseInt(hour.split(":")[0]);
         if (isNaN(hour)) return null;
 
         if (period === "pm" && hour !== 12) hour += 12;
         if (period === "am" && hour === 12) hour = 0;
     }
-    console.log(`Parsed Time: ${timeStr}, Hour: ${hour}, Period: ${period}`); 
+    console.log(`Parsed Time: ${timeStr}, Hour: ${hour}, Period: ${period}`);
     return hour;
 };
 
@@ -44,9 +50,9 @@ const filterSlotsByTab = (slot, eventKey) => {
     const slotHour = parseTimeToHour(slot?.time);
     if (slotHour === null) return false;
     switch (eventKey) {
-        case 'morning': return slotHour >= 0 && slotHour < 12; 
-        case 'noon': return slotHour >= 12 && slotHour < 17; 
-        case 'night': return slotHour >= 17 && slotHour <= 23; 
+        case 'morning': return slotHour >= 0 && slotHour < 12;
+        case 'noon': return slotHour >= 12 && slotHour < 17;
+        case 'night': return slotHour >= 17 && slotHour <= 23;
         default: return true;
     }
 };
@@ -68,7 +74,7 @@ const Booking = ({ className = "" }) => {
     const [errorShow, setErrorShow] = useState(false);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const dateRefs = useRef({});
-    const [key, setKey] = useState('morning'); 
+    const [key, setKey] = useState('morning');
     const [defaultTime] = useState(() => {
         const now = new Date();
         now.setHours(now.getHours() + 1);
@@ -299,7 +305,18 @@ const Booking = ({ className = "" }) => {
 
     const handleSwitchChange = () => setShowUnavailable(!showUnavailable);
 
-    const formatTimeForDisplay = (time) => (time ? `${time.toLowerCase().split(" ")[0]}:00 ${time.toLowerCase().split(" ")[1]}` : "");
+    const formatTimeForDisplay = (time) => {
+        if (!time) return "";
+        const timeLower = time.toLowerCase();
+        let hourPart = timeLower.replace(/(am|pm)/gi, "").trim();
+        const periodMatch = timeLower.match(/(am|pm)/gi);
+        const periodPart = periodMatch ? periodMatch[0] : "";
+        if (!hourPart.includes(":")) {
+            hourPart = `${hourPart}:00`;
+        }
+        return `${hourPart} ${periodPart}`;
+    };
+
     const isPastTime = (timeStr) => {
         const slotHour = parseTimeToHour(timeStr);
         if (slotHour === null) return false;
@@ -324,30 +341,40 @@ const Booking = ({ className = "" }) => {
         }
     }, [errorShow, errorMessage]);
 
-    const [tabCounts, setTabCounts] = useState([0, 0, 0]); 
+    const [tabCounts, setTabCounts] = useState([0, 0, 0]);
     const tabData = [
         { eventKey: 'morning', label: 'Morning' },
-        { eventKey: 'noon', label: 'Noon' }, 
+        { eventKey: 'noon', label: 'Noon' },
         { eventKey: 'night', label: 'Night' },
     ];
 
     useEffect(() => {
-        const counts = [0, 0, 0]; 
+        const counts = [0, 0, 0];
         slotData?.data?.forEach((court) => {
             court?.slots?.forEach((slot) => {
                 if (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) {
                     const slotHour = parseTimeToHour(slot.time);
                     console.log(`Slot: ${slot.time}, Hour: ${slotHour}, Availability: ${slot.availabilityStatus}, Status: ${slot.status}`); // Detailed debug
                     if (slotHour !== null) {
-                        if (slotHour >= 0 && slotHour < 12) counts[0]++; 
-                        else if (slotHour >= 12 && slotHour < 17) counts[1]++; 
-                        else if (slotHour >= 17 && slotHour <= 23) counts[2]++; 
+                        if (slotHour >= 0 && slotHour < 12) counts[0]++;
+                        else if (slotHour >= 12 && slotHour < 17) counts[1]++;
+                        else if (slotHour >= 17 && slotHour <= 23) counts[2]++;
                     }
                 }
             });
         });
-        console.log("Tab Counts:", counts); 
+        console.log("Tab Counts:", counts);
         setTabCounts(counts);
+
+        // Set default tab to morning if it has data, otherwise the first tab with data
+        let defaultTab = 'morning';
+        if (counts[0] === 0) {
+            const firstAvailableIndex = counts.findIndex(count => count > 0);
+            if (firstAvailableIndex !== -1) {
+                defaultTab = tabData[firstAvailableIndex].eventKey;
+            }
+        }
+        setKey(defaultTab);
     }, [slotData, showUnavailable]);
 
     return (
@@ -504,9 +531,9 @@ const Booking = ({ className = "" }) => {
                                                         const isDisabled = isLimitReached || slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time);
 
                                                         return (
-                                                            <div className="col-auto p-lg-0 me-lg-0" key={i}>
+                                                            <div className="col-lg-auto col-4 p-lg-0 me-lg-0 mb-3" key={i}>
                                                                 <button
-                                                                    className="btn rounded-3 slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
+                                                                    className="btn rounded-3 slot-time-btn text-center me-lg-1  ms-lg-1 text-lg-nowrap mb-md-3 mb-lg-3 p-0 mb-1"
                                                                     onClick={() => toggleTime(slot, court._id)}
                                                                     disabled={isDisabled}
                                                                     style={{
@@ -588,7 +615,7 @@ const Booking = ({ className = "" }) => {
                             {totalSlots > 0 && (
                                 <div className="border-top pt-3 mt-2 d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden" }}>
                                     <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
-                                        Total to Pay <span style={{ fontSize: "14px", fontWeight: "600" }}>Slots {totalSlots}</span>
+                                        Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Slots {totalSlots}</span>
                                     </p>
                                     <p style={{ fontSize: "25px", fontWeight: "600", color: "#1A237E" }}>₹ {grandTotal}</p>
                                 </div>
