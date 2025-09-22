@@ -123,15 +123,12 @@ const BookingHistory = () => {
                 statusMatch = ["in-progress", "refunded", "rejected"].includes(status);
             }
         } else if (activeTab === "upcoming") {
-            // upcoming tab => upcoming + in-progress
             statusMatch = ["upcoming", "in-progress"].includes(status);
         } else if (activeTab === "completed") {
-            // completed tab => only completed
             statusMatch = status === "completed";
         } else if (activeTab === "all") {
             statusMatch = true;
         } else {
-            // other tabs => show all
             statusMatch = true;
         }
 
@@ -156,19 +153,19 @@ const BookingHistory = () => {
     const totalRecords = getBookingData?.bookingData?.total || getBookingData?.bookingData?.length;
 
     const getOrdinalSuffix = (day) => {
-        if (day > 3 && day < 21) return 'th ';
+        if (day > 3 && day < 21) return "th ";
         switch (day % 10) {
-            case 1: return 'st ';
-            case 2: return 'nd ';
-            case 3: return 'rd ';
-            default: return 'th';
+            case 1: return "st ";
+            case 2: return "nd ";
+            case 3: return "rd ";
+            default: return "th";
         }
     };
 
     const formatDate = (date) => {
         const d = new Date(date);
         const day = d.getDate();
-        const month = d.toLocaleString('en-US', { month: 'short' });
+        const month = d.toLocaleString("en-US", { month: "short" });
         const year = d.getFullYear();
         return `${day}${getOrdinalSuffix(day)}${month}' ${year}`;
     };
@@ -177,7 +174,7 @@ const BookingHistory = () => {
         <Container>
             <Row className="mb-lg-5 mb-3 mt-lg-5 mt-3">
                 <Col md={6}>
-                    <h2 className=" booking-history-heading" >Booking History</h2>
+                    <h2 className="booking-history-heading">Booking History</h2>
                 </Col>
             </Row>
 
@@ -234,8 +231,6 @@ const BookingHistory = () => {
                             />
                         ))}
                     </Tabs>
-
-
                 </AppBar>
             </Box>
             <Row className="mb-3">
@@ -247,7 +242,7 @@ const BookingHistory = () => {
 
                 <Col xs={12} md={6} className="d-flex flex-row gap-2 justify-content-md-end align-items-center">
                     <InputGroup className="rounded d-flex p-1 align-items-center" style={{ backgroundColor: "#FAFBFF" }}>
-                        <InputGroup.Text className="bg-light border-0 px-">
+                        <InputGroup.Text className="bg-light border-0 px-2">
                             <MdOutlineDateRange size={16} className="text-muted" />
                         </InputGroup.Text>
                         <DatePicker
@@ -256,8 +251,7 @@ const BookingHistory = () => {
                             dateFormat="dd/MM/yy"
                             placeholderText="dd/mm/yy"
                             calendarClassName="custom-calendar"
-                            className="form-control border-0 bg-transparent  shadow-none custom-datepicker-input"
-
+                            className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
                         />
                         {searchDate && (
                             <InputGroup.Text
@@ -292,58 +286,62 @@ const BookingHistory = () => {
             <Row>
                 <Col md={12}>
                     <div className="custom-scroll-container">
-                        <Table borderless responsive size="sm" className="booking-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>                            <thead>
-                            <tr className="p-0">
-                                <th className="text-start px-5" rowSpan={1} style={{ borderRadius: "15px 0 0 0" }}>Booking Date / Time</th>
-                                <th className="text- ">Court Name</th>
-                                <th>Booking Type</th>
-                                {activeTab === "cancelled" && <th>Reason</th>}
-                                {activeTab === "completed" && <th>Rating</th>}
-                                {activeTab === "completed" && <th>Message</th>}
-                                <th>Amount</th>
-                                {activeTab === "cancelled" && (
-                                    <th>
-                                        <div className="dropdown-wrapper">
-                                            <div
-                                                className="dropdown-header table-data"
-                                                onClick={() => setIsOpen(!isOpen)}
-                                            >
-                                                Status{" "}
-                                                <b className="arrow">
-                                                    <i className="bi bi-chevron-down text-dark fw-bold"></i>
-                                                </b>
-                                            </div>
-                                            {isOpen && (
-                                                <div className="dropdown-list text-start">
-                                                    <div className="mb-0" onClick={() => handleSelect("All")}>
-                                                        All
-                                                    </div>
-                                                    <div
-                                                        className="mb-0"
-                                                        onClick={() => handleSelect("Accepted")}
-                                                    >
-                                                        Accepted
-                                                    </div>
-                                                    <div
-                                                        className="mb-0"
-                                                        onClick={() => handleSelect("Rejected")}
-                                                    >
-                                                        Rejected
-                                                    </div>
-                                                    <div
-                                                        className="mb-0"
-                                                        onClick={() => handleSelect("Requested")}
-                                                    >
-                                                        Requested
-                                                    </div>
+                        <Table borderless responsive size="sm" className="booking-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>
+                            <thead style={{ height: "48px", overflow: "hidden" }}>
+                                <tr className="p-0">
+                                    <th className="text-start px-5" style={{ borderRadius: "15px 0 0 0", minHeight: "48px", padding: "8px 0" }}>Booking Date / Time</th>
+                                    <th className="text-center" style={{ minHeight: "48px", padding: "8px 0" }}>Court Name</th>
+                                    <th style={{ minHeight: "48px", padding: "8px 0" }}>Booking Type</th>
+                                    {activeTab === "cancelled" && <th style={{ minHeight: "48px", padding: "8px 0" }}>Reason</th>}
+                                    {activeTab === "completed" && <th style={{ minHeight: "48px", padding: "8px 0" }}>Rating</th>}
+                                    {activeTab === "completed" && <th style={{ minHeight: "48px", padding: "8px 0" }}>Message</th>}
+                                    <th style={{ minHeight: "48px", padding: "8px 0" }}>Amount</th>
+                                    {activeTab === "cancelled" && (
+                                        <th className="position-relative" style={{ padding: "2px 0" }}>
+                                            <div className="dropdown-wrapper">
+                                                <div
+                                                    className="dropdown-header table-data"
+                                                    onClick={() => setIsOpen(!isOpen)}
+                                                    style={{ minHeight: "32px", padding: "4px 8px", cursor: "pointer" }}
+                                                >
+                                                    Status{" "}
+                                                    <b className="arrow">
+                                                        <i className="bi bi-chevron-down text-dark fw-bold"></i>
+                                                    </b>
                                                 </div>
-                                            )}
-                                        </div>
-                                    </th>
-                                )}
-                                <th style={{ borderRadius: "0 15px 0 0" }}>Action</th>
-                            </tr>
-                        </thead>
+
+                                                {isOpen && (
+                                                    <div
+                                                        className="dropdown-list text-start"
+                                                        style={{
+                                                            position: "absolute",
+                                                            top: "calc(100% + 2px)", // Slightly below to avoid cutting
+                                                            left: 0,
+                                                            zIndex: 1000,
+                                                            background: "white",
+                                                            border: "1px solid #ddd",
+                                                            borderRadius: "4px",
+                                                            padding: "4px 8px",
+                                                            minWidth: "120px",
+                                                            maxWidth: "150px", // Prevent excessive width
+                                                            maxHeight: "200px", // Limit height for scrolling
+                                                            overflowY: "auto", // Smooth scrolling if needed
+                                                            boxShadow: "0 2px 5px rgba(0,0,0,0.1)", // Optional: Add shadow for better look
+                                                        }}
+                                                    >
+                                                        <div className="mb-1" onClick={() => handleSelect("All")}>All</div>
+                                                        <div className="mb-1" onClick={() => handleSelect("Accepted")}>Accepted</div>
+                                                        <div className="mb-1" onClick={() => handleSelect("Rejected")}>Rejected</div>
+                                                        <div className="mb-1" onClick={() => handleSelect("Requested")}>Requested</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </th>
+
+                                    )}
+                                    <th style={{ borderRadius: "0 15px 0 0", minHeight: "48px", padding: "8px 0" }}>Action</th>
+                                </tr>
+                            </thead>
                             {getBookingData?.bookingLoading ? (
                                 <tbody>
                                     <tr>
@@ -357,58 +355,56 @@ const BookingHistory = () => {
                                     </tr>
                                 </tbody>
                             ) : filterStatus?.length > 0 ? (
-                                <tbody className=" ">
+                                <tbody className="">
                                     {filterStatus?.map((booking, i) =>
                                         booking?.slot?.map((slotItem, index) => (
-                                            <tr
-                                                key={`${i}-${index}`}
-                                                className=" border-bottom"
-                                            >
-                                                <td className="table-data py-2 pt-3  ps-5 text-start" style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
+                                            <tr key={`${i}-${index}`} className="border-bottom">
+                                                <td className="table-data py-2 pt-3 ps-5 text-start" style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
                                                     {formatDate(booking?.bookingDate)} | {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
                                                             return time ? formatTime(time) : "";
                                                         }) || [];
                                                         const displayed = times?.slice(0, 5).join(", ");
-                                                        return times?.length > 5 ? ` ${displayed} ...` : displayed;
+                                                        return times?.length > 5 ? `${displayed} ...` : displayed;
                                                     })()}
                                                 </td>
-                                                <td className="table-data pt-3  py-2">
+                                                <td className="table-data pt-3 py-2">
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
                                                 <td className="table-data pt-3 py-2">
-                                                    {booking?.bookingType.charAt(0).toUpperCase() +
-                                                        (booking?.bookingType?.slice(1)) || "N/A"}
+                                                    {booking?.bookingType.charAt(0).toUpperCase() + (booking?.bookingType?.slice(1)) || "N/A"}
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
-                                                    <td className="py-2 pt-3">
-                                                        {booking?.cancellationReason?.charAt(0).toUpperCase() +
-                                                            (booking?.cancellationReason?.slice(1) || "")}
+                                                    <td
+                                                        className="py-2 pt-3"
+                                                        title={booking?.cancellationReason || "N/A"}
+                                                    >
+                                                        {booking?.cancellationReason
+                                                            ? (() => {
+                                                                const words = booking.cancellationReason.split(" ");
+                                                                let shortText = words.slice(0, 3).join(" ");
+                                                                if (words.length > 20) shortText += " ...";
+                                                                return shortText.charAt(0).toUpperCase() + shortText.slice(1);
+                                                            })()
+                                                            : "N/A"}
                                                     </td>
                                                 )}
                                                 {activeTab === "completed" && (
                                                     <td className="text-center pt-3 py-2">
                                                         {[1, 2, 3, 4, 5].map((star) => {
-                                                            const averageRating =
-                                                                booking?.customerReview?.reviewRating || 0;
+                                                            const averageRating = booking?.customerReview?.reviewRating || 0;
                                                             let iconClass = "bi-star";
                                                             if (star <= Math.floor(averageRating))
                                                                 iconClass = "bi-star-fill";
-                                                            else if (
-                                                                star - averageRating <= 0.5 &&
-                                                                star - averageRating > 0
-                                                            )
+                                                            else if (star - averageRating <= 0.5 && star - averageRating > 0)
                                                                 iconClass = "bi-star-half";
                                                             return (
                                                                 <i
                                                                     key={star}
                                                                     className={`bi ${iconClass} ms-2`}
-                                                                    style={{
-                                                                        color: "#3DBE64",
-                                                                        fontSize: "18px",
-                                                                    }}
+                                                                    style={{ color: "#3DBE64", fontSize: "18px" }}
                                                                 />
                                                             );
                                                         })}
@@ -431,7 +427,6 @@ const BookingHistory = () => {
 
                                                                     if (!comment) return "";
 
-                                                                    // Split into words
                                                                     const words = comment.split(/\s+/);
 
                                                                     if (words.length <= 20) {
@@ -442,9 +437,7 @@ const BookingHistory = () => {
                                                                     }
                                                                 })()}
                                                             </span>
-
                                                         </OverlayTrigger>
-
                                                     </td>
                                                 )}
                                                 <td className="py-2 pt-3"
@@ -480,7 +473,6 @@ const BookingHistory = () => {
                                                 )}
                                                 <td className="text-center py-2 pt-3">
                                                     <div className="d-flex align-items-center justify-content-center gap-2">
-                                                        {/* Status Display or Cancel Icon */}
                                                         {activeTab !== "completed" && booking?.bookingStatus !== "completed" ? (
                                                             <>
                                                                 {booking?.bookingStatus === "in-progress" ? (
@@ -557,7 +549,6 @@ const BookingHistory = () => {
                                                             )
                                                         )}
 
-                                                        {/* Eye Icon */}
                                                         <span style={{ minWidth: "24px", display: "flex", justifyContent: "center" }}>
                                                             <FiEye
                                                                 size={20}
@@ -618,7 +609,6 @@ const BookingHistory = () => {
                                                         </span>
                                                     </div>
                                                 </td>
-
                                             </tr>
                                         ))
                                     )}
@@ -641,7 +631,7 @@ const BookingHistory = () => {
                 </Col>
             </Row>
 
-            <Row className=" mb-5">
+            <Row className="mb-5">
                 <Col className="d-flex mb-5 justify-content-center">
                     <Pagination
                         totalRecords={totalRecords}
