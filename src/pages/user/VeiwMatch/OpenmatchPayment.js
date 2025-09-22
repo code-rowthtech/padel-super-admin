@@ -264,7 +264,7 @@ const OpenmatchPayment = (props) => {
         }
         const date = new Date(dateString);
         const day = dayShortMap[date.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
-        const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}${date.toLocaleDateString("en-US", { month: "short" })}`;
+        const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}, ${date.toLocaleDateString("en-US", { month: "short" })}`;
         return { day, formattedDate };
     };
 

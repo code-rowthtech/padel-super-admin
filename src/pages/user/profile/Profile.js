@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCamera, FaUserCircle } from "react-icons/fa";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, userLoading, userError } = useSelector((state) => state?.userAuth);
-    const store = useSelector((state) => state?.userAuth);
+  const store = useSelector((state) => state?.userAuth);
 
   // Format date for input
   const formatDateForInput = (isoDate) => {
@@ -133,8 +133,9 @@ const Profile = () => {
   };
 
   return (
-    <div className="container py-lg-4 mb-5 mt-lg-5 px-3 px-md-5" style={{  borderRadius: "12px" }}>
-      <div className="mt-5"
+    <div className="container py-lg-4 mb-5 mt-lg-5 px-3 px-md-5" style={{ borderRadius: "12px" }}>
+      <div
+        className="mt-5"
         style={{
           background: "linear-gradient(to right, #A18CD1, #FBC2EB)",
           height: "80px",
@@ -184,39 +185,46 @@ const Profile = () => {
             accept="image/*"
             onChange={handleImageChange}
             hidden
-            style={{boxShadow:"none"}}
+            style={{ boxShadow: "none" }}
           />
         </div>
 
         <div className="row mt-4">
           <div className="col-12 col-md-4 mb-3">
-            <label className="label">Full Name</label>
+            <label className="label">
+              Full Name <span className="text-danger">*</span>
+            </label>
             <input
               type="text"
               name="fullName"
               value={formData.fullName}
               onChange={handleChange}
               className="form-control"
-              style={{boxShadow:"none"}}
+              style={{ boxShadow: "none" }}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
-            <label className=" label">Email</label>
+            <label className="label">
+              Email <span className="text-danger">*</span>
+            </label>
             <input
               type="email"
               name="email"
-              value={formData.email}
+              value={formData?.email}
               onChange={handleChange}
               className="form-control"
-              style={{boxShadow:"none"}}
+              style={{ boxShadow: "none" }}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
-            <label className="label">Phone Number</label>
+            <label className="label">
+              Phone Number <span className="text-danger">*</span>
+            </label>
             <input
               type="text"
               name="phone"
               value={formData.phone}
+              disabled={user?.response?.phoneNumber || store?.userSignUp?.response?.phoneNumber || User?.phoneNumber}
               onChange={(e) => {
                 const value = e.target.value;
                 if (/^\d{0,10}$/.test(value)) {
@@ -227,7 +235,7 @@ const Profile = () => {
               }}
               className="form-control"
               maxLength={10}
-              style={{boxShadow:"none"}}
+              style={{ boxShadow: "none" }}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -238,7 +246,7 @@ const Profile = () => {
               value={formData.dob}
               onChange={handleChange}
               className="form-control"
-              style={{boxShadow:"none"}}
+              style={{ boxShadow: "none" }}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -249,7 +257,7 @@ const Profile = () => {
               value={formData.location}
               onChange={handleChange}
               className="form-control"
-              style={{boxShadow:"none"}}
+              style={{ boxShadow: "none" }}
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -263,7 +271,7 @@ const Profile = () => {
                   value={g}
                   checked={formData.gender === g}
                   onChange={handleChange}
-                  style={{boxShadow:"none"}}
+                  style={{ boxShadow: "none" }}
                 />
                 <label className="form-check-label">{g}</label>
               </div>
@@ -271,7 +279,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="d-flex flex- flex-md-row justify-content-between justify-content-lg-end gap-3 mb-4">
+        <div className="d-flex flex-column flex-md-row justify-content-between justify-content-lg-end gap-3 mb-4">
           <button type="button" className="btn btn-secondary px-4" onClick={handleCancel}>
             Cancel
           </button>

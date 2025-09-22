@@ -489,7 +489,7 @@ const Booking = ({ className = "" }) => {
                                         className="rounded-3 text-center"
                                         key={tab.eventKey}
                                         eventKey={tab.eventKey}
-                                        disabled={tabCounts[index] === 0}
+                                        // disabled={tabCounts[index] === 0}
                                         title={
                                             <span className="tab-titl text-center" style={{ fontSize: "13px", fontWeight: "500", fontFamily: "Poppins" }}>
                                                 {tab.label} <b className="text-warning">({tabCounts[index]})</b>
@@ -500,7 +500,7 @@ const Booking = ({ className = "" }) => {
                             </Tabs>
                         </div>
 
-                        <div className="d-flex flex-column gap-3 overflow-slot">
+                        <div className="d-flex flex-column gap-3 mb-3 overflow-slot">
                             {slotData?.data?.length > 0 ? (
                                 slotLoading ? (
                                     <DataLoading height={"50vh"} />
@@ -519,7 +519,7 @@ const Booking = ({ className = "" }) => {
                                             if (filteredSlots?.length === 0) return null;
 
                                             return (
-                                                <div className={`row ps-2 pe-2 ${!court?.slots || !showUnavailable ? 'border-bottom' : ""}`} key={court._id}>
+                                                <div className={`row ps-2 pe-2 ${filteredSlots?.length > 0 ? 'border-bottom' : ""}`} key={court._id}>
                                                     <div className="p-2 d-flex justify-content-between rounded">
                                                         <div className="court-data d-flex gap-2">
                                                             <h5 className="all-matches mb-0">{court?.courtName}</h5>
@@ -597,7 +597,7 @@ const Booking = ({ className = "" }) => {
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex">
                                                         <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
                                                         </span>
                                                         <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {formatTime(timeSlot.time)}

@@ -301,27 +301,25 @@ const Payment = ({ className = "" }) => {
                                     <div className="input-group">
                                         <span className="input-group-text border-0 p-2" style={{ backgroundColor: "#F5F5F5" }}>
                                             <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
-                                            <span>
-                                                <IoIosArrowDown />
-                                            </span>
                                         </span>
                                         <input
                                             type="text"
-                                            maxLength={13} // +91 (3 chars) + space (1 char) + 9 digits = 13
+                                            maxLength={13} 
                                             value={phoneNumber}
                                             style={{ boxShadow: "none" }}
+                                            disabled={user.phoneNumber}
                                             onChange={(e) => {
-                                                const inputValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric chars
+                                                const inputValue = e.target.value.replace(/[^0-9]/g, ""); 
                                                 if (inputValue === "" || /^[6-9][0-9]{0,9}$/.test(inputValue)) {
                                                     const formattedValue = inputValue === ""
                                                         ? ""
-                                                        : `+91 ${inputValue}`; // Prepend +91 and add space
+                                                        : `+91 ${inputValue}`; 
                                                     setPhoneNumber(formattedValue);
                                                 }
                                             }}
                                             className="form-control border-0 p-2"
                                             placeholder="+91"
-                                            pattern="[+][0-9]{2}\s[6-9][0-9]{9}" // Updated pattern for +91 followed by space and 10 digits
+                                            pattern="[+][0-9]{2}\s[6-9][0-9]{9}" 
                                             title="Phone number must be in the format +91 followed by 10 digits starting with 6, 7, 8, or 9"
                                         />
                                     </div>
@@ -464,7 +462,7 @@ const Payment = ({ className = "" }) => {
                                                                 const date = new Date(court.date);
                                                                 const day = date.toLocaleString("en-US", { day: "2-digit" });
                                                                 const month = date.toLocaleString("en-US", { month: "short" });
-                                                                return `${day}${month}`;
+                                                                return `${day}, ${month}`;
                                                             })()}
                                                         </span>
 
