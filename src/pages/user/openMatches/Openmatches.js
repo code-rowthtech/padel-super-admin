@@ -560,7 +560,7 @@ const Openmatches = () => {
                                                             className="text-primary all-matches"
                                                             style={{ fontWeight: "600", fontFamily: "none" }}
                                                         >
-                                                            ₹ <span className="all-matches" style={{ fontWeight: "500" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                            ₹ <span className="all-matches" style={{ fontWeight: "500",fontSize:"20px",fontWeight:"500",color:"#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
                                                         </div>
                                                         <button
                                                             className="btn rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-white"
