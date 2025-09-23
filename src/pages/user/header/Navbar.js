@@ -71,7 +71,7 @@ const Navbar = () => {
 
     return (
         <nav className="navbar navbar-expand-lg bg-white py-2">
-            <div className="container-fluid py-1 ps-lg-5 pe-lg-5">
+            <div className="container py-1">
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
                     {logo ?
