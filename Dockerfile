@@ -10,6 +10,7 @@ COPY . .
 ENV SKIP_PREFLIGHT_CHECK=true
 ENV NODE_ENV=production
 ENV GENERATE_SOURCEMAP=false
+ENV REACT_APP_API_URL=http://103.185.212.117:7600/
 RUN npm run build
 
 # Production stage
