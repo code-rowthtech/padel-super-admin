@@ -775,7 +775,7 @@ h1.display-5 {
 .form-control::placeholder {
   font-weight: 400;
   font-family: "Poppins";
-  font-size: 12px;
+  font-size: 14px;
   color: #d9d9d9;
 }
 

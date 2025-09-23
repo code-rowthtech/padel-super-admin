@@ -498,7 +498,6 @@ const Booking = ({ className = "" }) => {
                                 ))}
                             </Tabs>
                         </div>
-
                         <div className="d-flex flex-column gap-3 mb-3 overflow-slot">
                             {slotData?.data?.length > 0 ? (
                                 slotLoading ? (
