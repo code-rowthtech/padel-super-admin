@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import {
@@ -33,7 +33,7 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import Pagination from "../../../helpers/Pagination";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import TokenExpire from "../../../helpers/TokenExpire";
-
+import ReactDOM from "react-dom";
 const BookingHistory = () => {
     const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState("all");
@@ -54,8 +54,8 @@ const BookingHistory = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const getBookingData = useSelector((state) => state?.userBooking);
     const User = getUserFromSession();
-    const renderSlotTimes = (slotTimes) =>
-        slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
+    const headerRef = useRef(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
     const a11yProps = (index) => ({
         id: `full-width-tab-${index}`,
@@ -98,7 +98,7 @@ const BookingHistory = () => {
         else if (activeTab === "upcoming") type = "upcoming";
         else if (activeTab === "completed") type = "completed";
         else if (activeTab === "all") type = "all";
-        dispatch(getBooking({ type, page: pageNumber }));
+        dispatch(getBooking({ type}));
     };
 
     const handleClearDate = () => setSearchDate(null);
@@ -169,6 +169,16 @@ const BookingHistory = () => {
         const year = d.getFullYear();
         return `${day}${getOrdinalSuffix(day)}${month}' ${year}`;
     };
+
+    useEffect(() => {
+        if (isOpen && headerRef.current) {
+            const rect = headerRef.current.getBoundingClientRect();
+            setDropdownPosition({
+                top: rect.bottom + window.scrollY, 
+                left: rect.left + window.scrollX, 
+            });
+        }
+    }, [isOpen]);
 
     return (
         <Container>
@@ -299,43 +309,62 @@ const BookingHistory = () => {
                                     {activeTab === "cancelled" && (
                                         <th className="position-relative" style={{ padding: "2px 0" }}>
                                             <div className="dropdown-wrapper">
+                                                {/* Header */}
                                                 <div
+                                                    ref={headerRef}
                                                     className="dropdown-header table-data"
                                                     onClick={() => setIsOpen(!isOpen)}
-                                                    style={{ minHeight: "32px", padding: "4px 8px", cursor: "pointer" }}
+                                                    style={{
+                                                        minHeight: "32px",
+                                                        padding: "4px 8px",
+                                                        cursor: "pointer",
+                                                        background: "transparent",
+                                                        borderRadius: "4px",
+                                                    }}
                                                 >
                                                     Status{" "}
                                                     <b className="arrow">
                                                         <i className="bi bi-chevron-down text-dark fw-bold"></i>
                                                     </b>
                                                 </div>
+                                            </div>
 
-                                                {isOpen && (
+                                            {/* Dropdown menu rendered in body */}
+                                            {isOpen &&
+                                                ReactDOM.createPortal(
                                                     <div
                                                         className="dropdown-list text-start"
                                                         style={{
                                                             position: "absolute",
-                                                            top: "calc(100% + 2px)", // Slightly below to avoid cutting
-                                                            left: 0,
+                                                            top: `${dropdownPosition.top}px`,
+                                                            left: `${dropdownPosition.left}px`,
                                                             zIndex: 1000,
                                                             background: "white",
                                                             border: "1px solid #ddd",
                                                             borderRadius: "4px",
                                                             padding: "4px 8px",
                                                             minWidth: "120px",
-                                                            maxWidth: "150px", // Prevent excessive width
-                                                            maxHeight: "200px", // Limit height for scrolling
-                                                            overflowY: "auto", // Smooth scrolling if needed
-                                                            boxShadow: "0 2px 5px rgba(0,0,0,0.1)", // Optional: Add shadow for better look
+                                                            maxWidth: "150px",
+                                                            maxHeight: "200px",
+                                                            overflowY: "auto",
+                                                            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
                                                         }}
                                                     >
-                                                        <div className="mb-1" onClick={() => handleSelect("All")}>All</div>
-                                                        <div className="mb-1" onClick={() => handleSelect("Accepted")}>Accepted</div>
-                                                        <div className="mb-1" onClick={() => handleSelect("Rejected")}>Rejected</div>
-                                                        <div className="mb-1" onClick={() => handleSelect("Requested")}>Requested</div>
-                                                    </div>
+                                                        <div className="mb-1" onClick={() => handleSelect("All")}>
+                                                            All
+                                                        </div>
+                                                        <div className="mb-1" onClick={() => handleSelect("Accepted")}>
+                                                            Accepted
+                                                        </div>
+                                                        <div className="mb-1" onClick={() => handleSelect("Rejected")}>
+                                                            Rejected
+                                                        </div>
+                                                        <div className="mb-1" onClick={() => handleSelect("Requested")}>
+                                                            Requested
+                                                        </div>
+                                                    </div>,
+                                                    document.body
                                                 )}
-                                            </div>
                                         </th>
 
                                     )}
