@@ -406,7 +406,7 @@ const BookingHistory = () => {
 
                                                 {activeTab === "cancelled" && (
                                                     <td
-                                                        className="py-2 pt-3"
+                                                        className="py-2 table-data pt-3"
                                                         title={booking?.cancellationReason || "N/A"}
                                                     >
                                                         {booking?.cancellationReason
@@ -439,7 +439,7 @@ const BookingHistory = () => {
                                                     </td>
                                                 )}
                                                 {activeTab === "completed" && (
-                                                    <td className="py-2 pt-3">
+                                                    <td className="py-2 table-data pt-3">
                                                         <OverlayTrigger
                                                             placement="top"
                                                             overlay={
