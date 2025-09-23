@@ -626,7 +626,6 @@ const ManualBooking = () => {
                             if (period === "pm" && hour !== 12) hour += 12;
                             if (period === "am" && hour === 12) hour = 0;
                             slotDate.setHours(hour, 0, 0, 0);
-
                             const now = new Date();
                             const isSameDay =
                               slotDate.toDateString() === now.toDateString();
