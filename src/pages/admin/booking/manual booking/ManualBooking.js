@@ -575,7 +575,7 @@ const ManualBooking = () => {
                     }}
                   >
                     Available Slots
-                    <span className="fs-6 text-muted">(60m)</span>
+                    <span className=" text-muted ps-2" style={{fontSize:"12px",fontFamily:"Poppins",fontWeight:"500"}}>(60m)</span>
                   </p>
                   <div className="form-switch d-flex justify-content-lg-center align-items-center gap-2">
                     <label
