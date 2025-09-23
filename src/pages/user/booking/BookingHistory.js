@@ -97,7 +97,7 @@ const BookingHistory = () => {
         else if (activeTab === "upcoming") type = "upcoming";
         else if (activeTab === "completed") type = "completed";
         else if (activeTab === "all") type = "all";
-        dispatch(getBooking({ type}));
+        dispatch(getBooking({ type }));
     };
 
     const handleClearDate = () => setSearchDate(null);
@@ -173,8 +173,8 @@ const BookingHistory = () => {
         if (isOpen && headerRef.current) {
             const rect = headerRef.current.getBoundingClientRect();
             setDropdownPosition({
-                top: rect.bottom + window.scrollY, 
-                left: rect.left + window.scrollX, 
+                top: rect.bottom + window.scrollY,
+                left: rect.left + window.scrollX,
             });
         }
     }, [isOpen]);
@@ -365,7 +365,6 @@ const BookingHistory = () => {
                                                     document.body
                                                 )}
                                         </th>
-
                                     )}
                                     <th style={{ borderRadius: "0 15px 0 0", minHeight: "48px", padding: "8px 0" }}>Action</th>
                                 </tr>
@@ -658,7 +657,6 @@ const BookingHistory = () => {
                     </div>
                 </Col>
             </Row>
-
             <Row className="mb-5">
                 <Col className="d-flex mb-5 justify-content-center">
                     <Pagination
@@ -669,7 +667,6 @@ const BookingHistory = () => {
                     />
                 </Col>
             </Row>
-
             <BookingHistoryCancelModal
                 show={modalCancel}
                 onHide={() => setModalCancel(false)}
@@ -721,3 +718,7 @@ const BookingHistory = () => {
 };
 
 export default BookingHistory;
+
+
+
+
