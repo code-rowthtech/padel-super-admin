@@ -1,22 +1,22 @@
 # Build stage
-FROM node:18-alpine as build
+FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-
-# Install dependencies + build tools
 RUN apk add --no-cache python3 make g++ \
-    && npm install --legacy-peer-deps
-
+    && npm install --legacy-peer-deps \
+    && npm cache clean --force
 COPY . .
+# Skip preflight checks and set environment variables
 ENV SKIP_PREFLIGHT_CHECK=true
 ENV NODE_ENV=production
+ENV GENERATE_SOURCEMAP=false
 RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Nginx config
+# Create nginx config directly in the Dockerfile
 RUN echo 'server { \
     listen 80; \
     root /usr/share/nginx/html; \
