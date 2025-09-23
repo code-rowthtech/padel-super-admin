@@ -45,15 +45,6 @@ const Payment = ({ className = "" }) => {
     const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
     const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
     const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
-    const dayMap = {
-        sunday: "Sun",
-        monday: "Mon",
-        tuesday: "Tue",
-        wednesday: "Wed",
-        thursday: "Thu",
-        friday: "Fri",
-        saturday: "Sat",
-    };
 
     useEffect(() => {
         const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);
@@ -259,7 +250,7 @@ const Payment = ({ className = "" }) => {
                             </h6>
                             <div className="row">
                                 <div className="col-12 col-md-4 mb-3 p-1">
-                                    <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                    <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
                                     <input
@@ -295,7 +286,7 @@ const Payment = ({ className = "" }) => {
                                 </div>
 
                                 <div className="col-12 col-md-4 mb-3 p-1">
-                                    <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                    <label className="form-label mb-0 ps-lg-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
                                     <div className="input-group">
@@ -330,7 +321,7 @@ const Payment = ({ className = "" }) => {
                                     )}
                                 </div>
                                 <div className="col-12 col-md-4 mb-3 p-1">
-                                    <label className="form-label mb-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                    <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                     </label>
                                     <input

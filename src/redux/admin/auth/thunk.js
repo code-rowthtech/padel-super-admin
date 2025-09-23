@@ -27,7 +27,7 @@ export const sendOtp = createAsyncThunk(
         showSuccess(res?.data?.message);
         return res?.data;
       } else {
-        showError(res?.data?.message || "Failed to send OTP");
+        // showError(res?.data?.message || "Failed to send OTP");
         return rejectWithValue(res?.data?.message || "Failed to send OTP");
       }
     } catch (error) {

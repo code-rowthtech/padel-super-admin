@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,9 +10,21 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [apiError, setApiError] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { authLoading } = useSelector((state) => state.ownerAuth);
+  const emailOtp = useSelector((state) => state.ownerAuth);
+
+  useEffect(() => {
+    if (emailOtp?.error) {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [emailOtp?.error]);
 
   const validateEmail = (value) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,11 +56,13 @@ const ForgotPassword = () => {
     }
   };
 
+
+
   return (
     <Layout>
       <div className="">
-        <h2 className="fw-bold">FORGOT PASSWORD</h2>
-        <p className="text-muted">Please enter your email address</p>
+        <h2 className="welcome-heading">FORGOT PASSWORD</h2>
+        <p className="text-muted" style={{fontSize:"16px", fontFamily:"Poppins",fontWeight:"400"}}>Please enter your email address </p>
         {emailError && (
           <span className="text-danger p-0 m-0">{emailError}</span>
         )}
@@ -58,15 +72,15 @@ const ForgotPassword = () => {
             {apiError}
           </Alert>
         )} */}
-        {/* {emailError && (
-          <Alert variant="warning" className="p-0 px-1">
-            {emailError}
+        {emailOtp?.error && showAlert && (
+          <Alert variant="danger" className="p-1 px-1">
+            {emailOtp?.error?.slice(0,30)}
           </Alert>
-        )} */}
+        )}
 
         <Form onSubmit={handleSubmit} style={{ width: "314px" }}>
           <Form.Group className="mb-3">
-            <Form.Label>
+            <Form.Label style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500",color:"black"}}>
               Email
               {/* <span className="text-danger fs-5">*</span> */}
             </Form.Label>
@@ -77,7 +91,8 @@ const ForgotPassword = () => {
               onChange={(e) => setEmail(e.target.value)}
               isInvalid={!!emailError}
               required
-              style={{ borderRadius: "8px", height: "50px" }}
+              className="shadow-none form-control"
+              style={{ borderRadius: "8px", height: "50px",boxShadow:"none" }}
             />
           </Form.Group>
 
@@ -89,6 +104,8 @@ const ForgotPassword = () => {
               background: "linear-gradient(to right, #27ae60, #2e51f3)",
               border: "none",
               borderRadius: "25px",
+              boxShadow: '0px 4px 10px 0px #1A237E40',
+
             }}
           >
             {authLoading ? (
@@ -104,12 +121,12 @@ const ForgotPassword = () => {
               Sign up for free!
             </Link>
           </div> */}
-          <p className="mt-4 text-center small">
+          <p className="mt-4 text-center " style={{fontSize:"12px",fontFamily:"Poppins",fontWeight:"500"}}>
             Back to Login
             <Link
               to="/admin/login"
               className="fw-bold text-decoration-none ms-2"
-              style={{ color: "#3f51b5" }}
+              style={{ color: "#3f51b5",fontSize:"12px",fontFamily:"Poppins",fontWeight:"500" }}
             >
               Log in!
             </Link>

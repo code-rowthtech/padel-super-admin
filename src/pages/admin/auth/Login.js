@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { loginOwner } from "../../../redux/thunks";
 import Layout from "./AuthLayout";
@@ -193,7 +194,7 @@ const LoginPage = () => {
                     color: "#aaa",
                   }}
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
                 </div>
               )}
               <Form.Control.Feedback type="invalid">
@@ -214,6 +215,7 @@ const LoginPage = () => {
               <Link
                 to="/admin/forgot-password"
                 className="text-decoration-none"
+                style={{ fontSize:"12px",fontWeight:"600",color:"1F41BB",fontFamily:"Poppins" }}
               >
                 Forgot password?
               </Link>

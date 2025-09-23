@@ -18,6 +18,7 @@ import { IoTennisballOutline } from "react-icons/io5";
 import { getLogo, createLogo, updateLogo } from "../../../redux/thunks";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { DataLoading } from "../../../helpers/loading/Loaders";
+
 const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -25,29 +26,32 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const Owner = getOwnerFromSession();
   const { getLogoData, getLogoLoading } = useSelector((state) => state?.logo);
   const ownerId = Owner?._id || Owner?.generatedBy;
+
   // Tracks active status of dropdown based on location
   const [isBookingOpen, setBookingOpen] = useState(false);
   const [clubLogo, setClubLogo] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const bookingPaths = ["/admin/booking", "/admin/cancellation"];
+  const bookingPaths = ["/admin/booking", "/admin/cancellation", "/admin/manualbooking"];
 
   useEffect(() => {
+    console.log("Current location.pathname:", location.pathname);
+    console.log("getLogoData:", getLogoData);
     if (bookingPaths.includes(location.pathname)) {
       setBookingOpen(true);
+    } else {
+      setBookingOpen(false);
     }
   }, [location.pathname]);
 
   // Utility function for active link styling
   const linkClasses = ({ isActive }) =>
-    `d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2 cursor-pointer ${
-      isActive ? "" : "bg-transparent"
-    } hover-bg-dark`;
+    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${
+      isActive ? "active-parent-link" : "bg-transparent"
+    }`;
 
   const isDropdownActive = bookingPaths.includes(location.pathname);
-  const isActiveLink =
-    location.pathname === "/admin/booking" ||
-    location.pathname === "/admin/manualbooking";
+  const isActiveLink = bookingPaths.includes(location.pathname);
 
   const handleLogoChange = useCallback(
     (e) => {
@@ -75,13 +79,15 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
     },
     [dispatch, ownerId, getLogoData?.logo?._id]
   );
-  useEffect(() => {
-    dispatch(getLogo({ ownerId: ownerId }));
-  }, []);
 
   useEffect(() => {
-    setClubLogo(getLogoData?.logo?.logo?.[0]);
+    dispatch(getLogo({ ownerId: ownerId }));
+  }, [dispatch, ownerId]);
+
+  useEffect(() => {
+    setClubLogo(getLogoData?.logo?.logo?.[0] || null);
   }, [getLogoData?.logo?._id]);
+
   const handleNavigation = (path) => {
     navigate(path);
     if (window.innerWidth <= 768) {
@@ -91,9 +97,9 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
   return (
     <aside
-      className={`admin-sidebar text-white vh-100 d-flex flex-column ${
-        isOpen ? "mobile-open" : ""
-      } ${isCollapsed ? "collapsed" : ""}`}
+      className={`admin-sidebar text-white vh-100 d-flex flex-column ${isOpen ? "mobile-open" : ""} ${
+        isCollapsed ? "collapsed" : ""
+      }`}
       style={{
         width: isCollapsed ? "70px" : "250px",
         backgroundColor: "#1C2434",
@@ -115,7 +121,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 <img
                   src={clubLogo}
                   alt="Profile"
-                  className="rounded-circle "
+                  className="rounded-circle"
                   loading="lazy"
                   style={{
                     width: isCollapsed
@@ -187,9 +193,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         <div
           className="position-relative"
           onMouseEnter={() =>
-            isCollapsed &&
-            window.innerWidth > 768 &&
-            setHoveredItem("dashboard")
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("dashboard")
           }
           onMouseLeave={() => setHoveredItem(null)}
         >
@@ -197,14 +201,17 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             to="/admin/dashboard"
             className={
               isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
                 : linkClasses
             }
             style={({ isActive }) => ({
               backgroundColor: isActive ? "#333B48" : "transparent",
-              fontWeight: "600",
-              minHeight:
-                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -215,23 +222,24 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Dashboard"}
           </NavLink>
-          {isCollapsed &&
-            window.innerWidth > 768 &&
-            hoveredItem === "dashboard" && (
-              <div
-                className="position-absolute bg-dark text-white px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "14px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Dashboard
-              </div>
-            )}
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "dashboard" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Dashboard
+            </div>
+          )}
         </div>
 
         <div
@@ -255,12 +263,17 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             }}
             className={`btn ${
               isCollapsed && window.innerWidth > 768
-                ? "w-auto d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2"
-                : "w-75 d-flex align-items-center px-4 py-2 text-white text-decoration-none mx-3 rounded-2"
-            } ${isDropdownActive ? "#333B48" : "bg-transparent"}`}
+                ? "w-auto d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                : "w-75 d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+            } ${isDropdownActive ? "active-parent-link" : "bg-transparent"}`}
             style={{
-              minHeight:
-                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              backgroundColor: isDropdownActive ? "#333B48" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isDropdownActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             }}
           >
@@ -268,7 +281,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               className={`d-flex align-items-center fs-6 ${
                 isCollapsed && window.innerWidth > 768 ? "" : "w-100"
               }`}
-              style={{ fontWeight: "600" }}
             >
               <FaCalendarAlt
                 className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
@@ -299,19 +311,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             >
               <NavLink
                 to="/admin/booking"
-                className="d-block px-3 py-2 text-white text-decoration-none rounded"
+                className="d-block px-3 py-2 my-1 text-decoration-none rounded"
                 style={({ isActive }) => ({
-                  backgroundColor: isActiveLink ? "#333B48" : "transparent",
-                  fontWeight: "600",
+                  backgroundColor: isActive ? "#333B48" : "transparent",
+                  color: "#CCD2DD",
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
                   transition: "background-color 0.2s",
+                  whiteSpace: "nowrap",
                 })}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#4A5568")
-                }
+                onMouseEnter={(e) => (e.target.style.backgroundColor = "#4A5568")}
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = isActiveLink
-                    ? "#333B48"
-                    : "transparent")
+                  (e.target.style.backgroundColor = location.pathname === "/admin/booking" || location.pathname === "/admin/manualbooking" ? "#333B48" : "transparent")
                 }
                 onClick={() => {
                   setShowDropdown(false);
@@ -322,20 +335,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               </NavLink>
               <NavLink
                 to="/admin/cancellation"
-                className="d-block px-3 py-2 text-white text-decoration-none rounded"
+                className="d-block px-3 py-2 my-1 text-decoration-none rounded"
                 style={({ isActive }) => ({
                   backgroundColor: isActive ? "#333B48" : "transparent",
-                  fontWeight: "600",
+                  color: "#CCD2DD",
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
                   transition: "background-color 0.2s",
+                  whiteSpace: "nowrap",
                 })}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#4A5568")
-                }
+                onMouseEnter={(e) => (e.target.style.backgroundColor = "#4A5568")}
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor =
-                    location.pathname === "/admin/cancellation"
-                      ? "#333B48"
-                      : "transparent")
+                  (e.target.style.backgroundColor = location.pathname === "/admin/cancellation" ? "#333B48" : "transparent")
                 }
                 onClick={() => {
                   setShowDropdown(false);
@@ -353,42 +366,41 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/booking"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
                   isActive ? "active-child-link" : ""
                 }`
               }
-              style={({ isActive }) =>
-                isActiveLink
-                  ? {
-                      backgroundColor: "#333B48",
-                      color: "#fff",
-                      borderRadius: "4px",
-                      fontWeight: "600",
-                    }
-                  : {}
-              }
+              style={({ isActive }) => ({
+                backgroundColor: isActive ? "#333B48" : "transparent",
+                color: "#CCD2DD",
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+                borderRadius: "4px",
+                whiteSpace: "nowrap",
+              })}
               onClick={() => window.innerWidth <= 768 && onClose()}
             >
               Bookings
             </NavLink>
-
             <NavLink
               to="/admin/cancellation"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 text-white text-decoration-none ${
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
                   isActive ? "active-child-link" : ""
                 }`
               }
-              style={({ isActive }) =>
-                isActive
-                  ? {
-                      backgroundColor: "#333B48",
-                      color: "#fff",
-                      borderRadius: "4px",
-                      fontWeight: "600",
-                    }
-                  : {}
-              }
+              style={({ isActive }) => ({
+                backgroundColor: isActive ? "#333B48" : "transparent",
+                color: "#CCD2DD",
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+                borderRadius: "4px",
+                whiteSpace: "nowrap",
+              })}
               onClick={() => window.innerWidth <= 768 && onClose()}
             >
               Cancellation
@@ -408,8 +420,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             className={({ isActive }) =>
               `d-flex align-items-center ${
                 isCollapsed && window.innerWidth > 768
-                  ? "justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2"
-                  : "px-4 py-2 text-white text-decoration-none mx-3 rounded-2"
+                  ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                  : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
               } cursor-pointer ${
                 isActive || location.pathname === "/admin/create-match"
                   ? "active-parent-link"
@@ -422,9 +434,16 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 location.pathname === "/admin/create-match"
                   ? "#333B48"
                   : "transparent",
-              fontWeight: "600",
-              minHeight:
-                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow:
+                location.pathname === "/admin/open-matches" ||
+                location.pathname === "/admin/create-match"
+                  ? "-28px 22px 45px 0px #1B1D4224"
+                  : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -435,31 +454,30 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Open Matches"}
           </NavLink>
-          {isCollapsed &&
-            window.innerWidth > 768 &&
-            hoveredItem === "matches" && (
-              <div
-                className="position-absolute bg-dark text-white px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "14px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Open Matches
-              </div>
-            )}
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "matches" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Open Matches
+            </div>
+          )}
         </div>
 
         <div
           className="position-relative"
           onMouseEnter={() =>
-            isCollapsed &&
-            window.innerWidth > 768 &&
-            setHoveredItem("americano")
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("americano")
           }
           onMouseLeave={() => setHoveredItem(null)}
         >
@@ -467,14 +485,17 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             to="/admin/americano"
             className={
               isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
                 : linkClasses
             }
             style={({ isActive }) => ({
               backgroundColor: isActive ? "#333B48" : "transparent",
-              fontWeight: "600",
-              minHeight:
-                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -485,36 +506,26 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Americano"}
           </NavLink>
-          {isCollapsed &&
-            window.innerWidth > 768 &&
-            hoveredItem === "americano" && (
-              <div
-                className="position-absolute bg-dark text-white px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "14px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Americano
-              </div>
-            )}
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "americano" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Americano
+            </div>
+          )}
         </div>
 
-        {/* <NavLink
-          to="/admin/packages"
-          className={linkClasses}
-          style={({ isActive }) => ({
-            backgroundColor: isActive ? "#333B48" : "transparent",
-            fontWeight: "600",
-          })}
-        >
-          <LiaFileInvoiceDollarSolid className="me-4" />
-          Packages
-        </NavLink> */}
         <div
           className="position-relative"
           onMouseEnter={() =>
@@ -527,8 +538,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             className={({ isActive }) =>
               `d-flex align-items-center ${
                 isCollapsed && window.innerWidth > 768
-                  ? "justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2"
-                  : "px-4 py-2 text-white text-decoration-none mx-3 rounded-2"
+                  ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                  : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
               } cursor-pointer ${
                 isActive || location.pathname === "/admin/package-details"
                   ? "active-parent-link"
@@ -541,9 +552,16 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 location.pathname === "/admin/package-details"
                   ? "#333B48"
                   : "transparent",
-              fontWeight: "600",
-              minHeight:
-                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow:
+                location.pathname === "/admin/packages" ||
+                location.pathname === "/admin/package-details"
+                  ? "-28px 22px 45px 0px #1B1D4224"
+                  : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -554,23 +572,24 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Packages"}
           </NavLink>
-          {isCollapsed &&
-            window.innerWidth > 768 &&
-            hoveredItem === "packages" && (
-              <div
-                className="position-absolute bg-dark text-white px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "14px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Packages
-              </div>
-            )}
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "packages" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Packages
+            </div>
+          )}
         </div>
 
         <div
@@ -584,14 +603,17 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             to="/admin/users"
             className={
               isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
                 : linkClasses
             }
             style={({ isActive }) => ({
               backgroundColor: isActive ? "#333B48" : "transparent",
-              fontWeight: "600",
-              minHeight:
-                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -602,24 +624,26 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Users"}
           </NavLink>
-          {isCollapsed &&
-            window.innerWidth > 768 &&
-            hoveredItem === "users" && (
-              <div
-                className="position-absolute bg-dark text-white px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "14px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Users
-              </div>
-            )}
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "users" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Users
+            </div>
+          )}
         </div>
+
         <div
           className="position-relative"
           onMouseEnter={() =>
@@ -631,14 +655,17 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             to="/admin/payments"
             className={
               isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
                 : linkClasses
             }
             style={({ isActive }) => ({
               backgroundColor: isActive ? "#333B48" : "transparent",
-              fontWeight: "600",
-              minHeight:
-                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -649,23 +676,24 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Payment"}
           </NavLink>
-          {isCollapsed &&
-            window.innerWidth > 768 &&
-            hoveredItem === "payments" && (
-              <div
-                className="position-absolute bg-dark text-white px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "14px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Payment
-              </div>
-            )}
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "payments" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Payment
+            </div>
+          )}
         </div>
 
         <div
@@ -679,14 +707,17 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             to="/admin/login"
             className={
               isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 text-white text-decoration-none mx-2 rounded-2 cursor-pointer"
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
                 : linkClasses
             }
             style={({ isActive }) => ({
               backgroundColor: isActive ? "#333B48" : "transparent",
-              fontWeight: "600",
-              minHeight:
-                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => {
@@ -700,23 +731,24 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Log out"}
           </NavLink>
-          {isCollapsed &&
-            window.innerWidth > 768 &&
-            hoveredItem === "logout" && (
-              <div
-                className="position-absolute bg-dark text-white px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "14px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Log out
-              </div>
-            )}
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "logout" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Log out
+            </div>
+          )}
         </div>
       </nav>
     </aside>

@@ -55,16 +55,16 @@ const ResetPassword = () => {
   return (
     <Layout>
       <div>
-        <h2 className="fw-bold">RESET PASSWORD</h2>
-        <p className="text-muted">
+        <h2 className="welcome-heading">RESET PASSWORD</h2>
+        <p className="text-muted" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400" }}>
           Change Password! Please enter your details.
         </p>
 
         <Form onSubmit={handleSubmit}>
           {/* Password Field */}
           <Form.Group className="mb-3">
-            <Form.Label>Password</Form.Label>
-            <InputGroup>
+            <Form.Label style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "black" }}>Password</Form.Label>
+            <div style={{ position: "relative" }}>
               <Form.Control
                 type={showPassword ? "text" : "password"}
                 placeholder="*********"
@@ -74,14 +74,27 @@ const ResetPassword = () => {
                   setPassword(e.target.value);
                   setErrors((prev) => ({ ...prev, password: "" }));
                 }}
+                className="shadow-none form-control"
+                style={{ borderRadius: "8px", height: "50px", boxShadow: "none", paddingRight: "45px" }}
               />
-              <Button
-                variant="outline-secondary"
+              <Button 
+                className="text-secondary border-0"
+                style={{ 
+                  background: "transparent", 
+                  boxShadow: "none",
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  padding: "0",
+                  width: "auto",
+                  height: "auto"
+                }}
                 onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </Button>
-            </InputGroup>
+            </div>
             {errors.password && (
               <div className="text-danger mt-1">{errors.password}</div>
             )}
@@ -89,8 +102,8 @@ const ResetPassword = () => {
 
           {/* Confirm Password Field */}
           <Form.Group className="mb-4">
-            <Form.Label>Confirm Password</Form.Label>
-            <InputGroup>
+            <Form.Label style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "black" }}>Confirm Password</Form.Label>
+            <div style={{ position: "relative" }}>
               <Form.Control
                 type={showConfirm ? "text" : "password"}
                 placeholder="*********"
@@ -100,14 +113,27 @@ const ResetPassword = () => {
                   setConfirm(e.target.value);
                   setErrors((prev) => ({ ...prev, confirm: "" }));
                 }}
+                className="shadow-none form-control"
+                style={{ borderRadius: "8px", height: "50px", boxShadow: "none", paddingRight: "45px" }}
               />
-              <Button
-                variant="outline-secondary"
+              <Button 
+                className="text-secondary border-0"
+                style={{ 
+                  background: "transparent", 
+                  boxShadow: "none",
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  padding: "0",
+                  width: "auto",
+                  height: "auto"
+                }}
                 onClick={() => setShowConfirm((prev) => !prev)}
               >
                 {showConfirm ? <FaEyeSlash /> : <FaEye />}
               </Button>
-            </InputGroup>
+            </div>
             {errors.confirm && (
               <div className="text-danger mt-1">{errors.confirm}</div>
             )}
@@ -116,11 +142,10 @@ const ResetPassword = () => {
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-100 fw-semibold"
+            className="border-0 rounded-pill w-100 py-3"
             style={{
               background: "#27ae60",
-              border: "none",
-              borderRadius: "25px",
+              fontSize:"16px", fontWeight:"600",fontFamily:"Poppins"
             }}
           >
             {authLoading ? <ButtonLoading color="white" /> : "Change Password"}
