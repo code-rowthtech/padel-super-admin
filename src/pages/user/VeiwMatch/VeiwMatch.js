@@ -84,7 +84,8 @@ const ViewMatch = ({ className = "" }) => {
                             </span>
                         )}
                     </div>
-                    <p className="mb-0 mt-2" style={{ color: "#374151", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                    <p className="mb-0 mt-2" style={{ color: "#374151", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                    title={user?.name || "User"}>
                         {user?.name
                             ? user.name.length > 14
                                 ? user.name.slice(0, 14) + "..."
@@ -185,7 +186,7 @@ const ViewMatch = ({ className = "" }) => {
                     {/* Court Number */}
                     <div className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <p className="text-muted mb-0" style={{ fontSize: "15px", fontWeight: "500" }}>
-                            {matchesData?.data?.matchStatus || "Open Match"}
+                            {matchesData?.data?.matchStatus && "Open Match"}
                         </p>
                     </div>
 
