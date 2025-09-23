@@ -241,7 +241,9 @@ const Openmatches = () => {
                 style={{
                     width: "40px",
                     height: "40px",
-                    marginRight: "10px",
+                    backgroundColor: player?.userId?.profilePic ? "transparent" : "#374151",
+                    overflow: "hidden",
+                    border: "1px solid #E5E7EB",
                 }}
             >
                 {player?.profilePic ? (
@@ -251,7 +253,7 @@ const Openmatches = () => {
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                 ) : (
-                    <span style={{ color: "#1D4ED8", fontWeight: "600", fontSize: "16px" }}>
+                    <span  style={{ color: "#F1F1F1", fontWeight: "600", fontSize: "16px" }}>
                         {player?.name ? player?.name.charAt(0).toUpperCase() : "P"}
                     </span>
                 )}
@@ -259,9 +261,22 @@ const Openmatches = () => {
             <div className="ps-0 text-start">
                 <p
                     className="m-0"
-                    style={{ fontWeight: 600, color: "#111827", fontSize: "12px" }}
+                    title={player?.name || "Player"}
+                    style={{
+                        fontWeight: 600,
+                        color: "#111827",
+                        fontSize: "12px",
+                        whiteSpace: "nowrap", // Prevents text from wrapping
+                        overflow: "hidden", // Hides overflowed text
+                        textOverflow: "ellipsis", // Adds ellipsis for overflowed text
+                        maxWidth: "100px" // Adjust based on your design
+                    }}
                 >
-                    {player?.name || "Player"}
+                    {player?.name
+                        ? player.name.length > 14
+                            ? `${player.name.slice(0, 14)}...`
+                            : player.name
+                        : "Player"}
                 </p>
                 <p
                     className="m-0 mb-1 d-flex justify-content-center align-items-center rounded"
@@ -299,7 +314,7 @@ const Openmatches = () => {
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
             ) : (
-                <span
+                <span className=""
                     style={{
                         color: "white",
                         fontWeight: "600",
@@ -308,7 +323,7 @@ const Openmatches = () => {
                 >
                     {player?.userId?.name
                         ? player?.userId?.name.charAt(0).toUpperCase()
-                        : "P"}
+                        : "U"}
                 </span>
             )}
         </div>
@@ -402,7 +417,7 @@ const Openmatches = () => {
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d.fullDate, day: d.day });
                                                     setStartDate(new Date(d.fullDate));
-                                                    dispatch(getMatchesUser({matchDate:d.fullDate}));
+                                                    dispatch(getMatchesUser({ matchDate: d.fullDate }));
                                                 }}
                                                 onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
                                                 onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
@@ -560,7 +575,7 @@ const Openmatches = () => {
                                                             className="text-primary all-matches"
                                                             style={{ fontWeight: "600", fontFamily: "none" }}
                                                         >
-                                                            ₹ <span className="all-matches" style={{ fontWeight: "500",fontSize:"20px",fontWeight:"500",color:"#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                            ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "20px", fontWeight: "500", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
                                                         </div>
                                                         <button
                                                             className="btn rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-white"
