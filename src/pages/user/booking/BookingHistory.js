@@ -90,7 +90,6 @@ const BookingHistory = () => {
     useEffect(() => {
         setCurrentPage(1);
     }, [searchDate, searchText, selectedOption, activeTab]);
-
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
         let type = "";
