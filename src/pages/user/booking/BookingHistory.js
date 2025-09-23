@@ -98,7 +98,7 @@ const BookingHistory = () => {
         else if (activeTab === "upcoming") type = "upcoming";
         else if (activeTab === "completed") type = "completed";
         else if (activeTab === "all") type = "all";
-        dispatch(getBooking({ type, page: pageNumber }));
+        dispatch(getBooking({ type}));
     };
 
     const handleClearDate = () => setSearchDate(null);
@@ -318,7 +318,7 @@ const BookingHistory = () => {
                                                         minHeight: "32px",
                                                         padding: "4px 8px",
                                                         cursor: "pointer",
-                                                        background: "#f9f9f9",
+                                                        background: "transparent",
                                                         borderRadius: "4px",
                                                     }}
                                                 >
