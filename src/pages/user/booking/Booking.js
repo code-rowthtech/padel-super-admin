@@ -366,7 +366,6 @@ const Booking = ({ className = "" }) => {
         console.log("Tab Counts:", counts);
         setTabCounts(counts);
 
-        // Set default tab to morning if it has data, otherwise the first tab with data
         let defaultTab = 'morning';
         if (counts[0] === 0) {
             const firstAvailableIndex = counts.findIndex(count => count > 0);
