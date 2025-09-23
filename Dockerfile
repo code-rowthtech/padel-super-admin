@@ -5,7 +5,7 @@ COPY package*.json ./
 
 # Install dependencies + build tools
 RUN apk add --no-cache python3 make g++ \
-    && npm ci --legacy-peer-deps
+    && npm install --legacy-peer-deps
 
 COPY . .
 ENV SKIP_PREFLIGHT_CHECK=true
