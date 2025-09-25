@@ -253,7 +253,7 @@ const Openmatches = () => {
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                 ) : (
-                    <span  style={{ color: "#F1F1F1", fontWeight: "600", fontSize: "16px" }}>
+                    <span style={{ color: "#F1F1F1", fontWeight: "600", fontSize: "16px" }}>
                         {player?.name ? player?.name.charAt(0).toUpperCase() : "P"}
                     </span>
                 )}
@@ -439,19 +439,19 @@ const Openmatches = () => {
                         {slotTime?.map((time, i) => (
                             <div className="col-lg-auto col-3 p-lg-0  me-lg-0" key={i}>
                                 <button
-                                    className="btn rounded-3 slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
+                                    className="btn rounded-3 slot-time-btn text-center me-lg-1  ms-lg-1 text-lg-nowrap mb-md-3 mb-lg-3 p-0 mb-1"
                                     onClick={() => toggleTime(time)}
                                     style={{
                                         backgroundColor: selectedTime === time ? "#374151" : "#FAFBFF",
                                         color: selectedTime === time ? "white" : "#000000",
-                                        border: "2px solid #0f0f0f1a", // default border
+                                        border: "2px solid #0f0f0f1a",
                                         transition: "border-color 0.2s ease",
                                     }}
                                     onMouseEnter={(e) => {
-                                        e.currentTarget.style.border = "2px solid #3DBE64"; // hover border
+                                        e.currentTarget.style.border = "2px solid #3DBE64";
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.currentTarget.style.border = "2px solid #0f0f0f1a"; // restore default
+                                        e.currentTarget.style.border = "2px solid #0f0f0f1a";
                                     }}
                                 >
                                     {formatTime(time)}

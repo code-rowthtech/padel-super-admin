@@ -34,11 +34,48 @@ const ViewMatch = ({ className = "" }) => {
             return { day: "Sun", formattedDate: "27Aug" };
         }
         const date = new Date(dateString);
-        const day = date.toLocaleDateString("en-US", { weekday: "short" }); // e.g., Tue
+        const day = date.toLocaleDateString("en-US", { weekday: "short" });
         const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}, ${date
             .toLocaleDateString("en-US", { month: "short" })
-            }`; //
+            }`;
         return { day, formattedDate };
+    };
+
+    const calculateEndRegistrationTime = () => {
+        if (!matchesData?.data?.slot || matchesData.data.slot.length === 0) {
+            return "Today at 10:00 PM"; // Fallback if no slots are available
+        }
+
+        // Collect all slot times
+        const allTimes = matchesData.data.slot.flatMap(court =>
+            court.slotTimes.map(slot => slot.time)
+        );
+
+        // Parse times to find the latest one
+        const latestTime = allTimes.reduce((latest, timeStr) => {
+            const [hour, period] = timeStr.split(" ");
+            let hourNum = parseInt(hour);
+            if (period.toLowerCase() === "pm" && hourNum !== 12) hourNum += 12;
+            if (period.toLowerCase() === "am" && hourNum === 12) hourNum = 0;
+            return Math.max(latest, hourNum);
+        }, 0);
+
+        // If duration > 60 minutes for consecutive slots (e.g., 6 and 7 AM), add 1 hour to the latest time
+        const slotCount = allTimes.length;
+        let endHour = latestTime;
+        if (slotCount > 1) {
+            // Assume consecutive slots (e.g., 6 AM and 7 AM) mean duration > 60 minutes, so add 1 hour
+            endHour += 1;
+        } else {
+            // Single slot, assume it ends at the next hour
+            endHour += 1;
+        }
+
+        // Convert back to 12-hour format with AM/PM
+        const period = endHour >= 12 ? "PM" : "AM";
+        const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+
+        return `Today at ${displayHour}:00 ${period}`;
     };
 
     const matchDate = matchesData?.data?.matchDate
@@ -93,15 +130,6 @@ const ViewMatch = ({ className = "" }) => {
                             : "User"}
                     </p>
                     <span className="badge bg-success-subtle text-success">{user?.level || 'A|B'}</span>
-                    {/* {isRemovable && (
-                        <button
-                            className="position-absolute top-0 end-0 btn btn-danger btn-sm rounded-circle"
-                            onClick={() => handleRemovePlayer(user._id, team)}
-                            style={{ width: 24, height: 24, padding: 0 }}
-                        >
-                            <FaTrash size={12} />
-                        </button>
-                    )} */}
                 </div>
             );
         } else if (
@@ -255,7 +283,7 @@ const ViewMatch = ({ className = "" }) => {
                             <p className="mb-0" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}>
                                 Type of Court
                             </p>
-                            <p className="mb-0" style={{ fontSize: "16px", fontWeight: "500", color: "#374151" }}>
+                            <p className="mb-0" style={{ fontSize: "16px",fontFamily:"Poppins", fontWeight: "500", color: "#374151" }}>
                                 {matchesData?.data?.matchType.charAt(0).toUpperCase() + matchesData?.data?.matchType.slice(1)}
                             </p>
                         </div>
@@ -267,17 +295,18 @@ const ViewMatch = ({ className = "" }) => {
                             <p className="mb-0" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}>
                                 End registration
                             </p>
-                            <p className="mb-0" style={{ fontSize: "16px", fontWeight: "500", color: "#374151" }}>
-                                Today at 10:00 PM
+                            <p className="mb-0" style={{ fontSize: "16px",fontFamily:"Poppins", fontWeight: "500", color: "#374151" }}>
+                                {calculateEndRegistrationTime()}
                             </p>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Section - Booking Summary */}
-                <div className="col-5 pe-0 mb-5">
+                <div className="col-5  mb-5">
+                    <div className="container ms-0 ms-lg-2">
                     <div
-                        className="row align-items-center text-white rounded-4 py-0 pt-2 ps-4"
+                        className="row mb-3 align-items-center text-white rounded-4 py-0 pt-2 ps-4"
                         style={{
                             background: "linear-gradient(to right, #101826, #1e293b)",
                             overflow: "visible",
@@ -290,7 +319,7 @@ const ViewMatch = ({ className = "" }) => {
                         </div>
                         <div className="col-12 col-md-6 text-center" style={{ position: "relative" }}>
                             <img
-                                src={player} // Adjust path as needed
+                                src={player}
                                 alt="Player"
                                 className="img-fluid"
                                 style={{
@@ -302,7 +331,7 @@ const ViewMatch = ({ className = "" }) => {
                             />
                         </div>
                     </div>
-                    <div className="border rounded px-3 ms-2 pt-3 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    <div className=" rounded px-3  pt-3 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
                                 {logo ? (
@@ -325,13 +354,6 @@ const ViewMatch = ({ className = "" }) => {
                                 )}
                             </div>
                             <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                            {/* <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
-                                {clubData?.clubName}
-                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
-                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
-                                    .filter(Boolean)
-                                    .join(', ')}
-                            </p> */}
                         </div>
 
                         <h6 className="border-top p-2 mb-1 ps-0 custom-heading-use" >
@@ -364,6 +386,7 @@ const ViewMatch = ({ className = "" }) => {
                                 <div>No slots available</div>
                             )}
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
