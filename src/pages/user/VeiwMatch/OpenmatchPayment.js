@@ -13,28 +13,23 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { showError } from "../../../helpers/Toast";
 import NewPlayers from "./NewPlayers";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import { IoMdTime } from "react-icons/io";
 
-// Function to convert time string (e.g., "1 pm") to minutes for comparison
 const convertTo24Hour = (timeStr) => {
     const [time, period] = timeStr.split(" ");
     let [hours] = time.split(":").map(Number);
     if (period.toLowerCase() === "pm" && hours !== 12) hours += 12;
     if (period.toLowerCase() === "am" && hours === 12) hours = 0;
-    return hours * 60; // Convert to minutes for comparison
+    return hours * 60; 
 };
 
-// Function to format time to "8:00 AM" format
 const formatTime = (timeStr) => {
     return timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
 };
 
-// Function to get the latest valid time
 const getLatestTime = (courts, currentDate, currentTime) => {
-    const currentDateStr = currentDate.toISOString().split("T")[0]; // e.g., "2025-09-25"
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes(); // e.g., 11:47 AM = 707 minutes
+    const currentDateStr = currentDate.toISOString().split("T")[0]; 
+    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes(); 
 
-    // Collect all times with their court and date
     let allTimes = [];
     courts.forEach((court) => {
         court.time.forEach((timeObj) => {
@@ -46,12 +41,10 @@ const getLatestTime = (courts, currentDate, currentTime) => {
         });
     });
 
-    // Filter times for today that are later than current time
     let todayTimes = allTimes
         .filter((t) => t.date === currentDateStr)
         .filter((t) => convertTo24Hour(t.time) > currentMinutes);
 
-    // If there are valid times today, pick the latest
     if (todayTimes.length > 0) {
         const latestToday = todayTimes.reduce((latest, curr) => {
             return convertTo24Hour(curr.time) > convertTo24Hour(latest.time) ? curr : latest;
@@ -59,7 +52,6 @@ const getLatestTime = (courts, currentDate, currentTime) => {
         return formatTime(latestToday.time);
     }
 
-    // If no valid times today, find the earliest time from future dates
     const futureTimes = allTimes.filter((t) => t.date > currentDateStr);
     if (futureTimes.length > 0) {
         const earliestFuture = futureTimes.reduce((earliest, curr) => {
@@ -71,7 +63,6 @@ const getLatestTime = (courts, currentDate, currentTime) => {
         return formatTime(earliestFuture.time);
     }
 
-    // Fallback if no valid times found
     return "No available times";
 };
 
@@ -268,15 +259,13 @@ const OpenmatchPayment = (props) => {
 
     const calculateEndRegistrationTime = () => {
         if (!selectedCourts || selectedCourts.length === 0 || selectedCourts.every((court) => !court.time || court.time.length === 0)) {
-            return "Today at 10:00 PM"; // Fallback if no slots are selected
+            return "Today at 10:00 PM";
         }
 
-        // Collect all slot times
         const allTimes = selectedCourts.flatMap(court =>
             court.time.map(slot => slot.time)
         );
 
-        // Parse times to find the latest one
         const latestTime = allTimes.reduce((latest, timeStr) => {
             const [hour, period] = timeStr.split(" ");
             let hourNum = parseInt(hour);
@@ -285,18 +274,14 @@ const OpenmatchPayment = (props) => {
             return Math.max(latest, hourNum);
         }, 0);
 
-        // If duration > 60 minutes for consecutive slots (e.g., 6 and 7 AM), add 1 hour to the latest time
         const slotCount = allTimes.length;
         let endHour = latestTime;
         if (slotCount > 1) {
-            // Assume consecutive slots (e.g., 6 AM and 7 AM) mean duration > 60 minutes, so add 1 hour
             endHour += 1;
         } else {
-            // Single slot, assume it ends at the next hour
             endHour += 1;
         }
 
-        // Convert back to 12-hour format with AM/PM
         const period = endHour >= 12 ? "PM" : "AM";
         const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
 
@@ -323,7 +308,7 @@ const OpenmatchPayment = (props) => {
                 }
                 return court;
             })
-            .filter((court) => court.time.length > 0); // Remove courts with no slots
+            .filter((court) => court.time.length > 0); 
 
         navigate("/match-payment", {
             state: {
@@ -388,11 +373,7 @@ const OpenmatchPayment = (props) => {
         }
     }, [errorShow]);
 
-    useEffect(() => {
-        if (error) {
-            // Handle error if needed
-        }
-    }, [error]);
+
 
     return (
         <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
