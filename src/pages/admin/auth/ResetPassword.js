@@ -1,18 +1,17 @@
 import { useState } from "react";
-import { Form, Button, InputGroup } from "react-bootstrap";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Form } from "react-bootstrap";
 import { showError } from "../../../helpers/Toast";
 import Layout from "./AuthLayout";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { resetPassword } from "../../../redux/thunks";
-import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import PasswordInput from "../../../components/common/PasswordInput";
+import LoadingButton from "../../../components/common/LoadingButton";
+import { validatePassword, validatePasswordMatch } from "../../../utils/validation";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const { authLoading } = useSelector((state) => state.ownerAuth);
 
   const [errors, setErrors] = useState({});
@@ -24,7 +23,7 @@ const ResetPassword = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!password || password.length < 6) {
+    if (!validatePassword(password)) {
       newErrors.password = "Password must be at least 6 characters.";
     }
 
@@ -32,7 +31,7 @@ const ResetPassword = () => {
       newErrors.confirm = "You need to confirm your new password.";
     }
 
-    if (password && confirm && password !== confirm) {
+    if (!validatePasswordMatch(password, confirm)) {
       newErrors.confirm = "Passwords do not match.";
     }
 
@@ -61,95 +60,42 @@ const ResetPassword = () => {
         </p>
 
         <Form onSubmit={handleSubmit}>
-          {/* Password Field */}
-          <Form.Group className="mb-3">
-            <Form.Label style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "black" }}>Password</Form.Label>
-            <div style={{ position: "relative" }}>
-              <Form.Control
-                type={showPassword ? "text" : "password"}
-                placeholder="*********"
-                value={password}
-                disabled={authLoading}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setErrors((prev) => ({ ...prev, password: "" }));
-                }}
-                className="shadow-none form-control"
-                style={{ borderRadius: "8px", height: "50px", boxShadow: "none", paddingRight: "45px" }}
-              />
-              <Button 
-                className="text-secondary border-0"
-                style={{ 
-                  background: "transparent", 
-                  boxShadow: "none",
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  padding: "0",
-                  width: "auto",
-                  height: "auto"
-                }}
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </Button>
-            </div>
-            {errors.password && (
-              <div className="text-danger mt-1">{errors.password}</div>
-            )}
-          </Form.Group>
+          <PasswordInput
+            label="Password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setErrors((prev) => ({ ...prev, password: "" }));
+            }}
+            error={errors.password}
+            disabled={authLoading}
+            required
+          />
 
-          {/* Confirm Password Field */}
-          <Form.Group className="mb-4">
-            <Form.Label style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "black" }}>Confirm Password</Form.Label>
-            <div style={{ position: "relative" }}>
-              <Form.Control
-                type={showConfirm ? "text" : "password"}
-                placeholder="*********"
-                value={confirm}
-                disabled={authLoading}
-                onChange={(e) => {
-                  setConfirm(e.target.value);
-                  setErrors((prev) => ({ ...prev, confirm: "" }));
-                }}
-                className="shadow-none form-control"
-                style={{ borderRadius: "8px", height: "50px", boxShadow: "none", paddingRight: "45px" }}
-              />
-              <Button 
-                className="text-secondary border-0"
-                style={{ 
-                  background: "transparent", 
-                  boxShadow: "none",
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  padding: "0",
-                  width: "auto",
-                  height: "auto"
-                }}
-                onClick={() => setShowConfirm((prev) => !prev)}
-              >
-                {showConfirm ? <FaEyeSlash /> : <FaEye />}
-              </Button>
-            </div>
-            {errors.confirm && (
-              <div className="text-danger mt-1">{errors.confirm}</div>
-            )}
-          </Form.Group>
+          <PasswordInput
+            label="Confirm Password"
+            value={confirm}
+            onChange={(e) => {
+              setConfirm(e.target.value);
+              setErrors((prev) => ({ ...prev, confirm: "" }));
+            }}
+            error={errors.confirm}
+            disabled={authLoading}
+            required
+          />
 
-          {/* Submit Button */}
-          <Button
+          <LoadingButton
             type="submit"
-            className="border-0 rounded-pill w-100 py-3"
+            loading={authLoading}
+            className="w-100 fw-semibold"
             style={{
               background: "#27ae60",
-              fontSize:"16px", fontWeight:"600",fontFamily:"Poppins"
+              border: "none",
+              borderRadius: "25px"
             }}
           >
-            {authLoading ? <ButtonLoading color="white" /> : "Change Password"}
-          </Button>
+            Change Password
+          </LoadingButton>
         </Form>
       </div>
     </Layout>
