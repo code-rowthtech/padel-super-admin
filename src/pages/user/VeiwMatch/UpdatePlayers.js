@@ -27,6 +27,7 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
     const dispatch = useDispatch();
     const [formData, setFormData] = useState({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
     const addLoading = useSelector((state) => state?.userAuth);
+    const formError = useSelector((state) => state?.userAuth);
     const [errorShow, setErrorShow] = useState(false);
     const [error, setError] = useState(null);
 
@@ -44,7 +45,7 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
         if (!formData.name) {
             errors.push("Name is required");
         }
-        else if (!formData.phoneNumber) {
+        else if (!formData.phoneNumber || formData.phoneNumber.length !== 10 || !/^[6-9][0-9]{9}$/.test(formData.phoneNumber)) {
             errors.push("Phone number must be 10 digits starting with 6, 7, 8, or 9");
         }
         else if (!formData.email) {
@@ -81,7 +82,7 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
                 }
                 setFormData({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
             }).catch((err) => {
-                setError(err?.response?.data?.message || "An error occurred. Please try again.");
+                setError(err ? "Enter valid email address" :"");
                 setErrorShow(true);
             });
     };
@@ -255,7 +256,7 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
                                         id={gender}
                                         value={gender}
                                         checked={formData.gender === gender}
-                                        disabled={addLoading?.userSignUpLoading }
+                                        disabled={addLoading?.userSignUpLoading}
                                         onChange={(e) =>
                                             setFormData((prev) => ({
                                                 ...prev,

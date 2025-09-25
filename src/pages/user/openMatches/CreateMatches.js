@@ -335,7 +335,7 @@ const CreateMatches = () => {
 
   const handleNext = () => {
     if (selectedCourts.length === 0 || selectedCourts.every((court) => court.time.length === 0)) {
-      setSlotError("Please select at least one time slot for a court");
+      setSlotError("Please select a time slot to continue with your booking");
       return;
     }
 
@@ -442,7 +442,7 @@ const CreateMatches = () => {
     <Container className="p-4 mb-5">
       <Row>
         {/* LEFT PANEL */}
-        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
+        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566", border:slotError ? "1px solid red" : "none" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -518,7 +518,7 @@ const CreateMatches = () => {
                 />
               </div>
             </div>
-            <div className="d-flex align-items-center gap-2 border-bottom">
+            <div className="d-flex align-items-center gap-2 border-bottom mb-3">
               <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
                 <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
               </div>
@@ -558,7 +558,7 @@ const CreateMatches = () => {
                 id="custom-tabs"
                 activeKey={key}
                 onSelect={(k) => setKey(k)}
-                className="border p-1 rounded-3 custom-tabs"
+                className="border p-1 pb-1 rounded-3 custom-tabs"
                 fill
               >
                 {tabData.map((tab, index) => (
@@ -576,7 +576,7 @@ const CreateMatches = () => {
                 ))}
               </Tabs>
             </div>
-            <div className="d-flex flex-column gap-3 overflow-slot mt-md-4">
+            <div className="d-flex flex-column gap-3 overflow-slot ">
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
                   <DataLoading height={"50vh"} />
@@ -594,7 +594,7 @@ const CreateMatches = () => {
                       return (
                         filteredSlots?.length > 0 ? (
                           <div
-                            className={`mb-md-3 row ps-2 pe-2 ${!court?.slots && !showUnavailable ? 'border-bottom' : ""}`}
+                            className={`mb-md-1 row ps-2 pe-2 ${filteredSlots?.length > 0 ? 'border-bottom' : ""}`}
                             key={court._id}
                           >
                             <div className="p-2 rounded">

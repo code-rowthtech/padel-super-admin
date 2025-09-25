@@ -31,8 +31,8 @@ const formatTime = (timeStr) => {
 
 // Function to get the latest valid time
 const getLatestTime = (courts, currentDate, currentTime) => {
-    const currentDateStr = currentDate.toISOString().split("T")[0]; // e.g., "2025-09-16"
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes(); // e.g., 10:10 AM = 610 minutes
+    const currentDateStr = currentDate.toISOString().split("T")[0]; // e.g., "2025-09-25"
+    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes(); // e.g., 11:47 AM = 707 minutes
 
     // Collect all times with their court and date
     let allTimes = [];
@@ -95,7 +95,6 @@ const OpenmatchPayment = (props) => {
     const addedPlayers = localStorage.getItem("addedPlayers")
         ? JSON.parse(localStorage.getItem("addedPlayers"))
         : {};
-    // Provide default values to prevent undefined errors
     const { slotData = {}, finalSkillDetails = [], selectedDate = {}, selectedCourts = [] } = state || {};
     console.log({ finalSkillDetails });
     const savedClubId = localStorage.getItem("register_club_id");
@@ -118,7 +117,6 @@ const OpenmatchPayment = (props) => {
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
-        // Cleanup function to remove addedPlayers from localStorage when component unmounts
         return () => {
             localStorage.removeItem("addedPlayers");
         };
@@ -197,7 +195,7 @@ const OpenmatchPayment = (props) => {
                         register_club_id: savedClubId,
                         ownerId: owner_id,
                         paymentMethod: selectedPayment || "Gpay",
-                        bookingType: "openMatch",
+                        bookingType: "open Match",
                         bookingStatus: "upcoming",
                         slot: selectedCourts.flatMap((court) =>
                             court.time.map((timeSlot) => ({
@@ -268,6 +266,43 @@ const OpenmatchPayment = (props) => {
         return { day, formattedDate };
     };
 
+    const calculateEndRegistrationTime = () => {
+        if (!selectedCourts || selectedCourts.length === 0 || selectedCourts.every((court) => !court.time || court.time.length === 0)) {
+            return "Today at 10:00 PM"; // Fallback if no slots are selected
+        }
+
+        // Collect all slot times
+        const allTimes = selectedCourts.flatMap(court =>
+            court.time.map(slot => slot.time)
+        );
+
+        // Parse times to find the latest one
+        const latestTime = allTimes.reduce((latest, timeStr) => {
+            const [hour, period] = timeStr.split(" ");
+            let hourNum = parseInt(hour);
+            if (period.toLowerCase() === "pm" && hourNum !== 12) hourNum += 12;
+            if (period.toLowerCase() === "am" && hourNum === 12) hourNum = 0;
+            return Math.max(latest, hourNum);
+        }, 0);
+
+        // If duration > 60 minutes for consecutive slots (e.g., 6 and 7 AM), add 1 hour to the latest time
+        const slotCount = allTimes.length;
+        let endHour = latestTime;
+        if (slotCount > 1) {
+            // Assume consecutive slots (e.g., 6 AM and 7 AM) mean duration > 60 minutes, so add 1 hour
+            endHour += 1;
+        } else {
+            // Single slot, assume it ends at the next hour
+            endHour += 1;
+        }
+
+        // Convert back to 12-hour format with AM/PM
+        const period = endHour >= 12 ? "PM" : "AM";
+        const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+
+        return `Today at ${displayHour}:00 ${period}`;
+    };
+
     const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: "Fri", formattedDate: "29Aug" };
     const matchTime = selectedCourts.length > 0
         ? selectedCourts.flatMap((court) => court.time.map((time) => time.time)).join(", ")
@@ -290,7 +325,6 @@ const OpenmatchPayment = (props) => {
             })
             .filter((court) => court.time.length > 0); // Remove courts with no slots
 
-        // Update state with navigate to preserve the modified selectedCourts
         navigate("/match-payment", {
             state: {
                 ...state,
@@ -359,10 +393,6 @@ const OpenmatchPayment = (props) => {
             // Handle error if needed
         }
     }, [error]);
-
-    // Get the latest time for display
-    const currentDate = new Date("2025-09-16T10:10:00+05:30"); // Current date and time (16 Sep 2025, 10:10 AM IST)
-    const latestTime = getLatestTime(selectedCourts, currentDate, currentDate);
 
     return (
         <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
@@ -494,7 +524,6 @@ const OpenmatchPayment = (props) => {
                                         );
                                     }
 
-                                    // Slot 2: Team A Second Player
                                     if (addedPlayers.slot2) {
                                         const player = addedPlayers.slot2;
                                         leftComponents.push(
@@ -558,7 +587,6 @@ const OpenmatchPayment = (props) => {
                                 {(() => {
                                     const rightComponents = [];
 
-                                    // Slot 3: Team B First Player
                                     if (addedPlayers.slot3) {
                                         const player = addedPlayers.slot3;
                                         rightComponents.push(
@@ -613,7 +641,6 @@ const OpenmatchPayment = (props) => {
                                         );
                                     }
 
-                                    // Slot 4: Team B Second Player
                                     if (addedPlayers.slot4) {
                                         const player = addedPlayers.slot4;
                                         rightComponents.push(
@@ -718,7 +745,7 @@ const OpenmatchPayment = (props) => {
                             <p className="mb-0" style={{ fontSize: "14px", fontWeight: "400" }}>
                                 Type of Court
                             </p>
-                            <p className="mb-0" style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}>
+                            <p className="mb-0" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>
                                 Doubles, Outdoor, Crystal
                             </p>
                         </div>
@@ -729,8 +756,8 @@ const OpenmatchPayment = (props) => {
                             <p className="mb-0" style={{ fontSize: "14px", fontWeight: "400" }}>
                                 End registration
                             </p>
-                            <p className="mb-0" style={{ fontSize: "18px", fontWeight: "500", color: "#374151" }}>
-                                Today at {latestTime}
+                            <p className="mb-0" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>
+                                {calculateEndRegistrationTime()}
                             </p>
                         </div>
                     </div>
@@ -802,7 +829,6 @@ const OpenmatchPayment = (props) => {
                                     <div key={court._id} className="court-section mb-3">
                                         {court.time && court.time.length > 0 ? (
                                             court.time.map((slotTime, slotIndex) => {
-                                                console.log(selectedCourts, "rahul");
                                                 const formatted = formatDate(court.date);
                                                 return (
                                                     <div

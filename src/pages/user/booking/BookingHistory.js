@@ -298,7 +298,7 @@ const BookingHistory = () => {
                         <Table borderless responsive size="sm" className="booking-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>
                             <thead style={{ height: "48px", overflow: "hidden" }}>
                                 <tr className="p-0">
-                                    <th className="text-start px-5" style={{ borderRadius: "15px 0 0 0", minHeight: "48px", padding: "8px 0" }}>Booking Date / Time</th>
+                                    <th className="text-start ps-5" style={{ borderRadius: "15px 0 0 0", minHeight: "48px", padding: "8px 0" }}>Booking Date / Time</th>
                                     <th className="text-center" style={{ minHeight: "48px", padding: "8px 0" }}>Court Name</th>
                                     <th style={{ minHeight: "48px", padding: "8px 0" }}>Booking Type</th>
                                     {activeTab === "cancelled" && <th style={{ minHeight: "48px", padding: "8px 0" }}>Reason</th>}
@@ -486,9 +486,9 @@ const BookingHistory = () => {
                                                                     : booking?.bookingStatus === "refunded"
                                                                         ? "green"
                                                                         : "#F29410",
-                                                            fontSize: "16px",
-                                                            fontFamily: "Poppins",
+                                                            fontSize: "12px",
                                                             fontWeight: "500",
+                                                            fontFamily: "Poppins",
                                                         }}
                                                     >
                                                         {booking?.bookingStatus === "rejected"
