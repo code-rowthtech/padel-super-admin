@@ -1,0 +1,48 @@
+/* CSS Variables for consistent theming */
+:root {
+  /* Colors */
+  --primary-color: #27ae60;
+  --secondary-color: #2e51f3;
+  --success-color: #3dbe64;
+  --text-primary: #374151;
+  --text-secondary: #1c1b1f;
+  --text-muted: #d9d9d9;
+  --border-color: #0000001a;
+  --background-light: #fafbff;
+  --background-gray: #d0d6ea;
+  
+  /* Typography */
+  --font-family: 'Poppins', sans-serif;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 36px;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Border radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 25px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}

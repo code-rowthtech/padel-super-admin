@@ -2,15 +2,15 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import config from "../../config";
+import { SESSION_KEYS } from "../../constants";
 
-const USER_SESSION_KEY = "padel_user";
-const OWNER_SESSION_KEY = "padel_owner";
+const { USER, OWNER } = SESSION_KEYS;
 
 // -------------------
 // SESSION MANAGEMENT
 // -------------------
 export const getUserFromSession = () => {
-  const stored = localStorage.getItem(USER_SESSION_KEY);
+  const stored = localStorage.getItem(USER);
   if (!stored) return null;
   try {
     return JSON.parse(stored);
@@ -21,14 +21,14 @@ export const getUserFromSession = () => {
 
 export const setLoggedInUser = (session) => {
   if (session?.token) {
-    localStorage.setItem(USER_SESSION_KEY, JSON.stringify(session));
+    localStorage.setItem(USER, JSON.stringify(session));
   } else {
-    localStorage.removeItem(USER_SESSION_KEY);
+    localStorage.removeItem(USER);
   }
 };
 
 export const getOwnerFromSession = () => {
-  const stored = localStorage.getItem(OWNER_SESSION_KEY);
+  const stored = localStorage.getItem(OWNER);
   if (!stored) return null;
   try {
     return JSON.parse(stored);
@@ -39,9 +39,9 @@ export const getOwnerFromSession = () => {
 
 export const setLoggedInOwner = (session) => {
   if (session) {
-    localStorage.setItem(OWNER_SESSION_KEY, JSON.stringify(session));
+    localStorage.setItem(OWNER, JSON.stringify(session));
   } else {
-    localStorage.removeItem(OWNER_SESSION_KEY);
+    localStorage.removeItem(OWNER);
   }
 };
 
@@ -63,22 +63,7 @@ const validateToken = (token, userType) => {
   }
 };
 
-// const handleExpiredSession = (userType) => {
-//   if (userType === "user") {
-//     setLoggedInUser(null);
-//   } else {
-//     setLoggedInOwner(null);
-//   }
 
-//   const message = "Your session has expired.";
-//   alert(message);
-
-//   if (window.location.pathname.toLowerCase().startsWith("/admin")) {
-//     window.location.href = "/admin/login";
-//   } else {
-//     window.location.href = "/";
-//   }
-// };
 
 export const isUserAuthenticated = () => {
   const user = getUserFromSession();
@@ -234,11 +219,4 @@ export const updateSessionData = (updatedData, type = "user") => {
   }
 };
 
-// -------------------
-// INIT AUTH ON LOAD
-// -------------------
-const initializeAuth = () => {
-  const user = getUserFromSession();
-  const owner = getOwnerFromSession();
-};
-initializeAuth();
+
