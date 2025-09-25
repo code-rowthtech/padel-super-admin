@@ -261,7 +261,7 @@ const Home = () => {
 
                                 className="icon-button text-center text-decoration-none  border-0"
                             >
-                                <div className={`icon-circle mx-auto ${activeTab === 'photos' ? 'active' : ''}`}>
+                                <div className={`icon-circle mx-auto ${activeTab === 'call' ? 'active' : ''}`}>
                                     <PhoneIcon />
                                 </div>
                                 <div className="label  mt-2">Call</div>
@@ -369,24 +369,28 @@ const Home = () => {
                                                     let width = "0%";
                                                     let percent = 0;
 
-                                                    // Distribute percentages based on averageRating and ratingCategory
-                                                    const rating = getReviewData?.averageRating || 0;
-                                                    if (label === getReviewData?.ratingCategory) {
-                                                        percent = Math.round(rating * 20); // e.g., 3.5 * 20 = 70% for "Good"
+                                                    if (!getReviewData?.averageRating && !getReviewData?.ratingCategory) {
+                                                        percent = 0;
                                                     } else {
-                                                        // Estimated distribution for other categories
-                                                        const basePercent = Math.round((5 - rating) * 20 / 4); // Spread remaining percentage
-                                                        percent = idx < ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
-                                                            ? basePercent * (3 - idx)
-                                                            : idx > ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
-                                                                ? basePercent * (idx - 2)
-                                                                : basePercent;
+                                                        const rating = getReviewData?.averageRating || 0;
+                                                        if (label === getReviewData?.ratingCategory) {
+                                                            percent = Math.round(rating * 20); 
+                                                        } else {
+                                                            const basePercent = Math.round((5 - rating) * 20 / 4); 
+                                                            percent = getReviewData?.ratingCategory
+                                                                ? idx < ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
+                                                                    ? basePercent * (3 - idx)
+                                                                    : idx > ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
+                                                                        ? basePercent * (idx - 2)
+                                                                        : basePercent
+                                                                : 0; 
+                                                        }
                                                     }
                                                     width = `${percent}%`;
 
                                                     return (
                                                         <div className="d-flex align-items-center justify-content-between mb-3 w-100" key={idx}>
-                                                            <div className="me-2 " style={{ width: "150px", fontWeight: "500", fontSize: "16px", fontFamily: "Poppins", color: "#636364" }}>
+                                                            <div className="me-2" style={{ width: "150px", fontWeight: "500", fontSize: "16px", fontFamily: "Poppins", color: "#636364" }}>
                                                                 {label}
                                                             </div>
                                                             <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
@@ -395,11 +399,11 @@ const Home = () => {
                                                                     style={{
                                                                         width,
                                                                         backgroundColor:
-                                                                            idx === 0 ? "#3DBE64" : // Excellent (Green)
-                                                                                idx === 1 ? "#7CBA3D" : // Very Good (Dark Green)
-                                                                                    idx === 2 ? "#ECD844" : // Good (Dark Green)
-                                                                                        idx === 3 ? "#FC702B" : // Average (Yellow)
-                                                                                            "#E9341F", // Poor (Red)
+                                                                            idx === 0 ? "#3DBE64" :
+                                                                                idx === 1 ? "#7CBA3D" : 
+                                                                                    idx === 2 ? "#ECD844" : 
+                                                                                        idx === 3 ? "#FC702B" :
+                                                                                            "#E9341F", 
                                                                     }}
                                                                 ></div>
                                                             </div>

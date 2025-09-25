@@ -674,16 +674,22 @@ const Openmatches = () => {
                                             {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
                                                 let width = "0%";
                                                 let percent = 0;
-                                                const rating = reviewData?.averageRating || 0;
-                                                if (label === reviewData?.ratingCategory) {
-                                                    percent = Math.round(rating * 20);
+                                                if (!reviewData?.averageRating && !reviewData?.ratingCategory) {
+                                                    percent = 0;
                                                 } else {
-                                                    const basePercent = Math.round((5 - rating) * 20 / 4);
-                                                    percent = idx < ["Excellent", "Very Good", "Good"].indexOf(reviewData?.ratingCategory)
-                                                        ? basePercent * (3 - idx)
-                                                        : idx > ["Excellent", "Very Good", "Good"].indexOf(reviewData?.ratingCategory)
-                                                            ? basePercent * (idx - 2)
-                                                            : basePercent;
+                                                    const rating = reviewData?.averageRating || 0;
+                                                    if (label === reviewData?.ratingCategory) {
+                                                        percent = Math.round(rating * 20);
+                                                    } else {
+                                                        const basePercent = Math.round((5 - rating) * 20 / 4);
+                                                        percent = reviewData?.ratingCategory
+                                                            ? idx < ["Excellent", "Very Good", "Good"].indexOf(reviewData?.ratingCategory)
+                                                                ? basePercent * (3 - idx)
+                                                                : idx > ["Excellent", "Very Good", "Good"].indexOf(reviewData?.ratingCategory)
+                                                                    ? basePercent * (idx - 2)
+                                                                    : basePercent
+                                                            : 0;
+                                                    }
                                                 }
                                                 width = `${percent}%`;
 
