@@ -12,18 +12,13 @@ import { FormCheck } from "react-bootstrap";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { getReviewClub } from "../../../redux/user/club/thunk";
 import "react-datepicker/dist/react-datepicker.css";
-import { player } from "../../../assets/files";
+import { cloud, player, player2, sun } from "../../../assets/files";
 import UpdatePlayers from "../VeiwMatch/UpdatePlayers";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { MdOutlineDateRange } from "react-icons/md";
 import debounce from "lodash/debounce";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-
-const slotTime = [
-    '4:00 AM', '5:00 AM', '6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM', '11:00 PM'
-];
 
 const normalizeTime = (time) => {
     if (!time) return null;
@@ -32,6 +27,23 @@ const normalizeTime = (time) => {
         return `${match[1]} ${match[2].toLowerCase()}`;
     }
     return time;
+};
+
+// नई हेल्पर फंक्शन: टाइम को कैटेगरी में क्लासिफाई करने के लिए
+const getTimeCategory = (time) => {
+    if (!time) return null;
+    const normalized = normalizeTime(time);
+    const match = normalized?.match(/^(\d{1,2}) (am|pm)$/i);
+    if (!match) return null;
+
+    let hour = parseInt(match[1], 10);
+    const period = match[2].toLowerCase();
+    if (period === 'pm' && hour !== 12) hour += 12;
+    if (period === 'am' && hour === 12) hour = 0;
+
+    if (hour < 12) return 'morning';  // 12 AM से 11:59 AM
+    if (hour >= 12 && hour < 16) return 'noon';  // 12 PM से 3:59 PM
+    return 'night';  // 4 PM onwards
 };
 
 const Openmatches = () => {
@@ -57,6 +69,7 @@ const Openmatches = () => {
     const [showModal, setShowModal] = useState(false);
     const [matchId, setMatchId] = useState(null);
     const [teamName, setTeamName] = useState('');
+    const [activeTab, setActiveTab] = useState(0);
 
     const debouncedFetchMatches = useCallback(
         debounce((payload) => {
@@ -119,11 +132,26 @@ const Openmatches = () => {
         };
     });
 
+    // filteredMatches में tabs फिल्टर ऐड किया
     const filteredMatches = useMemo(() => {
-        return showUnavailableOnly
-            ? matchesData?.data?.filter(match => match?.players?.length >= 4) || []
-            : matchesData?.data || [];
-    }, [showUnavailableOnly, matchesData]);
+        let matches = matchesData?.data || [];
+
+        if (showUnavailableOnly) {
+            matches = matches.filter(match => match?.players?.length >= 4);
+        }
+
+        const tabLabels = ['morning', 'noon', 'night'];
+        const currentTab = tabLabels[activeTab];
+
+        return matches.filter(match => {
+            return match.slot?.some(slot => {
+                return slot.slotTimes?.some(slotTime => {
+                    const category = getTimeCategory(slotTime.time);
+                    return category === currentTab;
+                });
+            });
+        });
+    }, [showUnavailableOnly, matchesData, activeTab]);
 
     const toggleTime = (time) => {
         setSelectedTime(selectedTime === time ? null : time);
@@ -134,7 +162,6 @@ const Openmatches = () => {
 
     const [startIndex, setStartIndex] = useState(0);
     const visibleDays = 7;
-
 
     const handleSelect = (level) => {
         setSelectedLevel(level);
@@ -164,6 +191,12 @@ const Openmatches = () => {
             return total + court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount || 0), 0);
         }, 0).toFixed(0);
     };
+
+    const tabs = [
+        { img: cloud, label: 'morning' },
+        { img: sun, label: 'noon' },
+        { img: cloud, label: 'Night' },
+    ];
 
     const formatTimes = (slots) => {
         if (!slots || slots.length === 0) return "N/A";
@@ -209,8 +242,8 @@ const Openmatches = () => {
                 style={{
                     width: "40px",
                     height: "40px",
-                    border: "1px solid #1D4ED8",
-                    color: "#1D4ED8",
+                    border: "1px solid #1F41BB",
+                    color: "#1F41BB",
                     fontSize: "24px",
                     fontWeight: "400",
                     marginRight: "10px",
@@ -226,7 +259,7 @@ const Openmatches = () => {
             </div>
 
             <div className="d-flex flex-column align-items-start">
-                <span style={{ fontWeight: 600, color: "#1D4ED8", fontSize: "12px" }}>
+                <span style={{ fontWeight: 600, color: "#1F41BB", fontSize: "12px" }}>
                     Available
                 </span>
                 <small style={{ fontSize: "10px", color: "#6B7280" }}>{team}</small>
@@ -347,7 +380,6 @@ const Openmatches = () => {
     const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
     const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
-
     return (
         <div className="container mt-lg-4 px-3 px-md-4">
             <div className="row g-4">
@@ -413,7 +445,13 @@ const Openmatches = () => {
                                                 key={i}
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
                                                 className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
-                                                style={{ backgroundColor: isSelected ? "#374151" : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151" }}
+                                                style={{
+                                                    background: isSelected
+                                                        ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                                        : "#FFFFFF",
+                                                    borderRadius: "12px",
+                                                    color: isSelected ? "#FFFFFF" : "#374151",
+                                                }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d.fullDate, day: d.day });
                                                     setStartDate(new Date(d.fullDate));
@@ -436,38 +474,28 @@ const Openmatches = () => {
                     </div>
 
                     <div className="row mb-4 mx-auto">
-                        {slotTime?.map((time, i) => (
-                            <div className="col-lg-auto col-3 p-lg-0  me-lg-0" key={i}>
-                                <button
-                                    className="btn rounded-3 slot-time-btn text-center me-lg-1  ms-lg-1 text-lg-nowrap mb-md-3 mb-lg-3 p-0 mb-1"
-                                    onClick={() => toggleTime(time)}
-                                    style={{
-                                        backgroundColor: selectedTime === time ? "#374151" : "#FAFBFF",
-                                        color: selectedTime === time ? "white" : "#000000",
-                                        border: "2px solid #0f0f0f1a",
-                                        transition: "border-color 0.2s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.border = "2px solid #3DBE64";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.border = "2px solid #0f0f0f1a";
-                                    }}
-                                >
-                                    {formatTime(time)}
-                                </button>
-
+                        <div className="col-12 d-flex justify-content-center align-items-center">
+                            <div className="weather-tabs  rounded-pill  d-flex justify-content-center align-items-center gap-4">
+                                {tabs.map((tab, index) => (
+                                    <div
+                                        key={index}
+                                        className={`  d-flex justify-content-center align-items-center ${activeTab === index ? 'open-match-active-tab rounded-pill p-1 ' : ''}`}
+                                        onClick={() => setActiveTab(index)}
+                                    >
+                                        <img className="tab-icon" src={tab?.img} />
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </div>
                     </div>
 
                     {/* Match List */}
                     <div className="pb-4">
                         <div className="d-flex flex-column flex-md-row justify-content-start align-items-start align-items-md-center gap-3 mb-4">
                             <h5 className="mb-0 custom-heading-use">All Matches</h5>
-                            <div className="dropdown">
+                            <div className="dropdown ">
                                 <button
-                                    className="btn btn-light border py-1 px-3 d-flex align-items-center gap-2"
+                                    className="btn btn-light rounded-pill border py-1 px-3 d-flex align-items-center gap-2"
                                     type="button"
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false"
@@ -507,89 +535,93 @@ const Openmatches = () => {
                             {matchLoading ? (
                                 <DataLoading height={480} />
                             ) : filteredMatches.length > 0 ? (
-                                filteredMatches?.map((match, index) => (
-                                    <div
-                                        key={index}
-                                        className="card border-0 mb-3 py-3 shadow-0 rounded-2"
-                                        style={{ backgroundColor: "#CBD6FF1A", border: '0.5px solid #0000001A', boxShadow: "none" }}
-                                    >
-                                        <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items-center flex-wrap">
-                                            <div className="col-6">
-                                                <p className="mb-3 all-match-time" style={{ fontWeight: "600" }}>
-                                                    {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
-                                                    <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
-                                                        {match?.skillLevel
-                                                            ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
-                                                            : "N/A"}
-                                                    </span>
-                                                </p>
-                                                <p className="all-match-time mb-0 d-md-none d-lg-none">
-                                                    {match?.skillLevel
-                                                        ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
-                                                        : "N/A"}
-                                                </p>
-                                                <p className="mb-1 all-match-name-level">
-                                                    {match?.clubId?.clubName || "Unknown Club"}
-                                                </p>
-                                                <p
-                                                    className="mb-0 text-muted all-match-name-level"
-                                                    style={{ fontSize: "10px", fontWeight: "400" }}
-                                                >
-                                                    <FaMapMarkerAlt className="me-1" style={{ fontSize: "8px" }} />
-                                                    {match?.clubId?.city.charAt(0)?.toUpperCase() + match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
-                                                </p>
-                                            </div>
-
-                                            <div className="col-6 d-flex justify-content-end align-items-center">
-                                                <div className="d-flex flex-column align-items-end">
-                                                    <div className="d-flex align-items-center mb-3">
-                                                        {match?.teamA?.length === 1 || match?.teamA?.length === 0 ? (
-                                                            <AvailableTag team="Team A" match={match} name="teamA" />
-                                                        ) : match?.teamB?.length === 1 || match?.teamB?.length === 0 ? (
-                                                            <AvailableTag team="Team B" match={match} name="teamB" />
-                                                        ) : match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
-                                                            <FirstPlayerTag player={match?.teamA[0]?.userId} />
-                                                        ) : null}
-
-                                                        <div className="d-flex align-items-center ms-2">
-                                                            {[
-                                                                ...(match?.teamA?.filter((_, idx) =>
-                                                                    match?.teamA?.length === 2 && match?.teamB?.length === 2
-                                                                        ? idx !== 0
-                                                                        : true
-                                                                ) || []),
-                                                                ...(match?.teamB || []),
-                                                            ].map((player, idx, arr) => (
-                                                                <PlayerAvatar
-                                                                    key={`player-${idx}`}
-                                                                    player={player}
-                                                                    idx={idx}
-                                                                    total={arr.length}
-                                                                />
-                                                            ))}
-                                                        </div>
+                                <div className="row">
+                                    {filteredMatches?.map((match, index) => (
+                                        <div className="col-lg-6 col-12 ps-0 pe-1 gap-2 ">
+                                            <div
+                                                key={index}
+                                                className="card   border mb-3 py-3 p-0 shadow-0 rounded-2"
+                                                style={{ backgroundColor: "#CBD6FF1A", border: '0.5px solid #0000001A', boxShadow: "none" }}
+                                            >
+                                                <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items-center flex-wrap">
+                                                    <div className="col-6 ">
+                                                        <p className="mb-3 all-match-time" style={{ fontWeight: "600" }}>
+                                                            {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
+                                                            <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
+                                                                {match?.skillLevel
+                                                                    ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
+                                                                    : "N/A"}
+                                                            </span>
+                                                        </p>
+                                                        <p className="all-match-time mb-0 d-md-none d-lg-none">
+                                                            {match?.skillLevel
+                                                                ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
+                                                                : "N/A"}
+                                                        </p>
+                                                        <p className="mb-1 all-match-name-level">
+                                                            {match?.clubId?.clubName || "Unknown Club"}
+                                                        </p>
+                                                        <p
+                                                            className="mb-0 text-muted all-match-name-level"
+                                                            style={{ fontSize: "8px", fontWeight: "400" }}
+                                                        >
+                                                            <FaMapMarkerAlt className="me-1" style={{ fontSize: "8px" }} />
+                                                            {match?.clubId?.city.charAt(0)?.toUpperCase() + match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
+                                                        </p>
                                                     </div>
 
-                                                    <div className="d-flex flex-column align-items-center gap-1">
-                                                        <div
-                                                            className="text-primary all-matches"
-                                                            style={{ fontWeight: "600", fontFamily: "none" }}
-                                                        >
-                                                            ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "20px", fontWeight: "500", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                    <div className="col-6 d-flex justify-content-end align-items-center">
+                                                        <div className="d-flex flex-column align-items-end">
+                                                            <div className="d-flex align-items-center mb-3">
+                                                                {match?.teamA?.length === 1 || match?.teamA?.length === 0 ? (
+                                                                    <AvailableTag team="Team A" match={match} name="teamA" />
+                                                                ) : match?.teamB?.length === 1 || match?.teamB?.length === 0 ? (
+                                                                    <AvailableTag team="Team B" match={match} name="teamB" />
+                                                                ) : match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
+                                                                    <FirstPlayerTag player={match?.teamA[0]?.userId} />
+                                                                ) : null}
+
+                                                                <div className="d-flex align-items-center ms-2">
+                                                                    {[
+                                                                        ...(match?.teamA?.filter((_, idx) =>
+                                                                            match?.teamA?.length === 2 && match?.teamB?.length === 2
+                                                                                ? idx !== 0
+                                                                                : true
+                                                                        ) || []),
+                                                                        ...(match?.teamB || []),
+                                                                    ].map((player, idx, arr) => (
+                                                                        <PlayerAvatar
+                                                                            key={`player-${idx}`}
+                                                                            player={player}
+                                                                            idx={idx}
+                                                                            total={arr.length}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="d-flex flex-column align-items-center gap-1">
+                                                                <div
+                                                                    className="text-primary all-matches"
+                                                                    style={{ fontWeight: "600", fontFamily: "none" }}
+                                                                >
+                                                                    ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "20px", fontWeight: "500", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                                </div>
+                                                                <button
+                                                                    className="btn rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-white"
+                                                                    onClick={() => navigate("/view-match", { state: { match } })}
+                                                                    aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                                >
+                                                                    View
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <button
-                                                            className="btn rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-white"
-                                                            onClick={() => navigate("/view-match", { state: { match } })}
-                                                            aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
-                                                        >
-                                                            View
-                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             ) : (
                                 <div
                                     className="d-flex flex-column justify-content-center align-items-center text-danger fw-medium"
@@ -606,120 +638,132 @@ const Openmatches = () => {
                     </div>
                 </div>
 
-                {/* Right Section - Booking Summary */}
-                <div className="col-12 col-lg-5">
-                    <div className="container ms-0 ms-lg-2">
+                <div className="col-12 col-lg-5 ps-4 pt-0">
+                    <div className=" ms-0 ms-lg-2">
                         <div
-                            className="row align-items-center text-white rounded-4 py-0 pt-2 ps-4"
+                            className="row align-items-center   text-white rounded-4 py-0  ps-4"
                             style={{
-                                background: "linear-gradient(to right, #101826, #1e293b)",
-                                overflow: "visible",
+                                backgroundImage: `url(${player2})`,
                                 position: "relative",
+                                backgroundSize: "contain",   // or "cover"
+                                backgroundRepeat: "no-repeat",
+                                backgroundPosition: "center",
+                                height: "312px",
+                                borderRadius: "50px",
+                                overflow: "hidden",          // important: clips bg to radius
                             }}
+
+
                         >
-                            <div className="col-12 col-md-6 mb-4 text-lg-start text-center mb-md-0">
-                                <h4 className="open-match-img-heading text-nowrap">Let the Battles <br /> Begin!</h4>
+                            <div className="col-12 col-md-6 mb-1 text-lg-start text-center mb-md-0">
+                                <h4 className="open-match-img-heading text-nowrap">Got a score to <br /> settle?</h4>
                                 <p className="text-light">Great for competitive vibes.</p>
                                 <button
-                                    className="btn create-match-btn mt-lg-2 text-white rounded-pill mb-3 ps-3 pe-3"
+                                    className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-3 ps-3 pe-3"
                                     onClick={createMatchesHandle}
-                                    style={{ backgroundColor: "#3DBE64", fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}
+                                    style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}
                                     aria-label="Create open matches"
                                 >
                                     Create Open Matches
                                 </button>
                             </div>
-                            <div className="col-12 col-md-6 text-center" style={{ position: "relative" }}>
-                                <img
-                                    src={player}
-                                    alt="Player"
-                                    className="img-fluid"
-                                    style={{
-                                        maxHeight: "390px",
-                                        marginTop: "-20px",
-                                        zIndex: 999,
-                                        position: "relative",
-                                    }}
-                                />
-                            </div>
+
                         </div>
-                        <div className="px-4 py-5 row rounded-4 pt-4 mt-4 mb-5 h-100" style={{ backgroundColor: "#F5F5F566" }}>
+                        <div className="px-4 py-4  row rounded-4 mt-1 mb-5 h-100" style={{ backgroundColor: "#F6F7FB" }}>
                             {reviewLoading ? (
                                 <DataLoading />
                             ) : (
                                 <>
-                                    <div className="col-12 col-md-4 text-center d-lg-flex align-items-center justify-content-center mb-lg-3 mb-5 mb-md-0">
+                                    {/* Left Section */}
+                                    <div className="col-12 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
                                         <div className="w-100">
-                                            <p style={{ fontSize: "16px", fontWeight: "500", color: "#636364" }}>Overall Rating</p>
-                                            <div className="display-5 fw-bold mb-3">{reviewData?.averageRating || 0}</div>
-                                            <div className="text-success mb-3">
-                                                {[...Array(5)].map((_, i) => {
-                                                    const rating = reviewData?.averageRating || 0;
-                                                    if (i < Math.floor(rating)) {
-                                                        return <StarIcon key={i} style={{ color: "#32B768" }} />;
-                                                    } else if (i < rating && rating % 1 >= 0.5) {
-                                                        return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
-                                                    } else {
-                                                        return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
-                                                    }
-                                                })}
-                                            </div>
-                                            <div className="text-muted mt-2" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
-                                                based on {reviewData?.totalReviews || 0} reviews
+                                            <p className=" mb-0" style={{ fontSize: "25px", fontWeight: "700", color: "#111", fontFamily: "Poppins" }}>
+                                                Customer reviews
+                                            </p>
+                                            <div className="d-flex align-items-center justify-content-center ">
+                                                <div className=" mb-2" style={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "40px", color: "#111" }}>
+                                                    {reviewData?.averageRating?.toFixed(1) || "0.0"}
+                                                </div>
+                                                <div className="mb-2">
+                                                    {[...Array(5)].map((_, i) => {
+                                                        const rating = reviewData?.averageRating || 0;
+                                                        if (i < Math.floor(rating)) {
+                                                            return <StarIcon key={i} style={{ color: "#32B768" }} />;
+                                                        } else if (i < rating && rating % 1 >= 0.5) {
+                                                            return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
+                                                        } else {
+                                                            return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
+                                                        }
+                                                    })}
+                                                </div>
+                                                <div className="text-muted" style={{ fontSize: "16px", fontWeight: "300", fontFamily: "Poppins" }}>
+                                                    {reviewData?.totalReviews || 0} reviews
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="col-12 col-md-8 border-start d-flex align-items-center">
+
+                                    {/* Right Section */}
+                                    <div className="col-12 d-flex  align-items-center">
                                         <div className="w-100">
-                                            {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
-                                                let width = "0%";
-                                                let percent = 0;
-                                                if (!reviewData?.averageRating && !reviewData?.ratingCategory) {
-                                                    percent = 0;
-                                                } else {
-                                                    const rating = reviewData?.averageRating || 0;
-                                                    if (label === reviewData?.ratingCategory) {
-                                                        percent = Math.round(rating * 20);
-                                                    } else {
-                                                        const basePercent = Math.round((5 - rating) * 20 / 4);
-                                                        percent = reviewData?.ratingCategory
-                                                            ? idx < ["Excellent", "Very Good", "Good"].indexOf(reviewData?.ratingCategory)
-                                                                ? basePercent * (3 - idx)
-                                                                : idx > ["Excellent", "Very Good", "Good"].indexOf(reviewData?.ratingCategory)
-                                                                    ? basePercent * (idx - 2)
-                                                                    : basePercent
-                                                            : 0;
-                                                    }
-                                                }
-                                                width = `${percent}%`;
+                                            {[5, 4, 3, 2, 1].map((star, idx) => {
+                                                const total = reviewData?.totalReviews || 1;
+                                                let count = 0;
+                                                if (star === 3 && reviewData?.ratingCategory === "Average") count = reviewData?.ratingCounts?.Average || 0; // 2 reviews
+                                                else if (star === 4 && reviewData?.ratingCounts?.Good) count = reviewData?.ratingCounts?.Good || 0; // 1 review
+                                                else if (star <= 2) count = reviewData?.ratingCounts?.Below || 0; // 0 reviews
+                                                else if (star === 5) count = reviewData?.ratingCounts?.Excellent || 0; // 0 reviews
+
+                                                const percent = Math.round((count / total) * 100);
+                                                console.log({ star, count, percent, total, reviewData });
 
                                                 return (
-                                                    <div className="d-flex align-items-center mb-3 justify-content-between mb-1 w-100" key={idx}>
-                                                        <div className="me-2 fw-medium" style={{ width: "120px", fontSize: "12px", fontFamily: "Poppins", color: "#636364" }}>
-                                                            {label}
+                                                    <div className="d-flex align-items-center mb-2 justify-content-between w-100" key={star}>
+                                                        <div
+                                                            className="me-2 fw-medium"
+                                                            style={{
+                                                                width: "20px",
+                                                                fontSize: "12px",
+                                                                fontFamily: "Poppins",
+                                                                color: "#111",
+                                                            }}
+                                                        >
+                                                            {star}
                                                         </div>
-                                                        <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
+
+                                                        <div
+                                                            className="progress me-2 w-100"
+                                                            style={{ height: "20px", backgroundColor: "#eee" }}
+                                                        >
                                                             <div
                                                                 className="progress-bar"
                                                                 style={{
-                                                                    width,
+                                                                    width: `${percent}%`,
                                                                     backgroundColor:
-                                                                        idx === 0 ? "#3DBE64" :
-                                                                            idx === 1 ? "#7CBA3D" :
-                                                                                idx === 2 ? "#ECD844" :
-                                                                                    idx === 3 ? "#FC702B" :
-                                                                                        "#E9341F",
+                                                                        star === 5
+                                                                            ? "#74D797"
+                                                                            : star === 4
+                                                                                ? "#BCE592"
+                                                                                : star === 3
+                                                                                    ? "#F4D94F"
+                                                                                    : star === 2
+                                                                                        ? "#F5BC4A"
+                                                                                        : "#F07954",
                                                                 }}
                                                             ></div>
                                                         </div>
+
                                                         <div
                                                             style={{
-                                                                color: "#000",
+                                                                width: "50px",
+                                                                textAlign: "right",
                                                                 fontSize: "12px",
-                                                                backgroundColor: "rgba(255, 255, 255, 0.7)",
+                                                                fontWeight: "600",
+                                                                fontFamily: "Poppins",
+                                                                color: "#111",
                                                             }}
                                                         >
-                                                            {percent}%
+                                                            {percent}% <span className="text-muted ps-1">{count}</span>
                                                         </div>
                                                     </div>
                                                 );
@@ -729,6 +773,7 @@ const Openmatches = () => {
                                 </>
                             )}
                         </div>
+
                     </div>
                 </div>
             </div>
