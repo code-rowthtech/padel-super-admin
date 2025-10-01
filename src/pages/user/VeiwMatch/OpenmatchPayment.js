@@ -906,7 +906,7 @@ const OpenmatchPayment = (props) => {
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading /> : "Book Now"}</div>
+                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>

@@ -11,7 +11,7 @@ export const Loading = ({ color }) => {
   );
 };
 
-export const ButtonLoading = ({ color = "white", size = 10 }) => {
+export const ButtonLoading = ({ color , size = 10 }) => {
   return (
     <div className="d-flex justify-content-center align-items-center w-100 py-1">
       <PulseLoader color={color} size={size} />
