@@ -198,7 +198,6 @@ const Openmatches = () => {
             });
         }
     };
-
     const formatMatchDate = (dateString) => {
         const date = new Date(dateString);
         const day = date.toLocaleDateString("en-US", { day: "2-digit" });
