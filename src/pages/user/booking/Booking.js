@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 // import DatePicker from "react-datepicker";
-import { twoball } from "../../../assets/files";
+import { cloud, sun, twoball } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
@@ -218,7 +218,7 @@ const Booking = ({ className = "" }) => {
     const contentStyle = {
         position: "relative",
         zIndex: 2,
-        color: "white",
+        color: "#001B76",
         fontWeight: "600",
         fontSize: `16px`,
         textAlign: "center",
@@ -341,11 +341,11 @@ const Booking = ({ className = "" }) => {
         }
     }, [errorShow, errorMessage]);
 
-    const [tabCounts, setTabCounts] = useState([0, 0, 0]);
+
     const tabData = [
-        { eventKey: 'morning', label: 'Morning' },
-        { eventKey: 'noon', label: 'Noon' },
-        { eventKey: 'night', label: 'Night' },
+        { img: cloud, label: 'Morning', key: 'morning' },
+        { img: sun, label: 'Noon', key: 'noon' },
+        { img: cloud, label: 'Night', key: 'night' },
     ];
 
     useEffect(() => {
@@ -363,14 +363,12 @@ const Booking = ({ className = "" }) => {
                 }
             });
         });
-        console.log("Tab Counts:", counts);
-        setTabCounts(counts);
 
         let defaultTab = 'morning';
         if (counts[0] === 0) {
             const firstAvailableIndex = counts.findIndex(count => count > 0);
             if (firstAvailableIndex !== -1) {
-                defaultTab = tabData[firstAvailableIndex].eventKey;
+                defaultTab = tabData[firstAvailableIndex].key; // eventKey की जगह key
             }
         }
         setKey(defaultTab);
@@ -458,8 +456,12 @@ const Booking = ({ className = "" }) => {
                                             <button
                                                 key={i}
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                                                className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
-                                                style={{ backgroundColor: isSelected ? "#374151" : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151" }}
+                                                className={`calendar-day-btn mb-3  me-1 ${isSelected ? "text-white border-0" : "bg-white"}`}
+                                                style={{
+                                                    background: isSelected
+                                                        ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                                        : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151"
+                                                }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d.fullDate, day: d.day });
                                                     setStartDate(new Date(d.fullDate));
@@ -481,22 +483,20 @@ const Booking = ({ className = "" }) => {
                         </div>
 
                         {/* Global Tabs above courts */}
-                        <div className="mb-3">
-                            <Tabs id="custom-tabs" activeKey={key} onSelect={(k) => setKey(k)} className="border p-1 rounded-3 custom-tabs" fill>
-                                {tabData.map((tab, index) => (
-                                    <Tab
-                                        className="rounded-3 text-center"
-                                        key={tab.eventKey}
-                                        eventKey={tab.eventKey}
-                                        // disabled={tabCounts[index] === 0}
-                                        title={
-                                            <span className="tab-titl text-center" style={{ fontSize: "13px", fontWeight: "500", fontFamily: "Poppins" }}>
-                                                {tab.label} <b className="text-warning">({tabCounts[index]})</b>
-                                            </span>
-                                        }
-                                    />
-                                ))}
-                            </Tabs>
+                        <div className="row mb-2 mx-auto">
+                            <div className="col-12 d-flex justify-content-center align-items-center">
+                                <div className="weather-tabs  rounded-pill  d-flex justify-content-center align-items-center gap-4">
+                                    {tabData.map((tab, index) => (
+                                        <div
+                                            key={index}
+                                            className={`d-flex justify-content-center align-items-center ${key === tab.key ? 'open-match-active-tab rounded-pill p-1 ' : ''}`}
+                                            onClick={() => setKey(tab.key)}
+                                        >
+                                            <img className="tab-icon" src={tab?.img} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                         <div className="d-flex flex-column gap-3 mb-3 overflow-slot">
                             {slotData?.data?.length > 0 ? (
@@ -535,15 +535,15 @@ const Booking = ({ className = "" }) => {
                                                         return (
                                                             <div className="col-lg-auto col-4 p-lg-0 me-lg-0 mb-3" key={i}>
                                                                 <button
-                                                                    className="btn rounded-3 slot-time-btn text-center me-lg-1  ms-lg-1 text-lg-nowrap mb-md-3 mb-lg-3 p-0 mb-1"
+                                                                    className={`btn rounded-3 ${isSelected ? 'border-0' : ''} slot-time-btn text-center me-lg-1 ms-lg-1 text-lg-nowrap mb-md-3 mb-lg-3 p-0 mb-1`}
                                                                     onClick={() => toggleTime(slot, court._id)}
                                                                     disabled={isDisabled}
                                                                     style={{
-                                                                        backgroundColor: slot.status === "booked" || isPastTime(slot.time) ? "#c9cfcfff" : isSelected ? "#374151" : slot.availabilityStatus !== "available" ? "#c9cfcfff" : "#FFFFFF",
+                                                                        background: slot.status === "booked" || isPastTime(slot.time) ? "#c9cfcfff" : isSelected ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : slot.availabilityStatus !== "available" ? "#c9cfcfff" : "#FFFFFF",
                                                                         color: (slot.status === "booked" || isPastTime(slot.time) || isDisabled) ? "#000000" : isSelected ? "white" : "#000000",
                                                                         cursor: isDisabled ? "not-allowed" : "pointer",
                                                                         opacity: isDisabled ? 0.6 : 1,
-                                                                        border: "1px solid #4949491A",
+                                                                        border: isSelected ? '' : "1px solid #4949491A",
                                                                         transition: "border-color 0.2s ease",
                                                                     }}
                                                                     onMouseEnter={(e) => !isDisabled && !isPastTime(slot.time) && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #3DBE64")}
@@ -576,16 +576,16 @@ const Booking = ({ className = "" }) => {
                         </div>
                     </div>
                     <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
-                        <div className="border w-100 rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <div className="border w-100  px-3 py-5 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="text-center mb-3">
                                 <div className="d-flex justify-content-center">
                                     {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>}
                                 </div>
-                                <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                                <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                             </div>
                             <div className="d-flex border-top pt-2 justify-content-between align-items-center">
-                                <h6 className="p-2 mb-1 ps-0 custom-heading-use">Booking Summary</h6>
-                                {totalSlots >= 10 && <Button className="float-end btn border-0 rounded-pill" style={{ cursor: "pointer", backgroundColor: "grey", fontSize: "10px", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
+                                <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
+                                {totalSlots >= 10 && <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ cursor: "pointer", background: "#111827", fontSize: "10px",fontWeight:"600", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
                             </div>
                             <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
                                 {selectedCourts.length > 0 ? (
@@ -593,35 +593,35 @@ const Booking = ({ className = "" }) => {
                                         court.time.map((timeSlot, timeIndex) => (
                                             <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
-                                                    <div className="d-flex">
-                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                    <div className="d-flex text-white">
+                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
                                                         </span>
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {formatTime(timeSlot.time)}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>{court.courtName}</span>
+                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
                                                     </div>
-                                                    <div style={{ color: "#1A237E" }}>
+                                                    <div className="text-white">
                                                         ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
-                                                        <MdOutlineDeleteOutline className="ms-2" style={{ cursor: "pointer", color: "red" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
+                                                        <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
                                                     </div>
                                                 </div>
                                             </div>
                                         ))
                                     )
                                 ) : (
-                                    <div className="d-flex flex-column justify-content-center align-items-center text-muted" style={{ height: "25vh" }}>
-                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", color: "#d02727" }}>No slot selected</p>
+                                    <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
+                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
                                     </div>
                                 )}
                             </div>
                             {totalSlots > 0 && (
-                                <div className="border-top pt-3 mt-2 d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden" }}>
+                                <div className="border-top pt-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden" }}>
                                     <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
                                         Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
                                     </p>
-                                    <p style={{ fontSize: "25px", fontWeight: "600", color: "#1A237E" }}>₹ {grandTotal}</p>
+                                    <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
                                 </div>
                             )}
                             <div className="d-flex justify-content-center mt-3">
@@ -629,13 +629,13 @@ const Booking = ({ className = "" }) => {
                                     <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                         <defs>
                                             <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                                <stop offset="0%" stopColor="#3DBE64" />
-                                                <stop offset="50%" stopColor="#3DBE64" />
-                                                <stop offset="100%" stopColor="#3DBE64" />
+                                                <stop offset="0%" stopColor="#fff" />
+                                                <stop offset="50%" stopColor="#fff" />
+                                                <stop offset="100%" stopColor="#fff" />
                                             </linearGradient>
                                         </defs>
                                         <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill={`url(#buttonGradient-${width}-${height})`} />
-                                        <circle cx={circleX} cy={circleY} r={circleRadius} fill="#3DBE64" />
+                                        <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
                                         <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
                                             <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
                                             <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />

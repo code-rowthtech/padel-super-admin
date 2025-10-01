@@ -19,7 +19,7 @@ const convertTo24Hour = (timeStr) => {
     let [hours] = time.split(":").map(Number);
     if (period.toLowerCase() === "pm" && hours !== 12) hours += 12;
     if (period.toLowerCase() === "am" && hours === 12) hours = 0;
-    return hours * 60; 
+    return hours * 60;
 };
 
 const formatTime = (timeStr) => {
@@ -27,8 +27,8 @@ const formatTime = (timeStr) => {
 };
 
 const getLatestTime = (courts, currentDate, currentTime) => {
-    const currentDateStr = currentDate.toISOString().split("T")[0]; 
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes(); 
+    const currentDateStr = currentDate.toISOString().split("T")[0];
+    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
 
     let allTimes = [];
     courts.forEach((court) => {
@@ -308,7 +308,7 @@ const OpenmatchPayment = (props) => {
                 }
                 return court;
             })
-            .filter((court) => court.time.length > 0); 
+            .filter((court) => court.time.length > 0);
 
         navigate("/match-payment", {
             state: {
@@ -352,7 +352,7 @@ const OpenmatchPayment = (props) => {
     const contentStyle = {
         position: "relative",
         zIndex: 2,
-        color: "white",
+        color: " #001B76",
         fontWeight: "600",
         fontSize: `16px`,
         textAlign: "center",
@@ -484,7 +484,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "User"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">{finalSkillDetails?.slice(-1)}</span>
+                                                <span className="badge text-white" style={{backgroundColor:"#3DBE64"}}>{finalSkillDetails?.slice(-1)}</span>
                                             </div>
                                         );
                                     } else {
@@ -492,14 +492,14 @@ const OpenmatchPayment = (props) => {
                                             <div key="left-add-match-0" className="text-center mx-auto" style={{ cursor: "not-allowed" }}>
                                                 <div
                                                     className="rounded-circle d-flex bg-white align-items-center justify-content-center"
-                                                    style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
+                                                    style={{ width: 80, height: 80, border: "1px solid #3DBE64" }}
                                                 >
-                                                    <span className="fs-3" style={{ color: "#1F41BB" }}>
+                                                    <span className="fs-3" style={{ color: "#3DBE64" }}>
                                                         +
                                                     </span>
                                                 </div>
-                                                <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>
-                                                    User Required
+                                                <p className="mb-0 mt-2 fw-semibold" style={{ color: "#3DBE64" }}>
+                                                    Self Add
                                                 </p>
                                             </div>
                                         );
@@ -514,7 +514,7 @@ const OpenmatchPayment = (props) => {
                                                     style={{
                                                         width: 80,
                                                         height: 80,
-                                                        backgroundColor: player.profilePic ? "transparent" : "#1F41BB",
+                                                        backgroundColor: player.profilePic ? "transparent" : "#3DBE64",
                                                         overflow: "hidden",
                                                     }}
                                                 >
@@ -533,7 +533,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">{player?.level}</span>
+                                                <span className="badge  text-white" style={{backgroundColor:"#3DBE64"}}>{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -546,13 +546,13 @@ const OpenmatchPayment = (props) => {
                                             >
                                                 <div
                                                     className="rounded-circle d-flex bg-white align-items-center justify-content-center"
-                                                    style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
+                                                    style={{ width: 80, height: 80, border: "1px solid #3DBE64" }}
                                                 >
-                                                    <span className="fs-3" style={{ color: "#1F41BB" }}>
+                                                    <span className="fs-3" style={{ color: "#3DBE64" }}>
                                                         +
                                                     </span>
                                                 </div>
-                                                <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>
+                                                <p className="mb-0 mt-2 fw-semibold" style={{ color: "#3DBE64" }}>
                                                     Add Me
                                                 </p>
                                             </div>
@@ -596,7 +596,8 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">{player?.level}</span>
+                                                {console.log({player})}
+                                                <span className="badge text-white" style={{backgroundColor:"#1F41BB"}}>{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -747,7 +748,7 @@ const OpenmatchPayment = (props) => {
                 {/* Right Section */}
                 <div className="col-5 pe-0">
                     <div
-                        className="rounded-4 pt-4 px-5"
+                        className="rounded-4 pt-4 px-5 pb-4"
                         style={{ backgroundColor: "#F5F5F566", border: error && !selectedPayment ? "1px solid red" : "" }}
                     >
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
@@ -759,10 +760,12 @@ const OpenmatchPayment = (props) => {
                         <div className="d-flex flex-column gap-3">
                             {[
                                 { id: "google", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
-                                { id: "apple", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
                                 { id: "paypal", name: "Paypal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
+                                { id: "apple", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
                             ].map((method) => (
-                                <label key={method.id} className="d-flex justify-content-between align-items-center p-3 bg-white rounded-4 p-4">
+                                <label key={method.id} className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill "
+                                    style={{ boxShadow: '3px 4px 6.3px 0px #0000001F' }}
+                                >
                                     <div className="d-flex align-items-center gap-3">
                                         <img src={method.icon} alt={method.name} width={28} />
                                         <span className="fw-medium">{method.name}</span>
@@ -771,7 +774,7 @@ const OpenmatchPayment = (props) => {
                                         type="radio"
                                         name="payment"
                                         value={method.id}
-                                        className="form-check-input"
+                                        className="form-check-input border-4 border-primary"
                                         checked={selectedPayment === method.id}
                                         onChange={(e) => setSelectedPayment(e.target.value)}
                                         style={{ boxShadow: "none" }}
@@ -780,7 +783,7 @@ const OpenmatchPayment = (props) => {
                             ))}
                         </div>
                     </div>
-                    <div className="border rounded px-3 ms-2 pt-3 mb-5 mb-lg-0 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    <div className="border  px-3 ms-2 pb-3 pt-3 mt-3 mb-5 mb-lg-0 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
                                 {logo ? (
@@ -798,12 +801,12 @@ const OpenmatchPayment = (props) => {
                                     </Avatar>
                                 )}
                             </div>
-                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>
+                            <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                             </p>
                         </div>
 
-                        <h6 className="border-top p-2 mb-3 ps-0 custom-heading-use">Booking Summary</h6>
+                        <h6 className="border-top p-2 mb-3 text-white ps-0 custom-heading-use">Booking Summary</h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto" }}>
                             {selectedCourts.length > 0 ? (
                                 selectedCourts.map((court, courtIndex) => (
@@ -821,21 +824,21 @@ const OpenmatchPayment = (props) => {
                                                             transition: "background-color 0.2s ease, border-color 0.2s ease, border-width 0.2s ease",
                                                         }}
                                                     >
-                                                        <div className="d-flex">
-                                                            <span className="" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                        <div className="d-flex text-white">
+                                                            <span className="" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                                 {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)}
                                                             </span>
-                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                                 {formatTime(slotTime.time)}
                                                             </span>
-                                                            <span className="ps-1" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
+                                                            <span className="ps-1" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>
                                                                 {court.courtName}
                                                             </span>
                                                         </div>
-                                                        <div className="d-flex align-items-center gap-2" style={{ color: "#1A237E" }}>
+                                                        <div className="d-flex align-items-center gap-2 text-white" >
                                                             <span style={{ fontWeight: "600", fontFamily: "Poppins" }}>₹ {slotTime.amount || 1000}</span>
-                                                            <MdOutlineDeleteOutline
-                                                                style={{ cursor: "pointer", color: "red" }}
+                                                            <MdOutlineDeleteOutline className="text-white"
+                                                                style={{ cursor: "pointer" }}
                                                                 onClick={() => handleDeleteSlot(court._id, slotTime._id)}
                                                             />
                                                         </div>
@@ -843,27 +846,27 @@ const OpenmatchPayment = (props) => {
                                                 );
                                             })
                                         ) : (
-                                            <div>
-                                                No slots selected for this court <Link className="text-primary" to="/create-matches">Add slot</Link>
+                                            <div className="text-white">
+                                                No slots selected for this court <Link className="text-success" to="/create-matches">Add slot</Link>
                                             </div>
                                         )}
                                     </div>
                                 ))
                             ) : (
-                                <div>
-                                    No slot selected <Link className="text-primary" to="/create-matches">Add slot</Link>
+                                <div className="text-white">
+                                    No slot selected <Link className="text-success" to="/create-matches">Add slot</Link>
                                 </div>
                             )}
                         </div>
-                        <div className="border-top pt-2 mb-0 mt-2 d-flex justify-content-between align-items-center fw-bold">
+                        <div className="border-top pt-2 mb-0  text-white mt-2 d-flex justify-content-between align-items-center fw-bold">
                             <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                                 Total to pay{" "}
                                 <span style={{ fontSize: "14px", fontWeight: "600" }}>
                                     Total Slots {selectedCourts.length > 0 ? selectedCourts.reduce((total, court) => total + court.time.length, 0) : 0}
                                 </span>
                             </p>
-                            <p className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "25px" }}>
-                                ₹ <span style={{ fontSize: "25px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{totalAmount.toFixed(0)}</span>
+                            <p className="text-white" style={{ fontWeight: "500", fontSize: "25px" }}>
+                                ₹ <span style={{ fontSize: "25px", fontFamily: "Poppins", fontWeight: "500" }}>{totalAmount.toFixed(0)}</span>
                             </p>
                         </div>
 
@@ -873,9 +876,9 @@ const OpenmatchPayment = (props) => {
                                 <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                     <defs>
                                         <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#3DBE64" />
-                                            <stop offset="50%" stopColor="#3DBE64" />
-                                            <stop offset="100%" stopColor="#3DBE64" />
+                                            <stop offset="0%" stopColor="#fff" />
+                                            <stop offset="50%" stopColor="#fff" />
+                                            <stop offset="100%" stopColor="#fff" />
                                         </linearGradient>
                                     </defs>
                                     <path
@@ -896,7 +899,7 @@ const OpenmatchPayment = (props) => {
                         L ${width * 0.76} ${height * 0.15} Z`}
                                         fill={`url(#buttonGradient-${width}-${height})`}
                                     />
-                                    <circle cx={circleX} cy={circleY} r={circleRadius} fill="#3DBE64" />
+                                    <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
                                     <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
                                         <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
