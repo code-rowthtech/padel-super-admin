@@ -332,7 +332,7 @@ const ViewMatch = ({ className = "" }) => {
                             />
                         </div>
                     </div>
-                    <div className=" rounded px-3  pt-3 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    <div className="  px-3  pt-3 border-0" style={{borderRadius:"10px 30% 10px 10px",height:"80vh", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
                                 {logo ? (
@@ -354,13 +354,13 @@ const ViewMatch = ({ className = "" }) => {
                                     </Avatar>
                                 )}
                             </div>
-                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                            <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                         </div>
 
-                        <h6 className="border-top p-2 mb-1 ps-0 custom-heading-use" >
+                        <h6 className="border-top p-2 mb-1 ps-0 text-white custom-heading-use" >
                             Booking Summary
                         </h6>
-                        <div style={{ maxHeight: "240px", overflowY: "auto" }}>
+                        <div style={{ maxHeight: "340px", overflowY: "auto" }}>
                             {matchesData?.data?.slot && matchesData?.data?.slot?.length > 0 ? (
                                 matchesData.data.slot.map((court, index) =>
                                     court.slotTimes.map((slotTime, slotIndex) => {
@@ -371,20 +371,20 @@ const ViewMatch = ({ className = "" }) => {
                                                 className="court-row d-flex justify-content-between align-items-center mb-3 px-md-2"
                                                 style={{ cursor: "pointer" }}
                                             >
-                                                <div>
-                                                    <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>
-                                                        {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {formatTime(slotTime.time)} </span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px", color: "#374151" }}>{court.courtName}
+                                                <div className="text-white">
+                                                    <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px" }}>
+                                                        {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {formatTime(slotTime.time)} </span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px"}}>{court.courtName}
                                                     </span>
                                                 </div>
-                                                <div className="d-flex align-items-center justify-content-center gap-2">
-                                                    <span className="" style={{ fontWeight: "500", color: "#1A237E", fontSize: "16px" }}>₹ <span className="" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500", color: "#1A237E" }}>{slotTime.amount}</span></span>
+                                                <div className="d-flex align-items-center text-white justify-content-center gap-2">
+                                                    <span className="" style={{ fontWeight: "500", fontSize: "16px" }}>₹ <span className="" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{slotTime.amount}</span></span>
                                                 </div>
                                             </div>
                                         );
                                     })
                                 )
                             ) : (
-                                <div>No slots available</div>
+                                <div className="text-white">No slots available</div>
                             )}
                         </div>
                     </div>

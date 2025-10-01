@@ -29,7 +29,6 @@ const normalizeTime = (time) => {
     return time;
 };
 
-// नई हेल्पर फंक्शन: टाइम को कैटेगरी में क्लासिफाई करने के लिए
 const getTimeCategory = (time) => {
     if (!time) return null;
     const normalized = normalizeTime(time);
@@ -41,9 +40,9 @@ const getTimeCategory = (time) => {
     if (period === 'pm' && hour !== 12) hour += 12;
     if (period === 'am' && hour === 12) hour = 0;
 
-    if (hour < 12) return 'morning';  // 12 AM से 11:59 AM
-    if (hour >= 12 && hour < 16) return 'noon';  // 12 PM से 3:59 PM
-    return 'night';  // 4 PM onwards
+    if (hour < 12) return 'morning'; // 12 AM से 11:59 AM
+    if (hour >= 12 && hour < 16) return 'noon'; // 12 PM से 3:59 PM
+    return 'night'; // 4 PM onwards
 };
 
 const Openmatches = () => {
@@ -56,6 +55,7 @@ const Openmatches = () => {
         fullDate: new Date().toISOString().split("T")[0],
         day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
     });
+    const [activeTab, setActiveTab] = useState(0); // Default to morning tab
     const scrollRef = useRef(null);
     const dateRefs = useRef({});
     const wrapperRef = useRef(null);
@@ -69,7 +69,6 @@ const Openmatches = () => {
     const [showModal, setShowModal] = useState(false);
     const [matchId, setMatchId] = useState(null);
     const [teamName, setTeamName] = useState('');
-    const [activeTab, setActiveTab] = useState(0);
 
     const debouncedFetchMatches = useCallback(
         debounce((payload) => {
@@ -132,7 +131,19 @@ const Openmatches = () => {
         };
     });
 
-    // filteredMatches में tabs फिल्टर ऐड किया
+    // Helper to check matches for a specific time category
+    const getMatchesForTab = (tabLabel, matches) => {
+        return matches.filter(match => {
+            return match.slot?.some(slot => {
+                return slot.slotTimes?.some(slotTime => {
+                    const category = getTimeCategory(slotTime.time);
+                    return category === tabLabel;
+                });
+            });
+        });
+    };
+
+    // Filtered matches with tab logic
     const filteredMatches = useMemo(() => {
         let matches = matchesData?.data || [];
 
@@ -143,15 +154,24 @@ const Openmatches = () => {
         const tabLabels = ['morning', 'noon', 'night'];
         const currentTab = tabLabels[activeTab];
 
-        return matches.filter(match => {
-            return match.slot?.some(slot => {
-                return slot.slotTimes?.some(slotTime => {
-                    const category = getTimeCategory(slotTime.time);
-                    return category === currentTab;
-                });
-            });
-        });
+        return getMatchesForTab(currentTab, matches);
     }, [showUnavailableOnly, matchesData, activeTab]);
+
+    // Automatically switch tabs if the current tab has no matches
+    useEffect(() => {
+        if (!matchLoading && filteredMatches.length === 0 && matchesData?.data?.length > 0) {
+            const tabLabels = ['morning', 'noon', 'night'];
+            // Try to find the next tab with matches
+            for (let i = 0; i < tabLabels.length; i++) {
+                if (i === activeTab) continue; // Skip current tab
+                const matchesForTab = getMatchesForTab(tabLabels[i], matchesData?.data || []);
+                if (matchesForTab.length > 0) {
+                    setActiveTab(i); // Switch to the first tab with matches
+                    break;
+                }
+            }
+        }
+    }, [filteredMatches, matchesData, activeTab, matchLoading]);
 
     const toggleTime = (time) => {
         setSelectedTime(selectedTime === time ? null : time);
@@ -195,13 +215,13 @@ const Openmatches = () => {
     const tabs = [
         { img: cloud, label: 'morning' },
         { img: sun, label: 'noon' },
-        { img: cloud, label: 'Night' },
+        { img: cloud, label: 'night' },
     ];
 
     const formatTimes = (slots) => {
         if (!slots || slots.length === 0) return "N/A";
         const formatted = slots
-            .slice(0, 3)
+            .slice(0, 2)
             .map((slot) => {
                 const time = slot?.slotTimes?.[0]?.time;
                 if (!time) return null;
@@ -215,7 +235,7 @@ const Openmatches = () => {
                 return `${formattedHour}${period}`;
             })
             .filter(Boolean);
-        return formatted.join(",") + (slots.length > 3 ? "...." : "");
+        return formatted.join(",") + (slots.length > 2 ? "...." : "");
     };
 
     const TagWrapper = ({ children }) => (
@@ -255,7 +275,7 @@ const Openmatches = () => {
                     setTeamName(name);
                 }}
             >
-                <span className="mb-1" >+</span>
+                <span className="mb-1">+</span>
             </div>
 
             <div className="d-flex flex-column align-items-start">
@@ -299,10 +319,10 @@ const Openmatches = () => {
                         fontWeight: 600,
                         color: "#111827",
                         fontSize: "12px",
-                        whiteSpace: "nowrap", // Prevents text from wrapping
-                        overflow: "hidden", // Hides overflowed text
-                        textOverflow: "ellipsis", // Adds ellipsis for overflowed text
-                        maxWidth: "100px" // Adjust based on your design
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "100px"
                     }}
                 >
                     {player?.name
@@ -347,7 +367,7 @@ const Openmatches = () => {
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
             ) : (
-                <span className=""
+                <span
                     style={{
                         color: "white",
                         fontWeight: "600",
@@ -371,6 +391,7 @@ const Openmatches = () => {
         Saturday: "Sat",
         Sunday: "Sun",
     };
+
     const getCurrentMonth = (selectedDate) => {
         if (!selectedDate) return "Month";
         const dateObj = new Date(selectedDate.fullDate);
@@ -425,7 +446,6 @@ const Openmatches = () => {
                                                 }}
                                             />
                                         </LocalizationProvider>
-
                                     </div>
                                 )}
                             </div>
@@ -475,14 +495,14 @@ const Openmatches = () => {
 
                     <div className="row mb-4 mx-auto">
                         <div className="col-12 d-flex justify-content-center align-items-center">
-                            <div className="weather-tabs  rounded-pill  d-flex justify-content-center align-items-center gap-4">
+                            <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center gap-4">
                                 {tabs.map((tab, index) => (
                                     <div
                                         key={index}
-                                        className={`  d-flex justify-content-center align-items-center ${activeTab === index ? 'open-match-active-tab rounded-pill p-1 ' : ''}`}
+                                        className={`d-flex justify-content-center align-items-center ${activeTab === index ? 'open-match-active-tab rounded-pill p-1' : ''}`}
                                         onClick={() => setActiveTab(index)}
                                     >
-                                        <img className="tab-icon" src={tab?.img} />
+                                        <img className="tab-icon" src={tab?.img} alt={tab.label} />
                                     </div>
                                 ))}
                             </div>
@@ -493,7 +513,7 @@ const Openmatches = () => {
                     <div className="pb-4">
                         <div className="d-flex flex-column flex-md-row justify-content-start align-items-start align-items-md-center gap-3 mb-4">
                             <h5 className="mb-0 custom-heading-use">All Matches</h5>
-                            <div className="dropdown " >
+                            <div className="dropdown">
                                 <button
                                     className="btn btn-light text-nowrap rounded-pill border py-1 px-3 d-flex align-items-center gap-2"
                                     type="button"
@@ -537,14 +557,13 @@ const Openmatches = () => {
                             ) : filteredMatches.length > 0 ? (
                                 <div className="row">
                                     {filteredMatches?.map((match, index) => (
-                                        <div className="col-lg-6 col-12 ps-0 pe-1 gap-2 ">
+                                        <div className="col-lg-6 col-12 ps-0 pe-1 gap-2" key={index}>
                                             <div
-                                                key={index}
-                                                className="card   border mb-3 py-3 p-0 shadow-0 rounded-2"
+                                                className="card border mb-3 py-3 p-0 shadow-0 rounded-2"
                                                 style={{ backgroundColor: "#CBD6FF1A", border: '0.5px solid #0000001A', boxShadow: "none" }}
                                             >
                                                 <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items-center flex-wrap">
-                                                    <div className="col-6 ">
+                                                    <div className="col-lg-7 col-6">
                                                         <p className="mb-3 all-match-time" style={{ fontWeight: "600" }}>
                                                             {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
                                                             <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
@@ -570,7 +589,7 @@ const Openmatches = () => {
                                                         </p>
                                                     </div>
 
-                                                    <div className="col-6 d-flex justify-content-end align-items-center">
+                                                    <div className="col-6 col-lg-5 d-flex justify-content-end align-items-center">
                                                         <div className="d-flex flex-column align-items-end">
                                                             <div className="d-flex align-items-center mb-3">
                                                                 {match?.teamA?.length === 1 || match?.teamA?.length === 0 ? (
@@ -639,21 +658,19 @@ const Openmatches = () => {
                 </div>
 
                 <div className="col-12 col-lg-5 ps-4 pt-0">
-                    <div className=" ms-0 ms-lg-2">
+                    <div className="ms-0 ms-lg-2">
                         <div
-                            className="row align-items-center   text-white rounded-4 py-0  ps-4"
+                            className="row align-items-center text-white rounded-4 py-0 ps-4"
                             style={{
                                 backgroundImage: `url(${player2})`,
                                 position: "relative",
-                                backgroundSize: "contain",   // or "cover"
+                                backgroundSize: "contain",
                                 backgroundRepeat: "no-repeat",
                                 backgroundPosition: "center",
                                 height: "312px",
                                 borderRadius: "50px",
-                                overflow: "hidden",          // important: clips bg to radius
+                                overflow: "hidden",
                             }}
-
-
                         >
                             <div className="col-12 col-md-6 mb-1 text-lg-start text-center mb-md-0">
                                 <h4 className="open-match-img-heading text-nowrap">Got a score to <br /> settle?</h4>
@@ -667,21 +684,19 @@ const Openmatches = () => {
                                     Create Open Matches
                                 </button>
                             </div>
-
                         </div>
-                        <div className="px-4 py-4  row rounded-4 mt-1 mb-5 h-100" style={{ backgroundColor: "#F6F7FB" }}>
+                        <div className="px-4 py-4 row rounded-4 mt-1 mb-5 h-100" style={{ backgroundColor: "#F6F7FB" }}>
                             {reviewLoading ? (
                                 <DataLoading />
                             ) : (
                                 <>
-                                    {/* Left Section */}
                                     <div className="col-12 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
                                         <div className="w-100">
-                                            <p className=" mb-0" style={{ fontSize: "25px", fontWeight: "700", color: "#111", fontFamily: "Poppins" }}>
+                                            <p className="mb-0" style={{ fontSize: "25px", fontWeight: "700", color: "#111", fontFamily: "Poppins" }}>
                                                 Customer reviews
                                             </p>
-                                            <div className="d-flex align-items-center justify-content-center ">
-                                                <div className=" mb-2" style={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "40px", color: "#111" }}>
+                                            <div className="d-flex align-items-center justify-content-center">
+                                                <div className="mb-2" style={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "40px", color: "#111" }}>
                                                     {reviewData?.averageRating?.toFixed(1) || "0.0"}
                                                 </div>
                                                 <div className="mb-2">
@@ -703,16 +718,15 @@ const Openmatches = () => {
                                         </div>
                                     </div>
 
-                                    {/* Right Section */}
-                                    <div className="col-12 d-flex  align-items-center">
+                                    <div className="col-12 d-flex align-items-center">
                                         <div className="w-100">
                                             {[5, 4, 3, 2, 1].map((star, idx) => {
                                                 const total = reviewData?.totalReviews || 1;
                                                 let count = 0;
-                                                if (star === 3 && reviewData?.ratingCategory === "Average") count = reviewData?.ratingCounts?.Average || 0; // 2 reviews
-                                                else if (star === 4 && reviewData?.ratingCounts?.Good) count = reviewData?.ratingCounts?.Good || 0; // 1 review
-                                                else if (star <= 2) count = reviewData?.ratingCounts?.Below || 0; // 0 reviews
-                                                else if (star === 5) count = reviewData?.ratingCounts?.Excellent || 0; // 0 reviews
+                                                if (star === 3 && reviewData?.ratingCategory === "Average") count = reviewData?.ratingCounts?.Average || 0;
+                                                else if (star === 4 && reviewData?.ratingCounts?.Good) count = reviewData?.ratingCounts?.Good || 0;
+                                                else if (star <= 2) count = reviewData?.ratingCounts?.Below || 0;
+                                                else if (star === 5) count = reviewData?.ratingCounts?.Excellent || 0;
 
                                                 const percent = Math.round((count / total) * 100);
 
@@ -772,7 +786,6 @@ const Openmatches = () => {
                                 </>
                             )}
                         </div>
-
                     </div>
                 </div>
             </div>
