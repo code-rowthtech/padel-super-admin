@@ -18,6 +18,7 @@ import scrore_bg from "./images/scrorebg.png"
 import sun from './images/Ellipse 30.png'
 import cloud from './images/cloud.png'
 import player2 from './images/openmatchscore.png'
+import success2 from './images/bookingsuccess 2.png'
 
 export {
     twoball,
@@ -35,5 +36,5 @@ export {
     modalSuccess,
     complete_img,
     booking_success_img,americano_reactangle,
-    scrore_bg,sun,cloud,player2
+    scrore_bg,sun,cloud,player2,success2
 }

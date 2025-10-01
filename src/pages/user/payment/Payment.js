@@ -7,7 +7,7 @@ import { loginUserNumber, Usersignup } from "../../../redux/user/auth/authThunk"
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
-import { booking_success_img } from "../../../assets/files";
+import { booking_success_img, success2 } from "../../../assets/files";
 import { IoIosArrowDown } from "react-icons/io";
 
 // Load Razorpay Checkout
@@ -224,7 +224,7 @@ const Payment = ({ className = "" }) => {
     const contentStyle = {
         position: "relative",
         zIndex: 2,
-        color: "white",
+        color: "#001B76",
         fontWeight: "600",
         fontSize: `16px`,
         textAlign: "center",
@@ -374,7 +374,7 @@ const Payment = ({ className = "" }) => {
                                 ].map((method) => (
                                     <label
                                         key={method.id}
-                                        className="d-flex justify-content-between align-items-center p-3 bg-white rounded-4 p-4"
+                                        className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill "
                                         style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5" }}
                                     >
                                         <div className="d-flex align-items-center gap-3">
@@ -399,7 +399,7 @@ const Payment = ({ className = "" }) => {
 
                 {/* Booking Summary */}
                 <div className="col-12 col-lg-5">
-                    <div className="border rounded px-3 py-5 border-0" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    <div className="border  px-3 py-5 border-0" style={{borderRadius:"10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
                                 {logo ? (
@@ -421,7 +421,7 @@ const Payment = ({ className = "" }) => {
                                     </Avatar>
                                 )}
                             </div>
-                            <p className="mt-2 mb-1" style={{ fontSize: "20px", fontWeight: "600", color: "#000000", fontFamily: "Poppins" }}>
+                            <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                             </p>
                             {/* <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
@@ -433,7 +433,7 @@ const Payment = ({ className = "" }) => {
                             </p> */}
                         </div>
 
-                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use">
+                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use text-white">
                             Booking Summary
                         </h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
@@ -443,11 +443,11 @@ const Payment = ({ className = "" }) => {
                                         {court?.time?.map((timeSlot, timeIndex) => (
                                             <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
-                                                    <div className="d-flex">
+                                                    <div className="d-flex text-white">
                                                         {/* <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {court?.day ? dayMap[court.day.toLowerCase()] : ""},
                                                         </span> */}
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px"}}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
                                                                 const date = new Date(court.date);
@@ -457,22 +457,22 @@ const Payment = ({ className = "" }) => {
                                                             })()}
                                                         </span>
 
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px"}}>
                                                             {formatTime(timeSlot.time)}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px", color: "#374151" }}>
+                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px"}}>
                                                             {court?.courtName}
                                                         </span>
                                                     </div>
-                                                    <div className="d-flex align-items-center" style={{ color: "#1A237E" }}>
+                                                    <div className="d-flex align-items-center text-white" >
                                                         ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: 'Poppins' }}>
                                                             {timeSlot?.amount || 2000}
                                                         </span>
                                                         <button
-                                                            className="btn btn-sm text-danger delete-btn"
+                                                            className="btn btn-sm text-white delete-btn"
                                                             onClick={() => handleDeleteSlot(index, timeIndex)}
                                                         >
-                                                            <i className="bi bi-trash-fill mb-2"></i>
+                                                            <i className="bi bi-trash-fill text-white mb-2"></i>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -482,29 +482,29 @@ const Payment = ({ className = "" }) => {
                                 ))
                             ) : (
                                 <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: "25vh" }}>
-                                    <p className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "600" }}>
+                                    <p className="text-white" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "600" }}>
                                         No court selected
                                     </p>
                                 </div>
                             )}
                         </div>
                         {errors.courts && (
-                            <div className="text-danger" style={{ fontSize: "12px", marginTop: "8px" }}>
+                            <div className="text-white" style={{ fontSize: "12px", marginTop: "8px" }}>
                                 {errors.courts}
                             </div>
                         )}
                         {localTotalSlots > 0 && (
-                            <div className="border-top pt-3 mt-2 d-flex align-items-center justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
+                            <div className="border-top text-white pt-3 mt-2 d-flex align-items-center justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
                                 <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
                                     Total to Pay   <span style={{ fontSize: "14px", fontWeight: "600" }}>
                                         Slots {localTotalSlots}
                                     </span>
                                 </p>
-                                <p style={{ fontSize: "25px", fontWeight: "600", color: "#1A237E" }}>₹ {localGrandTotal}</p>
+                                <p style={{ fontSize: "25px", fontWeight: "600"}}>₹ {localGrandTotal}</p>
                             </div>
                         )}
                         {errors.general && (
-                            <div className="text-danger" style={{ fontSize: "12px", marginTop: "8px" }}>
+                            <div className="text-white" style={{ fontSize: "12px", marginTop: "8px" }}>
                                 {errors.general}
                             </div>
                         )}
@@ -523,9 +523,9 @@ const Payment = ({ className = "" }) => {
                                 <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                     <defs>
                                         <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#3DBE64" />
-                                            <stop offset="50%" stopColor="#3DBE64" />
-                                            <stop offset="100%" stopColor="#3DBE64" />
+                                            <stop offset="0%" stopColor="#fff" />
+                                            <stop offset="50%" stopColor="#fff" />
+                                            <stop offset="100%" stopColor="#fff" />
                                         </linearGradient>
                                     </defs>
                                     <path
@@ -546,7 +546,7 @@ const Payment = ({ className = "" }) => {
                       L ${width * 0.76} ${height * 0.15} Z`}
                                         fill={`url(#buttonGradient-${width}-${height})`}
                                     />
-                                    <circle cx={circleX} cy={circleY} r={circleRadius} fill="#3DBE64" />
+                                    <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
                                     <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
                                         <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
@@ -554,7 +554,7 @@ const Payment = ({ className = "" }) => {
                                     </g>
                                 </svg>
                                 <div style={contentStyle}>
-                                    {bookingStatus?.bookingLoading || isLoading || userLoading?.userAuthLoading ? <ButtonLoading /> : "Book Now"}
+                                    {bookingStatus?.bookingLoading || isLoading || userLoading?.userAuthLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}
                                 </div>
                             </button>
                         </div>
@@ -563,8 +563,8 @@ const Payment = ({ className = "" }) => {
             </div>
 
             <Modal show={modal} centered>
-                <div className="p-4 text-center">
-                    <img src={booking_success_img} alt="Booking Success" style={{ width: "294px", height: "294px", marginBottom: "20px" }} />
+                <div className="p-4 pt-0 text-center">
+                    <img src={success2} alt="Booking Success" className="img-fluid mx-auto" style={{ width: "294px", height: "394px" }} />
                     <h4 className="tabel-title" style={{ fontFamily: "Poppins" }}>Booking Successful!</h4>
                     <p className="text-dark" style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>
                         Your slot has been booked successfully.
@@ -575,14 +575,14 @@ const Payment = ({ className = "" }) => {
                             navigate("/booking", { replace: true });
                         }}
                         className="w-75 rounded-pill border-0 text-white py-lg-3 mt-lg-4 mb-lg-4"
-                        style={{ backgroundColor: "#3DBE64", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
+                        style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
                     >
                         Continue
                     </Button>
                     <p className="text-dark fw-medium mt-3 mb-1" style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>
                         You’ll receive a reminder before it starts.
                     </p>
-                    <Link to="/booking-history" replace className="nav-link" style={{ color: "#1F41BB", fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>
+                    <Link to="/booking-history" replace className="nav-link" style={{ color: "#001B76", fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>
                         View Booking Details
                     </Link>
                 </div>
