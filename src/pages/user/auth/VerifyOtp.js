@@ -19,18 +19,15 @@ const VerifyOTP = () => {
   const { error, user, userAuthLoading, otp: otpData } = useSelector((state) => state?.userAuth);
   const dispatch = useDispatch();
 
-  // टाइमर और timerExpired को localStorage से रिस्टोर करो
   useEffect(() => {
     const storedTimer = localStorage.getItem('otpTimer');
     const storedTimestamp = localStorage.getItem('otpTimestamp');
     const storedTimerExpired = localStorage.getItem('timerExpired');
 
     if (storedTimerExpired === 'true') {
-      // अगर टाइमर पहले ही खत्म हो चुका है
       setTimerExpired(true);
       setTimer(0);
     } else if (storedTimer && storedTimestamp) {
-      // टाइमर रिस्टोर करो अगर वह खत्म नहीं हुआ है
       const elapsed = Math.floor((Date.now() - parseInt(storedTimestamp)) / 1000);
       const remaining = Math.max(0, parseInt(storedTimer) - elapsed);
       setTimer(remaining);
@@ -44,9 +41,8 @@ const VerifyOTP = () => {
     }
   }, []);
 
-  // टाइमर काउंटडाउन और localStorage में अपडेट
   useEffect(() => {
-    if (timerExpired) return; // टाइमर खत्म होने पर काउंटडाउन न चलाएं
+    if (timerExpired) return; 
 
     const countdown = setInterval(() => {
       setTimer((prev) => {
@@ -65,7 +61,6 @@ const VerifyOTP = () => {
     return () => clearInterval(countdown);
   }, [timerExpired]);
 
-  // OTP रिस्पॉन्स आने पर localStorage में स्टोर
   useEffect(() => {
     if (otpData?.response) {
       localStorage.setItem('otp', otpData.response);
@@ -75,7 +70,6 @@ const VerifyOTP = () => {
     }
   }, [otpData?.response, timer]);
 
-  // सक्सेस पर रीडायरेक्ट और localStorage क्लियर
   useEffect(() => {
     if (user?.status === "200") {
       localStorage.removeItem('otp');
@@ -93,7 +87,6 @@ const VerifyOTP = () => {
     }
   }, [user?.status, navigate, dispatch, redirectTo, paymentState]);
 
-  // एरर आने पर OTP फील्ड्स क्लियर
   useEffect(() => {
     if (error) {
       setShowAlert(true);
@@ -115,7 +108,6 @@ const VerifyOTP = () => {
         document.getElementById(`otp-${index - 1}`).focus();
       }
 
-      // API कॉल केवल जब सभी फील्ड भरे हों
       if (newOtp.every((digit) => digit !== '')) {
         const otpValue = Number(newOtp.join(''));
         dispatch(verifyOtp({ otp: otpValue, phoneNumber: phone }))
@@ -164,7 +156,6 @@ const VerifyOTP = () => {
                 A verification code has been sent to <strong>+91*****{phone?.slice(5)}</strong>
               </div>
 
-              {/* OTP दिखाओ Redux से या localStorage से */}
               {timer > 0 && (otpData?.response || localStorage.getItem('otp')) && (
                 <Alert variant="info" className="py-1" style={{ marginBottom: '20px' }}>
                   Your OTP is: {otpData?.response || localStorage.getItem('otp')}
@@ -205,7 +196,6 @@ const VerifyOTP = () => {
                 </p>
               )}
 
-              {/* Timer या Re-send */}
               {!timerExpired ? (
                 <div style={{ marginTop: 20, marginBottom: 20, color: '#555', fontWeight: '500' }}>
                   00:{String(timer).padStart(2, '0')} Sec

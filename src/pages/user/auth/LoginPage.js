@@ -97,7 +97,7 @@ const LoginPage = () => {
                                     disabled={userAuthLoading}
                                     style={{ backgroundColor: '#4CAF50', fontSize: "16px", fontWeight: "600", fontFamily: "Poppins", color: "white", boxShadow: '0px 3px 10px 0px #00000040' }}
                                 >
-                                    {userAuthLoading ? <ButtonLoading /> : 'Get OTP'}
+                                    {userAuthLoading ? <ButtonLoading color="white" /> : 'Get OTP'}
                                 </Button>
 
                             </Form>
