@@ -15,7 +15,6 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch()
     const location = useLocation();
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         const cleanedPhone = phone.replace(/\D/g, '').slice(0, 10);
@@ -69,8 +68,6 @@ const LoginPage = () => {
 
                             <Form onSubmit={handleSubmit} className='w-100 text-start'>
                                 {showAlert && <Alert variant="danger">{error}</Alert>}
-
-
                                 <Form.Group className="mb-3" controlId="formPhone">
                                     <Form.Label className="text-start" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>Phone Number</Form.Label>
                                     <Form.Control
@@ -118,8 +115,6 @@ const LoginPage = () => {
                             loading="lazy"
                         />
                     </Col>
-
-
                 </Row>
             </Container>
         </div>
