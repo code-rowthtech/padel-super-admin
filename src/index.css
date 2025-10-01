@@ -1222,13 +1222,34 @@ h1.display-5 {
 }
 
 .tab-icon {
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   background-size: cover;
   background-position: center;
   cursor: pointer;
 }
-.open-match-active-tab{
+
+.open-match-active-tab {
   background-color: #DAD6D7;
   width: 100px;
+}
+
+&::-webkit-scrollbar {
+  width: 8px;
+}
+
+&::-webkit-scrollbar-track {
+  background: #003087;
+  /* Blue background like the image */
+}
+
+&::-webkit-scrollbar-thumb {
+  background: #808080;
+  /* Gray thumb like the image */
+  border-radius: 4px;
+}
+
+&::-webkit-scrollbar-thumb:hover {
+  background: #666;
+  /* Slightly darker gray on hover */
 }

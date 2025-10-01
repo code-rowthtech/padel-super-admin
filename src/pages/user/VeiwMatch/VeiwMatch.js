@@ -96,6 +96,7 @@ const ViewMatch = ({ className = "" }) => {
     };
 
     const renderPlayerSlot = (player, index, isRemovable, team) => {
+        console.log({team});
         if (player) {
             const user = player.userId || player;
             return (
@@ -105,7 +106,7 @@ const ViewMatch = ({ className = "" }) => {
                         style={{
                             width: 80,
                             height: 80,
-                            backgroundColor: user.profilePic ? "transparent" : "#1F41BB",
+                            backgroundColor: user.profilePic ? "transparent" : team === 'A' ? "#3DBE64" : "#1F41BB",
                             overflow: "hidden",
                         }}
                     >
@@ -129,7 +130,7 @@ const ViewMatch = ({ className = "" }) => {
                                 : user.name
                             : "User"}
                     </p>
-                    <span className="badge bg-success-subtle text-success">{user?.level || 'A|B'}</span>
+                    <span className="badge text-white " style={{backgroundColor:team ==='A' ?"#3DBE64" :'#1F41BB'}}>{user?.level || 'A|B'}</span>
                 </div>
             );
         } else if (
@@ -141,12 +142,12 @@ const ViewMatch = ({ className = "" }) => {
                 <div key={index} className="text-center d-flex align-items-center flex-column mx-auto mb-3">
                     <button
                         className=" bg-white rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ width: 80, height: 80, border: "1px solid #1F41BB" }}
+                        style={{ width: 80, height: 80, border:team === 'A' ? '1px solid #3DBE64' : "1px solid #1F41BB" }}
                         onClick={() => { setShowModal(true); setTeamName(name); }}
                     >
-                        <i className="bi bi-plus fs-1" style={{ color: "#1F41BB" }}></i>
+                        <i className="bi bi-plus fs-1" style={{ color:team === 'A' ? "#3DBE64" : "#1F41BB" }}></i>
                     </button>
-                    <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>Add Me</p>
+                    <p className="mb-0 mt-2 fw-semibold" style={{ color:team === 'A' ? "#3DBE64" : "#1F41BB" }}>Add Me</p>
                 </div>
             );
         }

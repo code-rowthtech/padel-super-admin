@@ -240,8 +240,8 @@ const Openmatches = () => {
             <div
                 className="d-flex justify-content-center align-items-center rounded-circle"
                 style={{
-                    width: "40px",
-                    height: "40px",
+                    width: "30px",
+                    height: "30px",
                     border: "1px solid #1F41BB",
                     color: "#1F41BB",
                     fontSize: "24px",
@@ -259,7 +259,7 @@ const Openmatches = () => {
             </div>
 
             <div className="d-flex flex-column align-items-start">
-                <span style={{ fontWeight: 600, color: "#1F41BB", fontSize: "12px" }}>
+                <span style={{ fontWeight: 600, color: "#1F41BB", fontSize: "10px" }}>
                     Available
                 </span>
                 <small style={{ fontSize: "10px", color: "#6B7280" }}>{team}</small>
@@ -272,8 +272,8 @@ const Openmatches = () => {
             <div
                 className="d-flex justify-content-center align-items-center rounded-circle overflow-hidden"
                 style={{
-                    width: "40px",
-                    height: "40px",
+                    width: "30px",
+                    height: "30px",
                     backgroundColor: player?.userId?.profilePic ? "transparent" : "#374151",
                     overflow: "hidden",
                     border: "1px solid #E5E7EB",
@@ -331,8 +331,8 @@ const Openmatches = () => {
         <div
             className="rounded-circle border d-flex align-items-center justify-content-center position-relative"
             style={{
-                width: "40px",
-                height: "40px",
+                width: "30px",
+                height: "30px",
                 marginLeft: idx !== 0 ? "-15px" : "0",
                 zIndex: total - idx,
                 backgroundColor: player?.userId?.profilePic ? "transparent" : "#374151",
@@ -444,7 +444,7 @@ const Openmatches = () => {
                                             <button
                                                 key={i}
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                                                className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
+                                                className={`calendar-day-btn border-0 mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
                                                 style={{
                                                     background: isSelected
                                                         ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
@@ -493,16 +493,16 @@ const Openmatches = () => {
                     <div className="pb-4">
                         <div className="d-flex flex-column flex-md-row justify-content-start align-items-start align-items-md-center gap-3 mb-4">
                             <h5 className="mb-0 custom-heading-use">All Matches</h5>
-                            <div className="dropdown ">
+                            <div className="dropdown " >
                                 <button
-                                    className="btn btn-light rounded-pill border py-1 px-3 d-flex align-items-center gap-2"
+                                    className="btn btn-light text-nowrap rounded-pill border py-1 px-3 d-flex align-items-center gap-2"
                                     type="button"
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false"
                                     aria-label="Select skill level"
-                                    style={{ minWidth: "150px" }}
+                                    style={{ width: "130px" }}
                                 >
-                                    <span className="me-3" style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>
+                                    <span className="me-3" style={{ fontSize: "10px", fontFamily: "Poppins", fontWeight: "500" }}>
                                         {selectedLevel?.charAt(0)?.toUpperCase() + selectedLevel?.slice(1) || "Choose level"}
                                     </span>
                                     <FaChevronDown style={{ fontSize: "10px" }} />
@@ -608,7 +608,7 @@ const Openmatches = () => {
                                                                     ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "20px", fontWeight: "500", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
                                                                 </div>
                                                                 <button
-                                                                    className="btn rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-white"
+                                                                    className="btn border-0 rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-white"
                                                                     onClick={() => navigate("/view-match", { state: { match } })}
                                                                     aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
                                                                 >
@@ -696,7 +696,7 @@ const Openmatches = () => {
                                                         }
                                                     })}
                                                 </div>
-                                                <div className="text-muted" style={{ fontSize: "16px", fontWeight: "300", fontFamily: "Poppins" }}>
+                                                <div className="text-muted ps-2 pb-2" style={{ fontSize: "16px", fontWeight: "300", fontFamily: "Poppins" }}>
                                                     {reviewData?.totalReviews || 0} reviews
                                                 </div>
                                             </div>
@@ -715,7 +715,6 @@ const Openmatches = () => {
                                                 else if (star === 5) count = reviewData?.ratingCounts?.Excellent || 0; // 0 reviews
 
                                                 const percent = Math.round((count / total) * 100);
-                                                console.log({ star, count, percent, total, reviewData });
 
                                                 return (
                                                     <div className="d-flex align-items-center mb-2 justify-content-between w-100" key={star}>

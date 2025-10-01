@@ -12,6 +12,7 @@ import Avatar from "@mui/material/Avatar";
 import { MdOutlineDateRange } from "react-icons/md";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
+import { cloud, sun } from "../../../assets/files";
 
 // Function to parse time string to hour for tab categorization
 const parseTimeToHour = (timeStr) => {
@@ -63,13 +64,12 @@ const CreateMatches = () => {
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
   const [slotError, setSlotError] = useState("");
-  const [key, setKey] = useState('morning'); // Default tab set to morning
-  const [tabCounts, setTabCounts] = useState([0, 0, 0]); // Counts for Morning, Noon, Night
+  const [key, setKey] = useState('morning');
 
   const tabData = [
-    { eventKey: 'morning', label: 'Morning' },
-    { eventKey: 'noon', label: 'Noon' },
-    { eventKey: 'night', label: 'Night' },
+    { img: cloud, label: 'Morning', key: 'morning' },
+    { img: sun, label: 'Noon', key: 'noon' },
+    { img: cloud, label: 'Night', key: 'night' },
   ];
 
   const handleClickOutside = (e) => {
@@ -260,14 +260,12 @@ const CreateMatches = () => {
         }
       });
     });
-    setTabCounts(counts);
 
-    // Set default tab to morning if it has data, otherwise the first tab with data
     let defaultTab = 'morning';
     if (counts[0] === 0) {
       const firstAvailableIndex = counts.findIndex(count => count > 0);
       if (firstAvailableIndex !== -1) {
-        defaultTab = tabData[firstAvailableIndex].eventKey;
+        defaultTab = tabData[firstAvailableIndex].key; // eventKey की जगह key
       }
     }
     setKey(defaultTab);
@@ -438,11 +436,12 @@ const CreateMatches = () => {
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
+
   return (
     <Container className="p-4 mb-5">
       <Row>
         {/* LEFT PANEL */}
-        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566", border:slotError ? "1px solid red" : "none" }}>
+        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566", border: slotError ? "1px solid red" : "none" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -531,8 +530,8 @@ const CreateMatches = () => {
                       <button
                         key={i}
                         ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                        className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
-                        style={{ backgroundColor: isSelected ? "#374151" : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151" }}
+                        className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white border-0" : "bg-white"}`}
+                        style={{ background: isSelected ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151" }}
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
@@ -553,28 +552,20 @@ const CreateMatches = () => {
               </div>
             </div>
             {/* Tabs for Morning, Noon, Night */}
-            <div className="mb-3">
-              <Tabs
-                id="custom-tabs"
-                activeKey={key}
-                onSelect={(k) => setKey(k)}
-                className="border p-1 pb-1 rounded-3 custom-tabs"
-                fill
-              >
-                {tabData.map((tab, index) => (
-                  <Tab
-                    className="rounded-3 text-center"
-                    key={tab.eventKey}
-                    eventKey={tab.eventKey}
-                    disabled={tabCounts[index] === 0}
-                    title={
-                      <span className="tab-titl text-center" style={{ fontSize: "13px", fontWeight: "500", fontFamily: "Poppins" }}>
-                        {tab.label} <b className="text-warning">({tabCounts[index]})</b>
-                      </span>
-                    }
-                  />
-                ))}
-              </Tabs>
+            <div className="row mb-2 mx-auto">
+              <div className="col-12 d-flex justify-content-center align-items-center">
+                <div className="weather-tabs  rounded-pill  d-flex justify-content-center align-items-center gap-4">
+                  {tabData.map((tab, index) => (
+                    <div
+                      key={index}
+                      className={`d-flex justify-content-center align-items-center ${key === tab.key ? 'open-match-active-tab rounded-pill p-1 ' : ''}`}
+                      onClick={() => setKey(tab.key)}
+                    >
+                      <img className="tab-icon" src={tab?.img} />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="d-flex flex-column gap-3 overflow-slot ">
               {slotData?.data?.length > 0 ? (
@@ -587,8 +578,8 @@ const CreateMatches = () => {
                         showUnavailable
                           ? true
                           : slot.availabilityStatus === "available" &&
-                            slot.status !== "booked" &&
-                            !isPastTime(slot.time)
+                          slot.status !== "booked" &&
+                          !isPastTime(slot.time)
                       ).filter((slot) => filterSlotsByTab(slot, key)); // Apply tab filter
 
                       return (
@@ -622,27 +613,27 @@ const CreateMatches = () => {
                               return (
                                 <div className="col-lg-auto col-3 p-lg-0 me-lg-0" key={i}>
                                   <button
-                                    className="btn rounded-3 slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2"
+                                    className={`btn rounded-3 ${isSelected ? 'border-0' : ''} slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2`}
                                     onClick={() => toggleTime(slot, court._id)}
                                     disabled={isDisabled}
                                     style={{
-                                      backgroundColor:
+                                      background:
                                         slot.status === "booked" ||
-                                        isPastTime(slot.time)
+                                          isPastTime(slot.time)
                                           ? "#c9cfcfff"
                                           : isSelected
-                                          ? "#374151"
-                                          : slot.availabilityStatus !== "available"
-                                          ? "#c9cfcfff"
-                                          : "#FAFBFF",
+                                            ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                            : slot.availabilityStatus !== "available"
+                                              ? "#c9cfcfff"
+                                              : "#FAFBFF",
                                       color:
                                         slot.status === "booked" ||
-                                        isPastTime(slot.time) ||
-                                        isDisabled
+                                          isPastTime(slot.time) ||
+                                          isDisabled
                                           ? "#000000"
                                           : isSelected
-                                          ? "white"
-                                          : "#000000",
+                                            ? "white"
+                                            : "#000000",
                                       cursor: isDisabled ? "not-allowed" : "pointer",
                                       opacity: isDisabled ? 0.6 : 1,
                                       border: "2px solid #0f0f0f1a",
@@ -688,10 +679,10 @@ const CreateMatches = () => {
                           filterSlotsByTab(slot, key)
                         )
                     ) && (
-                      <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                        No {showUnavailable ? "unavailable" : "available"} slots
-                      </div>
-                    )}
+                        <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                          No {showUnavailable ? "unavailable" : "available"} slots
+                        </div>
+                      )}
                   </>
                 )
               ) : (
