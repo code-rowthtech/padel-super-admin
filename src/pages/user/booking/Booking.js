@@ -275,6 +275,7 @@ const Booking = ({ className = "" }) => {
                         },
                         clubData,
                         selectedCourts,
+                        setSelectedCourts,
                         selectedDate,
                         grandTotal,
                         totalSlots,

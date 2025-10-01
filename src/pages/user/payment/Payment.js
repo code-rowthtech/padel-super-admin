@@ -22,9 +22,10 @@ const loadRazorpay = (callback) => {
 const Payment = ({ className = "" }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { courtData, clubData, selectedCourts, selectedDate, grandTotal, totalSlots } = location.state || {};
+    const { courtData, clubData, selectedCourts, setSelectedCourts, grandTotal, totalSlots } = location.state || {};
     const user = getUserFromSession();
     const bookingStatus = useSelector((state) => state?.userBooking);
+    console.log({ bookingStatus });
     const userLoading = useSelector((state) => state?.userAuth);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const [name, setName] = useState(user?.name || "");
@@ -63,6 +64,12 @@ const Payment = ({ className = "" }) => {
         }
         setLocalSelectedCourts(selectedCourts || []);
     }, [courtData, selectedCourts, navigate]);
+
+    useEffect(() => {
+        if (bookingStatus?.bookingData?.message === "Booking created") {
+            setSelectedCourts([])
+        }
+    }, [bookingStatus?.bookingData?.message === "Booking created"])
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -295,22 +302,22 @@ const Payment = ({ className = "" }) => {
                                         </span>
                                         <input
                                             type="text"
-                                            maxLength={13} 
+                                            maxLength={13}
                                             value={phoneNumber}
                                             style={{ boxShadow: "none" }}
                                             disabled={user.phoneNumber}
                                             onChange={(e) => {
-                                                const inputValue = e.target.value.replace(/[^0-9]/g, ""); 
+                                                const inputValue = e.target.value.replace(/[^0-9]/g, "");
                                                 if (inputValue === "" || /^[6-9][0-9]{0,9}$/.test(inputValue)) {
                                                     const formattedValue = inputValue === ""
                                                         ? ""
-                                                        : `+91 ${inputValue}`; 
+                                                        : `+91 ${inputValue}`;
                                                     setPhoneNumber(formattedValue);
                                                 }
                                             }}
                                             className="form-control border-0 p-2"
                                             placeholder="+91"
-                                            pattern="[+][0-9]{2}\s[6-9][0-9]{9}" 
+                                            pattern="[+][0-9]{2}\s[6-9][0-9]{9}"
                                             title="Phone number must be in the format +91 followed by 10 digits starting with 6, 7, 8, or 9"
                                         />
                                     </div>
@@ -399,7 +406,7 @@ const Payment = ({ className = "" }) => {
 
                 {/* Booking Summary */}
                 <div className="col-12 col-lg-5">
-                    <div className="border  px-3 py-5 border-0" style={{borderRadius:"10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                    <div className="border  px-3 py-5 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
                                 {logo ? (
@@ -447,7 +454,7 @@ const Payment = ({ className = "" }) => {
                                                         {/* <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
                                                             {court?.day ? dayMap[court.day.toLowerCase()] : ""},
                                                         </span> */}
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px"}}>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
                                                                 const date = new Date(court.date);
@@ -457,10 +464,10 @@ const Payment = ({ className = "" }) => {
                                                             })()}
                                                         </span>
 
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px"}}>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {formatTime(timeSlot.time)}
                                                         </span>
-                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px"}}>
+                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>
                                                             {court?.courtName}
                                                         </span>
                                                     </div>
@@ -500,7 +507,7 @@ const Payment = ({ className = "" }) => {
                                         Slots {localTotalSlots}
                                     </span>
                                 </p>
-                                <p style={{ fontSize: "25px", fontWeight: "600"}}>₹ {localGrandTotal}</p>
+                                <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {localGrandTotal}</p>
                             </div>
                         )}
                         {errors.general && (
