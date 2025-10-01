@@ -5,17 +5,20 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import { getUserClub } from "../../../redux/user/club/thunk";
-import { Avatar, TextField } from "@mui/material";
+import { Avatar } from "@mui/material";
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
-import { getUserSlot, getUserSlotBooking } from "../../../redux/user/slot/thunk";
-import { Button, Tab, Tabs } from "react-bootstrap";
+import {  getUserSlotBooking } from "../../../redux/user/slot/thunk";
+import { Button } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
-import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import {  FaArrowRight } from "react-icons/fa";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import { MdOutlineArrowForwardIos } from "react-icons/md";
+
 
 const parseTimeToHour = (timeStr) => {
     if (!timeStr) return null;
@@ -448,7 +451,7 @@ const Booking = ({ className = "" }) => {
                                 <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
                             </div>
                             <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
-                                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><FaArrowLeft className="mt-2" size={20} /></button>
+                                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
                                 <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
@@ -479,7 +482,7 @@ const Booking = ({ className = "" }) => {
                                         );
                                     })}
                                 </div>
-                                <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><FaArrowRight className="mt-2" size={20} /></button>
+                                <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
                             </div>
                         </div>
 

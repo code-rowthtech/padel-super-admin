@@ -7,8 +7,8 @@ import { Navigate, NavLink, useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
-import { formatTime } from "../../../helpers/Formatting";
-import Avatar from "@mui/material/Avatar";
+import { MdOutlineArrowForwardIos } from "react-icons/md";
+import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { MdOutlineDateRange } from "react-icons/md";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
@@ -522,7 +522,7 @@ const CreateMatches = () => {
                 <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
               </div>
               <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
-                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><FaArrowLeft className="mt-2" size={20} /></button>
+                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
                 <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                   {dates.map((d, i) => {
                     const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
@@ -548,7 +548,7 @@ const CreateMatches = () => {
                     );
                   })}
                 </div>
-                <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><FaArrowRight className="mt-2" size={20} /></button>
+                <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
               </div>
             </div>
             {/* Tabs for Morning, Noon, Night */}
