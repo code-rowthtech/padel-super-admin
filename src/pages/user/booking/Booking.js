@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 // import DatePicker from "react-datepicker";
-import { cloud, sun, twoball } from "../../../assets/files";
+import { morningTab, nighttab, sun, twoball } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
@@ -10,10 +10,10 @@ import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
-import {  getUserSlotBooking } from "../../../redux/user/slot/thunk";
+import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { Button } from "react-bootstrap";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
-import {  FaArrowRight } from "react-icons/fa";
+import { FaArrowRight } from "react-icons/fa";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
@@ -347,9 +347,9 @@ const Booking = ({ className = "" }) => {
 
 
     const tabData = [
-        { img: cloud, label: 'Morning', key: 'morning' },
-        { img: sun, label: 'Noon', key: 'noon' },
-        { img: cloud, label: 'Night', key: 'night' },
+        { img: morningTab, label: 'Day', key: 'morning' },
+        { img: sun, label: 'Afternoon', key: 'noon' },
+        { img: nighttab, label: 'Night', key: 'night' },
     ];
 
     useEffect(() => {
@@ -489,17 +489,30 @@ const Booking = ({ className = "" }) => {
                         {/* Global Tabs above courts */}
                         <div className="row mb-2 mx-auto">
                             <div className="col-12 d-flex justify-content-center align-items-center">
-                                <div className="weather-tabs  rounded-pill  d-flex justify-content-center align-items-center gap-4">
-                                    {tabData.map((tab, index) => (
-                                        <div
-                                            key={index}
-                                            className={`d-flex justify-content-center align-items-center ${key === tab.key ? 'open-match-active-tab rounded-pill p-1 ' : ''}`}
-                                            onClick={() => setKey(tab.key)}
-                                        >
-                                            <img className="tab-icon" src={tab?.img} />
-                                        </div>
-                                    ))}
+                                <div className="weather-tabs-wrapper w-100">
+                                    <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
+                                        {tabData.map((tab, index) => (
+                                            <div
+                                                key={index}
+                                                className={`tab-item ${key === tab.key ? 'active' : ''}`}
+                                                onClick={() => setKey(tab.key)}
+                                            >
+                                                <img className="tab-icon" src={tab.img} alt={tab.label} />
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Labels below tabs */}
+                                    <div className="tab-labels d-flex justify-content-between">
+                                        {tabData.map((tab, index) => (
+                                            <p key={index} className="tab-label">
+                                                {tab.label}
+                                            </p>
+                                        ))}
+                                    </div>
                                 </div>
+
+
                             </div>
                         </div>
                         <div className="d-flex flex-column gap-3 mb-3 overflow-slot">
@@ -589,7 +602,7 @@ const Booking = ({ className = "" }) => {
                             </div>
                             <div className="d-flex border-top pt-2 justify-content-between align-items-center">
                                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
-                                {totalSlots >= 10 && <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ cursor: "pointer", background: "#111827", fontSize: "10px",fontWeight:"600", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
+                                {totalSlots >= 10 && <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ cursor: "pointer", background: "#111827", fontSize: "10px", fontWeight: "600", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
                             </div>
                             <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
                                 {selectedCourts.length > 0 ? (

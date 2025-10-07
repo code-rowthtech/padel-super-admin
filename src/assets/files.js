@@ -16,7 +16,8 @@ import booking_success_img from './images/bookingsuccess.png'
 import americano_reactangle from './images/Rectangle 18827.png'
 import scrore_bg from "./images/scrorebg.png"
 import sun from './images/Ellipse 30.png'
-import cloud from './images/cloud.png'
+import morningTab from './images/morningtab.png'
+import nighttab from './images/nighttab.png'
 import player2 from './images/openmatchscore.png'
 import success2 from './images/bookingsuccess 2.png'
 
@@ -36,5 +37,5 @@ export {
     modalSuccess,
     complete_img,
     booking_success_img,americano_reactangle,
-    scrore_bg,sun,cloud,player2,success2
+    scrore_bg,sun,nighttab,morningTab,player2,success2
 }
