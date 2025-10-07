@@ -841,7 +841,7 @@ const ClubUpdateForm = () => {
                 fontWeight: 600,
               }}
             >
-              {updateClubLoading ? <ButtonLoading size={13} /> : "Update"}
+              {updateClubLoading ? <ButtonLoading color="#fff" size={13} /> : "Update"}
             </Button>
           </div>
 
