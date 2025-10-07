@@ -28,8 +28,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
 import { formatSlotTime } from "../../../helpers/Formatting";
+import { MdOutlineArrowBackIosNew, MdOutlineArrowForwardIos } from "react-icons/md";
 const CourtAvailability = () => {
   const dispatch = useDispatch();
+  const dateRefs = useRef({});
   const Owner = getOwnerFromSession();
   const ownerId = Owner?.generatedBy ? Owner?.generatedBy : Owner?._id;
   const {
@@ -340,6 +342,9 @@ const CourtAvailability = () => {
     }
   }, [dates]);
 
+  const getCurrentMonth = (selectedDate) => (!selectedDate ? "Month" : new Date(selectedDate).toLocaleDateString("en-US", { month: "short" }).toUpperCase());
+  const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+  const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
   return (
     <>
       {ownerClubLoading ? (
@@ -378,12 +383,9 @@ const CourtAvailability = () => {
               {/* Court Selector */}
               <div className="mb-3 mb-md-4">
                 <div
-                  className="tabel-title mb-2"
+                  className="all-matches mb-2"
                   style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
                     color: "#374151",
-                    fontSize: "14px",
                   }}
                 >
                   Select Court
@@ -425,10 +427,8 @@ const CourtAvailability = () => {
               <div className="calendar-strip">
                 <div className="calendar-strip">
                   <div
-                    className="tabel-title mb-3"
+                    className="all-matches mb-3"
                     style={{
-                      fontFamily: "Poppins",
-                      fontWeight: "600",
                       color: "#374151",
                     }}
                   >
@@ -480,73 +480,42 @@ const CourtAvailability = () => {
                     </div>
                   </div>
                   {/* Replace the date selector section with this code */}
-                  <div className="d-flex align-items-center w-100 p-0 gap-2 mb-4">
-                    {/* Month display instead of left button */}
-                    <div
-                      className="text-center fw-bold badge bg-secondary-subtle p-2"
-                      style={{
-                        writingMode: "vertical-lr",
-                        transform: "rotate(180deg)",
-                        minWidth: "24px",
-                        fontFamily: "Poppins",
-                        fontSize: "14px",
-                        color: "#374151",
-                        marginBottom: "24px",
-                      }}
-                    >
-                      {currentMonth}
+                  <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
+                    <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
+                      <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
                     </div>
-
-                    {/* Scrollable dates container */}
-                    <div
-                      ref={scrollRef}
-                      className="d-flex gap-2 flex-grow-1"
-                      style={{
-                        overflowX: "auto",
-                        scrollbarWidth: "thin",
-                        scrollbarColor: "#cbd5e1 #f1f5f9",
-                        paddingBottom: "4px", // Space for scrollbar
-                      }}
-                    >
-                      {dates?.map((d, i) => {
-                        const isSelected = selectedDate === d.fullDate;
-                        return (
-                          <button
-                            key={i}
-                            ref={isSelected ? selectedButtonRef : null}
-                            className={`calendar-day-btn border px-3 py-2 mb-2 rounded shadow-sm ${
-                              isSelected ? "text-white" : "bg-light text-dark"
-                            }`}
-                            style={{
-                              backgroundColor: isSelected
-                                ? "#374151"
-                                : undefined,
-                              border: "none",
-                              minWidth: "85px",
-                              transition: "all 0.2s ease",
-                              fontFamily: "Poppins",
-                              flexShrink: 0,
-                            }}
-                            onClick={() => {
-                              setSelectedDate(d.fullDate);
-                              setSelectedDay(dayFullNames[d.day]);
-                            }}
-                          >
-                            <div className="text-center pb-2">
-                              <div
-                                style={{ fontSize: "24px", fontWeight: "600" }}
-                              >
-                                {d.date}
+                    <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
+                      <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
+                      <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+                        {dates.map((d, i) => {
+                          const formatDate = (date) => date.toISOString().split("T")[0];
+                          const isSelected = formatDate(new Date(selectedDate)) === d.fullDate;
+                          return (
+                            <button
+                              key={i}
+                              ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                              className={`calendar-day-btn mb-3  me-1 ${isSelected ? "text-white border-0" : "bg-white"}`}
+                              style={{
+                                background: isSelected
+                                  ? "#374151"
+                                  : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151"
+                              }}
+                              onClick={() => {
+                                setSelectedDate(d.fullDate);
+                                setSelectedDay(dayFullNames[d.day]);
+                              }}
+                              onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
+                              onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
+                            >
+                              <div className="text-center">
+                                <div className="date-center-date">{d.date}</div>
+                                <div className="date-center-day">{d.day}</div>
                               </div>
-                              <div
-                                style={{ fontSize: "14px", fontWeight: "400" }}
-                              >
-                                {d.day}
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
                     </div>
                   </div>
                   <style>
@@ -574,12 +543,9 @@ const CourtAvailability = () => {
               {/* Time Selector */}
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <p
-                  className="mb-0 tabel-title"
+                  className="mb-0 all-matches"
                   style={{
-                    fontFamily: "Poppins",
-                    fontWeight: "600",
                     color: "#374151",
-                    fontSize: "14px",
                   }}
                 >
                   Available Slots
@@ -673,31 +639,30 @@ const CourtAvailability = () => {
                         const buttonEl = (
                           <span className="d-inline-block">
                             <button
-                              className={`btn border rounded-pill table-data px-4 py-1 shadow-sm ${
-                                isSelected
-                                  ? "bg-dark text-white"
-                                  : isPast
+                              className={`btn border rounded-2 table-data px-4 py-2 shadow-sm ${isSelected
+                                ? "bg-dark text-white"
+                                : isPast
                                   ? "bg-secondary-subtle"
                                   : isBooked
-                                  ? "bg-danger text-white"
-                                  : statusColorMap[status] || "bg-light"
-                              }`}
+                                    ? "bg-danger text-white"
+                                    : statusColorMap[status] || "bg-light"
+                                }`}
                               onClick={() => toggleTime(slot)}
                               disabled={isDisabled}
                               style={{
                                 backgroundColor: isSelected
                                   ? "#374151"
                                   : isPast || isBooked
-                                  ? undefined
-                                  : statusColorMap[status],
+                                    ? undefined
+                                    : statusColorMap[status],
                                 color: isSelected
                                   ? "white"
                                   : isPast ||
                                     status === "available" ||
                                     status === "maintenance" ||
                                     status === "weather conditions"
-                                  ? "black"
-                                  : undefined,
+                                    ? "black"
+                                    : undefined,
                                 cursor: isDisabled ? "not-allowed" : "pointer",
                                 fontFamily: "Poppins",
                                 fontSize: "12px",
@@ -732,12 +697,9 @@ const CourtAvailability = () => {
                 style={{ minHeight: "40vh" }}
               >
                 <div className="mt-2">
-                  <h6
+                  <h6 className="all-matches"
                     style={{
-                      fontFamily: "Poppins",
-                      fontWeight: "600",
                       color: "#374151",
-                      fontSize: "14px",
                     }}
                   >
                     Selected Slots
@@ -785,7 +747,7 @@ const CourtAvailability = () => {
                   >
                     {Object.entries(selectedSlots)?.length === 0 ? (
                       <div
-                        className="text-muted d-flex align-items-center justify-content-center py-3"
+                        className="text-danger d-flex align-items-center justify-content-center py-3"
                         style={{
                           fontFamily: "Poppins",
                           fontSize: "12px",
