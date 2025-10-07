@@ -38,6 +38,7 @@ const Home = () => {
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
+    console.log({ getReviewData })
     const mapSrc =
         'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
 
@@ -366,44 +367,38 @@ const Home = () => {
                                         <div className="col-7 border-start ps-4 d-flex align-items-center">
                                             <div className="w-100">
                                                 {["Excellent", "Very Good", "Good", "Average", "Poor"].map((label, idx) => {
-                                                    let width = "0%";
-                                                    let percent = 0;
+                                                    const ratingCounts = getReviewData?.ratingCounts || {};
+                                                    const count = ratingCounts[label] || 0; // get count, 0 if not exists
+                                                    const totalReviews = getReviewData?.totalReviews || 0;
 
-                                                    if (!getReviewData?.averageRating && !getReviewData?.ratingCategory) {
-                                                        percent = 0;
-                                                    } else {
-                                                        const rating = getReviewData?.averageRating || 0;
-                                                        if (label === getReviewData?.ratingCategory) {
-                                                            percent = Math.round(rating * 20); 
-                                                        } else {
-                                                            const basePercent = Math.round((5 - rating) * 20 / 4); 
-                                                            percent = getReviewData?.ratingCategory
-                                                                ? idx < ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
-                                                                    ? basePercent * (3 - idx)
-                                                                    : idx > ["Excellent", "Very Good", "Good"].indexOf(getReviewData?.ratingCategory)
-                                                                        ? basePercent * (idx - 2)
-                                                                        : basePercent
-                                                                : 0; 
-                                                        }
-                                                    }
-                                                    width = `${percent}%`;
+                                                    // Calculate percentage only if count > 0
+                                                    const percent = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
 
                                                     return (
                                                         <div className="d-flex align-items-center justify-content-between mb-3 w-100" key={idx}>
-                                                            <div className="me-2" style={{ width: "150px", fontWeight: "500", fontSize: "16px", fontFamily: "Poppins", color: "#636364" }}>
+                                                            <div
+                                                                className="me-2"
+                                                                style={{
+                                                                    width: "150px",
+                                                                    fontWeight: "500",
+                                                                    fontSize: "16px",
+                                                                    fontFamily: "Poppins",
+                                                                    color: "#636364",
+                                                                }}
+                                                            >
                                                                 {label}
                                                             </div>
-                                                            <div className="progress me-3 w-100" style={{ height: "8px", position: "relative" }}>
+                                                            <div className="progress me-3 w-100" style={{ height: "12px", position: "relative" }}>
                                                                 <div
                                                                     className="progress-bar"
                                                                     style={{
-                                                                        width,
+                                                                        width: `${percent}%`,
                                                                         backgroundColor:
                                                                             idx === 0 ? "#3DBE64" :
-                                                                                idx === 1 ? "#7CBA3D" : 
-                                                                                    idx === 2 ? "#ECD844" : 
+                                                                                idx === 1 ? "#7CBA3D" :
+                                                                                    idx === 2 ? "#ECD844" :
                                                                                         idx === 3 ? "#FC702B" :
-                                                                                            "#E9341F", 
+                                                                                            "#E9341F",
                                                                     }}
                                                                 ></div>
                                                             </div>
@@ -414,7 +409,7 @@ const Home = () => {
                                                                     backgroundColor: "rgba(255, 255, 255, 0.7)",
                                                                 }}
                                                             >
-                                                                {percent}%
+                                                                {count > 0 ? `${percent}%` : ""}
                                                             </div>
                                                         </div>
                                                     );
