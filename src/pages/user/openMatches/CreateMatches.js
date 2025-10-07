@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Container, Row, Col, Button, Card, Form, FormCheck, Tabs, Tab } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaArrowLeft, FaArrowRight, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, NavLink, useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
@@ -12,7 +11,7 @@ import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { MdOutlineDateRange } from "react-icons/md";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
-import { cloud, sun } from "../../../assets/files";
+import { morningTab, nighttab, sun } from "../../../assets/files";
 
 // Function to parse time string to hour for tab categorization
 const parseTimeToHour = (timeStr) => {
@@ -67,9 +66,9 @@ const CreateMatches = () => {
   const [key, setKey] = useState('morning');
 
   const tabData = [
-    { img: cloud, label: 'Morning', key: 'morning' },
-    { img: sun, label: 'Noon', key: 'noon' },
-    { img: cloud, label: 'Night', key: 'night' },
+    { img: morningTab, label: 'Day', key: 'morning' },
+    { img: sun, label: 'Afternoon', key: 'noon' },
+    { img: nighttab, label: 'Night', key: 'night' },
   ];
 
   const handleClickOutside = (e) => {
@@ -554,17 +553,30 @@ const CreateMatches = () => {
             {/* Tabs for Morning, Noon, Night */}
             <div className="row mb-2 mx-auto">
               <div className="col-12 d-flex justify-content-center align-items-center">
-                <div className="weather-tabs  rounded-pill  d-flex justify-content-center align-items-center gap-4">
-                  {tabData.map((tab, index) => (
-                    <div
-                      key={index}
-                      className={`d-flex justify-content-center align-items-center ${key === tab.key ? 'open-match-active-tab rounded-pill p-1 ' : ''}`}
-                      onClick={() => setKey(tab.key)}
-                    >
-                      <img className="tab-icon" src={tab?.img} />
-                    </div>
-                  ))}
+                <div className="weather-tabs-wrapper w-100">
+                  <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
+                    {tabData.map((tab, index) => (
+                      <div
+                        key={index}
+                        className={`tab-item ${key === tab.key ? 'active' : ''}`}
+                        onClick={() => setKey(tab.key)}
+                      >
+                        <img className="tab-icon" src={tab.img} alt={tab.label} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Labels below tabs */}
+                  <div className="tab-labels d-flex justify-content-between">
+                    {tabData.map((tab, index) => (
+                      <p key={index} className="tab-label">
+                        {tab.label}
+                      </p>
+                    ))}
+                  </div>
                 </div>
+
+
               </div>
             </div>
             <div className="d-flex flex-column gap-3 overflow-slot ">

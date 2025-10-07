@@ -12,7 +12,7 @@ import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { getReviewClub } from "../../../redux/user/club/thunk";
 import "react-datepicker/dist/react-datepicker.css";
-import { cloud, player, player2, sun } from "../../../assets/files";
+import { morningTab, nighttab, player, player2, sun } from "../../../assets/files";
 import UpdatePlayers from "../VeiwMatch/UpdatePlayers";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
 import { MdOutlineDateRange } from "react-icons/md";
@@ -212,9 +212,9 @@ const Openmatches = () => {
     };
 
     const tabs = [
-        { img: cloud, label: 'morning' },
-        { img: sun, label: 'noon' },
-        { img: cloud, label: 'night' },
+        { img: morningTab, label: 'Day', key: 'morning' },
+        { img: sun, label: 'Afternoon', key: 'noon' },
+        { img: nighttab, label: 'Night', key: 'night' },
     ];
 
     const formatTimes = (slots) => {
@@ -494,16 +494,27 @@ const Openmatches = () => {
 
                     <div className="row mb-4 mx-auto">
                         <div className="col-12 d-flex justify-content-center align-items-center">
-                            <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center gap-4">
-                                {tabs.map((tab, index) => (
-                                    <div
-                                        key={index}
-                                        className={`d-flex justify-content-center align-items-center ${activeTab === index ? 'open-match-active-tab rounded-pill p-1' : ''}`}
-                                        onClick={() => setActiveTab(index)}
-                                    >
-                                        <img className="tab-icon" src={tab?.img} alt={tab.label} />
-                                    </div>
-                                ))}
+                            <div className="weather-tabs-wrapper w-100">
+                                <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
+                                    {tabs.map((tab, index) => (
+                                        <div
+                                            key={index}
+                                            className={`tab-item ${activeTab === index ? 'active' : ''}`}
+                                            onClick={() => setActiveTab(index)}
+                                        >
+                                            <img className="tab-icon" src={tab.img} alt={tab.label} />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Labels below tabs */}
+                                <div className="tab-labels d-flex justify-content-between">
+                                    {tabs.map((tab, index) => (
+                                        <p key={index} className={`tab-label ${activeTab === index ? 'active' : ''}`}>
+                                            {tab.label}
+                                        </p>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
