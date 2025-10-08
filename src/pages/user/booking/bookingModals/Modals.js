@@ -330,7 +330,7 @@ export const BookingHistorySuccessModal = ({ show, onHide, safeFormatDate, booki
             onClick={onContinue}
             className="rounded-pill py-2 w-100 px-4"
           >
-            {bookingStatusData?.bookingStatusLoading ? <ButtonLoading /> : 'Continue'}
+            {bookingStatusData?.bookingStatusLoading ? <ButtonLoading color={'white'} /> : 'Continue'}
           </Button>
         </div>
       </Modal.Body>
