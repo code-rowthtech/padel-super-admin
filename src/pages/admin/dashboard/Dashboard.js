@@ -51,7 +51,7 @@ const AdminDashboard = () => {
     dashboardRecentBookings,
     dashboardCancelledBookings,
   } = useSelector((state) => state.dashboard);
-  console.log(dashboardRevenue, dashboardRevenueLoading, 'dashboardRevenue');
+  console.log(dashboardCancelledBookings, 'dashboardCancelledBookings');
   const formatNumber = (num) => {
     if (!num) return "0";
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -132,7 +132,7 @@ const AdminDashboard = () => {
 
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
-
+console.log({bookingDetails});
   const formatDateMonth = (dateString) => {
     if (!dateString) return "";
 
@@ -195,15 +195,19 @@ const AdminDashboard = () => {
   });
 
   // Aggregate cancelations
+  console.log('Dashboard Revenue Data:', dashboardRevenue);
   dashboardRevenue?.forEach((item) => {
+    console.log('Processing item:', item);
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      chartData[monthIndex].Cancelation = (chartData[monthIndex].Cancelation || 0) + (item.cancelBookings || 0); // Ensure updates to 2
-      // Note: cancelAmount is not used in chart, but can be added to chartData if needed
+      console.log('Before:', chartData[monthIndex].Cancelation, 'Adding:', item.cancelBookings);
+      chartData[monthIndex].Cancelation = (chartData[monthIndex].Cancelation || 0) + (item.cancelBookings || 0);
+      console.log('After:', chartData[monthIndex].Cancelation);
       chartData[monthIndex].year = item.year || 2025;
     }
   });
+  console.log('Final Chart Data:', chartData);
   return (
     <Container
       fluid
@@ -273,60 +277,81 @@ const AdminDashboard = () => {
               <Card className="shadow border-0 rounded-3">
                 <Card.Body>
                   <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center mb-4">
-                    <h6
-                      className="mb-2 mb-sm-0"
-                      style={{ fontSize: "18px", fontWeight: "700", color: "#1f2937" }}
-                    >
-                      Revenue Overview
-                    </h6>
-                   
+                    <div>
+                      <h6
+                        className="mb-1"
+                        style={{ fontSize: "18px", fontWeight: "700", color: "#1f2937" }}
+                      >
+                        Monthly Booking Analytics
+                      </h6>
+                      <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+                        Track your booking performance over time
+                      </p>
+                    </div>
+
                   </div>
 
                   <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={chartData} margin={{ top: 20, right: 20, left: 50, bottom: 20, backgroundColor: "#e91414ff" }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                    <BarChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                       <XAxis
                         dataKey="month"
                         tickLine={false}
-                        axisLine={{ stroke: "#d1d5db" }}
-                        tick={{ fill: "#374151", fontSize: 14, fontWeight: "600" }}
+                        axisLine={{ stroke: "#e5e7eb" }}
+                        tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
                         interval={0}
                         height={50}
-                        padding={{ left: 10, right: 10 }}
+                        padding={{  right: 10 }}
                       />
                       <YAxis
                         type="number"
                         domain={[0, 50]}
                         ticks={[0, 10, 20, 30, 40, 50]}
                         allowDecimals={false}
-                        minTickGap={0}
                         tickLine={false}
-                        axisLine={{ stroke: "#d1d5db" }}
-                        width={50}
-                        tick={{ fill: "#374151", fontSize: 14, fontWeight: "500" }}
+                        axisLine={{ stroke: "#e5e7eb" }}
+                        width={60}
+                        tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
+                        label={{
+                          value: 'Booking Count',
+                          angle: -90,
+                          position: 'insideLeft',
+                          style: { textAnchor: 'middle', fill: '#6b7280', fontSize: '12px', fontWeight: '600' }
+                        }}
                       />
-                      <Tooltip contentStyle={{ backgroundColor: "white", border: "none" }}
+                      <Tooltip
                         cursor={{ fill: "transparent" }}
+                        contentStyle={{ backgroundColor: "white", border: "none" }}
                         content={({ label, payload }) => {
                           if (payload && payload.length > 0) {
                             const dataPoint = payload[0].payload;
+                            console.log({payload});
                             return (
                               <div
                                 style={{
                                   backgroundColor: "#fff",
                                   border: "1px solid #e5e7eb",
-                                  borderRadius: "8px",
-                                  padding: "10px",
-                                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                                  fontSize: "14px",
+                                  borderRadius: "12px",
+                                  padding: "12px",
+                                  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                                  fontSize: "13px",
+                                  minWidth: "180px"
                                 }}
                               >
-                                <p style={{ margin: 0, fontWeight: "500" }}>Month: {label}</p>
-                                <p style={{ margin: 0, color: "#3b82f6" }}>Booking: {dataPoint.Booking}</p>
-                                <p style={{ margin: 0, color: "#ef4444" }}>Cancellations: {dataPoint.Cancelation}</p>
-                                <p style={{ margin: 0, fontWeight: "600" }}>
-                                  Total Amount: ₹{(dataPoint.totalAmount || 0).toLocaleString()}
-                                </p>
+                                <p style={{ margin: "0 0 8px 0", fontWeight: "600", color: "#1f2937" }}>{label} 2024</p>
+                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                  <span style={{ color: "#6b7280" }}>📊 Bookings:</span>
+                                  <span style={{ fontWeight: "600", color: "#3b82f6" }}>{dataPoint.Booking}</span>
+                                </div>
+                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                  <span style={{ color: "#6b7280" }}>❌ Cancellations:</span>
+                                  <span style={{ fontWeight: "600", color: "#ef4444" }}>{dataPoint.Cancelation}</span>
+                                </div>
+                                <hr style={{ margin: "8px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <span style={{ color: "#6b7280" }}>💰 Revenue:</span>
+                                  <span style={{ fontWeight: "700", color: "#059669" }}>₹{(dataPoint.totalAmount || 0).toLocaleString()}</span>
+                                </div>
                               </div>
                             );
                           }
@@ -337,11 +362,10 @@ const AdminDashboard = () => {
                         dataKey="Booking"
                         name="Bookings"
                         fill="#3b82f6"
-                        barSize={25}
-                        radius={[4, 4, 0, 0]}
-                        isAnimationActive={false} // Hover pe background change disable
+                        barSize={30}
+                        radius={[6, 6, 0, 0]}
+                        isAnimationActive={true}
                       />
-
                     </BarChart>
                   </ResponsiveContainer>
 
@@ -349,7 +373,7 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} lg={5}>
-              <Card className="shadow border-0">
+              <Card className="shadow border-0" style={{ height:dashboardCancelledBookings?.length > 0 ? "450px" : "429px" }}>
                 <Card.Body>
                   <div className="d-flex justify-content-between">
                     <h6
@@ -532,7 +556,7 @@ const AdminDashboard = () => {
                       </>
                     ) : (
                       <div className="d-flex text-danger small justify-content-center align-items-center mt-5 pt-5">
-                        No cancellations were found !
+                        <p className="mt-5">No cancellations were found !</p>
                       </div>
                     )}
                   </div>

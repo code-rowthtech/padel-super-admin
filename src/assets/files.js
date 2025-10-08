@@ -20,6 +20,12 @@ import morningTab from './images/morningtab.png'
 import nighttab from './images/nighttab.png'
 import player2 from './images/openmatchscore.png'
 import success2 from './images/bookingsuccess 2.png'
+import home_banner from './images/home-banner.png'
+import football from './images/Football.png'
+import tennis2 from './images/Tennis.png'
+import batmintain from './images/Badminton.png'
+import cricket from './images/Cricket.png' 
+import swiming from './images/Swimming.png'
 
 export {
     twoball,
@@ -33,9 +39,9 @@ export {
     google,
     authImg,
     registerClubBG,
-    modalDetails,
-    modalSuccess,
-    complete_img,
+    modalDetails,swiming,
+    modalSuccess,cricket,batmintain,tennis2,football,
+    complete_img,home_banner,
     booking_success_img,americano_reactangle,
     scrore_bg,sun,nighttab,morningTab,player2,success2
 }

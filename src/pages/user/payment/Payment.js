@@ -67,9 +67,11 @@ const Payment = ({ className = "" }) => {
 
     useEffect(() => {
         if (bookingStatus?.bookingData?.message === "Booking created") {
-            setSelectedCourts([])
+            if (setSelectedCourts && typeof setSelectedCourts === 'function') {
+                setSelectedCourts([]);
+            }
         }
-    }, [bookingStatus?.bookingData?.message === "Booking created"])
+    }, [bookingStatus?.bookingData?.message, setSelectedCourts])
 
     useEffect(() => {
         const timer = setTimeout(() => {

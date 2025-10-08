@@ -240,7 +240,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                             onClick={handleSubmit}
                             className="rounded-pill py-2 w-100"
                         >
-                            {addReviewLoading ? <ButtonLoading /> : "Submit"}
+                            {addReviewLoading ? <ButtonLoading color={'white'} /> : "Submit"}
                         </Button>
                     </div>
                 )}
