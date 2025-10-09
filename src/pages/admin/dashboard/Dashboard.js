@@ -373,7 +373,7 @@ console.log({bookingDetails});
               </Card>
             </Col>
             <Col xs={12} lg={5}>
-              <Card className="shadow border-0" style={{ height:dashboardCancelledBookings?.length > 0 ? "450px" : "429px" }}>
+              <Card className="shadow border-0" style={{ height:dashboardCancelledBookings?.length > 0 ? "450px" : "450px" }}>
                 <Card.Body>
                   <div className="d-flex justify-content-between">
                     <h6
