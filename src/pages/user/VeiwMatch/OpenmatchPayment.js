@@ -71,6 +71,8 @@ const OpenmatchPayment = (props) => {
     const [selectedPayment, setSelectedPayment] = useState("");
     const [showAddMeForm, setShowAddMeForm] = useState(false);
     const [errorShow, setErrorShow] = useState(false);
+    const [showShareDropdown, setShowShareDropdown] = useState(false);
+
     const [activeSlot, setActiveSlot] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -384,10 +386,11 @@ const OpenmatchPayment = (props) => {
                         <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: "600" }}>
                             Details
                         </h5>
-                        <div className="d-flex align-items-center gap-2">
+                        <div className="d-flex align-items-center gap-2 position-relative">
                             <button
                                 className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center border shadow-sm"
                                 style={{ width: 36, height: 36 }}
+                                onClick={() => setShowShareDropdown(!showShareDropdown)}
                             >
                                 <i className="bi bi-share"></i>
                             </button>
@@ -397,6 +400,36 @@ const OpenmatchPayment = (props) => {
                             >
                                 <i className="bi bi-chat-left-text"></i>
                             </button>
+
+                            {showShareDropdown && (
+                                <div className="position-absolute top-100 end-0 mt-1 bg-white border rounded shadow-sm" style={{ zIndex: 1000, minWidth: '120px' }}>
+                                    <button
+                                        className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
+                                        onClick={() => {
+                                            const url = window.location.href;
+                                            const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
+                                            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, '_blank');
+                                            setShowShareDropdown(false);
+                                        }}
+                                    >
+                                        <i className="bi bi-facebook" style={{ color: '#1877F2' }}></i>
+                                        Facebook
+                                    </button>
+                                    <button
+                                        className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
+                                        onClick={() => {
+                                            const url = window.location.href;
+                                            const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
+                                            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+                                            setShowShareDropdown(false);
+                                        }}
+                                    >
+                                        <i className="bi bi-twitter" style={{ color: '#1DA1F2' }}></i>
+                                        Twitter
+                                    </button>
+                                </div>
+                            )}
+
                         </div>
                     </div>
 
@@ -484,7 +517,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "User"}
                                                 </p>
-                                                <span className="badge text-white" style={{backgroundColor:"#3DBE64"}}>{finalSkillDetails?.slice(-1)}</span>
+                                                <span className="badge text-white" style={{ backgroundColor: "#3DBE64" }}>AB</span>
                                             </div>
                                         );
                                     } else {
@@ -533,7 +566,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                <span className="badge  text-white" style={{backgroundColor:"#3DBE64"}}>{player?.level}</span>
+                                                <span className="badge  text-white" style={{ backgroundColor: "#3DBE64" }}>{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -596,8 +629,8 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                {console.log({player})}
-                                                <span className="badge text-white" style={{backgroundColor:"#1F41BB"}}>{player?.level}</span>
+                                                {console.log({ player })}
+                                                <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -857,6 +890,12 @@ const OpenmatchPayment = (props) => {
                                     No slot selected <Link className="text-success" to="/create-matches">Add slot</Link>
                                 </div>
                             )}
+                            <button
+                                className="btn rounded-circle p-2 d-flex align-items-center justify-content-center text-white"
+                                style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
+                            >
+                                <i className="bi bi-chat-left-text"></i>
+                            </button>
                         </div>
                         <div className="border-top pt-2 mb-0  text-white mt-2 d-flex justify-content-between align-items-center fw-bold">
                             <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
@@ -906,7 +945,7 @@ const OpenmatchPayment = (props) => {
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}</div>
+                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading color={"#fff"} /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
@@ -934,6 +973,8 @@ const OpenmatchPayment = (props) => {
                 showAddMeForm={showAddMeForm}
                 setActiveSlot={setActiveSlot}
             />
+
+
         </div>
     );
 };

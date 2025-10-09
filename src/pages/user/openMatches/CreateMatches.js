@@ -298,30 +298,6 @@ const CreateMatches = () => {
         "I don't know",
       ],
     },
-    {
-      question: "On the rebounds...",
-      options: [
-        "I don't know how to read the rebounds, I hit before it rebounds",
-        "I try, with difficulty, to hit the rebounds on the back wall",
-        "I return rebounds on the back wall, it is difficult for me to return the double wall ones",
-        "I return double-wall rebounds and reach for quick rebounds",
-        "I perform powerful wall descent shots with forehand and backhand",
-        "I don't know",
-      ],
-    },
-    {
-      question: "Which Padel Player Are You?",
-      options: [
-        { code: "A", title: "Top Player" },
-        { code: "B1", title: "Experienced Player" },
-        { code: "B2", title: "Advanced Player" },
-        { code: "C1", title: "Confident Player" },
-        { code: "C2", title: "Intermediate Player" },
-        { code: "D1", title: "Amateur Player" },
-        { code: "D2", title: "Novice Player" },
-        { code: "E", title: "Entry Level" },
-      ],
-    },
   ];
 
   const grandTotal = selectedCourts.reduce(
@@ -782,49 +758,6 @@ const CreateMatches = () => {
                             </span>
                           }
                           style={{ cursor: "pointer" }}
-                        />
-                      </div>
-                    ))
-                  ) : currentStep === steps.length - 1 ? (
-                    steps[currentStep].options?.map((option, i) => (
-                      <div
-                        key={i}
-                        onClick={() => setSelectedLevel(option.code)}
-                        className={`d-flex align-items-start mb-3 p-3 rounded shadow-sm border transition-all`}
-                        style={{
-                          backgroundColor: selectedLevel === option.code ? "#eef2ff" : "#fff",
-                          borderColor: selectedLevel === option.code ? "#4f46e5" : "#e5e7eb",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Form.Check
-                          type="radio"
-                          name={`step-${currentStep}`}
-                          id={`option-${currentStep}-${i}`}
-                          value={option.code}
-                          checked={selectedLevel === option.code}
-                          onChange={(e) => setSelectedLevel(e.target.value)}
-                          className="d-flex align-items-center gap-3 custom-radio border-primary"
-                          label={
-                            <div className="d-flex align-items-center gap-3">
-                              <span
-                                style={{
-                                  fontSize: "24px",
-                                  fontWeight: "700",
-                                  color: "#1d4ed8",
-                                  minWidth: "40px",
-                                }}
-                              >
-                                {option.code}
-                              </span>
-                              <span style={{ fontSize: "13px", fontWeight: "400", color: "#374151" }}>
-                                <strong style={{ fontSize: "14px", fontWeight: "600", marginRight: "5px" }}>
-                                  {option.title}:
-                                </strong>
-                                {option.description}
-                              </span>
-                            </div>
-                          }
                         />
                       </div>
                     ))
