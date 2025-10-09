@@ -20,6 +20,7 @@ const ViewMatch = ({ className = "" }) => {
     const clubData = matchesData?.data?.clubId || {};
     const [showModal, setShowModal] = useState(false);
     const [teamName, setTeamName] = useState('');
+    const [showShareDropdown, setShowShareDropdown] = useState(false);
 
     useEffect(() => {
         if (state?.match?._id) {
@@ -96,7 +97,7 @@ const ViewMatch = ({ className = "" }) => {
     };
 
     const renderPlayerSlot = (player, index, isRemovable, team) => {
-        console.log({team});
+        console.log({ team });
         if (player) {
             const user = player.userId || player;
             return (
@@ -123,14 +124,14 @@ const ViewMatch = ({ className = "" }) => {
                         )}
                     </div>
                     <p className="mb-0 mt-2" style={{ color: "#374151", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
-                    title={user?.name || "User"}>
+                        title={user?.name || "User"}>
                         {user?.name
                             ? user.name.length > 14
                                 ? user.name.slice(0, 14) + "..."
                                 : user.name
                             : "User"}
                     </p>
-                    <span className="badge text-white " style={{backgroundColor:team ==='A' ?"#3DBE64" :'#1F41BB'}}>{user?.level || 'A|B'}</span>
+                    <span className="badge text-white " style={{ backgroundColor: team === 'A' ? "#3DBE64" : '#1F41BB' }}>{user?.level || 'A|B'}</span>
                 </div>
             );
         } else if (
@@ -142,18 +143,17 @@ const ViewMatch = ({ className = "" }) => {
                 <div key={index} className="text-center d-flex align-items-center flex-column mx-auto mb-3">
                     <button
                         className=" bg-white rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ width: 80, height: 80, border:team === 'A' ? '1px solid #3DBE64' : "1px solid #1F41BB" }}
+                        style={{ width: 80, height: 80, border: team === 'A' ? '1px solid #3DBE64' : "1px solid #1F41BB" }}
                         onClick={() => { setShowModal(true); setTeamName(name); }}
                     >
-                        <i className="bi bi-plus fs-1" style={{ color:team === 'A' ? "#3DBE64" : "#1F41BB" }}></i>
+                        <i className="bi bi-plus fs-1" style={{ color: team === 'A' ? "#3DBE64" : "#1F41BB" }}></i>
                     </button>
-                    <p className="mb-0 mt-2 fw-semibold" style={{ color:team === 'A' ? "#3DBE64" : "#1F41BB" }}>Add Me</p>
+                    <p className="mb-0 mt-2 fw-semibold" style={{ color: team === 'A' ? "#3DBE64" : "#1F41BB" }}>Add Me</p>
                 </div>
             );
         }
         return null;
     };
-
     return (
         <div className="container mt-4 mb-5 px-md-4 flex-wrap">
             <div className="row mx-auto">
@@ -163,10 +163,11 @@ const ViewMatch = ({ className = "" }) => {
                         <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
                             Details
                         </h5>
-                        <div className="d-flex align-items-center gap-2">
+                        <div className="d-flex align-items-center gap-2 position-relative">
                             <button
                                 className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center border shadow-sm"
                                 style={{ width: 36, height: 36 }}
+                                onClick={() => setShowShareDropdown(!showShareDropdown)}
                             >
                                 <i className="bi bi-share"></i>
                             </button>
@@ -176,6 +177,34 @@ const ViewMatch = ({ className = "" }) => {
                             >
                                 <i className="bi bi-chat-left-text"></i>
                             </button>
+                            {showShareDropdown && (
+                                <div className="position-absolute bg-white border rounded shadow-sm" style={{ top: '40px', right: '0', zIndex: 1000, minWidth: '120px' }}>
+                                    <button
+                                        className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
+                                        onClick={() => {
+                                            const url = window.location.href;
+                                            const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
+                                            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, '_blank');
+                                            setShowShareDropdown(false);
+                                        }}
+                                    >
+                                        <i className="bi bi-facebook" style={{ color: '#1877F2' }}></i>
+                                        Facebook
+                                    </button>
+                                    <button
+                                        className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
+                                        onClick={() => {
+                                            const url = window.location.href;
+                                            const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
+                                            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+                                            setShowShareDropdown(false);
+                                        }}
+                                    >
+                                        <i className="bi bi-twitter" style={{ color: '#1DA1F2' }}></i>
+                                        Twitter
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -284,7 +313,7 @@ const ViewMatch = ({ className = "" }) => {
                             <p className="mb-0" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}>
                                 Type of Court
                             </p>
-                            <p className="mb-0" style={{ fontSize: "16px",fontFamily:"Poppins", fontWeight: "500", color: "#374151" }}>
+                            <p className="mb-0" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>
                                 {matchesData?.data?.matchType.charAt(0).toUpperCase() + matchesData?.data?.matchType.slice(1)}
                             </p>
                         </div>
@@ -296,7 +325,7 @@ const ViewMatch = ({ className = "" }) => {
                             <p className="mb-0" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}>
                                 End registration
                             </p>
-                            <p className="mb-0" style={{ fontSize: "16px",fontFamily:"Poppins", fontWeight: "500", color: "#374151" }}>
+                            <p className="mb-0" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>
                                 {calculateEndRegistrationTime()}
                             </p>
                         </div>
@@ -306,88 +335,88 @@ const ViewMatch = ({ className = "" }) => {
                 {/* Right Section - Booking Summary */}
                 <div className="col-5  mb-5">
                     <div className="container ms-0 ms-lg-2">
-                    <div
-                        className="row mb-3 align-items-center text-white rounded-4 py-0 pt-2 ps-4"
-                        style={{
-                            background: "linear-gradient(to right, #101826, #1e293b)",
-                            overflow: "visible",
-                            position: "relative",
-                        }}
-                    >
-                        <div className="col-12 col-md-6 mb-4 text-lg-start text-center mb-md-0">
-                            <h4 className="open-match-img-heading text-nowrap">Let the Battles <br /> Begin!</h4>
-                            <p className="text-light">Great for competitive vibes.</p>
+                        <div
+                            className="row mb-3 align-items-center text-white rounded-4 py-0 pt-2 ps-4"
+                            style={{
+                                background: "linear-gradient(to right, #101826, #1e293b)",
+                                overflow: "visible",
+                                position: "relative",
+                            }}
+                        >
+                            <div className="col-12 col-md-6 mb-4 text-lg-start text-center mb-md-0">
+                                <h4 className="open-match-img-heading text-nowrap">Let the Battles <br /> Begin!</h4>
+                                <p className="text-light">Great for competitive vibes.</p>
+                            </div>
+                            <div className="col-12 col-md-6 text-center" style={{ position: "relative" }}>
+                                <img
+                                    src={player}
+                                    alt="Player"
+                                    className="img-fluid"
+                                    style={{
+                                        maxHeight: "390px",
+                                        marginTop: "-20px",
+                                        zIndex: 999,
+                                        position: "relative",
+                                    }}
+                                />
+                            </div>
                         </div>
-                        <div className="col-12 col-md-6 text-center" style={{ position: "relative" }}>
-                            <img
-                                src={player}
-                                alt="Player"
-                                className="img-fluid"
-                                style={{
-                                    maxHeight: "390px",
-                                    marginTop: "-20px",
-                                    zIndex: 999,
-                                    position: "relative",
-                                }}
-                            />
-                        </div>
-                    </div>
-                    <div className="  px-3  pt-3 border-0" style={{borderRadius:"10px 30% 10px 10px",height:"80vh", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
-                        <div className="text-center mb-3">
-                            <div className="d-flex justify-content-center">
-                                {logo ? (
-                                    <Avatar
-                                        src={logo}
-                                        alt="User Profile"
-                                        style={{ height: "112px", width: "112px", boxShadow: '0px 4px 11.4px 0px #0000002E' }}
-                                    />
+                        <div className="  px-3  pt-3 border-0" style={{ borderRadius: "10px 30% 10px 10px", height: "80vh", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                            <div className="text-center mb-3">
+                                <div className="d-flex justify-content-center">
+                                    {logo ? (
+                                        <Avatar
+                                            src={logo}
+                                            alt="User Profile"
+                                            style={{ height: "112px", width: "112px", boxShadow: '0px 4px 11.4px 0px #0000002E' }}
+                                        />
+                                    ) : (
+                                        <Avatar
+                                            style={{
+                                                height: "112px",
+                                                width: "112px",
+                                                fontSize: "30px",
+                                                boxShadow: '0px 4px 11.4px 0px #0000002E'
+                                            }}
+                                        >
+                                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                        </Avatar>
+                                    )}
+                                </div>
+                                <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                            </div>
+
+                            <h6 className="border-top p-2 mb-1 ps-0 text-white custom-heading-use" >
+                                Booking Summary
+                            </h6>
+                            <div style={{ maxHeight: "340px", overflowY: "auto" }}>
+                                {matchesData?.data?.slot && matchesData?.data?.slot?.length > 0 ? (
+                                    matchesData.data.slot.map((court, index) =>
+                                        court.slotTimes.map((slotTime, slotIndex) => {
+                                            const formatted = formatDate(matchesData?.data?.matchDate);
+                                            return (
+                                                <div
+                                                    key={`${index}-${slotIndex}`}
+                                                    className="court-row d-flex justify-content-between align-items-center mb-3 px-md-2"
+                                                    style={{ cursor: "pointer" }}
+                                                >
+                                                    <div className="text-white">
+                                                        <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px" }}>
+                                                            {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {formatTime(slotTime.time)} </span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px" }}>{court.courtName}
+                                                        </span>
+                                                    </div>
+                                                    <div className="d-flex align-items-center text-white justify-content-center gap-2">
+                                                        <span className="" style={{ fontWeight: "500", fontSize: "16px" }}>₹ <span className="" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{slotTime.amount}</span></span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )
                                 ) : (
-                                    <Avatar
-                                        style={{
-                                            height: "112px",
-                                            width: "112px",
-                                            fontSize: "30px",
-                                            boxShadow: '0px 4px 11.4px 0px #0000002E'
-                                        }}
-                                    >
-                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
-                                    </Avatar>
+                                    <div className="text-white">No slots available</div>
                                 )}
                             </div>
-                            <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                         </div>
-
-                        <h6 className="border-top p-2 mb-1 ps-0 text-white custom-heading-use" >
-                            Booking Summary
-                        </h6>
-                        <div style={{ maxHeight: "340px", overflowY: "auto" }}>
-                            {matchesData?.data?.slot && matchesData?.data?.slot?.length > 0 ? (
-                                matchesData.data.slot.map((court, index) =>
-                                    court.slotTimes.map((slotTime, slotIndex) => {
-                                        const formatted = formatDate(matchesData?.data?.matchDate);
-                                        return (
-                                            <div
-                                                key={`${index}-${slotIndex}`}
-                                                className="court-row d-flex justify-content-between align-items-center mb-3 px-md-2"
-                                                style={{ cursor: "pointer" }}
-                                            >
-                                                <div className="text-white">
-                                                    <span style={{ fontWeight: "600", fontFamily: 'Poppins', fontSize: "16px" }}>
-                                                        {formatted.formattedDate.charAt(0).toUpperCase() + formatted.formattedDate.slice(1)} {formatTime(slotTime.time)} </span> <span style={{ fontWeight: "400", fontFamily: 'Poppins', fontSize: "16px"}}>{court.courtName}
-                                                    </span>
-                                                </div>
-                                                <div className="d-flex align-items-center text-white justify-content-center gap-2">
-                                                    <span className="" style={{ fontWeight: "500", fontSize: "16px" }}>₹ <span className="" style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "500" }}>{slotTime.amount}</span></span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                )
-                            ) : (
-                                <div className="text-white">No slots available</div>
-                            )}
-                        </div>
-                    </div>
                     </div>
                 </div>
             </div>
