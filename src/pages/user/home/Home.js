@@ -190,10 +190,15 @@ const Home = () => {
 
             <div className="container py-4 p-0 rounded-3" style={{ backgroundColor: "#F5F5F569", marginTop: "-100px" }}>
                 <div className="row position-relative">
+
                     {/* Left Column: Club Name, About, Address, and Timings */}
-                    <div className="col-lg-8 ">
+                    <div className="col-lg-8">
                         <div className=" row border pe-3 bg-white  rounded-3 shadow p-2">
-                            <div className='col-6'>
+                            <div className='col-lg-7 ' style={{
+                                borderRight: "1px solid transparent",
+                                borderImage: "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #002DC7 46.63%, rgba(255, 255, 255, 0) 94.23%)",
+                                borderImageSlice: 1,
+                            }}>
                                 <div className="mb-4  d-flex align-items-center justify-content-start gap-3">
                                     <div className='mb-4'>
                                         <Avatar>
@@ -234,7 +239,7 @@ const Home = () => {
 
                                 <div className="flex-grow-1">
                                     <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4>
-                                    <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400" }}>
+                                    <p className='' style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400" }}>
                                         {clubData?.clubName || "The Good Club"} The Good Club, Chandigarh’s premier Padel hub with 5+ indoor courts, Pilates studio, a kid’s play area, and a rich café. It’s where good people meet, play, and build bonds beyond the court. Join the community, feel the energy, and experience the good vibes!
                                     </p>
                                     <p style={{ fontSize: "16px", fontFamily: "Poppins", fontWeight: "400", margin: "0px" }}>Join the Padel community group on WhatsApp</p>
@@ -243,7 +248,7 @@ const Home = () => {
                                 </div>
                             </div>
 
-                            <div className=" col-6">
+                            <div className=" col-lg-5">
                                 <div className="">
                                     <div className="d-flex justify-content-center mb-4">
                                         <strong className='me-2 open-now-time'>
