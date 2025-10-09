@@ -164,6 +164,7 @@ const Home = () => {
         { img: tennis2 },
     ]
 
+    
     return (
         <>
             <div className="container px-0">
@@ -189,11 +190,11 @@ const Home = () => {
             </div>
 
             <div className="container py-4 p-0 rounded-3" style={{ backgroundColor: "#F5F5F569", marginTop: "-100px" }}>
-                <div className="row position-relative">
+                <div className="row position-relative align-items-stretch">
 
                     {/* Left Column: Club Name, About, Address, and Timings */}
-                    <div className="col-lg-8">
-                        <div className=" row border pe-3 bg-white  rounded-3 shadow p-2">
+                    <div className="col-lg-8 d-flex">
+                        <div className=" row border pe-3 bg-white  rounded-3 shadow p-2 flex-fill">
                             <div className='col-lg-7 ' style={{
                                 borderRight: "1px solid transparent",
                                 borderImage: "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #002DC7 46.63%, rgba(255, 255, 255, 0) 94.23%)",
@@ -277,8 +278,8 @@ const Home = () => {
                     </div>
 
                     {/* Right Column: Upcoming Matches */}
-                    <div className="col-lg-4 ">
-                        <div className="text-white rounded-3 position-relative" style={{ background: 'linear-gradient(180deg, #0034E4 0%, #001B76 100%)' }}>
+                    <div className="col-lg-4 d-flex">
+                        <div className="text-white rounded-3 position-relative flex-fill" style={{ background: 'linear-gradient(180deg, #0034E4 0%, #001B76 100%)' }}>
                             <div className='pt-5 pb-4 px-4' style={{ padding: '2rem' }}>
                                 <button className="btn mb-3 rounded-pill text-white px-4 py-1" onClick={() => navigate('/open-matches')}
                                     style={{ border: "3px solid #FFFFFF", fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>
@@ -309,12 +310,12 @@ const Home = () => {
                         <div
                             className="d-flex justify-content-cener align-items-center"
                             style={{
-                                transform: `translateX(-${currentSlide * 33.333}%)`,
+                                transform: `translateX(-${currentSlide * 25}%)`,
                                 transition: currentSlide === 0 && currentSlide !== clubData?.courtImage?.length ? "none" : "transform 0.5s ease"
                             }}
                         >
-                            {clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 3))?.map((image, index) => (
-                                <div key={index} className="flex-shrink-0 d-flex justify-content-center" style={{ width: "33.333%", padding: "0 5px" }}>
+                            {clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 4))?.map((image, index) => (
+                                <div key={index} className="flex-shrink-0 d-flex justify-content-center" style={{ width: "25%", padding: "0 2px" }}>
                                     <div
                                         className="position-relative overflow-hidden rounded-3"
                                         style={{ height: "400px", width: "400px", cursor: 'pointer' }}
@@ -350,7 +351,7 @@ const Home = () => {
                     {/* Navigation Arrows */}
                     <button
                         className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ width: "40px", height: "40px", marginLeft: "10px", zIndex: 10, backgroundColor: "#011E84" }}
+                        style={{ width: "30px", height: "30px", marginLeft: "10px", zIndex: 10, backgroundColor: "#011E84" }}
                         onClick={() => {
                             if (currentSlide === 0) {
                                 setCurrentSlide(clubData?.courtImage?.length - 1);
@@ -364,7 +365,7 @@ const Home = () => {
 
                     <button
                         className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ width: "40px", height: "40px", marginRight: "10px", zIndex: 10, backgroundColor: "#011E84" }}
+                        style={{ width: "30px", height: "30px", marginRight: "10px", zIndex: 10, backgroundColor: "#011E84" }}
                         onClick={() => {
                             if (currentSlide >= clubData?.courtImage?.length - 1) {
                                 setCurrentSlide(0);
