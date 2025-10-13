@@ -1,4 +1,4 @@
-import twoball from './images/twoball.png';
+import twoball from './images/booking-banner.png';
 import taness from './images/taness.png';
 import logo from './images/logo.png';
 import line from './images/line.png';

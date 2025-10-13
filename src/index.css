@@ -285,11 +285,16 @@ h1.display-5 {
   transition: opacity 0.2s ease;
 }
 
+.home-second-banner {
+  margin-top: -130px;
+}
+
 .court-row:hover .delete-btn {
   visibility: visible;
   opacity: 1;
 }
-.sport-box{
+
+.sport-box {
   width: 316px;
 }
 
@@ -809,6 +814,10 @@ h1.display-5 {
 @media (min-width: 368px) and (max-width: 768px) {
   .auth-wrapper {
     padding: 1rem;
+  }
+
+  .home-second-banner {
+    margin-top: 30px;
   }
 
   .login-btn {

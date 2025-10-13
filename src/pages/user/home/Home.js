@@ -190,12 +190,12 @@ const Home = () => {
                 </div>
             </div>
 
-            <div className="container  p-0 rounded-3" style={{ backgroundColor: "#F5F5F569", marginTop: "-130px" }}>
+            <div className="container  p-lg-0 rounded-3 home-second-banner" style={{ backgroundColor: "#F5F5F569",  }}>
                 <div className="row position-relative align-items-stretch">
 
                     {/* Left Column: Club Name, About, Address, and Timings */}
                     <div className="col-lg-8  d-flex">
-                        <div className=" row  me-2  pe-3 bg-white  p-2 flex-fill"
+                        <div className=" row  me-lg-2  pe-lg-3 bg-white  p-lg-2 flex-fill"
                             style={{ border: "0.3px solid #858080ff", borderRadius: "20px", }}
                         >
                             <div className='col-lg-8 ' style={{
@@ -298,7 +298,7 @@ const Home = () => {
                                 </div>
                             </div>
 
-                            <div className=" col-lg-4 ps-lg-5">
+                            <div className=" col-lg-4 ps-lg-5 ">
                                 <div className="pt-4">
                                     <div className="d-flex justify-content-center mb-4">
                                         <strong className='me-2 open-now-time' style={{ fontWeight: "600" }}>
