@@ -287,7 +287,7 @@ const Home = () => {
 
                                 </div>
 
-                                <div className="flex-grow-1">
+                                <div className="flex-grow-1 pe-lg-5">
                                     <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4>
                                     <p className='' style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400" }}>
                                         {clubData?.clubName || "The Good Club"}{clubData?.description}
@@ -298,7 +298,7 @@ const Home = () => {
                                 </div>
                             </div>
 
-                            <div className=" col-lg-4">
+                            <div className=" col-lg-4 ps-lg-5">
                                 <div className="pt-4">
                                     <div className="d-flex justify-content-center mb-4">
                                         <strong className='me-2 open-now-time' style={{ fontWeight: "600" }}>
