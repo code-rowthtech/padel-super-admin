@@ -315,9 +315,9 @@ const Home = () => {
                                             <span>{day?.time || (idx === 2 ? "6:00 AM - 11:00 PM" : "6:00 AM - 10:00 PM")}</span>
                                         </div>
                                     ))}
-                                    <p className="mt-3 mb-0 text-center" style={{ fontWeight: "500" }}>Time zone (India Standard Time)</p>
+                                    <p className="mt-3 mb-0 text-center" style={{ fontWeight: "500",fontSize:"13px" ,fontFamily:"Poppins"}}>Time zone (India Standard Time)</p>
                                     <div className='text-center mb-3'>
-                                        <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp">
+                                        <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp" style={{fontSize:"13px",fontFamily:"Poppins"}}>
                                             Court Book <i className="bi bi-arrow-right"></i>
                                         </Link>
                                     </div>
