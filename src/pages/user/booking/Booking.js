@@ -384,11 +384,11 @@ const Booking = ({ className = "" }) => {
 
     return (
         <>
-            <div className="container p-md-3">
+            <div className="container p-md-3 mb-lg-3">
                 <div className="ps-0" style={{ height: "340px" }}>
                     <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{ height: "100%" }}>
                         <img src={twoball} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover" style={{ borderRadius: "13px" }} />
-                        <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center text-white p-5" style={{ background: "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)", backgroundBlendMode: "multiply" }}>
+                        <div className="position-absolute top-0 start-0 w-100 h-100 pt-lg-0 d-flex flex-column justify-content-center text-white p-5" style={{ background: "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)", backgroundBlendMode: "multiply" }}>
                             <p className="mb-0 ps-md-4" style={{ fontSize: "20px", fontFamily: "Poppins", fontWeight: "500" }}>BOOK YOUR SLOT</p>
                             <h1 className="booking-img-heading ps-md-4">{clubData?.clubName || ""}</h1>
                         </div>
@@ -417,10 +417,8 @@ const Booking = ({ className = "" }) => {
                                                     onChange={(date) => {
                                                         setStartDate(date);
                                                         setIsOpen(false);
-
                                                         const formattedDate = date.toISOString().split("T")[0];
                                                         const day = date.toLocaleDateString("en-US", { weekday: "long" });
-
                                                         setSelectedDate({ fullDate: formattedDate, day });
                                                         setSelectedTimes({});
                                                         dispatch(
