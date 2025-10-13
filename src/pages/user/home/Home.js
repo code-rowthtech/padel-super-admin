@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { twoball, taness, line, home_banner, football, cricket, tennis2, batmintain, swiming } from '../../../assets/files';
-import DirectionsIcon from '@mui/icons-material/Directions';
-import StarOutlineIcon from '@mui/icons-material/StarOutline';
-import PhoneIcon from '@mui/icons-material/Phone';
+import { LuClock4 } from "react-icons/lu";
 import StarIcon from '@mui/icons-material/Star';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
@@ -17,8 +15,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/club/thunk';
 import { Avatar } from '@mui/material';
 import { getLogo } from '../../../redux/user/auth/authThunk';
-import { MdWatchLater } from "react-icons/md";
-import { PiImagesSquareFill } from "react-icons/pi";
 import { ReviewCard } from './ReviewCard';
 
 
@@ -302,7 +298,7 @@ const Home = () => {
                                 <div className="pt-4">
                                     <div className="d-flex justify-content-center mb-4">
                                         <strong className='me-2 open-now-time' style={{ fontWeight: "600" }}>
-                                            <MdWatchLater size={20} /> Open Now 6:00 AM - 11:00 PM
+                                            <LuClock4 size={20} /> Open Now 6:00 AM - 11:00 PM
                                         </strong>
                                     </div>
                                     {clubData?.businessHours?.map((day, idx) => (
