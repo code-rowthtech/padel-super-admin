@@ -41,18 +41,22 @@ const Pagination = ({
   }
 
   return (
-    <div className="row  w-100 d-flex algn-items-center">
+    <div className="row w-100 d-flex align-items-center">
       <div className="col-md-2 col-12 d-flex align-items-center justify-content-center justify-content-md-start mt-2 text-nowrap">
-        <span className="ms-2 border p-1 ms-3 border-0 fw-bold">
+        <span className="ms-2 border p-1 ms-3 border-0 fw-bold" style={{ fontSize: window.innerWidth <= 768 ? '12px' : '14px' }}>
           Total Records: {totalRecords}
         </span>
       </div>
-      <div className="col-md-10 col-12 d-flex align-items-center justify-content-center justify-content-md-end">
-        <div className="d-flex justify-content-end align-items-center">
-          <div className="d-flex align-items-center me-3">
+      <div className="col-md-10 col-12">
+        <div className="d-flex align-items-center w-100" style={{ minWidth: '300px' }}>
+          <div style={{ width: '80px', textAlign: 'left' }}>
             <button
-              className="btn mx-1 border-0 fw-bold bg-transparent"
-              style={{ color: "#8d9dd3" }}
+              className="btn border-0 fw-bold bg-transparent"
+              style={{ 
+                color: "#8d9dd3",
+                fontSize: window.innerWidth <= 768 ? '12px' : '14px',
+                padding: window.innerWidth <= 768 ? '4px 8px' : '6px 12px'
+              }}
               onClick={() =>
                 handlePageChange(
                   isZeroBased
@@ -62,18 +66,20 @@ const Pagination = ({
               }
               disabled={adjustedCurrentPage === 1}
             >
-              Previous
+              {window.innerWidth <= 768 ? 'Prev' : 'Previous'}
             </button>
+          </div>
 
+          <div className="d-flex align-items-center justify-content-center" style={{ flex: '1' }}>
             {pageNumbers.map((number, index) =>
               number === "..." ? (
-                <span key={index} className="mx-2">
+                <span key={index} className="mx-1" style={{ fontSize: window.innerWidth <= 768 ? '12px' : '14px' }}>
                   ...
                 </span>
               ) : (
                 <button
                   key={number}
-                  className="btn mx-1 py-md-0 py-0 px-md-auto px-2 shadow-none"
+                  className="btn mx-1 shadow-none rounded-circle"
                   style={{
                     color: number === adjustedCurrentPage ? "white" : "black",
                     background: number === adjustedCurrentPage ? "#8d9dd3" : "",
@@ -81,6 +87,13 @@ const Pagination = ({
                       number === adjustedCurrentPage
                         ? "1px solid #6c7eb6ff"
                         : "1px solid #6c7eb6ff",
+                    fontSize: window.innerWidth <= 768 ? '8px' : '10px',
+                    width: window.innerWidth <= 768 ? '24px' : '28px',
+                    height: window.innerWidth <= 768 ? '24px' : '28px',
+                    padding: '0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                   onClick={() =>
                     handlePageChange(isZeroBased ? number - 1 : number)
@@ -90,15 +103,21 @@ const Pagination = ({
                 </button>
               )
             )}
+          </div>
 
+          <div style={{ width: '80px', textAlign: 'right' }}>
             <button
-              className="btn mx-1 border-0 fw-bold bg-transparent"
+              className="btn border-0 fw-bold bg-transparent"
               onClick={() =>
                 handlePageChange(
                   isZeroBased ? adjustedCurrentPage : adjustedCurrentPage + 1
                 )
               }
-              style={{ color: "#8d9dd3" }}
+              style={{ 
+                color: "#8d9dd3",
+                fontSize: window.innerWidth <= 768 ? '12px' : '14px',
+                padding: window.innerWidth <= 768 ? '4px 8px' : '6px 12px'
+              }}
               disabled={adjustedCurrentPage === totalPages}
             >
               Next

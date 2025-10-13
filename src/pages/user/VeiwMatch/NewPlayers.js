@@ -50,6 +50,16 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         else if (!formData.level) {
             errors.push("Select Level Name is required");
         }
+        
+        // Check if same level already exists
+        const addedPlayers = localStorage.getItem('addedPlayers')
+            ? JSON.parse(localStorage.getItem('addedPlayers'))
+            : {};
+        const existingLevels = Object.values(addedPlayers).map(player => player.level);
+        if (existingLevels.includes(formData.level)) {
+            errors.push("A player with this level already exists. Please select a different level.");
+        }
+        
         if (errors.length > 0) {
             setError(errors.join(", "));
             setErrorShow(true);
@@ -301,7 +311,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                 style={{ backgroundColor: "#3DBE64" }}
                                 onClick={() => handleSubmit()}
                             >
-                                {userLoading?.userSignUpLoading ? <ButtonLoading /> : "Submit"}
+                                {userLoading?.userSignUpLoading ? <ButtonLoading color={'white'} /> : "Submit"}
                             </Button>
                         </div>
                     </form>

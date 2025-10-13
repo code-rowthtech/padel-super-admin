@@ -735,11 +735,11 @@ h1.display-5 {
 }
 
 .login-btn {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   font-family: "Poppins";
-  height: 50px;
-  width: 146px;
+  height: 45px;
+  width: 138px;
   background: #3dbe64;
 }
 
@@ -1100,6 +1100,11 @@ h1.display-5 {
   .border-md-start {
     border-left: none !important;
   }
+  
+  /* Remove Team B border on mobile only */
+  .col-6.border-start {
+    border-left: none !important;
+  }
 
   /* Players section responsive */
   .col-12.d-flex.flex-column {
@@ -1297,4 +1302,412 @@ h1.display-5 {
 &::-webkit-scrollbar-thumb:hover {
   background: #666;
   /* Slightly darker gray on hover */
+}
+
+/* Review Card Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .card {
+    width: 90% !important;
+    max-width: 350px !important;
+    margin: 0 auto !important;
+  }
+}
+/* Home Second Banner Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .home-second-banner {
+    margin-top: 20px !important;
+    padding: 0.5rem 1rem !important;
+  }
+  
+  .home-second-banner .row {
+    margin: 0 !important;
+  }
+  
+  .home-second-banner .col-lg-8 {
+    padding: 0.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .home-second-banner .col-lg-8 .row {
+    margin: 0 !important;
+    padding: 0.5rem !important;
+  }
+  
+  .home-second-banner .col-lg-8 .col-lg-8 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    padding: 0.5rem !important;
+    border-right: none !important;
+    border-image: none !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .home-second-banner .col-lg-8 .col-lg-4 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    padding: 0.5rem !important;
+  }
+  
+  .sport-box {
+    width: 100% !important;
+    max-width: 280px !important;
+    margin: 0 auto !important;
+  }
+  
+  .home-second-banner h4 {
+    font-size: 16px !important;
+  }
+  
+  .home-second-banner h5 {
+    font-size: 14px !important;
+  }
+  
+  .home-second-banner p {
+    font-size: 11px !important;
+  }
+  
+  .home-second-banner .open-now-time {
+    font-size: 10px !important;
+  }
+}
+/* Right Column Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .home-second-banner .col-lg-4 {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+  }
+}
+/* Sport Box Left Alignment */
+@media (min-width: 368px) and (max-width: 768px) {
+  .sport-box {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+  }
+}
+/* Banner Image Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .image-zoom-container {
+    height: 250px !important;
+  }
+  
+  .image-zoom-container .position-absolute {
+    padding: 1rem !important;
+    top: 0 !important;
+  }
+  
+  .home-main-heading {
+    font-size: 24px !important;
+    line-height: 28px !important;
+  }
+  
+  .custom-title {
+    font-size: 14px !important;
+  }
+}
+/* WhatsApp Link Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .home-second-banner a {
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+  
+  .home-second-banner .flex-grow-1 {
+    overflow: hidden !important;
+  }
+}
+/* Login Page Mobile Center Fix */
+@media (min-width: 368px) and (max-width: 768px) {
+  .auth-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .auth-wrapper .container-fluid {
+    height: auto !important;
+  }
+  
+  .auth-wrapper .row {
+    height: auto !important;
+    align-items: center !important;
+  }
+  
+  .auth-wrapper .col-12 {
+    justify-content: center !important;
+    padding: 2rem 1rem !important;
+  }
+  
+  .auth-wrapper .h-50 {
+    height: auto !important;
+  }
+}
+/* Booking Page Banner Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .booking-img-heading {
+    font-size: 28px !important;
+    line-height: 32px !important;
+  }
+  
+  .booking-banner-container {
+    height: 200px !important;
+    padding: 1rem !important;
+  }
+  
+  .booking-banner-text {
+    padding: 1rem !important;
+  }
+  
+  .booking-banner-overlay {
+    padding: 1rem !important;
+  }
+}
+/* Booking Summary Border Radius Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .col-lg-5 .border {
+    border-radius: 10px !important;
+  }
+}
+/* Open Match Date Arrow Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .d-flex.gap-1 button[style*="right: -26"] {
+    right: -10px !important;
+    background: transparent !important;
+    border: none !important;
+    width: 35px !important;
+    height: 35px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .d-flex.gap-1 button[style*="left: -65"] {
+    left: -65px !important;
+    background: transparent !important;
+    border: none !important;
+    width: 35px !important;
+    height: 35px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+/* Open Match Review Section Bottom Space */
+@media (min-width: 368px) and (max-width: 768px) {
+  .col-lg-5 .rounded-4[style*="backgroundColor"] {
+    margin-bottom: 3rem !important;
+  }
+  
+  .open-match-review-section {
+    padding-bottom: 2rem !important;
+  }
+}
+/* No Matches Available Height Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .d-flex.flex-column.justify-content-center.align-items-center.text-danger.fw-medium {
+    min-height: 250px !important;
+  }
+}
+/* Open Match Container Height Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .no-scrollbar {
+    min-height: 200px !important;
+    max-height: 300px !important;
+  }
+}
+/* Create Open Match Date Icon Alignment */
+.create-match-date-section {
+  display: flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  gap: 8px !important;
+}
+
+.create-match-date-section .date-text {
+  flex-shrink: 0 !important;
+}
+
+.create-match-date-section .date-icon {
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+@media (min-width: 368px) and (max-width: 768px) {
+  .create-match-date-section {
+    flex-wrap: nowrap !important;
+  }
+}
+/* Match Payment Slots and Players Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  /* Slots alignment in top right */
+  .match-payment-slots {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
+  }
+  
+  .match-payment-slot-item {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Players section alignment */
+  .team-section {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 120px !important;
+  }
+  
+  .player-slot {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .add-player-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 40px !important;
+  }
+  
+  /* Team A and Team B equal spacing */
+  .teams-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: stretch !important;
+  }
+  
+  .team-column {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 200px !important;
+  }
+  
+  /* Players section alignment fix */
+  .col-6.d-flex.flex-column.flex-lg-row {
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 200px !important;
+  }
+  
+  /* Player images full size on mobile */
+  .rounded-circle {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  /* Player images fill circle completely */
+  .rounded-circle img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+  }
+  
+  /* Make player images bigger to fill circle */
+  .d-flex.flex-column.justify-content-center.align-items-center .rounded-circle img {
+    width: 110% !important;
+    height: 110% !important;
+    margin: -5% !important;
+  }
+  
+  /* Open matches player circles responsive */
+  .card .rounded-circle {
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 50% !important;
+  }
+  
+  .card .rounded-circle img {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    border-radius: 50% !important;
+  }
+  
+  /* Home page map height fix for large screens */
+  @media (min-width: 992px) {
+    iframe[src*="google.com/maps"] {
+      height: 400px !important;
+      min-height: 400px !important;
+    }
+  }
+  
+  /* Pagination responsive */
+  .pagination {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 2px !important;
+  }
+  
+  .page-item .page-link {
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .page-item:first-child .page-link,
+  .page-item:last-child .page-link {
+    padding: 4px 6px !important;
+  }
+  
+  /* Player names truncation on mobile */
+  .col-6 p.mb-0.mt-2.fw-semibold {
+    max-width: 80px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+  }
+}
+/* Match Payment Summary Border Radius Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .col-5 .border[style*="borderRadius: \"10px 30% 10px 10px\""] {
+    border-radius: 10px !important;
+  }
+}
+/* Team Players Alignment Fix */
+.col-6.d-flex.flex-column.flex-lg-row.gap-3 {
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 180px !important;
+}
+
+/* Large screen alignment fix */
+@media (min-width: 992px) {
+  .col-6.d-flex.flex-column.flex-lg-row.gap-3 {
+    flex-direction: row !important;
+    justify-content: space-evenly !important;
+    align-items: center !important;
+  }
+}
+
+/* OpenmatchPayment Border Radius Remove */
+@media (min-width: 368px) and (max-width: 768px) {
+  .border[style*="borderRadius"] {
+    border-radius: 0 !important;
+  }
+  
+  /* Specific targeting for booking summary with custom border radius */
+  .border[style*="borderRadius: \"10px 30% 10px 10px\""],
+  .border[style*="border-radius: 10px 30% 10px 10px"],
+  div[style*="borderRadius: \"10px 30% 10px 10px\""],
+  div[style*="border-radius: 10px 30% 10px 10px"] {
+    border-radius: 0 !important;
+  }
 }

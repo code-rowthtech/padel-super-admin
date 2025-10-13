@@ -217,8 +217,11 @@ const ViewMatch = ({ className = "" }) => {
                                     PADEL
                                 </span>
                             </div>
-                            <small className="text-muted" style={{ fontWeight: "500" }}>
+                            <small className="text-muted d-none d-lg-block" style={{ fontWeight: "500" }}>
                                 {matchDate.day}, {matchDate.formattedDate} | {matchTime}
+                            </small>
+                            <small className="text-muted d-lg-none" style={{ fontWeight: "500" }}>
+                                {matchDate.day}, {matchDate.formattedDate} <br/> {matchTime}
                             </small>
                         </div>
                         <div className="row text-center border-top">

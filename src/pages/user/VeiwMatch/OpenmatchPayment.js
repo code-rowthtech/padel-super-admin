@@ -110,9 +110,6 @@ const OpenmatchPayment = (props) => {
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
-        return () => {
-            localStorage.removeItem("addedPlayers");
-        };
     }, [dispatch]);
 
     const handleBooking = () => {
@@ -442,8 +439,12 @@ const OpenmatchPayment = (props) => {
                                     PADEL
                                 </span>
                             </div>
-                            <small className="text-muted" style={{ fontWeight: "500" }}>
+                            <small className="text-muted d-none d-lg-block" style={{ fontWeight: "500" }}>
                                 {matchDate.day}, {matchDate.formattedDate} | {matchTime?.slice(0, 20)}
+                                {matchTime.length > 20 ? "..." : ""} (60m)
+                            </small>
+                            <small className="text-muted d-lg-none" style={{ fontWeight: "500" }}>
+                                {matchDate.day}, {matchDate.formattedDate} <br /> {matchTime?.slice(0, 20)}
                                 {matchTime.length > 20 ? "..." : ""} (60m)
                             </small>
                         </div>
@@ -486,7 +487,7 @@ const OpenmatchPayment = (props) => {
                         </h6>
                         <div className="row mx-auto">
                             {/* Team A */}
-                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 justify-content-center">
+                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 justify-content-center align-items-center">
                                 {(() => {
                                     const leftComponents = [];
                                     if (User) {
@@ -597,7 +598,7 @@ const OpenmatchPayment = (props) => {
                             </div>
 
                             {/* Team B */}
-                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 align-items-start justify-content-center border-start">
+                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 align-items-center justify-content-center border-start">
                                 {(() => {
                                     const rightComponents = [];
 
@@ -684,7 +685,7 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                <span className="badge bg-success-subtle text-success">{player?.level}</span>
+                                                <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -890,12 +891,6 @@ const OpenmatchPayment = (props) => {
                                     No slot selected <Link className="text-success" to="/create-matches">Add slot</Link>
                                 </div>
                             )}
-                            <button
-                                className="btn rounded-circle p-2 d-flex align-items-center justify-content-center text-white"
-                                style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
-                            >
-                                <i className="bi bi-chat-left-text"></i>
-                            </button>
                         </div>
                         <div className="border-top pt-2 mb-0  text-white mt-2 d-flex justify-content-between align-items-center fw-bold">
                             <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
@@ -945,7 +940,7 @@ const OpenmatchPayment = (props) => {
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading color={"#fff"} /> : "Book Now"}</div>
+                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
