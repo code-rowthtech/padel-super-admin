@@ -289,9 +289,12 @@ h1.display-5 {
   visibility: visible;
   opacity: 1;
 }
+.sport-box{
+  width: 316px;
+}
 
 .custom-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 500;
   color: #374151;
   font-family: "Poppins" sans-serif;
@@ -744,18 +747,18 @@ h1.display-5 {
 .home-main-heading {
   font-weight: 700;
   font-family: "Poppins";
-  font-size: 70px;
+  font-size: 64px;
 }
 
 .open-now-time {
-  font-size: 16px;
+  font-size: 13px !important;
   font-family: "Poppins";
-  font-weight: 500;
+  font-weight: 400;
   color: #1c1b1f;
 }
 
 .home-upcoming-heading {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 600;
   font-family: "Poppins";
 }
@@ -823,6 +826,7 @@ h1.display-5 {
     width: 20px !important;
     height: 20px !important;
   }
+
 
   /* HomePage top banner responsive */
   .home-main-heading {

@@ -1,40 +1,61 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "react-bootstrap";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
+import { IoStar } from "react-icons/io5";
+import { MdOutlineStar } from "react-icons/md";
 
 export const ReviewCard = ({ review }) => {
     const rating = review?.reviewRating || 0;
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    const [showFullText, setShowFullText] = useState(false);
+
+    const truncateText = (text, wordLimit) => {
+        if (!text) return "";
+        const words = text.split(' ');
+        if (words.length <= wordLimit) return text;
+        return words.slice(0, wordLimit).join(' ') + '...';
+    };
+
+    const reviewText = review?.reviewComment || "";
+    const displayText = showFullText ? reviewText : truncateText(reviewText, 20);
 
     return (
         <Card
-            className="p-4 text-center shadow-sm d-flex  justify-content-center align-items-start"
+            className="p-4 shadow-sm d-flex flex-column justify-content-between"
             style={{
-                borderRadius: "20px",
+                borderRadius: "27px",
                 backgroundColor: "#012FCF26",
                 border: "none",
                 fontFamily: "Poppins",
                 height: "300px",
-                width: "400px"
+                width: "420px",
+                margin: "0"
             }}
         >
-            <div>
-                <p className="text-start mb-3"
+            <div className="flex-grow-1 d-flex flex-column" style={{ paddingTop: "30px" }}>
+                <p className="text-start d-flex align-items-center justify-content-start mb-0 flex-grow-1"
                     style={{
-                        fontSize: "14px",
-                        color: "#4B5563",
-                        fontWeight: "400",
+                        fontSize: "19px",
+                        color: "#000000",
+                        fontWeight: "500",
+                        fontFamily: "Inter",
                         margin: "0",
+                        cursor: reviewText.split(' ').length > 20 ? "pointer" : "default",
+                        minHeight: "150px",
+                        overflow: "hidden",
+                        textAlign: "center"
                     }}
+                    title={reviewText.split(' ').length > 20 ? reviewText : ""}
                 >
-                    "{review?.reviewComment}"
+                    "{truncateText(reviewText, 20)}"
                 </p>
+            </div>
 
-                <div className="d-flex align-items-center justify-content-between gap-5">
+            <div className="d-flex align-items-center mb-lg-5 mb-3 justify-content-between gap-3" style={{ marginTop: "5px" }}>
                     <img
                         src={
                             review?.avatar ||
@@ -48,9 +69,10 @@ export const ReviewCard = ({ review }) => {
                     <h6
                         style={{
                             margin: 0,
-                            fontSize: "14px",
+                            fontSize: "23px",
                             fontWeight: "600",
                             color: "#111827",
+                            fontFamily:"Inter"
                         }}
                     >
                         {review?.userId?.name?.charAt(0).toUpperCase() +
@@ -58,20 +80,19 @@ export const ReviewCard = ({ review }) => {
                     </h6>
                     <div className="d-flex align-items-center">
                         {[...Array(fullStars)].map((_, i) => (
-                            <StarIcon key={i} style={{ fontSize: "16px", color: "#22C55E" }} />
+                            <StarIcon key={i} style={{ fontSize: "30px", color: "#22C55E" }} />
                         ))}
                         {hasHalfStar && (
-                            <StarHalfIcon style={{ fontSize: "16px", color: "#22C55E" }} />
+                            <StarHalfIcon style={{ fontSize: "30px", color: "#22C55E" }} />
                         )}
                         {[...Array(emptyStars)].map((_, i) => (
-                            <StarBorderIcon
+                            <MdOutlineStar
                                 key={i}
-                                style={{ fontSize: "16px", color: "#9CA3AF" }}
+                                style={{ fontSize: "30px", color: "#F5F5F5" }}
                             />
                         ))}
                     </div>
                 </div>
-            </div>
         </Card>
     );
 };

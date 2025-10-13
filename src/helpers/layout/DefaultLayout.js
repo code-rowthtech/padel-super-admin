@@ -32,12 +32,12 @@ const DefaultLayout = () => {
   return (
     <div>
       {!shouldHideHeaderFooter ? (
-        <>
+        <div className="">
           <Navbar user={user}/>
           <div style={{ height: "100vh", overflowY: "auto" ,overflowX: "hidden"}}>
             <Outlet />
           </div>
-        </>
+        </div>
       ) : (
         <div style={{ height: "100vh", overflowY: "auto" ,overflowX: "hidden"}}>
           <Outlet />
