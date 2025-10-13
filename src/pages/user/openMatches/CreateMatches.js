@@ -420,7 +420,7 @@ const CreateMatches = () => {
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <div className="custom-heading-use">
+              <div className="custom-heading-use text-nowrap">
                 Select Date
                 <div className="position-relative d-inline-block" ref={wrapperRef}>
                   <span

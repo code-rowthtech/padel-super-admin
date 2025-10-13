@@ -301,7 +301,7 @@ const UpdatePlayers = ({ showModal, matchId, teamName, setShowModal, selectedDat
                             style={{ backgroundColor: "#3DBE64" }}
                             onClick={() => handleAddPlayer()}
                         >
-                            {addLoading?.userSignUpLoading ? <ButtonLoading /> : "Submit"}
+                            {addLoading?.userSignUpLoading ? <ButtonLoading color={'white'} /> : "Submit"}
                         </Button>
                     </div>
                 </form>

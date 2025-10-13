@@ -194,11 +194,11 @@ const Home = () => {
                 <div className="row position-relative align-items-stretch">
 
                     {/* Left Column: Club Name, About, Address, and Timings */}
-                    <div className="col-lg-8  d-flex">
+                    <div className="col-lg-8 col-12  d-flex">
                         <div className=" row  me-lg-2  pe-lg-3 bg-white  p-lg-2 flex-fill"
                             style={{ border: "0.3px solid #858080ff", borderRadius: "20px", }}
                         >
-                            <div className='col-lg-8 ' style={{
+                            <div className='col-lg-8 col-12 ' style={{
                                 borderRight: "3px solid transparent",
                                 borderImage: "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #a8b3d6ff 46.63%, rgba(255, 255, 255, 0) 94.23%)",
                                 borderImageSlice: 1,
@@ -298,7 +298,7 @@ const Home = () => {
                                 </div>
                             </div>
 
-                            <div className=" col-lg-4 ps-lg-5 ">
+                            <div className=" col-lg-4 col-12 ps-lg-5 ">
                                 <div className="pt-4">
                                     <div className="d-flex justify-content-center mb-4">
                                         <strong className='me-2 open-now-time' style={{ fontWeight: "600" }}>
@@ -359,15 +359,46 @@ const Home = () => {
                         <div
                             className="d-flex justify-content-cener align-items-center"
                             style={{
-                                transform: `translateX(-${currentSlide * 25}%)`,
+                                transform: window.innerWidth >= 992 ? `translateX(-${currentSlide * 25}%)` : `translateX(-${currentSlide * 100}%)`,
                                 transition: currentSlide === 0 && currentSlide !== clubData?.courtImage?.length ? "none" : "transform 0.5s ease"
                             }}
                         >
                             {clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 4))?.map((image, index) => (
-                                <div key={index} className="flex-shrink-0 d-flex justify-content-center" style={{ width: "25%", padding: "0 2px" }}>
+                                <div key={index} className="flex-shrink-0 d-lg-block d-none" style={{ width: "24%", padding: "0 6px" }}>
                                     <div
                                         className="position-relative overflow-hidden rounded-3"
-                                        style={{ height: "400px", width: "400px", cursor: 'pointer' }}
+                                        style={{ height: "400px", width: "100%", cursor: 'pointer' }}
+                                        onClick={() => {
+                                            setPhotoIndex(index % clubData?.courtImage?.length);
+                                            setIsOpen(true);
+                                        }}
+                                    >
+                                        {!loadedImages[index] && (
+                                            <div className="image-loader youtube-style">
+                                                <div className="youtube-spinner"></div>
+                                            </div>
+                                        )}
+                                        <img
+                                            src={image}
+                                            alt={`Gallery ${(index % clubData?.courtImage?.length) + 1}`}
+                                            className="w-100 h-100 object-fit-cover"
+                                            onLoad={() => handleImageLoad(index)}
+                                            onError={() => handleImageLoad(index)}
+                                            style={{
+                                                display: loadedImages[index] ? 'block' : 'none',
+                                                transition: "transform 0.3s ease"
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
+                                            onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                            {clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 1))?.map((image, index) => (
+                                <div key={`mobile-${index}`} className="flex-shrink-0 d-lg-none d-block" style={{ width: "100%", padding: "0" }}>
+                                    <div
+                                        className="position-relative overflow-hidden rounded-3"
+                                        style={{ height: "300px", width: "100%", cursor: 'pointer' }}
                                         onClick={() => {
                                             setPhotoIndex(index % clubData?.courtImage?.length);
                                             setIsOpen(true);
@@ -463,14 +494,19 @@ const Home = () => {
                 <div className="position-relative  ">
                     <div className="overflow-hidden ">
                         <div
-                            className="d-flex p-0"
+                            className="d-flex"
                             style={{
-                                transform: `translateX(-${reviewSlide * 33.333}%)`,
+                                transform: window.innerWidth >= 992 ? `translateX(-${reviewSlide * 33.333}%)` : `translateX(-${reviewSlide * 100}%)`,
                                 transition: reviewSlide === 0 && reviewSlide !== getReviewData?.reviews?.length ? "none" : "transform 0.5s ease"
                             }}
                         >
                             {getReviewData?.reviews?.concat(getReviewData?.reviews?.slice(0, 3))?.map((review, index) => (
-                                <div key={index} className="flex-shrink-0 ms-0 me-0" style={{ width: "33.333%" }}>
+                                <div key={index} className="flex-shrink-0 d-lg-block d-none" style={{ width: "33.333%" }}>
+                                    <ReviewCard review={review} />
+                                </div>
+                            ))}
+                            {getReviewData?.reviews?.concat(getReviewData?.reviews?.slice(0, 1))?.map((review, index) => (
+                                <div key={`mobile-${index}`} className="flex-shrink-0 d-lg-none d-block" style={{ width: "100%" }}>
                                     <ReviewCard review={review} />
                                 </div>
                             ))}

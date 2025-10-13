@@ -682,7 +682,7 @@ const Openmatches = () => {
                                 overflow: "hidden",
                             }}
                         >
-                            <div className="col-12 col-md-6 mb-1 text-lg-start text-center mb-md-0">
+                            <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
                                 <h4 className="open-match-img-heading text-nowrap">Got a score to <br /> settle?</h4>
                                 <p className="text-light">Great for competitive vibes.</p>
                                 <button
