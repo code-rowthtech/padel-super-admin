@@ -417,10 +417,8 @@ const Booking = ({ className = "" }) => {
                                                     onChange={(date) => {
                                                         setStartDate(date);
                                                         setIsOpen(false);
-
                                                         const formattedDate = date.toISOString().split("T")[0];
                                                         const day = date.toLocaleDateString("en-US", { weekday: "long" });
-
                                                         setSelectedDate({ fullDate: formattedDate, day });
                                                         setSelectedTimes({});
                                                         dispatch(
