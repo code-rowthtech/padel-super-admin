@@ -25,7 +25,6 @@ const Payment = ({ className = "" }) => {
     const { courtData, clubData, selectedCourts, setSelectedCourts, grandTotal, totalSlots } = location.state || {};
     const user = getUserFromSession();
     const bookingStatus = useSelector((state) => state?.userBooking);
-    console.log({ bookingStatus });
     const userLoading = useSelector((state) => state?.userAuth);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const [name, setName] = useState(user?.name || "");

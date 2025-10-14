@@ -89,7 +89,6 @@ const OpenmatchPayment = (props) => {
         ? JSON.parse(localStorage.getItem("addedPlayers"))
         : {};
     const { slotData = {}, finalSkillDetails = [], selectedDate = {}, selectedCourts = [] } = state || {};
-    console.log({ finalSkillDetails });
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
     const slot2Player = addedPlayers.slot2 ? addedPlayers.slot2._id : null;
@@ -630,7 +629,6 @@ const OpenmatchPayment = (props) => {
                                                 <p className="mb-0 mt-2 fw-semibold">
                                                     {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
                                                 </p>
-                                                {console.log({ player })}
                                                 <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>{player?.level}</span>
                                             </div>
                                         );
