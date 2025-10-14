@@ -390,8 +390,18 @@ const CreateMatches = () => {
 
   const formatTimeForDisplay = (time) => {
     if (!time) return "";
-    const [hourString, period] = time.toLowerCase().split(" ");
-    return `${hourString}:00 ${period}`;
+    const timeLower = time.toLowerCase();
+    let hourPart = timeLower.replace(/(am|pm)/gi, "").trim();
+    const periodMatch = timeLower.match(/(am|pm)/gi);
+    const periodPart = periodMatch ? periodMatch[0] : "";
+    if (!hourPart.includes(":")) {
+        const hour = parseInt(hourPart);
+        hourPart = `${hour.toString().padStart(2, '0')}:00`;
+    } else {
+        const [hour, minute] = hourPart.split(':');
+        hourPart = `${parseInt(hour).toString().padStart(2, '0')}:${minute}`;
+    }
+    return `${hourPart} ${periodPart}`;
   };
 
   const isPastTime = (timeStr) => {
@@ -555,108 +565,109 @@ const CreateMatches = () => {
 
               </div>
             </div>
-            <div className="d-flex flex-column gap-3 overflow-slot ">
+            <div className="mb-3 overflow-slot rounded-3 border">
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
                   <DataLoading height={"50vh"} />
                 ) : (
                   <>
-                    {slotData?.data?.map((court) => {
-                      const filteredSlots = court?.slots?.filter((slot) =>
-                        showUnavailable
-                          ? true
-                          : slot.availabilityStatus === "available" &&
-                          slot.status !== "booked" &&
-                          !isPastTime(slot.time)
-                      ).filter((slot) => filterSlotsByTab(slot, key)); // Apply tab filter
+                    <div className="row g-3">
+                      {slotData?.data?.map((court) => {
+                        const filteredSlots = court?.slots?.filter((slot) =>
+                          showUnavailable
+                            ? true
+                            : slot.availabilityStatus === "available" &&
+                            slot.status !== "booked" &&
+                            !isPastTime(slot.time) &&
+                            slot.amount > 0
+                        ).filter((slot) => filterSlotsByTab(slot, key));
 
-                      return (
-                        filteredSlots?.length > 0 ? (
-                          <div
-                            className={`mb-md-1 row ps-2 pe-2 ${filteredSlots?.length > 0 ? 'border-bottom' : ""}`}
-                            key={court._id}
-                          >
-                            <div className="p-2 rounded">
-                              <div className="court-data d-flex gap-2">
-                                <h5 className="all-matches mb-0">
-                                  {court?.courtName}
-                                </h5>
-                                <p className="court-para text-muted">
-                                  {court?.register_club_id?.courtType}
-                                </p>
+                        if (filteredSlots?.length === 0) return null;
+
+                        return (
+                          <div className="col-lg-3  col-6" key={court._id}>
+                            <div className="court-container p-3" style={{ backgroundColor: "#FFFFFF" }}>
+                              <div className="mb-3 text-center">
+                                <h5 className="all-matches mb-1">{court?.courtName}</h5>
+                              </div>
+                              
+                              <div className="slots-grid d-flex flex-column align-items-center">
+                                {filteredSlots?.map((slot, i) => {
+                                  const isSelected = selectedTimes[court._id]?.some(
+                                    (t) => t._id === slot._id
+                                  );
+                                  const currentSlots = totalSlots;
+                                  const isLimitReached = currentSlots >= 15 && !isSelected;
+                                  const isDisabled =
+                                    isLimitReached ||
+                                    slot.status === "booked" ||
+                                    slot.availabilityStatus !== "available" ||
+                                    isPastTime(slot.time) ||
+                                    slot.amount <= 0;
+
+                                  return (
+                                    <button
+                                      key={i}
+                                      className={`btn rounded-pill ${isSelected ? 'border-0' : ''} slot-time-btn text-center mb-2`}
+                                      onClick={() => toggleTime(slot, court._id)}
+                                      disabled={isDisabled}
+                                      style={{
+                                        background:
+                                          slot.status === "booked" ||
+                                            isPastTime(slot.time) ||
+                                            slot.amount <= 0
+                                            ? "#c9cfcfff"
+                                            : isSelected
+                                              ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                              : slot.availabilityStatus !== "available"
+                                                ? "#c9cfcfff"
+                                                : "#FFFFFF",
+                                        color:
+                                          slot.status === "booked" ||
+                                            isPastTime(slot.time) ||
+                                            isDisabled
+                                            ? "#000000"
+                                            : isSelected
+                                              ? "white"
+                                              : "#000000",
+                                        cursor: isDisabled ? "not-allowed" : "pointer",
+                                        opacity: isDisabled ? 0.6 : 1,
+                                        border: isSelected ? '' : "1px solid #4949491A",
+                                        transition: "border-color 0.2s ease",
+                                        fontSize: "14px",
+                                        padding: "8px 4px"
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (
+                                          !isDisabled &&
+                                          !isPastTime(slot.time) &&
+                                          slot.availabilityStatus === "available"
+                                        ) {
+                                          e.currentTarget.style.border =
+                                            "1px solid #3DBE64";
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (
+                                          !isDisabled &&
+                                          !isPastTime(slot.time) &&
+                                          slot.availabilityStatus === "available"
+                                        ) {
+                                          e.currentTarget.style.border =
+                                            "1px solid #4949491A";
+                                        }
+                                      }}
+                                    >
+                                      {formatTimeForDisplay(slot?.time)}
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </div>
-                            {filteredSlots?.map((slot, i) => {
-                              const isSelected = selectedTimes[court._id]?.some(
-                                (t) => t._id === slot._id
-                              );
-                              const currentSlots = totalSlots;
-                              const isLimitReached = currentSlots >= 15 && !isSelected;
-                              const isDisabled =
-                                isLimitReached ||
-                                slot.status === "booked" ||
-                                slot.availabilityStatus !== "available" ||
-                                isPastTime(slot.time);
-
-                              return (
-                                <div className="col-lg-auto col-3 p-lg-0 me-lg-0" key={i}>
-                                  <button
-                                    className={`btn rounded-3 ${isSelected ? 'border-0' : ''} slot-time-btn text-center me-1 ms-1 text-nowrap mb-md-3 mb-lg-3 p-0 mb-2`}
-                                    onClick={() => toggleTime(slot, court._id)}
-                                    disabled={isDisabled}
-                                    style={{
-                                      background:
-                                        slot.status === "booked" ||
-                                          isPastTime(slot.time)
-                                          ? "#c9cfcfff"
-                                          : isSelected
-                                            ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                            : slot.availabilityStatus !== "available"
-                                              ? "#c9cfcfff"
-                                              : "#FAFBFF",
-                                      color:
-                                        slot.status === "booked" ||
-                                          isPastTime(slot.time) ||
-                                          isDisabled
-                                          ? "#000000"
-                                          : isSelected
-                                            ? "white"
-                                            : "#000000",
-                                      cursor: isDisabled ? "not-allowed" : "pointer",
-                                      opacity: isDisabled ? 0.6 : 1,
-                                      border: "2px solid #0f0f0f1a",
-                                      transition: "border-color 0.2s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (
-                                        !isDisabled &&
-                                        !isPastTime(slot.time) &&
-                                        slot.availabilityStatus === "available"
-                                      ) {
-                                        e.currentTarget.style.border =
-                                          "1px solid #3DBE64";
-                                      }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (
-                                        !isDisabled &&
-                                        !isPastTime(slot.time) &&
-                                        slot.availabilityStatus === "available"
-                                      ) {
-                                        e.currentTarget.style.border =
-                                          "2px solid #0f0f0f1a";
-                                      }
-                                    }}
-                                  >
-                                    {formatTimeForDisplay(slot?.time)}
-                                  </button>
-                                </div>
-                              );
-                            })}
                           </div>
-                        ) : null
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                     {slotData?.data?.every(
                       (court) =>
                         !court?.slots?.some((slot) =>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { twoball, taness, line, home_banner, football, cricket, tennis2, batmintain, swiming } from '../../../assets/files';
+import { home_banner, football, cricket, tennis2, batmintain, swiming } from '../../../assets/files';
 import { LuClock4 } from "react-icons/lu";
 import StarIcon from '@mui/icons-material/Star';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
@@ -10,41 +10,34 @@ import { FaArrowRight } from "react-icons/fa";
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import { Link, useNavigate } from 'react-router-dom';
-import 'animate.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { addReviewClub, getReviewClub, getUserClub } from '../../../redux/user/club/thunk';
+import { getReviewClub, getUserClub } from '../../../redux/user/club/thunk';
 import { Avatar } from '@mui/material';
 import { getLogo } from '../../../redux/user/auth/authThunk';
 import { ReviewCard } from './ReviewCard';
 
-
-
 const Home = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [photoIndex, setPhotoIndex] = useState(0);
-    const [rating, setRating] = useState(0);
-    const [hover, setHover] = useState(null);
-    const [message, setMessage] = useState("");
     const [currentSlide, setCurrentSlide] = useState(0);
     const [reviewSlide, setReviewSlide] = useState(0);
     const [selectedSport, setSelectedSport] = useState(0);
+    const [loadedImages, setLoadedImages] = useState({});
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const store = useSelector((state) => state)
 
     const clubData = store?.userClub?.clubData?.data?.courts[0] || []
-    const addReviewLoading = store?.userClub?.reviewLoading
     const getReviewData = store?.userClub?.getReviewData?.data
     const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
-    const [loadedImages, setLoadedImages] = useState({});
+    
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
-    console.log({ getReviewData })
-    const mapSrc =
-        'https://www.google.com/maps/embed?pb=...'; // your map iframe src\
+    
+    const mapSrc = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937950147!2d-73.98731968482413!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes+Square!5e0!3m2!1sen!2sus!4v1510579767645';
 
-    const todayIndex = new Date().getDay(); // JS: Sunday = 0, Monday = 1, ...
+    const todayIndex = new Date().getDay(); 
     const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
 
     useEffect(() => {
@@ -59,42 +52,7 @@ const Home = () => {
         }
     }, [clubData]);
 
-    const handleClick = (value) => {
-        setRating(value);
-    };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "N/A";
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
-
-
-    const handleSubmit = () => {
-        const payload = {
-            reviewComment: message,
-            reviewRating: rating,
-            register_club_id: clubData._id
-        }
-        dispatch(addReviewClub(payload)).unwrap().then(() => {
-            setRating(0);
-            setMessage('');
-            dispatch(getReviewClub(clubData._id))
-
-        })
-    };
-
-    const getRatingLabel = (rating) => {
-        if (rating >= 4.5) return "Excellent";
-        if (rating >= 3.5) return "Very Good";
-        if (rating >= 2.5) return "Good";
-        if (rating >= 1.5) return "Average";
-        if (rating >= 0.5) return "Poor";
-        return "Not Rated";
-    };
 
     useEffect(() => {
         const id = clubData._id || '';
@@ -476,6 +434,7 @@ const Home = () => {
             {/* Reviews Section */}
             <div className="container my-5">
                 <h4
+                    className="reviews-heading"
                     style={{
                         fontWeight: "500",
                         fontFamily: "Poppins",
