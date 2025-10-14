@@ -197,7 +197,7 @@ const CreateMatches = () => {
   };
 
   const maxSelectableDate = new Date();
-  maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
+  maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
 
   useEffect(() => {
     if (selectedDate?.fullDate && dateRefs.current[selectedDate?.fullDate]) {

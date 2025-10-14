@@ -97,7 +97,7 @@ const Booking = ({ className = "" }) => {
 
     const dayShortMap = { Monday: "Mon", Tuesday: "Tue", Wednesday: "Wed", Thursday: "Thu", Friday: "Fri", Saturday: "Sat", Sunday: "Sun" };
     const today = new Date();
-    const dates = Array.from({ length: 40 }, (_, i) => {
+    const dates = Array.from({ length: 15 }, (_, i) => {
         const date = new Date();
         date.setDate(today.getDate() + i);
         return {
@@ -234,7 +234,7 @@ const Booking = ({ className = "" }) => {
     };
 
     const maxSelectableDate = new Date();
-    maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
+    maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
     const clubId = localStorage.getItem("register_club_id");
 
     useEffect(() => {
@@ -362,7 +362,6 @@ const Booking = ({ className = "" }) => {
             court?.slots?.forEach((slot) => {
                 if (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) {
                     const slotHour = parseTimeToHour(slot.time);
-                    console.log(`Slot: ${slot.time}, Hour: ${slotHour}, Availability: ${slot.availabilityStatus}, Status: ${slot.status}`); // Detailed debug
                     if (slotHour !== null) {
                         if (slotHour >= 0 && slotHour < 12) counts[0]++;
                         else if (slotHour >= 12 && slotHour < 17) counts[1]++;
@@ -434,6 +433,7 @@ const Booking = ({ className = "" }) => {
                                                         );
                                                     }}
                                                     minDate={new Date()}
+                                                    maxDate={maxSelectableDate}
                                                     slotProps={{
                                                         actionBar: { actions: [] },
                                                     }}
@@ -543,7 +543,7 @@ const Booking = ({ className = "" }) => {
                                                             <div className="mb-3 text-center">
                                                                 <h5 className="all-matches mb-1">{court?.courtName}</h5>
                                                             </div>
-                                                            
+
                                                             <div className="slots-grid d-flex flex-column align-items-center">
                                                                 {filteredSlots.map((slot, i) => {
                                                                     const isSelected = selectedTimes[court._id]?.some((t) => t._id === slot._id);

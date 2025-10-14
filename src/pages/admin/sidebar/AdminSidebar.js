@@ -35,8 +35,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const bookingPaths = ["/admin/booking", "/admin/cancellation", "/admin/manualbooking"];
 
   useEffect(() => {
-    console.log("Current location.pathname:", location.pathname);
-    console.log("getLogoData:", getLogoData);
     if (bookingPaths.includes(location.pathname)) {
       setBookingOpen(true);
     } else {

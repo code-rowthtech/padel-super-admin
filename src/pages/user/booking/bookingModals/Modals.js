@@ -49,7 +49,6 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
     }
     setShowSuccessModal(true);
   };
-  console.log({ activeTab });
   const handleContinue = () => {
     dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
       if (res?.status === '200') {

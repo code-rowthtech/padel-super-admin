@@ -51,7 +51,6 @@ const AdminDashboard = () => {
     dashboardRecentBookings,
     dashboardCancelledBookings,
   } = useSelector((state) => state.dashboard);
-  console.log(dashboardCancelledBookings, 'dashboardCancelledBookings');
   const formatNumber = (num) => {
     if (!num) return "0";
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -132,7 +131,6 @@ const AdminDashboard = () => {
 
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
-console.log({bookingDetails});
   const formatDateMonth = (dateString) => {
     if (!dateString) return "";
 
@@ -195,19 +193,14 @@ console.log({bookingDetails});
   });
 
   // Aggregate cancelations
-  console.log('Dashboard Revenue Data:', dashboardRevenue);
   dashboardRevenue?.forEach((item) => {
-    console.log('Processing item:', item);
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      console.log('Before:', chartData[monthIndex].Cancelation, 'Adding:', item.cancelBookings);
       chartData[monthIndex].Cancelation = (chartData[monthIndex].Cancelation || 0) + (item.cancelBookings || 0);
-      console.log('After:', chartData[monthIndex].Cancelation);
       chartData[monthIndex].year = item.year || 2025;
     }
   });
-  console.log('Final Chart Data:', chartData);
   return (
     <Container
       fluid
@@ -325,7 +318,6 @@ console.log({bookingDetails});
                         content={({ label, payload }) => {
                           if (payload && payload.length > 0) {
                             const dataPoint = payload[0].payload;
-                            console.log({payload});
                             return (
                               <div
                                 style={{

@@ -178,7 +178,7 @@ const Openmatches = () => {
     };
 
     const maxSelectableDate = new Date();
-    maxSelectableDate.setDate(maxSelectableDate.getDate() + 40);
+    maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
 
     const [startIndex, setStartIndex] = useState(0);
     const visibleDays = 7;
@@ -672,11 +672,11 @@ const Openmatches = () => {
                         <div
                             className="row align-items-center text-white rounded-4 py-0 ps-4"
                             style={{
-                                backgroundImage: `url(${player2})`,
+                                backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
                                 position: "relative",
-                                backgroundSize: "contain",
+                                backgroundSize: "cover",
                                 backgroundRepeat: "no-repeat",
-                                backgroundPosition: "center",
+                                backgroundPosition: "right center",
                                 height: "312px",
                                 borderRadius: "20px",
                                 overflow: "hidden",
@@ -696,40 +696,40 @@ const Openmatches = () => {
                                 </button>
                             </div>
                         </div>
-                        <div className="px-4 py-4 row rounded-4 mt-1 mb-5 h-100" style={{ backgroundColor: "#F6F7FB" }}>
+                        <div className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100" style={{ backgroundColor: "#F6F7FB" }}>
                             {reviewLoading ? (
                                 <DataLoading />
                             ) : (
                                 <>
-                                    <div className="col-12 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
+                                    <div className="col-12 border-end col-lg-5 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
                                         <div className="w-100">
-                                            <p className="mb-0" style={{ fontSize: "25px", fontWeight: "700", color: "#111", fontFamily: "Poppins" }}>
-                                                Customer reviews
+                                            <p className="mb-0" style={{ fontSize: "16px", fontWeight: "500", color: "#111", fontFamily: "Poppins" }}>
+                                                Overall Rating
                                             </p>
-                                            <div className="d-flex align-items-center justify-content-center">
-                                                <div className="mb-2" style={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "40px", color: "#111" }}>
+                                            <div className="d-flex flex-lg-column align-items-center justify-content-center">
+                                                <div className="mb-2" style={{ fontFamily: "Poppins", fontWeight: "600", fontSize: "40px", color: "#111" }}>
                                                     {reviewData?.averageRating?.toFixed(1) || "0.0"}
                                                 </div>
-                                                <div className="mb-2">
+                                                <div className="mb-2 d-flex gap-lg-3">
                                                     {[...Array(5)].map((_, i) => {
                                                         const rating = reviewData?.averageRating || 0;
                                                         if (i < Math.floor(rating)) {
-                                                            return <StarIcon key={i} style={{ color: "#32B768" }} />;
+                                                            return <StarIcon key={i} style={{ color: "#32B768", fontSize: "25px" }} />;
                                                         } else if (i < rating && rating % 1 >= 0.5) {
-                                                            return <StarHalfIcon key={i} style={{ color: "#32B768" }} />;
+                                                            return <StarHalfIcon key={i} style={{ color: "#32B768", fontSize: "25px" }} />;
                                                         } else {
-                                                            return <StarBorderIcon key={i} style={{ color: "#ccc" }} />;
+                                                            return <StarBorderIcon key={i} style={{ color: "#ccc", fontSize: "25px" }} />;
                                                         }
                                                     })}
                                                 </div>
-                                                <div className="text-muted ps-2 pb-2" style={{ fontSize: "16px", fontWeight: "300", fontFamily: "Poppins" }}>
-                                                    {reviewData?.totalReviews || 0} reviews
+                                                <div className="text-muted ps-2 pb-2" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}>
+                                                  Based on  {reviewData?.totalReviews || 0} reviews
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="col-12 d-flex align-items-center">
+                                    <div className="col-12 col-lg-7 ps-lg-4 pe-0">
                                         <div className="w-100">
                                             {[5, 4, 3, 2, 1].map((star, idx) => {
                                                 const total = reviewData?.totalReviews || 1;
@@ -742,22 +742,23 @@ const Openmatches = () => {
                                                 const percent = Math.round((count / total) * 100);
 
                                                 return (
-                                                    <div className="d-flex align-items-center mb-2 justify-content-between w-100" key={star}>
+                                                    <div className="d-flex align-items-center mb-2 gap-2 justify-content-between w-100" key={star}>
                                                         <div
-                                                            className="me-2 fw-medium"
                                                             style={{
-                                                                width: "20px",
-                                                                fontSize: "12px",
+                                                                width: "80px",
+                                                                textAlign: "left",
+                                                                fontSize: "14px",
+                                                                fontWeight: "500",
                                                                 fontFamily: "Poppins",
                                                                 color: "#111",
                                                             }}
                                                         >
-                                                            {star}
+                                                            {star === 5 ? "Excellent" : star === 4 ? "Good" : star === 3 ? "Average" : star === 2 ? "Below Average" : "Poor"}
                                                         </div>
 
                                                         <div
-                                                            className="progress me-2 w-100"
-                                                            style={{ height: "20px", backgroundColor: "#eee" }}
+                                                            className="progress  w-100 border"
+                                                            style={{ height: "10px", backgroundColor: "#eee" }}
                                                         >
                                                             <div
                                                                 className="progress-bar"
@@ -765,30 +766,19 @@ const Openmatches = () => {
                                                                     width: `${percent}%`,
                                                                     backgroundColor:
                                                                         star === 5
-                                                                            ? "#74D797"
+                                                                            ? "#3DBE64"
                                                                             : star === 4
-                                                                                ? "#BCE592"
+                                                                                ? "#7CBA3D"
                                                                                 : star === 3
-                                                                                    ? "#F4D94F"
+                                                                                    ? "#ECD844"
                                                                                     : star === 2
-                                                                                        ? "#F5BC4A"
-                                                                                        : "#F07954",
+                                                                                        ? "#FC702B"
+                                                                                        : "#E9341F",
                                                                 }}
                                                             ></div>
                                                         </div>
 
-                                                        <div
-                                                            style={{
-                                                                width: "50px",
-                                                                textAlign: "right",
-                                                                fontSize: "12px",
-                                                                fontWeight: "600",
-                                                                fontFamily: "Poppins",
-                                                                color: "#111",
-                                                            }}
-                                                        >
-                                                            {percent}% <span className="text-muted ps-1">{count}</span>
-                                                        </div>
+
                                                     </div>
                                                 );
                                             })}
