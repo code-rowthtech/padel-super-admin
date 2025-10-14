@@ -1711,3 +1711,90 @@ h1.display-5 {
     border-radius: 0 !important;
   }
 }
+
+/* Court Container Styling */
+.court-container {
+  /* Removed hover effects and shadows */
+}
+
+
+
+.slots-grid {
+  min-height: 120px;
+}
+
+/* Responsive court layout */
+@media (min-width: 368px) and (max-width: 768px) {
+  .court-container {
+    margin-bottom: 1rem !important;
+  }
+  
+  .court-header h5 {
+    font-size: 16px !important;
+  }
+  
+  .court-header p {
+    font-size: 12px !important;
+  }
+  
+  .slots-grid .col-6 {
+    padding: 0 4px !important;
+  }
+  
+  .slots-grid .btn {
+    font-size: 11px !important;
+    padding: 6px 4px !important;
+    height: 32px !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .slots-grid .col-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+}
+
+/* CreateMatches Responsive */
+@media (min-width: 368px) and (max-width: 768px) {
+  .court-container {
+    margin-bottom: 1rem !important;
+  }
+  
+  .court-header h5,
+  .mb-3.text-center h5 {
+    font-size: 16px !important;
+  }
+  
+  .slots-grid .btn {
+    font-size: 11px !important;
+    padding: 6px 4px !important;
+    height: 32px !important;
+    width: 90px !important;
+  }
+  
+  /* CreateMatches specific mobile layout */
+  .col-lg-3.col-md-6.col-12 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Home page upcoming open match div responsive */
+  .col-lg-4 .text-white[style*="height: 352px"] {
+    height: 250px !important;
+  }
+  
+  .col-lg-4 .pt-5 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  
+  .home-upcoming-heading {
+    font-size: 18px !important;
+  }
+  
+  /* Reviews section heading responsive */
+  .reviews-heading {
+    font-size: 20px !important;
+  }
+}

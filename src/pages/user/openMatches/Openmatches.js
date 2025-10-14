@@ -678,8 +678,9 @@ const Openmatches = () => {
                                 backgroundRepeat: "no-repeat",
                                 backgroundPosition: "center",
                                 height: "312px",
-                                borderRadius: "50px",
+                                borderRadius: "20px",
                                 overflow: "hidden",
+                                marginTop: "-20px"
                             }}
                         >
                             <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
