@@ -55,43 +55,56 @@ const AdminDashboard = () => {
     if (!num) return "0";
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
+  console.log({dashboardCancelledBookings});
+
+  const calculatePercentage = (current, previous) => {
+    if (!previous || previous === 0) return "+0.0%";
+    const change = ((current - previous) / previous) * 100;
+    return change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
+  };
+
+  const previousPeriod = {
+    totalBookingHours: 45,
+    upcomingBookingHours: 2,
+    totalRevenue: 95000,
+    cancellationRequestCount: 3
+  };
 
   const summaryCards = [
     {
       title: "Total Booking",
       value: `${dashboardCounts?.totalBookingHours || 0} Hrs`,
-      percent: "+15%",
-      icon: <FaArrowUp />,
-      color: "success",
+      percent: calculatePercentage(dashboardCounts?.totalBookingHours || 0, previousPeriod.totalBookingHours),
+      icon: calculatePercentage(dashboardCounts?.totalBookingHours || 0, previousPeriod.totalBookingHours).startsWith('+') ? <FaArrowUp /> : <FaArrowDown />,
+      color: calculatePercentage(dashboardCounts?.totalBookingHours || 0, previousPeriod.totalBookingHours).startsWith('+') ? "success" : "danger",
       bigicon: <MdOutlineDateRange size={35} />,
     },
     {
       title: "Upcoming Booking",
       value: `${dashboardCounts?.upcomingBookingHours || 0} Hrs`,
-      percent: "-3.5%",
-      icon: <FaArrowDown />,
-      color: "danger",
+      percent: calculatePercentage(dashboardCounts?.upcomingBookingHours || 0, previousPeriod.upcomingBookingHours),
+      icon: calculatePercentage(dashboardCounts?.upcomingBookingHours || 0, previousPeriod.upcomingBookingHours).startsWith('+') ? <FaArrowUp /> : <FaArrowDown />,
+      color: calculatePercentage(dashboardCounts?.upcomingBookingHours || 0, previousPeriod.upcomingBookingHours).startsWith('+') ? "success" : "danger",
       bigicon: <MdOutlineInsertDriveFile size={35} />,
     },
     {
       title: "Total Revenue",
       value: `₹ ${formatNumber(dashboardCounts?.totalRevenue) || 0}`,
-      percent: "+15%",
-      icon: <FaArrowUp />,
-      color: "success",
+      percent: calculatePercentage(dashboardCounts?.totalRevenue || 0, previousPeriod.totalRevenue),
+      icon: calculatePercentage(dashboardCounts?.totalRevenue || 0, previousPeriod.totalRevenue).startsWith('+') ? <FaArrowUp /> : <FaArrowDown />,
+      color: calculatePercentage(dashboardCounts?.totalRevenue || 0, previousPeriod.totalRevenue).startsWith('+') ? "success" : "danger",
       bigicon: <MdOutlineTrendingUp size={35} />,
     },
     {
       title: "Cancellation Request",
       value: `${dashboardCounts?.cancellationRequestCount || 0}`,
-      percent: "-3.5%",
-      icon: <FaArrowDown />,
-      color: "danger",
+      percent: calculatePercentage(dashboardCounts?.cancellationRequestCount || 0, previousPeriod.cancellationRequestCount),
+      icon: calculatePercentage(dashboardCounts?.cancellationRequestCount || 0, previousPeriod.cancellationRequestCount).startsWith('+') ? <FaArrowDown /> : <FaArrowUp />,
+      color: calculatePercentage(dashboardCounts?.cancellationRequestCount || 0, previousPeriod.cancellationRequestCount).startsWith('+') ? "danger" : "success",
       bigicon: <MdOutlineGroup size={35} />,
     },
   ];
   const [loadingById, setLoadingById] = useState(null);
-  const [viewMode, setViewMode] = useState("both");
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [showBookingCancel, setShowBookingCancel] = useState(false);
   const [showCancellation, setShowCancellation] = useState(false);
@@ -137,11 +150,10 @@ const AdminDashboard = () => {
     const date = new Date(dateString);
 
     const day = date.getDate();
-    const month = date.toLocaleString("en-US", { month: "short" }); // Jan, Feb, Mar...
+    const month = date.toLocaleString("en-US", { month: "short" }); 
 
-    // ordinal suffix add karna
     const getOrdinal = (n) => {
-      if (n > 3 && n < 21) return "th"; // 11th, 12th, 13th
+      if (n > 3 && n < 21) return "th"; 
       switch (n % 10) {
         case 1: return "st";
         case 2: return "nd";
@@ -234,7 +246,7 @@ const AdminDashboard = () => {
                             paddingBottom: "4px",
                             borderRadius: "50%",
                             backgroundColor:
-                              card.color === "danger" ? "#FFD9D7" : "#B5FFCE", // red vs blue background
+                              card.color === "danger" ? "#FFD9D7" : "#B5FFCE", 
                           }}
                         >
                           <span

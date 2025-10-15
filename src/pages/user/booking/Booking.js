@@ -1,23 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
-// import DatePicker from "react-datepicker";
 import { morningTab, nighttab, sun, twoball } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
-import { getUserClub } from "../../../redux/user/club/thunk";
-import { Avatar } from "@mui/material";
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
-import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
-import { Button } from "react-bootstrap";
+import { getUserClub } from "../../../redux/user/club/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { FaArrowRight } from "react-icons/fa";
+import { Avatar } from "@mui/material";
+import { Button } from "react-bootstrap";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { MdOutlineArrowBackIosNew } from "react-icons/md";
-import { MdOutlineArrowForwardIos } from "react-icons/md";
+import { MdOutlineArrowBackIosNew, MdOutlineArrowForwardIos } from "react-icons/md";
 
 
 const parseTimeToHour = (timeStr) => {
@@ -69,23 +66,16 @@ const Booking = ({ className = "" }) => {
     const navigate = useNavigate();
     const scrollRef = useRef(null);
     const dispatch = useDispatch();
-    const store = useSelector((state) => state);
-    const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
+    const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
     const { slotData } = useSelector((state) => state?.userSlot);
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorShow, setErrorShow] = useState(false);
     const logo = JSON.parse(localStorage.getItem("logo"));
+
     const dateRefs = useRef({});
     const [key, setKey] = useState('morning');
-    const [defaultTime] = useState(() => {
-        const now = new Date();
-        now.setHours(now.getHours() + 1);
-        const hours = now.getHours();
-        const period = hours >= 12 ? "pm" : "am";
-        const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
-        return `${formattedHours} ${period}`;
-    });
+
     const [expireModal, setExpireModal] = useState(false);
     const [selectedTimes, setSelectedTimes] = useState({});
     const [selectedBuisness, setSelectedBuisness] = useState([]);
@@ -223,7 +213,7 @@ const Booking = ({ className = "" }) => {
         zIndex: 2,
         color: "#001B76",
         fontWeight: "600",
-        fontSize: `16px`,
+        fontSize: "16px",
         textAlign: "center",
         display: "flex",
         alignItems: "center",
@@ -517,7 +507,7 @@ const Booking = ({ className = "" }) => {
 
                             </div>
                         </div>
-                        <div className="mb-3 overflow-slot border rounded-3">
+                        <div className={`mb-3 overflow-slot rounded-3 ${slotData?.data?.some(court => court?.slots?.filter(slot => showUnavailable ? true : slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time) && slot.amount > 0).filter(slot => filterSlotsByTab(slot, key)).length > 0) ? 'border' : ''}`}>
                             {slotData?.data?.length > 0 ? (
                                 slotLoading ? (
                                     <DataLoading height={"50vh"} />
@@ -539,7 +529,7 @@ const Booking = ({ className = "" }) => {
 
                                                 return (
                                                     <div className="col-lg-3 col-6" key={court._id}>
-                                                        <div className="court-container p-3" style={{ backgroundColor: "#FFFFFF" }}>
+                                                        <div className="court-container p-3" >
                                                             <div className="mb-3 text-center">
                                                                 <h5 className="all-matches mb-1">{court?.courtName}</h5>
                                                             </div>
@@ -602,7 +592,7 @@ const Booking = ({ className = "" }) => {
                         <div className="border w-100  px-3 py-5 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="text-center mb-3">
                                 <div className="d-flex justify-content-center">
-                                    {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>}
+                                    {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>}
                                 </div>
                                 <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                             </div>

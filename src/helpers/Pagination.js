@@ -4,14 +4,14 @@ const Pagination = ({
   handlePageChange,
   currentPage,
 }) => {
-  if (!totalRecords && totalRecords !== 0) return null; // Hide pagination if totalRecords is undefined or null
+  if (!totalRecords && totalRecords !== 0) return null; 
 
   const totalPages = Math.ceil(totalRecords / defaultLimit);
-  if (totalPages <= 1) return null; // Hide pagination if only one page
+  if (totalPages <= 1) return null; 
 
-  const isZeroBased = currentPage === 0 || currentPage < 1; // Detect if pagination starts from 0
-  const adjustedCurrentPage = isZeroBased ? currentPage + 1 : currentPage; // Convert to 1-based for logic
-  const visiblePages = 5; // Number of visible page buttons
+  const isZeroBased = currentPage === 0 || currentPage < 1; 
+  const adjustedCurrentPage = isZeroBased ? currentPage + 1 : currentPage; 
+  const visiblePages = 5; 
   const pageNumbers = [];
 
   if (totalPages <= visiblePages) {
@@ -29,15 +29,15 @@ const Pagination = ({
       startPage = Math.max(1, endPage - visiblePages + 1);
     }
 
-    if (startPage > 1) pageNumbers.push(1); // Always include first page
-    if (startPage > 2) pageNumbers.push("..."); // Ellipsis for gap
+    if (startPage > 1) pageNumbers.push(1); 
+    if (startPage > 2) pageNumbers.push("..."); 
 
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(i);
     }
 
-    if (endPage < totalPages - 1) pageNumbers.push("..."); // Ellipsis for gap
-    if (endPage < totalPages) pageNumbers.push(totalPages); // Always include last page
+    if (endPage < totalPages - 1) pageNumbers.push("..."); 
+    if (endPage < totalPages) pageNumbers.push(totalPages); 
   }
 
   return (
@@ -48,38 +48,36 @@ const Pagination = ({
         </span>
       </div>
       <div className="col-md-10 col-12">
-        <div className="d-flex align-items-center w-100" style={{ minWidth: '300px' }}>
-          <div style={{ width: '80px', textAlign: 'left' }}>
-            <button
-              className="btn border-0 fw-bold bg-transparent"
-              style={{ 
-                color: "#8d9dd3",
-                fontSize: window.innerWidth <= 768 ? '12px' : '14px',
-                padding: window.innerWidth <= 768 ? '4px 8px' : '6px 12px'
-              }}
-              onClick={() =>
-                handlePageChange(
-                  isZeroBased
-                    ? adjustedCurrentPage - 2
-                    : adjustedCurrentPage - 1
-                )
-              }
-              disabled={adjustedCurrentPage === 1}
-            >
-              {window.innerWidth <= 768 ? 'Prev' : 'Previous'}
-            </button>
-          </div>
+        <div className="d-flex align-items-center justify-content-end gap-2" style={{ minWidth: '300px' }}>
+          <button
+            className="btn border-0 fw-bold bg-transparent"
+            style={{ 
+              color: "#8d9dd3",
+              fontSize: window.innerWidth <= 768 ? '12px' : '14px',
+              padding: window.innerWidth <= 768 ? '4px 8px' : '6px 12px'
+            }}
+            onClick={() =>
+              handlePageChange(
+                isZeroBased
+                  ? adjustedCurrentPage - 2
+                  : adjustedCurrentPage - 1
+              )
+            }
+            disabled={adjustedCurrentPage === 1}
+          >
+            {window.innerWidth <= 768 ? 'Prev' : 'Previous'}
+          </button>
 
-          <div className="d-flex align-items-center justify-content-center" style={{ flex: '1' }}>
+          <div className="d-flex align-items-center gap-1">
             {pageNumbers.map((number, index) =>
               number === "..." ? (
-                <span key={index} className="mx-1" style={{ fontSize: window.innerWidth <= 768 ? '12px' : '14px' }}>
+                <span key={index} style={{ fontSize: window.innerWidth <= 768 ? '12px' : '14px' }}>
                   ...
                 </span>
               ) : (
                 <button
                   key={number}
-                  className="btn mx-1 shadow-none rounded-circle"
+                  className="btn shadow-none rounded-circle"
                   style={{
                     color: number === adjustedCurrentPage ? "white" : "black",
                     background: number === adjustedCurrentPage ? "#8d9dd3" : "",
@@ -105,24 +103,22 @@ const Pagination = ({
             )}
           </div>
 
-          <div style={{ width: '80px', textAlign: 'right' }}>
-            <button
-              className="btn border-0 fw-bold bg-transparent"
-              onClick={() =>
-                handlePageChange(
-                  isZeroBased ? adjustedCurrentPage : adjustedCurrentPage + 1
-                )
-              }
-              style={{ 
-                color: "#8d9dd3",
-                fontSize: window.innerWidth <= 768 ? '12px' : '14px',
-                padding: window.innerWidth <= 768 ? '4px 8px' : '6px 12px'
-              }}
-              disabled={adjustedCurrentPage === totalPages}
-            >
-              Next
-            </button>
-          </div>
+          <button
+            className="btn border-0 fw-bold bg-transparent"
+            onClick={() =>
+              handlePageChange(
+                isZeroBased ? adjustedCurrentPage : adjustedCurrentPage + 1
+              )
+            }
+            style={{ 
+              color: "#8d9dd3",
+              fontSize: window.innerWidth <= 768 ? '12px' : '14px',
+              padding: window.innerWidth <= 768 ? '4px 8px' : '6px 12px'
+            }}
+            disabled={adjustedCurrentPage === totalPages}
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>

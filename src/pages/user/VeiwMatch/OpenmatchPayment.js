@@ -13,7 +13,7 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { showError } from "../../../helpers/Toast";
 import NewPlayers from "./NewPlayers";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-
+import { Tooltip, TooltipProvider } from 'react-tooltip';
 const convertTo24Hour = (timeStr) => {
     const [time, period] = timeStr.split(" ");
     let [hours] = time.split(":").map(Number);
@@ -486,7 +486,7 @@ const OpenmatchPayment = (props) => {
                         </h6>
                         <div className="row mx-auto">
                             {/* Team A */}
-                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 justify-content-center align-items-center">
+                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 justify-content-center">
                                 {(() => {
                                     const leftComponents = [];
                                     if (User) {
@@ -514,9 +514,32 @@ const OpenmatchPayment = (props) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="mb-0 mt-2 fw-semibold">
-                                                    {player?.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "User"}
-                                                </p>
+                                                <TooltipProvider>
+                                                    <p
+                                                        className="mb-0 mt-2 fw-semibold"
+                                                        style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                    >
+                                                        {player.name && player.name.length > 12 ? (
+                                                            <>
+                                                                <span
+                                                                    data-tooltip-content={player.name}
+                                                                    data-tooltip-id={`tooltip-${player.name}`}
+                                                                    style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                                                >
+                                                                    {player.name.substring(0, 12) + '...'}
+                                                                </span>
+                                                                <Tooltip
+                                                                    id={`tooltip-${player.name}`}
+                                                                    place="top"
+                                                                    effect="solid"
+                                                                    style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"
+                                                        )}
+                                                    </p>
+                                                </TooltipProvider>
                                                 <span className="badge text-white" style={{ backgroundColor: "#3DBE64" }}>AB</span>
                                             </div>
                                         );
@@ -563,9 +586,32 @@ const OpenmatchPayment = (props) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="mb-0 mt-2 fw-semibold">
-                                                    {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
-                                                </p>
+                                                <TooltipProvider>
+                                                    <p
+                                                        className="mb-0 mt-2 fw-semibold"
+                                                        style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                    >
+                                                        {player.name && player.name.length > 12 ? (
+                                                            <>
+                                                                <span
+                                                                    data-tooltip-content={player.name}
+                                                                    data-tooltip-id={`tooltip-${player.name}`}
+                                                                    style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                                                >
+                                                                    {player.name.substring(0, 12) + '...'}
+                                                                </span>
+                                                                <Tooltip
+                                                                    id={`tooltip-${player.name}`}
+                                                                    place="top"
+                                                                    effect="solid"
+                                                                    style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"
+                                                        )}
+                                                    </p>
+                                                </TooltipProvider>
                                                 <span className="badge  text-white" style={{ backgroundColor: "#3DBE64" }}>{player?.level}</span>
                                             </div>
                                         );
@@ -597,7 +643,7 @@ const OpenmatchPayment = (props) => {
                             </div>
 
                             {/* Team B */}
-                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 align-items-center justify-content-center border-start">
+                            <div className="col-6 d-flex flex-column flex-lg-row gap-3 align-items-start justify-content-center border-start">
                                 {(() => {
                                     const rightComponents = [];
 
@@ -626,9 +672,34 @@ const OpenmatchPayment = (props) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="mb-0 mt-2 fw-semibold">
-                                                    {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
-                                                </p>
+
+                                                <TooltipProvider>
+                                                    <p
+                                                        className="mb-0 mt-2 fw-semibold"
+                                                        style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                    >
+                                                        {player.name && player.name.length > 12 ? (
+                                                            <>
+                                                                <span
+                                                                    data-tooltip-content={player.name}
+                                                                    data-tooltip-id={`tooltip-${player.name}`}
+                                                                    style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                                                >
+                                                                    {player.name.substring(0, 12) + '...'}
+                                                                </span>
+                                                                <Tooltip
+                                                                    id={`tooltip-${player.name}`}
+                                                                    place="top"
+                                                                    effect="solid"
+                                                                    style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"
+                                                        )}
+                                                    </p>
+                                                </TooltipProvider>
+                                                {console.log({ player })}
                                                 <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>{player?.level}</span>
                                             </div>
                                         );
@@ -680,9 +751,32 @@ const OpenmatchPayment = (props) => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="mb-0 mt-2 fw-semibold">
-                                                    {player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"}
-                                                </p>
+                                                <TooltipProvider>
+                                                    <p
+                                                        className="mb-0 mt-2 fw-semibold"
+                                                        style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                    >
+                                                        {player.name && player.name.length > 12 ? (
+                                                            <>
+                                                                <span
+                                                                    data-tooltip-content={player.name}
+                                                                    data-tooltip-id={`tooltip-${player.name}`}
+                                                                    style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                                                >
+                                                                    {player.name.substring(0, 12) + '...'}
+                                                                </span>
+                                                                <Tooltip
+                                                                    id={`tooltip-${player.name}`}
+                                                                    place="top"
+                                                                    effect="solid"
+                                                                    style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "Unknown"
+                                                        )}
+                                                    </p>
+                                                </TooltipProvider>
                                                 <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>{player?.level}</span>
                                             </div>
                                         );

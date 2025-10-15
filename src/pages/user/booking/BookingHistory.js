@@ -56,7 +56,6 @@ const BookingHistory = () => {
     const User = getUserFromSession();
     const headerRef = useRef(null);
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-
     const a11yProps = (index) => ({
         id: `full-width-tab-${index}`,
         "aria-controls": `full-width-tabpanel-${index}`,
@@ -149,7 +148,8 @@ const BookingHistory = () => {
         return statusMatch && dateMatch && courtMatch;
     });
 
-    const totalRecords = getBookingData?.bookingData?.total || getBookingData?.bookingData?.length;
+    const totalRecords = getBookingData?.bookingData?.total || filterStatus?.length || 0;
+    const totalPages = getBookingData?.bookingData?.totalPages || Math.ceil(totalRecords / 10);
 
     const getOrdinalSuffix = (day) => {
         if (day > 3 && day < 21) return "th ";
@@ -657,16 +657,18 @@ const BookingHistory = () => {
                     </div>
                 </Col>
             </Row>
-            <Row className="mb-5">
-                <Col className="d-flex mb-5 justify-content-center">
-                    <Pagination
-                        totalRecords={totalRecords}
-                        defaultLimit={10}
-                        handlePageChange={handlePageChange}
-                        currentPage={currentPage}
-                    />
-                </Col>
-            </Row>
+            {totalPages > 1 && (
+                <Row className="mb-5">
+                    <Col className="d-flex mb-5 justify-content-center">
+                        <Pagination
+                            totalRecords={totalRecords}
+                            defaultLimit={10}
+                            handlePageChange={handlePageChange}
+                            currentPage={currentPage}
+                        />
+                    </Col>
+                </Row>
+            )}
             <BookingHistoryCancelModal
                 show={modalCancel}
                 onHide={() => setModalCancel(false)}
