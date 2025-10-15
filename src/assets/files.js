@@ -26,6 +26,7 @@ import tennis2 from './images/Tennis.png'
 import batmintain from './images/Badminton.png'
 import cricket from './images/Cricket.png' 
 import swiming from './images/Swimming.png'
+import frame from './images/Frame 76.png'
 
 export {
     twoball,
@@ -41,7 +42,7 @@ export {
     registerClubBG,
     modalDetails,swiming,
     modalSuccess,cricket,batmintain,tennis2,football,
-    complete_img,home_banner,
+    complete_img,home_banner,frame,
     booking_success_img,americano_reactangle,
     scrore_bg,sun,nighttab,morningTab,player2,success2
 }

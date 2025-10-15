@@ -1,17 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Container, Row, Col, Button, Card, Form, FormCheck, Tabs, Tab } from "react-bootstrap";
+import { Container, Row, Col, Button, Card, Form, FormCheck, Tabs, Tab, Modal } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, NavLink, useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
-import { MdOutlineArrowForwardIos } from "react-icons/md";
+import { MdOutlineArrowForwardIos, MdOutlineDeleteOutline } from "react-icons/md";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { MdOutlineDateRange } from "react-icons/md";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
-import { morningTab, nighttab, sun } from "../../../assets/files";
+import { frame, morningTab, nighttab, sun, twoball } from "../../../assets/files";
+import { Avatar } from "@mui/material";
+import { getUserClub } from "../../../redux/user/club/thunk";
 
 // Function to parse time string to hour for tab categorization
 const parseTimeToHour = (timeStr) => {
@@ -36,7 +38,7 @@ const filterSlotsByTab = (slot, eventKey) => {
   }
 };
 
-const CreateMatches = () => {
+const CreateMatches = (props) => {
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -64,6 +66,8 @@ const CreateMatches = () => {
   const userMatches = store?.userMatches;
   const [slotError, setSlotError] = useState("");
   const [key, setKey] = useState('morning');
+  const [showStepsModal, setShowStepsModal] = useState(false);
+  const logo = JSON.parse(localStorage.getItem("logo"));
 
   const tabData = [
     { img: morningTab, label: 'Day', key: 'morning' },
@@ -78,6 +82,7 @@ const CreateMatches = () => {
   };
 
   React.useEffect(() => {
+    dispatch(getUserClub({ search: "" }));
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -264,7 +269,7 @@ const CreateMatches = () => {
     if (counts[0] === 0) {
       const firstAvailableIndex = counts.findIndex(count => count > 0);
       if (firstAvailableIndex !== -1) {
-        defaultTab = tabData[firstAvailableIndex].key; // eventKey की जगह key
+        defaultTab = tabData[firstAvailableIndex].key;
       }
     }
     setKey(defaultTab);
@@ -278,6 +283,14 @@ const CreateMatches = () => {
     {
       question: "Select the racket sport you have played before?",
       options: ["Tennis", "Badminton", "Squash", "Others"],
+    },
+    {
+      question: "Have you received or are you receiving training in padel?",
+      options: [
+        "No",
+        "Yes, in the past",
+        "Yes, currently",
+      ],
     },
     {
       question: "How old are you?",
@@ -306,12 +319,15 @@ const CreateMatches = () => {
   );
   const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
-  const handleNext = () => {
+  const handleBookNow = () => {
     if (selectedCourts.length === 0 || selectedCourts.every((court) => court.time.length === 0)) {
       setSlotError("Please select a time slot to continue with your booking");
       return;
     }
+    setShowStepsModal(true);
+  };
 
+  const handleNext = () => {
     if (currentStep === 1) {
       if (selectedLevel.length > 0) {
         setSkillDetails((prev) => {
@@ -395,11 +411,11 @@ const CreateMatches = () => {
     const periodMatch = timeLower.match(/(am|pm)/gi);
     const periodPart = periodMatch ? periodMatch[0] : "";
     if (!hourPart.includes(":")) {
-        const hour = parseInt(hourPart);
-        hourPart = `${hour.toString().padStart(2, '0')}:00`;
+      const hour = parseInt(hourPart);
+      hourPart = `${hour.toString().padStart(2, '0')}:00`;
     } else {
-        const [hour, minute] = hourPart.split(':');
-        hourPart = `${parseInt(hour).toString().padStart(2, '0')}:${minute}`;
+      const [hour, minute] = hourPart.split(':');
+      hourPart = `${parseInt(hour).toString().padStart(2, '0')}:${minute}`;
     }
     return `${hourPart} ${periodPart}`;
   };
@@ -421,6 +437,75 @@ const CreateMatches = () => {
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
+  const handleDeleteSlot = (courtId, date, timeId) => {
+    setSelectedCourts((prev) =>
+      prev
+        .map((c) => (c._id === courtId && c.date === date ? { ...c, time: c.time.filter((t) => t._id !== timeId) } : c))
+        .filter((c) => c.time.length > 0)
+    );
+    if (date === selectedDate.fullDate) {
+      setSelectedTimes((prev) => ({
+        ...prev,
+        [courtId]: prev[courtId]?.filter((t) => t._id !== timeId) || [],
+      }));
+      setSelectedBuisness((prev) => prev.filter((t) => t._id !== timeId));
+    }
+  };
+
+  const handleClearAll = () => {
+    setSelectedCourts([]);
+    setSelectedTimes({});
+    setSelectedBuisness([]);
+  };
+
+  const formatTime = (timeStr) => {
+    return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
+  };
+
+  const width = 370;
+  const height = 75;
+  const circleRadius = height * 0.3;
+  const curvedSectionStart = width * 0.76;
+  const curvedSectionEnd = width * 0.996;
+  const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
+  const circleY = height * 0.5;
+  const arrowSize = circleRadius * 0.6;
+  const arrowX = circleX;
+  const arrowY = circleY;
+
+  const buttonStyle = {
+    position: "relative",
+    width: `${width}px`,
+    height: `${height}px`,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    opacity: 1,
+    pointerEvents: "auto",
+  };
+
+  const svgStyle = {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 1,
+  };
+
+  const contentStyle = {
+    position: "relative",
+    zIndex: 2,
+    color: " #001B76",
+    fontWeight: "600",
+    fontSize: `16px`,
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    paddingRight: `${circleRadius * 2}px`,
+  };
 
   return (
     <Container className="p-4 mb-5">
@@ -561,8 +646,6 @@ const CreateMatches = () => {
                     ))}
                   </div>
                 </div>
-
-
               </div>
             </div>
             <div className="mb-3 overflow-slot rounded-3 border">
@@ -586,11 +669,10 @@ const CreateMatches = () => {
 
                         return (
                           <div className="col-lg-3  col-6" key={court._id}>
-                            <div className="court-container p-3" style={{ backgroundColor: "#FFFFFF" }}>
+                            <div className="court-container p-3">
                               <div className="mb-3 text-center">
                                 <h5 className="all-matches mb-1">{court?.courtName}</h5>
                               </div>
-                              
                               <div className="slots-grid d-flex flex-column align-items-center">
                                 {filteredSlots?.map((slot, i) => {
                                   const isSelected = selectedTimes[court._id]?.some(
@@ -690,43 +772,142 @@ const CreateMatches = () => {
             </div>
           </div>
         </Col>
-        {/* RIGHT PANEL */}
+
+        {/* RIGHT PANEL - BOOKING SUMMARY (Always Visible) */}
         <Col md={5}>
-          <div
-            style={{
-              backgroundColor: "#f5f7ff",
-              border: "none",
-              borderRadius: "12px",
-              maxWidth: "100%",
-            }}
-          >
-            <Card
-              style={{
-                backgroundColor: "#f5f7ff",
-                border: "none",
-                borderRadius: "12px",
-                maxWidth: "100%",
-                height: "620px",
-              }}
-            >
-              {/* Progress Bar */}
-              <div className="d-flex gap-2 mb-4 pt-4">
-                {steps.map((_, index) => (
-                  <div
-                    key={index}
-                    className="step-bar"
-                    style={{
-                      flex: 1,
-                      height: "8px",
-                      borderRadius: "0px",
-                      backgroundColor: index <= currentStep ? "#1d4ed8" : "#c7d2fe",
-                    }}
-                  ></div>
-                ))}
+          <div className="border w-100 px-3 py-5 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+            <div className="text-center mb-3">
+              <div className="d-flex justify-content-center">
+                {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>}
               </div>
+              <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+            </div>
+            <div className="d-flex border-top pt-2 justify-content-between align-items-center">
+              <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
+              {totalSlots >= 10 && <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ cursor: "pointer", background: "#111827", fontSize: "10px", fontWeight: "600", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
+            </div>
+            <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
+              {selectedCourts.length > 0 ? (
+                selectedCourts.map((court, index) =>
+                  court.time.map((timeSlot, timeIndex) => (
+                    <div key={`${index}-${timeIndex}`} className="row mb-2">
+                      <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                        <div className="d-flex text-white">
+                          <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                          </span>
+                          <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                            {formatTime(timeSlot.time)}
+                          </span>
+                          <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
+                        </div>
+                        <div className="text-white">
+                          ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
+                          <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )
+              ) : (
+                <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
+                  <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
+                </div>
+              )}
+            </div>
+            {totalSlots > 0 && (
+              <div className="border-top pt-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden" }}>
+                <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
+                  Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
+                </p>
+                <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
+              </div>
+            )}
+            {slotError && (
+              <div className="text-center mt-2">
+                <p className="text-warning mb-0" style={{ fontSize: "14px", fontFamily: "Poppins" }}>{slotError}</p>
+              </div>
+            )}
+            <div className="d-flex justify-content-center mt-3">
+              <button style={buttonStyle} onClick={handleBookNow} className={props.className}>
+                <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#fff" />
+                      <stop offset="50%" stopColor="#fff" />
+                      <stop offset="100%" stopColor="#fff" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d={`M ${width * 0.76} ${height * 0.15} 
+                                  C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
+                                  C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
+                                  C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
+                                  C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} 
+                                  C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} 
+                                  C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} 
+                                  C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} 
+                                  C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} 
+                                  C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} 
+                                  C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} 
+                                  L ${width * 0.08} ${height * 0.85} 
+                                  C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
+                                  C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
+                                  L ${width * 0.76} ${height * 0.15} Z`}
+                    fill={`url(#buttonGradient-${width}-${height})`}
+                  />
+                  <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
+                  <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
+                    <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
+                    <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
+                  </g>
+                </svg>
+                <div style={contentStyle}>Submit</div>
+              </button>
+            </div>
+          </div>
+
+
+
+        </Col>
+      </Row>
+
+      {/* Steps Popup Modal */}
+      <Modal show={showStepsModal} onHide={() => setShowStepsModal(false)} className="border-0" size="xl" centered>
+        <Modal.Body className="p-0 border rounded-3">
+          <Row className="g-0">
+            <Col md={6} className="d-flex align-items-center justify-content-center p-0">
+              <img src={frame} alt="Padel" className="img-fluid w-100" style={{ objectFit: "cover" }} />
+            </Col>
+            <Col md={6} className="ps-3" style={{ backgroundColor: "#F1F4FF" }}>
               <div className="p-4">
-                <h6 className="mb-4 step-heading">{steps[currentStep].question}</h6>
-                <Form style={{ height: "350px", overflowY: "auto" }}>
+                {/* Step Circles */}
+                <div className="d-flex justify-content-start mb-4 mt-lg-4">
+                  {steps.map((_, index) => (
+                    <div
+                      key={index}
+                      className="me-3"
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        backgroundColor: index <= currentStep ? "#3DBE64" : "#D9D9D9",
+                        color: index <= currentStep ? "#3DBE64" : "#D9D9D9",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        fontFamily: "Poppins",
+                      }}
+                    >
+                      {index + 1}
+                    </div>
+                  ))}
+                </div>
+                <h6 className="mb-4 step-heading" style={{ color: "#374151" }}>{steps[currentStep].question}</h6>
+                <Form >
                   {currentStep === 1 ? (
                     steps[currentStep].options?.map((option, i) => (
                       <div
@@ -808,58 +989,45 @@ const CreateMatches = () => {
                       </div>
                     ))
                   )}
-                  {slotError && (
-                    <div
-                      className="text-danger text-start w-100 position-absolute"
-                      style={{
-                        fontSize: "16px",
-                        marginBottom: "10px",
-                        fontFamily: "Poppins",
-                        fontWeight: "600",
-                      }}
-                    >
-                      <p>{slotError}</p>
-                    </div>
-                  )}
                 </Form>
-              </div>
-              <div className="d-flex justify-content-end align-items-center p-3">
-                {currentStep > 0 && (
+                <div className="d-flex justify-content-end align-items-center mt-3 position-absolute bottom-0 end-0 me-4 mb-4">
+                  {currentStep > 0 && (
+                    <Button
+                      className="rounded-pill px-4 me-2"
+                      style={{
+                        backgroundColor: "#374151",
+                        border: "none",
+                        color: "#fff",
+                      }}
+                      onClick={handleBack}
+                    >
+                      Back
+                    </Button>
+                  )}
                   <Button
-                    className="rounded-pill px-4 me-2"
+                    className="rounded-pill px-4"
                     style={{
-                      backgroundColor: "#374151",
+                      backgroundColor: currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
                       border: "none",
                       color: "#fff",
                     }}
-                    onClick={handleBack}
+                    disabled={!selectedLevel || (currentStep === 1 && selectedLevel.length === 0)}
+                    onClick={handleNext}
                   >
-                    Back
+                    {userMatches?.matchesLoading ? (
+                      <ButtonLoading />
+                    ) : currentStep === steps.length - 1 ? (
+                      "Submit"
+                    ) : (
+                      "Next"
+                    )}
                   </Button>
-                )}
-                <Button
-                  className="rounded-pill px-4"
-                  style={{
-                    backgroundColor: currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
-                    border: "none",
-                    color: "#fff",
-                  }}
-                  disabled={!selectedLevel || (currentStep === 1 && selectedLevel.length === 0)}
-                  onClick={handleNext}
-                >
-                  {userMatches?.matchesLoading ? (
-                    <ButtonLoading />
-                  ) : currentStep === steps.length - 1 ? (
-                    "Submit"
-                  ) : (
-                    "Next"
-                  )}
-                </Button>
+                </div>
               </div>
-            </Card>
-          </div>
-        </Col>
-      </Row>
+            </Col>
+          </Row>
+        </Modal.Body>
+      </Modal>
     </Container>
   );
 };

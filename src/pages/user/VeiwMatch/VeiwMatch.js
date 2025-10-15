@@ -8,6 +8,7 @@ import { DataLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
+import { Tooltip, TooltipProvider } from "react-tooltip";
 
 const ViewMatch = ({ className = "" }) => {
     const dispatch = useDispatch();
@@ -122,14 +123,32 @@ const ViewMatch = ({ className = "" }) => {
                             </span>
                         )}
                     </div>
-                    <p className="mb-0 mt-2" style={{ color: "#374151", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
-                        title={user?.name || "User"}>
-                        {user?.name
-                            ? user.name.length > 14
-                                ? user.name.slice(0, 14) + "..."
-                                : user.name
-                            : "User"}
-                    </p>
+                    <TooltipProvider>
+                        <p
+                            className="mb-0 mt-2 fw-semibold"
+                            style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                            {user.name && user.name.length > 12 ? (
+                                <>
+                                    <span
+                                        data-tooltip-content={user.name}
+                                        data-tooltip-id={`tooltip-${user.name}`}
+                                        style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                    >
+                                        {user.name.substring(0, 12) + '...'}
+                                    </span>
+                                    <Tooltip
+                                        id={`tooltip-${user.name}`}
+                                        place="top"
+                                        effect="solid"
+                                        style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                    />
+                                </>
+                            ) : (
+                                user.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : "Unknown"
+                            )}
+                        </p>
+                    </TooltipProvider>
                     <span className="badge text-white " style={{ backgroundColor: team === 'A' ? "#3DBE64" : '#1F41BB' }}>{user?.level || 'A|B'}</span>
                 </div>
             );
@@ -220,7 +239,7 @@ const ViewMatch = ({ className = "" }) => {
                                 {matchDate.day}, {matchDate.formattedDate} | {matchTime}
                             </small>
                             <small className="text-muted d-lg-none" style={{ fontWeight: "500" }}>
-                                {matchDate.day}, {matchDate.formattedDate} <br/> {matchTime}
+                                {matchDate.day}, {matchDate.formattedDate} <br /> {matchTime}
                             </small>
                         </div>
                         <div className="row text-center border-top">
