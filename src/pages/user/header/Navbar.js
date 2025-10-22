@@ -131,7 +131,7 @@ const Navbar = () => {
                                     textDecoration: 'none',
                                 })}
                             >
-                                Americano
+                                Americanos
                             </NavLink>
                         </li>
                     </ul>

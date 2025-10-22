@@ -1,28 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
-import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { loginUserNumber, Usersignup } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
 import { booking_success_img, success2 } from "../../../assets/files";
 import { IoIosArrowDown } from "react-icons/io";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 // Load Razorpay Checkout
 const loadRazorpay = (callback) => {
     const script = document.createElement("script");
-    script.src = "http://checkout.razorpay.com/v1/checkout.js";
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.onload = callback;
     script.onerror = () => alert("Failed to load Razorpay SDK. Please try again.");
+    document.body.appendChild(script);
+};
+
+// Load PayPal SDK
+const loadPayPal = (callback) => {
+    const script = document.createElement("script");
+    script.src = "https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID"; // Replace with your PayPal Client ID
+    script.onload = () => callback(window.paypal);
+    script.onerror = () => alert("Failed to load PayPal SDK. Please try again.");
     document.body.appendChild(script);
 };
 
 const Payment = ({ className = "" }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { courtData, clubData, selectedCourts, setSelectedCourts, grandTotal, totalSlots } = location.state || {};
+    const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
     const user = getUserFromSession();
     const bookingStatus = useSelector((state) => state?.userBooking);
     const userLoading = useSelector((state) => state?.userAuth);
@@ -38,9 +47,12 @@ const Payment = ({ className = "" }) => {
         phoneNumber: "",
         email: "",
         paymentMethod: "",
+        general: "",
     });
     const [isLoading, setIsLoading] = useState(false);
     const [modal, setModal] = useState(false);
+    const [paypalLoaded, setPaypalLoaded] = useState(false);
+    const paypalRef = useRef(null); // Ref to store the PayPal object
     const dispatch = useDispatch();
     const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
     const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
@@ -66,18 +78,74 @@ const Payment = ({ className = "" }) => {
 
     useEffect(() => {
         if (bookingStatus?.bookingData?.message === "Booking created") {
-            if (setSelectedCourts && typeof setSelectedCourts === 'function') {
-                setSelectedCourts([]);
-            }
+            setLocalSelectedCourts([]);
         }
-    }, [bookingStatus?.bookingData?.message, setSelectedCourts])
+    }, [bookingStatus?.bookingData?.message]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setErrors({ name: "", phoneNumber: "", email: "", paymentMethod: "" });
+            setErrors((prev) => ({
+                ...prev,
+                name: "",
+                phoneNumber: "",
+                email: "",
+                paymentMethod: "",
+            }));
         }, 5000);
         return () => clearTimeout(timer);
     }, [errors]);
+
+    // Load PayPal SDK when payment method is selected as Paypal
+    useEffect(() => {
+        if (selectedPayment === "Paypal" && !paypalLoaded) {
+            loadPayPal((paypal) => {
+                if (paypal) {
+                    paypalRef.current = paypal; // Store the paypal object
+                    setPaypalLoaded(true);
+                    // Render PayPal button when SDK is loaded
+                    paypal.Buttons({
+                        createOrder: (data, actions) => {
+                            return actions.order.create({
+                                purchase_units: [{ amount: { value: localGrandTotal.toString(), currency_code: "USD" } }],
+                            });
+                        },
+                        onApprove: async (data, actions) => {
+                            const payload = {
+                                name,
+                                phoneNumber: phoneNumber.replace(/^\+91\s/, ""),
+                                email,
+                                register_club_id: localStorage.getItem("register_club_id"),
+                                bookingStatus: "upcoming",
+                                bookingType: "user",
+                                ownerId: localStorage.getItem("owner_id"),
+                                slot: localSelectedCourts.flatMap((court) => ({
+                                    slotId: court.time[0]?._id,
+                                    businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
+                                        time: t?.time,
+                                        day: t?.day,
+                                    })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
+                                    slotTimes: court.time.map((timeSlot) => ({
+                                        time: timeSlot?.time,
+                                        amount: timeSlot?.amount ?? 2000,
+                                    })),
+                                    courtName: court?.courtName,
+                                    courtId: court?._id,
+                                    bookingDate: court?.date,
+                                })),
+                                paymentMethod: selectedPayment,
+                                transactionId: data.orderID, // Only for PayPal
+                            };
+                            await dispatch(createBooking(payload)).unwrap();
+                            setModal(true);
+                        },
+                        onError: (err) => {
+                            throw new Error("PayPal payment failed");
+                        },
+                    }).render("#paypal-button-container");
+                }
+            });
+        }
+    }, [selectedPayment, paypalLoaded, localGrandTotal, localSelectedCourts, dispatch, courtData, name, phoneNumber, email]);
 
     const handleDeleteSlot = (courtIndex, slotIndex) => {
         const removedSlotId = localSelectedCourts[courtIndex]?.time[slotIndex]?._id;
@@ -127,29 +195,20 @@ const Payment = ({ className = "" }) => {
                 throw new Error("Club information is missing. Please select a club first.");
             }
 
-            const slotArray = localSelectedCourts.flatMap((court) => {
-                return court?.time?.map((timeSlot) => ({
-                    slotId: timeSlot._id,
-                    businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
-                        time: t?.time,
-                        day: t?.day,
-                    })) || [
-                            {
-                                time: "6:00 AM To 11:00 PM",
-                                day: "Monday",
-                            },
-                        ],
-                    slotTimes: [
-                        {
-                            time: timeSlot?.time,
-                            amount: timeSlot?.amount ?? 2000,
-                        },
-                    ],
-                    courtName: court?.courtName,
-                    courtId: court?._id,
-                    bookingDate: court?.date,
-                }));
-            });
+            const slotArray = localSelectedCourts.flatMap((court) => ({
+                slotId: court.time[0]?._id,
+                businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
+                    time: t?.time,
+                    day: t?.day,
+                })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
+                slotTimes: court.time.map((timeSlot) => ({
+                    time: timeSlot?.time,
+                    amount: timeSlot?.amount ?? 2000,
+                })),
+                courtName: court?.courtName,
+                courtId: court?._id,
+                bookingDate: court?.date,
+            }));
 
             const payload = {
                 name,
@@ -157,34 +216,38 @@ const Payment = ({ className = "" }) => {
                 email,
                 register_club_id,
                 bookingStatus: "upcoming",
-                bookingType: 'user',
+                bookingType: "user",
                 ownerId: owner_id,
                 slot: slotArray,
                 paymentMethod: selectedPayment,
             };
 
-            if (user?.name && user?.token) {
-                await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber.toString(), name, email }))
-                    .unwrap()
-                    .then((res) => {
-                        if (res?.status === "200") {
-                            dispatch(createBooking(payload))
-                                .unwrap()
-                                .then((res) => {
-                                    if (res?.success) {
-                                        setModal(true);
-                                    }
-                                });
-                        }
-                    });
-            } else {
-                dispatch(createBooking(payload))
-                    .unwrap()
-                    .then((res) => {
-                        if (res?.success) {
+            if (selectedPayment === "Gpay") {
+                loadRazorpay(() => {
+                    const options = {
+                        key: "rzp_test_1DP5mmOlF5G5ag",
+                        amount: localGrandTotal * 100, 
+                        currency: "INR",
+                        name: "Club Booking",
+                        description: "Slot Booking Payment",
+                        handler: async (response) => {
+                            // console.log(response,'responseresponse');
+                            // payload.transactionId = response.razorpay_payment_id; 
+                            await dispatch(createBooking(payload)).unwrap();
                             setModal(true);
-                        }
-                    });
+                        },
+                        prefill: { name, email, contact: rawPhoneNumber },
+                        theme: { color: "#001B76" },
+                    };
+                    const paymentObject = new window.Razorpay(options);
+                    paymentObject.open();
+                });
+            } else if (selectedPayment === "Paypal") {
+            } else if (selectedPayment === "Apple Pay") {
+                alert("Apple Pay is not fully implemented. Please use another method.");
+            } else {
+                await dispatch(createBooking(payload)).unwrap(); 
+                setModal(true);
             }
         } catch (err) {
             console.error("Payment Error:", err);
@@ -197,7 +260,10 @@ const Payment = ({ className = "" }) => {
         }
     };
 
-    // Button styling
+    const formatTime = (timeStr) => {
+        return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
+    };
+
     const width = 370;
     const height = 75;
     const circleRadius = height * 0.3;
@@ -234,16 +300,13 @@ const Payment = ({ className = "" }) => {
         zIndex: 2,
         color: "#001B76",
         fontWeight: "600",
-        fontSize: `16px`,
+        fontSize: "16px",
         textAlign: "center",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         height: "100%",
         paddingRight: `${circleRadius * 2}px`,
-    };
-    const formatTime = (timeStr) => {
-        return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
     };
 
     return (
@@ -252,10 +315,11 @@ const Payment = ({ className = "" }) => {
                 <div className="col-12 col-lg-7">
                     <div className="bg-white rounded">
                         {/* Info Section */}
-                        <div className="rounded-4 py-4 px-3 px-md-5 mb-4" style={{ backgroundColor: "#F5F5F566", border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : 'none' }}>
-                            <h6 className="mb-3 custom-heading-use">
-                                Information
-                            </h6>
+                        <div
+                            className="rounded-4 py-4 px-3 px-md-5 mb-4"
+                            style={{ backgroundColor: "#F5F5F566", border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none" }}
+                        >
+                            <h6 className="mb-3 custom-heading-use">Information</h6>
                             <div className="row">
                                 <div className="col-12 col-md-4 mb-3 p-1">
                                     <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
@@ -372,7 +436,7 @@ const Payment = ({ className = "" }) => {
                             }}
                         >
                             <h6 className="mb-4 custom-heading-use">
-                                Payment Method <span className="text-danger" style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500" }}>{errors.paymentMethod ? errors?.paymentMethod : ""}</span>
+                                Payment Method <span className="text-danger" style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500" }}>{errors.paymentMethod}</span>
                             </h6>
                             <div className="d-flex flex-column gap-3">
                                 {[
@@ -382,7 +446,7 @@ const Payment = ({ className = "" }) => {
                                 ].map((method) => (
                                     <label
                                         key={method.id}
-                                        className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill "
+                                        className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill"
                                         style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5" }}
                                     >
                                         <div className="d-flex align-items-center gap-3">
@@ -407,24 +471,13 @@ const Payment = ({ className = "" }) => {
 
                 {/* Booking Summary */}
                 <div className="col-12 col-lg-5">
-                    <div className="border  px-3 py-5 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                    <div className="border px-3 py-5 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
                                 {logo ? (
-                                    <Avatar
-                                        src={logo}
-                                        alt="User Profile"
-                                        style={{ height: "112px", width: "112px", boxShadow: '0px 4px 11.4px 0px #0000002E' }}
-                                    />
+                                    <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} />
                                 ) : (
-                                    <Avatar
-                                        style={{
-                                            height: "112px",
-                                            width: "112px",
-                                            fontSize: "30px",
-                                            boxShadow: '0px 4px 11.4px 0px #0000002E'
-                                        }}
-                                    >
+                                    <Avatar style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>
                                         {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                                     </Avatar>
                                 )}
@@ -432,18 +485,9 @@ const Payment = ({ className = "" }) => {
                             <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
                                 {clubData?.clubName}
                             </p>
-                            {/* <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "Poppins" }}>
-                                {clubData?.clubName}
-                                {clubData?.address || clubData?.city || clubData?.state || clubData?.zipCode ? ', ' : ''}
-                                {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode]
-                                    .filter(Boolean)
-                                    .join(', ')}
-                            </p> */}
                         </div>
 
-                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use text-white">
-                            Booking Summary
-                        </h6>
+                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use text-white">Booking Summary</h6>
                         <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
                             {localSelectedCourts?.length > 0 ? (
                                 localSelectedCourts?.map((court, index) => (
@@ -452,9 +496,6 @@ const Payment = ({ className = "" }) => {
                                             <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex text-white">
-                                                        {/* <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px", color: "#374151" }}>
-                                                            {court?.day ? dayMap[court.day.toLowerCase()] : ""},
-                                                        </span> */}
                                                         <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {(() => {
                                                                 if (!court?.date) return "";
@@ -464,7 +505,6 @@ const Payment = ({ className = "" }) => {
                                                                 return `${day}, ${month}`;
                                                             })()}
                                                         </span>
-
                                                         <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {formatTime(timeSlot.time)}
                                                         </span>
@@ -472,8 +512,8 @@ const Payment = ({ className = "" }) => {
                                                             {court?.courtName}
                                                         </span>
                                                     </div>
-                                                    <div className="d-flex align-items-center text-white" >
-                                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: 'Poppins' }}>
+                                                    <div className="d-flex align-items-center text-white">
+                                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>
                                                             {timeSlot?.amount || 2000}
                                                         </span>
                                                         <button
@@ -496,24 +536,17 @@ const Payment = ({ className = "" }) => {
                                 </div>
                             )}
                         </div>
-                        {errors.courts && (
+                        {errors.general && (
                             <div className="text-white" style={{ fontSize: "12px", marginTop: "8px" }}>
-                                {errors.courts}
+                                {errors.general}
                             </div>
                         )}
                         {localTotalSlots > 0 && (
                             <div className="border-top text-white pt-3 mt-2 d-flex align-items-center justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
                                 <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
-                                    Total to Pay   <span style={{ fontSize: "14px", fontWeight: "600" }}>
-                                        Slots {localTotalSlots}
-                                    </span>
+                                    Total to Pay <span style={{ fontSize: "14px", fontWeight: "600" }}>Slots {localTotalSlots}</span>
                                 </p>
                                 <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {localGrandTotal}</p>
-                            </div>
-                        )}
-                        {errors.general && (
-                            <div className="text-white" style={{ fontSize: "12px", marginTop: "8px" }}>
-                                {errors.general}
                             </div>
                         )}
 
@@ -595,6 +628,8 @@ const Payment = ({ className = "" }) => {
                     </Link>
                 </div>
             </Modal>
+            {/* PayPal Button Container */}
+            <div id="paypal-button-container" style={{ display: selectedPayment === "Paypal" ? "block" : "none" }}></div>
         </div>
     );
 };

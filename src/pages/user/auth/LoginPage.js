@@ -18,6 +18,7 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const cleanedPhone = phone.replace(/\D/g, '').slice(0, 10);
+        setPhone(cleanedPhone);
         dispatch(sendOtp({ phoneNumber: cleanedPhone, countryCode: "+91", type: "Signup" }))
             .unwrap()
             .then(() => {
@@ -64,7 +65,7 @@ const LoginPage = () => {
                     >
                         <div className="w-100 h-50   " style={{ maxWidth: '400px' }}>
                             <h2 className="welcome-heading mb-2">WELCOME BACK</h2>
-                            <p className="text-muted mb-4" style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}>Welcome back! Please enter your details.</p>
+                            <p className="text-muted mb-4" style={{ fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364" }}>Welcome back! Please enter your phone number to continue.</p>
 
                             <Form onSubmit={handleSubmit} className='w-100 text-start'>
                                 {showAlert && <Alert variant="danger">{error}</Alert>}
@@ -72,10 +73,11 @@ const LoginPage = () => {
                                     <Form.Label className="text-start" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>Phone Number</Form.Label>
                                     <Form.Control
                                         type="tel"
-                                        placeholder="Enter your Phone"
+                                        placeholder="Enter Phone Number"
                                         className=" form-control  py-md-3"
                                         style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
                                         value={phone}
+                                        defaultValue={phone}
                                         minLength={10}
                                         maxLength={10}
                                         onChange={(e) => {

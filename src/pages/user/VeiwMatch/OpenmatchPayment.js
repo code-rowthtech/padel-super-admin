@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { padal, club } from "../../../assets/files";
@@ -13,7 +13,26 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { showError } from "../../../helpers/Toast";
 import NewPlayers from "./NewPlayers";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import { Tooltip, TooltipProvider } from 'react-tooltip';
+import { Tooltip, TooltipProvider } from "react-tooltip";
+
+// Load Razorpay Checkout
+const loadRazorpay = (callback) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = callback;
+    script.onerror = () => alert("Failed to load Razorpay SDK. Please try again.");
+    document.body.appendChild(script);
+};
+
+// Load PayPal SDK
+const loadPayPal = (callback) => {
+    const script = document.createElement("script");
+    script.src = "https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID"; // Replace with your PayPal Client ID
+    script.onload = () => callback(window.paypal);
+    script.onerror = () => alert("Failed to load PayPal SDK. Please try again.");
+    document.body.appendChild(script);
+};
+
 const convertTo24Hour = (timeStr) => {
     const [time, period] = timeStr.split(" ");
     let [hours] = time.split(":").map(Number);
@@ -72,7 +91,6 @@ const OpenmatchPayment = (props) => {
     const [showAddMeForm, setShowAddMeForm] = useState(false);
     const [errorShow, setErrorShow] = useState(false);
     const [showShareDropdown, setShowShareDropdown] = useState(false);
-
     const [activeSlot, setActiveSlot] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -96,6 +114,8 @@ const OpenmatchPayment = (props) => {
     const slot4Player = addedPlayers.slot4 ? addedPlayers.slot4._id : null;
     const teamA = [User?._id, slot2Player].filter((id) => id !== null);
     const teamB = [slot3Player, slot4Player].filter((id) => id !== null);
+    const paypalRef = useRef(null); // Ref to store the PayPal object
+    const [paypalLoaded, setPaypalLoaded] = useState(false);
 
     const dayShortMap = {
         Monday: "Mon",
@@ -111,6 +131,34 @@ const OpenmatchPayment = (props) => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
 
+    // Load PayPal SDK when payment method is selected as PayPal
+    useEffect(() => {
+        if (selectedPayment === "paypal" && !paypalLoaded) {
+            loadPayPal((paypal) => {
+                if (paypal) {
+                    paypalRef.current = paypal;
+                    setPaypalLoaded(true);
+                    paypal.Buttons({
+                        createOrder: (data, actions) => {
+                            const totalAmount = selectedCourts.reduce((total, court) => total + court.time.reduce((sum, slot) => sum + Number(slot.amount || 1000), 0), 0);
+                            return actions.order.create({
+                                purchase_units: [{ amount: { value: totalAmount.toString(), currency_code: "USD" } }],
+                            });
+                        },
+                        onApprove: async (data, actions) => {
+                            const payload = prepareBookingPayload(data.orderID);
+                            await dispatch(createBooking(payload)).unwrap();
+                            handleSuccess();
+                        },
+                        onError: (err) => {
+                            throw new Error("PayPal payment failed");
+                        },
+                    }).render("#paypal-button-container");
+                }
+            });
+        }
+    }, [selectedPayment, paypalLoaded, selectedCourts, dispatch]);
+
     const handleBooking = () => {
         if (Object.values(addedPlayers).filter((player) => player !== undefined).length < 1) {
             setError("Add at least 2 players to proceed.");
@@ -125,6 +173,8 @@ const OpenmatchPayment = (props) => {
             setErrorShow(true);
             return;
         }
+
+        setIsLoading(true);
         const formattedData = {
             slot: selectedCourts.flatMap((court) =>
                 court.time.map((timeSlot) => ({
@@ -158,7 +208,6 @@ const OpenmatchPayment = (props) => {
             teamB: teamB,
         };
 
-        setIsLoading(true);
         dispatch(createMatches(formattedData))
             .unwrap()
             .then((res) => {
@@ -168,71 +217,99 @@ const OpenmatchPayment = (props) => {
                     setIsLoading(false);
                     return;
                 }
-                try {
-                    const name = userData?.name || User?.name;
-                    const phoneNumber = userData?.phoneNumber || User?.phoneNumber;
-                    const email = userData?.email || User?.email;
-                    if (!phoneNumber) {
-                        showError("User information missing!");
-                        setIsLoading(false);
-                        return;
-                    }
-                    const payload = {
-                        name,
-                        phoneNumber,
-                        email,
-                        register_club_id: savedClubId,
-                        ownerId: owner_id,
-                        paymentMethod: selectedPayment || "Gpay",
-                        bookingType: "open Match",
-                        bookingStatus: "upcoming",
-                        slot: selectedCourts.flatMap((court) =>
-                            court.time.map((timeSlot) => ({
-                                slotId: timeSlot?._id,
-                                businessHours:
-                                    slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
-                                        time: t?.time,
-                                        day: t?.day,
-                                    })) || [],
-                                slotTimes: [
-                                    {
-                                        time: timeSlot?.time,
-                                        amount: timeSlot?.amount || 1000,
-                                    },
-                                ],
-                                courtName: court?.courtName || "Court",
-                                courtId: court?._id,
-                                bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
-                            }))
-                        ) || [],
-                    };
-
-                    dispatch(createBooking(payload))
-                        .unwrap()
-                        .then((res) => {
-                            localStorage.removeItem("addedPlayers");
-                            navigate("/open-matches");
-                            setErrorShow(false);
-                            setIsLoading(false);
-                        })
-                        .catch((err) => {
-                            setError(err.message || "Booking ke dauraan error aaya.");
-                            setErrorShow(true);
-                            setIsLoading(false);
-                        });
-                    setModal(true);
-                } catch (err) {
-                    setError(err.message || "Booking ke dauraan error aaya.");
-                    setErrorShow(true);
-                    setModal(false);
-                    setIsLoading(false);
-                }
+                processPayment();
             })
             .catch((err) => {
                 setError(err.message || "Match creation failed.");
                 setErrorShow(true);
                 setIsLoading(false);
             });
+    };
+
+    const processPayment = () => {
+        const name = userData?.name || User?.name;
+        const phoneNumber = userData?.phoneNumber || User?.phoneNumber;
+        const email = userData?.email || User?.email;
+        if (!phoneNumber) {
+            showError("User information missing!");
+            setIsLoading(false);
+            return;
+        }
+
+        const payload = prepareBookingPayload();
+
+        if (selectedPayment === "google") {
+            loadRazorpay(() => {
+                const totalAmount = selectedCourts.reduce((total, court) => total + court.time.reduce((sum, slot) => sum + Number(slot.amount || 1000), 0), 0);
+                const options = {
+                    key: "rzp_test_1DP5mmOlF5G5ag", // Replace with your Razorpay Key
+                    amount: totalAmount * 100, // Amount in paise
+                    currency: "INR",
+                    name: "Open Match Booking",
+                    description: "Match Slot Booking Payment",
+                    handler: async (response) => {
+                        // payload.transactionId = response.razorpay_payment_id;
+                        await dispatch(createBooking(payload)).unwrap();
+                        handleSuccess();
+                    },
+                    prefill: { name, email, contact: phoneNumber },
+                    theme: { color: "#001B76" },
+                };
+                const paymentObject = new window.Razorpay(options);
+                paymentObject.open();
+            });
+        } else if (selectedPayment === "paypal") {
+            // PayPal button is already rendered in useEffect, no action needed here
+        } else if (selectedPayment === "apple") {
+            alert("Apple Pay is not fully implemented. Please use another method.");
+            setIsLoading(false);
+        } else {
+             dispatch(createBooking(payload)).unwrap();
+            handleSuccess();
+        }
+    };
+
+    const prepareBookingPayload = (transactionId) => {
+        const totalAmount = selectedCourts.reduce((total, court) => total + court.time.reduce((sum, slot) => sum + Number(slot.amount || 1000), 0), 0);
+        const payload = {
+            name: userData?.name || User?.name,
+            phoneNumber: userData?.phoneNumber || User?.phoneNumber,
+            email: userData?.email || User?.email,
+            register_club_id: savedClubId,
+            ownerId: owner_id,
+            paymentMethod: selectedPayment || "google",
+            bookingType: "open Match",
+            bookingStatus: "upcoming",
+            slot: selectedCourts.flatMap((court) =>
+                court.time.map((timeSlot) => ({
+                    slotId: timeSlot?._id,
+                    businessHours:
+                        slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
+                            time: t?.time,
+                            day: t?.day,
+                        })) || [],
+                    slotTimes: [
+                        {
+                            time: timeSlot?.time,
+                            amount: timeSlot?.amount || 1000,
+                        },
+                    ],
+                    courtName: court?.courtName || "Court",
+                    courtId: court?._id,
+                    bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
+                }))
+            ) || [],
+        };
+        if (transactionId) payload.transactionId = transactionId;
+        return payload;
+    };
+
+    const handleSuccess = () => {
+        localStorage.removeItem("addedPlayers");
+        navigate("/open-matches");
+        setErrorShow(false);
+        setIsLoading(false);
+        setModal(true);
     };
 
     const handleAddMeClick = (slot) => {
@@ -350,7 +427,7 @@ const OpenmatchPayment = (props) => {
     const contentStyle = {
         position: "relative",
         zIndex: 2,
-        color: " #001B76",
+        color: "#001B76",
         fontWeight: "600",
         fontSize: `16px`,
         textAlign: "center",
@@ -370,8 +447,6 @@ const OpenmatchPayment = (props) => {
             return () => clearTimeout(timer);
         }
     }, [errorShow]);
-
-
 
     return (
         <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
@@ -398,17 +473,17 @@ const OpenmatchPayment = (props) => {
                             </button>
 
                             {showShareDropdown && (
-                                <div className="position-absolute top-100 end-0 mt-1 bg-white border rounded shadow-sm" style={{ zIndex: 1000, minWidth: '120px' }}>
+                                <div className="position-absolute top-100 end-0 mt-1 bg-white border rounded shadow-sm" style={{ zIndex: 1000, minWidth: "120px" }}>
                                     <button
                                         className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
                                         onClick={() => {
                                             const url = window.location.href;
                                             const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
-                                            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, '_blank');
+                                            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, "_blank");
                                             setShowShareDropdown(false);
                                         }}
                                     >
-                                        <i className="bi bi-facebook" style={{ color: '#1877F2' }}></i>
+                                        <i className="bi bi-facebook" style={{ color: "#1877F2" }}></i>
                                         Facebook
                                     </button>
                                     <button
@@ -416,16 +491,15 @@ const OpenmatchPayment = (props) => {
                                         onClick={() => {
                                             const url = window.location.href;
                                             const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
-                                            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+                                            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank");
                                             setShowShareDropdown(false);
                                         }}
                                     >
-                                        <i className="bi bi-twitter" style={{ color: '#1DA1F2' }}></i>
+                                        <i className="bi bi-twitter" style={{ color: "#1DA1F2" }}></i>
                                         Twitter
                                     </button>
                                 </div>
                             )}
-
                         </div>
                     </div>
 
@@ -475,7 +549,7 @@ const OpenmatchPayment = (props) => {
                         className="p-3 rounded-3 mb-2 "
                         style={{
                             backgroundColor: "#CBD6FF1A",
-                            border: error && Object.values(addedPlayers).filter((player) => player !== undefined).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff",
+                            border: error && Object.values(addedPlayers).filter((player) => player !== undefined).length < 2 ? "1px solid red" : "1px solid #ddd6d6ff",
                         }}
                     >
                         <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: "600" }}>
@@ -517,22 +591,22 @@ const OpenmatchPayment = (props) => {
                                                 <TooltipProvider>
                                                     <p
                                                         className="mb-0 mt-2 fw-semibold"
-                                                        style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                        style={{ maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                                                     >
                                                         {player.name && player.name.length > 12 ? (
                                                             <>
                                                                 <span
                                                                     data-tooltip-content={player.name}
                                                                     data-tooltip-id={`tooltip-${player.name}`}
-                                                                    style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                                                    style={{ cursor: "pointer", display: "inline-block" }}
                                                                 >
-                                                                    {player.name.substring(0, 12) + '...'}
+                                                                    {player.name.substring(0, 12) + "..."}
                                                                 </span>
                                                                 <Tooltip
                                                                     id={`tooltip-${player.name}`}
                                                                     place="top"
                                                                     effect="solid"
-                                                                    style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                                                    style={{ backgroundColor: "#333", color: "#fff", zIndex: 1000, padding: "5px", borderRadius: "4px" }}
                                                                 />
                                                             </>
                                                         ) : (
@@ -589,22 +663,22 @@ const OpenmatchPayment = (props) => {
                                                 <TooltipProvider>
                                                     <p
                                                         className="mb-0 mt-2 fw-semibold"
-                                                        style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                        style={{ maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                                                     >
                                                         {player.name && player.name.length > 12 ? (
                                                             <>
                                                                 <span
                                                                     data-tooltip-content={player.name}
                                                                     data-tooltip-id={`tooltip-${player.name}`}
-                                                                    style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                                                    style={{ cursor: "pointer", display: "inline-block" }}
                                                                 >
-                                                                    {player.name.substring(0, 12) + '...'}
+                                                                    {player.name.substring(0, 12) + "..."}
                                                                 </span>
                                                                 <Tooltip
                                                                     id={`tooltip-${player.name}`}
                                                                     place="top"
                                                                     effect="solid"
-                                                                    style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                                                    style={{ backgroundColor: "#333", color: "#fff", zIndex: 1000, padding: "5px", borderRadius: "4px" }}
                                                                 />
                                                             </>
                                                         ) : (
@@ -612,7 +686,7 @@ const OpenmatchPayment = (props) => {
                                                         )}
                                                     </p>
                                                 </TooltipProvider>
-                                                <span className="badge  text-white" style={{ backgroundColor: "#3DBE64" }}>{player?.level}</span>
+                                                <span className="badge text-white" style={{ backgroundColor: "#3DBE64" }}>{player?.level}</span>
                                             </div>
                                         );
                                     } else {
@@ -676,22 +750,22 @@ const OpenmatchPayment = (props) => {
                                                 <TooltipProvider>
                                                     <p
                                                         className="mb-0 mt-2 fw-semibold"
-                                                        style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                        style={{ maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                                                     >
                                                         {player.name && player.name.length > 12 ? (
                                                             <>
                                                                 <span
                                                                     data-tooltip-content={player.name}
                                                                     data-tooltip-id={`tooltip-${player.name}`}
-                                                                    style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                                                    style={{ cursor: "pointer", display: "inline-block" }}
                                                                 >
-                                                                    {player.name.substring(0, 12) + '...'}
+                                                                    {player.name.substring(0, 12) + "..."}
                                                                 </span>
                                                                 <Tooltip
                                                                     id={`tooltip-${player.name}`}
                                                                     place="top"
                                                                     effect="solid"
-                                                                    style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                                                    style={{ backgroundColor: "#333", color: "#fff", zIndex: 1000, padding: "5px", borderRadius: "4px" }}
                                                                 />
                                                             </>
                                                         ) : (
@@ -699,7 +773,6 @@ const OpenmatchPayment = (props) => {
                                                         )}
                                                     </p>
                                                 </TooltipProvider>
-                                                {console.log({ player })}
                                                 <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>{player?.level}</span>
                                             </div>
                                         );
@@ -754,22 +827,22 @@ const OpenmatchPayment = (props) => {
                                                 <TooltipProvider>
                                                     <p
                                                         className="mb-0 mt-2 fw-semibold"
-                                                        style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                        style={{ maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                                                     >
                                                         {player.name && player.name.length > 12 ? (
                                                             <>
                                                                 <span
                                                                     data-tooltip-content={player.name}
                                                                     data-tooltip-id={`tooltip-${player.name}`}
-                                                                    style={{ cursor: 'pointer', display: 'inline-block' }} // Ensure inline-block for proper tooltip positioning
+                                                                    style={{ cursor: "pointer", display: "inline-block" }}
                                                                 >
-                                                                    {player.name.substring(0, 12) + '...'}
+                                                                    {player.name.substring(0, 12) + "..."}
                                                                 </span>
                                                                 <Tooltip
                                                                     id={`tooltip-${player.name}`}
                                                                     place="top"
                                                                     effect="solid"
-                                                                    style={{ backgroundColor: '#333', color: '#fff', zIndex: 1000, padding: '5px', borderRadius: '4px' }}
+                                                                    style={{ backgroundColor: "#333", color: "#fff", zIndex: 1000, padding: "5px", borderRadius: "4px" }}
                                                                 />
                                                             </>
                                                         ) : (
@@ -880,18 +953,16 @@ const OpenmatchPayment = (props) => {
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: "600" }}>
                             Payment Method{" "}
                             <span className="text-danger" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "500" }}>
-                                {error && !selectedPayment ? "Add at least 2 players to proceed." : ""}
+                                {error && !selectedPayment ? "Select a payment method." : ""}
                             </span>
                         </h6>
                         <div className="d-flex flex-column gap-3">
                             {[
                                 { id: "google", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
-                                { id: "paypal", name: "Paypal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
+                                { id: "paypal", name: "PayPal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
                                 { id: "apple", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
                             ].map((method) => (
-                                <label key={method.id} className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill "
-                                    style={{ boxShadow: '3px 4px 6.3px 0px #0000001F' }}
-                                >
+                                <label key={method.id} className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill" style={{ boxShadow: "3px 4px 6.3px 0px #0000001F" }}>
                                     <div className="d-flex align-items-center gap-3">
                                         <img src={method.icon} alt={method.name} width={28} />
                                         <span className="fw-medium">{method.name}</span>
@@ -909,7 +980,7 @@ const OpenmatchPayment = (props) => {
                             ))}
                         </div>
                     </div>
-                    <div className="border  px-3 ms-2 pb-3 pt-3 mt-3 mb-5 mb-lg-0 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                    <div className="border px-3 ms-2 pb-3 pt-3 mt-3 mb-5 mb-lg-0 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                         <div className="text-center mb-3">
                             <div className="d-flex justify-content-center">
                                 {logo ? (
@@ -961,9 +1032,10 @@ const OpenmatchPayment = (props) => {
                                                                 {court.courtName}
                                                             </span>
                                                         </div>
-                                                        <div className="d-flex align-items-center gap-2 text-white" >
+                                                        <div className="d-flex align-items-center gap-2 text-white">
                                                             <span style={{ fontWeight: "600", fontFamily: "Poppins" }}>₹ {slotTime.amount || 1000}</span>
-                                                            <MdOutlineDeleteOutline className="text-white"
+                                                            <MdOutlineDeleteOutline
+                                                                className="text-white"
                                                                 style={{ cursor: "pointer" }}
                                                                 onClick={() => handleDeleteSlot(court._id, slotTime._id)}
                                                             />
@@ -984,7 +1056,7 @@ const OpenmatchPayment = (props) => {
                                 </div>
                             )}
                         </div>
-                        <div className="border-top pt-2 mb-0  text-white mt-2 d-flex justify-content-between align-items-center fw-bold">
+                        <div className="border-top pt-2 mb-0 text-white mt-2 d-flex justify-content-between align-items-center fw-bold">
                             <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
                                 Total to pay{" "}
                                 <span style={{ fontSize: "14px", fontWeight: "600" }}>
@@ -1032,7 +1104,7 @@ const OpenmatchPayment = (props) => {
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{matchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}</div>
+                                <div style={contentStyle}>{matchesLoading || bookingLoading || isLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
@@ -1040,19 +1112,36 @@ const OpenmatchPayment = (props) => {
             </div>
 
             {/* Error Modal */}
-            {!errorShow && (
-                <Modal centered show={error} onHide={() => setError(null)}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Error</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>{error}</Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={() => setError(null)}>
-                            Close
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
-            )}
+            <Modal centered show={errorShow} onHide={() => setErrorShow(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Error</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{error}</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setErrorShow(false)}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Success Modal */}
+            <Modal centered show={modal} onHide={() => setModal(false)}>
+                <Modal.Body className="text-center p-4">
+                    <img src={padal} alt="Success" className="img-fluid" style={{ width: "100px" }} />
+                    <h4 className="mt-3" style={{ fontFamily: "Poppins" }}>Booking Successful!</h4>
+                    <p style={{ fontFamily: "Poppins", fontSize: "14px" }}>Your match has been booked successfully.</p>
+                    <Button
+                        variant="primary"
+                        onClick={() => {
+                            setModal(false);
+                            navigate("/open-matches");
+                        }}
+                        style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", border: "none" }}
+                    >
+                        Continue
+                    </Button>
+                </Modal.Body>
+            </Modal>
 
             <NewPlayers
                 activeSlot={activeSlot}
@@ -1061,7 +1150,8 @@ const OpenmatchPayment = (props) => {
                 setActiveSlot={setActiveSlot}
             />
 
-
+            {/* PayPal Button Container */}
+            <div id="paypal-button-container" style={{ display: selectedPayment === "paypal" ? "block" : "none" }}></div>
         </div>
     );
 };

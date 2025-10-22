@@ -25,14 +25,14 @@ export const ReviewCard = ({ review }) => {
 
     return (
         <Card
-            className="p-4 shadow-sm d-flex flex-column justify-content-between"
+            className="p-4 ms-3 me-3 shadow-sm d-flex flex-column  justify-content-between"
             style={{
                 borderRadius: "27px",
                 backgroundColor: "#012FCF26",
                 border: "none",
                 fontFamily: "Poppins",
                 height: "300px",
-                width: "422px",
+                width: "auto",
                 margin: "0"
             }}
         >

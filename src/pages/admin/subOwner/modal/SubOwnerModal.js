@@ -311,7 +311,7 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
             }}
           >
             {authLoading || updateSubOwnerLoading ? (
-              <ButtonLoading size={14} />
+              <ButtonLoading color={'white'} size={12} />
             ) : userData?._id ? (
               "Update User"
             ) : (

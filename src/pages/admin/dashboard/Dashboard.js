@@ -55,7 +55,6 @@ const AdminDashboard = () => {
     if (!num) return "0";
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
-  console.log({dashboardCancelledBookings});
 
   const calculatePercentage = (current, previous) => {
     if (!previous || previous === 0) return "+0.0%";

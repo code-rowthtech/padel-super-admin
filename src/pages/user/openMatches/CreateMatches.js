@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Container, Row, Col, Button, Card, Form, FormCheck, Tabs, Tab, Modal } from "react-bootstrap";
-import DatePicker from "react-datepicker";
 import { useDispatch, useSelector } from "react-redux";
-import { Navigate, NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
@@ -11,7 +10,7 @@ import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { MdOutlineDateRange } from "react-icons/md";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
-import { frame, morningTab, nighttab, sun, twoball } from "../../../assets/files";
+import { frame, morningTab, nighttab, sun } from "../../../assets/files";
 import { Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
 
@@ -110,22 +109,12 @@ const CreateMatches = (props) => {
   };
 
   const scrollRef = useRef(null);
-  const [startIndex, setStartIndex] = useState(0);
-  const visibleDays = 7;
 
   const formatDate = (date) => {
     if (!date || isNaN(date.getTime())) return null;
     return date.toISOString().split("T")[0];
   };
 
-  const scroll = (direction) => {
-    if (direction === "left" && startIndex > 0) {
-      setStartIndex(startIndex - 1);
-    }
-    if (direction === "right" && startIndex < dates.length - visibleDays) {
-      setStartIndex(startIndex + 1);
-    }
-  };
 
   const handleSwitchChange = () => {
     setShowUnavailable(!showUnavailable);
@@ -704,8 +693,7 @@ const CreateMatches = (props) => {
                                               : slot.availabilityStatus !== "available"
                                                 ? "#c9cfcfff"
                                                 : "#FFFFFF",
-                                        color:
-                                          slot.status === "booked" ||
+                                        color: slot.status === "booked" ||
                                             isPastTime(slot.time) ||
                                             isDisabled
                                             ? "#000000"
