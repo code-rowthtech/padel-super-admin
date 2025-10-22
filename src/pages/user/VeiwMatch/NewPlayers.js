@@ -31,27 +31,55 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
     const [error, setError] = useState(null);
     const dispatch = useDispatch();
     const userLoading = useSelector((state) => state?.userAuth);
+    const { finalSkillDetails = [] } = useSelector((state) => state.location?.state || {});
     const [formData, setFormData] = useState({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
+
+    const lavel = [
+        { code: "A", title: "Top Player" },
+        { code: "B1", title: "Experienced Player" },
+        { code: "B2", title: "Advanced Player" },
+        { code: "C1", title: "Confident Player" },
+        { code: "C2", title: "Intermediate Player" },
+        { code: "D1", title: "Amateur Player" },
+        { code: "D2", title: "Novice Player" },
+        { code: "E", title: "Entry Level" },
+    ];
+
+    const levelOptions = lavel.map((item) => {
+        const lastSkillLevel = finalSkillDetails?.slice(-1)[0];
+        const addedPlayers = localStorage.getItem('addedPlayers')
+            ? JSON.parse(localStorage.getItem('addedPlayers'))
+            : {};
+        const existingLevels = Object.values(addedPlayers).map(player => player?.level);
+
+        const isDisabled = item.code === lastSkillLevel || existingLevels.includes(item.code);
+        return {
+            value: item.code,
+            label: (
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <span style={{ color: "#1d4ed8", fontWeight: "600", fontSize: "15px", fontFamily: "Poppins" }}>
+                        {item.code}
+                    </span>
+                    <span style={{ color: "#374151", fontSize: "13px" }}>
+                        {item.title}
+                    </span>
+                </div>
+            ),
+        };
+    });
 
     const handleSubmit = () => {
         const errors = [];
         if (!formData.name) {
             errors.push("Name is required");
-        }
-        else if (!formData.phoneNumber) {
+        } else if (!formData.phoneNumber) {
             errors.push("Phone number must be 10 digits starting with 6, 7, 8, or 9");
-        }
-        else if (!formData.email) {
+        } else if (!formData.email) {
             errors.push("Email is required");
-        }
-        // else if (!formData.gender) {
-        //     errors.push("Gender is required");
-        // }
-        else if (!formData.level) {
+        } else if (!formData.level) {
             errors.push("Select Level Name is required");
         }
-        
-        // Check if same level already exists
+
         const addedPlayers = localStorage.getItem('addedPlayers')
             ? JSON.parse(localStorage.getItem('addedPlayers'))
             : {};
@@ -59,7 +87,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         if (existingLevels.includes(formData.level)) {
             errors.push("A player with this level already exists. Please select a different level.");
         }
-        
+
         if (errors.length > 0) {
             setError(errors.join(", "));
             setErrorShow(true);
@@ -75,7 +103,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                     const addedPlayers = localStorage.getItem('addedPlayers')
                         ? JSON.parse(localStorage.getItem('addedPlayers'))
                         : {};
-                    addedPlayers[activeSlot] = res?.response;
+                    addedPlayers[activeSlot] = { ...res?.response, level: formData.level };
                     localStorage.setItem('addedPlayers', JSON.stringify(addedPlayers));
                     setPhoneNumber('');
                     setName('');
@@ -100,55 +128,6 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
             return () => clearTimeout(timer);
         }
     }, [errorShow]);
-
-    const lavel = [
-        {
-            code: "A",
-            title: "Top Player",
-        },
-        {
-            code: "B1",
-            title: "Experienced Player",
-        },
-        {
-            code: "B2",
-            title: "Advanced Player",
-        },
-        {
-            code: "C1",
-            title: "Confident Player",
-        },
-        {
-            code: "C2",
-            title: "Intermediate Player",
-        },
-        {
-            code: "D1",
-            title: "Amateur Player",
-        },
-        {
-            code: "D2",
-            title: "Novice Player",
-        },
-        {
-            code: "E",
-            title: "Entry Level",
-        },
-    ]
-
-    const levelOptions = lavel.map((item) => ({
-        value: item.code,
-        label: (
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <span style={{ color: "#1d4ed8", fontWeight: "600", fontSize: "15px", fontFamily: "Poppins" }}>
-                    {item.code}
-                </span>
-                <span style={{ color: "#374151", fontSize: "13px" }}>
-                    {item.title}
-                </span>
-            </div>
-        )
-    }));
 
     return (
         <>
@@ -265,7 +244,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                             id={gender}
                                             value={gender}
                                             checked={formData.gender === gender}
-                                            disabled={userLoading?.userSignUpLoading }
+                                            disabled={userLoading?.userSignUpLoading}
                                             onChange={(e) =>
                                                 setFormData((prev) => ({
                                                     ...prev,
@@ -282,7 +261,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                         </div>
                         <div className="mb-3">
                             <label className="form-label">
-                                Select Level  <span className="text-danger">*</span>
+                                Select Level <span className="text-danger">*</span>
                             </label>
                             <Select
                                 options={levelOptions}
@@ -291,6 +270,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                 className="basic-single"
                                 classNamePrefix="select"
                                 style={{ boxShadow: "none" }}
+                                isOptionDisabled={(option) => option.isDisabled}
                             />
                         </div>
                         <div className="d-flex flex-column flex-sm-row justify-content-between gap-2">

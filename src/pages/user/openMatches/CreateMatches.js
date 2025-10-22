@@ -8,8 +8,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineArrowForwardIos, MdOutlineDeleteOutline } from "react-icons/md";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { MdOutlineDateRange } from "react-icons/md";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { frame, morningTab, nighttab, sun } from "../../../assets/files";
 import { Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
@@ -30,9 +30,9 @@ const filterSlotsByTab = (slot, eventKey) => {
   const slotHour = parseTimeToHour(slot?.time);
   if (slotHour === null) return false;
   switch (eventKey) {
-    case 'morning': return slotHour >= 0 && slotHour < 12;
-    case 'noon': return slotHour >= 12 && slotHour < 17;
-    case 'night': return slotHour >= 17 && slotHour <= 23;
+    case "morning": return slotHour >= 0 && slotHour < 12;
+    case "noon": return slotHour >= 12 && slotHour < 17;
+    case "night": return slotHour >= 17 && slotHour <= 23;
     default: return true;
   }
 };
@@ -64,14 +64,14 @@ const CreateMatches = (props) => {
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const userMatches = store?.userMatches;
   const [slotError, setSlotError] = useState("");
-  const [key, setKey] = useState('morning');
+  const [key, setKey] = useState("morning");
   const [showStepsModal, setShowStepsModal] = useState(false);
   const logo = JSON.parse(localStorage.getItem("logo"));
 
   const tabData = [
-    { img: morningTab, label: 'Day', key: 'morning' },
-    { img: sun, label: 'Afternoon', key: 'noon' },
-    { img: nighttab, label: 'Night', key: 'night' },
+    { img: morningTab, label: "Day", key: "morning" },
+    { img: sun, label: "Afternoon", key: "noon" },
+    { img: nighttab, label: "Night", key: "night" },
   ];
 
   const handleClickOutside = (e) => {
@@ -80,7 +80,7 @@ const CreateMatches = (props) => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(getUserClub({ search: "" }));
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -114,7 +114,6 @@ const CreateMatches = (props) => {
     if (!date || isNaN(date.getTime())) return null;
     return date.toISOString().split("T")[0];
   };
-
 
   const handleSwitchChange = () => {
     setShowUnavailable(!showUnavailable);
@@ -254,9 +253,9 @@ const CreateMatches = (props) => {
       });
     });
 
-    let defaultTab = 'morning';
+    let defaultTab = "morning";
     if (counts[0] === 0) {
-      const firstAvailableIndex = counts.findIndex(count => count > 0);
+      const firstAvailableIndex = counts.findIndex((count) => count > 0);
       if (firstAvailableIndex !== -1) {
         defaultTab = tabData[firstAvailableIndex].key;
       }
@@ -275,20 +274,11 @@ const CreateMatches = (props) => {
     },
     {
       question: "Have you received or are you receiving training in padel?",
-      options: [
-        "No",
-        "Yes, in the past",
-        "Yes, currently",
-      ],
+      options: ["No", "Yes, in the past", "Yes, currently"],
     },
     {
       question: "How old are you?",
-      options: [
-        "Between 18 and 30 years",
-        "Between 31 and 40 years",
-        "Between 41 and 50 years",
-        "Over 50",
-      ],
+      options: ["Between 18 and 30 years", "Between 31 and 40 years", "Between 41 and 50 years", "Over 50"],
     },
     {
       question: "On the volley?",
@@ -300,12 +290,22 @@ const CreateMatches = (props) => {
         "I don't know",
       ],
     },
+    {
+      question: "Which Padel Player Are You?",
+      options: [
+        { code: "A", title: "Top Player" },
+        { code: "B1", title: "Experienced Player" },
+        { code: "B2", title: "Advanced Player" },
+        { code: "C1", title: "Confident Player" },
+        { code: "C2", title: "Intermediate Player" },
+        { code: "D1", title: "Amateur Player" },
+        { code: "D2", title: "Novice Player" },
+        { code: "E", title: "Entry Level" },
+      ],
+    },
   ];
 
-  const grandTotal = selectedCourts.reduce(
-    (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
-    0
-  );
+  const grandTotal = selectedCourts.reduce((sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0), 0);
   const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
   const handleBookNow = () => {
@@ -317,6 +317,11 @@ const CreateMatches = (props) => {
   };
 
   const handleNext = () => {
+    if (selectedCourts.length === 0 || selectedCourts.every((court) => court.time.length === 0)) {
+      setSlotError("Please select a time slot to continue with your booking");
+      return;
+    }
+
     if (currentStep === 1) {
       if (selectedLevel.length > 0) {
         setSkillDetails((prev) => {
@@ -401,10 +406,10 @@ const CreateMatches = (props) => {
     const periodPart = periodMatch ? periodMatch[0] : "";
     if (!hourPart.includes(":")) {
       const hour = parseInt(hourPart);
-      hourPart = `${hour.toString().padStart(2, '0')}:00`;
+      hourPart = `${hour.toString().padStart(2, "0")}:00`;
     } else {
-      const [hour, minute] = hourPart.split(':');
-      hourPart = `${parseInt(hour).toString().padStart(2, '0')}:${minute}`;
+      const [hour, minute] = hourPart.split(":");
+      hourPart = `${parseInt(hour).toString().padStart(2, "0")}:${minute}`;
     }
     return `${hourPart} ${periodPart}`;
   };
@@ -485,7 +490,7 @@ const CreateMatches = (props) => {
   const contentStyle = {
     position: "relative",
     zIndex: 2,
-    color: " #001B76",
+    color: "#001B76",
     fontWeight: "600",
     fontSize: `16px`,
     textAlign: "center",
@@ -532,17 +537,14 @@ const CreateMatches = (props) => {
                             setStartDate(date);
                             setIsOpen(false);
                             const formattedDate = date.toISOString().split("T")[0];
-                            const day = date.toLocaleDateString("en-US", {
-                              weekday: "long",
-                            });
+                            const day = date.toLocaleDateString("en-US", { weekday: "long" });
                             setSelectedDate({ fullDate: formattedDate, day: day });
                             setSelectedTimes({});
                             dispatch(
                               getUserSlotBooking({
                                 day: day,
                                 date: formattedDate,
-                                register_club_id:
-                                  localStorage.getItem("register_club_id") || "",
+                                register_club_id: localStorage.getItem("register_club_id") || "",
                               })
                             );
                           }}
@@ -618,7 +620,7 @@ const CreateMatches = (props) => {
                     {tabData.map((tab, index) => (
                       <div
                         key={index}
-                        className={`tab-item ${key === tab.key ? 'active' : ''}`}
+                        className={`tab-item ${key === tab.key ? "active" : ""}`}
                         onClick={() => setKey(tab.key)}
                       >
                         <img className="tab-icon" src={tab.img} alt={tab.label} />
@@ -657,7 +659,7 @@ const CreateMatches = (props) => {
                         if (filteredSlots?.length === 0) return null;
 
                         return (
-                          <div className="col-lg-3  col-6" key={court._id}>
+                          <div className="col-lg-3 col-6" key={court._id}>
                             <div className="court-container p-3">
                               <div className="mb-3 text-center">
                                 <h5 className="all-matches mb-1">{court?.courtName}</h5>
@@ -679,7 +681,7 @@ const CreateMatches = (props) => {
                                   return (
                                     <button
                                       key={i}
-                                      className={`btn rounded-pill ${isSelected ? 'border-0' : ''} slot-time-btn text-center mb-2`}
+                                      className={`btn rounded-pill ${isSelected ? "border-0" : ""} slot-time-btn text-center mb-2`}
                                       onClick={() => toggleTime(slot, court._id)}
                                       disabled={isDisabled}
                                       style={{
@@ -694,18 +696,18 @@ const CreateMatches = (props) => {
                                                 ? "#c9cfcfff"
                                                 : "#FFFFFF",
                                         color: slot.status === "booked" ||
-                                            isPastTime(slot.time) ||
-                                            isDisabled
-                                            ? "#000000"
-                                            : isSelected
-                                              ? "white"
-                                              : "#000000",
+                                          isPastTime(slot.time) ||
+                                          isDisabled
+                                          ? "#000000"
+                                          : isSelected
+                                            ? "white"
+                                            : "#000000",
                                         cursor: isDisabled ? "not-allowed" : "pointer",
                                         opacity: isDisabled ? 0.6 : 1,
-                                        border: isSelected ? '' : "1px solid #4949491A",
+                                        border: isSelected ? "" : "1px solid #4949491A",
                                         transition: "border-color 0.2s ease",
                                         fontSize: "14px",
-                                        padding: "8px 4px"
+                                        padding: "8px 4px",
                                       }}
                                       onMouseEnter={(e) => {
                                         if (
@@ -713,8 +715,7 @@ const CreateMatches = (props) => {
                                           !isPastTime(slot.time) &&
                                           slot.availabilityStatus === "available"
                                         ) {
-                                          e.currentTarget.style.border =
-                                            "1px solid #3DBE64";
+                                          e.currentTarget.style.border = "1px solid #3DBE64";
                                         }
                                       }}
                                       onMouseLeave={(e) => {
@@ -723,8 +724,7 @@ const CreateMatches = (props) => {
                                           !isPastTime(slot.time) &&
                                           slot.availabilityStatus === "available"
                                         ) {
-                                          e.currentTarget.style.border =
-                                            "1px solid #4949491A";
+                                          e.currentTarget.style.border = "1px solid #4949491A";
                                         }
                                       }}
                                     >
@@ -763,16 +763,33 @@ const CreateMatches = (props) => {
 
         {/* RIGHT PANEL - BOOKING SUMMARY (Always Visible) */}
         <Col md={5}>
-          <div className="border w-100 px-3 py-5 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+          <div className="border w-100 px-3 py-5 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
             <div className="text-center mb-3">
               <div className="d-flex justify-content-center">
-                {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>}
+                {logo ? (
+                  <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} />
+                ) : (
+                  <Avatar
+                    alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)}
+                    style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}
+                  >
+                    {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                  </Avatar>
+                )}
               </div>
               <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
             </div>
             <div className="d-flex border-top pt-2 justify-content-between align-items-center">
               <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
-              {totalSlots >= 10 && <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ cursor: "pointer", background: "#111827", fontSize: "10px", fontWeight: "600", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
+              {totalSlots >= 10 && (
+                <Button
+                  className="float-end me-3 btn border-0 shadow rounded-pill"
+                  style={{ cursor: "pointer", background: "#111827", fontSize: "10px", fontWeight: "600", fontFamily: "Poppins" }}
+                  onClick={handleClearAll}
+                >
+                  Clear All
+                </Button>
+              )}
             </div>
             <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
               {selectedCourts.length > 0 ? (
@@ -791,7 +808,11 @@ const CreateMatches = (props) => {
                         </div>
                         <div className="text-white">
                           ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
-                          <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
+                          <MdOutlineDeleteOutline
+                            className="ms-2 mb-2 text-white"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)}
+                          />
                         </div>
                       </div>
                     </div>
@@ -855,9 +876,6 @@ const CreateMatches = (props) => {
               </button>
             </div>
           </div>
-
-
-
         </Col>
       </Row>
 
@@ -869,33 +887,32 @@ const CreateMatches = (props) => {
               <img src={frame} alt="Padel" className="img-fluid w-100" style={{ objectFit: "cover" }} />
             </Col>
             <Col md={6} className="ps-3" style={{ backgroundColor: "#F1F4FF" }}>
+              <div className="d-flex gap-2 ps-4  pt-4">
+                {steps.map((_, index) => (
+                  <div
+                    key={index}
+                    className="me-3"
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      backgroundColor: index <= currentStep ? "#3DBE64" : "#D9D9D9",
+                      color: index <= currentStep ? "#3DBE64" : "#D9D9D9",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      fontFamily: "Poppins",
+                    }}
+                  >
+                    {index + 1}
+                  </div>
+                ))}
+              </div>
               <div className="p-4">
-                {/* Step Circles */}
-                <div className="d-flex justify-content-start mb-4 mt-lg-4">
-                  {steps.map((_, index) => (
-                    <div
-                      key={index}
-                      className="me-3"
-                      style={{
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
-                        backgroundColor: index <= currentStep ? "#3DBE64" : "#D9D9D9",
-                        color: index <= currentStep ? "#3DBE64" : "#D9D9D9",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        fontFamily: "Poppins",
-                      }}
-                    >
-                      {index + 1}
-                    </div>
-                  ))}
-                </div>
-                <h6 className="mb-4 step-heading" style={{ color: "#374151" }}>{steps[currentStep].question}</h6>
-                <Form >
+                <h6 className="mb-4 step-heading">{steps[currentStep].question}</h6>
+                <Form style={{ height: "350px", overflowY: "auto" }}>
                   {currentStep === 1 ? (
                     steps[currentStep].options?.map((option, i) => (
                       <div
@@ -941,6 +958,49 @@ const CreateMatches = (props) => {
                         />
                       </div>
                     ))
+                  ) : currentStep === steps.length - 1 ? (
+                    steps[currentStep].options?.map((option, i) => (
+                      <div
+                        key={i}
+                        onClick={() => setSelectedLevel(option.code)}
+                        className={`d-flex align-items-start mb-3 p-3 rounded shadow-sm border transition-all`}
+                        style={{
+                          backgroundColor: selectedLevel === option.code ? "#eef2ff" : "#fff",
+                          borderColor: selectedLevel === option.code ? "#4f46e5" : "#e5e7eb",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Form.Check
+                          type="radio"
+                          name={`step-${currentStep}`}
+                          id={`option-${currentStep}-${i}`}
+                          value={option.code}
+                          checked={selectedLevel === option.code}
+                          onChange={(e) => setSelectedLevel(e.target.value)}
+                          className="d-flex align-items-center gap-3 custom-radio border-primary"
+                          label={
+                            <div className="d-flex align-items-center gap-3">
+                              <span
+                                style={{
+                                  fontSize: "24px",
+                                  fontWeight: "700",
+                                  color: "#1d4ed8",
+                                  minWidth: "40px",
+                                }}
+                              >
+                                {option.code}
+                              </span>
+                              <span style={{ fontSize: "13px", fontWeight: "400", color: "#374151" }}>
+                                <strong style={{ fontSize: "14px", fontWeight: "600", marginRight: "5px" }}>
+                                  {option.title}:
+                                </strong>
+                                {option.description}
+                              </span>
+                            </div>
+                          }
+                        />
+                      </div>
+                    ))
                   ) : (
                     steps[currentStep].options?.map((option, i) => (
                       <div
@@ -977,40 +1037,53 @@ const CreateMatches = (props) => {
                       </div>
                     ))
                   )}
-                </Form>
-                <div className="d-flex justify-content-end align-items-center mt-3 position-absolute bottom-0 end-0 me-4 mb-4">
-                  {currentStep > 0 && (
-                    <Button
-                      className="rounded-pill px-4 me-2"
+                  {slotError && (
+                    <div
+                      className="text-danger text-start w-100 position-absolute"
                       style={{
-                        backgroundColor: "#374151",
-                        border: "none",
-                        color: "#fff",
+                        fontSize: "16px",
+                        marginBottom: "10px",
+                        fontFamily: "Poppins",
+                        fontWeight: "600",
                       }}
-                      onClick={handleBack}
                     >
-                      Back
-                    </Button>
+                      <p>{slotError}</p>
+                    </div>
                   )}
+                </Form>
+              </div>
+              <div className="d-flex justify-content-end align-items-center p-3">
+                {currentStep > 0 && (
                   <Button
-                    className="rounded-pill px-4"
+                    className="rounded-pill px-4 me-2"
                     style={{
-                      backgroundColor: currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
+                      backgroundColor: "#374151",
                       border: "none",
                       color: "#fff",
                     }}
-                    disabled={!selectedLevel || (currentStep === 1 && selectedLevel.length === 0)}
-                    onClick={handleNext}
+                    onClick={handleBack}
                   >
-                    {userMatches?.matchesLoading ? (
-                      <ButtonLoading />
-                    ) : currentStep === steps.length - 1 ? (
-                      "Submit"
-                    ) : (
-                      "Next"
-                    )}
+                    Back
                   </Button>
-                </div>
+                )}
+                <Button
+                  className="rounded-pill px-4"
+                  style={{
+                    backgroundColor: currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
+                    border: "none",
+                    color: "#fff",
+                  }}
+                  disabled={!selectedLevel || (currentStep === 1 && selectedLevel.length === 0)}
+                  onClick={handleNext}
+                >
+                  {userMatches?.matchesLoading ? (
+                    <ButtonLoading />
+                  ) : currentStep === steps.length - 1 ? (
+                    "Submit"
+                  ) : (
+                    "Next"
+                  )}
+                </Button>
               </div>
             </Col>
           </Row>
