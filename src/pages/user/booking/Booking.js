@@ -60,6 +60,7 @@ const Booking = ({ className = "" }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
     const user = getUserFromSession();
+    console.log({user});
     const [showUnavailable, setShowUnavailable] = useState(false);
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
@@ -251,7 +252,7 @@ const Booking = ({ className = "" }) => {
             setErrorShow(true);
             return;
         }
-        if (!user?.name || !user?.token) {
+        if (!user?.token) {
             const courtIds = selectedCourts.map((court) => court._id).filter((id) => id).join(",");
             navigate("/login", {
                 state: {
