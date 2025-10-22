@@ -30,14 +30,14 @@ const Home = () => {
     const clubData = store?.userClub?.clubData?.data?.courts[0] || []
     const getReviewData = store?.userClub?.getReviewData?.data
     const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
-    
+
     const handleImageLoad = (index) => {
         setLoadedImages((prev) => ({ ...prev, [index]: true }));
     };
-    
+
     const mapSrc = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937950147!2d-73.98731968482413!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes+Square!5e0!3m2!1sen!2sus!4v1510579767645';
 
-    const todayIndex = new Date().getDay(); 
+    const todayIndex = new Date().getDay();
     const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
 
     useEffect(() => {
@@ -131,7 +131,7 @@ const Home = () => {
                             <div
                                 className="position-absolute start-0 w-100 h-100 d-flex flex-column justify-content-center text-white p-5  pb-2 pt-0"
                                 style={{
-                                    background: 'linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.5) 94.62%)',
+                                    background: 'linear-gradient(269.34deg, rgba(158, 153, 153, 0) 0.57%, rgba(17, 24, 39, 0.5) 94.62%)', backgroundBlendMode: 'multiply',
                                     backgroundBlendMode: 'multiply',
                                     top: "-10%"
                                 }}
@@ -144,7 +144,7 @@ const Home = () => {
                 </div>
             </div>
 
-            <div className="container  p-lg-0 rounded-3 home-second-banner" style={{ backgroundColor: "#F5F5F569",  }}>
+            <div className="container  p-lg-0 rounded-3 home-second-banner" style={{ backgroundColor: "#F5F5F569", }}>
                 <div className="row position-relative align-items-stretch">
 
                     {/* Left Column: Club Name, About, Address, and Timings */}
@@ -153,14 +153,14 @@ const Home = () => {
                             style={{ border: "0.3px solid #858080ff", borderRadius: "20px", }}
                         >
                             <div className='col-lg-8 col-12 ' style={{
-                                borderRight: "3px solid transparent",
-                                borderImage: "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #a8b3d6ff 46.63%, rgba(255, 255, 255, 0) 94.23%)",
+                                borderRight: "1px solid transparent",
+                                borderImage: "linear-gradient(180deg,  rgba(255, 255, 255, 0) 0%, #002DC7 46.63%, rgba(255, 255, 255, 0) 94.23%)",
                                 borderImageSlice: 1,
                             }}>
                                 <div className="mb-4 pt-1   d-flex flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-3">
                                     <div className='mb-2 mt-lg-4 mb-lg-0 flex-shrink-0'>
                                         <Avatar>
-                                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "User"}
                                         </Avatar>
                                     </div>
                                     <div className="flex-shrink-0 mt-lg-3">
@@ -184,18 +184,18 @@ const Home = () => {
                                         </div>
                                     </div>
                                     <div
-                                        className="border rounded-4 ms-lg-5 me-1 p-2 px-3 py-3 mt-0 sport-box d-inline-block"
+                                        className="border rounded-4  me-1 p-2  py-3 mt-0 sport-box d-inline-block"
                                         style={{
                                             borderColor: "#e5e7eb",
                                             backgroundColor: "#fff",
-                                            
+
                                         }}
                                     >
                                         <p
                                             className="mb-1"
                                             style={{
-                                                fontSize: "13px",
-                                                fontWeight: "500",
+                                                fontSize: "8.57px",
+                                                fontWeight: "600",
                                                 fontFamily: "Poppins",
                                                 color: "#111827",
                                             }}
@@ -217,11 +217,11 @@ const Home = () => {
                                                     key={idx}
                                                     className="d-flex align-items-center p-0 justify-content-center rounded-pill"
                                                     style={{
-                                                        backgroundColor: selectedSport === idx ? "#e5e7eb" : "transparent",
+                                                        backgroundColor: selectedSport === idx ? "#D9D9D9" : "transparent",
                                                         transition: "0.2s",
                                                         cursor: "pointer",
-                                                        width: "45px",
-                                                        height:"38px"
+                                                        width: "63px",
+                                                        height: "38px"
                                                     }}
                                                     onClick={() => setSelectedSport(idx)}
                                                 >
@@ -229,8 +229,8 @@ const Home = () => {
                                                         src={img.img}
                                                         alt=""
                                                         style={{
-                                                            width: "38px",
-                                                            height: "38px",
+                                                            width: "45px",
+                                                            height: "45px",
                                                             objectFit: "contain",
                                                         }}
                                                     />
@@ -242,7 +242,7 @@ const Home = () => {
                                 </div>
 
                                 <div className="flex-grow-1 pe-lg-5">
-                                    <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4>
+                                    {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
                                     <p className='' style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400" }}>
                                         {clubData?.clubName || "The Good Club"}{clubData?.description}
                                     </p>
@@ -252,11 +252,12 @@ const Home = () => {
                                 </div>
                             </div>
 
-                            <div className=" col-lg-4 col-12 ps-lg-5 ">
+                            <div className=" col-lg-4 col-12 ps-md-3 ">
                                 <div className="pt-4">
                                     <div className="d-flex justify-content-center mb-4">
                                         <strong className='me-2 open-now-time' style={{ fontWeight: "600" }}>
-                                            <LuClock4 size={20} /> Open Now 6:00 AM - 11:00 PM
+                                            {/* <LuClock4 size={20} /> */}
+                                            Open Now {clubData?.businessHours?.[adjustedIndex]?.time}
                                         </strong>
                                     </div>
                                     {clubData?.businessHours?.map((day, idx) => (
@@ -269,9 +270,9 @@ const Home = () => {
                                             <span>{day?.time || (idx === 2 ? "6:00 AM - 11:00 PM" : "6:00 AM - 10:00 PM")}</span>
                                         </div>
                                     ))}
-                                    <p className="mt-3 mb-0 text-center" style={{ fontWeight: "500",fontSize:"13px" ,fontFamily:"Poppins"}}>Time zone (India Standard Time)</p>
+                                    <p className="mt-3 mb-0 text-center" style={{ fontWeight: "500", fontSize: "13px", fontFamily: "Poppins" }}>Time zone (India Standard Time)</p>
                                     <div className='text-center mb-3'>
-                                        <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp" style={{fontSize:"13px",fontFamily:"Poppins"}}>
+                                        <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp" style={{ fontSize: "13px", fontFamily: "Poppins" }}>
                                             Court Book <i className="bi bi-arrow-right"></i>
                                         </Link>
                                     </div>
@@ -340,7 +341,10 @@ const Home = () => {
                                             onError={() => handleImageLoad(index)}
                                             style={{
                                                 display: loadedImages[index] ? 'block' : 'none',
-                                                transition: "transform 0.3s ease"
+                                                transition: "transform 0.3s ease",
+                                                imageRendering: "auto", // Removes any forced image rendering
+                                                filter: "none", // Explicitly removes blur
+                                                objectPosition: "center" // Ensures proper centering
                                             }}
                                             onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
                                             onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
@@ -456,7 +460,7 @@ const Home = () => {
                             }}
                         >
                             {getReviewData?.reviews?.concat(getReviewData?.reviews?.slice(0, 3))?.map((review, index) => (
-                                <div key={index} className="flex-shrink-0 d-lg-block d-none" style={{ width: "33.333%" }}>
+                                <div key={index} className="flex-shrink-0  d-lg-block d-none" style={{ width: "33.333%" }}>
                                     <ReviewCard review={review} />
                                 </div>
                             ))}

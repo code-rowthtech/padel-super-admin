@@ -36,7 +36,7 @@ const AppWrapper = ({ children }) => {
   return (
     <>
       {children}
-      <ToastContainer position="bottom-end" className="p-3" style={{ zIndex: 999 }}>
+      {/* <ToastContainer position="bottom-end" className="p-3" style={{ zIndex: 999 }}>
         <Toast show={open} onClose={handleClose} className="d-inline-block w-100">
           <Collapse in={open}>
             <div>
@@ -61,7 +61,7 @@ const AppWrapper = ({ children }) => {
             </div>
           </Collapse>
         </Toast>
-      </ToastContainer>
+      </ToastContainer> */}
     </>
   );
 };
