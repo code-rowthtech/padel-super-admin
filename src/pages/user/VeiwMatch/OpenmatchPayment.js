@@ -100,6 +100,7 @@ const OpenmatchPayment = (props) => {
     const userData = useSelector((state) => state?.userAuth?.user?.response);
     const matchesLoading = useSelector((state) => state?.userMatchesReducer?.matchesLoading);
     const bookingLoading = useSelector((state) => state?.userBooking?.bookingLoading);
+        const bookingStatus = useSelector((state) => state?.userBooking);
     const navigate = useNavigate();
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || {});
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
@@ -107,6 +108,7 @@ const OpenmatchPayment = (props) => {
         ? JSON.parse(localStorage.getItem("addedPlayers"))
         : {};
     const { slotData = {}, finalSkillDetails = [], selectedDate = {}, selectedCourts = [] } = state || {};
+    console.log({finalSkillDetails});
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
     const slot2Player = addedPlayers.slot2 ? addedPlayers.slot2._id : null;
@@ -549,7 +551,7 @@ const OpenmatchPayment = (props) => {
                         className="p-3 rounded-3 mb-2 "
                         style={{
                             backgroundColor: "#CBD6FF1A",
-                            border: error && Object.values(addedPlayers).filter((player) => player !== undefined).length < 2 ? "1px solid red" : "1px solid #ddd6d6ff",
+                            border: error && Object.values(addedPlayers).filter((player) => player !== undefined).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff",
                         }}
                     >
                         <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: "600" }}>
@@ -614,7 +616,7 @@ const OpenmatchPayment = (props) => {
                                                         )}
                                                     </p>
                                                 </TooltipProvider>
-                                                <span className="badge text-white" style={{ backgroundColor: "#3DBE64" }}>AB</span>
+                                                <span className="badge text-white" style={{ backgroundColor: "#3DBE64" }}>{finalSkillDetails?.slice(-1)}</span>
                                             </div>
                                         );
                                     } else {
@@ -1104,7 +1106,7 @@ const OpenmatchPayment = (props) => {
                                         <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
-                                <div style={contentStyle}>{matchesLoading || bookingLoading || isLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}</div>
+                                <div style={contentStyle}>{matchesLoading || bookingLoading  ? <ButtonLoading color={"#001B76"} /> : "Book Now"}</div>
                             </button>
                         </div>
                     </div>
@@ -1112,7 +1114,7 @@ const OpenmatchPayment = (props) => {
             </div>
 
             {/* Error Modal */}
-            <Modal centered show={errorShow} onHide={() => setErrorShow(false)}>
+            {/* <Modal centered show={errorShow} onHide={() => setErrorShow(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Error</Modal.Title>
                 </Modal.Header>
@@ -1122,7 +1124,7 @@ const OpenmatchPayment = (props) => {
                         Close
                     </Button>
                 </Modal.Footer>
-            </Modal>
+            </Modal> */}
 
             {/* Success Modal */}
             <Modal centered show={modal} onHide={() => setModal(false)}>
