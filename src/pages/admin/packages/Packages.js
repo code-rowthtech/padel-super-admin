@@ -318,161 +318,148 @@ const Packages = () => {
           ) : (
             <Row className="g-3">
               {packages?.length > 0 ? (
-                <>
-                  {packages.map((pkg, index) => (
-                    <Col xs={12} key={pkg?._id}>
-                      <Card
-                        className={`${
-                          selectedPackage === index
-                            ? "border-2 border-primary shadow"
-                            : "shadow-sm"
-                        }`}
-                        style={{
-                          borderRadius: "5px",
-                          backgroundColor: "#F8FAFF",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => setSelectedPackage(index)}
-                      >
-                        <Card.Body className="d-flex justify-content-between align-items-start">
-                          {/* Left Section (Price + Info) */}
-                          <div>
-                            <div
-                              className="fw-bold mb-2"
+                packages.map((pkg, index) => (
+                  <Col xs={12} key={pkg?._id}>
+                    <Card
+                      className={`${
+                        selectedPackage === index
+                          ? "border-2 border-primary shadow"
+                          : "shadow-sm"
+                      }`}
+                      style={{
+                        borderRadius: "8px",
+                        backgroundColor: "#F8FAFF",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setSelectedPackage(index)}
+                    >
+                      <Card.Body className="p-3 d-flex justify-content-between align-items-start">
+                        {/* Left Section (Price + Info) */}
+                        <div>
+                          <div
+                            className="fw-bold mb-1"
+                            style={{
+                              fontSize: "32px",
+                              lineHeight: "1",
+                              color: "#1F41BB",
+                            }}
+                          >
+                            ₹{pkg?.price}
+                          </div>
+                          <h5
+                            className="fw-bold mb-1"
+                            style={{ fontSize: "16px", color: "#0f172a" }}
+                          >
+                            {pkg?.packageName}
+                          </h5>
+                          <p
+                            className="text-muted mb-0"
+                            style={{ fontSize: "14px", lineHeight: "1.4" }}
+                          >
+                            {pkg?.description}
+                          </p>
+                        </div>
+
+                        {/* Right Section (Icons + Details + Toggle) */}
+                        <div className="d-flex flex-column align-items-end">
+                          {/* Icons */}
+                          <div className="d-flex mb-2">
+                            <i
+                              className="bi bi-pencil"
                               style={{
-                                fontSize: "32px",
-                                lineHeight: "1",
+                                fontSize: "18px",
+                                cursor: "pointer",
                                 color: "#1F41BB",
+                                marginRight: "8px",
                               }}
-                            >
-                              ₹{pkg?.price}
-                            </div>
-                            <h5 className="fw-bold mb-1">{pkg?.packageName}</h5>
-                            <p
-                              className="text-muted mb-0"
-                              style={{ fontSize: "14px", lineHeight: "1.4" }}
-                            >
-                              {pkg?.description}
-                            </p>
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditPackage(pkg);
+                              }}
+                            ></i>
+                            <i
+                              className="bi bi-trash text-danger"
+                              style={{ fontSize: "18px", cursor: "pointer" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                confirmDeletePackage(pkg);
+                              }}
+                            ></i>
                           </div>
 
-                          {/* Right Section (Icons + Details + Toggle) */}
-                          <div className="d-flex flex-column align-items-end h-100">
-                            {/* Icons */}
-                            <div className="d-flex mb-3">
-                              <i
-                                className="bi bi-pencil"
+                          {/* Toggle */}
+                          <div className="d-flex align-items-center mb-2">
+                            {pkg?._id === toggleLoadingId &&
+                            updatePackageLoading ? (
+                              <ButtonLoading color="blue" size={10} />
+                            ) : (
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleStatus(pkg);
+                                }}
                                 style={{
-                                  fontSize: "18px",
+                                  position: "relative",
+                                  width: "34px",
+                                  height: "16px",
+                                  borderRadius: "22px",
+                                  backgroundColor: pkg.isActive
+                                    ? "#22c55e"
+                                    : "#e2e8f0",
                                   cursor: "pointer",
-                                  color: "#1F41BB",
+                                  transition: "all 0.3s ease",
                                 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditPackage(pkg);
-                                }}
-                              ></i>
-                              <i
-                                className="bi bi-trash text-danger mx-2"
-                                style={{ fontSize: "18px", cursor: "pointer" }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  confirmDeletePackage(pkg);
-                                }}
-                              ></i>
-                              {/* <div className="ms-3">
-                                {pkg?._id === toggleLoadingId &&
-                                updatePackageLoading ? (
-                                  <ButtonLoading color="blue" size={10} />
-                                ) : (
-                                  <Form.Check
-                                    type="switch"
-                                    checked={pkg?.isActive}
-                                    disabled={toggleLoadingId === pkg?._id}
-                                    onChange={(e) => {
-                                      e.stopPropagation();
-                                      handleToggleStatus(pkg);
-                                    }}
-                                    style={{ "--bs-switch-bg": "#22c55e" }}
-                                  />
-                                )}
-                              </div> */}
-                              <div className="d-flex align-items-center">
-                                {pkg?._id === toggleLoadingId &&
-                                updatePackageLoading ? (
-                                  <ButtonLoading color="blue" size={10} />
-                                ) : (
-                                  <div
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleToggleStatus(pkg);
-                                    }}
-                                    style={{
-                                      position: "relative",
-                                      width: "34px",
-                                      height: "16px",
-                                      borderRadius: "22px",
-                                      backgroundColor: pkg.isActive
-                                        ? "#22c55e"
-                                        : "#e2e8f0",
-                                      cursor: "pointer",
-                                      transition: "all 0.3s ease",
-                                      marginRight: "10px",
-                                      flexShrink: 0,
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        top: "1.4px",
-                                        left: pkg.isActive
-                                          ? "calc(100% - 16px)"
-                                          : "2px",
-                                        width: "13px",
-                                        height: "13px",
-                                        borderRadius: "50%",
-                                        backgroundColor: "#fff",
-                                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                                        transition: "all 0.3s ease",
-                                      }}
-                                    ></div>
-                                  </div>
-                                )}
+                              >
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    top: "1.4px",
+                                    left: pkg.isActive
+                                      ? "calc(100% - 16px)"
+                                      : "2px",
+                                    width: "13px",
+                                    height: "13px",
+                                    borderRadius: "50%",
+                                    backgroundColor: "#fff",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                                    transition: "all 0.3s ease",
+                                  }}
+                                ></div>
                               </div>
-                            </div>
+                            )}
+                          </div>
 
-                            {/* Slots + Validity */}
-                            <div
-                              className="text-end"
-                              style={{ fontSize: "14px", color: "#475569" }}
-                            >
-                              <div>
-                                Slots:{" "}
-                                <strong style={{ color: "#0f172a" }}>
-                                  {pkg?.numberOfSlots} Hrs
-                                </strong>
-                              </div>
-                              <div>
-                                Validity:{" "}
-                                <strong style={{ color: "#0f172a" }}>
-                                  {pkg?.validity
-                                    ? `${pkg?.validity} ${
-                                        pkg?.validity > 1 ? "Days" : "Day"
-                                      }`
-                                    : "N/A"}
-                                </strong>
-                              </div>
+                          {/* Slots + Validity */}
+                          <div
+                            className="text-end"
+                            style={{ fontSize: "12px", color: "#475569" }}
+                          >
+                            <div className="mb-1">
+                              Slots:{" "}
+                              <strong style={{ color: "#0f172a" }}>
+                                {pkg?.numberOfSlots} Hrs
+                              </strong>
+                            </div>
+                            <div>
+                              Validity:{" "}
+                              <strong style={{ color: "#0f172a" }}>
+                                {pkg?.validity
+                                  ? `${pkg?.validity} ${
+                                      pkg?.validity > 1 ? "Days" : "Day"
+                                    }`
+                                  : "N/A"}
+                              </strong>
                             </div>
                           </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))
               ) : (
                 <div
                   className="d-flex text-danger justify-content-center align-items-center w-100"
-                  style={{ height: "20vh" }}
+                  style={{ height: "20vh", fontSize: "16px" }}
                 >
                   No Packages were found
                 </div>

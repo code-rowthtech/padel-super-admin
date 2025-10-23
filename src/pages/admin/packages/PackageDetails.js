@@ -43,6 +43,8 @@ const PackageDetails = () => {
   };
 
   // Validate form fields
+  // Inside PackageDetails component
+
   // Validate form fields
   const validateForm = () => {
     const newErrors = {};
@@ -64,12 +66,43 @@ const PackageDetails = () => {
     trimAndCheck("price", "Please enter price");
     if (formData.price && isNaN(Number(formData.price))) {
       newErrors.price = "Price must be a number";
+    } else if (formData.price && Number(formData.price) > 10000) {
+      newErrors.price = "Price cannot exceed 10,000";
     }
 
     trimAndCheck("description", "Please enter description");
 
     return newErrors;
   };
+
+  // Restrict input to numbers and enforce max length for price
+  function numbersOnly(e) {
+    const allowedKeys = [
+      "Backspace",
+      "Tab",
+      "ArrowLeft",
+      "ArrowRight",
+      "Delete", // control keys
+    ];
+
+    // Block everything except digits and allowed control keys
+    if (
+      !allowedKeys.includes(e.key) &&
+      !/^\d$/.test(e.key) // allow only 0–9 digits
+    ) {
+      e.preventDefault();
+      return;
+    }
+
+    // Prevent typing if the resulting value would exceed 10000
+    const input = e.target;
+    const currentValue = input.value;
+    const newValue = currentValue + e.key;
+
+    if (input.name === "price" && Number(newValue) > 10000) {
+      e.preventDefault();
+    }
+  }
 
   // Reset form to initial state
   const resetForm = () => {
@@ -347,7 +380,7 @@ const PackageDetails = () => {
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <ButtonLoading size={15} />
+                <ButtonLoading size={15} color={'white'} />
               ) : state?._id ? (
                 "Update"
               ) : (

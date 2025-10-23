@@ -197,7 +197,7 @@ const AdminDashboard = () => {
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      chartData[monthIndex].Booking = (chartData[monthIndex].Booking || 0) + (item.totalBookings || 0); // Ensure updates to 11
+      chartData[monthIndex].Booking = (chartData[monthIndex].Booking || 0) + (item.totalBookings || 0); 
       chartData[monthIndex].totalAmount = (chartData[monthIndex].totalAmount || 0) + (item.totalAmount || 0);
       chartData[monthIndex].year = item.year || 2025;
     }
@@ -310,7 +310,7 @@ const AdminDashboard = () => {
                       <YAxis
                         type="number"
                         domain={[0, 50]}
-                        ticks={[0, 10, 20, 30, 40, 50]}
+                        ticks={[0, 20, 40, 60, 80, 100,120,140,160,180,200]}
                         allowDecimals={false}
                         tickLine={false}
                         axisLine={{ stroke: "#e5e7eb" }}
