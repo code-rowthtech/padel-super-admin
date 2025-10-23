@@ -70,7 +70,7 @@ export const deletePackage = createAsyncThunk(
   "club/deletePackage",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.delete(Url.DELETE_PACKAGE, { data });
+      const res = await ownerApi.delete(Url.DELETE_PACKAGE,  data );
       if (res?.status === 200) {
         showSuccess(res?.data?.message);
         return res?.data;

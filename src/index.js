@@ -8,8 +8,6 @@ import store from './redux/store';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import "react-datepicker/dist/react-datepicker.css";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
