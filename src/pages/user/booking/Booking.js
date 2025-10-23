@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { morningTab, nighttab, sun, twoball } from "../../../assets/files";
+import { morningTab, nighttab, sun, tennis2, twoball } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
@@ -60,7 +60,7 @@ const Booking = ({ className = "" }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
     const user = getUserFromSession();
-    console.log({user});
+    console.log({ user });
     const [showUnavailable, setShowUnavailable] = useState(false);
     const wrapperRef = useRef(null);
     const navigate = useNavigate();
@@ -75,7 +75,7 @@ const Booking = ({ className = "" }) => {
 
     const dateRefs = useRef({});
     const [key, setKey] = useState('morning');
-
+    const [key2, setKey2] = useState('padel');
     const [expireModal, setExpireModal] = useState(false);
     const [selectedTimes, setSelectedTimes] = useState({});
     const [selectedBuisness, setSelectedBuisness] = useState([]);
@@ -344,6 +344,11 @@ const Booking = ({ className = "" }) => {
         { img: sun, label: 'Afternoon', key: 'noon' },
         { img: nighttab, label: 'Night', key: 'night' },
     ];
+    const padelOption = [
+        { img: tennis2, label: 'Padel', key: 'padel' },
+        { img: tennis2, label: 'Tannis', key: 'tannis' },
+        { img: tennis2, label: 'Pickleball', key: 'pickleball' },
+    ]
 
     useEffect(() => {
         const counts = [0, 0, 0];
@@ -500,8 +505,8 @@ const Booking = ({ className = "" }) => {
                         </div>
 
                         {/* Global Tabs above courts */}
-                        <div className="row mb-2 mx-auto">
-                            <div className="col-12 d-flex justify-content-center align-items-center">
+                        <div className="row mb-2 mx-xs-auto">
+                            <div className="col-12 d-flex p-0 justify-content-center align-items-center">
                                 <div className="weather-tabs-wrapper w-100">
                                     <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
                                         {tabData.map((tab, index) => (
@@ -518,7 +523,34 @@ const Booking = ({ className = "" }) => {
                                     {/* Labels below tabs */}
                                     <div className="tab-labels d-flex justify-content-between">
                                         {tabData.map((tab, index) => (
-                                            <p key={index} className="tab-label">
+                                            <p key={index} className="tab-label text-muted">
+                                                {tab.label}
+                                            </p>
+                                        ))}
+                                    </div>
+                                </div>
+
+
+                            </div>
+                            <h1 className="text-start custom-heading-use">Choose an activity</h1>
+                            <div className="col-12 p-0  d-flex justify-content-center align-items-center">
+                                <div className="weather-tabs-wrapper text-start w-100">
+                                    <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
+                                        {padelOption.map((tab, index) => (
+                                            <div
+                                                key={index}
+                                                className={`tab-item ${key2 === tab.key ? 'active' : ''}`}
+                                                onClick={() => setKey2(tab.key)}
+                                            >
+                                                <img className="tab-icon-option" src={tab.img} alt={tab.label} />
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Labels below tabs */}
+                                    <div className="tab-labels d-flex justify-content-between">
+                                        {padelOption.map((tab, index) => (
+                                            <p key={index} className="tab-label text-muted">
                                                 {tab.label}
                                             </p>
                                         ))}
@@ -534,7 +566,7 @@ const Booking = ({ className = "" }) => {
                                     <DataLoading height={"50vh"} />
                                 ) : (
                                     <>
-                                        <div className="row g-3">
+                                        <div className="row g-3 p-0">
                                             {slotData?.data.map((court) => {
                                                 const baseFilteredSlots = court?.slots?.filter((slot) =>
                                                     showUnavailable
@@ -549,10 +581,11 @@ const Booking = ({ className = "" }) => {
                                                 if (filteredSlots?.length === 0) return null;
 
                                                 return (
-                                                    <div className="col-lg-3 col-6" key={court._id}>
+                                                    <div className="col-lg-3  col-6" key={court._id}>
                                                         <div className="court-container p-3" >
                                                             <div className="mb-3 text-center">
                                                                 <h5 className="all-matches mb-1">{court?.courtName}</h5>
+                                                                <p className="text-muted" style={{ fontFamily: "Poppins", fontWeight: "400", fontSize: "12px" }}>({court?.register_club_id?.courtType})</p>
                                                             </div>
 
                                                             <div className="slots-grid d-flex flex-column align-items-center">
@@ -598,7 +631,7 @@ const Booking = ({ className = "" }) => {
                                                 filterSlotsByTab(slot, key)
                                             )
                                         ) && (
-                                                <div className="d-flex justify-content-center align-items-center h-100 py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
+                                                <div className="d-flex justify-content-center align-items-center h-100 py-5 mt-5 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
                                                     No Available Slot
                                                 </div>
                                             )}
