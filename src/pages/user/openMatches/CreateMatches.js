@@ -13,6 +13,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { frame, morningTab, nighttab, sun } from "../../../assets/files";
 import { Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
+import { IoArrowBackOutline, IoArrowForwardOutline } from "react-icons/io5";
 
 // Function to parse time string to hour for tab categorization
 const parseTimeToHour = (timeStr) => {
@@ -760,10 +761,9 @@ const CreateMatches = (props) => {
             </div>
           </div>
         </Col>
-
         {/* RIGHT PANEL - BOOKING SUMMARY (Always Visible) */}
         <Col md={5}>
-          <div className="border w-100 px-3 py-5 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+          <div className="border w-100 px-3 py-5 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", }}>
             <div className="text-center mb-3">
               <div className="d-flex justify-content-center">
                 {logo ? (
@@ -882,11 +882,11 @@ const CreateMatches = (props) => {
       {/* Steps Popup Modal */}
       <Modal show={showStepsModal} onHide={() => setShowStepsModal(false)} className="border-0" size="xl" centered>
         <Modal.Body className="p-0 border rounded-3">
-          <Row className="g-0">
-            <Col md={6} className="d-flex align-items-center justify-content-center p-0">
+          <Row className="g-0 mx-auto">
+            <Col md={6} className="d-flex d-none d-lg-block align-items-center justify-content-center p-0">
               <img src={frame} alt="Padel" className="img-fluid w-100" style={{ objectFit: "cover" }} />
             </Col>
-            <Col md={6} className="ps-3" style={{ backgroundColor: "#F1F4FF" }}>
+            <Col md={6} className="ps-lg-3 " style={{ backgroundColor: "#F1F4FF" }}>
               <div className="d-flex gap-2 ps-4  pt-4">
                 {steps.map((_, index) => (
                   <div
@@ -1052,24 +1052,40 @@ const CreateMatches = (props) => {
                   )}
                 </Form>
               </div>
-              <div className="d-flex justify-content-end align-items-center p-3">
+              <div className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"} align-items-center p-3`}>
+
+                {/* Back Button */}
                 {currentStep > 0 && (
                   <Button
                     className="rounded-pill px-4 me-2"
                     style={{
-                      backgroundColor: "#374151",
+                      backgroundColor: window.innerWidth < 768 ? "transparent" : "#374151",
                       border: "none",
-                      color: "#fff",
+                      color: window.innerWidth < 768 ? "#001B76" : "#fff", // black text on mobile
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
                     onClick={handleBack}
                   >
-                    Back
+                    {window.innerWidth < 768 ? <>
+                      <IoArrowBackOutline size={18} />
+                      Back
+                    </> : "Back"}
                   </Button>
                 )}
+
+                {/* Next / Submit Button */}
                 <Button
-                  className="rounded-pill px-4"
+                  className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1
+                    ? "p-3 rounded-circle d-flex align-items-center justify-content-center"
+                    : "rounded-pill"
+                    }`}
                   style={{
-                    backgroundColor: currentStep === steps.length - 1 ? "#3DBE64" : "#10b981",
+                    background:
+                      currentStep === steps.length - 1
+                        ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                        : "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                     border: "none",
                     color: "#fff",
                   }}
@@ -1080,10 +1096,13 @@ const CreateMatches = (props) => {
                     <ButtonLoading />
                   ) : currentStep === steps.length - 1 ? (
                     "Submit"
+                  ) : window.innerWidth < 768 ? (
+                    <IoArrowForwardOutline size={22} />
                   ) : (
                     "Next"
                   )}
                 </Button>
+
               </div>
             </Col>
           </Row>

@@ -11,7 +11,7 @@ import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/ap
 import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
 import { IoIosLogOut } from 'react-icons/io';
 import { PiRanking } from "react-icons/pi";
-import { getUserProfile } from '../../../redux/user/auth/authThunk';
+import { getLogo, getUserProfile } from '../../../redux/user/auth/authThunk';
 
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -68,6 +68,15 @@ const Navbar = () => {
             dispatch(getUserProfile())
         }
     }, [User?.token])
+    
+    useEffect(() => {
+        const ownerId = localStorage.getItem('owner_id') || clubData?.ownerId;
+        if (ownerId) {
+            dispatch(getLogo(ownerId));
+        }
+    }, []);
+
+
 
     return (
         <nav className="navbar navbar-expand-lg bg-white py-2">

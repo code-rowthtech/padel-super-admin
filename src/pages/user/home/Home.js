@@ -241,7 +241,7 @@ const Home = () => {
 
                                 </div>
 
-                                <div className="flex-grow-1 pe-lg-5">
+                                <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
                                     {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
                                     <p className='' style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400" }}>
                                         {clubData?.clubName || "The Good Club"}{clubData?.description}
@@ -260,7 +260,7 @@ const Home = () => {
                                             Open Now {clubData?.businessHours?.[adjustedIndex]?.time}
                                         </strong>
                                     </div>
-                                    {clubData?.businessHours?.map((day, idx) => (
+                                    {clubData?.businessHours?.length < 0 ? <div className='text-center py-5' style={{ fontFamily: "Poppins" }}>No Timing</div> : clubData?.businessHours?.map((day, idx) => (
                                         <div
                                             key={idx}
                                             className={`d-flex justify-content-between open-now-time mb-3`}
@@ -271,7 +271,7 @@ const Home = () => {
                                         </div>
                                     ))}
                                     <p className="mt-3 mb-0 text-center" style={{ fontWeight: "500", fontSize: "13px", fontFamily: "Poppins" }}>Time zone (India Standard Time)</p>
-                                    <div className='text-center mb-3'>
+                                    <div className='text-center mb-2'>
                                         <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp" style={{ fontSize: "13px", fontFamily: "Poppins" }}>
                                             Court Book <i className="bi bi-arrow-right"></i>
                                         </Link>
@@ -295,7 +295,7 @@ const Home = () => {
                                         Join open matches happening <br />around you right now.
                                     </p>
                                 </div>
-                                <div className='text-start'>
+                                <div className='text-start mb-3'>
                                     <Link to="/open-matches" className="text-decoration-none bg-white rounded-pill px-4 py-2 custom-title d-inline-flex align-items-center"
                                         style={{ color: "#2043BA", fontWeight: "500", fontSize: "19px", minWidth: "120px", justifyContent: "center" }}>
                                         View all <FaArrowRight className='ms-2' />
