@@ -131,7 +131,6 @@ const Profile = () => {
   const handleCancel = () => {
     navigate("/");
   };
-
   return (
     <div className="container py-lg-4 mb-5 mt-lg-5 px-3 px-md-5" style={{ borderRadius: "12px" }}>
       <div

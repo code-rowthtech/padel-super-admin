@@ -149,7 +149,6 @@ const PackageDetails = () => {
       "ArrowRight",
       "Delete", // control keys
     ];
-    // Block everything except digits and allowed control keys
     if (
       !allowedKeys.includes(e.key) &&
       !/^\d$/.test(e.key) // allow only 0–9 digits

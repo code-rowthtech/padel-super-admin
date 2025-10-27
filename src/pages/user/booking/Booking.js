@@ -532,7 +532,7 @@ const Booking = ({ className = "" }) => {
 
 
                             </div>
-                            <h1 className="text-start custom-heading-use">Choose an activity</h1>
+                            {/* <h1 className="text-start custom-heading-use">Choose an activity</h1>
                             <div className="col-12 p-0  d-flex justify-content-center align-items-center">
                                 <div className="weather-tabs-wrapper text-start w-100">
                                     <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
@@ -547,7 +547,6 @@ const Booking = ({ className = "" }) => {
                                         ))}
                                     </div>
 
-                                    {/* Labels below tabs */}
                                     <div className="tab-labels d-flex justify-content-between">
                                         {padelOption.map((tab, index) => (
                                             <p key={index} className="tab-label text-muted">
@@ -558,7 +557,7 @@ const Booking = ({ className = "" }) => {
                                 </div>
 
 
-                            </div>
+                            </div> */}
                         </div>
                         <div className={`mb-3 overflow-slot rounded-3 ${slotData?.data?.some(court => court?.slots?.filter(slot => showUnavailable ? true : slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time) && slot.amount > 0).filter(slot => filterSlotsByTab(slot, key)).length > 0) ? 'border' : ''}`}>
                             {slotData?.data?.length > 0 ? (
