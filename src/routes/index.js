@@ -212,10 +212,10 @@ const AllRoutes = () => {
           path: "login",
           element: LoadComponent(AdminLogin),
         },
-        // {
-        //   path: "sign-up",
-        //   element: LoadComponent(SignUpPage),
-        // },
+        {
+          path: "sign-up",
+          element: LoadComponent(SignUpPage),
+        },
         {
           path: "forgot-password",
           element: LoadComponent(ForgotPassword),
