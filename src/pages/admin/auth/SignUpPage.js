@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Row, Col, Form, Button, InputGroup, Alert } from "react-bootstrap";
+import { Row, Col, Form, Button, InputGroup } from "react-bootstrap";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { authImg } from "../../../assets/files";
 import { Link, useNavigate } from "react-router-dom";
@@ -27,6 +27,7 @@ const SignUpPage = () => {
 
   const capitalizeFirst = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
   const validate = () => {
     const newErrors = {};
     const name = form.name.trim();
@@ -37,14 +38,17 @@ const SignUpPage = () => {
 
     if (!form.phoneNumber)
       newErrors.phoneNumber = "Please enter your phone number";
-    else if (!/^\d{10}$/.test(form.phoneNumber))
-      newErrors.phoneNumber = "Enter a valid 10-digit phone number";
+    else if (!/^\+91 [6-9]\d{9}$/.test(form.phoneNumber))
+      newErrors.phoneNumber = "Enter a valid 10-digit phone number starting with 6-9";
+
     if (!form.email.trim()) newErrors.email = "Please enter your email";
     else if (!/^\S+@\S+\.\S+$/.test(form.email))
       newErrors.email = "Enter a valid email";
+
     if (!form.password) newErrors.password = "Please create your password";
     else if (form.password.length < 6)
       newErrors.password = "Password must be at least 6 characters";
+
     if (!form.confirmPassword)
       newErrors.confirmPassword = "Please confirm your password";
     else if (form.password !== form.confirmPassword)
@@ -55,15 +59,10 @@ const SignUpPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     let val = value;
 
     if (name === "name") {
       val = capitalizeFirst(val.replace(/[^\p{L}\p{N} ]+/gu, ""));
-    }
-
-    if (name === "phoneNumber") {
-      val = val.replace(/\D/g, "").slice(0, 10);
     }
 
     setForm((prev) => ({
@@ -80,6 +79,38 @@ const SignUpPage = () => {
     }
   };
 
+  const handlePhoneChange = (e) => {
+    let input = e.target.value.replace(/[^0-9]/g, ""); // Only digits
+
+    if (input.length === 0) {
+      setForm(prev => ({ ...prev, phoneNumber: "" }));
+      return;
+    }
+
+    // First digit must be 6-9
+    if (!/^[6-9]/.test(input)) {
+      return; // Ignore if first digit is not 6-9
+    }
+
+    // Limit to 10 digits
+    if (input.length > 10) {
+      input = input.slice(0, 10);
+    }
+
+    setForm(prev => ({
+      ...prev,
+      phoneNumber: `+91 ${input}`,
+    }));
+
+    if (errors.phoneNumber) {
+      setErrors(prev => {
+        const copy = { ...prev };
+        delete copy.phoneNumber;
+        return copy;
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -89,7 +120,7 @@ const SignUpPage = () => {
       try {
         const payload = {
           name: form.name,
-          phoneNumber: form.phoneNumber,
+          phoneNumber: form.phoneNumber.replace('+91 ', ''),
           email: form.email,
           password: form.password,
         };
@@ -97,7 +128,6 @@ const SignUpPage = () => {
         navigate("/admin/login");
       } catch (err) {
         setErrors({ api: err || "Signup failed. Try again." });
-      } finally {
       }
     }
   };
@@ -105,7 +135,7 @@ const SignUpPage = () => {
   return (
     <Layout>
       <div className="w-50">
-        <h2 className=" mb-1" style={{
+        <h2 className="mb-1" style={{
           fontFamily: "Poppins",
           fontWeight: 500,
           fontSize: "34px",
@@ -116,8 +146,11 @@ const SignUpPage = () => {
           fontSize: "14px",
           paddingTop: "12px",
         }}>Please enter your details to sign up.</p>
+
         <Form onSubmit={handleSubmit} noValidate className="small">
-          <span className="p-1 text-danger small">{errors.api}</span>
+          <span className="p-1 text-danger small d-block">{errors.api}</span>
+
+          {/* Name */}
           <Form.Group controlId="name" className="mb-2">
             <Form.Label>Name</Form.Label>
             <Form.Control
@@ -139,27 +172,32 @@ const SignUpPage = () => {
             </Form.Control.Feedback>
           </Form.Group>
 
+          {/* Phone Number */}
           <Form.Group controlId="phoneNumber" className="mb-2">
             <Form.Label>Phone Number</Form.Label>
             <Form.Control
               type="text"
-              name="phoneNumber"
               placeholder="Enter 10-digit phone number"
-              value={form.phoneNumber}
+              value={form.phoneNumber.replace('+91 ', '')}
               disabled={authLoading}
-              onChange={handleChange}
+              onChange={handlePhoneChange}
               isInvalid={!!errors.phoneNumber}
               style={{
                 paddingRight: "40px",
                 borderRadius: "8px",
                 height: "50px",
               }}
+              maxLength={10}
+              autoComplete="tel"
+              inputMode="numeric"
             />
+          
             <Form.Control.Feedback type="invalid">
               {errors.phoneNumber}
             </Form.Control.Feedback>
           </Form.Group>
 
+          {/* Email */}
           <Form.Group controlId="email" className="mb-2">
             <Form.Label>Email</Form.Label>
             <Form.Control
@@ -181,6 +219,7 @@ const SignUpPage = () => {
             </Form.Control.Feedback>
           </Form.Group>
 
+          {/* Password */}
           <Form.Group controlId="password" className="mb-2">
             <Form.Label>Password</Form.Label>
             <InputGroup>
@@ -212,6 +251,7 @@ const SignUpPage = () => {
             </InputGroup>
           </Form.Group>
 
+          {/* Confirm Password */}
           <Form.Group controlId="confirmPassword" className="mb-3">
             <Form.Label>Confirm Password</Form.Label>
             <InputGroup>
@@ -242,6 +282,8 @@ const SignUpPage = () => {
               </Form.Control.Feedback>
             </InputGroup>
           </Form.Group>
+
+          {/* Submit Button */}
           <Button
             type="submit"
             disabled={authLoading}
