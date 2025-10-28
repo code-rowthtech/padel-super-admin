@@ -53,9 +53,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
     dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
       if (res?.status === '200') {
         if (tableData?.booking?.bookingStatus === 'upcoming' && activeTab === 'upcoming') {
-          dispatch(getBooking({ type: 'upcoming' }))
+          dispatch(getBooking({ type: 'upcoming' ,page: 1,limit:10}))
         } else {
-          dispatch(getBooking())
+          dispatch(getBooking({page: 1,limit:10}))
         }
         setShowSuccessModal(false);
       }
@@ -68,9 +68,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
       handleClose();
     }
     if (!activeTab === 'all' && User?.token) {
-      dispatch(getBooking({ type: activeTab }));
+      dispatch(getBooking({ type: activeTab,page: 1,limit:10 }));
     } else if (User?.token) {
-      dispatch(getBooking());
+      dispatch(getBooking({page: 1,limit:10}));
     }
   }, [bookingStatusData?.bookingStatusData?.status, bookingStatusData?.bookingStatusData?.message])
 

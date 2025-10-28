@@ -96,7 +96,7 @@ const BookingHistory = () => {
         else if (activeTab === "upcoming") type = "upcoming";
         else if (activeTab === "completed") type = "completed";
         else if (activeTab === "all") type = "all";
-        dispatch(getBooking({ type }));
+        dispatch(getBooking({ type,page: 1,limit:10 }));
     };
 
     const handleClearDate = () => setSearchDate(null);
@@ -292,7 +292,7 @@ const BookingHistory = () => {
                 </Col>
             </Row>
 
-            <Row>
+            <Row className="mb-4">
                 <Col md={12}>
                     <div className="custom-scroll-container">
                         <Table borderless responsive size="sm" className="booking-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>
