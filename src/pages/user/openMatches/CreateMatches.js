@@ -409,7 +409,7 @@ const CreateMatches = () => {
     <Container className="p-4 mb-5">
       <Row>
         {/* LEFT PANEL */}
-        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566", border: slotError ? "1px solid red" : "none" }}>
+        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566"}}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -536,7 +536,7 @@ const CreateMatches = () => {
             </div>
 
             {/* Slots */}
-            <div className="mb-3 overflow-slot rounded-3 border">
+            <div className="mb-3 overflow-slot rounded-3 " style={{border: slotError ? "1px solid red" : "1px solid #c2babaff" }}>
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
                   <DataLoading height={"50vh"} />
