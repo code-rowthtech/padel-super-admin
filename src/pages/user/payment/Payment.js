@@ -9,22 +9,7 @@ import { Button, Modal } from "react-bootstrap";
 import { success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 
-// Load Razorpay Checkout
-const loadRazorpay = (callback) => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => {
-        console.log("Razorpay SDK loaded successfully");
-        callback();
-    };
-    script.onerror = () => {
-        console.error("Failed to load Razorpay SDK");
-        alert("Failed to load Razorpay SDK. Please try again.");
-    };
-    document.body.appendChild(script);
-};
-
-// Load PayPal SDK
+// Load PayPal SDK (kept if needed later)
 const loadPayPal = (callback) => {
     const script = document.createElement("script");
     script.src = "https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID";
@@ -103,6 +88,7 @@ const Payment = ({ className = "" }) => {
         return () => clearTimeout(timer);
     }, [errors]);
 
+    // PayPal integration (optional, kept but not triggered unless selected)
     useEffect(() => {
         if (selectedPayment === "Paypal" && !paypalLoaded) {
             loadPayPal((paypal) => {
@@ -142,38 +128,23 @@ const Payment = ({ className = "" }) => {
                             };
                             try {
                                 if (!user?.name || !user?.phoneNumber) {
-                                    console.log("User not logged in, calling loginUserNumber...");
                                     const loginResponse = await dispatch(loginUserNumber({ phoneNumber: phoneNumber.replace(/^\+91\s/, ""), name, email })).unwrap();
-                                    if (loginResponse?.status !== "200") {
-                                        throw new Error("User login failed. Please try again.");
-                                    }
-                                    console.log("loginUserNumber successful:", loginResponse);
+                                    if (loginResponse?.status !== "200") throw new Error("Login failed");
                                 }
-                                console.log("Creating booking for PayPal...", { payload });
                                 const bookingResponse = await dispatch(createBooking(payload)).unwrap();
-                                console.log("PayPal booking response:", bookingResponse);
                                 if (bookingResponse?.success) {
                                     setPaymentConfirmed(true);
                                     setModal(true);
-                                    console.log("🎉 Modal opened after PayPal payment");
                                     setLocalSelectedCourts([]);
                                 } else {
-                                    throw new Error(bookingResponse?.message || "Booking creation failed.");
+                                    throw new Error(bookingResponse?.message);
                                 }
                             } catch (err) {
-                                console.error("PayPal payment process error:", err);
-                                setErrors((prev) => ({
-                                    ...prev,
-                                    general: err.message || "PayPal payment failed. Please try again.",
-                                }));
+                                setErrors((prev) => ({ ...prev, general: err.message }));
                             }
                         },
                         onError: (err) => {
-                            console.error("PayPal payment failed:", err);
-                            setErrors((prev) => ({
-                                ...prev,
-                                general: "PayPal payment failed. Please try again.",
-                            }));
+                            setErrors((prev) => ({ ...prev, general: "PayPal payment failed." }));
                         },
                     }).render("#paypal-button-container");
                 }
@@ -183,10 +154,7 @@ const Payment = ({ className = "" }) => {
 
     const handleDeleteSlot = (courtIndex, slotIndex) => {
         const removedSlotId = localSelectedCourts[courtIndex]?.time[slotIndex]?._id;
-        if (!removedSlotId) {
-            console.error("Removed slot ID is undefined");
-            return;
-        }
+        if (!removedSlotId) return;
 
         setLocalSelectedCourts((prev) => {
             let updated = [...prev];
@@ -200,6 +168,7 @@ const Payment = ({ className = "" }) => {
         });
     };
 
+    // MAIN PAYMENT HANDLER - ONLY API CALL, NO RAZORPAY
     const handlePayment = async () => {
         const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "") || "";
         const newErrors = {
@@ -207,7 +176,7 @@ const Payment = ({ className = "" }) => {
             phoneNumber: !rawPhoneNumber
                 ? "Phone number is required"
                 : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
-                    ? "Phone number must be 10 digits starting with 6, 7, 8, or 9"
+                    ? "Phone number must be 10 digits starting with 6-9"
                     : "",
             email: !email ? "Email is required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
                 ? "Invalid email format"
@@ -227,14 +196,11 @@ const Payment = ({ className = "" }) => {
             const register_club_id = localStorage.getItem("register_club_id");
             const owner_id = localStorage.getItem("owner_id");
             if (!register_club_id || !owner_id) {
-                throw new Error("Club information is missing. Please select a club first.");
+                throw new Error("Club information is missing.");
             }
 
             const slotArray = localSelectedCourts.flatMap((court) => {
-                if (!court.time || court.time.length === 0) {
-                    console.warn("Court has no time slots:", court);
-                    return [];
-                }
+                if (!court.time || court.time.length === 0) return [];
                 return {
                     slotId: court.time[0]?._id || null,
                     businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
@@ -249,10 +215,10 @@ const Payment = ({ className = "" }) => {
                     courtId: court?._id,
                     bookingDate: court?.date,
                 };
-            }).filter(slot => slot.slotId !== null); // Filter out invalid slots
+            }).filter(slot => slot.slotId !== null);
 
             if (slotArray.length === 0) {
-                throw new Error("No valid slots selected for booking.");
+                throw new Error("No valid slots selected.");
             }
 
             const basePayload = {
@@ -267,107 +233,33 @@ const Payment = ({ className = "" }) => {
                 paymentMethod: selectedPayment,
             };
 
-            console.log("Step 1: Initiating payment process...", { basePayload });
-            let bookingResponse;
-
-            // Step 1: Call loginUserNumber if user.name or user.phoneNumber is missing
+            // Step 1: Login if needed
             if (!user?.name || !user?.phoneNumber) {
-                console.log("User not logged in, calling loginUserNumber...");
                 const loginResponse = await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
                 if (loginResponse?.status !== "200") {
-                    throw new Error(loginResponse?.message || "User login failed. Please try again.");
+                    throw new Error(loginResponse?.message || "Login failed.");
                 }
-                console.log("loginUserNumber successful:", loginResponse);
             }
 
-            // Step 2: Call createBooking
-            console.log("Step 2: Creating booking...");
-            bookingResponse = await dispatch(createBooking(basePayload)).unwrap();
-            console.log("Step 2: Booking response:", bookingResponse);
+            // Step 2: Create Booking via API (NO PAYMENT)
+            const bookingResponse = await dispatch(createBooking(basePayload)).unwrap();
+
             if (!bookingResponse?.success) {
-                throw new Error(bookingResponse?.message || "Booking creation failed. Please try again.");
+                throw new Error(bookingResponse?.message || "Booking failed.");
             }
-            console.log("Step 2: Booking created successfully:", bookingResponse);
 
-            // Step 3: Proceed based on payment method
-            if (selectedPayment === "Gpay") {
-                console.log("Step 3: Booking confirmed, opening Razorpay...");
-                loadRazorpay(() => {
-                    if (!window.Razorpay) {
-                        console.error("❌ Razorpay SDK not available");
-                        setErrors((prev) => ({
-                            ...prev,
-                            general: "Payment gateway not available. Please try again.",
-                        }));
-                        setIsLoading(false);
-                        return;
-                    }
-                    const options = {
-                        key: "rzp_test_1DP5mmOlF5G5ag", // Replace with your actual Razorpay key
-                        amount: localGrandTotal * 100,
-                        currency: "INR",
-                        name: "Club Booking",
-                        description: "Slot Booking Payment",
-                        handler: (response) => {
-                            console.log("✅ RAZORPAY PAYMENT SUCCESS:", response);
-                            setPaymentConfirmed(true);
-                            setModal(true);
-                            console.log("🎉 Modal opened after payment");
-                            setLocalSelectedCourts([]);
-                        },
-                        prefill: {
-                            name: name.trim(),
-                            email,
-                            contact: rawPhoneNumber,
-                        },
-                        theme: { color: "#001B76" },
-                        modal: {
-                            ondismiss: () => {
-                                console.log("Razorpay modal dismissed");
-                                setIsLoading(false);
-                            },
-                        },
-                    };
-                    console.log("Razorpay options:", options);
-                    try {
-                        const paymentObject = new window.Razorpay(options);
-                        paymentObject.on('payment.failed', (error) => {
-                            console.error("❌ Razorpay Payment Failed:", error);
-                            setErrors((prev) => ({
-                                ...prev,
-                                general: `Payment failed: ${error.error.description || "Please try again."}`,
-                            }));
-                            setIsLoading(false);
-                        });
-                        paymentObject.open();
-                        console.log("Razorpay payment window opened");
-                    } catch (err) {
-                        console.error("❌ Error opening Razorpay window:", err);
-                        setErrors((prev) => ({
-                            ...prev,
-                            general: "Failed to initiate payment. Please try again.",
-                        }));
-                        setIsLoading(false);
-                    }
-                });
-            } else if (selectedPayment === "Paypal") {
-                console.log("Paypal selected - waiting for button interaction");
-            } else if (selectedPayment === "Apple Pay") {
-                console.log("Apple Pay selected - not implemented");
-                alert("Apple Pay is not fully implemented. Please use another method.");
-                setIsLoading(false);
-            } else {
-                console.log("No payment required - showing modal");
-                setPaymentConfirmed(true);
-                setModal(true);
-                setLocalSelectedCourts([]);
-            }
+            // Success: Show modal
+            setPaymentConfirmed(true);
+            setModal(true);
+            setLocalSelectedCourts([]);
+
         } catch (err) {
-            console.error("❌ Payment Error:", err);
+            console.error("Booking Error:", err);
             setErrors((prev) => ({
                 ...prev,
-                general: err.message || "An error occurred during booking or payment processing.",
+                general: err.message || "Booking failed. Please try again.",
             }));
+        } finally {
             setIsLoading(false);
         }
     };
@@ -375,8 +267,6 @@ const Payment = ({ className = "" }) => {
     const formatTime = (timeStr) => {
         return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
     };
-
-    console.log({ bookingStatus });
 
     const width = 370;
     const height = 75;
@@ -460,8 +350,6 @@ const Payment = ({ className = "" }) => {
                                         }}
                                         className="form-control border-0 p-2"
                                         placeholder="Enter your name"
-                                        pattern="[A-Za-z\s]+"
-                                        title="Name can only contain letters and single spaces between words"
                                         aria-label="Name"
                                     />
                                     {errors.name && (
@@ -488,16 +376,12 @@ const Payment = ({ className = "" }) => {
                                             onChange={(e) => {
                                                 const inputValue = e.target.value.replace(/[^0-9]/g, "");
                                                 if (inputValue === "" || /^[6-9][0-9]{0,9}$/.test(inputValue)) {
-                                                    const formattedValue = inputValue === ""
-                                                        ? ""
-                                                        : `+91 ${inputValue}`;
+                                                    const formattedValue = inputValue === "" ? "" : `+91 ${inputValue}`;
                                                     setPhoneNumber(formattedValue);
                                                 }
                                             }}
                                             className="form-control border-0 p-2"
                                             placeholder="+91"
-                                            pattern="[+][0-9]{2}\s[6-9][0-9]{9}"
-                                            title="Phone number must be in the format +91 followed by 10 digits starting with 6, 7, 8, or 9"
                                         />
                                     </div>
                                     {errors.phoneNumber && (
@@ -506,6 +390,7 @@ const Payment = ({ className = "" }) => {
                                         </div>
                                     )}
                                 </div>
+
                                 <div className="col-12 col-md-4 mb-3 p-1">
                                     <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                                         Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
@@ -656,7 +541,7 @@ const Payment = ({ className = "" }) => {
                             </div>
                         )}
                         {localTotalSlots > 0 && (
-                            <div className="border-top text-white pt-3 mt-2 d-flex align-items-center justify-content-between fw-bold" style={{ overflowX: "hidden" }}>
+                            <div className="border-top text-white pt-3 mt-2 d-flex align-items-center justify-content-between fw-bold">
                                 <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
                                     Total to Pay <span style={{ fontSize: "14px", fontWeight: "600" }}>Slots {localTotalSlots}</span>
                                 </p>
@@ -709,7 +594,7 @@ const Payment = ({ className = "" }) => {
                                     </g>
                                 </svg>
                                 <div style={contentStyle}>
-                                    {bookingStatus?.bookingLoading ||  userLoading?.userAuthLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}
+                                    {isLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}
                                 </div>
                             </button>
                         </div>
@@ -717,7 +602,8 @@ const Payment = ({ className = "" }) => {
                 </div>
             </div>
 
-            <Modal show={modal} centered onShow={() => console.log("Modal opened!")}>
+            {/* Success Modal */}
+            <Modal show={modal} centered>
                 <div className="p-4 pt-0 text-center">
                     <img src={success2} alt="Booking Success" className="img-fluid mx-auto" style={{ width: "294px", height: "394px" }} />
                     <h4 className="tabel-title" style={{ fontFamily: "Poppins" }}>Booking Successful!</h4>
@@ -726,7 +612,6 @@ const Payment = ({ className = "" }) => {
                     </p>
                     <Button
                         onClick={() => {
-                            console.log("Closing modal and navigating to /booking");
                             setModal(false);
                             navigate("/booking", { replace: true });
                         }}
@@ -743,6 +628,8 @@ const Payment = ({ className = "" }) => {
                     </Link>
                 </div>
             </Modal>
+
+            {/* PayPal Container (hidden unless PayPal selected) */}
             <div id="paypal-button-container" style={{ display: selectedPayment === "Paypal" ? "block" : "none" }}></div>
         </div>
     );

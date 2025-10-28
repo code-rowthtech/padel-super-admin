@@ -71,7 +71,7 @@ const BookingHistory = () => {
         else if (newValue === "upcoming") type = "upcoming";
         else if (newValue === "completed") type = "completed";
         else if (newValue === "all") type = "all";
-        dispatch(getBooking({ type, page: 1 }));
+        dispatch(getBooking({ type, page: 1,limit:10 }));
     };
 
     const handleSelect = (value) => {
@@ -102,7 +102,7 @@ const BookingHistory = () => {
     const handleClearDate = () => setSearchDate(null);
     const club_id = localStorage.getItem("register_club_id");
     useEffect(() => {
-        if (User?.token) dispatch(getBooking({ page: 1 }));
+        if (User?.token) dispatch(getBooking({ page: 1,limit:10 }));
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
