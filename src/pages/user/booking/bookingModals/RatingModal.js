@@ -51,7 +51,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                 setRating(0);
                 setReview("");
                 onHide();
-                dispatch(getBooking({ type: "completed" }));
+                dispatch(getBooking({ type: "completed",page: 1,limit:10 }));
             });
     };
 

@@ -239,7 +239,7 @@ const LoginPage = () => {
           </Form>
 
           {/* Sign Up */}
-          {/* <p className="mt-4 text-center small">
+          <p className="mt-4 text-center small">
             Don't have an account?{" "}
             <Link
               to="/admin/sign-up"
@@ -248,7 +248,7 @@ const LoginPage = () => {
             >
               Sign up for free!
             </Link>
-          </p> */}
+          </p>
         </div>
       </div>
     </Layout>
