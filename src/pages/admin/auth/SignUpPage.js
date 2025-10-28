@@ -105,8 +105,17 @@ const SignUpPage = () => {
   return (
     <Layout>
       <div className="w-50">
-        <h2 className="fw-bold mb-3">WELCOME</h2>
-        <p className="text-muted mb-3">Please enter your details to sign up.</p>
+        <h2 className=" mb-1" style={{
+          fontFamily: "Poppins",
+          fontWeight: 500,
+          fontSize: "34px",
+        }}>WELCOME</h2>
+        <p className="text-muted mb-3" style={{
+          fontFamily: "Poppins",
+          fontWeight: 400,
+          fontSize: "14px",
+          paddingTop: "12px",
+        }}>Please enter your details to sign up.</p>
         <Form onSubmit={handleSubmit} noValidate className="small">
           <span className="p-1 text-danger small">{errors.api}</span>
           <Form.Group controlId="name" className="mb-2">
@@ -119,6 +128,11 @@ const SignUpPage = () => {
               disabled={authLoading}
               onChange={handleChange}
               isInvalid={!!errors.name}
+              style={{
+                paddingRight: "40px",
+                borderRadius: "8px",
+                height: "50px",
+              }}
             />
             <Form.Control.Feedback type="invalid">
               {errors.name}
@@ -135,6 +149,11 @@ const SignUpPage = () => {
               disabled={authLoading}
               onChange={handleChange}
               isInvalid={!!errors.phoneNumber}
+              style={{
+                paddingRight: "40px",
+                borderRadius: "8px",
+                height: "50px",
+              }}
             />
             <Form.Control.Feedback type="invalid">
               {errors.phoneNumber}
@@ -151,6 +170,11 @@ const SignUpPage = () => {
               disabled={authLoading}
               onChange={handleChange}
               isInvalid={!!errors.email}
+              style={{
+                paddingRight: "40px",
+                borderRadius: "8px",
+                height: "50px",
+              }}
             />
             <Form.Control.Feedback type="invalid">
               {errors.email}
@@ -168,10 +192,16 @@ const SignUpPage = () => {
                 disabled={authLoading}
                 onChange={handleChange}
                 isInvalid={!!errors.password}
+                style={{
+                  paddingRight: "40px",
+                  borderRadius: "8px 0px 0px 8px",
+                  height: "50px",
+                }}
               />
               <Button
-                variant="outline-secondary"
+                variant="outline-secondary border"
                 type="button"
+                style={{ borderRadius: "0px 8px 8px 0px" }}
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -193,10 +223,16 @@ const SignUpPage = () => {
                 disabled={authLoading}
                 onChange={handleChange}
                 isInvalid={!!errors.confirmPassword}
+                style={{
+                  paddingRight: "40px",
+                  borderRadius: "8px 0px 0px 8px",
+                  height: "50px",
+                }}
               />
               <Button
-                variant="outline-secondary"
+                variant="outline-secondary border"
                 type="button"
+                style={{ borderRadius: "0px 8px 8px 0px" }}
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
@@ -209,13 +245,13 @@ const SignUpPage = () => {
           <Button
             type="submit"
             disabled={authLoading}
+            className="w-100 fw-semibold shadow"
             style={{
-              width: "100%",
-              backgroundColor: "#28a745",
-              border: "none",
-              fontWeight: "500",
-              padding: "10px",
+              height: "50px",
+              padding: "12px",
               borderRadius: "30px",
+              background: "linear-gradient(to right, #4caf50, #3f51b5)",
+              border: "none",
               fontSize: "16px",
             }}
           >
