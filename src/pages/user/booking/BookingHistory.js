@@ -181,7 +181,7 @@ const BookingHistory = () => {
 
     return (
         <Container>
-            <Row className="mb-lg-5 mb-3 mt-lg-5 mt-3">
+            <Row className="mb-lg-2 mb-3 mt-lg-5 mt-3">
                 <Col md={6}>
                     <h2 className="booking-history-heading">Booking History</h2>
                 </Col>
