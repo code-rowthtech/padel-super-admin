@@ -97,7 +97,7 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                                             key={label}
                                             className="text-center"
                                             style={{
-                                                width: '200px',
+                                                width: '300px',
                                                 fontSize: '13px',
                                                 fontWeight: isActive ? 600 : 500,
                                                 color: isActive ? '#2563eb' : '#000',

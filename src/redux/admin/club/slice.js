@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   createSlot,
+  getClubRegister,
   getSlots,
   registerClub,
   updateCourt,
@@ -100,7 +101,20 @@ const clubSlice = createSlice({
       state.updateClubLoading = false;
       state.updateClubError = action.payload;
     });
-    //  -----------------------------------------------------//----
+    //  -----------------------------------------------------//---- back show register images and slot
+
+     builder.addCase(getClubRegister.pending, (state) => {
+      state.updateClubLoading = true;
+      state.updateClubError = null;
+    });
+    builder.addCase(getClubRegister.fulfilled, (state, action) => {
+      state.updateClubLoading = false;
+      state.updateClubData = action.payload;
+    });
+    builder.addCase(getClubRegister.rejected, (state, action) => {
+      state.updateClubLoading = false;
+      state.updateClubError = action.payload;
+    });
   },
 });
 export const { resetClub } = clubSlice.actions;

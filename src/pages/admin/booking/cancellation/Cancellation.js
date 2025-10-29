@@ -114,10 +114,10 @@ const Cancellation = () => {
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
-    <Container fluid className="px-4">
+    <Container fluid className="">
       <h3
         className="fw-bold text-dark mb-2"
-        style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)" }}
+        style={{ fontSize: "clamp(1.5rem, 4vw, 1.9rem)" }}
       >
         Cancellations
       </h3>
