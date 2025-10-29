@@ -70,7 +70,7 @@ const AdminLayout = () => {
                 }
 
                 .admin-scrollable-content {
-                    margin-top: 60px;
+                    margin-top: 50px;
                     padding: 20px;
                     overflow-y: auto;
                     height: calc(100vh - 60px);
