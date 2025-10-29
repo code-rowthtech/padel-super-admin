@@ -10,6 +10,7 @@ import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { formatDate } from "../../../../helpers/Formatting";
 import { getBooking } from "../../../../redux/user/booking/thunk";
 import { format, isValid } from "date-fns";
+import { showError, showInfo } from "../../../../helpers/Toast";
 
 export const BookingRatingModal = ({ show, tableData, onHide, initialRating, defaultMessage }) => {
     const [rating, setRating] = useState(0);
@@ -20,7 +21,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
     const addReviewLoading = store?.userClub?.reviewLoading;
     const hasReview = !!tableData?.booking?.customerReview;
     const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
-        if (!dateValue) return fallback; 
+        if (!dateValue) return fallback;
         const date = new Date(dateValue);
         return isValid(date) ? format(date, formatString) : fallback;
     };
@@ -37,23 +38,36 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
     }, [show, hasReview, tableData?.booking?.customerReview, initialRating, defaultMessage]);
 
     const handleSubmit = () => {
-        if (hasReview) return; 
+        if (hasReview) return;
+
+        if (rating === 0) {
+            showInfo("Please rate the court before submitting!");
+            return;
+        }
+
+        if (!review.trim()) {
+            showInfo("Please write a short message before submitting!");
+            return;
+        }
+
         const club_id = localStorage.getItem("register_club_id");
         const payload = {
-            reviewComment: review,
+            reviewComment: review.trim(),
             reviewRating: rating,
             register_club_id: club_id,
-            bookingId: tableData?.booking?._id
+            bookingId: tableData?.booking?._id,
         };
+
         dispatch(addReviewClub(payload))
             .unwrap()
             .then(() => {
                 setRating(0);
                 setReview("");
                 onHide();
-                dispatch(getBooking({ type: "completed",page: 1,limit:10 }));
+                dispatch(getBooking({ type: "completed", page: 1, limit: 10 }));
             });
     };
+
 
     const handleClick = (value) => {
         if (!hasReview) setRating(value);

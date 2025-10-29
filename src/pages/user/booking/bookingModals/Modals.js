@@ -9,6 +9,7 @@ import { ButtonLoading } from '../../../../helpers/loading/Loaders';
 import { getUserFromSession } from '../../../../helpers/api/apiCore';
 import { Avatar } from '@mui/material';
 import { format, isValid } from 'date-fns';
+import { showInfo } from '../../../../helpers/Toast';
 
 export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
@@ -42,24 +43,29 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
     }
   }, [changeCancelShow])
 
-  const handleSubmit = () => {
-    if (!selectedReason || (selectedReason === 'other' && !otherReason.trim())) {
-      alert('Please select a reason or provide a custom reason.');
-      return;
-    }
-    setShowSuccessModal(true);
-  };
+
   const handleContinue = () => {
     dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
       if (res?.status === '200') {
         if (tableData?.booking?.bookingStatus === 'upcoming' && activeTab === 'upcoming') {
-          dispatch(getBooking({ type: 'upcoming' ,page: 1,limit:10}))
+          dispatch(getBooking({ type: 'upcoming', page: 1, limit: 10 }))
         } else {
-          dispatch(getBooking({page: 1,limit:10}))
+          dispatch(getBooking({ page: 1, limit: 10 }))
         }
-        setShowSuccessModal(false);
+        setShowSuccessModal(true);
+        setChangeContent(true)
       }
     })
+  };
+
+  const handleSubmit = () => {
+    if (!selectedReason || (selectedReason === 'other' && !otherReason.trim())) {
+      showInfo('Please select a reason or provide a custom reason.');
+      return;
+    } else {
+      handleContinue();
+    }
+
   };
   useEffect(() => {
     if (bookingStatusData?.bookingStatusData?.status === "200" && bookingStatusData?.bookingStatusData?.message) {
@@ -68,9 +74,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
       handleClose();
     }
     if (!activeTab === 'all' && User?.token) {
-      dispatch(getBooking({ type: activeTab,page: 1,limit:10 }));
+      dispatch(getBooking({ type: activeTab, page: 1, limit: 10 }));
     } else if (User?.token) {
-      dispatch(getBooking({page: 1,limit:10}));
+      dispatch(getBooking({ page: 1, limit: 10 }));
     }
   }, [bookingStatusData?.bookingStatusData?.status, bookingStatusData?.bookingStatusData?.message])
 
@@ -232,20 +238,42 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
               </Form.Select>
 
               {selectedReason === 'other' && (
-                <div className="mt-4">
-                  <p className="mb-3" style={{ fontWeight: '500', color: '#374151' }}>
+                <div className="mt-4 position-relative">
+                  <p className="mb-3" style={{ fontWeight: "500", color: "#374151" }}>
                     Write a reason here
                   </p>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    style={{ boxShadow: 'none' }}
-                    placeholder="Please describe your reason"
-                    value={otherReason}
-                    onChange={(e) => setOtherReason(e.target.value)}
-                    aria-label="Custom cancellation reason"
-                  />
+
+                  <div style={{ position: "relative" }}>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      style={{
+                        boxShadow: "none",
+                        paddingBottom: "28px", 
+                      }}
+                      placeholder="Please describe your reason"
+                      value={otherReason}
+                      onChange={(e) => {
+                        const text = e.target.value;
+                        if (text.length <= 150) setOtherReason(text);
+                      }}
+                      aria-label="Custom cancellation reason"
+                    />
+
+                    <small
+                      style={{
+                        position: "absolute",
+                        bottom: "6px",
+                        right: "12px",
+                        color: otherReason.length >= 150 ? "red" : "#6b7280",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {otherReason.length}/150
+                    </small>
+                  </div>
                 </div>
+
               )}
             </div>
           )}
@@ -257,7 +285,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 onClick={handleSubmit}
                 className="rounded-pill py-2 w-100 px-4"
               >
-                Submit
+                {bookingStatusData?.bookingStatusLoading ? <ButtonLoading color={'white'} /> : 'Submit'}
               </Button>
             ) : (
               tableData?.booking?.cancellationReason || tableData?.booking?.customerReview?._id ? '' :
@@ -268,6 +296,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 >
                   Cancel Booking
                 </Button>
+
 
             )}
           </div>
@@ -316,14 +345,14 @@ export const BookingHistorySuccessModal = ({ show, onHide, safeFormatDate, booki
         />
 
         <div className="rounded-3 mb-4">
-          <h3>Confirm Cancelled</h3>
-          <p>You will receive your refund in your account.</p>
+          <h3>Request for Cancellation</h3>
+          <p>Your cancellation request has been submitted. The refund will be processed once your request is approved.</p>
           {/* <a href="#" style={{ color: '#1A237E' }}>
             View Status
           </a> */}
         </div>
 
-        <div className="justify-content-center mb-3 d-flex align-items-center p-3">
+        {/* <div className="justify-content-center mb-3 d-flex align-items-center p-3">
           <Button
             style={{ backgroundColor: '#1A237E', fontWeight: '500', fontSize: '17px', border: '0' }}
             onClick={onContinue}
@@ -331,7 +360,7 @@ export const BookingHistorySuccessModal = ({ show, onHide, safeFormatDate, booki
           >
             {bookingStatusData?.bookingStatusLoading ? <ButtonLoading color={'white'} /> : 'Continue'}
           </Button>
-        </div>
+        </div> */}
       </Modal.Body>
     </Modal>
   );

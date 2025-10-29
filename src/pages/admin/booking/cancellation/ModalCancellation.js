@@ -157,9 +157,9 @@ export const BookingCancellationModal = ({
         >
           {bookingDetails?.bookingType
             ? bookingDetails?.bookingType
-                ?.charAt(0)
-                .toUpperCase()
-                .concat(bookingDetails?.bookingType?.slice(1))
+              ?.charAt(0)
+              .toUpperCase()
+              .concat(bookingDetails?.bookingType?.slice(1))
             : "N/A"}{" "}
         </h2>
       </div>
@@ -200,19 +200,29 @@ export const BookingCancellationModal = ({
       </h2>
       <div
         className="d-flex justify-content-between p-2 rounded-3"
-        style={{ backgroundColor: "#CBD6FF1A" }}
+        style={{
+          backgroundColor: "#CBD6FF1A",
+          wordWrap: "break-word",
+          overflowWrap: "break-word",
+          whiteSpace: "normal",
+          maxWidth: "100%",
+        }}
       >
         <p
-          className="tabel-title py-2 text-start text-muted"
+          className="tabel-title py-2 text-start text-muted mb-0"
           style={{
             fontFamily: "Poppins",
             fontSize: "14px",
             fontWeight: "400",
+            lineHeight: "1.4",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           {bookingDetails?.cancellationReason || ""}
         </p>
       </div>
+
 
       <div className="d-flex justify-content-evenly gap-3 p-3 align-items-center">
         <Button
@@ -436,9 +446,9 @@ export const BookingRefundModal = ({
           >
             {bookingDetails?.bookingType
               ? bookingDetails?.bookingType
-                  ?.charAt(0)
-                  ?.toUpperCase()
-                  ?.concat(bookingDetails?.bookingType?.slice(1))
+                ?.charAt(0)
+                ?.toUpperCase()
+                ?.concat(bookingDetails?.bookingType?.slice(1))
               : "N/A"}
           </h2>
         </div>
@@ -535,7 +545,7 @@ export const BookingRefundModal = ({
             }}
             disabled={loading}
           >
-            {loading ? <ButtonLoading /> : "Process Refund"}
+            {loading ? <ButtonLoading /> : "Submit"}
           </Button>
         </div>
       </Modal.Body>
@@ -696,9 +706,9 @@ export const CancelRequestModal = ({
                 <p className="mb-0">
                   {bookingDetails?.bookingType
                     ? bookingDetails?.bookingType
-                        ?.charAt(0)
-                        .toUpperCase()
-                        .concat(bookingDetails?.bookingType?.slice(1))
+                      ?.charAt(0)
+                      .toUpperCase()
+                      .concat(bookingDetails?.bookingType?.slice(1))
                     : "N/A"}
                 </p>
               </div>
@@ -739,14 +749,24 @@ export const CancelRequestModal = ({
         </div>
 
         {/* Checkbox */}
-        <Form.Check
-          type="checkbox"
-          label="This reason also does not match our Terms and Conditions and cancellation policy"
-          className="mb-3 text-start shadow-0"
-          style={{ boxShadow: "none" }}
-          checked={isChecked}
-          onChange={(e) => setIsChecked(e.target.checked)}
-        />
+        {!['not-available', 'timing-issue', 'double-booked'].includes(
+          bookingDetails?.cancellationReason?.toLowerCase?.()
+        ) && (
+            <Form.Check
+              type="checkbox"
+              label="This reason does not match our terms and conditions or cancellation policy"
+              className="mb-3 text-start shadow-0"
+              style={{
+                boxShadow: "none",
+                fontSize: "13px",
+                textTransform: "capitalize",
+              }}
+              checked={isChecked}
+              onChange={(e) => setIsChecked(e.target.checked)}
+            />
+          )}
+
+
 
         {/* Continue Button */}
         <div className="d-flex justify-content-end">
@@ -839,9 +859,9 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
               <p className="  mb-0">
                 {bookingDetails?.bookingType
                   ? bookingDetails?.bookingType
-                      ?.charAt(0)
-                      .toUpperCase()
-                      .concat(bookingDetails?.bookingType?.slice(1))
+                    ?.charAt(0)
+                    .toUpperCase()
+                    .concat(bookingDetails?.bookingType?.slice(1))
                   : "N/A"}
               </p>
             </div>
@@ -861,7 +881,7 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
             rows={3}
             value={bookingDetails?.cancellationReason}
             disabled
-            className="bg-light text-secondary"
+            className="bg-light  text-secondary"
             style={{ boxShadow: "none" }}
           />
         </div>

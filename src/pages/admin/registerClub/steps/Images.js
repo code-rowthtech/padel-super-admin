@@ -100,7 +100,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const [hasChanged, setHasChanged] = useState(false);
 
   const convertAmPmTo24Hour = (timeStr) => {
-    if (!timeStr) return "06:00";
+    if (!timeStr) return "05:00"; // Default 5:00 AM
     const [time, modifier] = timeStr.split(" ");
     let [hours, minutes] = time.split(":");
     hours = parseInt(hours, 10);
@@ -110,7 +110,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   };
 
   const convert24HourToAmPm = (timeStr) => {
-    if (!timeStr) return "6:00 AM";
+    if (!timeStr) return "5:00 AM";
     let [hours, minutes] = timeStr.split(":");
     hours = parseInt(hours, 10);
     const modifier = hours >= 12 ? "PM" : "AM";
@@ -143,7 +143,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     return (
       <>
         {days.map((day) => {
-          const dayHours = formData.businessHours[day] || { start: "06:00 AM", end: "11:00 PM" };
+          const dayHours = formData.businessHours[day] || { start: "05:00 AM", end: "11:00 PM" };
           const startTime24 = convertAmPmTo24Hour(dayHours.start);
           const endTime24 = convertAmPmTo24Hour(dayHours.end);
           const startHour = parseInt(startTime24.split(":")[0], 10);
@@ -167,11 +167,12 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                         const amPmTime = convert24HourToAmPm(e.target.value);
                         handleBusinessHoursChange(day, "start", amPmTime);
                       }}
-                      style={{ height: "32px", borderRadius: "8px 0 0 8px", fontSize: "14px", textAlign: "center",boxShadow:"none" }}
+                      style={{ height: "32px", borderRadius: "8px 0 0 8px", fontSize: "14px", textAlign: "center", boxShadow: "none" }}
                       className="py-0 border-end-0"
                     >
-                      {Array.from({ length: 12 }, (_, i) => {
-                        const h = i + 6;
+                      {/* START FROM 5:00 AM */}
+                      {Array.from({ length: 13 }, (_, i) => {
+                        const h = i + 5; // 5,6,7,...,17
                         const t = `${h.toString().padStart(2, "0")}:00`;
                         return <option key={t} value={t}>{convert24HourToAmPm(t)}</option>;
                       })}
@@ -194,7 +195,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                         const amPmTime = convert24HourToAmPm(e.target.value);
                         handleBusinessHoursChange(day, "end", amPmTime);
                       }}
-                      style={{ height: "32px", borderRadius: "8px 0 0 8px", fontSize: "14px", textAlign: "center", boxShadow:"none" }}
+                      style={{ height: "32px", borderRadius: "8px 0 0 8px", fontSize: "14px", textAlign: "center", boxShadow: "none" }}
                       className="py-0 border-end-0"
                     >
                       {allowedEndTimes.map((t) => (
@@ -416,7 +417,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               onChange={(e) => updateFormData({ termsAccepted: e.target.checked })}
               label={
                 <span style={{ fontSize: "14px", color: "#1F2937", fontWeight: 500 }}>
-                  I agree to the Terms and conditions and Privacy policy
+                  I agree to the Terms & conditions and Privacy policy
                 </span>
               }
             />

@@ -495,11 +495,11 @@ const Openmatches = () => {
                     <div className="row mb-4 mx-auto">
                         <div className="col-12 d-flex justify-content-center align-items-center">
                             <div className="weather-tabs-wrapper w-100">
-                                <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
+                                <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
                                     {tabs.map((tab, index) => (
                                         <div
                                             key={index}
-                                            className={`tab-item ${activeTab === index ? 'active' : ''}`}
+                                            className={`tab-item rounded-3 ${activeTab === index ? 'active' : ''}`}
                                             onClick={() => setActiveTab(index)}
                                         >
                                             <img className="tab-icon" src={tab.img} alt={tab.label} />
