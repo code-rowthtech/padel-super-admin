@@ -176,7 +176,7 @@ const Payment = ({ className = "" }) => {
             phoneNumber: !rawPhoneNumber
                 ? "Phone number is required"
                 : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
-                    ? "Phone number must be 10 digits starting with 6-9"
+                    ? "Phone number must be 10 digits starting with 6, 7, 8, or 9"
                     : "",
             email: !email ? "Email is required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
                 ? "Invalid email format"
@@ -186,7 +186,6 @@ const Payment = ({ className = "" }) => {
 
         setErrors(newErrors);
         if (Object.values(newErrors).some((error) => error)) {
-            setIsLoading(false);
             return;
         }
 
@@ -196,68 +195,77 @@ const Payment = ({ className = "" }) => {
             const register_club_id = localStorage.getItem("register_club_id");
             const owner_id = localStorage.getItem("owner_id");
             if (!register_club_id || !owner_id) {
-                throw new Error("Club information is missing.");
+                throw new Error("Club information is missing. Please select a club first.");
             }
 
             const slotArray = localSelectedCourts.flatMap((court) => {
-                if (!court.time || court.time.length === 0) return [];
-                return {
-                    slotId: court.time[0]?._id || null,
+                return court?.time?.map((timeSlot) => ({
+                    slotId: timeSlot._id,
                     businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
                         time: t?.time,
                         day: t?.day,
-                    })) || [{ time: "06:00 AM - 11:00 PM", day: "Wednesday" }],
-                    slotTimes: court.time.map((timeSlot) => ({
-                        time: timeSlot?.time,
-                        amount: timeSlot?.amount ?? 2000,
-                    })),
+                    })) || [
+                            {
+                                time: "6:00 AM To 11:00 PM",
+                                day: "Monday",
+                            },
+                        ],
+                    slotTimes: [
+                        {
+                            time: timeSlot?.time,
+                            amount: timeSlot?.amount ?? 2000,
+                        },
+                    ],
                     courtName: court?.courtName,
                     courtId: court?._id,
                     bookingDate: court?.date,
-                };
-            }).filter(slot => slot.slotId !== null);
+                }));
+            });
 
-            if (slotArray.length === 0) {
-                throw new Error("No valid slots selected.");
-            }
-
-            const basePayload = {
+            const payload = {
                 name,
                 phoneNumber: rawPhoneNumber,
                 email,
                 register_club_id,
                 bookingStatus: "upcoming",
-                bookingType: "user",
+                bookingType: 'user',
                 ownerId: owner_id,
                 slot: slotArray,
                 paymentMethod: selectedPayment,
             };
 
-            // Step 1: Login if needed
-            if (!user?.name || !user?.phoneNumber) {
-                const loginResponse = await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
-                if (loginResponse?.status !== "200") {
-                    throw new Error(loginResponse?.message || "Login failed.");
-                }
+            if (user?.name && user?.token) {
+                await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber.toString(), name, email }))
+                    .unwrap()
+                    .then((res) => {
+                        if (res?.status === "200") {
+                            dispatch(createBooking(payload))
+                                .unwrap()
+                                .then((res) => {
+                                    if (res?.success) {
+                                        setModal(true);
+                                    }
+                                });
+                        }
+                    });
+            } else {
+                dispatch(createBooking(payload))
+                    .unwrap()
+                    .then((res) => {
+                        dispatch(createBooking(payload))
+                            .unwrap()
+                            .then((res) => {
+                                if (res?.success) {
+                                    setModal(true);
+                                }
+                            });
+                    });
             }
-
-            // Step 2: Create Booking via API (NO PAYMENT)
-            const bookingResponse = await dispatch(createBooking(basePayload)).unwrap();
-
-            if (!bookingResponse?.success) {
-                throw new Error(bookingResponse?.message || "Booking failed.");
-            }
-
-            // Success: Show modal
-            setPaymentConfirmed(true);
-            setModal(true);
-            setLocalSelectedCourts([]);
-
         } catch (err) {
-            console.error("Booking Error:", err);
+            console.error("Payment Error:", err);
             setErrors((prev) => ({
                 ...prev,
-                general: err.message || "Booking failed. Please try again.",
+                general: err.message || "An error occurred during payment processing.",
             }));
         } finally {
             setIsLoading(false);
