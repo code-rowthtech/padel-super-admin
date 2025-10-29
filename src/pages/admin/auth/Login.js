@@ -124,7 +124,7 @@ const LoginPage = () => {
             Welcome back! Please enter your details.
           </p>
 
-          <Form onSubmit={handleLogin} noValidate style={{ width: "314px" }}>
+          <Form onSubmit={handleLogin} noValidate className="small">
             <span className="p-1 small text-danger">{apiError}</span>
             {/* Email */}
             <Form.Group
@@ -211,6 +211,7 @@ const LoginPage = () => {
                 checked={formData.remember}
                 onChange={handleChange}
                 disabled={authLoading}
+                style={{ fontSize:"12px",fontWeight:"600",color:"000000",fontFamily:"Poppins",boxShadow:"none" }}
               />
               <Link
                 to="/admin/forgot-password"

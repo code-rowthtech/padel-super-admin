@@ -60,7 +60,7 @@ const ForgotPassword = () => {
 
   return (
     <Layout>
-      <div className="">
+      <div className="w-md-50 w-sm-100">
         <h2 className="welcome-heading">FORGOT PASSWORD</h2>
         <p className="text-muted" style={{fontSize:"16px", fontFamily:"Poppins",fontWeight:"400"}}>Please enter your email address </p>
         {emailError && (
@@ -78,7 +78,7 @@ const ForgotPassword = () => {
           </Alert>
         )}
 
-        <Form onSubmit={handleSubmit} style={{ width: "314px" }}>
+        <Form onSubmit={handleSubmit} noValidate className="small">
           <Form.Group className="mb-3">
             <Form.Label style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500",color:"black"}}>
               Email
