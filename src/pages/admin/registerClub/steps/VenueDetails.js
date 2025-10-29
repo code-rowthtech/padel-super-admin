@@ -14,7 +14,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     description: false,
   });
   const [isFormValid, setIsFormValid] = useState(false);
-  const MAX_DESC = 200;
+  const MAX_DESC = 500;
 
   // Validate form
   useEffect(() => {
@@ -149,7 +149,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
           {fieldName === "zip" || fieldName === "courtCount"
             ? "Please enter a valid number"
             : fieldName === "description"
-            ? "Description is required and max 200 characters"
+            ? "Description is required and max 500 characters"
             : "This field is required"}
         </Form.Control.Feedback>
       )}

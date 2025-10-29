@@ -84,7 +84,7 @@ const Navbar = () => {
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
                     {logo ?
-                        <Avatar src={logo} alt="User Profile" /> :
+                        <Avatar src={logo} style={{ width: "50px", height: "50px"}} alt="User Profile" /> :
                         <Avatar>
                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                         </Avatar>

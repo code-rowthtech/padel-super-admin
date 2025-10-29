@@ -409,7 +409,7 @@ const CreateMatches = () => {
     <Container className="p-4 mb-5">
       <Row>
         {/* LEFT PANEL */}
-        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566"}}>
+        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -521,9 +521,9 @@ const CreateMatches = () => {
             <div className="row mb-2 mx-auto">
               <div className="col-12 d-flex justify-content-center align-items-center">
                 <div className="weather-tabs-wrapper w-100">
-                  <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
+                  <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
                     {tabData.map((tab, index) => (
-                      <div key={index} className={`tab-item ${key === tab.key ? "active" : ""}`} onClick={() => setKey(tab.key)}>
+                      <div key={index} className={`tab-item rounded-3 ${key === tab.key ? "active" : ""}`} onClick={() => setKey(tab.key)}>
                         <img className="tab-icon" src={tab.img} alt={tab.label} />
                       </div>
                     ))}
@@ -536,52 +536,90 @@ const CreateMatches = () => {
             </div>
 
             {/* Slots */}
-            <div className="mb-3 overflow-slot rounded-3 " style={{border: slotError ? "1px solid red" : "1px solid #c2babaff" }}>
+            <div className="mb-3 overflow-slot border-0 rounded-3 " style={{ border: slotError ? "1px solid red" : "1px solid #c2babaff" }}>
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
                   <DataLoading height={"50vh"} />
                 ) : (
                   <>
                     <div className="row g-3">
-                      {slotData?.data?.map((court) => {
-                        const filteredSlots = court?.slots?.filter((slot) =>
-                          showUnavailable
-                            ? true
-                            : slot.availabilityStatus === "available" &&
-                            slot.status !== "booked" &&
-                            !isPastTime(slot.time) &&
-                            slot.amount > 0
-                        ).filter((slot) => filterSlotsByTab(slot, key));
+                      {slotData?.data?.map((court, courtIndex) => {
+                        const filteredSlots = court?.slots
+                          ?.filter((slot) =>
+                            showUnavailable
+                              ? true
+                              : slot.availabilityStatus === "available" &&
+                              slot.status !== "booked" &&
+                              !isPastTime(slot.time) &&
+                              slot.amount > 0
+                          )
+                          .filter((slot) => filterSlotsByTab(slot, key));
 
                         if (filteredSlots?.length === 0) return null;
 
+                        // ✅ Correct way to find last visible court
+                        const visibleCourtIndices = slotData.data
+                          .map((c, i) => {
+                            const slots = c.slots?.filter((s) =>
+                              (showUnavailable ||
+                                (s.availabilityStatus === "available" &&
+                                  s.status !== "booked" &&
+                                  !isPastTime(s.time) &&
+                                  s.amount > 0)) &&
+                              filterSlotsByTab(s, key)
+                            );
+                            return slots?.length > 0 ? i : null;
+                          })
+                          .filter((i) => i !== null);
+
+                        const isLast = visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
+
                         return (
                           <div className="col-lg-3 col-6" key={court._id}>
-                            <div className="court-container p-3">
+                            <div
+                              className="court-container p-3"
+                              style={{
+                                borderRight: !isLast ? "1.13px solid transparent" : "none",
+                                borderLeft: "none",
+                                borderTop: "none",
+                                borderBottom: "none",
+                                borderImage: !isLast
+                                  ? "linear-gradient(180deg, rgba(255,255,255,0) 0%, #837f7fff 46.63%, rgba(255,255,255,0) 94.23%) 1"
+                                  : "none",
+                                borderImageSlice: !isLast ? 1 : 0,
+                              }}
+                            >
                               <div className="mb-3 text-center">
                                 <h5 className="all-matches mb-1">{court?.courtName}</h5>
                               </div>
+
                               <div className="slots-grid d-flex flex-column align-items-center">
                                 {filteredSlots?.map((slot, i) => {
-                                  const isSelected = selectedTimes[court._id]?.some(t => t._id === slot._id);
+                                  const isSelected = selectedTimes[court._id]?.some((t) => t._id === slot._id);
                                   const totalSlots = Object.values(selectedTimes).flat().length;
                                   const isLimitReached = totalSlots >= 15 && !isSelected;
-                                  const isDisabled = isLimitReached || slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
+                                  const isDisabled =
+                                    isLimitReached ||
+                                    slot.status === "booked" ||
+                                    slot.availabilityStatus !== "available" ||
+                                    isPastTime(slot.time) ||
+                                    slot.amount <= 0;
 
                                   return (
                                     <button
                                       key={i}
-                                      className={`btn rounded-pill ${isSelected ? "border-0" : ""} slot-time-btn text-center mb-2`}
+                                      className={`btn rounded-3 ${isSelected ? "border-0" : ""} slot-time-btn text-center mb-2`}
                                       onClick={() => toggleTime(slot, court._id)}
                                       disabled={isDisabled}
                                       style={{
-                                        background: slot.status === "booked" || isPastTime(slot.time) || slot.amount <= 0
-                                          ? "#c9cfcfff"
-                                          : isSelected
-                                            ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                            : slot.availabilityStatus !== "available"
-                                              ? "#c9cfcfff"
-                                              : "#FFFFFF",
+                                        background:
+                                          slot.status === "booked" || isPastTime(slot.time) || slot.amount <= 0
+                                            ? "#c9cfcfff"
+                                            : isSelected
+                                              ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                              : slot.availabilityStatus !== "available"
+                                                ? "#c9cfcfff"
+                                                : "#FFFFFF",
                                         color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
                                         cursor: isDisabled ? "not-allowed" : "pointer",
                                         opacity: isDisabled ? 0.6 : 1,
@@ -589,8 +627,12 @@ const CreateMatches = () => {
                                         fontSize: "14px",
                                         padding: "8px 4px",
                                       }}
-                                      onMouseEnter={(e) => !isDisabled && (e.currentTarget.style.border = "1px solid #3DBE64")}
-                                      onMouseLeave={(e) => e.currentTarget.style.border = "1px solid #4949491A"}
+                                      onMouseEnter={(e) =>
+                                        !isDisabled && (e.currentTarget.style.border = "1px solid #3DBE64")
+                                      }
+                                      onMouseLeave={(e) =>
+                                        (e.currentTarget.style.border = "1px solid #4949491A")
+                                      }
                                     >
                                       {formatTimeForDisplay(slot?.time)}
                                     </button>
@@ -601,6 +643,7 @@ const CreateMatches = () => {
                           </div>
                         );
                       })}
+
                     </div>
                     {slotData?.data?.every(court => !court?.slots?.some(slot => (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) && filterSlotsByTab(slot, key))) && (
                       <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
@@ -701,7 +744,7 @@ const CreateMatches = () => {
             )}
             {slotError && (
               <div className="text-center mt-2">
-                <p className="text-white mb-0" style={{ fontSize: "14px",fontFamily:"Poppins" }}>{slotError}</p>
+                <p className="text-white mb-0" style={{ fontSize: "14px", fontFamily: "Poppins" }}>{slotError}</p>
               </div>
             )}
             <div className="d-flex justify-content-center mt-3">

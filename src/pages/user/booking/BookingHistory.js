@@ -71,7 +71,7 @@ const BookingHistory = () => {
         else if (newValue === "upcoming") type = "upcoming";
         else if (newValue === "completed") type = "completed";
         else if (newValue === "all") type = "all";
-        dispatch(getBooking({ type, page: 1,limit:10 }));
+        dispatch(getBooking({ type, page: 1, limit: 10 }));
     };
 
     const handleSelect = (value) => {
@@ -96,13 +96,13 @@ const BookingHistory = () => {
         else if (activeTab === "upcoming") type = "upcoming";
         else if (activeTab === "completed") type = "completed";
         else if (activeTab === "all") type = "all";
-        dispatch(getBooking({ type,page: 1,limit:10 }));
+        dispatch(getBooking({ type, page: 1, limit: 10 }));
     };
 
     const handleClearDate = () => setSearchDate(null);
     const club_id = localStorage.getItem("register_club_id");
     useEffect(() => {
-        if (User?.token) dispatch(getBooking({ page: 1,limit:10 }));
+        if (User?.token) dispatch(getBooking({ page: 1, limit: 10 }));
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
@@ -404,19 +404,36 @@ const BookingHistory = () => {
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
-                                                    <td
-                                                        className="py-2 table-data pt-3"
-                                                        title={booking?.cancellationReason || "N/A"}
-                                                    >
-                                                        {booking?.cancellationReason
-                                                            ? (() => {
-                                                                const words = booking.cancellationReason.split(" ");
-                                                                let shortText = words.slice(0, 3).join(" ");
-                                                                if (words.length > 20) shortText += " ...";
-                                                                return shortText.charAt(0).toUpperCase() + shortText.slice(1);
-                                                            })()
-                                                            : "N/A"}
+
+                                                    <td className="py-2 table-data pt-3">
+                                                        <OverlayTrigger
+                                                            placement="top"
+                                                            overlay={
+                                                                <Tooltip id="review-tooltip">
+                                                                    {booking?.cancellationReason
+                                                                        ? booking.cancellationReason.charAt(0).toUpperCase() +
+                                                                        booking.cancellationReason.slice(1)
+                                                                        : "No Message"}
+                                                                </Tooltip>
+                                                            }
+                                                        >
+                                                            <span>
+                                                                {(() => {
+                                                                    const comment = booking?.cancellationReason?.trim() || "No Message";
+                                                                    if (!comment) return "No Message";
+
+                                                                    const shortText =
+                                                                        comment.length > 35
+                                                                            ? comment.charAt(0).toUpperCase() + comment.slice(1, 35) + "..."
+                                                                            : comment.charAt(0).toUpperCase() + comment.slice(1);
+
+                                                                    return shortText;
+                                                                })()}
+                                                            </span>
+                                                        </OverlayTrigger>
                                                     </td>
+
+
                                                 )}
                                                 {activeTab === "completed" && (
                                                     <td className="text-center pt-3 py-2">
@@ -443,29 +460,29 @@ const BookingHistory = () => {
                                                             placement="top"
                                                             overlay={
                                                                 <Tooltip id="review-tooltip">
-                                                                    {booking?.customerReview?.reviewComment?.charAt(0).toUpperCase() +
-                                                                        booking?.customerReview?.reviewComment?.slice(1)}
+                                                                    {booking?.customerReview?.reviewComment
+                                                                        ? booking.customerReview.reviewComment.charAt(0).toUpperCase() +
+                                                                        booking.customerReview.reviewComment.slice(1)
+                                                                        : "No Message"}
                                                                 </Tooltip>
                                                             }
                                                         >
                                                             <span>
                                                                 {(() => {
                                                                     const comment = booking?.customerReview?.reviewComment?.trim() || "No Message";
+                                                                    if (!comment) return "No Message";
 
-                                                                    if (!comment) return "";
+                                                                    const shortText =
+                                                                        comment.length > 35
+                                                                            ? comment.charAt(0).toUpperCase() + comment.slice(1, 35) + "..."
+                                                                            : comment.charAt(0).toUpperCase() + comment.slice(1);
 
-                                                                    const words = comment.split(/\s+/);
-
-                                                                    if (words.length <= 20) {
-                                                                        return comment.charAt(0).toUpperCase() + comment.slice(1);
-                                                                    } else {
-                                                                        const first20 = words.slice(0, 4).join(" ");
-                                                                        return first20.charAt(0).toUpperCase() + first20.slice(1) + " ....";
-                                                                    }
+                                                                    return shortText;
                                                                 })()}
                                                             </span>
                                                         </OverlayTrigger>
                                                     </td>
+
                                                 )}
                                                 <td className="py-2 pt-3"
                                                     style={{
