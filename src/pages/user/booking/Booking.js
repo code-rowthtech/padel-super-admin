@@ -340,9 +340,9 @@ const Booking = ({ className = "" }) => {
 
 
     const tabData = [
-        { img: morningTab, label: 'Day', key: 'morning' },
+        { img: morningTab, label: 'Morning', key: 'morning' },
         { img: sun, label: 'Afternoon', key: 'noon' },
-        { img: nighttab, label: 'Night', key: 'night' },
+        { img: nighttab, label: 'Evening', key: 'night' },
     ];
     const padelOption = [
         { img: tennis2, label: 'Padel', key: 'padel' },
@@ -653,7 +653,13 @@ const Booking = ({ className = "" }) => {
                                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
                                 {totalSlots >= 10 && <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ cursor: "pointer", background: "#111827", fontSize: "10px", fontWeight: "600", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
                             </div>
-                            <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
+                            <div
+                                style={{
+                                    maxHeight: selectedCourts?.length > 0 ? "auto" : "240px",
+                                    overflowY: selectedCourts?.length === 0 ? "hidden" : "auto",
+                                    overflowX: "hidden",
+                                }}
+                            >
                                 {selectedCourts.length > 0 ? (
                                     selectedCourts.map((court, index) =>
                                         court.time.map((timeSlot, timeIndex) => (

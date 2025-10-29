@@ -212,9 +212,9 @@ const Openmatches = () => {
     };
 
     const tabs = [
-        { img: morningTab, label: 'Day', key: 'morning' },
+        { img: morningTab, label: 'Morning', key: 'morning' },
         { img: sun, label: 'Afternoon', key: 'noon' },
-        { img: nighttab, label: 'Night', key: 'night' },
+        { img: nighttab, label: 'Evening', key: 'night' },
     ];
 
     const formatTimes = (slots) => {
