@@ -84,9 +84,9 @@ const CreateMatches = () => {
   const logo = JSON.parse(localStorage.getItem("logo") || "null");
 
   const tabData = [
-    { img: morningTab, label: "Day", key: "morning" },
+    { img: morningTab, label: "Morning", key: "morning" },
     { img: sun, label: "Afternoon", key: "noon" },
-    { img: nighttab, label: "Night", key: "night" },
+    { img: nighttab, label: "Evening", key: "night" },
   ];
 
   const handleClickOutside = (e) => {
