@@ -134,7 +134,7 @@ const SignUpPage = () => {
 
   return (
     <Layout>
-      <div className="w-50">
+      <div className="w-md-50 w-sm-100">
         <h2 className="mb-1" style={{
           fontFamily: "Poppins",
           fontWeight: 500,
@@ -165,6 +165,7 @@ const SignUpPage = () => {
                 paddingRight: "40px",
                 borderRadius: "8px",
                 height: "50px",
+                boxShadow:"none"
               }}
             />
             <Form.Control.Feedback type="invalid">
@@ -186,6 +187,7 @@ const SignUpPage = () => {
                 paddingRight: "40px",
                 borderRadius: "8px",
                 height: "50px",
+                boxShadow:"none"
               }}
               maxLength={10}
               autoComplete="tel"
@@ -212,6 +214,7 @@ const SignUpPage = () => {
                 paddingRight: "40px",
                 borderRadius: "8px",
                 height: "50px",
+                boxShadow:"none"
               }}
             />
             <Form.Control.Feedback type="invalid">
@@ -235,13 +238,15 @@ const SignUpPage = () => {
                   paddingRight: "40px",
                   borderRadius: "8px 0px 0px 8px",
                   height: "50px",
+                  boxShadow:"none"
                 }}
               />
               <Button
                 variant="outline-secondary border"
                 type="button"
-                style={{ borderRadius: "0px 8px 8px 0px" }}
+                style={{ borderRadius: "0px 8px 8px 0px",boxShadow:"none" }}
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={form.password.length === 0}
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </Button>
@@ -267,13 +272,15 @@ const SignUpPage = () => {
                   paddingRight: "40px",
                   borderRadius: "8px 0px 0px 8px",
                   height: "50px",
+                  boxShadow:"none"
                 }}
               />
               <Button
                 variant="outline-secondary border"
                 type="button"
-                style={{ borderRadius: "0px 8px 8px 0px" }}
+                style={{ borderRadius: "0px 8px 8px 0px",boxShadow:"none" }}
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={form.confirmPassword.length === 0}
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </Button>
@@ -295,6 +302,7 @@ const SignUpPage = () => {
               background: "linear-gradient(to right, #4caf50, #3f51b5)",
               border: "none",
               fontSize: "16px",
+              boxShadow:"none"
             }}
           >
             {authLoading ? (
