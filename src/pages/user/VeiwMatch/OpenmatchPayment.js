@@ -273,7 +273,7 @@ const OpenmatchPayment = () => {
                                 )}
                                 {addedPlayers.slot2 ? (
                                     <div className="d-flex flex-column align-items-center mx-auto mb-3">
-                                        <div className="rounded-circle border" style={{ width: 80, height: 80, backgroundColor: addedPlayers.slot2.profilePic ? "transparent" : "#3DBE64", overflow: "hidden" }}>
+                                        <div className="rounded-circle border d-flex justify-content-center align-items-center" style={{ width: 80, height: 80, backgroundColor: addedPlayers.slot2.profilePic ? "transparent" : "#3DBE64", overflow: "hidden" }}>
                                             {addedPlayers.slot2.profilePic ? <img src={addedPlayers.slot2.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>{addedPlayers.slot2.name[0].toUpperCase()}</span>}
                                         </div>
                                         <p className="mb-0 mt-2 fw-semibold" style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{addedPlayers.slot2.name}</p>
@@ -291,10 +291,10 @@ const OpenmatchPayment = () => {
                             <div className="col-6 d-flex flex-column flex-lg-row gap-3 align-items-start justify-content-center border-start">
                                 {addedPlayers.slot3 ? (
                                     <div className="d-flex flex-column align-items-center mx-auto mb-3">
-                                        <div className="rounded-circle border" style={{ width: 80, height: 80, backgroundColor: addedPlayers.slot3.profilePic ? "transparent" : "#1F41BB", overflow: "hidden" }}>
+                                        <div className="rounded-circle d-flex justify-content-center align-items-center border" style={{ width: 80, height: 80, backgroundColor: addedPlayers.slot3.profilePic ? "transparent" : "#1F41BB", overflow: "hidden" }}>
                                             {addedPlayers.slot3.profilePic ? <img src={addedPlayers.slot3.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>{addedPlayers.slot3.name[0].toUpperCase()}</span>}
                                         </div>
-                                        <p className="mb-0 mt-2 fw-semibold" style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{addedPlayers.slot3.name}</p>
+                                        <p className="mb-0 mt-2 text-center fw-semibold" style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{addedPlayers.slot3.name}</p>
                                         <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>{addedPlayers.slot3.level}</span>
                                     </div>
                                 ) : (
@@ -305,7 +305,7 @@ const OpenmatchPayment = () => {
                                 )}
                                 {addedPlayers.slot4 ? (
                                     <div className="d-flex flex-column align-items-center mx-auto mb-3">
-                                        <div className="rounded-circle border" style={{ width: 80, height: 80, backgroundColor: addedPlayers.slot4.profilePic ? "transparent" : "#1F41BB", overflow: "hidden" }}>
+                                        <div className="rounded-circle border d-flex justify-content-center align-items-center" style={{ width: 80, height: 80, backgroundColor: addedPlayers.slot4.profilePic ? "transparent" : "#1F41BB", overflow: "hidden" }}>
                                             {addedPlayers.slot4.profilePic ? <img src={addedPlayers.slot4.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>{addedPlayers.slot4.name[0].toUpperCase()}</span>}
                                         </div>
                                         <p className="mb-0 mt-2 fw-semibold" style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{addedPlayers.slot4.name}</p>
