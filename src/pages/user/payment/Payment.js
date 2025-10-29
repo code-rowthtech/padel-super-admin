@@ -24,6 +24,7 @@ const Payment = ({ className = "" }) => {
     const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
     const user = getUserFromSession();
     const bookingStatus = useSelector((state) => state?.userBooking);
+    console.log({bookingStatus});
     const userLoading = useSelector((state) => state?.userAuth);
     const logo = JSON.parse(localStorage.getItem("logo"));
     const [name, setName] = useState(user?.name || "");
@@ -234,7 +235,7 @@ const Payment = ({ className = "" }) => {
                 paymentMethod: selectedPayment,
             };
 
-            if (user?.name && user?.token) {
+            if (!user?.name && !user?.token) {
                 await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber.toString(), name, email }))
                     .unwrap()
                     .then((res) => {
@@ -252,13 +253,9 @@ const Payment = ({ className = "" }) => {
                 dispatch(createBooking(payload))
                     .unwrap()
                     .then((res) => {
-                        dispatch(createBooking(payload))
-                            .unwrap()
-                            .then((res) => {
-                                if (res?.success) {
-                                    setModal(true);
-                                }
-                            });
+                        if (res?.success) {
+                            setModal(true);
+                        }
                     });
             }
         } catch (err) {
@@ -602,7 +599,7 @@ const Payment = ({ className = "" }) => {
                                     </g>
                                 </svg>
                                 <div style={contentStyle}>
-                                    {isLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}
+                                    {isLoading || bookingStatus?.bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}
                                 </div>
                             </button>
                         </div>
