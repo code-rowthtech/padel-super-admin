@@ -38,6 +38,7 @@ export const GET_OWNER = "/api/owners/getowner";
 export const REGISTER_CLUB = "/api/club/registerClub";
 export const CREATE_SLOT = "/api/slot/createSlot";
 export const GET_SLOT = "/api/slot/getSlot";
+export const GET_CLUB_REGISTER = "/api/club/getRegisterClubDataById";
 export const UPDATE_COURT = "/api/slot/updateCourt";
 
 //-----------------------------------------------M_A_N_U_A_L_-_B_O_O_K_I_N_G--------------------------//

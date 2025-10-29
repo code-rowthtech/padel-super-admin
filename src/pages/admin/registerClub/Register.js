@@ -30,8 +30,8 @@ function Register() {
                             <h1 className="fw-bold text-primary mb-2">Welcome</h1>
                             <h3 className="fw-semibold mb-4">The Good Club Owners!</h3>
                             <p className="text-muted fs-6 mb-4">
-                                Bring your court online and connect with thousands of padel players through our app.
-                                We make it simple to manage bookings, increase visibility, and grow your business – all in one place.
+                                Bring your court online and connect with thousands of padel players through our app. <br/>
+                                We make it simple to manage bookings, increase visibility, and grow your <br/> business – all in one place.
                             </p>
 
                             <ul className="list-unstyled mb-4">
@@ -39,21 +39,21 @@ function Register() {
                                     {greenCheckIcon}
                                     <div>
                                         <strong className="d-block mb-1">Real-Time Bookings</strong>
-                                        <small className="text-muted">Let players book your court instantly</small>
+                                        <small className="text-muted fw-medium">Let players book your court instantly</small>
                                     </div>
                                 </li>
                                 <li className="mb-3 d-flex align-items-start">
                                     {greenCheckIcon}
                                     <div>
                                         <strong className="d-block mb-1">Boost Revenue</strong>
-                                        <small className="text-muted">Fill empty slots, promote offers, and track earnings</small>
+                                        <small className="text-muted fw-medium">Fill empty slots, promote offers, and track earnings</small>
                                     </div>
                                 </li>
                                 <li className="mb-3 d-flex align-items-start">
                                     {greenCheckIcon}
                                     <div>
                                         <strong className="d-block mb-1">Business Dashboard</strong>
-                                        <small className="text-muted">Manage schedules, pricing, and availability</small>
+                                        <small className="text-muted fw-medium">Manage schedules, pricing, and availability</small>
                                     </div>
                                 </li>
                             </ul>

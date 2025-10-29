@@ -101,3 +101,23 @@ export const updateCourt = createAsyncThunk(
     }
   }
 );
+
+
+export const getClubRegister = createAsyncThunk(
+  "club/getClubRegister",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(`${Url.GET_CLUB_REGISTER}?clubId=${data}`);
+      if (res?.status === 200) {
+        // showSuccess(res?.data?.message);
+        return res?.data;
+      } else {
+        showError(res?.data?.message || "Failed to create slot");
+        return rejectWithValue(res?.data?.message || "Failed to create slot");
+      }
+    } catch (error) {
+      showError(error);
+      // return rejectWithValue(error);
+    }
+  }
+);

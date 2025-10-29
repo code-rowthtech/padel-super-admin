@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { resetClub } from "../../../../redux/admin/club/slice";
 import { showError, showInfo, showWarning } from "../../../../helpers/Toast";
 
-const Pricing = () => {
+const Pricing = ({setUpdateImage,onBack,onFinalSuccess}) => {
   const dispatch = useDispatch();
   const registerId = sessionStorage.getItem("registerId");
   const { clubLoading, clubData, updateClubLoading } = useSelector(
@@ -43,7 +43,7 @@ const Pricing = () => {
       Evening: {},
       All: {},
     },
-    changesConfirmed: false,
+    // changesConfirmed: false,
   });
 
   // Track if "Select All" is checked
@@ -309,113 +309,7 @@ const Pricing = () => {
     });
   };
 
-  // const renderAllSlots = () => {
-  //   const allTimes =
-  //     PricingData?.[0]?.slot?.[0]?.slotTimes?.map((slot) => slot.time) || [];
-  //   const selectedTimes = Object.keys(formData.prices.All).filter(
-  //     (time) => formData.prices.All[time] !== undefined
-  //   );
-
-  //   const getCommonPrice = () => {
-  //     if (selectedTimes.length === 0) return "";
-  //     const firstPrice = formData.prices.All[selectedTimes[0]];
-  //     const allSame = selectedTimes.every(
-  //       (time) => formData.prices.All[time] === firstPrice
-  //     );
-  //     return allSame ? firstPrice : "";
-  //   };
-
-  //   const toggleSlot = (time) => {
-  //     setFormData((prev) => {
-  //       const newPrices = { ...prev.prices.All };
-  //       if (newPrices[time] === undefined) {
-  //         newPrices[time] = getCommonPrice() || "";
-  //       } else {
-  //         delete newPrices[time];
-  //       }
-  //       return {
-  //         ...prev,
-  //         prices: {
-  //           ...prev.prices,
-  //           All: newPrices,
-  //         },
-  //       };
-  //     });
-  //   };
-
-  //   const updatePriceForAll = (price) => {
-  //     setFormData((prev) => {
-  //       const newPrices = { ...prev.prices.All };
-  //       selectedTimes.forEach((time) => {
-  //         newPrices[time] = price;
-  //       });
-  //       return {
-  //         ...prev,
-  //         prices: {
-  //           ...prev.prices,
-  //           All: newPrices,
-  //         },
-  //       };
-  //     });
-  //   };
-
-  //   return (
-  //     <div>
-  //       <div className="d-flex flex-wrap gap-2 mb-3">
-  //         {allTimes.map((time) => {
-  //           const isSelected = formData.prices.All[time] !== undefined;
-  //           return (
-  //             <Button
-  //               key={time}
-  //               variant={isSelected ? "primary" : "outline-primary"}
-  //               onClick={() => toggleSlot(time)}
-  //               style={{
-  //                 padding: "8px 16px",
-  //                 fontSize: "14px",
-  //                 color: isSelected ? "#fff" : "#1F2937",
-  //                 borderRadius: "8px",
-  //                 border: "1px solid #E5E7EB",
-  //                 backgroundColor: isSelected ? "#22C55E" : "#F9FAFB",
-  //               }}
-  //             >
-  //               {time}
-  //             </Button>
-  //           );
-  //         })}
-  //       </div>
-  //       <div className="mt-3">
-  //         <h5
-  //           style={{
-  //             fontWeight: 700,
-  //             color: "#1F2937",
-  //             marginBottom: "10px",
-  //           }}
-  //         >
-  //           {selectedTimes.length > 0
-  //             ? `Set Price for ${selectedTimes.length} slot${
-  //                 selectedTimes.length > 1 ? "s" : ""
-  //               }`
-  //             : "Set Price (select slots first)"}
-  //         </h5>
-  //         <InputGroup>
-  //           <FormControl
-  //             placeholder={selectedTimes.length > 0 ? "Enter price" : ""}
-  //             value={getCommonPrice()}
-  //             onChange={(e) => updatePriceForAll(e.target.value)}
-  //             disabled={selectedTimes.length === 0}
-  //             style={{
-  //               height: "40px",
-  //               borderRadius: "8px",
-  //               border: "1px solid #E5E7EB",
-  //               fontSize: "14px",
-  //               backgroundColor: "#fff",
-  //             }}
-  //           />
-  //         </InputGroup>
-  //       </div>
-  //     </div>
-  //   );
-  // };
+  
 
   const renderAllSlots = () => {
     const allTimes =
@@ -546,9 +440,8 @@ const Pricing = () => {
             }}
           >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${
-                  selectedTimes.length > 1 ? "s" : ""
-                }`
+              ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""
+              }`
               : "Set Price (select slots first)"}
           </h5>
           <InputGroup>
@@ -574,10 +467,10 @@ const Pricing = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.changesConfirmed) {
-      showInfo("Please confirm that you have completed all changes.");
-      return;
-    }
+    // if (!formData.changesConfirmed) {
+    //   showInfo("Please confirm that you have completed all changes.");
+    //   return;
+    // }
 
     const selectedDays = selectAllChecked
       ? Object.keys(formData.days) // All days when "Select All" is checked
@@ -598,9 +491,9 @@ const Pricing = () => {
     const selectedSlotData = selectAllChecked
       ? allSlots
       : allSlots.filter((slot) => {
-          const slotDay = slot.businessHours?.[0]?.day;
-          return slotDay && selectedDays.includes(slotDay);
-        });
+        const slotDay = slot.businessHours?.[0]?.day;
+        return slotDay && selectedDays.includes(slotDay);
+      });
 
     // Get all slot times (flattened array when selectAllChecked)
     const slotData = selectAllChecked
@@ -686,8 +579,10 @@ const Pricing = () => {
     dispatch(updateCourt(payload))
       .unwrap()
       .then(() => {
+        onFinalSuccess();
         navigate("/admin/dashboard");
         sessionStorage.removeItem("registerId");
+        localStorage.removeItem("clubFormData");
         dispatch(resetClub());
       })
       .catch((error) => {
@@ -812,7 +707,7 @@ const Pricing = () => {
             </div>
           </Col>
         </Row>
-        <Row className="mt-4">
+        {/* <Row className="mt-4">
           <Col>
             <Form.Check
               type="checkbox"
@@ -846,33 +741,33 @@ const Pricing = () => {
               }}
             />
           </Col>
-        </Row>
+        </Row> */}
 
         <div className="d-flex justify-content-end mt-4">
           {/* <span onClick={() => { navigate('/admin/dashboard') }} style={{ color: '#1F2937', fontWeight: 600, cursor: 'pointer' }} className='d-flex align-items-center'>
                         <i class="bi bi-arrow-left-short fs-4 fw-bold"></i>Back
                     </span> */}
           <div className="">
-            {/* <Button
-                            type="button"
-                            // onClick={() => onSave(formData)}
-                            style={{
-                                backgroundColor: '#22C55E',
-                                border: 'none',
-                                borderRadius: '30px',
-                                padding: '10px 30px',
-                                fontWeight: 600,
-                                fontSize: '16px',
-                                color: '#fff',
-                                marginRight: '10px',
-                            }}
-                        >
-                            Save
-                        </Button> */}
+            <Button
+              type="button"
+              onClick={()=>{onBack(); setUpdateImage(true);}}
+              style={{
+                backgroundColor: '#374151',
+                border: 'none',
+                borderRadius: '30px',
+                padding: '10px 30px',
+                fontWeight: 600,
+                fontSize: '16px',
+                color: '#fff',
+                marginRight: '10px',
+              }}
+            >
+              Back
+            </Button>
             <Button
               type="submit"
               style={{
-                backgroundColor: "#374151",
+                backgroundColor: "#22C55E",
                 border: "none",
                 borderRadius: "30px",
                 padding: "10px 30px",
@@ -882,7 +777,7 @@ const Pricing = () => {
               }}
               disabled={updateClubLoading}
             >
-              {updateClubLoading ? <ButtonLoading /> : "Update"}
+              {updateClubLoading ? <ButtonLoading color={'white'} /> : "Update"}
             </Button>
           </div>
         </div>

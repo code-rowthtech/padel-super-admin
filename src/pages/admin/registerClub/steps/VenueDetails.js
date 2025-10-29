@@ -11,10 +11,12 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     courtCount: false,
     courtTypes: false,
     features: false,
+    description: false,
   });
   const [isFormValid, setIsFormValid] = useState(false);
+  const MAX_DESC = 200;
 
-  // Validate form whenever formData or errors change
+  // Validate form
   useEffect(() => {
     const isValid =
       formData.courtName &&
@@ -30,7 +32,6 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
   }, [formData, errors]);
 
   const handleChange = (field, value) => {
-    // Basic validation for required fields
     const newErrors = { ...errors };
 
     if (field === "courtName") {
@@ -45,6 +46,9 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
       newErrors.zip = !/^\d+$/.test(value.trim());
     } else if (field === "courtCount") {
       newErrors.courtCount = !/^\d+$/.test(value.trim());
+    } else if (field === "description") {
+      const len = value.length;
+      newErrors.description = len > MAX_DESC || len === 0;
     }
 
     setErrors(newErrors);
@@ -60,32 +64,22 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
       },
     };
 
-    // Validate at least one court type is selected
     if (section === "courtTypes") {
       const hasCourtType =
         newValue ||
         Object.entries(newData.courtTypes)
           .filter(([k]) => k !== key)
           .some(([_, v]) => v);
-
-      setErrors((prev) => ({
-        ...prev,
-        courtTypes: !hasCourtType,
-      }));
+      setErrors((prev) => ({ ...prev, courtTypes: !hasCourtType }));
     }
 
-    // Validate at least one feature is selected
     if (section === "features") {
       const hasFeature =
         newValue ||
         Object.entries(newData.features)
           .filter(([k]) => k !== key)
           .some(([_, v]) => v);
-
-      setErrors((prev) => ({
-        ...prev,
-        features: !hasFeature,
-      }));
+      setErrors((prev) => ({ ...prev, features: !hasFeature }));
     }
 
     updateFormData(newData);
@@ -93,28 +87,47 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isFormValid) {
-      onNext();
-    }
+    if (isFormValid) onNext();
   };
 
   const renderInput = (placeholder, fieldName, type = "text") => (
     <div>
       {type === "text-area" ? (
-        <Form.Control
-          as="textarea"
-          placeholder={placeholder}
-          value={formData[fieldName]}
-          onChange={(e) => handleChange(fieldName, e.target.value)}
-          isInvalid={!!errors[fieldName]}
-          style={{
-            height: "70px", // Adjust height for textarea
-            borderRadius: "12px",
-            border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
-            fontSize: "14px",
-            resize: "vertical", // Allow vertical resizing
-          }}
-        />
+        <div style={{ position: "relative" }}>
+          <Form.Control
+            as="textarea"
+            placeholder={placeholder}
+            value={formData[fieldName]}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val.length <= MAX_DESC) {
+                handleChange(fieldName, val);
+              }
+            }}
+            isInvalid={!!errors[fieldName]}
+            style={{
+              height: "100px",
+              borderRadius: "12px",
+              border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
+              fontSize: "14px",
+              resize: "vertical",
+              paddingBottom: "20px",
+            }}
+          />
+          {/* Character Count */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "8px",
+              right: "12px",
+              fontSize: "12px",
+              color: formData.description.length > MAX_DESC ? "#EF4444" : "#6B7280",
+              pointerEvents: "none",
+            }}
+          >
+            {formData.description.length}/{MAX_DESC}
+          </div>
+        </div>
       ) : (
         <Form.Control
           type={type}
@@ -135,6 +148,8 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
         <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
           {fieldName === "zip" || fieldName === "courtCount"
             ? "Please enter a valid number"
+            : fieldName === "description"
+            ? "Description is required and max 200 characters"
             : "This field is required"}
         </Form.Control.Feedback>
       )}
@@ -153,9 +168,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
             {label}
           </span>
         }
-        style={{
-          accentColor: "#22C55E",
-        }}
+        style={{ accentColor: "#22C55E" }}
       />
     </div>
   );
@@ -176,32 +189,16 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
 
         <Row className="mb-3">
           <Col md={3}>{renderInput("Zip Code", "zip", "number")}</Col>
-          <Col md={3}>
-            {renderInput("Number of court", "courtCount", "number")}
-          </Col>
-          <Col md={6}>
-            {renderInput("Description", "description", "text-area")}
-          </Col>
+          <Col md={3}>{renderInput("Number of court", "courtCount", "number")}</Col>
+          <Col md={6}>{renderInput("Description", "description", "text-area")}</Col>
         </Row>
 
         <Row className="mt-4">
           <Col md={4}>
-            <h6
-              style={{
-                fontWeight: 700,
-                marginBottom: "10px",
-                color: "#1F2937",
-              }}
-            >
+            <h6 style={{ fontWeight: 700, marginBottom: "10px", color: "#1F2937" }}>
               Court Type{" "}
               {errors.courtTypes && (
-                <span
-                  style={{
-                    color: "#EF4444",
-                    fontSize: "12px",
-                    fontWeight: "normal",
-                  }}
-                >
+                <span style={{ color: "#EF4444", fontSize: "12px", fontWeight: "normal" }}>
                   (Select at least one)
                 </span>
               )}
@@ -211,44 +208,20 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
           </Col>
 
           <Col md={8}>
-            <h6
-              style={{
-                fontWeight: 700,
-                marginBottom: "10px",
-                color: "#1F2937",
-              }}
-            >
+            <h6 style={{ fontWeight: 700, marginBottom: "10px", color: "#1F2937" }}>
               Features{" "}
               {errors.features && (
-                <span
-                  style={{
-                    color: "#EF4444",
-                    fontSize: "12px",
-                    fontWeight: "normal",
-                  }}
-                >
+                <span style={{ color: "#EF4444", fontSize: "12px", fontWeight: "normal" }}>
                   (Select at least one)
                 </span>
               )}
             </h6>
             <Row>
-              <Col md={4}>
-                {renderCheckbox("Changing Rooms", "features", "changingRooms")}
-              </Col>
-              <Col md={4}>
-                {renderCheckbox("Parking", "features", "parking")}
-              </Col>
+              <Col md={4}>{renderCheckbox("Changing Rooms", "features", "changingRooms")}</Col>
+              <Col md={4}>{renderCheckbox("Parking", "features", "parking")}</Col>
               <Col md={4}>{renderCheckbox("Shower", "features", "shower")}</Col>
-              <Col md={4}>
-                {renderCheckbox("Chill Pad", "features", "chillPad")}
-              </Col>
-              <Col md={4}>
-                {renderCheckbox(
-                  "Coaching Available",
-                  "features",
-                  "coachingAvailable"
-                )}
-              </Col>
+              <Col md={4}>{renderCheckbox("Chill Pad", "features", "chillPad")}</Col>
+              <Col md={4}>{renderCheckbox("Coaching Available", "features", "coachingAvailable")}</Col>
             </Row>
           </Col>
         </Row>
