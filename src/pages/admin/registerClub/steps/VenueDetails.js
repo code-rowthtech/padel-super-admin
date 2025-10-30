@@ -90,71 +90,96 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     if (isFormValid) onNext();
   };
 
-  const renderInput = (placeholder, fieldName, type = "text") => (
-    <div>
-      {type === "text-area" ? (
-        <div style={{ position: "relative" }}>
+  const renderInput = (placeholder, fieldName, type = "text") => {
+    const isTextField = type === "text" || type === "text-area";
+
+    const handleTextChange = (e) => {
+      let value = e.target.value;
+
+      // Only for text fields
+      if (isTextField && value.length > 0) {
+        const selectionStart = e.target.selectionStart;
+        const selectionEnd = e.target.selectionEnd;
+
+        // Capitalize first letter
+        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+
+        // Restore cursor position
+        setTimeout(() => {
+          e.target.setSelectionRange(selectionStart, selectionEnd);
+        }, 0);
+
+        value = capitalized;
+      }
+
+      // For textarea: enforce max length
+      if (type === "text-area" && value.length > MAX_DESC) {
+        return;
+      }
+
+      handleChange(fieldName, value);
+    };
+
+    return (
+      <div>
+        {type === "text-area" ? (
+          <div style={{ position: "relative" }}>
+            <Form.Control
+              as="textarea"
+              placeholder={placeholder}
+              value={formData[fieldName]}
+              onChange={handleTextChange}
+              isInvalid={!!errors[fieldName]}
+              style={{
+                height: "100px",
+                borderRadius: "12px",
+                border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
+                fontSize: "14px",
+                resize: "vertical",
+                paddingBottom: "20px",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "8px",
+                right: "12px",
+                fontSize: "12px",
+                color: formData.description.length > MAX_DESC ? "#EF4444" : "#6B7280",
+                pointerEvents: "none",
+              }}
+            >
+              {formData.description.length}/{MAX_DESC}
+            </div>
+          </div>
+        ) : (
           <Form.Control
-            as="textarea"
+            type={type}
             placeholder={placeholder}
             value={formData[fieldName]}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val.length <= MAX_DESC) {
-                handleChange(fieldName, val);
-              }
-            }}
-            isInvalid={!!errors[fieldName]}
+            onChange={handleTextChange}
+            isInvalid={errors[fieldName]}
             style={{
-              height: "100px",
+              height: "50px",
               borderRadius: "12px",
               border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
               fontSize: "14px",
-              resize: "vertical",
-              paddingBottom: "20px",
+              backgroundColor: "#fff",
             }}
           />
-          {/* Character Count */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: "8px",
-              right: "12px",
-              fontSize: "12px",
-              color: formData.description.length > MAX_DESC ? "#EF4444" : "#6B7280",
-              pointerEvents: "none",
-            }}
-          >
-            {formData.description.length}/{MAX_DESC}
-          </div>
-        </div>
-      ) : (
-        <Form.Control
-          type={type}
-          placeholder={placeholder}
-          value={formData[fieldName]}
-          onChange={(e) => handleChange(fieldName, e.target.value)}
-          isInvalid={errors[fieldName]}
-          style={{
-            height: "50px",
-            borderRadius: "12px",
-            border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
-            fontSize: "14px",
-            backgroundColor: "#fff",
-          }}
-        />
-      )}
-      {errors[fieldName] && (
-        <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
-          {fieldName === "zip" || fieldName === "courtCount"
-            ? "Please enter a valid number"
-            : fieldName === "description"
-            ? "Description is required and max 500 characters"
-            : "This field is required"}
-        </Form.Control.Feedback>
-      )}
-    </div>
-  );
+        )}
+        {errors[fieldName] && (
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {fieldName === "zip" || fieldName === "courtCount"
+              ? "Please enter a valid number"
+              : fieldName === "description"
+                ? "Description is required and max 500 characters"
+                : "This field is required"}
+          </Form.Control.Feedback>
+        )}
+      </div>
+    );
+  };
 
   const renderCheckbox = (label, section, key) => (
     <div className="mb-3">

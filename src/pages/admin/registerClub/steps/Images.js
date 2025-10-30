@@ -248,6 +248,19 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       return;
     }
 
+    const savedPreviews = previewImages
+      .filter(img => img.isSaved)
+      .map(img => img.preview);
+
+    const savedData = {
+      ...JSON.parse(localStorage.getItem("clubFormData") || "{}"),
+      previewUrls: savedPreviews,
+      businessHours: formData.businessHours,
+      termsAccepted: formData.termsAccepted,
+    };
+
+    localStorage.setItem("clubFormData", JSON.stringify(savedData));
+
     const apiFormData = new FormData();
     apiFormData.append("clubName", formData.courtName || "");
     apiFormData.append(
@@ -278,21 +291,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       )
     );
 
-    // Save preview URLs for next update
-    const previewUrls = previewImages
-      .filter((img) => !img.file) // only saved ones
-      .map((img) => img.preview);
-
-    // Save to localStorage
-    const savedData = JSON.parse(localStorage.getItem("clubFormData") || "{}");
-    localStorage.setItem("clubFormData", JSON.stringify({
-      ...savedData,
-      previewUrls,
-      businessHours: formData.businessHours,
-      termsAccepted: formData.termsAccepted,
-    }));
-
-    // Only send new files
     newImages.forEach((file) => apiFormData.append("image", file));
 
     try {

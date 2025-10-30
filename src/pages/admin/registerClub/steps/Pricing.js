@@ -392,9 +392,9 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     const selectedSlotData = selectAllChecked
       ? allSlots
       : allSlots.filter((slot) => {
-          const slotDay = slot.businessHours?.[0]?.day;
-          return slotDay && selectedDays.includes(slotDay);
-        });
+        const slotDay = slot.businessHours?.[0]?.day;
+        return slotDay && selectedDays.includes(slotDay);
+      });
 
     const slotData = selectAllChecked
       ? selectedSlotData.flatMap((slot) => slot.slotTimes || [])
@@ -467,151 +467,151 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         onFinalSuccess();
         navigate("/admin/dashboard");
         sessionStorage.removeItem("registerId");
-        localStorage.removeItem("clubFormData");
+        localStorage.removeItem("clubFormData"); // ← CLEAR
         dispatch(resetClub());
       })
-      .catch(() => {
-        showError("Failed to update prices. Please try again.");
-      });
+      .catch (() => {
+  showError("Failed to update prices. Please try again.");
+});
   };
 
-  // Fetch slots when days or slot type change
-  useEffect(() => {
-    const selectedDays = Object.keys(formData.days).filter((day) => formData.days[day]);
-    const isAllSelected = selectedDays.length === 7;
-    const payloadDays = isAllSelected ? "" : selectedDays;
+// Fetch slots when days or slot type change
+useEffect(() => {
+  const selectedDays = Object.keys(formData.days).filter((day) => formData.days[day]);
+  const isAllSelected = selectedDays.length === 7;
+  const payloadDays = isAllSelected ? "" : selectedDays;
 
-    if (selectedDays.length > 0 && registerId && formData.selectedSlots) {
-      dispatch(
-        getSlots({
-          register_club_id: registerId,
-          day: payloadDays,
-          time: !isAllSelected ? formData.selectedSlots : "",
-        })
-      );
-    }
-  }, [formData.days, registerId, formData.selectedSlots, dispatch]);
+  if (selectedDays.length > 0 && registerId && formData.selectedSlots) {
+    dispatch(
+      getSlots({
+        register_club_id: registerId,
+        day: payloadDays,
+        time: !isAllSelected ? formData.selectedSlots : "",
+      })
+    );
+  }
+}, [formData.days, registerId, formData.selectedSlots, dispatch]);
 
-  return (
-    <div className="border-top p-4">
-      <Form onSubmit={handleSubmit}>
-        <Row>
-          <Col md={6}>
-            <div className="d-flex justify-content-between">
-              <h5 style={{ fontWeight: 700, color: "#1F2937", marginBottom: "10px" }}>
-                Set Price
-              </h5>
-              <Form.Check
-                type="checkbox"
-                id="selectAll"
-                checked={selectAllChecked}
-                onChange={handleSelectAllChange}
-                label="Select All"
-                style={{ fontSize: "14px", color: "#1F2937", fontWeight: 500 }}
-              />
-            </div>
-            <div
-              style={{
-                border: "1px solid #E5E7EB",
-                borderRadius: "8px",
-                padding: "10px",
-                background: "#F9FAFB",
-              }}
-            >
-              {renderDays()}
-            </div>
-          </Col>
-          <Col md={6}>
-            {!selectAllChecked && (
-              <Dropdown>
-                <Dropdown.Toggle
-                  variant="secondary"
-                  id="slot-selector"
-                  style={{
-                    backgroundColor: "#F9FAFB",
-                    borderColor: "#E5E7EB",
-                    borderRadius: "8px",
-                    padding: "6px 12px",
-                    fontSize: "14px",
-                    color: "#1F2937",
-                    position: "absolute",
-                    top: "-1em",
-                    right: "0%",
-                  }}
-                >
-                  {formData.selectedSlots} slots
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => handleSlotChange("Morning")}>
-                    Morning slots
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={() => handleSlotChange("Afternoon")}>
-                    Afternoon slots
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={() => handleSlotChange("Evening")}>
-                    Evening slots
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            )}
-
+return (
+  <div className="border-top p-4">
+    <Form onSubmit={handleSubmit}>
+      <Row>
+        <Col md={6}>
+          <div className="d-flex justify-content-between">
             <h5 style={{ fontWeight: 700, color: "#1F2937", marginBottom: "10px" }}>
-              {selectAllChecked ? "All" : formData.selectedSlots} slots
+              Set Price
             </h5>
-            <div
-              style={{
-                border: "1px solid #E5E7EB",
-                borderRadius: "8px",
-                padding: "10px",
-                background: "#F9FAFB",
-              }}
-            >
-              {clubLoading ? <DataLoading /> : renderTimeSlots()}
-            </div>
-          </Col>
-        </Row>
-
-        <div className="d-flex justify-content-end mt-4">
-          <div>
-            <Button
-              type="button"
-              onClick={() => {
-                onBack();
-                setUpdateImage(true);
-              }}
-              style={{
-                backgroundColor: "#374151",
-                border: "none",
-                borderRadius: "30px",
-                padding: "10px 30px",
-                fontWeight: 600,
-                fontSize: "16px",
-                color: "#fff",
-                marginRight: "10px",
-              }}
-            >
-              Back
-            </Button>
-            <Button
-              type="submit"
-              style={{
-                backgroundColor: "#22C55E",
-                border: "none",
-                borderRadius: "30px",
-                padding: "10px 30px",
-                fontWeight: 600,
-                fontSize: "16px",
-                color: "#fff",
-              }}
-              disabled={updateClubLoading}
-            >
-              {updateClubLoading ? <ButtonLoading color="white" /> : "Update"}
-            </Button>
+            <Form.Check
+              type="checkbox"
+              id="selectAll"
+              checked={selectAllChecked}
+              onChange={handleSelectAllChange}
+              label="Select All"
+              style={{ fontSize: "14px", color: "#1F2937", fontWeight: 500 }}
+            />
           </div>
+          <div
+            style={{
+              border: "1px solid #E5E7EB",
+              borderRadius: "8px",
+              padding: "10px",
+              background: "#F9FAFB",
+            }}
+          >
+            {renderDays()}
+          </div>
+        </Col>
+        <Col md={6}>
+          {!selectAllChecked && (
+            <Dropdown>
+              <Dropdown.Toggle
+                variant="secondary"
+                id="slot-selector"
+                style={{
+                  backgroundColor: "#F9FAFB",
+                  borderColor: "#E5E7EB",
+                  borderRadius: "8px",
+                  padding: "6px 12px",
+                  fontSize: "14px",
+                  color: "#1F2937",
+                  position: "absolute",
+                  top: "-1em",
+                  right: "0%",
+                }}
+              >
+                {formData.selectedSlots} slots
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={() => handleSlotChange("Morning")}>
+                  Morning slots
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSlotChange("Afternoon")}>
+                  Afternoon slots
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSlotChange("Evening")}>
+                  Evening slots
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
+
+          <h5 style={{ fontWeight: 700, color: "#1F2937", marginBottom: "10px" }}>
+            {selectAllChecked ? "All" : formData.selectedSlots} slots
+          </h5>
+          <div
+            style={{
+              border: "1px solid #E5E7EB",
+              borderRadius: "8px",
+              padding: "10px",
+              background: "#F9FAFB",
+            }}
+          >
+            {clubLoading ? <DataLoading /> : renderTimeSlots()}
+          </div>
+        </Col>
+      </Row>
+
+      <div className="d-flex justify-content-end mt-4">
+        <div>
+          <Button
+            type="button"
+            onClick={() => {
+              onBack();
+              setUpdateImage(true);
+            }}
+            style={{
+              backgroundColor: "#374151",
+              border: "none",
+              borderRadius: "30px",
+              padding: "10px 30px",
+              fontWeight: 600,
+              fontSize: "16px",
+              color: "#fff",
+              marginRight: "10px",
+            }}
+          >
+            Back
+          </Button>
+          <Button
+            type="submit"
+            style={{
+              backgroundColor: "#22C55E",
+              border: "none",
+              borderRadius: "30px",
+              padding: "10px 30px",
+              fontWeight: 600,
+              fontSize: "16px",
+              color: "#fff",
+            }}
+            disabled={updateClubLoading}
+          >
+            {updateClubLoading ? <ButtonLoading color="white" /> : "Update"}
+          </Button>
         </div>
-      </Form>
-    </div>
-  );
+      </div>
+    </Form>
+  </div>
+);
 };
 
 export default Pricing;
