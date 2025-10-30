@@ -23,6 +23,8 @@ const Navbar = () => {
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
     let token = isUserAuthenticated()
     const logo = JSON.parse(localStorage.getItem("logo"));
+    const { user, } = useSelector((state) => state?.userAuth);
+
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
             setUserData(store.user.response.user);
@@ -40,6 +42,8 @@ const Navbar = () => {
                 setUserData(null);
             }
         }
+
+
 
         const updateUserData = () => {
             const userLocal = localStorage.getItem('padel_user');
@@ -62,6 +66,14 @@ const Navbar = () => {
             window.removeEventListener('storage', updateUserData);
         };
     }, [store?.user?.status, store?.user?.response?.user,]);
+    const updateName = localStorage.getItem("updateprofile");
+
+    const initialFormData = {
+        fullName: user?.response?.name || updateName?.fullName || store?.userSignUp?.response?.name || User?.name || "",
+        phone: user?.response?.phoneNumber || updateName?.phone || store?.userSignUp?.response?.phoneNumber || User?.phoneNumber || "",
+        profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic || "",
+    };
+    console.log(user,'user?.response?.name');
 
     useEffect(() => {
         if (User?.token) {
@@ -93,7 +105,7 @@ const Navbar = () => {
                                 border: "0.5px solid #928f8fff",
                                 objectFit: "contain",
                                 imageRendering: "auto",
-                                padding:"0px"
+                                padding: "0px"
                             }}
                         />
                         :
@@ -160,7 +172,7 @@ const Navbar = () => {
 
                 {/* Profile Section */}
                 <div className="d-flex">
-                    {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
+                    {store?.user?.status === '200' || token || store?.user?.status === 200  ? (
                         <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
                             <Dropdown.Toggle
                                 variant="white"
@@ -183,9 +195,10 @@ const Navbar = () => {
                                         <div className="fw-semibold">
                                             {userData?.name
                                                 ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                : User?.user?.response?.name || 'User'}
+                                                : initialFormData?.fullName || User?.user?.response?.name || 'User'}
+
                                         </div>
-                                        <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || 'N/A'}</div>
+                                        <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
                                     </div>
                                     <FaChevronDown className="ms-2 text-muted" />
                                 </div>

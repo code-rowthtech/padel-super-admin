@@ -24,14 +24,15 @@ const Payment = ({ className = "" }) => {
     const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
     const user = getUserFromSession();
     const bookingStatus = useSelector((state) => state?.userBooking);
-    console.log({bookingStatus});
+    console.log({ bookingStatus });
     const userLoading = useSelector((state) => state?.userAuth);
     const logo = JSON.parse(localStorage.getItem("logo"));
-    const [name, setName] = useState(user?.name || "");
+    const updateName = localStorage.getItem("updateprofile");
+    const [name, setName] = useState(user?.name || updateName?.fullName || "");
     const [phoneNumber, setPhoneNumber] = useState(
-        user?.phoneNumber ? `+91 ${user.phoneNumber}` : ""
+        user?.phoneNumber || updateName?.phone ? `+91 ${user.phoneNumber || updateName?.phone}` : ""
     );
-    const [email, setEmail] = useState(user?.email || "");
+    const [email, setEmail] = useState(user?.email || updateName?.email || "");
     const [selectedPayment, setSelectedPayment] = useState("");
     const [errors, setErrors] = useState({
         name: "",
