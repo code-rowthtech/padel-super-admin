@@ -52,6 +52,7 @@ const Booking = () => {
 
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
+  console.log({ bookings });
   const defaultLimit = 10;
   // Fetch bookings on tab change
   useEffect(() => {
@@ -235,7 +236,7 @@ const Booking = () => {
                           >
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
@@ -265,33 +266,20 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
-                                {tab !== 1 && (
-                                  <OverlayTrigger
-                                    placement="left"
-                                    overlay={<Tooltip>Cancel</Tooltip>}
-                                  >
+                                {!["rejected", "in-progress"].includes(item?.bookingStatus) && tab !== 1 && (
+                                  <OverlayTrigger placement="left" overlay={<Tooltip>Cancel</Tooltip>}>
                                     <MdOutlineCancel
-                                      onClick={() =>
-                                        handleBookingDetails(
-                                          item?._id,
-                                          "cancel"
-                                        )
-                                      }
+                                      onClick={() => handleBookingDetails(item?._id, "cancel")}
                                       className="text-danger"
                                       style={{ cursor: "pointer" }}
                                       size={16}
                                     />
                                   </OverlayTrigger>
                                 )}
-                                <OverlayTrigger
-                                  placement="bottom"
-                                  overlay={<Tooltip>View Details</Tooltip>}
-                                >
+                                <OverlayTrigger placement="bottom" overlay={<Tooltip>View Details</Tooltip>}>
                                   <FaEye
                                     className="text-primary"
-                                    onClick={() =>
-                                      handleBookingDetails(item?._id, "details")
-                                    }
+                                    onClick={() => handleBookingDetails(item?._id, "details")}
                                     size={16}
                                   />
                                 </OverlayTrigger>
@@ -314,7 +302,7 @@ const Booking = () => {
                           <span className="mobile-card-value">
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>

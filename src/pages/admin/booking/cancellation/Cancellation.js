@@ -436,17 +436,18 @@ const Cancellation = () => {
       <BookingRefundModal
         show={showRefund}
         handleClose={() => setShowRefund(false)}
-        onRefundSuccess={(refundAmount) => {
+        onRefundSuccess={(refundDescription,setReason) => {
           dispatch(
             updateBookingStatus({
               id: bookingDetails._id,
               status: "refunded",
-              refundAmount,
+              refundDescription,
             })
           )
             .unwrap()
             .then(() => {
               setShowRefund(false);
+              setReason("");
               dispatch(getBookingByStatus({ status, ownerId }));
               setTimeout(() => setShowSuccess(true), 300);
             });
@@ -459,13 +460,13 @@ const Cancellation = () => {
         handleClose={() => setShowDetails(false)}
         bookingDetails={bookingDetails}
       />
-      <RefundSuccessModal
+      {/* <RefundSuccessModal
         show={showSuccess}
         handleClose={() => {
           setShowSuccess(false);
           setTab(1);
         }}
-      />
+      /> */}
     </Container>
   );
 };

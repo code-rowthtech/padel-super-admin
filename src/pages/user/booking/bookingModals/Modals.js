@@ -73,11 +73,11 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
       // setShowConfirmationModal(true);
       handleClose();
     }
-    if (!activeTab === 'all' && User?.token) {
-      dispatch(getBooking({ type: activeTab, page: 1, limit: 10 }));
-    } else if (User?.token) {
-      dispatch(getBooking({ page: 1, limit: 10 }));
-    }
+      // if (!activeTab === 'all' && User?.token) {
+      //   dispatch(getBooking({ type: activeTab, page: 1, limit: 10 }));
+      // } else if (User?.token) {
+      //   dispatch(getBooking({ page: 1, limit: 10 }));
+      // }
   }, [bookingStatusData?.bookingStatusData?.status, bookingStatusData?.bookingStatusData?.message])
 
   const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
@@ -129,10 +129,13 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 </Avatar>
               }
               <p className="mt-3">
-                {{
-                  "in-progress": "Your cancellation request is pending for action.",
-                  "upcoming": "Your slot has been booked",
-                }[tableData?.booking?.bookingStatus] || ""}
+                {changeContent
+                  ? "You're about to cancel this booking"
+                  : {
+                    "in-progress": "Your cancellation request is pending for action.",
+                    "upcoming": "Your slot has been booked",
+                    // "cancelled": "Your booking has been cancelled", // optional
+                  }[tableData?.booking?.bookingStatus] || ""}
               </p>
             </div>
             <div className="p-2 px-3">
@@ -249,7 +252,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                       rows={3}
                       style={{
                         boxShadow: "none",
-                        paddingBottom: "28px", 
+                        paddingBottom: "28px",
                       }}
                       placeholder="Please describe your reason"
                       value={otherReason}
@@ -463,7 +466,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
   };
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
-      <Modal.Body className="text-center p-4">
+      <Modal.Body className="text-center p-4 pt-0">
         <div className="d-flex justify-content-end">
           <button
             type="button"
@@ -478,12 +481,12 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           <img
             src={modalSuccess}
             alt="Success"
-            className="py-4 animated-image"
+            className=" animated-image"
             style={{ width: '200px', marginBottom: '20px' }}
           />
           : null
         }
-        <div className="mb-3 border rounded bg-light p-2 px-3">
+        <div className="mb-2 border rounded bg-light p-2 px-3">
           {/* Court Name */}
           <div className="d-flex justify-content-between align-items-center">
             <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
@@ -554,7 +557,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
         </div>
 
 
-        <div className="text-start mb-3 px-2">
+        <div className="text-start mb-2 px-2">
           <h5 className="tabel-title">Payment Details</h5>
           <div className="d-flex justify-content-between">
             <h6>Payment Method</h6>
@@ -564,12 +567,12 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
             <h6>Total Payment</h6>
             <h3 style={{ color: '#1A237E' }}>₹{booking?.booking?.totalAmount}</h3>
           </div>
-          {booking?.booking?.bookingStatus === "refunded" &&
+          {/* {booking?.booking?.bookingStatus === "refunded" &&
             <div className="d-flex justify-content-between">
               <h6>Refund Amount</h6>
               <h5 style={{ color: '#1A237E' }}>₹{booking?.booking?.refundAmount}</h5>
             </div>
-          }
+          } */}
         </div>
 
         <div className="mt-3 mb-3">

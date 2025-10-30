@@ -381,6 +381,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
         </div>
         <div className="d-flex flex-wrap gap-2 mb-3">
           {allTimesRaw.map((timeRaw) => {
+            console.log({timeRaw});
             const display = formatTo12HourDisplay(timeRaw);
             const isSelected = formData.prices.All?.[display] !== undefined;
             const price = formData.prices.All?.[display];
@@ -606,6 +607,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                   border: "2px solid #1F2937",
                   backgroundColor: selectAllChecked ? "#1F2937" : "transparent",
                   cursor: "pointer",
+                  boxShadow:"none"
                 }}
               />
               <label
