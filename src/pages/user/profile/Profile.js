@@ -55,6 +55,21 @@ const Profile = () => {
       }
     });
   }, [dispatch]);
+  const updateProfileData = {
+    fullName:
+      user?.response?.name ||
+      store?.userSignUp?.response?.name ||
+      User?.name ||
+      "",
+    email: user?.response?.email || "",
+    phone:
+      user?.response?.phoneNumber ||
+      store?.userSignUp?.response?.phoneNumber ||
+      User?.phoneNumber ||
+      "",
+  };
+
+  localStorage.setItem("updateprofile", JSON.stringify(updateProfileData));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -287,7 +302,7 @@ const Profile = () => {
             className="btn text-white px-4"
             style={{ backgroundColor: "#3DBE64" }}
           >
-            {userLoading ? <ButtonLoading /> : "Update"}
+            {userLoading ? <ButtonLoading color={'white'} /> : "Update"}
           </button>
         </div>
       </form>

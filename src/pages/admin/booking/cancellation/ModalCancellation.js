@@ -900,11 +900,11 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
             <div className="d-flex justify-content-between">
               <p>Payment Method:</p>
               <p className="  mb-0">
-                {bookingDetails?.bookingType
-                  ? bookingDetails?.bookingType
+                {bookingDetails?.paymentMethod
+                  ? bookingDetails?.paymentMethod
                     ?.charAt(0)
                     .toUpperCase()
-                    .concat(bookingDetails?.bookingType?.slice(1))
+                    .concat(bookingDetails?.paymentMethod?.slice(1))
                   : "N/A"}
               </p>
             </div>
