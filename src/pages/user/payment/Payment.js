@@ -14,7 +14,7 @@ const loadPayPal = (callback) => {
     const script = document.createElement("script");
     script.src = "https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID";
     script.onload = () => callback(window.paypal);
-    script.onerror = () => alert("Failed to load PayPal SDK. Please try again.");
+    // script.onerror = () => alert("Failed to load PayPal SDK. Please try again.");
     document.body.appendChild(script);
 };
 

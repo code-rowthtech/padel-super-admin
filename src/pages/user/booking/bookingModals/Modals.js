@@ -73,11 +73,11 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
       // setShowConfirmationModal(true);
       handleClose();
     }
-      // if (!activeTab === 'all' && User?.token) {
-      //   dispatch(getBooking({ type: activeTab, page: 1, limit: 10 }));
-      // } else if (User?.token) {
-      //   dispatch(getBooking({ page: 1, limit: 10 }));
-      // }
+    // if (!activeTab === 'all' && User?.token) {
+    //   dispatch(getBooking({ type: activeTab, page: 1, limit: 10 }));
+    // } else if (User?.token) {
+    //   dispatch(getBooking({ page: 1, limit: 10 }));
+    // }
   }, [bookingStatusData?.bookingStatusData?.status, bookingStatusData?.bookingStatusData?.message])
 
   const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
@@ -168,7 +168,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                   {safeFormatDate(
                     new Date(tableData?.booking?.createdAt),
                     "dd/MM/yyyy | hh:mm a" || "N/A"
-                  )}(60m)
+                  )}
                 </p>
               </div>
 
@@ -212,7 +212,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
                 <Form.Control
                   as="textarea"
                   rows={3}
-                  defaultValue={tableData?.booking?.cancellationReason || "N/A"}
+                  defaultValue={tableData?.booking?.cancellationReason
+                    ? tableData.booking.cancellationReason.charAt(0).toUpperCase() + tableData.booking.cancellationReason.slice(1)
+                    : "N/A" || "N/A"}
                   disabled
                 />
               </Form.Group>
@@ -413,7 +415,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
               {safeFormatDate(
                 new Date(tableData?.slotItem?.createdAt),
                 "dd/MM/yyyy | hh:mm a" || "N/A"
-              )}(60m)
+              )}
             </p>
           </div>
         </div>
@@ -477,15 +479,6 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           />
         </div>
         <h3 className="text-center tabel-title mb-3">Booking {booking?.booking?.bookingStatus === 'in-progress' ? "Requested" : booking?.booking?.bookingStatus === 'rejected' ? "Rejected" : "Cancelled"} </h3>
-        {booking?.booking?.bookingStatus === "refunded" ?
-          <img
-            src={modalSuccess}
-            alt="Success"
-            className=" animated-image"
-            style={{ width: '200px', marginBottom: '20px' }}
-          />
-          : null
-        }
         <div className="mb-2 border rounded bg-light p-2 px-3">
           {/* Court Name */}
           <div className="d-flex justify-content-between align-items-center">
@@ -513,7 +506,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               Date & Time/Min
             </p>
             <p className="fw-bold mb-1" style={{ fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>
-              {safeFormatDate(new Date(booking?.booking?.createdAt), "dd/MM/yyyy | hh:mm a")}(60m)
+              {safeFormatDate(new Date(booking?.booking?.createdAt), "dd/MM/yyyy | hh:mm a")}
             </p>
           </div>
 
@@ -579,11 +572,16 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
             What’s your reason to cancel this slot
           </h5>
+          {console.log('booking?.booking?.cancellationReason', booking?.booking)}
           <Form.Group>
             <Form.Control
               as="textarea"
-              rows={3}
-              defaultValue={booking?.booking?.cancellationReason || "N/A"}
+              rows={2}
+              defaultValue={
+                booking?.booking?.cancellationReason
+                  ? booking.booking.cancellationReason.charAt(0).toUpperCase() + booking.booking.cancellationReason.slice(1)
+                  : "N/A"
+              }
               disabled
             />
           </Form.Group>
@@ -596,8 +594,28 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           <Form.Group>
             <Form.Control
               as="textarea"
-              rows={3}
-              defaultValue={booking?.booking?.cancellationReasonForOwner || "N/A"}
+              rows={2}
+              defaultValue={booking?.booking?.cancellationReasonForOwner
+                ? booking.booking.cancellationReasonForOwner.charAt(0).toUpperCase() + booking.booking.cancellationReasonForOwner.slice(1)
+                : "N/A" || "N/A"}
+              disabled
+            />
+
+          </Form.Group>
+        </div>
+          : ''}
+
+        {booking?.booking?.refundDescription && booking?.booking?.bookingStatus === 'refunded' ? <div className="mt-3 mb-3">
+          <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
+            Refund Process Details
+          </h5>
+          <Form.Group>
+            <Form.Control
+              as="textarea"
+              rows={4}
+              defaultValue={booking?.booking?.refundDescription
+                ? booking.booking.refundDescription.charAt(0).toUpperCase() + booking.booking.refundDescription.slice(1)
+                : "N/A" || "N/A"}
               disabled
             />
 

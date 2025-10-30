@@ -566,64 +566,83 @@ const Booking = ({ className = "" }) => {
                                 ) : (
                                     <>
                                         <div className="row g-3 p-0">
-                                            {slotData?.data.map((court, courtIndex) => {
-                                                const baseFilteredSlots = court?.slots?.filter((slot) =>
-                                                    showUnavailable
-                                                        ? true
-                                                        : slot.availabilityStatus === "available" &&
-                                                        slot.status !== "booked" &&
-                                                        !isPastTime(slot.time) &&
-                                                        slot.amount > 0
-                                                );
-                                                const filteredSlots = baseFilteredSlots.filter((slot) => filterSlotsByTab(slot, key));
+                                            <div
+                                                className={`d-flex ${slotData.data.length > 4 ? "flex-nowrap overflow-auto" : "flex-wrap"}`}
+                                                style={{
+                                                    gap: "16px",
+                                                    paddingBottom: "10px",
+                                                }}
+                                            >
+                                                {slotData?.data.map((court, courtIndex) => {
+                                                    const baseFilteredSlots = court?.slots?.filter((slot) =>
+                                                        showUnavailable
+                                                            ? true
+                                                            : slot.availabilityStatus === "available" &&
+                                                            slot.status !== "booked" &&
+                                                            !isPastTime(slot.time) &&
+                                                            slot.amount > 0
+                                                    );
+                                                    const filteredSlots = baseFilteredSlots.filter((slot) =>
+                                                        filterSlotsByTab(slot, key)
+                                                    );
 
-                                                if (filteredSlots?.length === 0) return null;
+                                                    if (filteredSlots?.length === 0) return null;
 
-                                                // Count only visible courts
-                                                const visibleCourtIndices = slotData.data
-                                                    .map((c, i) => {
-                                                        const slots = c.slots?.filter(s =>
-                                                            (showUnavailable || (s.availabilityStatus === "available" && s.status !== "booked" && !isPastTime(s.time) && s.amount > 0))
-                                                            && filterSlotsByTab(s, key)
-                                                        );
-                                                        return slots.length > 0 ? i : null;
-                                                    })
-                                                    .filter(Boolean);
+                                                    // Count visible courts
+                                                    const visibleCourtIndices = slotData.data
+                                                        .map((c, i) => {
+                                                            const slots = c.slots?.filter(
+                                                                (s) =>
+                                                                    (showUnavailable ||
+                                                                        (s.availabilityStatus === "available" &&
+                                                                            s.status !== "booked" &&
+                                                                            !isPastTime(s.time) &&
+                                                                            s.amount > 0)) &&
+                                                                    filterSlotsByTab(s, key)
+                                                            );
+                                                            return slots.length > 0 ? i : null;
+                                                        })
+                                                        .filter(Boolean);
 
-                                                const isFirst = visibleCourtIndices[0] === courtIndex;
-                                                const isLast = visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
+                                                    const isLast =
+                                                        visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
 
-                                                return (
-                                                    <div className="col-lg-3 col-6" key={court._id}>
+                                                    return (
                                                         <div
-                                                            className="court-container p-3 h-100"
+                                                            key={court._id}
+                                                            className="court-container p-3"
                                                             style={{
-                                                                // Draw RIGHT gradient border on all courts except the last one
-                                                                borderRight: !isLast ? "1px solid transparent" : "none",
-                                                                borderLeft: "none",
-                                                                borderTop: "none",
-                                                                borderBottom: "none",
-
-                                                                // Gradient border (now on right side, so no double lines)
+                                                                minWidth: "170px",
+                                                                borderRight: !isLast
+                                                                    ? "1px solid transparent"
+                                                                    : "none",
                                                                 borderImage: !isLast
                                                                     ? "linear-gradient(180deg, rgba(255,255,255,0) 0%, #837f7fff 46.63%, rgba(255,255,255,0) 94.23%) 1"
                                                                     : "none",
                                                                 borderImageSlice: !isLast ? 1 : 0,
                                                             }}
                                                         >
-                                                            
-
                                                             <div className="mb-3 text-center">
                                                                 <h5 className="all-matches mb-1">{court?.courtName}</h5>
-                                                                <p className="text-muted" style={{ fontFamily: "Poppins", fontWeight: "400", fontSize: "12px" }}>
+                                                                <p
+                                                                    className="text-muted"
+                                                                    style={{
+                                                                        fontFamily: "Poppins",
+                                                                        fontWeight: "400",
+                                                                        fontSize: "12px",
+                                                                    }}
+                                                                >
                                                                     ({court?.register_club_id?.courtType})
                                                                 </p>
                                                             </div>
 
                                                             <div className="slots-grid d-flex flex-column align-items-center">
                                                                 {filteredSlots.map((slot, i) => {
-                                                                    const isSelected = selectedTimes[court._id]?.some((t) => t._id === slot._id);
-                                                                    const isDisabled = totalSlots >= 15 && !isSelected ||
+                                                                    const isSelected = selectedTimes[court._id]?.some(
+                                                                        (t) => t._id === slot._id
+                                                                    );
+                                                                    const isDisabled =
+                                                                        (totalSlots >= 15 && !isSelected) ||
                                                                         slot.status === "booked" ||
                                                                         slot.availabilityStatus !== "available" ||
                                                                         isPastTime(slot.time) ||
@@ -632,26 +651,42 @@ const Booking = ({ className = "" }) => {
                                                                     return (
                                                                         <button
                                                                             key={i}
-                                                                            className={`btn rounded-3 ${isSelected ? 'border-0' : ''} slot-time-btn text-center mb-2`}
+                                                                            className={`btn rounded-3 ${isSelected ? "border-0" : ""
+                                                                                } slot-time-btn text-center mb-2`}
                                                                             onClick={() => toggleTime(slot, court._id)}
                                                                             disabled={isDisabled}
                                                                             style={{
-                                                                                background: isDisabled || slot.status === "booked" || isPastTime(slot.time) || slot.amount <= 0
-                                                                                    ? "#c9cfcfff"
-                                                                                    : isSelected
-                                                                                        ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                                                                        : "#FFFFFF",
-                                                                                color: isDisabled || slot.status === "booked" || isPastTime(slot.time)
-                                                                                    ? "#000000"
-                                                                                    : isSelected ? "white" : "#000000",
+                                                                                background:
+                                                                                    isDisabled ||
+                                                                                        slot.status === "booked" ||
+                                                                                        isPastTime(slot.time) ||
+                                                                                        slot.amount <= 0
+                                                                                        ? "#c9cfcfff"
+                                                                                        : isSelected
+                                                                                            ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                                                                            : "#FFFFFF",
+                                                                                color:
+                                                                                    isDisabled || slot.status === "booked" || isPastTime(slot.time)
+                                                                                        ? "#000000"
+                                                                                        : isSelected
+                                                                                            ? "white"
+                                                                                            : "#000000",
                                                                                 cursor: isDisabled ? "not-allowed" : "pointer",
                                                                                 opacity: isDisabled ? 0.6 : 1,
-                                                                                border: isSelected ? '' : "1px solid #4949491A",
+                                                                                border: isSelected ? "" : "1px solid #4949491A",
                                                                                 fontSize: "14px",
-                                                                                padding: "8px 4px"
+                                                                                padding: "8px 4px",
                                                                             }}
-                                                                            onMouseEnter={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #3DBE64")}
-                                                                            onMouseLeave={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #4949491A")}
+                                                                            onMouseEnter={(e) =>
+                                                                                !isDisabled &&
+                                                                                slot.availabilityStatus === "available" &&
+                                                                                (e.currentTarget.style.border = "1px solid #3DBE64")
+                                                                            }
+                                                                            onMouseLeave={(e) =>
+                                                                                !isDisabled &&
+                                                                                slot.availabilityStatus === "available" &&
+                                                                                (e.currentTarget.style.border = "1px solid #4949491A")
+                                                                            }
                                                                         >
                                                                             {formatTimeForDisplay(slot?.time)}
                                                                         </button>
@@ -659,9 +694,10 @@ const Booking = ({ className = "" }) => {
                                                                 })}
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                })}
+                                            </div>
+
                                         </div>
 
                                         {slotData?.data.every((court) =>
