@@ -75,7 +75,7 @@ export const updateBookingStatus = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await ownerApi.put(Url.UPDATE_BOOKING_STATUS, data);
-      showSuccess(res?.data?.message);
+      // showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
       showError(error?.message);

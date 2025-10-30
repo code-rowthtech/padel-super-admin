@@ -179,6 +179,25 @@ const BookingHistory = () => {
         }
     }, [isOpen]);
 
+    const getReasonText = (booking, full = false) => {
+        let text = "No Message";
+
+        if (booking?.bookingStatus === "refunded" && booking?.refundDescription) {
+            text = booking.refundDescription;
+        } else if (booking?.bookingStatus === "rejected" && booking?.cancellationReasonForOwner) {
+            text = booking.cancellationReasonForOwner;
+        } else if (booking?.cancellationReason) {
+            text = booking.cancellationReason;
+        }
+
+        text = text.trim();
+        if (!text || text === "No Message") return "No Message";
+
+        const capitalized = text.charAt(0).toUpperCase() + text.slice(1);
+
+        return full ? capitalized : (capitalized.length > 35 ? capitalized.slice(0, 35) + "..." : capitalized);
+    };
+
     return (
         <Container>
             <Row className="mb-lg-2 mb-3 mt-lg-5 mt-3">
@@ -409,26 +428,13 @@ const BookingHistory = () => {
                                                         <OverlayTrigger
                                                             placement="top"
                                                             overlay={
-                                                                <Tooltip id="review-tooltip">
-                                                                    {booking?.cancellationReason
-                                                                        ? booking.cancellationReason.charAt(0).toUpperCase() +
-                                                                        booking.cancellationReason.slice(1)
-                                                                        : "No Message"}
+                                                                <Tooltip id={`reason-tooltip-${booking?._id}`}>
+                                                                    {getReasonText(booking, true)}
                                                                 </Tooltip>
                                                             }
                                                         >
                                                             <span>
-                                                                {(() => {
-                                                                    const comment = booking?.cancellationReason?.trim() || "No Message";
-                                                                    if (!comment) return "No Message";
-
-                                                                    const shortText =
-                                                                        comment.length > 35
-                                                                            ? comment.charAt(0).toUpperCase() + comment.slice(1, 35) + "..."
-                                                                            : comment.charAt(0).toUpperCase() + comment.slice(1);
-
-                                                                    return shortText;
-                                                                })()}
+                                                                {getReasonText(booking, false)}
                                                             </span>
                                                         </OverlayTrigger>
                                                     </td>

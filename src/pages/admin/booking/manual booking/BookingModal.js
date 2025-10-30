@@ -1,6 +1,6 @@
 // BookingModals.js
 import { useState } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Modal, Button, Form, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { modalDetails, modalSuccess } from "../../../../assets/files";
 import { formatDate } from "../../../../helpers/Formatting";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
@@ -340,6 +340,30 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
               Cancellation Reason
             </p>
           )}
+          {bookingDetails?.cancellationReasonForOwner && (
+            <p
+              className="text-muted mb-1"
+              style={{
+                fontSize: "12px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
+              Cancellation Owner Reason
+            </p>
+          )}
+          {bookingDetails?.refundDate && (
+            <p
+              className="text-muted mb-1"
+              style={{
+                fontSize: "12px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
+              Refund Reason
+            </p>
+          )}
           {bookingDetails?.refundDate && (
             <p
               className="text-muted mb-1"
@@ -419,7 +443,105 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {bookingDetails?.cancellationReason}
+              <OverlayTrigger
+                placement="top"
+                overlay={
+                  <Tooltip id="review-tooltip">
+                    {bookingDetails?.cancellationReason
+                      ? bookingDetails?.cancellationReason.charAt(0).toUpperCase() +
+                      bookingDetails?.cancellationReason.slice(1)
+                      : "No Message"}
+                  </Tooltip>
+                }
+              >
+                <span>
+                  {(() => {
+                    const reason = bookingDetails?.cancellationReason?.trim() || "No Message";
+                    if (!reason) return "No Message";
+
+                    const shortText =
+                      reason.length > 35
+                        ? reason.charAt(0).toUpperCase() + reason.slice(1, 35) + "..."
+                        : reason.charAt(0).toUpperCase() + reason.slice(1);
+
+                    return shortText;
+                  })()}
+                </span>
+              </OverlayTrigger>
+
+            </p>
+          )}
+          {bookingDetails?.cancellationReasonForOwner && (
+            <p
+              className="fw-bold mb-1"
+              style={{
+                fontSize: "12.5px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
+              <OverlayTrigger
+                placement="top"
+                overlay={
+                  <Tooltip id="review-tooltip">
+                    {bookingDetails?.cancellationReasonForOwner
+                      ? bookingDetails?.cancellationReasonForOwner.charAt(0).toUpperCase() +
+                      bookingDetails?.cancellationReasonForOwner.slice(1)
+                      : "No Message"}
+                  </Tooltip>
+                }
+              >
+                <span>
+                  {(() => {
+                    const reason = bookingDetails?.cancellationReasonForOwner?.trim() || "No Message";
+                    if (!reason) return "No Message";
+
+                    const shortText =
+                      reason.length > 35
+                        ? reason.charAt(0).toUpperCase() + reason.slice(1, 35) + "..."
+                        : reason.charAt(0).toUpperCase() + reason.slice(1);
+
+                    return shortText;
+                  })()}
+                </span>
+              </OverlayTrigger>
+
+            </p>
+          )}
+          {bookingDetails?.refundDescription && (
+            <p
+              className="fw-bold mb-1"
+              style={{
+                fontSize: "12.5px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
+              <OverlayTrigger
+                placement="top"
+                overlay={
+                  <Tooltip id="review-tooltip">
+                    {bookingDetails?.refundDescription
+                      ? bookingDetails?.refundDescription.charAt(0).toUpperCase() +
+                      bookingDetails?.refundDescription.slice(1)
+                      : "No Message"}
+                  </Tooltip>
+                }
+              >
+                <span>
+                  {(() => {
+                    const reason = bookingDetails?.refundDescription?.trim() || "No Message";
+                    if (!reason) return "No Message";
+
+                    const shortText =
+                      reason.length > 35
+                        ? reason.charAt(0).toUpperCase() + reason.slice(1, 35) + "..."
+                        : reason.charAt(0).toUpperCase() + reason.slice(1);
+
+                    return shortText;
+                  })()}
+                </span>
+              </OverlayTrigger>
             </p>
           )}
           {bookingDetails?.refundDate && (

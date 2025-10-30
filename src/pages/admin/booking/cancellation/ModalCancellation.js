@@ -13,6 +13,7 @@ export const BookingCancellationModal = ({
   loading,
 }) => (
   <Modal show={show} onHide={handleClose} centered backdrop="static">
+    {console.log(bookingDetails, 'bookingDetails')}
     <div className="d-flex justify-content-between align-items-center p-2">
       <h4
         className="flex-grow-1 text-center mb-0"
@@ -155,11 +156,11 @@ export const BookingCancellationModal = ({
             color: "#374151",
           }}
         >
-          {bookingDetails?.bookingType
-            ? bookingDetails?.bookingType
+          {bookingDetails?.paymentMethod
+            ? bookingDetails?.paymentMethod
               ?.charAt(0)
               .toUpperCase()
-              .concat(bookingDetails?.bookingType?.slice(1))
+              .concat(bookingDetails?.paymentMethod?.slice(1))
             : "N/A"}{" "}
         </h2>
       </div>
@@ -259,34 +260,47 @@ export const BookingRefundModal = ({
   bookingDetails,
   loading,
 }) => {
-  // const [refundAmount, setRefundAmount] = useState("");
-  // const [amountError, setAmountError] = useState("");
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
+  const maxLength = 250;
 
-  // const validateAmount = (amount) => {
-  //   if (!amount) return "Refund amount is required";
-  //   if (isNaN(amount) || parseFloat(amount) <= 0)
-  //     return "Please enter a valid amount";
-  //   if (parseFloat(amount) > parseFloat(bookingDetails?.totalAmount || 0)) {
-  //     return "Refund amount cannot exceed total amount";
-  //   }
-  //   return "";
-  // };
+  // Validate reason
+  const validateReason = (text) => {
+    if (!text.trim()) return "Reason is required";
+    if (text.trim().length < 10) return "Reason must be at least 10 characters";
+    return "";
+  };
+  const handleReasonChange = (e) => {
+    let value = e.target.value;
+
+    // Limit to 250
+    if (value.length > maxLength) {
+      value = value.slice(0, maxLength);
+    }
+
+    // Capitalize first letter
+    if (value.length > 0) {
+      value = value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    setReason(value);
+
+    // Clear error if valid
+    if (error) {
+      setError(validateReason(value));
+    }
+  };
   const handleRefundClick = () => {
-    // const error = validateAmount(refundAmount);
-    // if (error) {
-    //   setAmountError(error);
-    //   return;
-    // }
-    onRefundSuccess(parseFloat(bookingDetails?.totalAmount));
+    const validationError = validateReason(reason);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    // Pass reason to parent
+    onRefundSuccess(reason, setReason);
   };
 
-  // const handleAmountChange = (e) => {
-  //   const value = e.target.value;
-  //   setRefundAmount(value);
-  //   if (amountError) {
-  //     setAmountError(validateAmount(value));
-  //   }
-  // };
+  const remaining = maxLength - reason.length;
 
   return (
     <Modal
@@ -444,11 +458,11 @@ export const BookingRefundModal = ({
               color: "#374151",
             }}
           >
-            {bookingDetails?.bookingType
-              ? bookingDetails?.bookingType
+            {bookingDetails?.paymentMethod
+              ? bookingDetails?.paymentMethod
                 ?.charAt(0)
                 ?.toUpperCase()
-                ?.concat(bookingDetails?.bookingType?.slice(1))
+                ?.concat(bookingDetails?.paymentMethod?.slice(1))
               : "N/A"}
           </h2>
         </div>
@@ -461,7 +475,7 @@ export const BookingRefundModal = ({
               fontWeight: "500",
             }}
           >
-            Total payment
+            Total paymentppp
           </h2>
           <h2
             className="tabel-title py-1 text-start"
@@ -499,53 +513,43 @@ export const BookingRefundModal = ({
         </div>
 
         {/* Refund Amount Field */}
-        {/* <div className="mt-3">
-            <label
-              className="form-label text-start w-100 ps-1"
-              style={{
-                fontFamily: "Poppins",
-                fontSize: "14px",
-                fontWeight: "600",
-                color: "#374151",
-              }}
-            >
-              Refund Amount *
-            </label>
-            <input
-              type="number"
-              className={`form-control rounded-3 py-2 ${
-                amountError ? "is-invalid" : ""
-              }`}
-              placeholder="Enter refund amount"
-              value={refundAmount}
-              onChange={handleAmountChange}
-              style={{ backgroundColor: "#CBD6FF7A" }}
-              min="0"
-              max={bookingDetails?.totalAmount || 0}
-              step="0.01"
-            />
-            {amountError && (
-              <div
-                className="text-danger text-start ps-1 mt-1"
-                style={{ fontSize: "0.875rem" }}
-              >
-                {amountError}
-              </div>
-            )}
-          </div> */}
+        <div className="mt-3 text-start position-relative">
+          <label className="form-label ps-1" style={{ fontSize: "14px", fontWeight: "600", color: "#374151" }}>
+            Payment Process Details
+          </label>
+          <Form.Control
+            as="textarea"
+            rows={3}
+            placeholder="Enter details about how the payment will be processed (e.g., UPI, Bank Transfer, Cash, etc.)"
+            value={reason}
+            onChange={handleReasonChange}
+            className={`rounded-3 ${error ? "is-invalid" : ""}`}
+            style={{
+              backgroundColor: "#CBD6FF7A",
+              boxShadow: "none",
+              resize: "none",
+            }}
+          />
+          {/* Character Counter */}
+          <small
+            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining <= 0 ? "text-danger" : "text-muted"}`}
+            style={{ fontSize: "0.75rem" }}
+          >
+            {remaining}/250
+          </small>
+          {/* Error Message */}
+          {error && <div className="invalid-feedback d-block text-start ps-1">{error}</div>}
+        </div>
 
-        <div className="ps-3 pe-3 mt-2">
+        {/* Submit Button */}
+        <div className="px-3 mt-3">
           <Button
             className="py-2 border-0 rounded-pill w-100"
             onClick={handleRefundClick}
-            style={{
-              backgroundColor: "#3DBE64",
-              fontSize: "17px",
-              fontWeight: "600",
-            }}
-            disabled={loading}
+            style={{ backgroundColor: "#3DBE64", fontSize: "17px", fontWeight: "600" }}
+            disabled={loading || !!error || !reason.trim()}
           >
-            {loading ? <ButtonLoading /> : "Submit"}
+            {loading ? <ButtonLoading color={'white'} /> : "Submit"}
           </Button>
         </div>
       </Modal.Body>
@@ -553,64 +557,64 @@ export const BookingRefundModal = ({
   );
 };
 
-export const RefundSuccessModal = ({ show, handleClose }) => (
-  <Modal
-    show={show}
-    onHide={handleClose}
-    className="h-100"
-    centered
-    backdrop="static"
-  >
-    <Modal.Body className="text-center p-4 position-relative">
-      <button
-        onClick={handleClose}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "20px",
-          background: "none",
-          border: "none",
-          fontSize: "24px",
-          cursor: "pointer",
-          color: "red",
-        }}
-      >
-        ×
-      </button>
+// export const RefundSuccessModal = ({ show, handleClose }) => (
+//   <Modal
+//     show={show}
+//     onHide={handleClose}
+//     className="h-100"
+//     centered
+//     backdrop="static"
+//   >
+//     <Modal.Body className="text-center p-4 position-relative">
+//       <button
+//         onClick={handleClose}
+//         style={{
+//           position: "absolute",
+//           top: "10px",
+//           right: "20px",
+//           background: "none",
+//           border: "none",
+//           fontSize: "24px",
+//           cursor: "pointer",
+//           color: "red",
+//         }}
+//       >
+//         ×
+//       </button>
 
-      <div className="text-center">
-        <img
-          src={modalSuccess}
-          alt="Details"
-          className="mt-3 animated-img"
-          style={{ width: "250px", marginBottom: "20px" }}
-        />
-        <h2
-          className="tabel-title mb-3"
-          style={{ fontFamily: "Poppins", fontSize: "15px", fontWeight: "600" }}
-        >
-          Refund successfully Complete
-        </h2>
-        <p className="table-data text-dark fw-bold">
-          The refund has been successfully Completed.
-        </p>
-        <div className="ps-3 pe-3 mt-3">
-          <Button
-            onClick={handleClose}
-            className=" py-2 border-0 rounded-pill w-100 "
-            style={{
-              backgroundColor: "#3DBE64",
-              fontSize: "17px",
-              fontWeight: "600",
-            }}
-          >
-            Continue
-          </Button>
-        </div>
-      </div>
-    </Modal.Body>
-  </Modal>
-);
+//       <div className="text-center">
+//         <img
+//           src={modalSuccess}
+//           alt="Details"
+//           className="mt-3 animated-img"
+//           style={{ width: "250px", marginBottom: "20px" }}
+//         />
+//         <h2
+//           className="tabel-title mb-3"
+//           style={{ fontFamily: "Poppins", fontSize: "15px", fontWeight: "600" }}
+//         >
+//           Refund successfully Complete
+//         </h2>
+//         <p className="table-data text-dark fw-bold">
+//           The refund has been successfully Completed.
+//         </p>
+//         <div className="ps-3 pe-3 mt-3">
+//           <Button
+//             onClick={handleClose}
+//             className=" py-2 border-0 rounded-pill w-100 "
+//             style={{
+//               backgroundColor: "#3DBE64",
+//               fontSize: "17px",
+//               fontWeight: "600",
+//             }}
+//           >
+//             Continue
+//           </Button>
+//         </div>
+//       </div>
+//     </Modal.Body>
+//   </Modal>
+// );
 
 export const CancelRequestModal = ({
   show,
@@ -628,6 +632,30 @@ export const CancelRequestModal = ({
       setRejectionReason("");
     }, 2000);
   };
+
+  const maxLength = 250;
+
+  const handleChange = (e) => {
+    let value = e.target.value;
+
+    if (value.length > maxLength) {
+      value = value.slice(0, maxLength);
+    }
+
+    if (value.length > 0) {
+      value = value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    setRejectionReason(value);
+  };
+
+  const remaining = maxLength - rejectionReason.length;
+
+  const isReasonMatched = ['not-available', 'timing-issue', 'double-booked'].includes(
+    (bookingDetails?.cancellationReason || '').toLowerCase().trim()
+  );
+
+  const showCheckbox = !isReasonMatched;
 
   return (
     <Modal
@@ -704,11 +732,11 @@ export const CancelRequestModal = ({
               <div className="d-flex justify-content-between">
                 <p>Payment Method:</p>
                 <p className="mb-0">
-                  {bookingDetails?.bookingType
-                    ? bookingDetails?.bookingType
+                  {bookingDetails?.paymentMethod
+                    ? bookingDetails?.paymentMethod
                       ?.charAt(0)
                       .toUpperCase()
-                      .concat(bookingDetails?.bookingType?.slice(1))
+                      .concat(bookingDetails?.paymentMethod?.slice(1))
                     : "N/A"}
                 </p>
               </div>
@@ -728,43 +756,55 @@ export const CancelRequestModal = ({
           <Form.Control
             as="textarea"
             rows={3}
-            value={bookingDetails?.cancellationReason || ""}
+            value={
+              bookingDetails?.cancellationReason
+                ? bookingDetails.cancellationReason.charAt(0).toUpperCase() +
+                bookingDetails.cancellationReason.slice(1)
+                : ""
+            }
             disabled
             className="bg-light text-secondary"
-            style={{ boxShadow: "none" }}
+            style={{ boxShadow: "none", resize: "none" }}
           />
         </div>
 
         {/* Rejection reason textarea */}
-        <div className="mb-4 text-start">
+        <div className="mb-4 text-start position-relative">
           <h6>Why You Reject this Request</h6>
           <Form.Control
             as="textarea"
             rows={3}
             placeholder="Write a reason"
-            style={{ boxShadow: "none" }}
+            style={{ boxShadow: "none", resize: "none" }}
             value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
+            onChange={handleChange}
+            maxLength={maxLength}
           />
+          <small
+            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining < 0 ? "text-danger" : "text-muted"
+              }`}
+            style={{ fontSize: "0.75rem" }}
+          >
+            {remaining}/250
+          </small>
         </div>
 
         {/* Checkbox */}
-        {!['not-available', 'timing-issue', 'double-booked'].includes(
-          bookingDetails?.cancellationReason?.toLowerCase?.()
-        ) && (
-            <Form.Check
-              type="checkbox"
-              label="This reason does not match our terms and conditions or cancellation policy"
-              className="mb-3 text-start shadow-0"
-              style={{
-                boxShadow: "none",
-                fontSize: "13px",
-                textTransform: "capitalize",
-              }}
-              checked={isChecked}
-              onChange={(e) => setIsChecked(e.target.checked)}
-            />
-          )}
+        {/* Checkbox - Sirf tab dikhe jab reason match NA kare */}
+        {showCheckbox && (
+          <Form.Check
+            type="checkbox"
+            label="This reason does not match our terms and conditions or cancellation policy"
+            className="mb-3 text-start shadow-0"
+            style={{
+              boxShadow: "none",
+              fontSize: "13px",
+              textTransform: "capitalize",
+            }}
+            checked={isChecked}
+            onChange={(e) => setIsChecked(e.target.checked)}
+          />
+        )}
 
 
 
@@ -774,9 +814,12 @@ export const CancelRequestModal = ({
             onClick={handleSubmit}
             style={{ backgroundColor: "#3DBE64" }}
             className="px-4 rounded-pill border-0 fw-bold"
-            disabled={!isChecked || rejectionReason.trim() === ""}
+            disabled={
+              (showCheckbox && (!isChecked || rejectionReason.trim() === "")) ||
+              (!showCheckbox && rejectionReason.trim() === "")
+            }
           >
-            {loading ? <ButtonLoading /> : "Continue"}
+            {loading ? <ButtonLoading color={'white'} /> : "Continue"}
           </Button>
         </div>
       </Modal.Body>
