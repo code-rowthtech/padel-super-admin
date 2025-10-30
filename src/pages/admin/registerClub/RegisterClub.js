@@ -32,8 +32,18 @@ const RegisterClub = () => {
   const [formData, setFormData] = useState(() => {
     const saved = localStorage.getItem("clubFormData");
     if (saved) {
-      const parsed = JSON.parse(saved);
-      return { ...defaultFormData, ...parsed, images: [] };
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...defaultFormData,
+          ...parsed,
+          images: [], 
+          previewUrls: parsed.previewUrls || [],
+        };
+      } catch (e) {
+        console.error("Parse error:", e);
+        return defaultFormData;
+      }
     }
     return defaultFormData;
   });
