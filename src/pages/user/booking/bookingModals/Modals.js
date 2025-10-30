@@ -11,7 +11,7 @@ import { Avatar } from '@mui/material';
 import { format, isValid } from 'date-fns';
 import { showInfo } from '../../../../helpers/Toast';
 
-export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
+export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
@@ -48,9 +48,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, setChangeCance
     dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
       if (res?.status === '200') {
         if (tableData?.booking?.bookingStatus === 'upcoming' && activeTab === 'upcoming') {
-          dispatch(getBooking({ type: 'upcoming', page: 1, limit: 10 }))
+          dispatch(getBooking({ type: 'upcoming', page: currentPage, limit: 10 }))
         } else {
-          dispatch(getBooking({ page: 1, limit: 10 }))
+          dispatch(getBooking({ page: currentPage, limit: 10 }))
         }
         setShowSuccessModal(true);
         setChangeContent(true)

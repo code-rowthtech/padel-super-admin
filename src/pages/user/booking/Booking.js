@@ -108,12 +108,15 @@ const Booking = ({ className = "" }) => {
         if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setIsOpen(false);
     };
 
+    const MAX_SLOTS = 15;
+
     const toggleTime = (time, courtId) => {
         const totalSlots = selectedCourts.reduce((acc, c) => acc + (c.time?.length || 0), 0);
         const currentCourtTimes = selectedTimes[courtId] || [];
         const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
 
         if (isAlreadySelected) {
+            // Deselect logic (same as before)
             const filteredTimes = currentCourtTimes.filter((t) => t._id !== time._id);
             setSelectedTimes({ ...selectedTimes, [courtId]: filteredTimes });
             setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
@@ -123,11 +126,13 @@ const Booking = ({ className = "" }) => {
                     .filter((court) => court.time.length > 0)
             );
         } else {
-            if (totalSlots + 1 > 15) {
-                setErrorMessage("Maximum 15 slots can be selected in total.");
+            // Trying to select a new slot
+            if (totalSlots >= MAX_SLOTS) {
+                setErrorMessage(`Slot Limit Reached\nYou can select up to ${MAX_SLOTS} slots only.`);
                 setErrorShow(true);
                 return;
             }
+
             const newTimes = [...currentCourtTimes, time];
             setSelectedTimes({ ...selectedTimes, [courtId]: newTimes });
             setSelectedBuisness((prev) => [...prev, time]);
@@ -532,32 +537,7 @@ const Booking = ({ className = "" }) => {
 
 
                             </div>
-                            {/* <h1 className="text-start custom-heading-use">Choose an activity</h1>
-                            <div className="col-12 p-0  d-flex justify-content-center align-items-center">
-                                <div className="weather-tabs-wrapper text-start w-100">
-                                    <div className="weather-tabs rounded-pill d-flex justify-content-center align-items-center">
-                                        {padelOption.map((tab, index) => (
-                                            <div
-                                                key={index}
-                                                className={`tab-item ${key2 === tab.key ? 'active' : ''}`}
-                                                onClick={() => setKey2(tab.key)}
-                                            >
-                                                <img className="tab-icon-option" src={tab.img} alt={tab.label} />
-                                            </div>
-                                        ))}
-                                    </div>
 
-                                    <div className="tab-labels d-flex justify-content-between">
-                                        {padelOption.map((tab, index) => (
-                                            <p key={index} className="tab-label text-muted">
-                                                {tab.label}
-                                            </p>
-                                        ))}
-                                    </div>
-                                </div>
-
-
-                            </div> */}
                         </div>
                         <div className={`mb-3 overflow-slot border-0 rounded-3 ${slotData?.data?.some(court => court?.slots?.filter(slot => showUnavailable ? true : slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time) && slot.amount > 0).filter(slot => filterSlotsByTab(slot, key)).length > 0) ? 'border' : 'border-0'}`}>
                             {slotData?.data?.length > 0 ? (
@@ -642,7 +622,7 @@ const Booking = ({ className = "" }) => {
                                                                         (t) => t._id === slot._id
                                                                     );
                                                                     const isDisabled =
-                                                                        (totalSlots >= 15 && !isSelected) ||
+                                                                        
                                                                         slot.status === "booked" ||
                                                                         slot.availabilityStatus !== "available" ||
                                                                         isPastTime(slot.time) ||
@@ -770,6 +750,21 @@ const Booking = ({ className = "" }) => {
                                         Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
                                     </p>
                                     <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
+                                </div>
+                            )}
+                            {errorShow && errorMessage && (
+                                <div
+                                    className="alert alert-danger text-center "
+                                    role="alert"
+                                    style={{
+                                        whiteSpace: 'pre-line',
+                                        fontFamily: 'Poppins',
+                                        fontSize: '14px',
+                                        padding: '10px',
+                                        borderRadius: '8px',
+                                    }}
+                                >
+                                    {errorMessage}
                                 </div>
                             )}
                             <div className="d-flex justify-content-center mt-3">

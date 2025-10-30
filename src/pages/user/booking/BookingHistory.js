@@ -71,7 +71,7 @@ const BookingHistory = () => {
         else if (newValue === "upcoming") type = "upcoming";
         else if (newValue === "completed") type = "completed";
         else if (newValue === "all") type = "all";
-        dispatch(getBooking({ type, page: 1, limit: 10 }));
+        dispatch(getBooking({ type, page: currentPage, limit: 10 }));
     };
 
     const handleSelect = (value) => {
@@ -96,13 +96,14 @@ const BookingHistory = () => {
         else if (activeTab === "upcoming") type = "upcoming";
         else if (activeTab === "completed") type = "completed";
         else if (activeTab === "all") type = "all";
-        dispatch(getBooking({ type, page: 1, limit: 10 }));
+        dispatch(getBooking({ type, page: pageNumber, limit: 10 }));
     };
+
 
     const handleClearDate = () => setSearchDate(null);
     const club_id = localStorage.getItem("register_club_id");
     useEffect(() => {
-        if (User?.token) dispatch(getBooking({ page: 1, limit: 10 }));
+        if (User?.token) dispatch(getBooking({ page: currentPage, limit: 10 }));
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
@@ -702,6 +703,7 @@ const BookingHistory = () => {
                 setChangeCancelShow={setChangeCancelShow}
                 changeCancelShow={changeCancelShow}
                 activeTab={activeTab}
+                currentPage={currentPage}
             />
             <BookingRatingModal
                 show={showRatingModal}
