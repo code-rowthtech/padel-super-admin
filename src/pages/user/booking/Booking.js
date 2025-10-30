@@ -551,6 +551,8 @@ const Booking = ({ className = "" }) => {
                                                 style={{
                                                     gap: "16px",
                                                     paddingBottom: "10px",
+                                                    overflowX: slotData.data.length > 4 ? "auto" : "visible",
+                                                    whiteSpace: slotData.data.length > 4 ? "nowrap" : "normal",
                                                 }}
                                             >
                                                 {slotData?.data.map((court, courtIndex) => {
@@ -592,7 +594,8 @@ const Booking = ({ className = "" }) => {
                                                             key={court._id}
                                                             className="court-container p-3"
                                                             style={{
-                                                                minWidth: "170px",
+                                                                minWidth: slotData.data.length > 4 ? "170px" : "calc(25% - 16px)",
+                                                                flex: slotData.data.length > 4 ? "0 0 auto" : "1 1 calc(25% - 16px)",
                                                                 borderRight: !isLast
                                                                     ? "1px solid transparent"
                                                                     : "none",
@@ -622,7 +625,7 @@ const Booking = ({ className = "" }) => {
                                                                         (t) => t._id === slot._id
                                                                     );
                                                                     const isDisabled =
-                                                                        
+
                                                                         slot.status === "booked" ||
                                                                         slot.availabilityStatus !== "available" ||
                                                                         isPastTime(slot.time) ||
