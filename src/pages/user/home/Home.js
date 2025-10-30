@@ -244,7 +244,7 @@ const Home = () => {
                                 <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
                                     {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
                                     <p className='' style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400" }}>
-                                        {clubData?.clubName || "The Good Club"}{clubData?.description}
+                                        {clubData?.clubName || "The Good Club"} {clubData?.description}
                                     </p>
                                     <p style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400", margin: "0px" }}>Join the Padel community group on WhatsApp</p>
                                     <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>

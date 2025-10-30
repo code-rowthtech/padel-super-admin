@@ -1823,10 +1823,12 @@ h1.display-5 {
 .custom-scroll-dec {
   max-height: 250px;
   overflow-y: auto;
+  overflow-x: auto; 
 }
 
 .custom-scroll-dec::-webkit-scrollbar {
-  width: 6px;
+  width: 6px;     
+  height: 6px;   
 }
 
 .custom-scroll-dec::-webkit-scrollbar-track {
@@ -1841,4 +1843,8 @@ h1.display-5 {
 
 .custom-scroll-dec::-webkit-scrollbar-thumb:hover {
   background-color: #555;
+}
+
+.custom-scroll-dec::-webkit-scrollbar-corner {
+  background: #f1f1f1;
 }

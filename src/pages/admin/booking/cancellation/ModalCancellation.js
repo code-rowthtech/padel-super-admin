@@ -515,12 +515,12 @@ export const BookingRefundModal = ({
         {/* Refund Amount Field */}
         <div className="mt-3 text-start position-relative">
           <label className="form-label ps-1" style={{ fontSize: "14px", fontWeight: "600", color: "#374151" }}>
-            Payment Process Details
+            Refund Process Details
           </label>
           <Form.Control
             as="textarea"
             rows={3}
-            placeholder="Enter details about how the payment will be processed (e.g., UPI, Bank Transfer, Cash, etc.)"
+            placeholder="Enter details about how the payment will be processed refund (e.g., UPI, Bank Transfer, Cash, etc.)"
             value={reason}
             onChange={handleReasonChange}
             className={`rounded-3 ${error ? "is-invalid" : ""}`}
