@@ -66,7 +66,7 @@ const Navbar = () => {
             window.removeEventListener('storage', updateUserData);
         };
     }, [store?.user?.status, store?.user?.response?.user,]);
-    const updateName = localStorage.getItem("updateprofile");
+    const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
     const initialFormData = {
         fullName: user?.response?.name || updateName?.fullName || store?.userSignUp?.response?.name || User?.name || "",
@@ -240,6 +240,7 @@ const Navbar = () => {
                                         dispatch(logoutUser());
                                         localStorage.removeItem('padel_user');
                                         localStorage.removeItem('logo');
+                                        localStorage.removeItem('updateprofile');
                                         setUserData(null);
                                         navigate('/home');
                                     }}

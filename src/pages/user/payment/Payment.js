@@ -24,10 +24,10 @@ const Payment = ({ className = "" }) => {
     const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
     const user = getUserFromSession();
     const bookingStatus = useSelector((state) => state?.userBooking);
-    console.log({ bookingStatus });
+    console.log({ user });
     const userLoading = useSelector((state) => state?.userAuth);
     const logo = JSON.parse(localStorage.getItem("logo"));
-    const updateName = localStorage.getItem("updateprofile");
+    const updateName = JSON.parse(localStorage.getItem("updateprofile"));
     const [name, setName] = useState(user?.name || updateName?.fullName || "");
     const [phoneNumber, setPhoneNumber] = useState(
         user?.phoneNumber || updateName?.phone ? `+91 ${user.phoneNumber || updateName?.phone}` : ""
@@ -236,29 +236,35 @@ const Payment = ({ className = "" }) => {
                 paymentMethod: selectedPayment,
             };
 
-            if (!user?.name && !user?.token) {
-                await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber.toString(), name, email }))
-                    .unwrap()
-                    .then((res) => {
-                        if (res?.status === "200") {
-                            dispatch(createBooking(payload))
-                                .unwrap()
-                                .then((res) => {
-                                    if (res?.success) {
-                                        setModal(true);
-                                    }
-                                });
-                        }
-                    });
-            } else {
-                dispatch(createBooking(payload))
-                    .unwrap()
-                    .then((res) => {
-                        if (res?.success) {
+            try {
+                if (!user?.name) {
+                    // 🔹 Step 1: Login by phone number
+                    const loginRes = await dispatch(
+                        loginUserNumber({
+                            phoneNumber: rawPhoneNumber.toString(),
+                            name,
+                            email,
+                        })
+                    ).unwrap();
+
+                    if (loginRes?.status === "200") {
+                        // 🔹 Step 2: Create booking after successful login
+                        const bookingRes = await dispatch(createBooking(payload)).unwrap();
+                        if (bookingRes?.success) {
                             setModal(true);
                         }
-                    });
+                    }
+                } else {
+                    // 🔹 Already logged in → Directly create booking
+                    const bookingRes = await dispatch(createBooking(payload)).unwrap();
+                    if (bookingRes?.success) {
+                        setModal(true);
+                    }
+                }
+            } catch (error) {
+                console.error("Booking or login failed:", error);
             }
+
         } catch (err) {
             console.error("Payment Error:", err);
             setErrors((prev) => ({

@@ -1265,7 +1265,8 @@ h1.display-5 {
   height: 28px !important;
   object-fit: contain;
 }
-.tab-icon-option{
+
+.tab-icon-option {
   width: 50px;
 }
 
@@ -1735,7 +1736,14 @@ h1.display-5 {
 
 /* Court Container Styling */
 .court-container {
-  /* Removed hover effects and shadows */
+  flex: 1 1 calc(25% - 16px);
+  min-width: 170px;
+}
+
+@media (max-width: 768px) {
+  .court-container {
+    flex: 1 1 calc(50% - 16px);
+  }
 }
 
 
@@ -1823,12 +1831,12 @@ h1.display-5 {
 .custom-scroll-dec {
   max-height: 250px;
   overflow-y: auto;
-  overflow-x: auto; 
+  overflow-x: auto;
 }
 
 .custom-scroll-dec::-webkit-scrollbar {
-  width: 6px;     
-  height: 6px;   
+  width: 6px;
+  height: 6px;
 }
 
 .custom-scroll-dec::-webkit-scrollbar-track {
