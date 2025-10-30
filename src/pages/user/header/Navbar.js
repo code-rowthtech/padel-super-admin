@@ -68,7 +68,7 @@ const Navbar = () => {
             dispatch(getUserProfile())
         }
     }, [User?.token])
-    
+
     useEffect(() => {
         const ownerId = localStorage.getItem('owner_id') || clubData?.ownerId;
         if (ownerId) {
@@ -84,7 +84,19 @@ const Navbar = () => {
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
                     {logo ?
-                        <Avatar src={logo} style={{ width: "50px", height: "50px"}} alt="User Profile" /> :
+                        <Avatar
+                            src={logo}
+                            alt="User Profile"
+                            style={{
+                                width: "50px",
+                                height: "50px",
+                                border: "0.5px solid #928f8fff",
+                                objectFit: "contain",
+                                imageRendering: "auto",
+                                padding:"0px"
+                            }}
+                        />
+                        :
                         <Avatar>
                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                         </Avatar>

@@ -121,8 +121,9 @@ const BookingHistory = () => {
                 statusMatch = ["in-progress", "refunded", "rejected"].includes(status);
             }
         } else if (activeTab === "upcoming") {
-            statusMatch = ["upcoming", "in-progress"].includes(status);
-        } else if (activeTab === "completed") {
+            statusMatch = ["upcoming", "in-progress", "rejected"].includes(status);
+        }
+        else if (activeTab === "completed") {
             statusMatch = status === "completed";
         } else if (activeTab === "all") {
             statusMatch = true;
