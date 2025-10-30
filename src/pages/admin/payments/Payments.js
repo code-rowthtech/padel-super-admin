@@ -299,10 +299,10 @@ const Payments = () => {
                                 </div>
                               </td>
                               <td>
-                                {item?.bookingType
+                                {item?.paymentMethod
                                   ?.slice(0, 1)
                                   ?.toUpperCase()
-                                  ?.concat(item?.bookingType?.slice(1)) || "-"}
+                                  ?.concat(item?.paymentMethod?.slice(1)) || "-"}
                               </td>
                               <td>₹{item?.totalAmount}</td>
                               <td
