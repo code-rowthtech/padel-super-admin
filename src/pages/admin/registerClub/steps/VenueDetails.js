@@ -45,8 +45,16 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     } else if (field === "zip") {
       newErrors.zip = !/^\d+$/.test(value.trim());
     } else if (field === "courtCount") {
-      newErrors.courtCount = !/^\d+$/.test(value.trim());
-    } else if (field === "description") {
+      const num = Number(value);
+      if (!/^\d+$/.test(value.trim()) || num <= 0) {
+        newErrors.courtCount = "Please enter a valid number";
+      } else if (num > 10) {
+        newErrors.courtCount = "You can only add up to 10 courts";
+      } else {
+        newErrors.courtCount = false;
+      }
+    }
+    else if (field === "description") {
       const len = value.length;
       newErrors.description = len > MAX_DESC || len === 0;
     }
@@ -92,27 +100,38 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
 
   const renderInput = (placeholder, fieldName, type = "text") => {
     const isTextField = type === "text" || type === "text-area";
+    const isNumberField = type === "number";
 
     const handleTextChange = (e) => {
       let value = e.target.value;
 
-      // Only for text fields
       if (isTextField && value.length > 0) {
         const selectionStart = e.target.selectionStart;
         const selectionEnd = e.target.selectionEnd;
 
-        // Capitalize first letter
         const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
 
-        // Restore cursor position
         setTimeout(() => {
           e.target.setSelectionRange(selectionStart, selectionEnd);
         }, 0);
 
         value = capitalized;
       }
+      // if (isNumberField) {
+      //   const numericValue = Number(value);
 
-      // For textarea: enforce max length
+      //   if (fieldName === "courtCount") {
+      //     if (numericValue > 10) {
+      //       return;
+      //     }
+      //   }
+
+      //   if (numericValue < 0 || isNaN(numericValue)) {
+      //     return;
+      //   }
+      // }
+
+
       if (type === "text-area" && value.length > MAX_DESC) {
         return;
       }
@@ -170,13 +189,16 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
         )}
         {errors[fieldName] && (
           <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
-            {fieldName === "zip" || fieldName === "courtCount"
-              ? "Please enter a valid number"
+            {typeof errors[fieldName] === "string"
+              ? errors[fieldName] // show custom message
               : fieldName === "description"
                 ? "Description is required and max 500 characters"
-                : "This field is required"}
+                : fieldName === "courtTypes"
+                  ? "Please select at least one court type"
+                  : "This field is required"}
           </Form.Control.Feedback>
         )}
+
       </div>
     );
   };

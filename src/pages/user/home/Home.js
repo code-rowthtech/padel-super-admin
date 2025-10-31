@@ -312,17 +312,42 @@ const Home = () => {
                 <div className="position-relative">
                     <div className="overflow-hidden rounded-3">
                         <div
-                            className="d-flex justify-content-cener align-items-center"
+                            className={`d-flex ${clubData?.courtImage?.length > 4
+                                    ? window.innerWidth >= 992
+                                        ? 'justify-content-start'
+                                        : 'justify-content-start'
+                                    : 'justify-content-center'
+                                } align-items-center`}
                             style={{
-                                transform: window.innerWidth >= 992 ? `translateX(-${currentSlide * 25}%)` : `translateX(-${currentSlide * 100}%)`,
-                                transition: currentSlide === 0 && currentSlide !== clubData?.courtImage?.length ? "none" : "transform 0.5s ease"
+                                transform:
+                                    clubData?.courtImage?.length > 4
+                                        ? window.innerWidth >= 992
+                                            ? `translateX(-${currentSlide * 25}%)`
+                                            : `translateX(-${currentSlide * 100}%)`
+                                        : 'translateX(0%)',
+                                transition:
+                                    clubData?.courtImage?.length > 4 && currentSlide !== 0
+                                        ? 'transform 0.5s ease'
+                                        : 'none',
+                                gap: clubData?.courtImage?.length > 4 ? '12px' : '16px', // spacing
                             }}
                         >
-                            {clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 4))?.map((image, index) => (
-                                <div key={index} className="flex-shrink-0 d-lg-block d-none" style={{ width: "24%", padding: "0 6px" }}>
+                            {/* Desktop: Show only first 4 + duplicates for infinite if >4 */}
+                            {(clubData?.courtImage?.length > 4
+                                ? clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 4))
+                                : clubData?.courtImage
+                            )?.map((image, index) => (
+                                <div
+                                    key={index}
+                                    className="flex-shrink-0 d-lg-block d-none"
+                                    style={{
+                                        width: clubData?.courtImage?.length > 4 ? '24%' : '22%',
+                                        padding: '0 6px',
+                                    }}
+                                >
                                     <div
                                         className="position-relative overflow-hidden rounded-3"
-                                        style={{ height: "400px", width: "100%", cursor: 'pointer' }}
+                                        style={{ height: '400px', width: '100%', cursor: 'pointer' }}
                                         onClick={() => {
                                             setPhotoIndex(index % clubData?.courtImage?.length);
                                             setIsOpen(true);
@@ -341,22 +366,31 @@ const Home = () => {
                                             onError={() => handleImageLoad(index)}
                                             style={{
                                                 display: loadedImages[index] ? 'block' : 'none',
-                                                transition: "transform 0.3s ease",
-                                                imageRendering: "auto", // Removes any forced image rendering
-                                                filter: "none", // Explicitly removes blur
-                                                objectPosition: "center" // Ensures proper centering
+                                                transition: 'transform 0.3s ease',
+                                                imageRendering: 'auto',
+                                                filter: 'none',
+                                                objectPosition: 'center',
                                             }}
-                                            onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-                                            onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
+                                            onMouseEnter={(e) => (e.target.style.transform = 'scale(1.05)')}
+                                            onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
                                         />
                                     </div>
                                 </div>
                             ))}
-                            {clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 1))?.map((image, index) => (
-                                <div key={`mobile-${index}`} className="flex-shrink-0 d-lg-none d-block" style={{ width: "100%", padding: "0" }}>
+
+                            {/* Mobile: Show one at a time, or center if <=4 */}
+                            {(clubData?.courtImage?.length > 4
+                                ? clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 1))
+                                : clubData?.courtImage
+                            )?.map((image, index) => (
+                                <div
+                                    key={`mobile-${index}`}
+                                    className="flex-shrink-0 d-lg-none d-block"
+                                    style={{ width: '100%', padding: 0 }}
+                                >
                                     <div
                                         className="position-relative overflow-hidden rounded-3"
-                                        style={{ height: "300px", width: "100%", cursor: 'pointer' }}
+                                        style={{ height: '300px', width: '100%', cursor: 'pointer' }}
                                         onClick={() => {
                                             setPhotoIndex(index % clubData?.courtImage?.length);
                                             setIsOpen(true);
@@ -375,10 +409,10 @@ const Home = () => {
                                             onError={() => handleImageLoad(index)}
                                             style={{
                                                 display: loadedImages[index] ? 'block' : 'none',
-                                                transition: "transform 0.3s ease"
+                                                transition: 'transform 0.3s ease',
                                             }}
-                                            onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-                                            onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
+                                            onMouseEnter={(e) => (e.target.style.transform = 'scale(1.05)')}
+                                            onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
                                         />
                                     </div>
                                 </div>
@@ -386,34 +420,50 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {/* Navigation Arrows */}
-                    <button
-                        className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ width: "30px", height: "30px", marginLeft: "10px", zIndex: 10, backgroundColor: "#011E84" }}
-                        onClick={() => {
-                            if (currentSlide === 0) {
-                                setCurrentSlide(clubData?.courtImage?.length - 1);
-                            } else {
-                                setCurrentSlide(currentSlide - 1);
-                            }
-                        }}
-                    >
-                        <ArrowBackIosIcon style={{ fontSize: "16px" }} />
-                    </button>
+                    {/* Navigation Arrows - Only show if more than 4 images */}
+                    {clubData?.courtImage?.length > 4 && (
+                        <>
+                            <button
+                                className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                                style={{
+                                    width: '30px',
+                                    height: '30px',
+                                    marginLeft: '10px',
+                                    zIndex: 10,
+                                    backgroundColor: '#011E84',
+                                }}
+                                onClick={() => {
+                                    if (currentSlide === 0) {
+                                        setCurrentSlide(clubData?.courtImage?.length - 1);
+                                    } else {
+                                        setCurrentSlide(currentSlide - 1);
+                                    }
+                                }}
+                            >
+                                <ArrowBackIosIcon style={{ fontSize: '16px' }} />
+                            </button>
 
-                    <button
-                        className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ width: "30px", height: "30px", marginRight: "10px", zIndex: 10, backgroundColor: "#011E84" }}
-                        onClick={() => {
-                            if (currentSlide >= clubData?.courtImage?.length - 1) {
-                                setCurrentSlide(0);
-                            } else {
-                                setCurrentSlide(currentSlide + 1);
-                            }
-                        }}
-                    >
-                        <ArrowForwardIosIcon style={{ fontSize: "16px" }} />
-                    </button>
+                            <button
+                                className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                                style={{
+                                    width: '30px',
+                                    height: '30px',
+                                    marginRight: '10px',
+                                    zIndex: 10,
+                                    backgroundColor: '#011E84',
+                                }}
+                                onClick={() => {
+                                    if (currentSlide >= clubData?.courtImage?.length - 1) {
+                                        setCurrentSlide(0);
+                                    } else {
+                                        setCurrentSlide(currentSlide + 1);
+                                    }
+                                }}
+                            >
+                                <ArrowForwardIosIcon style={{ fontSize: '16px' }} />
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 {/* Lightbox */}
@@ -426,9 +476,7 @@ const Home = () => {
                         onMovePrevRequest={() =>
                             setPhotoIndex((photoIndex + galleryImages.length - 1) % galleryImages.length)
                         }
-                        onMoveNextRequest={() =>
-                            setPhotoIndex((photoIndex + 1) % galleryImages.length)
-                        }
+                        onMoveNextRequest={() => setPhotoIndex((photoIndex + 1) % galleryImages.length)}
                         imagePadding={0}
                         wrapperClassName="full-screen-lightbox"
                     />
@@ -450,28 +498,7 @@ const Home = () => {
                     Here’s what our previous players <br /> have to say!
                 </h4>
 
-                <div className="position-relative  ">
-                    <div className="overflow-hidden ">
-                        <div
-                            className="d-flex"
-                            style={{
-                                transform: window.innerWidth >= 992 ? `translateX(-${reviewSlide * 33.333}%)` : `translateX(-${reviewSlide * 100}%)`,
-                                transition: reviewSlide === 0 && reviewSlide !== getReviewData?.reviews?.length ? "none" : "transform 0.5s ease"
-                            }}
-                        >
-                            {getReviewData?.reviews?.concat(getReviewData?.reviews?.slice(0, 3))?.map((review, index) => (
-                                <div key={index} className="flex-shrink-0  d-lg-block d-none" style={{ width: "33.333%" }}>
-                                    <ReviewCard review={review} />
-                                </div>
-                            ))}
-                            {getReviewData?.reviews?.concat(getReviewData?.reviews?.slice(0, 1))?.map((review, index) => (
-                                <div key={`mobile-${index}`} className="flex-shrink-0 d-lg-none d-block" style={{ width: "100%" }}>
-                                    <ReviewCard review={review} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+              
             </div>
 
             {/* Map Section */}

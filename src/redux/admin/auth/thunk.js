@@ -57,6 +57,8 @@ export const signupOwner = createAsyncThunk(
     try {
       const res = await ownerApi.post(Url.OWNER_SIGNUP, data);
       showSuccess(res?.data?.message);
+      console.log(res?.data, 'resdata');
+      localStorage.setItem("owner_signup_id", res?.data?.response?._id);
       return res?.data;
     } catch (error) {
       showError(error);

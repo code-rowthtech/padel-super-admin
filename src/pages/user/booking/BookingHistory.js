@@ -39,6 +39,8 @@ const BookingHistory = () => {
     const [activeTab, setActiveTab] = useState("all");
     const [searchDate, setSearchDate] = useState(null);
     const [searchText, setSearchText] = useState("");
+    const [dateRange, setDateRange] = useState([null, null]);
+    const [startDate, endDate] = dateRange;
     const [modalCancel, setModalCancel] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [selectedOption, setSelectedOption] = useState("All");
@@ -60,6 +62,29 @@ const BookingHistory = () => {
         id: `full-width-tab-${index}`,
         "aria-controls": `full-width-tabpanel-${index}`,
     });
+
+    const buildApiParams = () => {
+        const params = {
+            type: activeTab === "all" ? "" : activeTab,
+            page: currentPage,
+            limit: 10,
+        };
+        if (startDate) params.startDate = format(startDate, "yyyy-MM-dd");
+        if (endDate) params.endDate = format(endDate, "yyyy-MM-dd");
+        return params;
+    };
+
+    useEffect(() => {
+        dispatch(resetBooking());
+        dispatch(getBooking(buildApiParams()));
+    }, [activeTab, currentPage, startDate, endDate]);
+
+
+    useEffect(() => {
+        if (User?.token) dispatch(getBooking({ page: currentPage, limit: 10 }));
+        const club_id = localStorage.getItem("register_club_id");
+        if (club_id) dispatch(getReviewClub(club_id));
+    }, [User?.token]);
 
     const handleChange = (event, newValue) => {
         setActiveTab(newValue);
@@ -89,18 +114,9 @@ const BookingHistory = () => {
     useEffect(() => {
         setCurrentPage(1);
     }, [searchDate, searchText, selectedOption, activeTab]);
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
-        let type = "";
-        if (activeTab === "cancelled") type = "cancelled";
-        else if (activeTab === "upcoming") type = "upcoming";
-        else if (activeTab === "completed") type = "completed";
-        else if (activeTab === "all") type = "all";
-        dispatch(getBooking({ type, page: pageNumber, limit: 10 }));
-    };
+    const handlePageChange = (page) => setCurrentPage(page);
 
 
-    const handleClearDate = () => setSearchDate(null);
     const club_id = localStorage.getItem("register_club_id");
     useEffect(() => {
         if (User?.token) dispatch(getBooking({ page: currentPage, limit: 10 }));
@@ -202,13 +218,13 @@ const BookingHistory = () => {
 
     return (
         <Container>
-            <Row className="mb-lg-2 mb-3 mt-lg-5 mt-3">
+            <Row className=" mb-2  mt-3">
                 <Col md={6}>
-                    <h2 className="booking-history-heading">Booking History</h2>
+                    <h3 className="booking-history-heading">Booking History</h3>
                 </Col>
             </Row>
 
-            <Box className="mb-4" sx={{ bgcolor: "white" }}>
+            <Box className="mb-1" sx={{ bgcolor: "white" }}>
                 <AppBar
                     position="static"
                     color="default"
@@ -247,8 +263,8 @@ const BookingHistory = () => {
                                     py: { xs: 0.5, md: 1 },
                                     mx: 0.2,
                                     minWidth: { xs: "auto", md: "auto" },
-                                    minHeight: { xs: "32px", md: "48px" },
-                                    height: { xs: "32px", md: "48px" },
+                                    minHeight: { xs: "32px", md: "38px" },
+                                    height: { xs: "32px", md: "38px" },
                                     fontSize: { xs: "12px", md: "14px" },
                                     "&.Mui-selected": {
                                         backgroundColor: "#CBD6FFA1",
@@ -264,51 +280,38 @@ const BookingHistory = () => {
                 </AppBar>
             </Box>
             <Row className="mb-3">
-                <Col xs={12} md={6} className="mb-3 mb-md-0">
+                <Col xs={12} md={9} className="mb-3 mb-md-0">
                     <h2 className="step-heading mt-2">
                         {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking
                     </h2>
                 </Col>
 
-                <Col xs={12} md={6} className="d-flex flex-row gap-2 justify-content-md-end align-items-center">
+                <Col xs={12} md={3} className="d-flex flex-row gap-2 justify-content-md-end align-items-center">
                     <InputGroup className="rounded d-flex p-1 align-items-center" style={{ backgroundColor: "#FAFBFF" }}>
                         <InputGroup.Text className="bg-light border-0 px-2">
                             <MdOutlineDateRange size={16} className="text-muted" />
                         </InputGroup.Text>
+
                         <DatePicker
-                            selected={searchDate}
-                            onChange={(date) => setSearchDate(date)}
+                            selectsRange
+                            startDate={startDate}
+                            endDate={endDate}
+                            onChange={(update) => setDateRange(update)}
                             dateFormat="dd/MM/yy"
-                            placeholderText="dd/mm/yy"
-                            calendarClassName="custom-calendar"
+                            placeholderText="dd/mm/yy – dd/mm/yy"
                             className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                            isClearable
                         />
-                        {searchDate && (
+
+                        {(startDate || endDate) && (
                             <InputGroup.Text
                                 className="bg-light border-0 px-3"
-                                onClick={handleClearDate}
+                                onClick={() => setDateRange([null, null])}
                                 style={{ cursor: "pointer" }}
                             >
                                 <FaTimes className="text-danger" />
                             </InputGroup.Text>
                         )}
-                    </InputGroup>
-
-                    <InputGroup
-                        className="rounded overflow-hidden bg-light p-1"
-                        style={{ maxWidth: "250px", backgroundColor: "#F5F5F5" }}
-                    >
-                        <Form.Control
-                            type="text"
-                            placeholder="Search"
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="border-0 bg-light shadow-none"
-                            style={{ backgroundColor: "#F5F5F5", fontSize: "14px" }}
-                        />
-                        <InputGroup.Text className="bg-light border-0">
-                            <FaSearch size={14} className="text-muted" />
-                        </InputGroup.Text>
                     </InputGroup>
                 </Col>
             </Row>
@@ -407,7 +410,7 @@ const BookingHistory = () => {
                                     {filterStatus?.map((booking, i) =>
                                         booking?.slot?.map((slotItem, index) => (
                                             <tr key={`${i}-${index}`} className="border-bottom">
-                                                <td className="table-data py-2 pt-3 ps-5 text-start" style={{ fontWeight: "600", fontSize: "18px", color: "#000000" }}>
+                                                <td className="table-data py-1 pt-2 ps-5 text-start" style={{ fontWeight: "570", fontSize: "16px", color: "#000000" }}>
                                                     {formatDate(booking?.bookingDate)} | {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
@@ -417,16 +420,16 @@ const BookingHistory = () => {
                                                         return times?.length > 5 ? `${displayed} ...` : displayed;
                                                     })()}
                                                 </td>
-                                                <td className="table-data pt-3 py-2">
+                                                <td className="table-data pt-2 py-1">
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
-                                                <td className="table-data pt-3 py-2">
+                                                <td className="table-data pt-2 py-1">
                                                     {booking?.bookingType.charAt(0).toUpperCase() + (booking?.bookingType?.slice(1)) || "N/A"}
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
 
-                                                    <td className="py-2 table-data pt-3">
+                                                    <td className="py-1 table-data pt-2">
                                                         <OverlayTrigger
                                                             placement="top"
                                                             overlay={
@@ -444,7 +447,7 @@ const BookingHistory = () => {
 
                                                 )}
                                                 {activeTab === "completed" && (
-                                                    <td className="text-center pt-3 py-2">
+                                                    <td className="text-center pt-2 py-1">
                                                         {[1, 2, 3, 4, 5].map((star) => {
                                                             const averageRating = booking?.customerReview?.reviewRating || 0;
                                                             let iconClass = "bi-star";
@@ -463,7 +466,7 @@ const BookingHistory = () => {
                                                     </td>
                                                 )}
                                                 {activeTab === "completed" && (
-                                                    <td className="py-2 table-data pt-3">
+                                                    <td className="py-1 table-data pt-2">
                                                         <OverlayTrigger
                                                             placement="top"
                                                             overlay={
@@ -492,7 +495,7 @@ const BookingHistory = () => {
                                                     </td>
 
                                                 )}
-                                                <td className="py-2 pt-3"
+                                                <td className="py-1 pt-2"
                                                     style={{
                                                         color: "#1A237E",
                                                         fontSize: "16px",
@@ -503,7 +506,7 @@ const BookingHistory = () => {
                                                     ₹{booking?.totalAmount || "N/A"}
                                                 </td>
                                                 {activeTab === "cancelled" && (
-                                                    <td className="py-2 pt-3"
+                                                    <td className="py-1 pt-2"
                                                         style={{
                                                             color:
                                                                 booking?.bookingStatus === "rejected"
@@ -523,7 +526,7 @@ const BookingHistory = () => {
                                                                 : "Requested"}
                                                     </td>
                                                 )}
-                                                <td className="text-center py-2 pt-3">
+                                                <td className="text-center py-1 pt-2">
                                                     <div className="d-flex align-items-center justify-content-center gap-2">
                                                         {activeTab !== "completed" && booking?.bookingStatus !== "completed" ? (
                                                             <>
@@ -684,7 +687,7 @@ const BookingHistory = () => {
             </Row>
             {totalPages > 1 && (
                 <Row className="mb-5">
-                    <Col className="d-flex mb-5 justify-content-center">
+                    <Col className="d-flex justify-content-center">
                         <Pagination
                             totalRecords={totalRecords}
                             defaultLimit={10}

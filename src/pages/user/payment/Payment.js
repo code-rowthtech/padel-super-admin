@@ -540,10 +540,33 @@ const Payment = ({ className = "" }) => {
                                     </React.Fragment>
                                 ))
                             ) : (
-                                <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: "25vh" }}>
-                                    <p className="text-white" style={{ fontSize: "15px", fontFamily: "Poppins", fontWeight: "600" }}>
+                                <div
+                                    className="d-flex flex-column justify-content-center align-items-center text-center"
+                                    style={{ height: "25vh" }}
+                                >
+                                    <p
+                                        className="text-white mb-2"
+                                        style={{
+                                            fontSize: "15px",
+                                            fontFamily: "Poppins",
+                                            fontWeight: "600",
+                                        }}
+                                    >
                                         No court selected
                                     </p>
+                                    <button
+                                        className="btn px-4 border-0 py-2 rounded-pill"
+                                        style={{
+                                            background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                                            color: "#fff",
+                                            fontFamily: "Poppins",
+                                            fontSize: "14px",
+                                            fontWeight: "500",
+                                        }}
+                                        onClick={() => navigate("/booking")}
+                                    >
+                                        Select Slot
+                                    </button>
                                 </div>
                             )}
                         </div>

@@ -386,7 +386,7 @@ const Booking = ({ className = "" }) => {
 
     return (
         <>
-            <div className="container p-md-3 mb-lg-3">
+            <div className="container px-0 mb-lg-3">
                 <div className="ps-0" style={{ height: "340px" }}>
                     <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{
                         height: "100%",
@@ -701,7 +701,7 @@ const Booking = ({ className = "" }) => {
                         </div>
                     </div>
                     <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
-                        <div className="border w-100  px-3 py-5 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                        <div className="border w-100   px-3 py-5 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="text-center mb-3">
                                 <div className="d-flex justify-content-center">
                                     {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>}
@@ -757,7 +757,7 @@ const Booking = ({ className = "" }) => {
                             )}
                             {errorShow && errorMessage && (
                                 <div
-                                    className="alert alert-danger text-center "
+                                    className="alert-light alert text-center "
                                     role="alert"
                                     style={{
                                         whiteSpace: 'pre-line',

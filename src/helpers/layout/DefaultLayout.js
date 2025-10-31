@@ -1,19 +1,29 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useMemo } from "react";
 import Navbar from "../../pages/user/header/Navbar";
+import Footer from "../../pages/user/footer/Footer";
 import { getUserFromSession } from "../api/apiCore";
 
 const DefaultLayout = () => {
   const location = useLocation();
-    const user = getUserFromSession()
+  const user = getUserFromSession();
 
-  // List of user-auth routes where Navbar/Footer should be hidden
+  // List of pages where Navbar/Footer should be hidden
   const excludedPages = useMemo(
-    () => ["login", "verify-otp", "forgot-password", "sign-up", "reset-password", "unauthorized", "no-internet","not-found"],
+    () => [
+      "login",
+      "verify-otp",
+      "forgot-password",
+      "sign-up",
+      "reset-password",
+      "unauthorized",
+      "no-internet",
+      "not-found",
+    ],
     []
   );
 
-  // Get current page name from URL path
+  // Get current page name from URL
   const currentPageName = useMemo(() => {
     const path = location.pathname.substring(
       location.pathname.lastIndexOf("/") + 1
@@ -21,7 +31,7 @@ const DefaultLayout = () => {
     return path.toLowerCase();
   }, [location.pathname]);
 
-  // Should hide for excluded pages or admin routes
+  // Determine if header/footer should be hidden
   const shouldHideHeaderFooter = useMemo(() => {
     return (
       excludedPages.includes(currentPageName) ||
@@ -30,18 +40,17 @@ const DefaultLayout = () => {
   }, [currentPageName, excludedPages, location.pathname]);
 
   return (
-    <div>
-      {!shouldHideHeaderFooter ? (
-        <div className="">
-          <Navbar user={user}/>
-          <div style={{ height: "100vh", overflowY: "auto" ,overflowX: "hidden"}}>
-            <Outlet />
-          </div>
-        </div>
-      ) : (
-        <div style={{ height: "100vh", overflowY: "auto" ,overflowX: "hidden"}}>
-          <Outlet />
-        </div>)}
+    <div className="d-flex flex-column" style={{ height: "100vh", overflowY: "auto", overflowX: "hidden" }}>
+      {!shouldHideHeaderFooter && <Navbar user={user} />}
+
+      <div
+        className="flex-grow-1"
+        style={{marginTop:!shouldHideHeaderFooter ? "5.5rem" :"" }}
+      >
+        <Outlet />
+      </div>
+
+      {!shouldHideHeaderFooter && <Footer />}
     </div>
   );
 };

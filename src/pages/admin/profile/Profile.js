@@ -128,10 +128,10 @@ const Profile = () => {
       >
         <div
           className="d-flex align-items-center"
-          style={{ marginTop: "-70px" }}
+          style={{ marginTop: "-30px" }}
         >
           {/* Profile Image */}
-          <div className="position-relative me-3">
+          {/* <div className="position-relative me-3">
             {formData.profileImage ? (
               <img
                 src={formData.profileImage}
@@ -148,7 +148,6 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Camera Icon */}
             <label
               htmlFor="profileImageUpload"
               className="position-absolute bottom-0 end-0 rounded-circle p-1"
@@ -165,7 +164,7 @@ const Profile = () => {
             >
               <FaCamera style={{ color: "white", fontSize: "14px" }} />
             </label>
-          </div>
+          </div> */}
           {/* File Input (Hidden) */}
           <input
             type="file"
