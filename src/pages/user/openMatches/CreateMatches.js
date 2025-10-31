@@ -543,46 +543,61 @@ const CreateMatches = () => {
                 ) : (
                   <>
                     <div className="row g-3">
-                      {slotData?.data?.map((court, courtIndex) => {
-                        const filteredSlots = court?.slots
-                          ?.filter((slot) =>
-                            showUnavailable
-                              ? true
-                              : slot.availabilityStatus === "available" &&
-                              slot.status !== "booked" &&
-                              !isPastTime(slot.time) &&
-                              slot.amount > 0
-                          )
-                          .filter((slot) => filterSlotsByTab(slot, key));
+                      <div
+                        className={`d-flex ${slotData.data.length > 4 ? "flex-nowrap overflow-auto" : "flex-wrap"}`}
+                        style={{
+                          gap: "16px",
+                          paddingBottom: "10px",
+                          overflowX: slotData.data.length > 4 ? "auto" : "visible",
+                          whiteSpace: slotData.data.length > 4 ? "nowrap" : "normal",
+                        }}
+                      >
+                        {slotData?.data?.map((court, courtIndex) => {
+                          const filteredSlots = court?.slots
+                            ?.filter((slot) =>
+                              showUnavailable
+                                ? true
+                                : slot.availabilityStatus === "available" &&
+                                slot.status !== "booked" &&
+                                !isPastTime(slot.time) &&
+                                slot.amount > 0
+                            )
+                            .filter((slot) => filterSlotsByTab(slot, key));
 
-                        if (filteredSlots?.length === 0) return null;
+                          if (filteredSlots?.length === 0) return null;
 
-                        // ✅ Correct way to find last visible court
-                        const visibleCourtIndices = slotData.data
-                          .map((c, i) => {
-                            const slots = c.slots?.filter((s) =>
-                              (showUnavailable ||
-                                (s.availabilityStatus === "available" &&
-                                  s.status !== "booked" &&
-                                  !isPastTime(s.time) &&
-                                  s.amount > 0)) &&
-                              filterSlotsByTab(s, key)
-                            );
-                            return slots?.length > 0 ? i : null;
-                          })
-                          .filter((i) => i !== null);
+                          // find visible court index
+                          const visibleCourtIndices = slotData.data
+                            .map((c, i) => {
+                              const slots = c.slots?.filter(
+                                (s) =>
+                                  (showUnavailable ||
+                                    (s.availabilityStatus === "available" &&
+                                      s.status !== "booked" &&
+                                      !isPastTime(s.time) &&
+                                      s.amount > 0)) &&
+                                  filterSlotsByTab(s, key)
+                              );
+                              return slots?.length > 0 ? i : null;
+                            })
+                            .filter((i) => i !== null);
 
-                        const isLast = visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
+                          const isLast =
+                            visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
 
-                        return (
-                          <div className="col-lg-3 col-6" key={court._id}>
+                          return (
                             <div
+                              key={court._id}
                               className="court-container p-3"
                               style={{
-                                borderRight: !isLast ? "1.13px solid transparent" : "none",
-                                borderLeft: "none",
-                                borderTop: "none",
-                                borderBottom: "none",
+                                minWidth:
+                                  slotData.data.length > 4
+                                    ? "170px" // for scroll mode
+                                    : "calc((100% - 48px) / 4)", // exactly 4 in a row, 16px gap * 3 = 48px
+                                flex: slotData.data.length > 4 ? "0 0 auto" : "1 1 auto",
+                                borderRight: !isLast
+                                  ? "1px solid transparent"
+                                  : "none",
                                 borderImage: !isLast
                                   ? "linear-gradient(180deg, rgba(255,255,255,0) 0%, #837f7fff 46.63%, rgba(255,255,255,0) 94.23%) 1"
                                   : "none",
@@ -595,7 +610,9 @@ const CreateMatches = () => {
 
                               <div className="slots-grid d-flex flex-column align-items-center">
                                 {filteredSlots?.map((slot, i) => {
-                                  const isSelected = selectedTimes[court._id]?.some((t) => t._id === slot._id);
+                                  const isSelected = selectedTimes[court._id]?.some(
+                                    (t) => t._id === slot._id
+                                  );
                                   const totalSlots = Object.values(selectedTimes).flat().length;
                                   const isLimitReached = totalSlots >= 15 && !isSelected;
                                   const isDisabled =
@@ -608,19 +625,26 @@ const CreateMatches = () => {
                                   return (
                                     <button
                                       key={i}
-                                      className={`btn rounded-3 ${isSelected ? "border-0" : ""} slot-time-btn text-center mb-2`}
+                                      className={`btn rounded-3 ${isSelected ? "border-0" : ""
+                                        } slot-time-btn text-center mb-2`}
                                       onClick={() => toggleTime(slot, court._id)}
                                       disabled={isDisabled}
                                       style={{
                                         background:
-                                          slot.status === "booked" || isPastTime(slot.time) || slot.amount <= 0
+                                          slot.status === "booked" ||
+                                            isPastTime(slot.time) ||
+                                            slot.amount <= 0
                                             ? "#c9cfcfff"
                                             : isSelected
                                               ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
                                               : slot.availabilityStatus !== "available"
                                                 ? "#c9cfcfff"
                                                 : "#FFFFFF",
-                                        color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
+                                        color: isDisabled
+                                          ? "#000000"
+                                          : isSelected
+                                            ? "white"
+                                            : "#000000",
                                         cursor: isDisabled ? "not-allowed" : "pointer",
                                         opacity: isDisabled ? 0.6 : 1,
                                         border: isSelected ? "" : "1px solid #4949491A",
@@ -628,7 +652,8 @@ const CreateMatches = () => {
                                         padding: "8px 4px",
                                       }}
                                       onMouseEnter={(e) =>
-                                        !isDisabled && (e.currentTarget.style.border = "1px solid #3DBE64")
+                                        !isDisabled &&
+                                        (e.currentTarget.style.border = "1px solid #3DBE64")
                                       }
                                       onMouseLeave={(e) =>
                                         (e.currentTarget.style.border = "1px solid #4949491A")
@@ -640,11 +665,11 @@ const CreateMatches = () => {
                                 })}
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-
+                          );
+                        })}
+                      </div>
                     </div>
+
                     {slotData?.data?.every(court => !court?.slots?.some(slot => (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) && filterSlotsByTab(slot, key))) && (
                       <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
                         No {showUnavailable ? "unavailable" : "available"} slots

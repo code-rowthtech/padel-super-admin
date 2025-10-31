@@ -468,6 +468,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         navigate("/admin/dashboard");
         sessionStorage.removeItem("registerId");
         localStorage.removeItem("clubFormData"); // ← CLEAR
+        localStorage.removeItem("owner_signup_id"); // ← CLEAR
         dispatch(resetClub());
       })
       .catch (() => {

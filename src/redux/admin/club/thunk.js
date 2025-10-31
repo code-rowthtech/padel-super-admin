@@ -9,7 +9,7 @@ export const registerClub = createAsyncThunk(
     try {
       const res = await ownerApi.post(Url.REGISTER_CLUB, data);
       if (res?.data?.status === 200) {
-        showSuccess(res?.data?.message);
+        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to register club");
@@ -51,7 +51,7 @@ export const updateRegisteredClub = createAsyncThunk(
     try {
       const res = await ownerApi.put(Url.UPDATE_REGISTERED_CLUB, data);
       if (res?.status === 200) {
-        showSuccess(res?.data?.message);
+        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to update club");

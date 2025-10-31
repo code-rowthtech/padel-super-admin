@@ -71,10 +71,10 @@ const getInitialFormState = (club = {}) => ({
     const bh = (club?.businessHours || []).find((x) => x.day === day);
     acc[day] = bh
       ? {
-          start: (bh.time || "").split(" - ")[0] || "06:00 AM",
-          end: (bh.time || "").split(" - ")[1] || "11:00 PM",
-          _id: bh._id,
-        }
+        start: (bh.time || "").split(" - ")[0] || "06:00 AM",
+        end: (bh.time || "").split(" - ")[1] || "11:00 PM",
+        _id: bh._id,
+      }
       : BUSINESS_HOURS_TEMPLATE[day];
     return acc;
   }, {}),
@@ -198,9 +198,8 @@ const AddImageTile = ({ onFiles, hidden }) => {
         e.dataTransfer.dropEffect = "copy";
       }}
       onDrop={onDrop}
-      className={`d-flex align-items-center justify-content-center border border-secondary-subtle rounded bg-white text-muted cursor-pointer ${
-        hidden ? "d-none" : ""
-      }`}
+      className={`d-flex align-items-center justify-content-center border border-secondary-subtle rounded bg-white text-muted cursor-pointer ${hidden ? "d-none" : ""
+        }`}
       style={{ width: 88, height: 88, cursor: "pointer" }}
     >
       <input
@@ -294,7 +293,7 @@ const ClubUpdateForm = () => {
         if (!p.isRemote && p.preview) {
           try {
             URL.revokeObjectURL(p.preview);
-          } catch {}
+          } catch { }
         }
       });
     },
@@ -315,13 +314,34 @@ const ClubUpdateForm = () => {
         } else {
           showWarning(`Description cannot exceed ${MAX_WORDS} words.`);
         }
+      } else if (field === "courtCount") {
+        // Allow blank temporarily (so user can edit freely)
+        if (value.trim() === "") {
+          setFormData((prev) => ({ ...prev, [field]: value }));
+          return;
+        }
+
+        const num = Number(value);
+        if (!/^\d+$/.test(value.trim())) {
+          showWarning("Please enter a valid number of courts.");
+          return;
+        }
+        if (num > 10) {
+          showWarning("You can only add up to 10 courts.");
+          return;
+        }
+
+        setFormData((prev) => ({ ...prev, [field]: value }));
       } else {
         setFormData((prev) => ({ ...prev, [field]: value }));
       }
+
       setTouched((prev) => ({ ...prev, [field]: true }));
     },
     [countWords]
   );
+
+
 
   const handleCheckbox = useCallback((section, key) => {
     setFormData((prev) => ({
@@ -355,7 +375,7 @@ const ClubUpdateForm = () => {
       if (img && !img.isRemote && img.preview) {
         try {
           URL.revokeObjectURL(img.preview);
-        } catch {}
+        } catch { }
       }
       next.splice(index, 1);
       return next;
@@ -432,9 +452,9 @@ const ClubUpdateForm = () => {
     for (const day of Object.keys(formData.businessHours)) {
       if (
         formData.businessHours[day].start !==
-          initialFormData.businessHours[day].start ||
+        initialFormData.businessHours[day].start ||
         formData.businessHours[day].end !==
-          initialFormData.businessHours[day].end
+        initialFormData.businessHours[day].end
       )
         return true;
     }
@@ -491,8 +511,7 @@ const ClubUpdateForm = () => {
     fd.append("clubName", formData.courtName);
     fd.append(
       "courtType",
-      `${formData.courtTypes.indoor ? "Indoor" : ""}${
-        formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
+      `${formData.courtTypes.indoor ? "Indoor" : ""}${formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
       }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
     );
     fd.append("courtCount", formData.courtCount);
@@ -592,7 +611,7 @@ const ClubUpdateForm = () => {
                 </Col>
                 <Col md={3}>
                   <Input
-                    label="Number of Courts"
+                    label="Number of Courts "
                     field="courtCount"
                     type="number"
                   />
@@ -622,9 +641,8 @@ const ClubUpdateForm = () => {
                   onChange={({ text }) => handleChange("description", text)}
                   style={{
                     height: "200px",
-                    border: `1px solid ${
-                      visibleErrors.description ? "#dc3545" : "#ced4da"
-                    }`,
+                    border: `1px solid ${visibleErrors.description ? "#dc3545" : "#ced4da"
+                      }`,
                     borderRadius: "4px",
                     backgroundColor: "#fff",
                   }}

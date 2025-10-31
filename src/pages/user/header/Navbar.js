@@ -1,8 +1,8 @@
 import { logo } from '../../../assets/files';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Dropdown } from 'react-bootstrap';
-import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle, FaBars } from 'react-icons/fa';
-import { useEffect, useState } from 'react';
+import {  Dropdown } from 'react-bootstrap';
+import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle, FaBars, FaBell } from 'react-icons/fa';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
 import { IoTennisballOutline } from 'react-icons/io5';
@@ -12,6 +12,8 @@ import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
 import { IoIosLogOut } from 'react-icons/io';
 import { PiRanking } from "react-icons/pi";
 import { getLogo, getUserProfile } from '../../../redux/user/auth/authThunk';
+import Badge from '@mui/material/Badge';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -24,7 +26,8 @@ const Navbar = () => {
     let token = isUserAuthenticated()
     const logo = JSON.parse(localStorage.getItem("logo"));
     const { user, } = useSelector((state) => state?.userAuth);
-
+    const [open, setOpen] = useState(false);
+    const dropdownRef = useRef(null);
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
             setUserData(store.user.response.user);
@@ -73,7 +76,6 @@ const Navbar = () => {
         phone: user?.response?.phoneNumber || updateName?.phone || store?.userSignUp?.response?.phoneNumber || User?.phoneNumber || "",
         profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic || "",
     };
-    console.log(user,'user?.response?.name');
 
     useEffect(() => {
         if (User?.token) {
@@ -88,10 +90,26 @@ const Navbar = () => {
         }
     }, []);
 
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const notifications = [
+        { id: 1, text: "Your booking has been confirmed!" },
+        { id: 2, text: "New message from club admin." },
+        { id: 3, text: "Your refund has been processed." },
+    ];
+
 
 
     return (
-        <nav className="navbar navbar-expand-lg bg-white py-2">
+        <nav className="navbar navbar-expand-lg fixed-top bg-white py-2">
             <div className="container  px-0 p-0 py-1">
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
@@ -171,8 +189,65 @@ const Navbar = () => {
                 </div>
 
                 {/* Profile Section */}
-                <div className="d-flex">
-                    {store?.user?.status === '200' || token || store?.user?.status === 200  ? (
+                <div className="d-flex gap-3">
+                    <div className="position-relative" ref={dropdownRef}>
+                        {/* Bell Icon */}
+                        <div
+                            className="d-flex rounded-circle justify-content-center mt-1 align-items-center"
+                            style={{
+                                cursor: "pointer",
+                                backgroundColor: "#CBD6FF54",
+                                width: "40px",
+                                height: "40px",
+                                position: "relative",
+                            }}
+                            onClick={() => setOpen(!open)}
+                        >
+                            <Badge badgeContent={17} color="error">
+                                <NotificationsIcon className="text-muted" size={18} />
+                            </Badge>
+                        </div>
+
+                        {/* Dropdown */}
+                        {open && (
+                            <div
+                                className="shadow-sm p-2"
+                                style={{
+                                    position: "absolute",
+                                    top: "50px",
+                                    right: 0,
+                                    width: "250px",
+                                    backgroundColor: "#fff",
+                                    borderRadius: "10px",
+                                    zIndex: 10,
+                                }}
+                            >
+                                <h6 className="text-muted mb-2">Notifications</h6>
+                                <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                                    {notifications.length > 0 ? (
+                                        notifications.map((note) => (
+                                            <div
+                                                key={note.id}
+                                                className="p-2 mb-1 rounded"
+                                                style={{
+                                                    backgroundColor: "#f7f8ff",
+                                                    fontSize: "14px",
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                {note.text}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center text-muted py-3">
+                                            No new notifications
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
                         <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
                             <Dropdown.Toggle
                                 variant="white"

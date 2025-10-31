@@ -116,8 +116,8 @@ const Cancellation = () => {
   return (
     <Container fluid className="">
       <h3
-        className="fw-bold text-dark mb-2"
-        style={{ fontSize: "clamp(1.5rem, 4vw, 1.9rem)" }}
+        className=" text-dark mb-1"
+        style={{ fontSize: "clamp(1.5rem, 4vw, 1.4rem)",fontWeight:"500",fontFamily:"Poppins" }}
       >
         Cancellations
       </h3>
@@ -436,12 +436,14 @@ const Cancellation = () => {
       <BookingRefundModal
         show={showRefund}
         handleClose={() => setShowRefund(false)}
-        onRefundSuccess={(refundDescription,setReason) => {
+        onRefundSuccess={(refundDescription,setReason,refundAmount,refundDate) => {
           dispatch(
             updateBookingStatus({
               id: bookingDetails._id,
               status: "refunded",
               refundDescription,
+              refundDate,
+              refundAmount,
             })
           )
             .unwrap()

@@ -40,9 +40,6 @@ const Booking = () => {
   const [tab, setTab] = useState(0);
   const [loadingBookingId, setLoadingBookingId] = useState(null);
 
-  const statusList = ["upcoming", "completed"];
-  const status = statusList[tab];
-
   const {
     getBookingData,
     getBookingLoading,
@@ -51,21 +48,31 @@ const Booking = () => {
   } = useSelector((state) => state.booking);
 
   const bookings = getBookingData?.bookings || [];
-  const bookingDetails = getBookingDetailsData?.booking || {};
-  console.log({ bookings });
+  const totalItems = getBookingData?.totalItems || 0;
+  const allCount = getBookingData?.allCount || 0;
+  const upcomingCount = getBookingData?.upcomingCount || 0;
+  const completedCount = getBookingData?.completedCount || 0;
+
   const defaultLimit = 10;
-  // Fetch bookings on tab change
+
+  // Fetch bookings based on tab
   useEffect(() => {
     dispatch(resetBookingData());
-    dispatch(
-      getBookingByStatus({
-        status,
-        ownerId,
-        page: currentPage,
-        limit: defaultLimit,
-      })
-    );
-  }, [tab, currentPage]);
+
+    const payload: any = {
+      ownerId,
+      page: currentPage,
+      limit: defaultLimit,
+    };
+
+    if (tab !== 0) {
+      // Only send status if not "All"
+      const status = tab === 1 ? "upcoming" : "completed";
+      payload.status = status;
+    }
+
+    dispatch(getBookingByStatus(payload));
+  }, [tab, currentPage, dispatch, ownerId]);
 
   const handleBookingDetails = async (id, type) => {
     setLoadingBookingId(id);
@@ -83,18 +90,16 @@ const Booking = () => {
 
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
-  const totalRecords = getBookingData?.totalItems || 1;
+
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
   return (
     <Container fluid className="px-2 px-md-4">
       {/* Heading & Manual Booking Button */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4
-          className="fw-bold mb-0"
-          style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)" }}
-        >
+      <div className="d-flex justify-content-between align-items-center mb-1">
+        <h4 className=" mb-0" style={{fontWeight:'500',fontFamily:"Poppins", fontSize: "clamp(1.5rem, 4vw, 1.4rem)" }}>
           Bookings
         </h4>
         <button
@@ -120,10 +125,7 @@ const Booking = () => {
             e.currentTarget.style.transform = "translateY(0)";
           }}
         >
-          <div
-            className="p-1 rounded-circle bg-light"
-            style={{ position: "relative", left: "10px" }}
-          >
+          <div className="p-1 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
             <div
               className="d-flex justify-content-center align-items-center text-white fw-bold"
               style={{
@@ -155,13 +157,8 @@ const Booking = () => {
       <Row className="mb-3">
         <Col xs={12}>
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
-            <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto" } }}>
-              <AppBar
-                position="static"
-                color="default"
-                className="bg-white border-bottom border-light"
-                elevation={0}
-              >
+            <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto"} }}>
+              <AppBar  position="static" color="default" className="bg-white border-bottom border-light" elevation={0}>
                 <Tabs
                   value={tab}
                   onChange={(_, v) => {
@@ -179,19 +176,45 @@ const Booking = () => {
                     },
                   }}
                 >
-                  <Tab className="fw-medium table-data" label="Upcoming" />
-                  <Tab className="fw-medium table-data" label="Completed" />
+                  <Tab
+                    label={
+                      <>
+                        <span >All <b style={{ color: "#16a34a" }} >({allCount}) </b> </span>
+                      </>
+                    }
+                    className="fw-medium table-data d-flex text-nowrap"
+                  />
+
+                  <Tab
+                    label={
+                      <>
+                        <span > Upcoming  <b style={{ color: "#16a34a" }}>({upcomingCount})</b></span>
+                      </>
+                    }
+                    className="fw-medium text-nowrap table-data"
+                  />
+
+                  <Tab
+                    label={
+                      <>
+                        <span >Completed <b style={{ color: "#16a34a" }}>({completedCount})</b> </span>
+                      </>
+                    }
+                    className="fw-medium text-nowrap table-data"
+                  />
+
                 </Tabs>
               </AppBar>
             </Box>
           </div>
         </Col>
       </Row>
+
       <Row>
         <Col xs={12}>
           <div className="bg-white rounded shadow-sm p-2 p-md-3">
             <h6 className="mb-3 tabel-title fs-6">
-              {tab === 0 ? "Upcoming Bookings" : "Completed Bookings"}
+              {tab === 0 ? "All Bookings" : tab === 1 ? "Upcoming Bookings" : "Completed Bookings"}
             </h6>
 
             {getBookingLoading ? (
@@ -200,12 +223,7 @@ const Booking = () => {
               <>
                 {/* Desktop Table */}
                 <div className="custom-scroll-container d-none d-md-block">
-                  <Table
-                    responsive
-                    borderless
-                    size="sm"
-                    className="custom-table"
-                  >
+                  <Table responsive borderless size="sm" className="custom-table">
                     <thead>
                       <tr className="text-center">
                         <th className="d-lg-table-cell">Sr No.</th>
@@ -215,58 +233,48 @@ const Booking = () => {
                         <th>Date</th>
                         <th className="d-none d-lg-table-cell">Court No</th>
                         <th className="d-lg-none">Court</th>
+                        <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {bookings?.map((item, idx) => (
-                        <tr
-                          key={item?._id}
-                          className="table-data border-bottom align-middle text-center"
-                        >
-                          <td
-                            className="text-truncate"
-                            style={{ maxWidth: "120px" }}
-                          >
-                            {idx + 1}
+                      {bookings.map((item, idx) => (
+                        <tr key={item?._id} className="table-data border-bottom align-middle text-center">
+                          <td className="text-truncate" style={{ maxWidth: "120px" }}>
+                            {idx + 1 + (currentPage - 1) * defaultLimit}
                           </td>
-                          <td
-                            className="text-truncate"
-                            style={{ maxWidth: "120px" }}
-                          >
+                          <td className="text-truncate" style={{ maxWidth: "120px" }}>
                             {item?.userId?.name
-                              ? item.userId.name.charAt(0).toUpperCase() +
-                              item.userId.name.slice(1)
+                              ? item.userId.name.charAt(0).toUpperCase() + item.userId.name.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
-                            {item?.userId?.countryCode || ""}{" "}
-                            {item?.userId?.phoneNumber || "N/A"}
+                            {item?.userId?.countryCode || ""} {item?.userId?.phoneNumber || "N/A"}
                           </td>
                           <td>
                             <div className="d-flex justify-content-center">
-                              <span className="fw-medium small">
-                                {formatDate(item?.bookingDate)}
-                              </span>
+                              <span className="fw-medium small">{formatDate(item?.bookingDate)}</span>
                               <span className="text-muted small ms-2">
-                                {formatTime(
-                                  renderSlotTimes(item?.slot[0]?.slotTimes)
-                                )}
+                                {formatTime(renderSlotTimes(item?.slot[0]?.slotTimes))}
                               </span>
                             </div>
                           </td>
-                          <td
-                            className="text-truncate"
-                            style={{ maxWidth: "80px" }}
-                          >
+                          <td className="text-truncate" style={{ maxWidth: "80px" }}>
                             {item?.slot?.[0]?.courtName || "-"}
+                          </td>
+                          <td className="text-truncate" >
+                            {item?.bookingStatus === 'in-progress'
+                              ? 'Request' 
+                              : item?.bookingStatus === 'refunded' ? 'Cancelled' : item?.bookingStatus
+                                ? item.bookingStatus.charAt(0).toUpperCase() + item.bookingStatus.slice(1)
+                                : ""}
                           </td>
                           <td style={{ cursor: "pointer" }}>
                             {loadingBookingId === item?._id ? (
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
-                                {!["rejected", "in-progress"].includes(item?.bookingStatus) && tab !== 1 && (
+                                {tab !== 2 && item?.bookingStatus !== "rejected" && (
                                   <OverlayTrigger placement="left" overlay={<Tooltip>Cancel</Tooltip>}>
                                     <MdOutlineCancel
                                       onClick={() => handleBookingDetails(item?._id, "cancel")}
@@ -294,44 +302,36 @@ const Booking = () => {
 
                 {/* Mobile Card Layout */}
                 <div className="mobile-card-table d-block d-md-none">
-                  {bookings?.map((item) => (
+                  {bookings.map((item) => (
                     <div key={item?._id} className="card">
                       <div className="card-body">
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">User:</span>
                           <span className="mobile-card-value">
                             {item?.userId?.name
-                              ? item.userId.name.charAt(0).toUpperCase() +
-                              item.userId.name.slice(1)
+                              ? item.userId.name.charAt(0).toUpperCase() + item.userId.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Contact:</span>
                           <span className="mobile-card-value">
-                            {item?.userId?.countryCode || ""}{" "}
-                            {item?.userId?.phoneNumber || "N/A"}
+                            {item?.userId?.countryCode || ""} {item?.userId?.phoneNumber || "N/A"}
                           </span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Date:</span>
-                          <span className="mobile-card-value">
-                            {formatDate(item?.bookingDate)}
-                          </span>
+                          <span className="mobile-card-value">{formatDate(item?.bookingDate)}</span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Time:</span>
                           <span className="mobile-card-value">
-                            {formatTime(
-                              renderSlotTimes(item?.slot[0]?.slotTimes)
-                            )}
+                            {formatTime(renderSlotTimes(item?.slot[0]?.slotTimes))}
                           </span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Court:</span>
-                          <span className="mobile-card-value">
-                            {item?.slot?.[0]?.courtName || "-"}
-                          </span>
+                          <span className="mobile-card-value">{item?.slot?.[0]?.courtName || "-"}</span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Actions:</span>
@@ -340,21 +340,16 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex gap-2">
-                                {tab !== 1 && (
+                                {tab !== 2 && item?.bookingStatus !== "rejected" && (
                                   <MdOutlineCancel
-                                    onClick={() =>
-                                      handleBookingDetails(item?._id, "cancel")
-                                    }
+                                    onClick={() => handleBookingDetails(item?._id, "cancel")}
                                     className="text-danger"
-                                    style={{ cursor: "pointer" }}
                                     size={18}
                                   />
                                 )}
                                 <FaEye
                                   className="text-primary"
-                                  onClick={() =>
-                                    handleBookingDetails(item?._id, "details")
-                                  }
+                                  onClick={() => handleBookingDetails(item?._id, "details")}
                                   size={18}
                                 />
                               </div>
@@ -367,21 +362,19 @@ const Booking = () => {
                 </div>
               </>
             ) : (
-              <div
-                className="d-flex text-danger justify-content-center align-items-center"
-                style={{ height: "60vh" }}
-              >
-                No {tab === 0 ? "Upcoming Bookings" : "Completed Bookings"} were
-                Found !
+              <div className="d-flex text-danger justify-content-center align-items-center" style={{ height: "60vh" }}>
+                No {tab === 0 ? "bookings" : tab === 1 ? "upcoming bookings" : "completed bookings"} found!
               </div>
             )}
           </div>
         </Col>
       </Row>
+
+      {/* Pagination */}
       <Row className="mt-3">
         <Col className="d-flex justify-content-center">
           <Pagination
-            totalRecords={totalRecords}
+            totalRecords={totalItems}
             defaultLimit={defaultLimit}
             handlePageChange={handlePageChange}
             currentPage={currentPage}
@@ -393,24 +386,24 @@ const Booking = () => {
       <BookingDetailsModal
         show={showBookingDetails}
         handleClose={() => setShowBookingDetails(false)}
-        bookingDetails={bookingDetails}
+        bookingDetails={getBookingDetailsData?.booking || {}}
       />
       <BookingCancelModal
         show={showBookingCancel}
         onHide={() => setShowBookingCancel(false)}
-        bookingDetails={bookingDetails}
+        bookingDetails={getBookingDetailsData?.booking || {}}
         loading={updateBookingLoading}
         cancelBooking={(reason) => {
           dispatch(
             updateBookingStatus({
-              id: bookingDetails?._id,
-              status: "in-progress",
+              id: getBookingDetailsData?.booking?._id,
+              status: "cancelled",
               cancellationReason: reason,
             })
           )
             .unwrap()
             .then(() => {
-              dispatch(getBookingByStatus({ status, ownerId }));
+              dispatch(getBookingByStatus({ ownerId, page: currentPage, limit: defaultLimit }));
               setShowBookingCancel(false);
             });
         }}

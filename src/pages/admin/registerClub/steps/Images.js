@@ -12,23 +12,25 @@ import { SlCloudUpload } from "react-icons/sl";
 import { FiClock } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  createLogo,
   registerClub,
   updateRegisteredClub,
 } from "../../../../redux/thunks";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { showInfo } from "../../../../helpers/Toast";
+import { useNavigate } from "react-router-dom";
 
 const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const dispatch = useDispatch();
   const MAX_IMAGES = 10;
   const registerID = sessionStorage.getItem("registerId");
-  const { clubLoading, clubError } = useSelector((state) => state.club);
+  const { clubLoading } = useSelector((state) => state.club);
   const { updateClubLoading } = useSelector((s) => s.club);
+  const ownerId = localStorage.getItem("owner_signup_id");
 
-  // previewImages = [{ preview: "blob:http://...", file: File } for new]
+  /* -------------------  IMAGES  ------------------- */
   const [previewImages, setPreviewImages] = useState([]);
-
-  // Sync previewImages from formData.images (only new files)
+  const navigate = useNavigate()
   useEffect(() => {
     const newImages = formData.images || [];
     const previews = newImages.map((file) => ({
@@ -38,17 +40,15 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     setPreviewImages(previews);
   }, [formData.images]);
 
-  // Load saved previews from localStorage (only on update)
   useEffect(() => {
     if (updateImage) {
       const saved = localStorage.getItem("clubFormData");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.previewUrls && parsed.previewUrls.length > 0) {
-          // Show saved previews (as non-removable, non-file)
+        if (parsed.previewUrls?.length) {
           const savedPreviews = parsed.previewUrls.map((url) => ({
             preview: url,
-            isSaved: true, // not removable, not file
+            isSaved: true,
           }));
           setPreviewImages(savedPreviews);
         }
@@ -64,43 +64,79 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       return;
     }
 
-    // Save new files to formData
     const updatedFiles = [...(formData.images || []), ...files];
     updateFormData({ images: updatedFiles });
 
-    // Update preview
     const newPreviews = files.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
     }));
     setPreviewImages((prev) => [
-      ...prev.filter((img) => img.isSaved), // keep saved
+      ...prev.filter((img) => img.isSaved),
       ...newPreviews,
     ]);
   };
 
   const removeImage = (index) => {
     const image = previewImages[index];
-
     if (image.isSaved) {
       showInfo("Cannot remove previously saved images.");
       return;
     }
-
-    // Remove from formData.images
-    const updatedFiles = formData.images.filter((_, i) => i !== index - previewImages.filter((img) => img.isSaved).length);
+    const updatedFiles = formData.images.filter(
+      (_, i) => i !== index - previewImages.filter((img) => img.isSaved).length
+    );
     updateFormData({ images: updatedFiles });
-
-    // Remove from preview
     URL.revokeObjectURL(image.preview);
     setPreviewImages(previewImages.filter((_, i) => i !== index));
   };
 
+  /* -------------------  LOGO  ------------------- */
+  const [logoPreview, setLogoPreview] = useState(null); // { file, preview }
+
+  // Load saved logo when editing
+  useEffect(() => {
+    if (updateImage) {
+      const saved = localStorage.getItem("clubFormData");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.logoUrl) {
+          setLogoPreview({ preview: parsed.logoUrl, isSaved: true });
+        }
+      }
+    }
+  }, [updateImage]);
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Revoke old preview
+    if (logoPreview?.preview && !logoPreview.isSaved) {
+      URL.revokeObjectURL(logoPreview.preview);
+    }
+
+    const preview = URL.createObjectURL(file);
+    setLogoPreview({ file, preview });
+    updateFormData({ logo: file });
+  };
+
+  const removeLogo = () => {
+    if (logoPreview?.isSaved) {
+      showInfo("Cannot remove previously saved logo.");
+      return;
+    }
+    if (logoPreview?.preview) URL.revokeObjectURL(logoPreview.preview);
+    setLogoPreview(null);
+    updateFormData({ logo: null });
+  };
+
+  /* -------------------  BUSINESS HOURS  ------------------- */
   const [referenceHours, setReferenceHours] = useState({ start: "", end: "" });
   const [hasChanged, setHasChanged] = useState(false);
 
   const convertAmPmTo24Hour = (timeStr) => {
-    if (!timeStr) return "05:00"; // Default 5:00 AM
+    if (!timeStr) return "05:00";
     const [time, modifier] = timeStr.split(" ");
     let [hours, minutes] = time.split(":");
     hours = parseInt(hours, 10);
@@ -138,12 +174,34 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     setHasChanged(false);
   };
 
+  const openSelect = (selectId) => {
+    const el = document.getElementById(selectId);
+    if (el) {
+      el.focus();
+      const click = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      });
+      el.dispatchEvent(click);
+    }
+  };
+
   const renderBusinessHours = () => {
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const days = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
     return (
       <>
         {days.map((day) => {
-          const dayHours = formData.businessHours[day] || { start: "05:00 AM", end: "11:00 PM" };
+          const dayHours =
+            formData.businessHours[day] || { start: "05:00 AM", end: "11:00 PM" };
           const startTime24 = convertAmPmTo24Hour(dayHours.start);
           const endTime24 = convertAmPmTo24Hour(dayHours.end);
           const startHour = parseInt(startTime24.split(":")[0], 10);
@@ -155,62 +213,103 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
 
           return (
             <Row key={day} className="align-items-center mb-1 ms-3">
-              <Col md={3}><span style={{ fontSize: "14px" }}>{day}</span></Col>
-              <Col md={4}>
-                <div onClick={() => document.getElementById(`start-select-${day}`).click()} style={{ cursor: "pointer" }}>
-                  <InputGroup>
-                    <FormControl
-                      id={`start-select-${day}`}
-                      as="select"
-                      value={startTime24}
-                      onChange={(e) => {
-                        const amPmTime = convert24HourToAmPm(e.target.value);
-                        handleBusinessHoursChange(day, "start", amPmTime);
-                      }}
-                      style={{ height: "32px", borderRadius: "8px 0 0 8px", fontSize: "14px", textAlign: "center", boxShadow: "none" }}
-                      className="py-0 border-end-0"
-                    >
-                      {/* START FROM 5:00 AM */}
-                      {Array.from({ length: 13 }, (_, i) => {
-                        const h = i + 5; // 5,6,7,...,17
-                        const t = `${h.toString().padStart(2, "0")}:00`;
-                        return <option key={t} value={t}>{convert24HourToAmPm(t)}</option>;
-                      })}
-                    </FormControl>
-                    <InputGroup.Text className="bg-white" style={{ height: "32px", borderRadius: "0 8px 8px 0" }}>
-                      <FiClock size={16} color="#6B7280" />
-                    </InputGroup.Text>
-                  </InputGroup>
-                </div>
+              <Col md={3}>
+                <span style={{ fontSize: "14px" }}>{day}</span>
               </Col>
-              <Col md={1} style={{ textAlign: "center" }}>To</Col>
+
+              {/* START */}
               <Col md={4}>
-                <div onClick={() => document.getElementById(`end-select-${day}`).click()} style={{ cursor: "pointer" }}>
-                  <InputGroup>
-                    <FormControl
-                      id={`end-select-${day}`}
-                      as="select"
-                      value={endTime24}
-                      onChange={(e) => {
-                        const amPmTime = convert24HourToAmPm(e.target.value);
-                        handleBusinessHoursChange(day, "end", amPmTime);
-                      }}
-                      style={{ height: "32px", borderRadius: "8px 0 0 8px", fontSize: "14px", textAlign: "center", boxShadow: "none" }}
-                      className="py-0 border-end-0"
-                    >
-                      {allowedEndTimes.map((t) => (
-                        <option key={t} value={t}>{convert24HourToAmPm(t)}</option>
-                      ))}
-                    </FormControl>
-                    <InputGroup.Text className="bg-white" style={{ height: "32px", borderRadius: "0 8px 8px 0" }}>
-                      <FiClock size={16} color="#6B7280" />
-                    </InputGroup.Text>
-                  </InputGroup>
-                </div>
+                <InputGroup>
+                  <FormControl
+                    id={`start-select-${day}`}
+                    as="select"
+                    value={startTime24}
+                    onChange={(e) => {
+                      const amPmTime = convert24HourToAmPm(e.target.value);
+                      handleBusinessHoursChange(day, "start", amPmTime);
+                    }}
+                    style={{
+                      height: "32px",
+                      borderRadius: "8px 0 0 8px",
+                      fontSize: "14px",
+                      textAlign: "center",
+                      boxShadow: "none",
+                    }}
+                    className="py-0 border-end-0"
+                  >
+                    {Array.from({ length: 13 }, (_, i) => {
+                      const h = i + 5;
+                      const t = `${h.toString().padStart(2, "0")}:00`;
+                      return (
+                        <option key={t} value={t}>
+                          {convert24HourToAmPm(t)}
+                        </option>
+                      );
+                    })}
+                  </FormControl>
+
+                  <InputGroup.Text
+                    className="bg-white"
+                    style={{ height: "32px", borderRadius: "0 8px 8px 0" }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openSelect(`start-select-${day}`);
+                    }}
+                  >
+                    <FiClock style={{ cursor: "pointer" }} size={16} color="#6B7280" />
+                  </InputGroup.Text>
+                </InputGroup>
+              </Col>
+
+              <Col md={1} style={{ textAlign: "center" }}>
+                To
+              </Col>
+
+              {/* END */}
+              <Col md={4}>
+                <InputGroup>
+                  <FormControl
+                    id={`end-select-${day}`}
+                    as="select"
+                    value={endTime24}
+                    onChange={(e) => {
+                      const amPmTime = convert24HourToAmPm(e.target.value);
+                      handleBusinessHoursChange(day, "end", amPmTime);
+                    }}
+                    style={{
+                      height: "32px",
+                      borderRadius: "8px 0 0 8px",
+                      fontSize: "14px",
+                      textAlign: "center",
+                      boxShadow: "none",
+                    }}
+                    className="py-0 border-end-0"
+                  >
+                    {allowedEndTimes.map((t) => (
+                      <option key={t} value={t}>
+                        {convert24HourToAmPm(t)}
+                      </option>
+                    ))}
+                  </FormControl>
+
+                  <InputGroup.Text
+                    className="bg-white"
+                    style={{ height: "32px", borderRadius: "0 8px 8px 0" }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openSelect(`end-select-${day}`);
+                    }}
+                  >
+                    <FiClock style={{ cursor: "pointer" }} size={16} color="#6B7280" />
+                  </InputGroup.Text>
+                </InputGroup>
               </Col>
             </Row>
           );
         })}
+
         <Row className="justify-content-end mt-3">
           <Col md="auto">
             <button
@@ -235,8 +334,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     );
   };
 
+  /* -------------------  SUBMIT  ------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.termsAccepted) {
       showInfo("Please accept the Terms and Conditions.");
       return;
@@ -248,17 +349,31 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       return;
     }
 
+    // ---------- 1. LOGO API (if logo exists) ----------
+    if (formData.logo) {
+      const logoForm = new FormData();
+      logoForm.append("ownerId", ownerId);
+      logoForm.append("image", formData.logo);
+
+      try {
+        await dispatch(createLogo(logoForm)).unwrap();
+      } catch (err) {
+        showInfo("Failed to upload logo. Continuing with club registration...");
+      }
+    }
+
+    // ---------- 2. CLUB REGISTER / UPDATE ----------
     const savedPreviews = previewImages
-      .filter(img => img.isSaved)
-      .map(img => img.preview);
+      .filter((img) => img.isSaved)
+      .map((img) => img.preview);
 
     const savedData = {
       ...JSON.parse(localStorage.getItem("clubFormData") || "{}"),
       previewUrls: savedPreviews,
+      logoUrl: logoPreview?.isSaved ? logoPreview.preview : null,
       businessHours: formData.businessHours,
       termsAccepted: formData.termsAccepted,
     };
-
     localStorage.setItem("clubFormData", JSON.stringify(savedData));
 
     const apiFormData = new FormData();
@@ -292,6 +407,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     );
 
     newImages.forEach((file) => apiFormData.append("image", file));
+    // logo already uploaded above – no need to send again
 
     try {
       if (updateImage) {
@@ -306,19 +422,19 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     }
   };
 
+  /* -------------------  RENDER  ------------------- */
   return (
     <div className="border-top small">
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={6}>
-            <h5 style={{ fontWeight: 700, color: "#1F2937" }} className="my-3">
+              <h5 style={{ fontWeight: 600, color: "#1F2937",fontFamily:"Poppins" }} className="my-3">
               Upload Club Images
             </h5>
-
-            {previewImages.length > 0 && (
-              <div className="mb-3">
-                <div className="d-flex flex-wrap gap-2 mb-3">
-                  {previewImages.map((image, index) => (
+            <div className="mb-0">
+              <div className="d-flex flex-wrap gap-2 mb-3">
+                {previewImages.length > 0 && (
+                  previewImages.map((image, index) => (
                     <div key={index} style={{ position: "relative" }}>
                       <img
                         src={image.preview}
@@ -334,6 +450,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                       />
                       {image.file && (
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             removeImage(index);
@@ -359,43 +476,129 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                         </button>
                       )}
                     </div>
-                  ))}
-                </div>
+                  ))
+                )}
+                {previewImages.filter((i) => i.file).length < MAX_IMAGES && (
+                  <div className="border"
+                    onClick={() => document.getElementById("clubImagesInput").click()}
+                    style={{
+                      borderRadius: "12px",
+                      width: previewImages.length > 0 ? '80px' : "100%",
+                      height: previewImages.length > 0 ? '80px' : "40px",
+                      padding: previewImages.length > 0 ? "10px 0px" : "0px",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    <div className={`${previewImages?.length > 0 ? 'flex-column' : ' d-flex justify-content-center pt-1 align-items-center'} gap-3`}>
+                      <SlCloudUpload size={25} color="#6B7280" />
+                      <p className="mb-0 m-0" style={{ fontSize: "16px", color: "#1F2937", fontWeight: 500 }}>
+                        {previewImages.length > 0 ? 'Upload' : 'Upload Club Image'}
+                      </p>
+                    </div>
+                    {/* <p className="text-muted m-0" style={{ fontSize: "12px", fontWeight: 400 }}>
+                      {previewImages.length > 0 ? '' : 'PNG, JPG, GIF up to 5MB each'}
+                    </p> */}
+                    <input
+                      type="file"
+                      id="clubImagesInput"
+                      multiple
+                      accept="image/png,image/jpeg,image/gif"
+                      style={{ display: "none" }}
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                )}
+              </div>
+              {previewImages.length > 0 && (
                 <Alert variant="info" className="py-2">
                   <small>
-                    {previewImages.filter((i) => i.file).length} new | {previewImages.filter((i) => i.isSaved).length} saved
+                    {previewImages.filter((i) => i.file).length} new {" "}
+                    {previewImages.filter((i) => i.isSaved).length} saved
                   </small>
                 </Alert>
-              </div>
-            )}
+              )}
+            </div>
 
-            {previewImages.filter((i) => i.file).length < MAX_IMAGES && (
-              <div
-                onClick={() => document.getElementById("clubImagesInput").click()}
-                style={{
-                  border: "2px dashed #E5E7EB",
-                  borderRadius: "12px",
-                  padding: "50px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                  backgroundColor: "#fff",
-                }}
-              >
-                <SlCloudUpload size={80} color="#6B7280" />
-                <p style={{ fontSize: "16px", color: "#1F2937", fontWeight: 500 }}>
-                  Click or drag to add more images
-                </p>
-                <p style={{ fontSize: "12px", color: "#6B7280" }}>PNG, JPG, GIF up to 10MB each</p>
-                <input
-                  type="file"
-                  id="clubImagesInput"
-                  multiple
-                  accept="image/png,image/jpeg,image/gif"
-                  style={{ display: "none" }}
-                  onChange={handleFileChange}
-                />
-              </div>
-            )}
+            <div>
+              <h5 style={{ fontWeight: 600, color: "#1F2937",fontFamily:"Poppins" }} className="">
+                Upload Club Logo
+              </h5>
+
+              {logoPreview ? (
+                <div className="mb-3">
+                  <div style={{ position: "relative", display: "inline-block" }}>
+                    <img
+                      src={logoPreview.preview}
+                      alt="Club Logo"
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "contain",
+                        borderRadius: "12px",
+                        border: "1px solid #E5E7EB",
+                        background: "#fff",
+                      }}
+                    />
+                    {!logoPreview.isSaved && (
+                      <button
+                        type="button"
+                        onClick={removeLogo}
+                        style={{
+                          position: "absolute",
+                          top: "-8px",
+                          right: "-8px",
+                          background: "#ef4444",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "24px",
+                          height: "24px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        x
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {!logoPreview && (
+                <div className="border"
+                  onClick={() => document.getElementById("logoInput").click()}
+                  style={{
+                    borderRadius: "12px",
+                    padding: "0px",
+                    width: "100%",
+                    height: "40px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <div className="d-flex justify-content-center align-items-center gap-3 py-1">
+                    <SlCloudUpload size={25} color="#6B7280" />
+                    <p className="mb-0 m-0" style={{ fontSize: "15px", color: "#1F2937",fontFamily:"Poppins", fontWeight: 500 }}>
+                      Upload Club Logo
+                    </p>
+                  </div>
+
+                  <input
+                    type="file"
+                    id="logoInput"
+                    accept="image/png,image/jpeg"
+                    style={{ display: "none" }}
+                    onChange={handleLogoChange}
+                  />
+                </div>
+              )}
+            </div>
           </Col>
 
           <Col md={6}>
@@ -404,8 +607,11 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
             </h5>
             {renderBusinessHours()}
           </Col>
+
         </Row>
 
+
+        {/* TERMS */}
         <Row className="mt-4">
           <Col>
             <Form.Check
@@ -415,15 +621,50 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               onChange={(e) => updateFormData({ termsAccepted: e.target.checked })}
               label={
                 <span style={{ fontSize: "14px", color: "#1F2937", fontWeight: 500 }}>
-                  I agree to the Terms & conditions and Privacy policy
+                  I agree to the{" "}
+                  <b
+                    className="text-primary"
+                    style={{ cursor: "pointer" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/admin/privacy");
+                    }}
+                  >
+                    Terms & conditions
+                  </b>{" "}
+                  and{" "}
+                  <b
+                    className="text-primary"
+                    style={{ cursor: "pointer" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/admin/privacy");
+                    }}
+                  >
+                    Privacy policy
+                  </b>
                 </span>
               }
             />
           </Col>
         </Row>
 
+        {/* BUTTONS */}
         <div className="d-flex justify-content-end mt-4">
-          <Button type="button" onClick={onBack} style={{ backgroundColor: "#374151", border: "none", borderRadius: "30px", padding: "10px 30px", fontWeight: 600, fontSize: "16px", color: "#fff", marginRight: "10px" }}>
+          <Button
+            type="button"
+            onClick={onBack}
+            style={{
+              backgroundColor: "#374151",
+              border: "none",
+              borderRadius: "30px",
+              padding: "10px 30px",
+              fontWeight: 600,
+              fontSize: "16px",
+              color: "#fff",
+              marginRight: "10px",
+            }}
+          >
             Back
           </Button>
           <Button
@@ -439,7 +680,11 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
             }}
             disabled={previewImages.length === 0}
           >
-            {clubLoading || updateClubLoading ? <ButtonLoading color={'white'} /> : "Next"}
+            {clubLoading || updateClubLoading ? (
+              <ButtonLoading color="white" />
+            ) : (
+              "Next"
+            )}
           </Button>
         </div>
       </Form>

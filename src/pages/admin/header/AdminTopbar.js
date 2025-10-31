@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FaSearch,
   FaTimes,
@@ -14,6 +14,8 @@ import { useDispatch } from "react-redux";
 import { logout } from "../../../redux/admin/auth/slice";
 import { NavLink } from "react-router-dom";
 import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
+import Badge from '@mui/material/Badge';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCollapsed }) => {
   const user = getOwnerFromSession();
@@ -21,7 +23,24 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   const handleClearSearch = () => setSearchValue("");
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const notifications = [
+    { id: 1, text: "Your booking has been confirmed!" },
+    { id: 2, text: "New message from club admin." },
+    { id: 3, text: "Your refund has been processed." },
+  ];
   return (
     <header
       className={`admin-topbar d-flex justify-content-between align-items-center px-3 px-md-4 py-2 ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
@@ -73,15 +92,61 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
 
       {/* User Dropdown + Bell Icon */}
       <div className="d-flex align-items-center gap-2 gap-md-4">
-        <div
-          className="d-flex rounded-circle align-items-center"
-          style={{
-            cursor: "pointer",
-            backgroundColor: "#CBD6FF54",
-            padding: "8px",
-          }}
-        >
-          <FaBell className="text-muted" size={18} />
+        <div className="position-relative" ref={dropdownRef}>
+          {/* Bell Icon */}
+          <div
+            className="d-flex rounded-circle  align-items-center"
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#CBD6FF54",
+              padding: "8px",
+              position: "relative",
+            }}
+            onClick={() => setOpen(!open)}
+          >
+            <Badge badgeContent={17} color="error">
+              <NotificationsIcon className="text-muted" size={18} />
+            </Badge>
+          </div>
+
+          {/* Dropdown */}
+          {open && (
+            <div
+              className="shadow-sm p-2"
+              style={{
+                position: "absolute",
+                top: "50px",
+                right: 0,
+                width: "250px",
+                backgroundColor: "#fff",
+                borderRadius: "10px",
+                zIndex: 10,
+              }}
+            >
+              <h6 className="text-muted mb-2">Notifications</h6>
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                {notifications.length > 0 ? (
+                  notifications.map((note) => (
+                    <div
+                      key={note.id}
+                      className="p-2 mb-1 rounded"
+                      style={{
+                        backgroundColor: "#f7f8ff",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {note.text}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-muted py-3">
+                    No new notifications
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>

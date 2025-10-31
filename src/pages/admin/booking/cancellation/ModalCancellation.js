@@ -263,7 +263,9 @@ export const BookingRefundModal = ({
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const maxLength = 250;
-
+  console.log(bookingDetails, 'bookingDetails');
+  const [refundAmount, setRefundAmount] = useState(bookingDetails?.totalAmount || "Refund amount");
+  const [refundDate, setRefundDate] = useState(new Date().toISOString().split("T")[0]);
   // Validate reason
   const validateReason = (text) => {
     if (!text.trim()) return "Reason is required";
@@ -273,19 +275,16 @@ export const BookingRefundModal = ({
   const handleReasonChange = (e) => {
     let value = e.target.value;
 
-    // Limit to 250
     if (value.length > maxLength) {
       value = value.slice(0, maxLength);
     }
 
-    // Capitalize first letter
     if (value.length > 0) {
       value = value.charAt(0).toUpperCase() + value.slice(1);
     }
 
     setReason(value);
 
-    // Clear error if valid
     if (error) {
       setError(validateReason(value));
     }
@@ -296,8 +295,7 @@ export const BookingRefundModal = ({
       setError(validationError);
       return;
     }
-    // Pass reason to parent
-    onRefundSuccess(reason, setReason);
+    onRefundSuccess(reason, setReason, refundAmount, refundDate);
   };
 
   const remaining = maxLength - reason.length;
@@ -328,14 +326,14 @@ export const BookingRefundModal = ({
         ></i>
       </div>
       <Modal.Body className="text-center pt-0">
-        <img
+        {/* <img
           src={modalSuccess}
           alt="Details"
           className="mt-2 animated-img"
           style={{ width: "200px" }}
-        />
+        /> */}
         <div
-          className="d-flex justify-content-between border align-items-center rounded-3 my-2"
+          className="d-flex justify-content-between border-top border-bottom align-items-center  my-2"
           style={{ backgroundColor: "#CBD6FF1A" }}
         >
           <div className="text-start  p-2 ps-3">
@@ -438,84 +436,128 @@ export const BookingRefundModal = ({
         >
           Payment Details
         </h2>
-        <div className="d-flex justify-content-between mb-0">
-          <h2
-            className="tabel-title py-1 text-start m-0 ps-1 text-muted"
-            style={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "500",
-            }}
-          >
-            Payment Method
-          </h2>
-          <h2
-            className="tabel-title py-1 text-start m-0"
-            style={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "#374151",
-            }}
-          >
-            {bookingDetails?.paymentMethod
-              ? bookingDetails?.paymentMethod
-                ?.charAt(0)
-                ?.toUpperCase()
-                ?.concat(bookingDetails?.paymentMethod?.slice(1))
-              : "N/A"}
-          </h2>
-        </div>
-        <div className="d-flex justify-content-between">
-          <h2
-            className="tabel-title py-1 text-start ps-1 text-muted"
-            style={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "500",
-            }}
-          >
-            Total paymentppp
-          </h2>
-          <h2
-            className="tabel-title py-1 text-start"
-            style={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "#374151",
-            }}
-          >
-            ₹ {bookingDetails?.totalAmount}
-          </h2>
-          |
-          <h2
-            className="tabel-title py-1 text-start ps-1 text-muted"
-            style={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "500",
-            }}
-          >
-            Refund Amount
-          </h2>
-          <h2
-            className="tabel-title py-1 text-start"
-            style={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "#374151",
-            }}
-          >
-            ₹ {bookingDetails?.totalAmount}
-          </h2>
+        <div className="row">
+          <div className="col-md-6 col-12  ">
+            <div className="d-flex justify-content-between">
+              <h2
+                className="tabel-title py-1 text-start ps-1 text-muted"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Payment Method
+              </h2>
+              <h2
+                className="tabel-title py-1 text-start m-0"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                {bookingDetails?.paymentMethod
+                  ? bookingDetails?.paymentMethod
+                    ?.charAt(0)
+                    ?.toUpperCase()
+                    ?.concat(bookingDetails?.paymentMethod?.slice(1))
+                  : "N/A"}
+              </h2>
+            </div>
+            <div className="d-flex flex-column text-start">
+              <label
+                className="tabel-title text-muted ps-1"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                }}
+              >
+                Refund Amount
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={refundAmount}
+                onChange={(e) => setRefundAmount(e.target.value)}
+                className="form-control w-100"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: "#374151",
+                  height: "32px",
+                  borderRadius: "8px",
+                  boxShadow: "none",
+                }}
+              />
+            </div>
+
+          </div>
+          <div className=" col-md-6 border-start col-12">
+            {/* Refund Amount Input */}
+            <div className="d-flex justify-content-between">
+              <h2
+                className="tabel-title py-1 text-start ps-1 text-muted"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Payment recieve
+              </h2>
+              <h2
+                className="tabel-title py-1 text-start"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                ₹ {bookingDetails?.totalAmount}
+              </h2>
+            </div>
+
+            {/* Date Picker */}
+            <div className="d-flex flex-column text-start">
+              <label
+                className="tabel-title text-muted ps-1"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                }}
+              >
+                Refund Date
+              </label>
+              <input
+                type="date"
+                value={refundDate}
+                onChange={(e) => setRefundDate(e.target.value)}
+                className="form-control w-100"
+                style={{
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: "#374151",
+                  height: "32px",
+                  borderRadius: "8px",
+                  boxShadow: "none",
+                }}
+              />
+            </div>
+          </div>
+
         </div>
 
         {/* Refund Amount Field */}
         <div className="mt-3 text-start position-relative">
           <label className="form-label ps-1" style={{ fontSize: "14px", fontWeight: "600", color: "#374151" }}>
-            Refund Process Details
+            Refund Note
           </label>
           <Form.Control
             as="textarea"
@@ -523,9 +565,8 @@ export const BookingRefundModal = ({
             placeholder="Enter details about how the payment will be processed refund (e.g., UPI, Bank Transfer, Cash, etc.)"
             value={reason}
             onChange={handleReasonChange}
-            className={`rounded-3 ${error ? "is-invalid" : ""}`}
+            className={`rounded-3 textarea-palceholder ${error ? "is-invalid" : ""}`}
             style={{
-              backgroundColor: "#CBD6FF7A",
               boxShadow: "none",
               resize: "none",
             }}
@@ -667,7 +708,7 @@ export const CancelRequestModal = ({
       className="cancel-modal "
     >
       <div className="d-flex justify-content-between align-items-center p-2">
-        <h3
+        <h4
           className="flex-grow-1 text-center mb-0"
           style={{
             fontFamily: "Poppins, sans-serif",
@@ -676,7 +717,7 @@ export const CancelRequestModal = ({
           }}
         >
           Cancellation Request
-        </h3>
+        </h4>
         <i
           className="bi bi-x fs-2 text-danger fw-bold"
           onClick={handleClose}
@@ -692,27 +733,27 @@ export const CancelRequestModal = ({
             style={{ backgroundColor: "#CBD6FF1A" }}
           >
             <div className="text-start">
-              <h6>Name:</h6>
-              <p>Court Number:</p>
-              <p>Date:</p>
-              <p>Time:</p>
+              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">Name:</p>
+              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">Court Number:</p>
+              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">Date:</p>
+              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">Time:</p>
             </div>
             <div className="text-end">
-              <h6>
+              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">
                 <strong>
                   {bookingDetails?.userId?.name
                     ?.slice(0, 1)
                     ?.toUpperCase()
                     ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
                 </strong>
-              </h6>
-              <p>
+              </p>
+              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">
                 <strong>{bookingDetails?.slot?.[0]?.courtName || "N/A"}</strong>
               </p>
-              <p>
+              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">
                 <strong>{formatDate(bookingDetails?.bookingDate)}</strong>
               </p>
-              <p>
+              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">
                 <strong>
                   {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
                   {formatSlotTime(
@@ -730,7 +771,7 @@ export const CancelRequestModal = ({
                 <strong>Payment Details</strong>
               </h6>
               <div className="d-flex justify-content-between">
-                <p>Payment Method:</p>
+                <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="">Payment Method:</p>
                 <p className="mb-0">
                   {bookingDetails?.paymentMethod
                     ? bookingDetails?.paymentMethod
@@ -741,7 +782,7 @@ export const CancelRequestModal = ({
                 </p>
               </div>
               <div className="d-flex justify-content-between">
-                <p>Total Payment:</p>
+                <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="">Total Payment:</p>
                 <p className="text-primary fs-4 mb-0">
                   <strong>₹ {bookingDetails?.totalAmount}</strong>
                 </p>
@@ -838,7 +879,7 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
       className="cancel-modal "
     >
       <div className="d-flex justify-content-between align-items-center p-2">
-        <h3
+        <h4
           className="flex-grow-1 text-center mb-0"
           style={{
             fontFamily: "Poppins, sans-serif",
@@ -847,7 +888,7 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
           }}
         >
           Cancellation Request
-        </h3>
+        </h4>
         <i
           className="bi bi-x fs-2 text-danger fw-bold"
           onClick={handleClose}

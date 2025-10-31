@@ -1856,3 +1856,10 @@ h1.display-5 {
 .custom-scroll-dec::-webkit-scrollbar-corner {
   background: #f1f1f1;
 }
+.textarea-palceholder{
+  color: #000000;
+}
+.textarea-palceholder::placeholder {
+  color: #999898 !important;
+  opacity: 1;
+}
