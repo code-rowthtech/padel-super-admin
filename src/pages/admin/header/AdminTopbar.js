@@ -46,7 +46,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   const notificationLoading = useSelector((state) => state.notificationData?.getCountLoading);
 
   const navigate = useNavigate();
-  console.log({ notificationLoading });
+  console.log({ notificationCount });
   dayjs.extend(relativeTime);
   dayjs.extend(updateLocale);
 

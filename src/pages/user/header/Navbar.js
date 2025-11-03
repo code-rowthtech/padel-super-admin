@@ -106,11 +106,13 @@ const Navbar = () => {
 
             socket.on("userNotificationCountUpdate", (data) => {
                 console.log("userNotificationCountUpdate", data);
-                setNotifications((prevNotifications) => [data, ...prevNotifications]);
+                setNotificationCount(data);
             });
+
+
             return () => socket.disconnect();
         }
-    }, [userId, dispatch, open]);
+    }, [userId, dispatch, open, SOCKET_URL]);
 
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
@@ -306,7 +308,7 @@ const Navbar = () => {
                                     }}
                                     onClick={() => setOpen(!open)}
                                 >
-                                    <Badge badgeContent={notificationCount?.unreadCount} color="error">
+                                    <Badge badgeContent={notificationCount?.unreadCount || notifications?.length} color="error">
                                         <NotificationsIcon className={`${open ? 'text-white' : 'text-dark'}`} size={18} />
                                     </Badge>
                                 </div>
