@@ -18,13 +18,13 @@ const Footer = () => {
           <Col md={6} className="mb-3 mb-md-0">
               {/* Phone */}
               <div className="d-flex align-items-center gap-2  mb-0 m-0">
-                <h4 style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }}> <BsPhoneFill size={18} className="text-primary" /> Contact :</h4>
-                <p className='mt-2' style={{fontFamily:"Poppins",fontSize:"14px"}}>+91 9999999999</p>
+                <h4 className='mb-0 m-0' style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }}> Contact :</h4>
+                <p className='mt-1 mb-0 m-0' style={{fontFamily:"Poppins",fontSize:"14px"}}>+91 9999999999</p>
               </div>
               {/* Email */}
-              <div className="d-flex align-items-center gap-2">
-                <h4 style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }}> <BsEnvelopeFill size={20} className="text-primary" /> Email :</h4>
-                <p className='mt-1' style={{fontFamily:"Poppins",fontSize:"14px"}}>hello@rowthtech.com</p>
+              <div className="d-flex align-items-center gap-2 m-0 mb-0">
+                <h4 style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }}>  Email :</h4>
+                <p className='mt-2' style={{fontFamily:"Poppins",fontSize:"14px"}}>hello@rowthtech.com</p>
               </div>
           </Col>
 
