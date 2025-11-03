@@ -1863,3 +1863,6 @@ h1.display-5 {
   color: #999898 !important;
   opacity: 1;
 }
+.hide-notification-scrollbar::-webkit-scrollbar {
+  display: none;
+}

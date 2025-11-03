@@ -13,7 +13,6 @@ export const BookingCancellationModal = ({
   loading,
 }) => (
   <Modal show={show} onHide={handleClose} centered backdrop="static">
-    {console.log(bookingDetails, 'bookingDetails')}
     <div className="d-flex justify-content-between align-items-center p-2">
       <h4
         className="flex-grow-1 text-center mb-0"
@@ -264,8 +263,9 @@ export const BookingRefundModal = ({
   const [error, setError] = useState("");
   const maxLength = 250;
   console.log(bookingDetails, 'bookingDetails');
-  const [refundAmount, setRefundAmount] = useState(bookingDetails?.totalAmount || "Refund amount");
+  const [refundAmount, setRefundAmount] = useState(bookingDetails?.totalAmount );
   const [refundDate, setRefundDate] = useState(new Date().toISOString().split("T")[0]);
+  console.log(refundAmount, 'bookingDetails?.totalAmount');
   // Validate reason
   const validateReason = (text) => {
     if (!text.trim()) return "Reason is required";
@@ -481,6 +481,7 @@ export const BookingRefundModal = ({
                 type="number"
                 min="0"
                 value={refundAmount}
+                defaultValue={bookingDetails?.totalAmount}
                 onChange={(e) => setRefundAmount(e.target.value)}
                 className="form-control w-100"
                 style={{

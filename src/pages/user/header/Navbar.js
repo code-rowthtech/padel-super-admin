@@ -1,6 +1,6 @@
 import { logo } from '../../../assets/files';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import {  Dropdown } from 'react-bootstrap';
+import { Dropdown, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle, FaBars, FaBell } from 'react-icons/fa';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,25 +9,94 @@ import { IoTennisballOutline } from 'react-icons/io5';
 import { Avatar } from '@mui/material';
 import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/apiCore';
 import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
-import { IoIosLogOut } from 'react-icons/io';
+import { IoIosArrowDown, IoIosArrowUp, IoIosLogOut } from 'react-icons/io';
 import { PiRanking } from "react-icons/pi";
 import { getLogo, getUserProfile } from '../../../redux/user/auth/authThunk';
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { io } from 'socket.io-client';
+import config from '../../../config';
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { DataLoading } from '../../../helpers/loading/Loaders';
+import updateLocale from "dayjs/plugin/updateLocale";
+import { getNotificationCount, getNotificationData } from '../../../redux/user/notifiction/thunk';
 
+const SOCKET_URL = config.API_URL;
+const socket = io(SOCKET_URL, { transports: ["websocket"] });
 const Navbar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
+    const [openNoteId, setOpenNoteId] = useState(null);
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
     const User = useSelector((state) => state?.userAuth)
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
+    const notificationData = useSelector((state) => state.notificationData?.getNotificationData);
+    const notificationLoading = useSelector((state) => state.notificationData?.getCountLoading);
     let token = isUserAuthenticated()
     const logo = JSON.parse(localStorage.getItem("logo"));
     const { user, } = useSelector((state) => state?.userAuth);
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const [notifications, setNotifications] = useState([]);
+    const userId = getUserFromSession()?._id;
+    const [notificationCount, setNotificationCount] = useState();
+    console.log({ userId });
+    console.log({ notificationCount });
+    console.log({ notifications });
+    dayjs.extend(relativeTime);
+    dayjs.extend(updateLocale);
+
+    dayjs.updateLocale("en", {
+        relativeTime: {
+            future: "in %s",
+            past: "%s ago",
+            s: "a few seconds",
+            m: "1 minute",
+            mm: "%d minutes",
+            h: "1 hour",
+            hh: "%d hours",
+            d: "1 day",
+            dd: "%d days",
+            M: "1 month",
+            MM: "%d months",
+            y: "1 year",
+            yy: "%d years",
+        },
+    });
+    useEffect(() => {
+
+        dispatch(getNotificationData()).unwrap().then((res) => {
+            if (res?.notifications) {
+                setNotifications(res.notifications);
+            }
+        });
+        socket.on("connect", () => {
+            console.log("Connected:", socket.id);
+            socket.emit("registerUser", userId);
+        });
+
+
+
+        socket.on("user_request", (data) => {
+            console.log("user_request", data);
+            setNotifications((prevNotifications) => [data, ...prevNotifications]);
+        });
+
+        socket.on("userNotificationCountUpdate", (data) => {
+            console.log("userNotificationCountUpdate", data);
+            setNotificationCount(data);
+        });
+
+        socket.on("approved_request", (data) => {
+            console.log("approved_request", data);
+            setNotifications((prevNotifications) => [data, ...prevNotifications]);
+        });
+        return () => socket.disconnect();
+    }, [userId, dispatch, open]);
+
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
             setUserData(store.user.response.user);
@@ -100,13 +169,19 @@ const Navbar = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const notifications = [
-        { id: 1, text: "Your booking has been confirmed!" },
-        { id: 2, text: "New message from club admin." },
-        { id: 3, text: "Your refund has been processed." },
-    ];
-
-
+    const handleViewNotification = (note) => {
+        dispatch(getNotificationCount({ noteId: note._id })).unwrap()
+            .then(() => {
+                navigate(note?.notificationUrl)
+                socket.on("connect", () => {
+                    socket.emit("registerAdmin", userId);
+                });
+                socket.on("notificationCountUpdate", (data) => {
+                    console.log('notificationCountUpdate', data);
+                    setNotificationCount(data);
+                });
+            });
+    };
 
     return (
         <nav className="navbar navbar-expand-lg fixed-top bg-white py-2">
@@ -196,15 +271,15 @@ const Navbar = () => {
                             className="d-flex rounded-circle justify-content-center mt-1 align-items-center"
                             style={{
                                 cursor: "pointer",
-                                backgroundColor: "#CBD6FF54",
+                                backgroundColor: open ? "black" : "#CBD6FF54",
                                 width: "40px",
                                 height: "40px",
                                 position: "relative",
                             }}
                             onClick={() => setOpen(!open)}
                         >
-                            <Badge badgeContent={17} color="error">
-                                <NotificationsIcon className="text-muted" size={18} />
+                            <Badge badgeContent={notificationCount?.unreadCount} color="error">
+                                <NotificationsIcon className={`${open ? 'text-white' : 'text-dark'}`} size={18} />
                             </Badge>
                         </div>
 
@@ -216,33 +291,109 @@ const Navbar = () => {
                                     position: "absolute",
                                     top: "50px",
                                     right: 0,
-                                    width: "250px",
+                                    width: "320px",
                                     backgroundColor: "#fff",
-                                    borderRadius: "10px",
+                                    borderRadius: "12px",
                                     zIndex: 10,
                                 }}
                             >
-                                <h6 className="text-muted mb-2">Notifications</h6>
-                                <div style={{ maxHeight: "200px", overflowY: "auto" }}>
-                                    {notifications.length > 0 ? (
-                                        notifications.map((note) => (
+                                <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
+                                    <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
+                                </div>
+
+                                <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
+                                    {notificationLoading ? <DataLoading /> :
+                                        notifications?.length > 0 ? (
+                                            notifications?.map((note) => (
+                                                <div
+                                                    key={note._id}
+                                                    className="d-flex gap-3 align-items-start justify-content-between p-3 mb-2 rounded"
+                                                    style={{
+                                                        borderBottom: "1px solid #f0f0f0",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    {/* Left: Profile Image or Initial */}
+
+
+                                                    {/* Middle: Notification content */}
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ fontWeight: 500, fontSize: "13px" }}>
+                                                            {note?.adminId ? "Padel" : ''} – {note.title}
+                                                        </div>
+                                                        {note?.message && (
+                                                            <p
+                                                                className="text-muted mb-1"
+                                                                style={{ fontSize: "12px", fontFamily: "Poppins" }}
+                                                            >
+                                                                {note.message}
+                                                            </p>
+                                                        )}
+                                                        <p
+                                                            className="text-muted text-nowrap mb-0"
+                                                            style={{ fontSize: "12px", fontFamily: "Poppins" }}
+                                                        >
+                                                            {dayjs(note.createdAt).fromNow()} <b>.</b>{" "}
+                                                            <OverlayTrigger
+                                                                placement="top"
+                                                                overlay={
+                                                                    <Tooltip id={`tooltip-${note._id}`}>
+                                                                        {note?.notificationType}
+                                                                    </Tooltip>
+                                                                }
+                                                            >
+                                                                <span style={{ cursor: "pointer" }}>
+                                                                    {note?.notificationType?.length > 15
+                                                                        ? note?.notificationType.slice(0, 15) + "..."
+                                                                        : note?.notificationType}
+                                                                </span>
+                                                            </OverlayTrigger>
+                                                        </p>
+
+
+                                                        {/* Show when expanded */}
+                                                        {openNoteId === note._id && (
+                                                            <div className="d-flex gap-2 mt-2">
+                                                                <button
+                                                                    className="btn btn-dark btn-sm py-0 px-3"
+                                                                    style={{ fontSize: "13px" }}
+                                                                    onClick={() => handleViewNotification(note)
+                                                                    }
+                                                                >
+                                                                    View
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {console.log({ note })}
+                                                    {/* Right: Toggle Icon */}
+                                                    <div
+                                                        className="mt-2"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setOpenNoteId(openNoteId === note._id ? null : note._id);
+                                                        }}
+                                                        style={{ cursor: "pointer" }}
+                                                    >
+                                                        {openNoteId === note._id ? (
+                                                            <IoIosArrowUp size={20} color="#555" />
+                                                        ) : (
+                                                            <IoIosArrowDown size={20} color="#555" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
                                             <div
-                                                key={note.id}
-                                                className="p-2 mb-1 rounded"
+                                                className="text-center text-muted py-3"
                                                 style={{
-                                                    backgroundColor: "#f7f8ff",
-                                                    fontSize: "14px",
-                                                    cursor: "pointer",
+                                                    fontWeight: 400,
+                                                    fontFamily: "Poppins",
                                                 }}
                                             >
-                                                {note.text}
+                                                No new notifications
                                             </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center text-muted py-3">
-                                            No new notifications
-                                        </div>
-                                    )}
+                                        )}
                                 </div>
                             </div>
                         )}

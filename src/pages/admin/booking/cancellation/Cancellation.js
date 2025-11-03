@@ -415,6 +415,7 @@ const Cancellation = () => {
               id: bookingDetails._id,
               status: "rejected",
               cancellationReasonForOwner: reason,
+              requestType:'admin'
             })
           )
             .unwrap()
@@ -444,6 +445,7 @@ const Cancellation = () => {
               refundDescription,
               refundDate,
               refundAmount,
+              requestType:'admin'
             })
           )
             .unwrap()

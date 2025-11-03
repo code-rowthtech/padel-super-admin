@@ -22,6 +22,9 @@ export const ADD_PLAYERS = "/api/openmatch/addPlayerToMatch"
 export const REMOVE_PLAYERS = "/api/openmatch/removePlayerFromMatch"
 export const UPDATE_USER = '/api/customer/updateCustomer'
 export const GET_USER = '/api/customer/getCustomer'
+// notifection count api
+export const GET_NOTIFICATION_USER_COUNT = "/api/userNotification/markAsRead";
+export const GET_NOTIFICATION_USER_DATA = "/api/userNotification/readNotification";
 
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
@@ -67,6 +70,11 @@ export const GET_RECENT_BOOKING_DASHBOARD =
 export const GET_REVENUE_DASHBOARD = "/api/booking/monthWiseBookings";
 //-----------------------------------------------R_E_V_I_E_W_S-----------------------------------//
 export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
+
+// notifection count api
+export const GET_NOTIFICATION_COUNT = "/api/adminNotification/markAsRead";
+export const GET_NOTIFICATION_DATA = "/api/adminNotification/readNotification";
+
 
 //-----------------------------------------------U_S_E_R_S-----------------------------------//
 export const GET_SUBOWNER = "/api/owners/getusers";
