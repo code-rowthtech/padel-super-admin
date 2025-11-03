@@ -87,7 +87,7 @@ const ownerAxios = axios.create({ baseURL: config.API_URL });
 let sessionHandled = false;
 
 const handleExpiredSession = (userType) => {
-  if (sessionHandled) return; 
+  if (sessionHandled) return;
   sessionHandled = true;
 
   if (userType === "user") {
@@ -96,13 +96,17 @@ const handleExpiredSession = (userType) => {
     setLoggedInOwner(null);
   }
 
+
+  setTimeout(() => {
+    if (window.location.pathname.toLowerCase().startsWith("/admin")) {
+      window.location.href = "/admin/login";
+    } else {
+      window.location.href = "/";
+    }
+  }, 2000);
+
   alert("Your session has expired. Please log in again.");
 
-  if (window.location.pathname.toLowerCase().startsWith("/admin")) {
-    window.location.href = "/admin/login";
-  } else {
-    window.location.href = "/";
-  }
 };
 
 
