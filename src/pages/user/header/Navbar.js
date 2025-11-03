@@ -20,10 +20,9 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import updateLocale from "dayjs/plugin/updateLocale";
-import { getNotificationCount, getNotificationData } from '../../../redux/user/notifiction/thunk';
+import { getNotificationCount, getNotificationData, getNotificationView } from '../../../redux/user/notifiction/thunk';
 
 const SOCKET_URL = config.API_URL;
-const socket = io(SOCKET_URL, { transports: ["websocket"] });
 const Navbar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -66,11 +65,19 @@ const Navbar = () => {
             yy: "%d years",
         },
     });
+    console.log(notificationCount, 'notificationCountnotificationCount');
     useEffect(() => {
+        const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
         dispatch(getNotificationData()).unwrap().then((res) => {
             if (res?.notifications) {
                 setNotifications(res.notifications);
+            }
+        });
+        dispatch(getNotificationCount()).unwrap().then((res) => {
+            console.log(res, 'resresres');
+            if (res?.notifications) {
+                setNotificationCount(res);
             }
         });
         socket.on("connect", () => {
@@ -92,6 +99,11 @@ const Navbar = () => {
 
         socket.on("approved_request", (data) => {
             console.log("approved_request", data);
+            setNotifications((prevNotifications) => [data, ...prevNotifications]);
+        });
+
+        socket.on("userNotificationCountUpdate", (data) => {
+            console.log("userNotificationCountUpdate", data);
             setNotifications((prevNotifications) => [data, ...prevNotifications]);
         });
         return () => socket.disconnect();
@@ -170,16 +182,26 @@ const Navbar = () => {
     }, []);
 
     const handleViewNotification = (note) => {
-        dispatch(getNotificationCount({ noteId: note._id })).unwrap()
+        const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
+        dispatch(getNotificationView({ noteId: note._id })).unwrap()
             .then(() => {
                 navigate(note?.notificationUrl)
-                socket.on("connect", () => {
-                    socket.emit("registerAdmin", userId);
-                });
-                socket.on("notificationCountUpdate", (data) => {
-                    console.log('notificationCountUpdate', data);
+                socket.on("userNotificationCountUpdate", (data) => {
+                    console.log('userNotificationCountUpdate', data);
                     setNotificationCount(data);
                 });
+                dispatch(getNotificationData()).unwrap().then((res) => {
+                    if (res?.notifications) {
+                        setNotifications(res.notifications);
+                    }
+                });
+                // dispatch(getNotificationCount()).unwrap().then((res) => {
+                //   console.log(res?.unreadCount, 'resres');
+                //   if (res?.unreadCount) {
+                //     setNotificationCount(res);
+                //   }
+                // });
             });
     };
 

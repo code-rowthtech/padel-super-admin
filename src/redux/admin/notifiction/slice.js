@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData } from "./thunk";
+import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData, getNotificationView } from "./thunk";
 
 const initialState = {
   getCount: null,
@@ -44,6 +44,19 @@ const NotificationSlice = createSlice({
         state.getNotificationData = action.payload;
       })
       .addCase(getNotificationData.rejected, (state, action) => {
+        state.getCountLoading = false;
+        state.getCountError = action.payload;
+      })
+
+        .addCase(getNotificationView.pending, (state) => {
+        state.getCountLoading = true;
+        state.getCountError = null;
+      })
+      .addCase(getNotificationView.fulfilled, (state, action) => {
+        state.getCountLoading = false;
+        state.getNotificationData = action.payload;
+      })
+      .addCase(getNotificationView.rejected, (state, action) => {
         state.getCountLoading = false;
         state.getCountError = action.payload;
       })
