@@ -18,7 +18,8 @@ import userAuthReducer from "./user/auth/authSlice";
 import userMatchesReducer from "./user/matches/slice";
 import { review } from "../assets/files";
 import { use } from "react";
-
+import notificationDataReducer from "./admin/notifiction/slice";
+import userNotificationDataReducer from "./user/notifiction/slice";
 const store = configureStore({
   reducer: {
     //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
@@ -33,12 +34,14 @@ const store = configureStore({
     subOwner: subOwnerReducer,
     logo: logoReducer,
     openMatches: openMatchesReducer,
+    notificationData: notificationDataReducer,
     //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
     userAuth: userAuthReducer,
     userClub: userClubReducer,
     userSlot: userSlotReducer,
     userBooking: userBookingReducer,
     userMatches: userMatchesReducer,
+    userNotificationData: userNotificationDataReducer,
   },
 });
 

@@ -45,7 +45,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
 
 
   const handleContinue = () => {
-    dispatch(bookingStatus({ id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
+    dispatch(bookingStatus({requestType :'user', id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
       if (res?.status === '200') {
         if (tableData?.booking?.bookingStatus === 'upcoming' && activeTab === 'upcoming') {
           dispatch(getBooking({ type: 'upcoming', page: currentPage, limit: 10 }))
@@ -572,7 +572,6 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
             What’s your reason to cancel this slot
           </h5>
-          {console.log('booking?.booking?.cancellationReason', booking?.booking)}
           <Form.Group>
             <Form.Control
               as="textarea"
@@ -607,7 +606,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
 
         {booking?.booking?.refundDescription && booking?.booking?.bookingStatus === 'refunded' ? <div className="mt-3 mb-3">
           <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
-            Refund Process Details
+            Refund Note
           </h5>
           <Form.Group>
             <Form.Control

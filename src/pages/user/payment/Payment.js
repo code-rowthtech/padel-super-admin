@@ -51,6 +51,13 @@ const Payment = ({ className = "" }) => {
     const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
     const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
 
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+
+
     useEffect(() => {
         const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);
         const newGrandTotal = localSelectedCourts.reduce(
