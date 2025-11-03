@@ -21,14 +21,13 @@ import config from "../../../config";
 import { get } from "react-hook-form";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { getNotificationCount, getNotificationData } from "../../../redux/admin/notifiction/thunk";
+import { getNotificationCount, getNotificationData, getNotificationView } from "../../../redux/admin/notifiction/thunk";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import updateLocale from "dayjs/plugin/updateLocale";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 
 
 const SOCKET_URL = config.API_URL;
-const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
 const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCollapsed }) => {
   const user = getOwnerFromSession();
@@ -69,10 +68,17 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     },
   });
   useEffect(() => {
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
     dispatch(getNotificationData()).unwrap().then((res) => {
       if (res?.notifications) {
         setNotifications(res.notifications);
+      }
+    });
+
+    dispatch(getNotificationCount()).unwrap().then((res) => {
+      if (res?.unreadCount) {
+        setNotificationCount(res);
       }
     });
 
@@ -96,13 +102,17 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
         return [data, ...prev];
       });
     });
+    socket.on("notificationCountUpdate", (data) => {
+      console.log('notificationCountUpdate', data);
+      setNotificationCount(data);
+    });
 
     socket.on("notificationCountUpdate", (data) => {
       setNotificationCount(data);
     });
 
     return () => socket.disconnect();
-  }, [userId, open, dispatch]);
+  }, [userId, open, dispatch, SOCKET_URL]);
 
 
   useEffect(() => {
@@ -118,16 +128,24 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   const handleViewNotification = (note) => {
     const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
-    dispatch(getNotificationCount({ noteId: note._id })).unwrap()
+    dispatch(getNotificationView({ noteId: note._id })).unwrap()
       .then(() => {
         navigate(note?.notificationUrl)
-        socket.on("connect", () => {
-          socket.emit("registerAdmin", userId);
-        });
         socket.on("notificationCountUpdate", (data) => {
           console.log('notificationCountUpdate', data);
           setNotificationCount(data);
         });
+        dispatch(getNotificationData()).unwrap().then((res) => {
+          if (res?.notifications) {
+            setNotifications(res.notifications);
+          }
+        });
+        // dispatch(getNotificationCount()).unwrap().then((res) => {
+        //   console.log(res?.unreadCount, 'resres');
+        //   if (res?.unreadCount) {
+        //     setNotificationCount(res);
+        //   }
+        // });
       });
   };
 
