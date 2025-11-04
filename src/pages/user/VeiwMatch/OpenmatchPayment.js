@@ -335,7 +335,7 @@ const OpenmatchPayment = () => {
                                     {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode].filter(Boolean).join(", ")}
                                 </p>
                                 <div style={{ color: "#3DBE64", fontSize: "12px" }}>Opened</div>
-                                <Link to="#" style={{ color: "#1F41BB", fontSize: "15px", fontWeight: 500 }}>More Info</Link>
+                                <p  style={{ color: "#1F41BB", fontSize: "15px", fontWeight: 500 }}>More Info</p>
                             </div>
                             <DirectionsIcon style={{ color: "#22C55E", fontSize: 36, cursor: "pointer" }} />
                         </div>

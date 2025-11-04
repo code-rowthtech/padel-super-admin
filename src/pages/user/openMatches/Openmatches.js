@@ -701,7 +701,7 @@ const Openmatches = () => {
                                 <DataLoading />
                             ) : (
                                 <>
-                                    <div className="col-12 border-end col-lg-5 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
+                                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
                                         <div className="w-100">
                                             <p className="mb-0" style={{ fontSize: "16px", fontWeight: "500", color: "#111", fontFamily: "Poppins" }}>
                                                 Overall Rating
@@ -710,7 +710,7 @@ const Openmatches = () => {
                                                 <div className="mb-2" style={{ fontFamily: "Poppins", fontWeight: "600", fontSize: "40px", color: "#111" }}>
                                                     {reviewData?.averageRating?.toFixed(1) || "0.0"}
                                                 </div>
-                                                <div className="mb-2 d-flex gap-lg-3">
+                                                <div className="mb-2 d-flex gap-lg-2">
                                                     {[...Array(5)].map((_, i) => {
                                                         const rating = reviewData?.averageRating || 0;
                                                         if (i < Math.floor(rating)) {
@@ -729,7 +729,7 @@ const Openmatches = () => {
                                         </div>
                                     </div>
 
-                                    <div className="col-12 col-lg-7 ps-lg-4 pe-0">
+                                    <div className="col-12 col-lg-8 ps-lg-4 pe-0">
                                         <div className="w-100">
                                             {[5, 4, 3, 2, 1].map((star, idx) => {
                                                 const total = reviewData?.totalReviews || 1;
@@ -742,10 +742,10 @@ const Openmatches = () => {
                                                 const percent = Math.round((count / total) * 100);
 
                                                 return (
-                                                    <div className="d-flex align-items-center mb-2 gap-2 justify-content-between w-100" key={star}>
-                                                        <div
+                                                    <div className="d-flex align-items-center mb-2 gap-2  justify-content-between w-100" key={star}>
+                                                        <div className="text-nowrap"
                                                             style={{
-                                                                width: "80px",
+                                                                width: "110px",
                                                                 textAlign: "left",
                                                                 fontSize: "14px",
                                                                 fontWeight: "500",

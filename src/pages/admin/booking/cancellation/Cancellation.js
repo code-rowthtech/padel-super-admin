@@ -117,7 +117,7 @@ const Cancellation = () => {
     <Container fluid className="">
       <h3
         className=" text-dark mb-1"
-        style={{ fontSize: "clamp(1.5rem, 4vw, 1.4rem)",fontWeight:"500",fontFamily:"Poppins" }}
+        style={{ fontSize: "clamp(1.5rem, 4vw, 1.4rem)",fontWeight:"600",fontFamily:"Poppins" }}
       >
         Cancellations
       </h3>

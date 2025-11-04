@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Routes from "./routes/Routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,6 +11,10 @@ function App() {
       window.location.href = "/no-internet";
     }
   });
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <>

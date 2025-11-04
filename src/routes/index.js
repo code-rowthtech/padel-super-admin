@@ -33,6 +33,8 @@ const Payment = React.lazy(() => import("../pages/user/payment/Payment"));
 const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
 );
+
+const HelpSupport = React.lazy(() => import("../pages/user/helpAndSupport/PadelSupportPage"));
 const Login = React.lazy(() => import("../pages/user/auth/LoginPage"));
 
 const VerifyOtpUser = React.lazy(() => import("../pages/user/auth/VerifyOtp"));
@@ -169,6 +171,10 @@ const AllRoutes = () => {
         {
           path: "user-profile",
           element: LoadComponent(UserProfile),
+        },
+        {
+          path: "support",
+          element: LoadComponent(HelpSupport),
         },
         {
           path: "unauthorized",

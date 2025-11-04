@@ -195,8 +195,8 @@ const OpenMatches = () => {
         <div className="container-fluid px-2 px-md-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h3
-              className="fw-bold text-dark mb-0"
-              style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)" }}
+              className=" text-dark mb-1"
+              style={{ fontSize: "clamp(1.5rem, 4vw, 1.4rem)", fontWeight: "600", fontFamily: "Poppins" }}
             >
               Open Matches
             </h3>

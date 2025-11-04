@@ -99,7 +99,7 @@ const Booking = () => {
     <Container fluid className="px-2 px-md-4">
       {/* Heading & Manual Booking Button */}
       <div className="d-flex justify-content-between align-items-center mb-1">
-        <h4 className=" mb-0" style={{fontWeight:'500',fontFamily:"Poppins", fontSize: "clamp(1.5rem, 4vw, 1.4rem)" }}>
+        <h4 className=" mb-0" style={{fontWeight:'600',fontFamily:"Poppins", fontSize: "clamp(1.5rem, 4vw, 1.4rem)" }}>
           Bookings
         </h4>
         <button
