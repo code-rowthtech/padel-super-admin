@@ -20,7 +20,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
     const store = useSelector((state) => state);
     const addReviewLoading = store?.userClub?.reviewLoading;
     const hasReview = !!tableData?.booking?.customerReview;
-    const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
+    const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy", fallback = "N/A") => {
         if (!dateValue) return fallback;
         const date = new Date(dateValue);
         return isValid(date) ? format(date, formatString) : fallback;
@@ -140,7 +140,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
         <Modal show={show} onHide={onHide} centered backdrop="static">
             <div className="d-flex justify-content-between align-items-center m-0 p-2">
                 <h4
-                    className="flex-grow-1 text-center mb-0"
+                    className="flex-grow-1 tabel-title text-center mb-0"
                     style={{
                         fontFamily: "Poppins, sans-serif",
                         fontWeight: 600,
@@ -156,12 +156,12 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                 ></i>
             </div>
             <Modal.Body className="text-center px-3 pt-0 pb-2">
-                <img
+                {/* <img
                     src={modalSuccess}
                     alt="Success"
                     className="animated-img"
                     style={{ width: "200px" }}
-                />
+                /> */}
 
                 <div className="rounded-3 border mb-2 p-2" style={{ borderColor: "#1A73E8", borderWidth: "1px", borderStyle: "solid" }}>
                     <p className="text-start m-0 table-data">🎉 You Played very well</p>
@@ -170,7 +170,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                         <div className="text-start">
                             <p className="text-muted mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>Court Name</p>
                             <p className="text-muted mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>Court Number</p>
-                            <p className="text-muted mb-0" style={{ fontSize: "13px", fontWeight: "500" }}>Data & Time/Min</p>
+                            <p className="text-muted mb-0" style={{ fontSize: "13px", fontWeight: "500" }}>Date</p>
                         </div>
                         <div className="text-end">
                             <p className="fw-bold mb-1" style={{ fontSize: "14px", color: "#111827" }}>
@@ -182,7 +182,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                             <p className="fw-bold mb-0" style={{ fontSize: "14px", color: "#111827" }}>
                                 {safeFormatDate(
                                     new Date(tableData?.slotItem?.bookingDate),
-                                    "dd/MM/yyyy | hh:mm a"
+                                    "dd/MM/yyyy"
                                 )}
                             </p>
                         </div>

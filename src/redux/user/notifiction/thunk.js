@@ -69,3 +69,22 @@ export const getNotificationData = createAsyncThunk(
   }
 );
 
+export const readAllNotification = createAsyncThunk(
+  "notification/readAllNotification",
+  async (params, { rejectWithValue }) => {
+    try {
+
+      const res = await userApi.get(`${Url.READ_ALL_NOTIFICATION_USER}`);
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+
+      const errorMessage = message;
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+

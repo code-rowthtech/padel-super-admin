@@ -11,7 +11,7 @@ import { Avatar } from '@mui/material';
 import { format, isValid } from 'date-fns';
 import { showInfo } from '../../../../helpers/Toast';
 
-export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
+export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
@@ -22,7 +22,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
   const clubData = store?.userClub?.clubData?.data?.courts[0] || []
   const logo = JSON.parse(localStorage.getItem("logo"));
   const User = getUserFromSession()
-  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
+  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy", fallback = "N/A") => {
     if (!dateValue) return fallback;
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
@@ -45,7 +45,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
 
 
   const handleContinue = () => {
-    dispatch(bookingStatus({requestType :'user', id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
+    dispatch(bookingStatus({ requestType: 'user', id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
       if (res?.status === '200') {
         if (tableData?.booking?.bookingStatus === 'upcoming' && activeTab === 'upcoming') {
           dispatch(getBooking({ type: 'upcoming', page: currentPage, limit: 10 }))
@@ -86,42 +86,32 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
   return (
     <>
       <Modal show={show && !showSuccessModal && !showConfirmationModal} onHide={handleClose} centered backdrop="static">
-        <div className="d-flex justify-content-between align-items-center p-2">
+        <div className="d-flex pt-2 justify-content-center align-items-center position-relative  pb-2">
           <h4
-            className="flex-grow-1 text-center mb-0"
+            className="text-center tabel-title mb-0"
             style={{
               fontFamily: "Poppins, sans-serif",
               fontWeight: 600,
               color: "#1F2937",
             }}
           >
-            {tableData?.booking?.bookingStatus === 'upcoming' ? "Booking Details" : tableData?.booking?.bookingStatus ? "Cancellation Request" : ""}
+            {tableData?.booking?.bookingStatus === "upcoming"
+              ? "Booking Details"
+              : tableData?.booking?.bookingStatus
+                ? "Cancellation Request"
+                : ""}
           </h4>
+
           <i
-            className="bi bi-x fs-2 text-danger fw-bold"
+            className="bi bi-x fs-2 text-danger fw-bold position-absolute end-0 me-3"
             onClick={handleClose}
             style={{ cursor: "pointer" }}
           ></i>
         </div>
-        <Modal.Body className="text-center pt-0 pb-0">
+        <Modal.Body className="text-start pt-0 pb-0">
+          <div className=" border-top border-bottom mb-4" >
+            <div className="d-flex gap-2 align-items-center justify-content-start">
 
-          {!changeContent && (
-            <img
-              src={modalSuccess}
-              alt="Success"
-              className=" animated-img mb-1"
-              style={{ width: '200px' }}
-            />
-          )}
-
-          <div className="rounded-3 border mb-4" style={{ backgroundColor: '#CBD6FF1A' }}>
-            <div className="d-flex  ps-2 pt-2 gap-2 align-items-center">
-              {/* <img
-                src={logo}
-                className="rounded-circle shadow"
-                style={{ width: '80px', height: '80px', objectFit: 'contain' }}
-                alt="Club Logo"
-              /> */}
               {logo ?
                 <Avatar src={logo} alt="User Profile" /> :
                 <Avatar>
@@ -144,7 +134,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   Court Name
                 </p>
-                <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                <p className=" mb-1" style={{ fontSize: '14px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   {tableData?.booking?.register_club_id?.clubName || 'N/A'}
                 </p>
               </div>
@@ -154,7 +144,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   Court Number
                 </p>
-                <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                <p className=" mb-1" style={{ fontSize: '14px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   {tableData?.slotItem?.courtName || 'N/A'}
                 </p>
               </div>
@@ -162,12 +152,12 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
               {/* Date & Time */}
               <div className="d-flex justify-content-between align-items-center">
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-                  Date & Time/Min
+                  Date
                 </p>
-                <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                <p className=" mb-1" style={{ fontSize: '14px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   {safeFormatDate(
                     new Date(tableData?.booking?.createdAt),
-                    "dd/MM/yyyy | hh:mm a" || "N/A"
+                    "dd/MM/yyyy" || "N/A"
                   )}
                 </p>
               </div>
@@ -178,10 +168,10 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
                   <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                     Cancellation Request Date
                   </p>
-                  <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
+                  <p className=" mb-1" style={{ fontSize: '14px', fontWeight: '500', fontFamily: 'Poppins' }}>
                     {safeFormatDate(
                       new Date(tableData?.booking?.cancellationDate),
-                      "dd/MM/yyyy | hh:mm a" || "N/A"
+                      "dd/MM/yyyy " || "N/A"
                     )}
                   </p>
                 </div>
@@ -192,14 +182,14 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab,currentPage, se
           </div>
 
           <div className="text-start px-2">
-            <h5>Payment Details</h5>
+            <h5 className='' style={{ fontSize: "18px", fontWeight: "500", fontFamily: "Poppins" }}>Payment Details</h5>
             <div className="d-flex justify-content-between">
-              <h6>Payment Method</h6>
-              <h6>{tableData?.booking?.paymentMethod || 'N/A'}</h6>
+              <h6 style={{ fontSize: "15px", fontWeight: "400", fontFamily: "Poppins" }}>Payment Method</h6>
+              <h6 style={{ fontSize: '15px', fontWeight: "500" }}>{tableData?.booking?.paymentMethod || 'N/A'}</h6>
             </div>
             <div className="d-flex justify-content-between">
-              <h6>Total Payment</h6>
-              <h3 style={{ color: '#1A237E' }}>₹{tableData?.booking?.totalAmount || "N/A"}</h3>
+              <h6 style={{ fontSize: "15px", fontWeight: "400", fontFamily: "Poppins" }}>Total Payment</h6>
+              <h3 style={{ color: '#1A237E', fontSize: '15px', fontWeight: "500" }}>₹{tableData?.booking?.totalAmount || "N/A"}</h3>
             </div>
           </div>
 
@@ -373,7 +363,7 @@ export const BookingHistorySuccessModal = ({ show, onHide, safeFormatDate, booki
 
 export const CancellationConfirmationModal = ({ tableData, show, onHide, selectedReason, otherReason }) => {
   const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
-  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
+  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy", fallback = "N/A") => {
     if (!dateValue) return fallback; // Handle null or undefined
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
@@ -401,7 +391,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
             </p>
 
             <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
-              Date & Time/Min
+              Date
             </p>
           </div>
           <div className="text-end p-2 pe-3">
@@ -414,7 +404,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
             <p className="fw-bold mb-1" style={{ fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }}>
               {safeFormatDate(
                 new Date(tableData?.slotItem?.createdAt),
-                "dd/MM/yyyy | hh:mm a" || "N/A"
+                "dd/MM/yyyy" || "N/A"
               )}
             </p>
           </div>
@@ -461,31 +451,38 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
 };
 
 export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, selectedOption, selectedReason, otherReason }) => {
-  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy | hh:mm a", fallback = "N/A") => {
+  const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy", fallback = "N/A") => {
     if (!dateValue) return fallback; // Handle null or undefined
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
   };
   return (
     <Modal show={show} onHide={onHide} centered backdrop="static">
+      <div className="d-flex justify-content-between align-items-center m-0 p-2">
+        <h4
+          className="flex-grow-1 tabel-title text-center mb-0"
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            fontWeight: 600,
+            color: "#1F2937",
+          }}
+        >
+          Booking {booking?.booking?.bookingStatus === 'in-progress' ? "Requested" : booking?.booking?.bookingStatus === 'rejected' ? "Rejected" : "Cancelled"}
+        </h4>
+        <i
+          className="bi bi-x fs-2 text-danger fw-bold"
+          onClick={onHide}
+          style={{ cursor: "pointer" }}
+        ></i>
+      </div>
       <Modal.Body className="text-center p-4 pt-0">
-        <div className="d-flex justify-content-end">
-          <button
-            type="button"
-            className="bi bi-x fs-4 text-danger"
-            style={{ border: 'none', background: 'none' }}
-            aria-label="Close"
-            onClick={onHide}
-          />
-        </div>
-        <h3 className="text-center tabel-title mb-3">Booking {booking?.booking?.bookingStatus === 'in-progress' ? "Requested" : booking?.booking?.bookingStatus === 'rejected' ? "Rejected" : "Cancelled"} </h3>
-        <div className="mb-2 border rounded bg-light p-2 px-3">
+        <div className="mb-2 border-top border-bottom rounded bg-light p-2 px-3">
           {/* Court Name */}
           <div className="d-flex justify-content-between align-items-center">
             <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
               Court Name
             </p>
-            <p className="fw-bold mb-1" style={{ fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>
+            <p className=" mb-1" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
               {booking?.booking?.register_club_id?.clubName || "N/A"}
             </p>
           </div>
@@ -495,7 +492,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
             <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
               Court Number
             </p>
-            <p className="fw-bold mb-1" style={{ fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>
+            <p className=" mb-1" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
               {booking?.slotItem?.courtName || "N/A"}
             </p>
           </div>
@@ -503,10 +500,10 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           {/* Date & Time */}
           <div className="d-flex justify-content-between align-items-center">
             <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-              Date & Time/Min
+              Date
             </p>
-            <p className="fw-bold mb-1" style={{ fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>
-              {safeFormatDate(new Date(booking?.booking?.createdAt), "dd/MM/yyyy | hh:mm a")}
+            <p className=" mb-1" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+              {safeFormatDate(new Date(booking?.booking?.createdAt), "dd/MM/yyyy")}
             </p>
           </div>
 
@@ -518,8 +515,8 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
                 <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                   Cancelled Date
                 </p>
-                <p className="fw-bold mb-1" style={{ fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>
-                  {safeFormatDate(new Date(booking?.booking?.cancellationDate), "dd/MM/yyyy | hh:mm a")}
+                <p className=" mb-1" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                  {safeFormatDate(new Date(booking?.booking?.cancellationDate), "dd/MM/yyyy")}
                 </p>
               </div>
             )}
@@ -530,8 +527,8 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                 Refund Date
               </p>
-              <p className="fw-bold mb-1" style={{ fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>
-                {safeFormatDate(new Date(booking?.booking?.refundDate), "dd/MM/yyyy | hh:mm a")}
+              <p className=" mb-1" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                {safeFormatDate(new Date(booking?.booking?.refundDate), "dd/MM/yyyy")}
               </p>
             </div>
           )}
@@ -542,8 +539,8 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                 Rejected Date
               </p>
-              <p className="fw-bold mb-1" style={{ fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>
-                {safeFormatDate(new Date(booking?.booking?.rejectedDate), "dd/MM/yyyy | hh:mm a")}
+              <p className=" mb-1" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                {safeFormatDate(new Date(booking?.booking?.rejectedDate), "dd/MM/yyyy")}
               </p>
             </div>
           )}
@@ -554,18 +551,18 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           <h5 className="tabel-title">Payment Details</h5>
           <div className="d-flex justify-content-between">
             <h6>Payment Method</h6>
-            <h6>{booking?.booking?.paymentMethod || "N/A"}</h6>
+            <h6 style={{ fontSize: "18px", fontFamily: "Poppins", fontWeight: "500" }}>{booking?.booking?.paymentMethod || "N/A"}</h6>
           </div>
           <div className="d-flex justify-content-between">
             <h6>Total Payment</h6>
-            <h3 style={{ color: '#1A237E' }}>₹{booking?.booking?.totalAmount}</h3>
+            <h3 className='' style={{ color: '#1A237E', fontSize: "18px", fontWeight: "500" }}>₹{booking?.booking?.totalAmount}</h3>
           </div>
-          {/* {booking?.booking?.bookingStatus === "refunded" &&
+          {booking?.booking?.bookingStatus === "refunded" &&
             <div className="d-flex justify-content-between">
               <h6>Refund Amount</h6>
-              <h5 style={{ color: '#1A237E' }}>₹{booking?.booking?.refundAmount}</h5>
+              <h5 style={{ color: '#1A237E', fontSize: "18px", fontWeight: "500" }}>₹{booking?.booking?.refundAmount}</h5>
             </div>
-          } */}
+          }
         </div>
 
         <div className="mt-3 mb-3">

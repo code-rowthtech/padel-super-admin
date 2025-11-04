@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
+  bookingCount,
   getBookingByStatus,
   getBookingDetailsById,
   updateBookingStatus,
@@ -17,6 +18,10 @@ const initialState = {
   updateBookingData: null,
   updateBookingLoading: false,
   updateBookingError: null,
+
+  bookingCount: null,
+  bookingCountLoading: false,
+  bookingCountError: null,
 };
 
 const BookingSlice = createSlice({
@@ -35,6 +40,10 @@ const BookingSlice = createSlice({
       state.updateBookingData = null;
       state.updateBookingLoading = false;
       state.updateBookingError = null;
+
+      state.bookingCount = null;
+      state.bookingCountLoading = false;
+      state.bookingCountError = null;
     },
   },
   extraReducers: (builder) => {
@@ -85,6 +94,23 @@ const BookingSlice = createSlice({
       state.updateBookingLoading = false;
       state.updateBookingData = null;
       state.updateBookingError = action.payload;
+    });
+
+    // -----------------------------------------------------//---- count Booking Status
+    builder.addCase(bookingCount.pending, (state) => {
+      state.bookingCountLoading = true;
+      state.bookingCount = null;
+      state.bookingCountError = null;
+    });
+    builder.addCase(bookingCount.fulfilled, (state, action) => {
+      state.bookingCountLoading = false;
+      state.bookingCount = action.payload;
+      state.bookingCountError = null;
+    });
+    builder.addCase(bookingCount.rejected, (state, action) => {
+      state.bookingCountLoading = false;
+      state.bookingCount = null;
+      state.bookingCountError = action.payload;
     });
   },
 });

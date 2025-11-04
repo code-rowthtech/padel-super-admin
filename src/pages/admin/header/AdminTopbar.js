@@ -21,7 +21,7 @@ import config from "../../../config";
 import { get } from "react-hook-form";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { getNotificationCount, getNotificationData, getNotificationView } from "../../../redux/admin/notifiction/thunk";
+import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from "../../../redux/admin/notifiction/thunk";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import updateLocale from "dayjs/plugin/updateLocale";
 import { DataLoading } from "../../../helpers/loading/Loaders";
@@ -149,6 +149,23 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
       });
   };
 
+  const handleMarkAllRead = () => {
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
+    dispatch(readAllNotification()).unwrap()
+      .then(() => {
+        socket.on("notificationCountUpdate", (data) => {
+          console.log('notificationCountUpdate', data);
+          setNotificationCount(data);
+        });
+        dispatch(getNotificationData()).unwrap().then((res) => {
+          if (res?.notifications) {
+            setNotifications(res.notifications);
+          }
+        });
+      });
+  };
+
   return (
     <header
       className={`admin-topbar d-flex justify-content-between align-items-center px-3 px-md-4 py-2 ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
@@ -212,8 +229,18 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             }}
             onClick={() => setOpen(!open)}
           >
-            <Badge badgeContent={notificationCount?.unreadCount} color="error">
-              <NotificationsIcon className={`${open ? 'text-white' : 'text-dark'}`} size={18} />
+            <Badge
+              badgeContent={
+                notificationCount?.unreadCount > 99
+                  ? '99+'
+                  : notificationCount?.unreadCount
+              }
+              color="error"
+            >
+              <NotificationsIcon
+                className={`${open ? 'text-white' : 'text-dark'}`}
+                size={18}
+              />
             </Badge>
           </div>
 
@@ -233,6 +260,20 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             >
               <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
                 <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
+                {notifications.length > 3 && (
+                  <button
+                    className="btn btn-link p-0"
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      textDecoration: "none",
+                      color: "#007bff",
+                    }}
+                    onClick={handleMarkAllRead}
+                  >
+                    Mark all as read
+                  </button>
+                )}
               </div>
 
               <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
@@ -305,8 +346,8 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                               }
                             >
                               <span style={{ cursor: "pointer" }}>
-                                {note?.notificationType?.length > 15
-                                  ? note?.notificationType.slice(0, 15) + "..."
+                                {note?.notificationType?.length > 12
+                                  ? note?.notificationType.slice(0, 12) + "..."
                                   : note?.notificationType}
                               </span>
                             </OverlayTrigger>

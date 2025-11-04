@@ -30,6 +30,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { formatSlotTime } from "../../../../helpers/Formatting";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { searchUserByNumber } from "../../../../redux/admin/searchUserbynumber/thunk";
+import { resetSearchData } from "../../../../redux/admin/searchUserbynumber/slice";
 
 const ManualBooking = () => {
   const dispatch = useDispatch();
@@ -42,6 +44,9 @@ const ManualBooking = () => {
     activeCourtsLoading,
     activeCourtsData,
   } = useSelector((state) => state.manualBooking);
+  const searchUserData = useSelector((state) => state.searchUserByNumber.getSearchData);
+  const searchUserDataLoading = useSelector((state) => state.searchUserByNumber.getSearchLoading);
+  console.log({ searchUserData });
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -369,6 +374,19 @@ const ManualBooking = () => {
 
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+
+  useEffect(() => {
+    if (phone.length === 10) {
+      dispatch(searchUserByNumber({ phoneNumber: phone }));
+    }
+  }, [phone, dispatch]);
+
+  useEffect(() => {
+    if (phone.length < 10) {
+      dispatch(resetSearchData());
+      setName("");
+    }
+  }, [phone, dispatch]);
 
   return (
     <>
@@ -873,7 +891,7 @@ const ManualBooking = () => {
                               fontFamily: "Poppins",
                               fontSize: "14px",
                             }}
-                            value={name}
+                            value={searchUserDataLoading ? 'Loading....' : searchUserData?.result?.name ? searchUserData?.result?.name : name}
                             onChange={(e) => {
                               let value = e.target.value;
                               value = value.replace(/[^a-zA-Z\s]/g, "");
@@ -953,6 +971,7 @@ const ManualBooking = () => {
                               fontSize: "14px",
                             }}
                             onClick={handleConfirm}
+                            disabled={!name || !phone || manualBookingLoading}
                           >
                             {manualBookingLoading ? (
                               <ButtonLoading color="white" size={12} />

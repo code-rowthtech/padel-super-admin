@@ -22,8 +22,9 @@ export const BookingCancellationModal = ({
           color: "#1F2937",
         }}
       >
-        Cancellation Request
+       {bookingDetails?.bookingStatus === 'in-progress' ? 'Cancellation Request' : ''} 
       </h4>
+      {console.log(bookingDetails,'bookingDetails')}
       <i
         className="bi bi-x fs-2 text-danger fw-bold"
         onClick={handleClose}
@@ -263,9 +264,8 @@ export const BookingRefundModal = ({
   const [error, setError] = useState("");
   const maxLength = 250;
   console.log(bookingDetails, 'bookingDetails');
-  const [refundAmount, setRefundAmount] = useState(bookingDetails?.totalAmount );
+  const [refundAmount, setRefundAmount] = useState(bookingDetails?.totalAmount);
   const [refundDate, setRefundDate] = useState(new Date().toISOString().split("T")[0]);
-  console.log(refundAmount, 'bookingDetails?.totalAmount');
   // Validate reason
   const validateReason = (text) => {
     if (!text.trim()) return "Reason is required";
@@ -480,9 +480,19 @@ export const BookingRefundModal = ({
               <input
                 type="number"
                 min="0"
+                max={bookingDetails?.totalAmount} // 👈 restricts max value
                 value={refundAmount}
-                defaultValue={bookingDetails?.totalAmount}
-                onChange={(e) => setRefundAmount(e.target.value)}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  const maxAmount = Number(bookingDetails?.totalAmount) || '';
+
+                  // Prevent user from entering more than total amount
+                  if (value > maxAmount) {
+                    setRefundAmount(maxAmount);
+                  } else {
+                    setRefundAmount(value);
+                  }
+                }}
                 className="form-control w-100"
                 style={{
                   fontFamily: "Poppins",
@@ -494,6 +504,7 @@ export const BookingRefundModal = ({
                   boxShadow: "none",
                 }}
               />
+
             </div>
 
           </div>
@@ -539,6 +550,7 @@ export const BookingRefundModal = ({
                 type="date"
                 value={refundDate}
                 onChange={(e) => setRefundDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}  // 👈 disables past dates
                 className="form-control w-100"
                 style={{
                   fontFamily: "Poppins",
@@ -550,6 +562,7 @@ export const BookingRefundModal = ({
                   boxShadow: "none",
                 }}
               />
+
             </div>
           </div>
 
@@ -717,7 +730,7 @@ export const CancelRequestModal = ({
             color: "#1F2937",
           }}
         >
-          Cancellation Request
+          Cancellation Requestpppl
         </h4>
         <i
           className="bi bi-x fs-2 text-danger fw-bold"
@@ -734,13 +747,13 @@ export const CancelRequestModal = ({
             style={{ backgroundColor: "#CBD6FF1A" }}
           >
             <div className="text-start">
-              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">Name:</p>
-              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">Court Number:</p>
-              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">Date:</p>
-              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">Time:</p>
+              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">Name:</p>
+              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">Court Number:</p>
+              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">Date:</p>
+              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">Time:</p>
             </div>
             <div className="text-end">
-              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">
+              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">
                 <strong>
                   {bookingDetails?.userId?.name
                     ?.slice(0, 1)
@@ -748,13 +761,13 @@ export const CancelRequestModal = ({
                     ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
                 </strong>
               </p>
-              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">
+              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">
                 <strong>{bookingDetails?.slot?.[0]?.courtName || "N/A"}</strong>
               </p>
-              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">
+              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">
                 <strong>{formatDate(bookingDetails?.bookingDate)}</strong>
               </p>
-              <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="mb-1">
+              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">
                 <strong>
                   {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
                   {formatSlotTime(
@@ -772,7 +785,7 @@ export const CancelRequestModal = ({
                 <strong>Payment Details</strong>
               </h6>
               <div className="d-flex justify-content-between">
-                <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="">Payment Method:</p>
+                <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="">Payment Method:</p>
                 <p className="mb-0">
                   {bookingDetails?.paymentMethod
                     ? bookingDetails?.paymentMethod
@@ -783,7 +796,7 @@ export const CancelRequestModal = ({
                 </p>
               </div>
               <div className="d-flex justify-content-between">
-                <p style={{fontSize:"14px",fontFamily:"Poppins",fontWeight:"500"}} className="">Total Payment:</p>
+                <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="">Total Payment:</p>
                 <p className="text-primary fs-4 mb-0">
                   <strong>₹ {bookingDetails?.totalAmount}</strong>
                 </p>
@@ -888,7 +901,7 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
             color: "#1F2937",
           }}
         >
-          Cancellation Request
+         {bookingDetails?.bookingStatus === 'rejected' ? "Rejected Details" : ''} 
         </h4>
         <i
           className="bi bi-x fs-2 text-danger fw-bold"

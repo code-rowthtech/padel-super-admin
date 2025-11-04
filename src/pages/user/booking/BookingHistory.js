@@ -290,8 +290,15 @@ const BookingHistory = () => {
                     </h2>
                 </Col>
 
-                <Col xs={12} md={3} className="d-flex flex-row gap-2 justify-content-md-end align-items-center">
-                    <InputGroup className="rounded d-flex p-1 align-items-center" style={{ backgroundColor: "#FAFBFF" }}>
+                <Col
+                    xs={12}
+                    md={3}
+                    className="d-flex flex-row gap-2 justify-content-md-end align-items-center"
+                >
+                    <InputGroup
+                        className="rounded d-flex p-1 align-items-center"
+                        style={{ backgroundColor: "#FAFBFF" }}
+                    >
                         <InputGroup.Text className="bg-light border-0 px-2">
                             <MdOutlineDateRange size={16} className="text-muted" />
                         </InputGroup.Text>
@@ -304,7 +311,6 @@ const BookingHistory = () => {
                             dateFormat="dd/MM/yy"
                             placeholderText="dd/mm/yy – dd/mm/yy"
                             className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
-                            isClearable
                         />
 
                         {(startDate || endDate) && (
@@ -318,6 +324,7 @@ const BookingHistory = () => {
                         )}
                     </InputGroup>
                 </Col>
+
             </Row>
 
             <Row className="mb-4">

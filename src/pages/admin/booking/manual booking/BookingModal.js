@@ -255,7 +255,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
           color: "#1F2937",
         }}
       >
-        Cancelled Details
+        {bookingDetails?.bookingStatus === 'upcoming' ? "Booking Details" : bookingDetails?.bookingStatus === 'refunded' ? "Cancellation Details" : ""}
       </h4>
       <i
         className="bi bi-x fs-2 text-danger fw-bold"

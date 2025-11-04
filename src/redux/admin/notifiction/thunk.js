@@ -9,17 +9,14 @@ export const getNotificationCount = createAsyncThunk(
     try {
 
       const res = await ownerApi.get(`${Url.GET_NOTIFICATION_COUNT}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
       return rejectWithValue(error.message);
     }
   }
@@ -31,17 +28,14 @@ export const getNotificationView = createAsyncThunk(
     try {
 
       const res = await ownerApi.get(`${Url.GET_NOTIFICATION_VIEW}?id=${params.noteId}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
       return rejectWithValue(error.message);
     }
   }
@@ -53,17 +47,33 @@ export const getNotificationData = createAsyncThunk(
     try {
 
       const res = await ownerApi.get(`${Url.GET_NOTIFICATION_DATA}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const readAllNotification = createAsyncThunk(
+  "notification/readAllNotification",
+  async (params, { rejectWithValue }) => {
+    try {
+
+      const res = await ownerApi.get(`${Url.READ_ALL_NOTIFICATION_ADMIN}`);
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+
+      const errorMessage = message;
+      return rejectWithValue(errorMessage);
+    } catch (error) {
       return rejectWithValue(error.message);
     }
   }
