@@ -11,6 +11,7 @@ import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
+  bookingCount,
   getBookingByStatus,
   getBookingDetailsById,
   updateBookingStatus,
@@ -47,13 +48,15 @@ const Booking = () => {
     updateBookingLoading,
   } = useSelector((state) => state.booking);
 
+  const tabCount = useSelector((state) => state.booking.bookingCount)
+console.log({tabCount});
   const bookings = getBookingData?.bookings || [];
   const totalItems = getBookingData?.totalItems || 0;
-  const allCount = getBookingData?.allCount || 0;
-  const upcomingCount = getBookingData?.upcomingCount || 0;
-  const completedCount = getBookingData?.completedCount || 0;
+  const allCount = tabCount?.allCount || 0;
+  const upcomingCount = tabCount?.upcomingCount || 0;
+  const completedCount = tabCount?.completedCount || 0;
 
-  const defaultLimit = 10;
+  const defaultLimit = 20;
 
   // Fetch bookings based on tab
   useEffect(() => {
@@ -72,6 +75,7 @@ const Booking = () => {
     }
 
     dispatch(getBookingByStatus(payload));
+    dispatch(bookingCount({ ownerId: ownerId }))
   }, [tab, currentPage, dispatch, ownerId]);
 
   const handleBookingDetails = async (id, type) => {
@@ -99,7 +103,7 @@ const Booking = () => {
     <Container fluid className="px-2 px-md-4">
       {/* Heading & Manual Booking Button */}
       <div className="d-flex justify-content-between align-items-center mb-1">
-        <h4 className=" mb-0" style={{fontWeight:'600',fontFamily:"Poppins", fontSize: "clamp(1.5rem, 4vw, 1.4rem)" }}>
+        <h4 className=" mb-0" style={{ fontWeight: '600', fontFamily: "Poppins", fontSize: "clamp(1.5rem, 4vw, 1.4rem)" }}>
           Bookings
         </h4>
         <button
@@ -157,8 +161,8 @@ const Booking = () => {
       <Row className="mb-3">
         <Col xs={12}>
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
-            <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto"} }}>
-              <AppBar  position="static" color="default" className="bg-white border-bottom border-light" elevation={0}>
+            <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto" } }}>
+              <AppBar position="static" color="default" className="bg-white border-bottom border-light" elevation={0}>
                 <Tabs
                   value={tab}
                   onChange={(_, v) => {
@@ -210,9 +214,12 @@ const Booking = () => {
         </Col>
       </Row>
 
-      <Row>
+      <Row className="mb-5">
         <Col xs={12}>
-          <div className="bg-white rounded shadow-sm p-2 p-md-3">
+          <div
+            className="bg-white rounded shadow-sm p-2 p-md-3 d-flex flex-column"
+            style={{ minHeight: "75vh" }}
+          >
             <h6 className="mb-3 tabel-title fs-6">
               {tab === 0 ? "All Bookings" : tab === 1 ? "Upcoming Bookings" : "Completed Bookings"}
             </h6>
@@ -222,7 +229,15 @@ const Booking = () => {
             ) : bookings.length > 0 ? (
               <>
                 {/* Desktop Table */}
-                <div className="custom-scroll-container d-none d-md-block">
+                <div
+                  className="custom-scroll-container flex-grow-1"
+                  style={{
+                    overflowY: "auto",
+                    overflowX: "auto",
+                    flex: "1 1 auto",
+                    maxHeight: "calc(100vh - 300px)",
+                  }}
+                >
                   <Table responsive borderless size="sm" className="custom-table">
                     <thead>
                       <tr className="text-center">
@@ -264,7 +279,7 @@ const Booking = () => {
                           </td>
                           <td className="text-truncate" >
                             {item?.bookingStatus === 'in-progress'
-                              ? 'Request' 
+                              ? 'Request'
                               : item?.bookingStatus === 'refunded' ? 'Cancelled' : item?.bookingStatus
                                 ? item.bookingStatus.charAt(0).toUpperCase() + item.bookingStatus.slice(1)
                                 : ""}
@@ -274,7 +289,8 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
-                                {tab !== 2 && item?.bookingStatus !== "rejected" && (
+                                {console.log(item, 'muskan')}
+                                {tab !== 2 && item?.bookingStatus !== "rejected" && item?.bookingStatus !== "completed" && (
                                   <OverlayTrigger placement="left" overlay={<Tooltip>Cancel</Tooltip>}>
                                     <MdOutlineCancel
                                       onClick={() => handleBookingDetails(item?._id, "cancel")}
@@ -284,6 +300,7 @@ const Booking = () => {
                                     />
                                   </OverlayTrigger>
                                 )}
+
                                 <OverlayTrigger placement="bottom" overlay={<Tooltip>View Details</Tooltip>}>
                                   <FaEye
                                     className="text-primary"
@@ -366,21 +383,29 @@ const Booking = () => {
                 No {tab === 0 ? "bookings" : tab === 1 ? "upcoming bookings" : "completed bookings"} found!
               </div>
             )}
+
+            {/* Pagination */}
+            {totalItems > defaultLimit && (
+              <div
+                className="pt-3 d-flex justify-content-center align-items-center border-top"
+                style={{
+                  marginTop: "auto",
+                  backgroundColor: "white",
+                }}
+              >
+                <Pagination
+                  totalRecords={totalItems}
+                  defaultLimit={defaultLimit}
+                  handlePageChange={handlePageChange}
+                  currentPage={currentPage}
+                />
+              </div>
+            )}
           </div>
         </Col>
       </Row>
 
-      {/* Pagination */}
-      <Row className="mt-3">
-        <Col className="d-flex justify-content-center">
-          <Pagination
-            totalRecords={totalItems}
-            defaultLimit={defaultLimit}
-            handlePageChange={handlePageChange}
-            currentPage={currentPage}
-          />
-        </Col>
-      </Row>
+
 
       {/* Modals */}
       <BookingDetailsModal
@@ -397,7 +422,7 @@ const Booking = () => {
           dispatch(
             updateBookingStatus({
               id: getBookingDetailsData?.booking?._id,
-              status: "cancelled",
+              status: "in-progress",
               cancellationReason: reason,
             })
           )
@@ -408,7 +433,7 @@ const Booking = () => {
             });
         }}
       />
-    </Container>
+    </Container >
   );
 };
 

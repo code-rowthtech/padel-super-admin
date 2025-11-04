@@ -71,7 +71,7 @@ export const getBookingDetailsById = createAsyncThunk(
 );
 
 export const updateBookingStatus = createAsyncThunk(
-  "auth/updateBookingStatus",
+  "manualBooking/updateBookingStatus",
   async (data, { rejectWithValue }) => {
     try {
       const res = await ownerApi.put(Url.UPDATE_BOOKING_STATUS, data);
@@ -80,6 +80,18 @@ export const updateBookingStatus = createAsyncThunk(
     } catch (error) {
       showError(error?.message);
       // return rejectWithValue(error);
+    }
+  }
+);
+
+export const bookingCount = createAsyncThunk(
+  "manualBooking/bookingCount",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(`${Url.GET_BOOKING_COUNT}?ownerId=${data?.ownerId}`);
+      return res?.data;
+    } catch (error) {
+      showError(error?.message);
     }
   }
 );

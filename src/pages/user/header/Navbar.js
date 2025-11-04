@@ -20,7 +20,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import updateLocale from "dayjs/plugin/updateLocale";
-import { getNotificationCount, getNotificationData, getNotificationView } from '../../../redux/user/notifiction/thunk';
+import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from '../../../redux/user/notifiction/thunk';
 
 const SOCKET_URL = config.API_URL;
 const Navbar = () => {
@@ -210,6 +210,23 @@ const Navbar = () => {
             });
     };
 
+    const handleMarkAllRead = () => {
+        const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
+        dispatch(readAllNotification()).unwrap()
+            .then(() => {
+                socket.on("userNotificationCountUpdate", (data) => {
+                    console.log('userNotificationCountUpdate', data);
+                    setNotificationCount(data);
+                });
+                dispatch(getNotificationData()).unwrap().then((res) => {
+                    if (res?.notifications) {
+                        setNotifications(res.notifications);
+                    }
+                });
+            });
+    };
+
     return (
         <nav className="navbar navbar-expand-lg fixed-top bg-white py-2">
             <div className="container  px-0 p-0 py-1">
@@ -307,7 +324,7 @@ const Navbar = () => {
                                     onClick={() => setOpen(!open)}
                                 >
                                     <Badge badgeContent={notificationCount?.unreadCount || notifications?.length} color="error">
-                                        <NotificationsIcon className={`${open ? 'text-white' : 'text-dark'}`}  />
+                                        <NotificationsIcon className={`${open ? 'text-white' : 'text-dark'}`} />
                                     </Badge>
                                 </div>
 
@@ -327,6 +344,20 @@ const Navbar = () => {
                                     >
                                         <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
                                             <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
+                                            {notifications.length > 3 && (
+                                                <button
+                                                    className="btn btn-link p-0"
+                                                    style={{
+                                                        fontSize: "13px",
+                                                        fontWeight: 500,
+                                                        textDecoration: "none",
+                                                        color: "#007bff",
+                                                    }}
+                                                    onClick={handleMarkAllRead}
+                                                >
+                                                    Mark all as read
+                                                </button>
+                                            )}
                                         </div>
 
                                         <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">

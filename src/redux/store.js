@@ -20,6 +20,7 @@ import { review } from "../assets/files";
 import { use } from "react";
 import notificationDataReducer from "./admin/notifiction/slice";
 import userNotificationDataReducer from "./user/notifiction/slice";
+import searchUserByNumberReducer  from "./admin/searchUserbynumber/slice";
 const store = configureStore({
   reducer: {
     //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
@@ -35,6 +36,7 @@ const store = configureStore({
     logo: logoReducer,
     openMatches: openMatchesReducer,
     notificationData: notificationDataReducer,
+    searchUserByNumber: searchUserByNumberReducer,
     //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
     userAuth: userAuthReducer,
     userClub: userClubReducer,

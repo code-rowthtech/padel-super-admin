@@ -369,9 +369,10 @@ h1.display-5 {
 /* Custom Table */
 
 .custom-scroll-container {
-  max-height: 100vh;
-  width: 100%;
-  margin-bottom: 0px;
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 80vh;
 }
 
 .custom-table {
@@ -379,9 +380,8 @@ h1.display-5 {
   border-collapse: collapse;
   font-size: 0.95rem;
   table-layout: auto;
-  /* min-width: 1000px; */
-  /* Ensures table is wide enough to require horizontal scroll on smaller screens */
 }
+
 
 .booking-table {
   width: 100%;
