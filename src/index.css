@@ -218,16 +218,16 @@ h1.display-5 {
 }
 
 .step-heading {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   font-family: "Poppins";
   color: #374151;
 }
 
 .booking-history-heading {
-  font-size: 36px;
+  font-size: 28px;
   font-family: "Poppins";
-  font-weight: 700;
+  font-weight: 600;
   color: #374151;
 }
 
@@ -1784,8 +1784,18 @@ h1.display-5 {
   }
 }
 
+.notification-bg {
+  height: 40px;
+  width: 40px;
+}
+
 /* CreateMatches Responsive */
 @media (min-width: 368px) and (max-width: 768px) {
+  .notification-bg {
+    height: 40px !important;
+    width: 40px !important;
+  }
+
   .court-container {
     margin-bottom: 1rem !important;
   }
@@ -1856,13 +1866,16 @@ h1.display-5 {
 .custom-scroll-dec::-webkit-scrollbar-corner {
   background: #f1f1f1;
 }
-.textarea-palceholder{
+
+.textarea-palceholder {
   color: #000000;
 }
+
 .textarea-palceholder::placeholder {
   color: #999898 !important;
   opacity: 1;
 }
+
 .hide-notification-scrollbar::-webkit-scrollbar {
   display: none;
 }

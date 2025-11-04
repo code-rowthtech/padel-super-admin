@@ -291,25 +291,23 @@ const Navbar = () => {
                 </div>
 
                 {/* Profile Section */}
-                <div className="d-flex gap-3">
+                <div className="d-flex gap-3 align-items-center">
 
                     {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
                         <>
                             <div className="position-relative" ref={dropdownRef}>
                                 {/* Bell Icon */}
                                 <div
-                                    className="d-flex rounded-circle justify-content-center mt-1 align-items-center"
+                                    className="d-flex rounded-circle justify-content-center mt-1 notification-bg align-items-center"
                                     style={{
                                         cursor: "pointer",
                                         backgroundColor: open ? "black" : "#CBD6FF54",
-                                        width: "40px",
-                                        height: "40px",
                                         position: "relative",
                                     }}
                                     onClick={() => setOpen(!open)}
                                 >
                                     <Badge badgeContent={notificationCount?.unreadCount || notifications?.length} color="error">
-                                        <NotificationsIcon className={`${open ? 'text-white' : 'text-dark'}`} size={18} />
+                                        <NotificationsIcon className={`${open ? 'text-white' : 'text-dark'}`}  />
                                     </Badge>
                                 </div>
 
@@ -485,7 +483,7 @@ const Navbar = () => {
                                         <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
                                     </Dropdown.Item>
 
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/admin/settings">
+                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/support">
                                         <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
                                     </Dropdown.Item>
 

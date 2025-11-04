@@ -54,9 +54,7 @@ const Payment = ({ className = "" }) => {
 
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, []);
-
-
+    }, [logo]);
 
     useEffect(() => {
         const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);

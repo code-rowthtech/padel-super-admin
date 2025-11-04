@@ -63,6 +63,10 @@ const BookingHistory = () => {
         "aria-controls": `full-width-tabpanel-${index}`,
     });
 
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [dispatch]);
+
     const buildApiParams = () => {
         const params = {
             type: activeTab === "all" ? "" : activeTab,

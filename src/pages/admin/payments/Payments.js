@@ -123,7 +123,11 @@ const Payments = () => {
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
     <Container fluid className=" px-4">
-      <h3 className="fw-bold">Payment</h3>
+      <h3
+        className=" text-dark mb-1"
+        style={{ fontSize: "clamp(1.5rem, 4vw, 1.4rem)", fontWeight: "600", fontFamily: "Poppins" }}
+      >
+        Payment</h3>
       <Row className="mb-4">
         {summaryCards.map((card, index) => (
           <Col key={index} md={4} className="mb-3">
@@ -271,7 +275,7 @@ const Payments = () => {
                               <td>
                                 {item?.userId?.name
                                   ? item.userId.name.charAt(0).toUpperCase() +
-                                    item.userId.name.slice(1)
+                                  item.userId.name.slice(1)
                                   : "N/A"}
                               </td>
                               <td>
@@ -331,7 +335,7 @@ const Payments = () => {
                               <span className="mobile-card-value">
                                 {item?.userId?.name
                                   ? item.userId.name.charAt(0).toUpperCase() +
-                                    item.userId.name.slice(1)
+                                  item.userId.name.slice(1)
                                   : "N/A"}
                               </span>
                             </div>
