@@ -63,6 +63,8 @@ const BookingHistory = () => {
         "aria-controls": `full-width-tabpanel-${index}`,
     });
 
+    const defaultLimit = 20
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [dispatch]);
@@ -71,7 +73,7 @@ const BookingHistory = () => {
         const params = {
             type: activeTab === "all" ? "" : activeTab,
             page: currentPage,
-            limit: 10,
+            limit: defaultLimit,
         };
         if (startDate) params.startDate = format(startDate, "yyyy-MM-dd");
         if (endDate) params.endDate = format(endDate, "yyyy-MM-dd");
@@ -85,7 +87,7 @@ const BookingHistory = () => {
 
 
     useEffect(() => {
-        if (User?.token) dispatch(getBooking({ page: currentPage, limit: 10 }));
+        if (User?.token) dispatch(getBooking({ page: currentPage, limit: defaultLimit }));
         const club_id = localStorage.getItem("register_club_id");
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token]);
@@ -100,7 +102,7 @@ const BookingHistory = () => {
         else if (newValue === "upcoming") type = "upcoming";
         else if (newValue === "completed") type = "completed";
         else if (newValue === "all") type = "all";
-        dispatch(getBooking({ type, page: currentPage, limit: 10 }));
+        dispatch(getBooking({ type, page: currentPage, limit: defaultLimit }));
     };
 
     const handleSelect = (value) => {
@@ -123,7 +125,7 @@ const BookingHistory = () => {
 
     const club_id = localStorage.getItem("register_club_id");
     useEffect(() => {
-        if (User?.token) dispatch(getBooking({ page: currentPage, limit: 10 }));
+        if (User?.token) dispatch(getBooking({ page: currentPage, limit: defaultLimit }));
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
@@ -329,7 +331,15 @@ const BookingHistory = () => {
 
             <Row className="mb-4">
                 <Col md={12}>
-                    <div className="custom-scroll-container">
+                    <div
+                        className="custom-scroll-container flex-grow-1"
+                        style={{
+                            overflowY: "auto",
+                            overflowX: "auto",
+                            flex: "1 1 auto",
+                            maxHeight: "calc(100vh - 300px)",
+                        }}
+                    >
                         <Table borderless responsive size="sm" className="booking-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>
                             <thead style={{ height: "48px", overflow: "hidden" }}>
                                 <tr className="p-0">
@@ -701,7 +711,7 @@ const BookingHistory = () => {
                     <Col className="d-flex justify-content-center">
                         <Pagination
                             totalRecords={totalRecords}
-                            defaultLimit={10}
+                            defaultLimit={defaultLimit}
                             handlePageChange={handlePageChange}
                             currentPage={currentPage}
                         />

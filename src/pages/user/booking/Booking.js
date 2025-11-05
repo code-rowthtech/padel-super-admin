@@ -110,45 +110,72 @@ const Booking = ({ className = "" }) => {
 
     const MAX_SLOTS = 15;
 
-    const toggleTime = (time, courtId) => {
+    const toggleTime = (time, courtId, date) => {
         const totalSlots = selectedCourts.reduce((acc, c) => acc + (c.time?.length || 0), 0);
-        const currentCourtTimes = selectedTimes[courtId] || [];
+        const dateKey = date || selectedDate.fullDate;
+        const uniqueKey = `${courtId}-${time._id}-${dateKey}`; // Unique per date
+
+        const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
         const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
 
         if (isAlreadySelected) {
-            // Deselect logic (same as before)
+            // Deselect
             const filteredTimes = currentCourtTimes.filter((t) => t._id !== time._id);
-            setSelectedTimes({ ...selectedTimes, [courtId]: filteredTimes });
-            setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
+            setSelectedTimes((prev) => ({
+                ...prev,
+                [courtId]: {
+                    ...prev[courtId],
+                    [dateKey]: filteredTimes,
+                },
+            }));
+            setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id || t.date !== dateKey));
             setSelectedCourts((prev) =>
                 prev
-                    .map((court) => (court._id === courtId && court.date === selectedDate.fullDate ? { ...court, time: court.time.filter((t) => t._id !== time._id) } : court))
+                    .map((court) =>
+                        court._id === courtId && court.date === dateKey
+                            ? { ...court, time: court.time.filter((t) => t._id !== time._id) }
+                            : court
+                    )
                     .filter((court) => court.time.length > 0)
             );
         } else {
-            // Trying to select a new slot
             if (totalSlots >= MAX_SLOTS) {
                 setErrorMessage(`Slot Limit Reached\nYou can select up to ${MAX_SLOTS} slots only.`);
                 setErrorShow(true);
                 return;
             }
 
-            const newTimes = [...currentCourtTimes, time];
-            setSelectedTimes({ ...selectedTimes, [courtId]: newTimes });
-            setSelectedBuisness((prev) => [...prev, time]);
+            const newTimes = [...currentCourtTimes, { ...time, date: dateKey }];
+            setSelectedTimes((prev) => ({
+                ...prev,
+                [courtId]: {
+                    ...prev[courtId],
+                    [dateKey]: newTimes,
+                },
+            }));
+            setSelectedBuisness((prev) => [...prev, { ...time, date: dateKey }]);
 
-            const currentCourt = slotData?.data?.find((court) => court._id === courtId);
+            const currentCourt = slotData?.data?.find((c) => c._id === courtId);
             if (currentCourt) {
                 setSelectedCourts((prev) => {
-                    const existingCourt = prev.find((c) => c._id === courtId && c.date === selectedDate.fullDate);
+                    const existingCourt = prev.find((c) => c._id === courtId && c.date === dateKey);
                     const newTimeEntry = { _id: time._id, time: time.time, amount: time.amount };
                     return existingCourt
                         ? prev.map((court) =>
-                            court._id === courtId && court.date === selectedDate.fullDate
+                            court._id === courtId && court.date === dateKey
                                 ? { ...court, time: [...court.time, newTimeEntry] }
                                 : court
                         )
-                        : [...prev, { _id: currentCourt._id, courtName: currentCourt.courtName, date: selectedDate.fullDate, day: selectedDate.day, time: [newTimeEntry] }];
+                        : [
+                            ...prev,
+                            {
+                                _id: currentCourt._id,
+                                courtName: currentCourt.courtName,
+                                date: dateKey,
+                                day: selectedDate.day,
+                                time: [newTimeEntry],
+                            },
+                        ];
                 });
             }
         }
@@ -621,9 +648,10 @@ const Booking = ({ className = "" }) => {
 
                                                             <div className="slots-grid d-flex flex-column align-items-center">
                                                                 {filteredSlots.map((slot, i) => {
-                                                                    const isSelected = selectedTimes[court._id]?.some(
+                                                                    const isSelected = selectedTimes[court._id]?.[selectedDate.fullDate]?.some(
                                                                         (t) => t._id === slot._id
                                                                     );
+                                                                    console.log(selectedTimes, 'selectedTimes');
                                                                     const isDisabled =
 
                                                                         slot.status === "booked" ||
