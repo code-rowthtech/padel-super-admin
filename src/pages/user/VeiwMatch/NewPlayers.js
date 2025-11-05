@@ -155,26 +155,30 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                 value={formData.name}
                                 style={{ boxShadow: "none" }}
                                 onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
-                                        if (value.length === 0 && value.trim() === "") {
-                                            setFormData((prev) => ({ ...prev, name: '' }));
-                                            return;
+                                    let value = e.target.value;
+
+                                    // ✅ Allow only letters & spaces (so backspace bhi kaam kare)
+                                    if (/^[A-Za-z\s]*$/.test(value)) {
+                                        // ✅ Limit to max 20 characters
+                                        if (value.length > 30) {
+                                            value = value.slice(0, 30);
                                         }
+
+                                        // ✅ Format: trim start, single spaces, capitalize first letter of each word
                                         const formattedValue = value
                                             .trimStart()
                                             .replace(/\s+/g, " ")
                                             .toLowerCase()
                                             .replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
+
                                         setFormData((prev) => ({ ...prev, name: formattedValue }));
                                     }
                                 }}
                                 className="form-control border p-2"
                                 placeholder="Enter your name"
-                                pattern="[A-Za-z\s]+"
-                                title="Name can only contain letters and single spaces between words"
                                 aria-label="Name"
                             />
+
                         </div>
                         <div className="mb-3">
                             <label className="form-label">
