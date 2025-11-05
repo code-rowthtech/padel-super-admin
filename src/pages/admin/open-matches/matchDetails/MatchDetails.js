@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from "../../../../helpers/loading/Loaders";
 import { padal } from "../../../../assets/files";
 import { format } from "date-fns";
-import { Button, Col, Row } from "react-bootstrap";
+import { Button, Col, OverlayTrigger, Row, Tooltip } from "react-bootstrap";
 import AddPlayerModal from "../modal/AddPlayerModal";
 
 const MatchDetails = () => {
@@ -106,8 +106,26 @@ const MatchDetails = () => {
           </div>
         )}
         <div className="fw-semibold small mt-2">
-          {userId?.name?.charAt(0)?.toUpperCase() + userId?.name?.slice(1) ||
-            "Player"}
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              (userId?.name?.length > 14) ? (
+                <Tooltip id={`tooltip-name`}>{userId?.name}</Tooltip>
+              ) : (
+                <></>
+              )
+            }
+          >
+            <span style={{ cursor: userId?.name?.length > 14 ? "pointer" : "default" }}>
+              {userId?.name
+                ? userId?.name?.length > 14
+                  ? userId?.name?.charAt(0).toUpperCase() +
+                  userId?.name?.slice(1, 14) +
+                  "..."
+                  : userId?.name?.charAt(0).toUpperCase() + userId?.name?.slice(1)
+                : "Player"}
+            </span>
+          </OverlayTrigger>
         </div>
         <span
           className="badge rounded-pill"
@@ -272,9 +290,9 @@ const MatchDetails = () => {
                       >
                         {getMatchDetails?.matchDate
                           ? format(
-                              new Date(getMatchDetails?.matchDate),
-                              "EEE, dd MMM yyyy"
-                            )
+                            new Date(getMatchDetails?.matchDate),
+                            "EEE, dd MMM yyyy"
+                          )
                           : "N/A"}{" "}
                         |{" "}
                         {getMatchDetails?.matchTime
