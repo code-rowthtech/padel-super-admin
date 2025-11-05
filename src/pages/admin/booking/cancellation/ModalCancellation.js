@@ -267,6 +267,7 @@ export const BookingRefundModal = ({
   const [refundAmount, setRefundAmount] = useState(bookingDetails?.totalAmount);
   const [refundDate, setRefundDate] = useState(new Date().toISOString().split("T")[0]);
   // Validate reason
+  console.log(bookingDetails?.totalAmount,'bookingDetails?.totalAmount')
   const validateReason = (text) => {
     if (!text.trim()) return "Reason is required";
     if (text.trim().length < 10) return "Reason must be at least 10 characters";
@@ -291,11 +292,12 @@ export const BookingRefundModal = ({
   };
   const handleRefundClick = () => {
     const validationError = validateReason(reason);
-    if (validationError) {
+    const amount = bookingDetails?.totalAmount || refundAmount
+    if (validationError ) {
       setError(validationError);
       return;
     }
-    onRefundSuccess(reason, setReason, refundAmount, refundDate);
+    onRefundSuccess(reason, setReason, amount, refundDate);
   };
 
   const remaining = maxLength - reason.length;
@@ -482,6 +484,7 @@ export const BookingRefundModal = ({
                 min="0"
                 max={bookingDetails?.totalAmount} // 👈 restricts max value
                 value={refundAmount}
+                defaultValue={bookingDetails?.totalAmount}
                 onChange={(e) => {
                   const value = Number(e.target.value);
                   const maxAmount = Number(bookingDetails?.totalAmount) || '';

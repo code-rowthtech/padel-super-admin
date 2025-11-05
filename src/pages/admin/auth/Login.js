@@ -140,7 +140,7 @@ const LoginPage = () => {
           </p>
 
           <Form onSubmit={handleLogin} noValidate className="small">
-            <span className="p-1 small text-danger">{apiError}</span>
+            {/* <span className="p-1 small text-danger">{apiError}</span> */}
             {/* Email */}
             <Form.Group
               controlId="formEmail"

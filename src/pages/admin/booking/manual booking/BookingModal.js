@@ -447,7 +447,8 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             ? `₹ ${bookingDetails?.totalAmount}`
             : "N/A"}
         </h2>
-        {bookingDetails?.refundAmount && (
+        {console.log({bookingDetails})}
+        {bookingDetails?.bookingStatus === 'refunded' && (
           <>
             |
             <h2

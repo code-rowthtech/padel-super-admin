@@ -437,14 +437,14 @@ const Cancellation = () => {
       <BookingRefundModal
         show={showRefund}
         handleClose={() => setShowRefund(false)}
-        onRefundSuccess={(refundDescription,setReason,refundAmount,refundDate) => {
+        onRefundSuccess={(refundDescription,setReason,amount,refundDate) => {
           dispatch(
             updateBookingStatus({
               id: bookingDetails._id,
               status: "refunded",
               refundDescription,
               refundDate,
-              refundAmount,
+              refundAmount : amount,
               requestType:'admin'
             })
           )
