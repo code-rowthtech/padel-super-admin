@@ -10,7 +10,7 @@ import {
 } from "react-bootstrap";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, defs, Bar, BarChart } from "recharts";
 import { FaArrowUp, FaArrowDown, FaEye } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   MdOutlineDateRange,
   MdOutlineInsertDriveFile,
@@ -149,10 +149,10 @@ const AdminDashboard = () => {
     const date = new Date(dateString);
 
     const day = date.getDate();
-    const month = date.toLocaleString("en-US", { month: "short" }); 
+    const month = date.toLocaleString("en-US", { month: "short" });
 
     const getOrdinal = (n) => {
-      if (n > 3 && n < 21) return "th"; 
+      if (n > 3 && n < 21) return "th";
       switch (n % 10) {
         case 1: return "st";
         case 2: return "nd";
@@ -197,7 +197,7 @@ const AdminDashboard = () => {
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      chartData[monthIndex].Booking = (chartData[monthIndex].Booking || 0) + (item.totalBookings || 0); 
+      chartData[monthIndex].Booking = (chartData[monthIndex].Booking || 0) + (item.totalBookings || 0);
       chartData[monthIndex].totalAmount = (chartData[monthIndex].totalAmount || 0) + (item.totalAmount || 0);
       chartData[monthIndex].year = item.year || 2025;
     }
@@ -212,6 +212,21 @@ const AdminDashboard = () => {
       chartData[monthIndex].year = item.year || 2025;
     }
   });
+
+  const { pathname } = useLocation();
+  console.log("Current pathname:", pathname);
+
+  useEffect(() => {
+
+    if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
+      localStorage.removeItem("clubFormData");
+      sessionStorage.removeItem("registerId");
+      console.log("Removed for login/signup");
+    } else if (pathname === "/admin/dashboard") {
+      localStorage.removeItem("clubFormData");
+      console.log("Removed for dashboard");
+    }
+  }, [pathname]);
   return (
     <Container
       fluid
@@ -245,7 +260,7 @@ const AdminDashboard = () => {
                             paddingBottom: "4px",
                             borderRadius: "50%",
                             backgroundColor:
-                              card.color === "danger" ? "#FFD9D7" : "#B5FFCE", 
+                              card.color === "danger" ? "#FFD9D7" : "#B5FFCE",
                           }}
                         >
                           <span
@@ -305,12 +320,12 @@ const AdminDashboard = () => {
                         tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
                         interval={0}
                         height={50}
-                        padding={{  right: 10 }}
+                        padding={{ right: 10 }}
                       />
                       <YAxis
                         type="number"
                         domain={[0, 50]}
-                        ticks={[0, 20, 40, 60, 80, 100,120,140,160,180,200]}
+                        ticks={[0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200]}
                         allowDecimals={false}
                         tickLine={false}
                         axisLine={{ stroke: "#e5e7eb" }}
@@ -376,7 +391,7 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} lg={5}>
-              <Card className="shadow border-0" style={{ height:dashboardCancelledBookings?.length > 0 ? "450px" : "450px" }}>
+              <Card className="shadow border-0" style={{ height: dashboardCancelledBookings?.length > 0 ? "450px" : "450px" }}>
                 <Card.Body>
                   <div className="d-flex justify-content-between">
                     <h6
