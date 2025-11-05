@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Button, Row, Col, Form } from "react-bootstrap";
 import { modalSuccess } from "../../../../assets/files";
 import { formatDate, formatSlotTime } from "../../../../helpers/Formatting";
@@ -22,9 +22,9 @@ export const BookingCancellationModal = ({
           color: "#1F2937",
         }}
       >
-       {bookingDetails?.bookingStatus === 'in-progress' ? 'Cancellation Request' : ''} 
+        {bookingDetails?.bookingStatus === 'in-progress' ? 'Cancellation Request' : ''}
       </h4>
-      {console.log(bookingDetails,'bookingDetails')}
+      {console.log(bookingDetails, 'bookingDetails')}
       <i
         className="bi bi-x fs-2 text-danger fw-bold"
         onClick={handleClose}
@@ -263,11 +263,11 @@ export const BookingRefundModal = ({
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const maxLength = 250;
-  console.log(bookingDetails, 'bookingDetails');
-  const [refundAmount, setRefundAmount] = useState(bookingDetails?.totalAmount);
+  const [hasChangedAmount, setHasChangedAmount] = useState(false);
+  const [refundAmount, setRefundAmount] = useState("");
   const [refundDate, setRefundDate] = useState(new Date().toISOString().split("T")[0]);
   // Validate reason
-  console.log(bookingDetails?.totalAmount,'bookingDetails?.totalAmount')
+  console.log(bookingDetails?.totalAmount, 'bookingDetails?.totalAmount')
   const validateReason = (text) => {
     if (!text.trim()) return "Reason is required";
     if (text.trim().length < 10) return "Reason must be at least 10 characters";
@@ -290,14 +290,38 @@ export const BookingRefundModal = ({
       setError(validateReason(value));
     }
   };
+
+  useEffect(() => {
+    if (bookingDetails?.totalAmount != null) {
+      setRefundAmount(bookingDetails.totalAmount);
+      setHasChangedAmount(false); // Reset on new booking
+    }
+  }, [bookingDetails?.totalAmount]);
+  console.log({ refundAmount });
+
+  const handleAmountChange = (e) => {
+    setHasChangedAmount(true); // Mark as user-modified
+    const value = e.target.value;
+    const maxAmount = Number(bookingDetails?.totalAmount) || 0;
+
+    if (value === "" || (!isNaN(value) && Number(value) >= 0 && Number(value) <= maxAmount)) {
+      setRefundAmount(value);
+    }
+  };
+
   const handleRefundClick = () => {
     const validationError = validateReason(reason);
-    const amount = bookingDetails?.totalAmount || refundAmount
-    if (validationError ) {
+    if (validationError) {
       setError(validationError);
       return;
     }
-    onRefundSuccess(reason, setReason, amount, refundDate);
+
+    // Final amount to send
+    const finalAmount = hasChangedAmount && refundAmount !== ""
+      ? Number(refundAmount)
+      : Number(bookingDetails?.totalAmount);
+
+    onRefundSuccess(reason, setReason, finalAmount, refundDate);
   };
 
   const remaining = maxLength - reason.length;
@@ -482,20 +506,10 @@ export const BookingRefundModal = ({
               <input
                 type="number"
                 min="0"
-                max={bookingDetails?.totalAmount} // 👈 restricts max value
+                max={bookingDetails?.totalAmount}
                 value={refundAmount}
-                defaultValue={bookingDetails?.totalAmount}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  const maxAmount = Number(bookingDetails?.totalAmount) || '';
-
-                  // Prevent user from entering more than total amount
-                  if (value > maxAmount) {
-                    setRefundAmount(maxAmount);
-                  } else {
-                    setRefundAmount(value);
-                  }
-                }}
+                onChange={handleAmountChange}
+                placeholder={`Max: ₹${bookingDetails?.totalAmount}`}
                 className="form-control w-100"
                 style={{
                   fontFamily: "Poppins",
@@ -733,7 +747,7 @@ export const CancelRequestModal = ({
             color: "#1F2937",
           }}
         >
-          Cancellation Requestpppl
+          Cancellation Request
         </h4>
         <i
           className="bi bi-x fs-2 text-danger fw-bold"
@@ -904,7 +918,7 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
             color: "#1F2937",
           }}
         >
-         {bookingDetails?.bookingStatus === 'rejected' ? "Rejected Details" : ''} 
+          {bookingDetails?.bookingStatus === 'rejected' ? "Rejected Details" : ''}
         </h4>
         <i
           className="bi bi-x fs-2 text-danger fw-bold"

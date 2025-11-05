@@ -82,7 +82,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     return time;
   };
 
-  // Get slots for selected days (from fresh clubData)
+  // Get slots for selected days
   const getSelectedDaySlots = () => {
     const allSlots = clubData?.data?.[0]?.slot || [];
     const selectedDays = Object.keys(formData.days).filter((day) => formData.days[day]);
@@ -301,8 +301,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
 
     const updatePriceForAll = (price) => {
       const numericPrice = Number(price);
-
-      // Allow empty or numbers ≤ 4000
       if (price === "" || numericPrice <= 4000) {
         setFormData((prev) => {
           const newPrices = { ...prev.prices.All };
@@ -311,9 +309,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         });
       }
     };
-
-
-
 
     return (
       <div>
@@ -378,13 +373,25 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
               min={0}
               max={4000}
             />
-
-
-
           </InputGroup>
         </div>
       </div>
     );
+  };
+
+  // Helper: Get all slot times of a specific type (Morning/Afternoon/Evening)
+  const getSlotTimesForType = (daySlots, type) => {
+    const typeLower = type.toLowerCase();
+    return daySlots.flatMap(dayObj => {
+      return (dayObj.slotTimes || []).filter(slot => {
+        const t = slot.time?.toLowerCase() || "";
+        const hour = parseInt(t);
+        if (typeLower === "morning") return t.includes("am") && hour < 12;
+        if (typeLower === "afternoon") return t.includes("pm") && hour >= 12 && hour <= 5;
+        if (typeLower === "evening") return t.includes("pm") && hour > 5;
+        return false;
+      });
+    });
   };
 
   const handleSubmit = (e) => {
@@ -403,58 +410,51 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     }
 
     const allSlots = clubData?.data?.[0]?.slot || [];
-    const selectedSlotData = selectAllChecked
-      ? allSlots
-      : allSlots.filter((slot) => {
-        const slotDay = slot.businessHours?.[0]?.day;
-        return slotDay && selectedDays.includes(slotDay);
-      });
+    let selectedSlotData = [];
+    let slotData = [];
+    let businessHours = [];
 
-    const slotData = selectAllChecked
-      ? selectedSlotData.flatMap((slot) => slot.slotTimes || [])
-      : selectedSlotData[0]?.slotTimes || [];
+    if (selectAllChecked) {
+      selectedSlotData = allSlots;
+      slotData = allSlots.flatMap(d => d.slotTimes || []);
+      businessHours = allSlots.flatMap(d => d.businessHours || []);
+    } else {
+      selectedSlotData = allSlots.filter(s =>
+        s.businessHours?.[0]?.day && selectedDays.includes(s.businessHours[0].day)
+      );
 
-    const businessHours = selectedSlotData.flatMap((slot) => slot.businessHours || []);
+      // Get ALL slots of the selected type from ALL selected days
+      slotData = getSlotTimesForType(selectedSlotData, formData.selectedSlots);
+      businessHours = selectedSlotData.flatMap(d => d.businessHours || []);
+    }
 
     if (slotData.length === 0 || businessHours.length === 0) {
       showWarning("Slot times or business hours not found.");
       return;
     }
 
-    const normalizeTime = (timeStr) => {
-      const match = timeStr.match(/(\d+)[\s:]*(am|pm)/i);
-      if (!match) return null;
-      const h = parseInt(match[1]);
-      const ampm = match[2].toLowerCase();
-      return `${h} ${ampm}`;
-    };
-
-    const normalizedSlotPrices = {};
-    for (const [key, price] of Object.entries(slotPrices)) {
-      const normalizedKey = key.replace(/:\d{2}/, "").trim().toLowerCase();
-      normalizedSlotPrices[normalizedKey] = price;
-    }
+    // Normalize price keys
+    const normalizeKey = (t) => t.replace(/:\d{2}/, "").trim().toLowerCase();
 
     const filledSlotTimes = slotData
-      .filter((slot) => {
-        const key = normalizeTime(slot.time);
-        const price = normalizedSlotPrices[key];
-        return price != null && price.toString().trim() !== "";
-      })
-      .map((slot) => {
-        const key = normalizeTime(slot.time);
-        const price = parseFloat(normalizedSlotPrices[key]);
+      .map(slot => {
+        const time12hr = convertTo12HourFormat(slot.time);
+        const priceStr = slotPrices[time12hr];
+        if (!priceStr || priceStr.trim() === "") return null;
+
+        const price = parseFloat(priceStr);
         return { _id: slot._id, amount: isNaN(price) ? 0 : price };
-      });
+      })
+      .filter(Boolean);
+
+    if (filledSlotTimes.length === 0) {
+      showWarning("No valid prices to update.");
+      return;
+    }
 
     const completeBusinessHours = selectedDays.map((day) => {
       const existing = businessHours.find((bh) => bh.day === day);
-      return (
-        existing || {
-          day,
-          time: "06:00 AM - 11:00 PM",
-        }
-      );
+      return existing || { day, time: "06:00 AM - 11:00 PM" };
     });
 
     const selectedBusinessHours = completeBusinessHours.map((bh) => ({
@@ -481,8 +481,8 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         onFinalSuccess();
         navigate("/admin/dashboard");
         sessionStorage.removeItem("registerId");
-        localStorage.removeItem("clubFormData"); // ← CLEAR
-        localStorage.removeItem("owner_signup_id"); // ← CLEAR
+        localStorage.removeItem("clubFormData");
+        localStorage.removeItem("owner_signup_id");
         dispatch(resetClub());
       })
       .catch(() => {
