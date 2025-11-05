@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaEye, FaEyeSlash } from "react-icons/fa";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
@@ -79,6 +79,21 @@ const LoginPage = () => {
       setApiError(err || "Login failed. Try again.");
     }
   };
+
+  const { pathname } = useLocation();
+  console.log("Current pathname:", pathname);
+
+  useEffect(() => {
+
+    if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
+      localStorage.removeItem("clubFormData");
+      sessionStorage.removeItem("registerId");
+      console.log("Removed for login/signup");
+    } else if (pathname === "/admin/dashboard") {
+      localStorage.removeItem("clubFormData");
+      console.log("Removed for dashboard");
+    }
+  }, [pathname]);
 
   return (
     <Layout>
@@ -211,12 +226,12 @@ const LoginPage = () => {
                 checked={formData.remember}
                 onChange={handleChange}
                 disabled={authLoading}
-                style={{ fontSize:"12px",fontWeight:"600",color:"000000",fontFamily:"Poppins",boxShadow:"none" }}
+                style={{ fontSize: "12px", fontWeight: "600", color: "000000", fontFamily: "Poppins", boxShadow: "none" }}
               />
               <Link
                 to="/admin/forgot-password"
                 className="text-decoration-none"
-                style={{ fontSize:"12px",fontWeight:"600",color:"1F41BB",fontFamily:"Poppins" }}
+                style={{ fontSize: "12px", fontWeight: "600", color: "1F41BB", fontFamily: "Poppins" }}
               >
                 Forgot password?
               </Link>

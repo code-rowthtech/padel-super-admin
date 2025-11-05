@@ -1,15 +1,30 @@
-import { Outlet } from "react-router-dom";
-import { useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import AdminTopbar from "../../pages/admin/header/AdminTopbar";
 import AdminSidebar from "../../pages/admin/sidebar/AdminSidebar";
 
 const AdminLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  return (
-    <>
-      <style>{`
+    const { pathname } = useLocation();
+        console.log("Current pathname:", pathname);
+
+    useEffect(() => {
+
+        if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
+            localStorage.removeItem("clubFormData");
+            sessionStorage.removeItem("registerId");
+            console.log("Removed for login/signup");
+        } else if (pathname === "/admin/dashboard") {
+            localStorage.removeItem("clubFormData");
+            console.log("Removed for dashboard");
+        }
+    }, [pathname]);
+
+    return (
+        <>
+            <style>{`
                 .admin-layout {
                     display: flex;
                     height: 100vh;
@@ -262,34 +277,33 @@ const AdminLayout = () => {
                 }
             `}</style>
 
-      <div className="admin-layout">
-        <div
-          className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
-          onClick={() => setSidebarOpen(false)}
-        />
-        <AdminSidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          isCollapsed={sidebarCollapsed}
-        />
-        <div
-          className={`admin-main-content ${
-            sidebarCollapsed ? "sidebar-collapsed" : ""
-          }`}
-        >
-          <AdminTopbar
-            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-            sidebarOpen={sidebarOpen}
-            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-            sidebarCollapsed={sidebarCollapsed}
-          />
-          <div className="admin-scrollable-content">
-            <Outlet />
-          </div>
-        </div>
-      </div>
-    </>
-  );
+            <div className="admin-layout">
+                <div
+                    className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
+                    onClick={() => setSidebarOpen(false)}
+                />
+                <AdminSidebar
+                    isOpen={sidebarOpen}
+                    onClose={() => setSidebarOpen(false)}
+                    isCollapsed={sidebarCollapsed}
+                />
+                <div
+                    className={`admin-main-content ${sidebarCollapsed ? "sidebar-collapsed" : ""
+                        }`}
+                >
+                    <AdminTopbar
+                        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                        sidebarOpen={sidebarOpen}
+                        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+                        sidebarCollapsed={sidebarCollapsed}
+                    />
+                    <div className="admin-scrollable-content">
+                        <Outlet />
+                    </div>
+                </div>
+            </div>
+        </>
+    );
 };
 
 export default AdminLayout;

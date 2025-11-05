@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Row, Col, Form, Button, InputGroup } from "react-bootstrap";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { authImg } from "../../../assets/files";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signupOwner } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import Layout from "./AuthLayout";
@@ -131,6 +131,21 @@ const SignUpPage = () => {
       }
     }
   };
+
+    const { pathname } = useLocation();
+          console.log("Current pathname:", pathname);
+  
+      useEffect(() => {
+  
+          if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
+              localStorage.removeItem("clubFormData");
+              sessionStorage.removeItem("registerId");
+              console.log("Removed for login/signup");
+          } else if (pathname === "/admin/dashboard") {
+              localStorage.removeItem("clubFormData");
+              console.log("Removed for dashboard");
+          }
+      }, [pathname]);
 
   return (
     <Layout>

@@ -113,7 +113,7 @@ const Booking = ({ className = "" }) => {
     const toggleTime = (time, courtId, date) => {
         const totalSlots = selectedCourts.reduce((acc, c) => acc + (c.time?.length || 0), 0);
         const dateKey = date || selectedDate.fullDate;
-        const uniqueKey = `${courtId}-${time._id}-${dateKey}`; // Unique per date
+        const uniqueKey = `${courtId}-${time._id}-${dateKey}`; 
 
         const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
         const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);

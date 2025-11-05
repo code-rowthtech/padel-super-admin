@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   createLogo,
   registerClub,
+  updateLogo,
   updateRegisteredClub,
 } from "../../../../redux/thunks";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
@@ -356,7 +357,13 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       logoForm.append("image", formData.logo);
 
       try {
-        await dispatch(createLogo(logoForm)).unwrap();
+        if (updateImage) {
+          dispatch(updateLogo(logoForm))
+
+        } else {
+          await dispatch(createLogo(logoForm)).unwrap();
+
+        }
       } catch (err) {
         showInfo("Failed to upload logo. Continuing with club registration...");
       }
@@ -407,18 +414,28 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     );
 
     newImages.forEach((file) => apiFormData.append("image", file));
-    // logo already uploaded above – no need to send again
 
     try {
+      let result;
       if (updateImage) {
         apiFormData.append("_id", registerID);
-        await dispatch(updateRegisteredClub(apiFormData)).unwrap();
+        result = await dispatch(updateRegisteredClub(apiFormData)).unwrap();
       } else {
-        await dispatch(registerClub(apiFormData)).unwrap();
+        result = await dispatch(registerClub(apiFormData)).unwrap();
       }
-      onNext();
+      console.log({result});
+      console.log({ result });
+      // Check status 200
+      if (result?.status === 200 || result?.success === true) {
+        console.log("Success:", result);
+        onNext(); // Only call if status is 200
+      } else {
+        console.log("Non-200 response:", result);
+        // showInfo(result?.message || "Something went wrong.");
+      }
     } catch (error) {
-      showInfo("Failed to save club. Please try again.");
+      console.error("API Error:", error);
+      showInfo(error?.message || "Failed to save club. Please try again.");
     }
   };
 
@@ -428,7 +445,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={6}>
-              <h5 style={{ fontWeight: 600, color: "#1F2937",fontFamily:"Poppins" }} className="my-3">
+            <h5 style={{ fontWeight: 600, color: "#1F2937", fontFamily: "Poppins" }} className="my-3">
               Upload Club Images
             </h5>
             <div className="mb-0">
@@ -522,7 +539,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
             </div>
 
             <div>
-              <h5 style={{ fontWeight: 600, color: "#1F2937",fontFamily:"Poppins" }} className="">
+              <h5 style={{ fontWeight: 600, color: "#1F2937", fontFamily: "Poppins" }} className="">
                 Upload Club Logo
               </h5>
 
@@ -584,7 +601,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 >
                   <div className="d-flex justify-content-center align-items-center gap-3 py-1">
                     <SlCloudUpload size={25} color="#6B7280" />
-                    <p className="mb-0 m-0" style={{ fontSize: "15px", color: "#1F2937",fontFamily:"Poppins", fontWeight: 500 }}>
+                    <p className="mb-0 m-0" style={{ fontSize: "15px", color: "#1F2937", fontFamily: "Poppins", fontWeight: 500 }}>
                       Upload Club Logo
                     </p>
                   </div>

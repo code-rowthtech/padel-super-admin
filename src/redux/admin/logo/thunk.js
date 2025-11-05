@@ -61,7 +61,7 @@ export const updateLogo = createAsyncThunk(
       // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        showSuccess(res?.data?.message);
+        // showSuccess(res?.data?.message);
         return data;
       }
 
