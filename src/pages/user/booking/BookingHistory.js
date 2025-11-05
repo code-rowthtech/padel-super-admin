@@ -648,10 +648,12 @@ const BookingHistory = () => {
                                                                         ) {
                                                                             setAcceptedRejected(true);
                                                                             setStatusData({ booking, slotItem });
-                                                                        } else if (booking?.customerReview?._id) {
+                                                                        }
+                                                                        else if (booking?.customerReview?._id) {
                                                                             setModalCancel(true);
                                                                             setCourtData({ slotItem, booking });
-                                                                        } else {
+                                                                        } 
+                                                                         else {
                                                                             setModalCancel(true);
                                                                             setCourtData({ slotItem, booking });
                                                                         }
@@ -660,8 +662,8 @@ const BookingHistory = () => {
                                                                         setStatusData({ booking, slotItem });
                                                                     } else if (activeTab === "all") {
                                                                         if (booking?.customerReview?._id) {
-                                                                            setModalCancel(true);
-                                                                            setCourtData({ slotItem, booking });
+                                                                            setShowRatingModal(true);
+                                                                            setCourtData({ slotItem,booking });
                                                                         } else if (booking?.bookingStatus === "completed") {
                                                                             setShowRatingModal(true);
                                                                             setStatusData({ booking, slotItem });

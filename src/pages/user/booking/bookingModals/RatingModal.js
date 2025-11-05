@@ -13,6 +13,7 @@ import { format, isValid } from "date-fns";
 import { showError, showInfo } from "../../../../helpers/Toast";
 
 export const BookingRatingModal = ({ show, tableData, onHide, initialRating, defaultMessage }) => {
+    console.log({tableData});
     const [rating, setRating] = useState(0);
     const [hover, setHover] = useState(null);
     const [review, setReview] = useState("");
@@ -147,7 +148,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                         color: "#1F2937",
                     }}
                 >
-                    Booking Confirmation
+                   Completed
                 </h4>
                 <i
                     className="bi bi-x fs-2 text-danger fw-bold"

@@ -48,9 +48,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
     dispatch(bookingStatus({ requestType: 'user', id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
       if (res?.status === '200') {
         if (tableData?.booking?.bookingStatus === 'upcoming' && activeTab === 'upcoming') {
-          dispatch(getBooking({ type: 'upcoming', page: currentPage, limit: 10 }))
+          dispatch(getBooking({ type: 'upcoming', page: currentPage, limit: 20 }))
         } else {
-          dispatch(getBooking({ page: currentPage, limit: 10 }))
+          dispatch(getBooking({ page: currentPage, limit: 20 }))
         }
         setShowSuccessModal(true);
         setChangeContent(true)
@@ -97,7 +97,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
           >
             {tableData?.booking?.bookingStatus === "upcoming"
               ? "Booking Details"
-              : tableData?.booking?.bookingStatus
+              : tableData?.booking?.bookingStatus === "in-progress"
                 ? "Cancellation Request"
                 : ""}
           </h4>
@@ -625,7 +625,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               <>
                 <h3 className="tabel-title">
                   Your Request has been <span className="text-danger">Rejected</span> Because of our{" "}
-                  <span className="text-primary">team & condition</span> are not applicable on this reason
+                  <span className="text-primary">term & condition</span> are not applicable on this reason
                 </h3>
 
               </>
