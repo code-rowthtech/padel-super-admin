@@ -500,18 +500,18 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     onClick={() => document.getElementById("clubImagesInput").click()}
                     style={{
                       borderRadius: "12px",
-                      width: previewImages.length > 0 ? '80px' : "100%",
-                      height: previewImages.length > 0 ? '80px' : "40px",
-                      padding: previewImages.length > 0 ? "10px 0px" : "0px",
+                      width:'80px',
+                      height: '80px' ,
+                      padding: "10px 0px" ,
                       textAlign: "center",
                       cursor: "pointer",
                       backgroundColor: "#fff",
                     }}
                   >
-                    <div className={`${previewImages?.length > 0 ? 'flex-column' : ' d-flex justify-content-center pt-1 align-items-center'} gap-3`}>
+                    <div className={` gap-3`}>
                       <SlCloudUpload size={25} color="#6B7280" />
                       <p className="mb-0 m-0" style={{ fontSize: "16px", color: "#1F2937", fontWeight: 500 }}>
-                        {previewImages.length > 0 ? 'Upload' : 'Upload Club Image'}
+                        Upload
                       </p>
                     </div>
                     {/* <p className="text-muted m-0" style={{ fontSize: "12px", fontWeight: 400 }}>
@@ -591,18 +591,18 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                   onClick={() => document.getElementById("logoInput").click()}
                   style={{
                     borderRadius: "12px",
-                    padding: "0px",
-                    width: "100%",
-                    height: "40px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    backgroundColor: "#fff",
+                      width:'80px',
+                      height: '80px' ,
+                      padding: "10px 0px" ,
+                      textAlign: "center",
+                      cursor: "pointer",
+                      backgroundColor: "#fff",
                   }}
                 >
-                  <div className="d-flex justify-content-center align-items-center gap-3 py-1">
+                  <div className=" gap-3 py-1">
                     <SlCloudUpload size={25} color="#6B7280" />
                     <p className="mb-0 m-0" style={{ fontSize: "15px", color: "#1F2937", fontFamily: "Poppins", fontWeight: 500 }}>
-                      Upload Club Logo
+                      Upload 
                     </p>
                   </div>
 
@@ -619,7 +619,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           </Col>
 
           <Col md={6}>
-            <h5 style={{ fontWeight: 700, color: "#1F2937" }} className="my-3 ms-3">
+            <h5 style={{ fontWeight: 600, color: "#1F2937",fontFamily:"Poppins" }} className="my-3 ms-3">
               Business Hours
             </h5>
             {renderBusinessHours()}
