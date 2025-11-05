@@ -27,6 +27,7 @@ import batmintain from './images/Badminton.png'
 import cricket from './images/Cricket.png' 
 import swiming from './images/Swimming.png'
 import frame from './images/Frame 76.png'
+import flag from './images/indflag.svg'
 
 export {
     twoball,
@@ -35,7 +36,7 @@ export {
     review,
     player,
     line,
-    padal,
+    padal,flag,
     club,
     google,
     authImg,

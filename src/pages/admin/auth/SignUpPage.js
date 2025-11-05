@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Form, Button, InputGroup } from "react-bootstrap";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { authImg } from "../../../assets/files";
+import { authImg, flag } from "../../../assets/files";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signupOwner } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
@@ -132,20 +132,20 @@ const SignUpPage = () => {
     }
   };
 
-    const { pathname } = useLocation();
-          console.log("Current pathname:", pathname);
-  
-      useEffect(() => {
-  
-          if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
-              localStorage.removeItem("clubFormData");
-              sessionStorage.removeItem("registerId");
-              console.log("Removed for login/signup");
-          } else if (pathname === "/admin/dashboard") {
-              localStorage.removeItem("clubFormData");
-              console.log("Removed for dashboard");
-          }
-      }, [pathname]);
+  const { pathname } = useLocation();
+  console.log("Current pathname:", pathname);
+
+  useEffect(() => {
+
+    if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
+      localStorage.removeItem("clubFormData");
+      sessionStorage.removeItem("registerId");
+      console.log("Removed for login/signup");
+    } else if (pathname === "/admin/dashboard") {
+      localStorage.removeItem("clubFormData");
+      console.log("Removed for dashboard");
+    }
+  }, [pathname]);
 
   return (
     <Layout>
@@ -180,7 +180,7 @@ const SignUpPage = () => {
                 paddingRight: "40px",
                 borderRadius: "8px",
                 height: "50px",
-                boxShadow:"none"
+                boxShadow: "none"
               }}
             />
             <Form.Control.Feedback type="invalid">
@@ -189,29 +189,48 @@ const SignUpPage = () => {
           </Form.Group>
 
           {/* Phone Number */}
+          {/* Phone Number */}
           <Form.Group controlId="phoneNumber" className="mb-2">
             <Form.Label>Phone Number</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter 10-digit phone number"
-              value={form.phoneNumber.replace('+91 ', '')}
-              disabled={authLoading}
-              onChange={handlePhoneChange}
-              isInvalid={!!errors.phoneNumber}
-              style={{
-                paddingRight: "40px",
-                borderRadius: "8px",
-                height: "50px",
-                boxShadow:"none"
-              }}
-              maxLength={10}
-              autoComplete="tel"
-              inputMode="numeric"
-            />
-          
-            <Form.Control.Feedback type="invalid">
-              {errors.phoneNumber}
-            </Form.Control.Feedback>
+            <InputGroup>
+              <InputGroup.Text
+                style={{
+                  borderRadius: "8px 0 0 8px",
+                  height: "50px",
+                  backgroundColor: "#f8f9fa",
+                  border: "1px solid #ced4da",
+                  borderRight: "none",
+                  boxShadow: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 12px",
+                  fontSize: "16px",
+                  fontFamily:"Poppins"
+                }}
+              >
+                <img src={flag} style={{width: "20px", height: "20px", marginRight: "8px"}}/> +91
+              </InputGroup.Text>
+              <Form.Control
+                type="text"
+                placeholder="Enter 10-digit phone number"
+                value={form.phoneNumber.replace('+91 ', '')}
+                disabled={authLoading}
+                onChange={handlePhoneChange}
+                isInvalid={!!errors.phoneNumber}
+                style={{
+                  borderRadius: "0 8px 8px 0",
+                  height: "50px",
+                  boxShadow: "none",
+                  borderLeft: "none",
+                }}
+                maxLength={10}
+                autoComplete="tel"
+                inputMode="numeric"
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.phoneNumber}
+              </Form.Control.Feedback>
+            </InputGroup>
           </Form.Group>
 
           {/* Email */}
@@ -229,7 +248,7 @@ const SignUpPage = () => {
                 paddingRight: "40px",
                 borderRadius: "8px",
                 height: "50px",
-                boxShadow:"none"
+                boxShadow: "none"
               }}
             />
             <Form.Control.Feedback type="invalid">
@@ -253,13 +272,13 @@ const SignUpPage = () => {
                   paddingRight: "40px",
                   borderRadius: "8px 0px 0px 8px",
                   height: "50px",
-                  boxShadow:"none"
+                  boxShadow: "none"
                 }}
               />
               <Button
                 variant="outline-secondary border"
                 type="button"
-                style={{ borderRadius: "0px 8px 8px 0px",boxShadow:"none" }}
+                style={{ borderRadius: "0px 8px 8px 0px", boxShadow: "none" }}
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={form.password.length === 0}
               >
@@ -287,13 +306,13 @@ const SignUpPage = () => {
                   paddingRight: "40px",
                   borderRadius: "8px 0px 0px 8px",
                   height: "50px",
-                  boxShadow:"none"
+                  boxShadow: "none"
                 }}
               />
               <Button
                 variant="outline-secondary border"
                 type="button"
-                style={{ borderRadius: "0px 8px 8px 0px",boxShadow:"none" }}
+                style={{ borderRadius: "0px 8px 8px 0px", boxShadow: "none" }}
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={form.confirmPassword.length === 0}
               >
@@ -317,7 +336,7 @@ const SignUpPage = () => {
               background: "linear-gradient(to right, #4caf50, #3f51b5)",
               border: "none",
               fontSize: "16px",
-              boxShadow:"none"
+              boxShadow: "none"
             }}
           >
             {authLoading ? (

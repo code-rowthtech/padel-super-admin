@@ -168,7 +168,7 @@ const Home = () => {
                                         <div className="d-flex align-items-center justify-content-start text-nowrap">
                                             <p className="text-success mb-0">
                                                 {[...Array(5)].map((_, i) => {
-                                                    const rating = getReviewData?.averageRating || 4.5;
+                                                    const rating = getReviewData?.averageRating || '';
                                                     if (i < Math.floor(rating)) {
                                                         return <StarIcon key={i} style={{ color: "#32B768" }} />;
                                                     } else if (i < rating && rating % 1 >= 0.5) {
@@ -179,7 +179,7 @@ const Home = () => {
                                                 })}
                                             </p>
                                             <p className="ms-2 pt-1 mb-0" style={{ fontSize: '17.5px', color: '#374151', fontWeight: "500", fontFamily: "Poppins" }}>
-                                                {getReviewData?.averageRating || 4.5}
+                                                {getReviewData?.averageRating || ''}
                                             </p>
                                         </div>
                                     </div>
