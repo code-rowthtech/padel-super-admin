@@ -27,6 +27,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         name: "", email: "", phoneNumber: "", gender: "", level: ""
     });
     const [errors, setErrors] = useState({});
+    const [showErrors, setShowErrors] = useState({}); // Visibility control
     const dispatch = useDispatch();
     const userLoading = useSelector((state) => state?.userAuth);
     const { finalSkillDetails = [] } = useSelector((state) => state.location?.state || {});
@@ -67,31 +68,24 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
     const validate = () => {
         const newErrors = {};
 
-        // Name
-        if (!formData.name.trim()) {
-            newErrors.name = "Name is required";
-        }
+        if (!formData.name.trim()) newErrors.name = "Name is required";
 
-        // Email
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
         } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
             newErrors.email = "Enter a valid email";
         }
 
-        // Phone
         if (!formData.phoneNumber) {
             newErrors.phoneNumber = "Phone number is required";
         } else if (!/^[6-9]\d{9}$/.test(formData.phoneNumber)) {
             newErrors.phoneNumber = "Must be 10 digits, start with 6-9";
         }
 
-        // Level
         if (!formData.level) {
             newErrors.level = "Please select a level";
         }
 
-        // Duplicate level
         const addedPlayers = JSON.parse(localStorage.getItem('addedPlayers') || '{}');
         const existingLevels = Object.values(addedPlayers).map(p => p?.level);
         if (existingLevels.includes(formData.level)) {
@@ -99,6 +93,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         }
 
         setErrors(newErrors);
+        setShowErrors(Object.fromEntries(Object.keys(newErrors).map(k => [k, true])));
         return Object.keys(newErrors).length === 0;
     };
 
@@ -107,6 +102,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         if (!validate()) return;
 
         setErrors({});
+        setShowErrors({});
 
         dispatch(Usersignup(formData))
             .unwrap()
@@ -123,7 +119,9 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                 }
             })
             .catch((err) => {
-                setErrors({ submit: err?.response?.data?.message || "Failed to add player" });
+                const msg = err?.response?.data?.message || "Failed to add player";
+                setErrors({ submit: msg });
+                setShowErrors({ submit: true });
             });
     };
 
@@ -131,7 +129,25 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         const formatted = formatFn ? formatFn(value) : value;
         setFormData(prev => ({ ...prev, [field]: formatted }));
         setErrors(prev => ({ ...prev, [field]: "" }));
+        setShowErrors(prev => ({ ...prev, [field]: false }));
     };
+
+    // Auto-hide errors after 2 sec
+    useEffect(() => {
+        const timers = Object.keys(showErrors)
+            .filter(field => showErrors[field])
+            .map(field => setTimeout(() => {
+                setShowErrors(prev => ({ ...prev, [field]: false }));
+            }, 2000));
+
+        return () => timers.forEach(clearTimeout);
+    }, [showErrors]);
+
+    const inputStyle = (field) => ({
+        border: showErrors[field] && errors[field] ? "1px solid #dc3545" : "1px solid #ced4da",
+        transition: "border 0.2s ease",
+        boxShadow: "none",
+    });
 
     return (
         <Modal
@@ -140,6 +156,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                 setShowAddMeForm(false);
                 setActiveSlot(null);
                 setErrors({});
+                setShowErrors({});
             }}
         >
             <Box sx={modalStyle}>
@@ -168,10 +185,15 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                     handleInputChange('name', formatted);
                                 }
                             }}
-                            className={`form-control p-2 ${errors.name ? 'border-danger' : ''}`}
+                            className="form-control p-2"
                             placeholder="Enter your name"
+                            style={inputStyle("name")}
                         />
-                        {errors.name && <small className="text-danger d-block mt-1">{errors.name}</small>}
+                        {showErrors.name && errors.name && (
+                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                                {errors.name}
+                            </small>
+                        )}
                     </div>
 
                     {/* Email */}
@@ -190,10 +212,15 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                     handleInputChange('email', formatted);
                                 }
                             }}
-                            className={`form-control p-2 ${errors.email ? 'border-danger' : ''}`}
+                            className="form-control p-2"
                             placeholder="Enter your email"
+                            style={inputStyle("email")}
                         />
-                        {errors.email && <small className="text-danger d-block mt-1">{errors.email}</small>}
+                        {showErrors.email && errors.email && (
+                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                                {errors.email}
+                            </small>
+                        )}
                     </div>
 
                     {/* Phone */}
@@ -201,7 +228,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                         <label className="form-label">
                             Phone No <span className="text-danger">*</span>
                         </label>
-                        <div className="input-group border rounded">
+                        <div className="input-group border rounded" >
                             <span className="input-group-text border-0 p-2 bg-white">
                                 <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
                             </span>
@@ -215,11 +242,16 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                         handleInputChange('phoneNumber', value);
                                     }
                                 }}
-                                className={`form-control border-0 p-2 ${errors.phoneNumber ? 'border-danger' : ''}`}
+                                style={inputStyle("phoneNumber")}
+                                className="form-control border-0 p-2"
                                 placeholder="Enter phone number"
                             />
                         </div>
-                        {errors.phoneNumber && <small className="text-danger d-block mt-1">{errors.phoneNumber}</small>}
+                        {showErrors.phoneNumber && errors.phoneNumber && (
+                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                                {errors.phoneNumber}
+                            </small>
+                        )}
                     </div>
 
                     {/* Gender */}
@@ -248,28 +280,35 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                         <label className="form-label">
                             Select Level <span className="text-danger">*</span>
                         </label>
-                        <Select
-                            options={levelOptions}
-                            value={levelOptions.find(opt => opt.value === formData.level)}
-                            onChange={(opt) => handleInputChange('level', opt.value)}
-                            classNamePrefix="select"
-                            isOptionDisabled={(opt) => opt.isDisabled}
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    borderColor: errors.level ? '#dc3545' : base.borderColor,
-                                    boxShadow: 'none',
-                                    '&:hover': { borderColor: errors.level ? '#dc3545' : '#ced4da' }
-                                })
-                            }}
-                        />
-                        {errors.level && <small className="text-danger d-block mt-1">{errors.level}</small>}
+                        <div style={inputStyle("level")}>
+                            <Select
+                                options={levelOptions}
+                                value={levelOptions.find(opt => opt.value === formData.level)}
+                                onChange={(opt) => handleInputChange('level', opt.value)}
+                                classNamePrefix="select"
+                                isOptionDisabled={(opt) => opt.isDisabled}
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        border: "none",
+                                        boxShadow: "none",
+                                    })
+                                }}
+                            />
+                        </div>
+                        {showErrors.level && errors.level && (
+                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                                {errors.level}
+                            </small>
+                        )}
                     </div>
 
-                    {/* Submit Error */}
-                    {errors.submit && (
-                        <div className="text-danger text-center mb-3 p-2 bg-light rounded">
-                            {errors.submit}
+                    {/* Submit Error (inline, below buttons) */}
+                    {showErrors.submit && errors.submit && (
+                        <div className="text-center mb-3">
+                            <small className="text-danger d-block" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                                {errors.submit}
+                            </small>
                         </div>
                     )}
 
@@ -283,6 +322,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                 setShowAddMeForm(false);
                                 setActiveSlot(null);
                                 setErrors({});
+                                setShowErrors({});
                             }}
                         >
                             Cancel

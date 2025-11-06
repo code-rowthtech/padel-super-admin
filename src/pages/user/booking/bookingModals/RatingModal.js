@@ -12,8 +12,7 @@ import { getBooking } from "../../../../redux/user/booking/thunk";
 import { format, isValid } from "date-fns";
 import { showError, showInfo } from "../../../../helpers/Toast";
 
-export const BookingRatingModal = ({ show, tableData, onHide, initialRating, defaultMessage }) => {
-    console.log({tableData});
+export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, onHide, initialRating, defaultMessage }) => {
     const [rating, setRating] = useState(0);
     const [hover, setHover] = useState(null);
     const [review, setReview] = useState("");
@@ -65,7 +64,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                 setRating(0);
                 setReview("");
                 onHide();
-                dispatch(getBooking({ type: "completed", page: 1, limit: 10 }));
+                dispatch(getBooking({ type: activeTab === 'all' ? '' : activeTab, page: currentPage, limit: 20 }));
             });
     };
 
@@ -148,7 +147,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                         color: "#1F2937",
                     }}
                 >
-                   Completed
+                    Completed
                 </h4>
                 <i
                     className="bi bi-x fs-2 text-danger fw-bold"
@@ -233,7 +232,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                             }
                         }}
                     />
-                    <div
+                    {hasReview ? '' : <div
                         style={{
                             position: "absolute",
                             bottom: "10px",
@@ -245,6 +244,7 @@ export const BookingRatingModal = ({ show, tableData, onHide, initialRating, def
                     >
                         {review.length}/250
                     </div>
+                    }
                 </div>
 
                 {/* Button */}

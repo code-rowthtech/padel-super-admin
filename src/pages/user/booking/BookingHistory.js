@@ -34,6 +34,10 @@ import Pagination from "../../../helpers/Pagination";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import TokenExpire from "../../../helpers/TokenExpire";
 import ReactDOM from "react-dom";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import StarIcon from "@mui/icons-material/Star";
+import StarHalfIcon from "@mui/icons-material/StarHalf";
+
 const BookingHistory = () => {
     const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState("all");
@@ -101,7 +105,7 @@ const BookingHistory = () => {
         if (newValue === "cancelled") type = "cancelled";
         else if (newValue === "upcoming") type = "upcoming";
         else if (newValue === "completed") type = "completed";
-        else if (newValue === "all") type = "all";
+        else if (newValue === "all") type = "";
         dispatch(getBooking({ type, page: currentPage, limit: defaultLimit }));
     };
 
@@ -471,17 +475,20 @@ const BookingHistory = () => {
                                                     <td className="text-center pt-2 py-1">
                                                         {[1, 2, 3, 4, 5].map((star) => {
                                                             const averageRating = booking?.customerReview?.reviewRating || 0;
-                                                            let iconClass = "bi-star";
-                                                            if (star <= Math.floor(averageRating))
-                                                                iconClass = "bi-star-fill";
-                                                            else if (star - averageRating <= 0.5 && star - averageRating > 0)
-                                                                iconClass = "bi-star-half";
+                                                            const diff = star - averageRating;
+                                                            let IconComponent;
+                                                            if (star <= Math.floor(averageRating)) {
+                                                                IconComponent = <StarIcon sx={{ color: "#3DBE64", fontSize: 20 }} />;
+                                                            } else if (diff <= 0.5 && diff > 0) {
+                                                                IconComponent = <StarHalfIcon sx={{ color: "#3DBE64", fontSize: 20 }} />;
+                                                            } else {
+                                                                IconComponent = <StarBorderIcon sx={{ color: "#3DBE64", fontSize: 20 }} />;
+                                                            }
+
                                                             return (
-                                                                <i
-                                                                    key={star}
-                                                                    className={`bi ${iconClass} ms-2`}
-                                                                    style={{ color: "#3DBE64", fontSize: "18px" }}
-                                                                />
+                                                                <span key={star} className="ms-1">
+                                                                    {IconComponent}
+                                                                </span>
                                                             );
                                                         })}
                                                     </td>
@@ -652,8 +659,8 @@ const BookingHistory = () => {
                                                                         else if (booking?.customerReview?._id) {
                                                                             setModalCancel(true);
                                                                             setCourtData({ slotItem, booking });
-                                                                        } 
-                                                                         else {
+                                                                        }
+                                                                        else {
                                                                             setModalCancel(true);
                                                                             setCourtData({ slotItem, booking });
                                                                         }
@@ -663,7 +670,8 @@ const BookingHistory = () => {
                                                                     } else if (activeTab === "all") {
                                                                         if (booking?.customerReview?._id) {
                                                                             setShowRatingModal(true);
-                                                                            setCourtData({ slotItem,booking });
+                                                                            setCourtData({ slotItem, booking });
+                                                                            setStatusData({ booking, slotItem });
                                                                         } else if (booking?.bookingStatus === "completed") {
                                                                             setShowRatingModal(true);
                                                                             setStatusData({ booking, slotItem });
@@ -734,6 +742,8 @@ const BookingHistory = () => {
             <BookingRatingModal
                 show={showRatingModal}
                 tableData={statusData}
+                activeTab={activeTab}
+                currentPage={currentPage}
                 onHide={() => {
                     setShowRatingModal(false);
                     setRatingBookingIndex(null);

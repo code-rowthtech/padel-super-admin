@@ -56,6 +56,7 @@ const ManualBooking = () => {
   const [phone, setPhone] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showUnavailable, setShowUnavailable] = useState(false);
+  const [userTypedName, setUserTypedName] = useState(false);
 
   // Close on outside click
   const handleClickOutside = (e) => {
@@ -209,6 +210,7 @@ const ManualBooking = () => {
 
   const clearSessionStorage = () => {
     setSelectedSlots({});
+    setUserTypedName(false);
   };
 
   const KEY = "manual-booking-slots";
@@ -375,18 +377,30 @@ const ManualBooking = () => {
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
+  // Is useEffect ko replace karo
   useEffect(() => {
     if (phone.length === 10) {
       dispatch(searchUserByNumber({ phoneNumber: phone }));
     }
   }, [phone, dispatch]);
 
+  // Naya useEffect add karo — sirf tab name set karo jab user ne khud se nahi dala
   useEffect(() => {
-    if (phone.length < 10) {
-      dispatch(resetSearchData());
-      setName("");
+    if (searchUserData?.result?.name && phone.length === 10) {
+      // Sirf tab name set karo jab user ne manually kuch nahi dala ho
+      if (!name || name.trim() === "") {
+        setName(searchUserData.result.name);
+      }
     }
-  }, [phone, dispatch]);
+  }, [searchUserData, phone]);
+
+  useEffect(() => {
+    if (phone.length === 10 && searchUserData?.result?.name) {
+      setName(searchUserData.result.name);
+    }else if(phone.length === 9 || phone.length === 9 || phone.length === 0 ){
+      dispatch(resetSearchData())
+    }
+  }, [searchUserData, phone]);
 
   return (
     <>
@@ -891,13 +905,12 @@ const ManualBooking = () => {
                               fontFamily: "Poppins",
                               fontSize: "14px",
                             }}
-                            value={searchUserDataLoading ? 'Loading....' : searchUserData?.result?.name ? searchUserData?.result?.name : name}
+                            value={searchUserDataLoading ? "Loading...." : name}
                             onChange={(e) => {
                               let value = e.target.value;
                               value = value.replace(/[^a-zA-Z\s]/g, "");
                               if (value.length > 0) {
-                                value =
-                                  value.charAt(0).toUpperCase() + value.slice(1);
+                                value = value.charAt(0).toUpperCase() + value.slice(1);
                               }
                               setName(value);
                             }}

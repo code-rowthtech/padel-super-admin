@@ -12,6 +12,7 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import NewPlayers from "./NewPlayers";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { Tooltip, TooltipProvider } from "react-tooltip";
+import { loginUserNumber } from "../../../redux/user/auth/authThunk";
 
 const convertTo24Hour = (timeStr) => {
     const [time, period] = timeStr.split(" ");
@@ -29,7 +30,16 @@ const OpenmatchPayment = () => {
     const [selectedPayment, setSelectedPayment] = useState("");
     const [showAddMeForm, setShowAddMeForm] = useState(false);
     const [activeSlot, setActiveSlot] = useState(null);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState({
+        name: '',
+        phoneNumber: '',
+        email: '',
+        paymentMethod: '',
+        general: '',
+        addedPlayers: '',
+        booking: ''
+
+    });
     const [isLoading, setIsLoading] = useState(false);
     const [showShareDropdown, setShowShareDropdown] = useState(false);
     const location = useLocation();
@@ -45,6 +55,13 @@ const OpenmatchPayment = () => {
     const addedPlayers = localStorage.getItem("addedPlayers")
         ? JSON.parse(localStorage.getItem("addedPlayers"))
         : {};
+
+    const updateName = JSON.parse(localStorage.getItem("updateprofile"));
+    const [name, setName] = useState(User?.name || updateName?.fullName || "");
+    const [phoneNumber, setPhoneNumber] = useState(
+        User?.phoneNumber || updateName?.phone ? `+91 ${User.phoneNumber || updateName?.phone}` : ""
+    );
+    const [email, setEmail] = useState(User?.email || updateName?.email || "");
 
     const { slotData = {}, finalSkillDetails = [], selectedDate = {}, selectedCourts = [] } = state || {};
 
@@ -65,22 +82,51 @@ const OpenmatchPayment = () => {
 
     const handleBooking = async () => {
         // Validation
+        setError({
+            name: '', phoneNumber: '', email: '',
+            paymentMethod: '', general: '', addedPlayers: ''
+        });
+
         const addedCount = Object.values(addedPlayers).filter(Boolean).length;
         if (addedCount < 1) {
-            setError("Add at least 2 players to proceed.");
+            setError(prev => ({ ...prev, addedPlayers: "Add at least 2 players to proceed." }));
             return;
         }
+
         if (!selectedPayment) {
-            setError("Select a payment method.");
+            setError(prev => ({ ...prev, paymentMethod: "Select a payment method." }));
             return;
         }
+
+        if (!name?.trim()) {
+            setError(prev => ({ ...prev, name: "Name is required." }));
+            return;
+        }
+
+        if (!email?.trim()) {
+            setError(prev => ({ ...prev, email: "Email is required." }));
+            return;
+        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+            setError(prev => ({ ...prev, email: "Enter a valid email address." }));
+            return;
+        }
+
+        const cleanPhone = phoneNumber?.replace(/^\+91\s*/, "").trim();
+        if (!cleanPhone) {
+            setError(prev => ({ ...prev, phoneNumber: "Phone number is required." }));
+            return;
+        }
+        if (cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone)) {
+            setError(prev => ({ ...prev, phoneNumber: "Phone number must be 10 digits and start with 6-9." }));
+            return;
+        }
+
         if (!selectedCourts?.length || selectedCourts.some(c => !c.time?.length)) {
-            setError("Please select a slot");
+            setError(prev => ({ ...prev, general: "Please select a slot" }));
             return;
         }
 
         setIsLoading(true);
-        setError(null);
 
         const formattedData = {
             slot: selectedCourts.flatMap((court) =>
@@ -104,11 +150,23 @@ const OpenmatchPayment = () => {
         };
 
         try {
-            // Step 1: Create Match
+            const currentPhone = User?.phoneNumber;
+            const currentName = User?.name;
+            const currentEmail = User?.email;
+
+            if (!currentName || !currentPhone || !currentEmail) {
+                const loginResponse = await dispatch(loginUserNumber({ phoneNumber: phoneNumber.replace(/^\+91\s/, ""), name, email })).unwrap();
+
+                if (loginResponse?.status !== "200") {
+                    throw new Error("Login failed. Please try again.");
+                }
+
+                const updatedUser = loginResponse?.response;
+                sessionStorage.setItem("user", JSON.stringify(updatedUser));
+            }
             const matchRes = await dispatch(createMatches(formattedData)).unwrap();
             if (!matchRes?.match?.clubId) throw new Error("Match creation failed.");
 
-            // Step 2: Create Booking (No Payment)
             const bookingPayload = {
                 name: userData?.name || User?.name,
                 phoneNumber: userData?.phoneNumber || User?.phoneNumber,
@@ -136,7 +194,7 @@ const OpenmatchPayment = () => {
             localStorage.removeItem("addedPlayers");
             navigate("/open-matches");
         } catch (err) {
-            setError(err.message || "Booking failed. Please try again.");
+            setError(prev => ({ ...prev, booking: err.message || "Booking failed. Please try again." }));
             setIsLoading(false);
         }
     };
@@ -258,7 +316,7 @@ const OpenmatchPayment = () => {
                     </div>
 
                     {/* Players */}
-                    <div className="p-3 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: error && Object.values(addedPlayers).filter(Boolean).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff" }}>
+                    <div className="p-3 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: error?.addedPlayers && Object.values(addedPlayers).filter(Boolean).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff" }}>
                         <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: 600 }}>
                             Players
                         </h6>
@@ -332,6 +390,113 @@ const OpenmatchPayment = () => {
                         </div>
                     </div>
 
+                    <div
+                        className="rounded-4 py-4 px-3  mb-4"
+                        style={{ backgroundColor: "#F5F5F566", border: error?.name || error?.email || error?.phoneNumber ? "1px solid red" : "1px solid #ddd6d6ff" }}
+                    >
+                        <h6 className="mb-3 custom-heading-use">Contact Info</h6>
+                        <div className="row">
+                            <div className="col-12 col-md-4 mb-3 p-1">
+                                <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                    Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    style={{ boxShadow: "none" }}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+                                            if (value.length === 0 && value.trim() === "") {
+                                                setName("");
+                                                return;
+                                            }
+                                            const formattedValue = value
+                                                .trimStart()
+                                                .replace(/\s+/g, " ")
+                                                .toLowerCase()
+                                                .replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
+                                            setName(formattedValue);
+                                        }
+                                    }}
+                                    className="form-control border-0 p-2"
+                                    placeholder="Enter your name"
+                                    aria-label="name"
+                                />
+                                {error?.name && (
+                                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                                        {error?.name}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="col-12 col-md-4 mb-3 p-1">
+                                <label className="form-label mb-0 ps-lg-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                    Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                                </label>
+                                <div className="input-group">
+                                    <span className="input-group-text border-0 p-2" style={{ backgroundColor: "#F5F5F5" }}>
+                                        <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
+                                    </span>
+                                    <input
+                                        type="text"
+                                        maxLength={13}
+                                        value={phoneNumber}
+                                        style={{ boxShadow: "none" }}
+                                        disabled={User?.phoneNumber}
+                                        onChange={(e) => {
+                                            const inputValue = e.target.value.replace(/[^0-9]/g, "");
+                                            if (inputValue === "" || /^[6-9][0-9]{0,9}$/.test(inputValue)) {
+                                                const formattedValue = inputValue === "" ? "" : `+91 ${inputValue}`;
+                                                setPhoneNumber(formattedValue);
+                                            }
+                                        }}
+                                        className="form-control border-0 p-2"
+                                        placeholder="+91"
+                                    />
+                                </div>
+                                {error?.phoneNumber && (
+                                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                                        {error?.phoneNumber}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="col-12 col-md-4 mb-3 p-1">
+                                <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                                    Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    style={{ boxShadow: "none" }}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
+                                            if (value.length === 0) {
+                                                setEmail("");
+                                                return;
+                                            }
+                                            const formattedValue = value
+                                                .replace(/\s+/g, "")
+                                                .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
+                                                    return first.toUpperCase() + rest.toLowerCase() + domain;
+                                                });
+                                            setEmail(formattedValue);
+                                        }
+                                    }}
+                                    className="form-control border-0 p-2"
+                                    placeholder="Enter your email"
+                                />
+                                {error?.email && (
+                                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                                        {error?.email}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
 
                     <h6 className="mb-3 mt-4" style={{ fontSize: "18px", fontWeight: 600 }}>Information</h6>
                     <div className="d-flex mb-4 align-items-center gap-3 px-2">
@@ -346,7 +511,7 @@ const OpenmatchPayment = () => {
 
                 {/* Right Section */}
                 <div className="col-5 pe-0">
-                    <div className="rounded-4 pt-4 px-5 pb-4" style={{ backgroundColor: "#F5F5F566", border: error && !selectedPayment ? "1px solid red" : "" }}>
+                    <div className="rounded-4 pt-4 px-5 pb-4" style={{ backgroundColor: "#F5F5F566", border: error?.paymentMethod && !selectedPayment ? "1px solid red" : "" }}>
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: 600 }}>
                             Payment Method
 
@@ -406,7 +571,7 @@ const OpenmatchPayment = () => {
                             <p style={{ fontSize: 25 }}>₹ {totalAmount}</p>
                         </div>
                         <div className="d-flex justify-content-center mt-3">
-                            {error && (
+                            {error?.addedPlayers || error?.paymentMethod && (
                                 <div
                                     className="text-center mb-3 p-2 rounded"
                                     style={{
@@ -419,36 +584,36 @@ const OpenmatchPayment = () => {
                                         maxWidth: "370px"
                                     }}
                                 >
-                                    {error}
+                                    {error?.addedPlayers ? error?.addedPlayers : error?.paymentMethod}
                                 </div>
                             )}
-                            </div>
-                            <div className="d-flex justify-content-center mt-3">
-                                <button style={buttonStyle} onClick={handleBooking} disabled={isLoading}>
-                                    <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-                                        <defs>
-                                            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                <stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#fff" />
-                                            </linearGradient>
-                                        </defs>
-                                        <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill="url(#grad)" />
-                                        <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
-                                        <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d={`M ${circleX - arrowSize * 0.3} ${circleY + arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4}`} />
-                                            <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX - arrowSize * 0.1} ${circleY - arrowSize * 0.4}`} />
-                                            <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY + arrowSize * 0.1}`} />
-                                        </g>
-                                    </svg>
-                                    <div style={contentStyle}>{isLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
-                                </button>
-                            </div>
+                        </div>
+                        <div className="d-flex justify-content-center mt-3">
+                            <button style={buttonStyle} onClick={handleBooking} disabled={isLoading}>
+                                <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#fff" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill="url(#grad)" />
+                                    <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
+                                    <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d={`M ${circleX - arrowSize * 0.3} ${circleY + arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4}`} />
+                                        <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX - arrowSize * 0.1} ${circleY - arrowSize * 0.4}`} />
+                                        <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY + arrowSize * 0.1}`} />
+                                    </g>
+                                </svg>
+                                <div style={contentStyle}>{isLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
+                            </button>
                         </div>
                     </div>
                 </div>
-
-                <NewPlayers activeSlot={activeSlot} setShowAddMeForm={setShowAddMeForm} showAddMeForm={showAddMeForm} setActiveSlot={setActiveSlot} />
             </div>
-            );
+
+            <NewPlayers activeSlot={activeSlot} setShowAddMeForm={setShowAddMeForm} showAddMeForm={showAddMeForm} setActiveSlot={setActiveSlot} />
+        </div>
+    );
 };
 
-            export default OpenmatchPayment;
+export default OpenmatchPayment;

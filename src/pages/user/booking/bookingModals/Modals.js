@@ -625,7 +625,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               <>
                 <h3 className="tabel-title">
                   Your Request has been <span className="text-danger">Rejected</span> Because of our{" "}
-                  <span className="text-primary">term & condition</span> are not applicable on this reason
+                  <span className="text-primary">Terms & Condition</span> are not applicable on this reason
                 </h3>
 
               </>

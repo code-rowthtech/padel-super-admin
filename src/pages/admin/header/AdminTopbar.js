@@ -88,6 +88,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     });
 
     socket.on("adminNotification", (data) => {
+      console.log('adminNotification',data);
       setNotifications((prev) => {
         const exists = prev.some((n) => n._id === data._id);
         if (exists) return prev;
