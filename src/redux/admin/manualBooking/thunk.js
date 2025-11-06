@@ -41,11 +41,8 @@ export const getActiveCourts = createAsyncThunk(
     // Removed unused 'data' parameter
     try {
       const res = await ownerApi.get(
-        `${Url.GET_ACTIVE_COURTS}?register_club_id=${
-          params?.register_club_id
-        }&day=${params?.day}&date=${params?.date}&courtId=${
-          params?.courtId || ""
-        }`
+        `${Url.GET_ACTIVE_COURTS}?register_club_id=${params?.register_club_id
+        }&day=${params?.day}&date=${params?.date}`
       );
 
       // Destructure response data

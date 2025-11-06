@@ -269,15 +269,12 @@ const CreateMatches = () => {
   const grandTotal = selectedCourts.reduce((sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0), 0);
   const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
-  const handleBookNow = () => {
+
+  const handleNext = () => {
     if (selectedCourts.length === 0 || selectedCourts.every(c => c.time.length === 0)) {
       setSlotError("Select a slot to enable booking");
       return;
     }
-    setShowStepsModal(true);
-  };
-
-  const handleNext = () => {
     if (currentStep === 1) {
       if (selectedLevel.length > 0) {
         setSkillDetails(prev => { const n = [...prev]; n[currentStep] = selectedLevel; return n; });
@@ -407,7 +404,7 @@ const CreateMatches = () => {
 
   return (
     <Container className="p-4 mb-5">
-      <Row>
+      <Row className="g-3">
         {/* LEFT PANEL */}
         <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
@@ -685,89 +682,171 @@ const CreateMatches = () => {
         </Col>
 
         {/* RIGHT PANEL */}
-        <Col md={5}>
-          <div className="border w-100 px-3 py-5 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
-            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-3">
-              {logo ? (
-                <Avatar src={logo} style={{ height: 112, width: 112, boxShadow: "0px 4px 11.4px 0px #0000002E" }} />
-              ) : (
-                <Avatar style={{ height: 112, width: 112, fontSize: 30, boxShadow: "0px 4px 11.4px 0px #0000002E" }}>
-                  {clubData?.clubName?.[0]?.toUpperCase() || "C"}
-                </Avatar>
-              )}
-              <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: 600, fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+        <Col md={5} className="ps-2" >
+          <div className="div" style={{ backgroundColor: "#F1F4FF" }}>
+            {/* Step Indicators */}
+            <div className="d-flex gap-2 ps-4 pt-4">
+              {steps.map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 14,
+                    fontWeight: 600,
+                  }}
+                >
+
+                </div>
+              ))}
             </div>
-            <div className="d-flex border-top pt-2 justify-content-between align-items-center">
-              <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
-              {totalSlots >= 10 && (
-                <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ background: "#111827", fontSize: "10px", fontWeight: "600" }} onClick={handleClearAll}>
-                  Clear All
-                </Button>
-              )}
-            </div>
-            <div
-              style={{
-                maxHeight: "240px",
-                overflowY: "auto",
-                overflowX: "hidden", // 👈 add this line
-              }}
-            >
-              {selectedCourts.length > 0 ? (
-                selectedCourts.map((court) =>
-                  court.time.map((timeSlot) => (
-                    <div key={timeSlot._id} className="row mb-2">
-                      <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
-                        <div className="d-flex text-white flex-wrap"> {/* 👈 flex-wrap to avoid overflow */}
-                          <span style={{ fontWeight: 600, fontSize: "16px" }}>
-                            {new Date(court.date).toLocaleString("en-US", {
-                              day: "2-digit",
-                              month: "short",
-                            })}
-                          </span>
-                          <span className="ps-1" style={{ fontWeight: 600, fontSize: "16px" }}>
-                            {formatTime(timeSlot.time)}
-                          </span>
-                          <span
-                            className="ps-2"
-                            style={{ fontWeight: 500, fontSize: "15px" }}
-                          >
-                            {court.courtName}
-                          </span>
-                        </div>
-                        <div className="text-white">
-                          ₹
-                          <span className="ps-1" style={{ fontWeight: 600 }}>
-                            {timeSlot.amount || "N/A"}
-                          </span>
-                          <MdOutlineDeleteOutline
-                            className="ms-2 mb-2 text-white"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleDeleteSlot(court._id, timeSlot._id)}
-                          />
-                        </div>
+
+            {/* Form Content */}
+            <div className="p-4">
+              <h6 className="mb-4" style={{ fontSize: "20px", fontFamily: "Poppins", fontWeight: 600, color: "#1f2937" }}>
+                {steps[currentStep].question}
+              </h6>
+
+              <Form style={{ height: "350px", overflowY: "auto" }}>
+                {/* STEP 2: Multiple Select (Checkboxes) */}
+                {currentStep === 1 ? (
+                  steps[currentStep].options.map((opt, i) => (
+                    <div
+                      key={i}
+                      onClick={() => {
+                        setSelectedLevel((prev) =>
+                          prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
+                        );
+                      }}
+                      className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                      style={{
+                        backgroundColor: selectedLevel.includes(opt) ? "#eef2ff" : "#fff",
+                        borderColor: selectedLevel.includes(opt) ? "#4f46e5" : "#e5e7eb",
+                        cursor: "pointer",
+                        gap: "12px",
+                        minHeight: "60px",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <Form.Check
+                        type="checkbox"
+                        checked={selectedLevel.includes(opt)}
+                        onChange={() => { }}
+                        style={{ flexShrink: 0, marginTop: 0 }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: 500,
+                          color: "#1f2937",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {opt}
+                      </span>
+                    </div>
+                  ))
+                ) : currentStep === steps.length - 1 ? (
+                  /* LAST STEP: Skill Level (Radio + Code) */
+                  steps[currentStep].options.map((opt, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setSelectedLevel(opt.code)}
+                      className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                      style={{
+                        backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
+                        borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
+                        cursor: "pointer",
+                        gap: "12px",
+                        minHeight: "60px",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <Form.Check
+                        type="radio"
+                        name="last"
+                        checked={selectedLevel === opt.code}
+                        onChange={() => { }}
+                        style={{ flexShrink: 0, marginTop: 0 }}
+                      />
+                      <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
+                        <span
+                          style={{
+                            fontSize: "24px",
+                            fontWeight: 700,
+                            color: "#1d4ed8",
+                            minWidth: "38px",
+                            textAlign: "center",
+                          }}
+                        >
+                          {opt.code}
+                        </span>
+                        <strong
+                          style={{
+                            fontSize: "16px",
+                            color: "#1f2937",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                          title={opt.title}
+                        >
+                          {opt.title}
+                        </strong>
                       </div>
                     </div>
                   ))
-                )
-              ) : (
-                <div
-                  className="d-flex flex-column justify-content-center align-items-center text-white"
-                  style={{ height: "25vh" }}
-                >
-                  <p style={{ fontSize: "14px", fontWeight: "500" }}>No slot selected</p>
-                </div>
-              )}
+                ) : (
+                  /* OTHER STEPS: Single Radio */
+                  steps[currentStep].options.map((opt, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setSelectedLevel(opt)}
+                      className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                      style={{
+                        backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
+                        borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
+                        cursor: "pointer",
+                        gap: "12px",
+                        minHeight: "60px",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <Form.Check
+                        type="radio"
+                        name={`step${currentStep}`}
+                        checked={selectedLevel === opt}
+                        onChange={() => { }}
+                        style={{ flexShrink: 0, marginTop: 0 }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: 500,
+                          color: "#1f2937",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {opt}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </Form>
             </div>
 
-            {totalSlots > 0 && (
-              <div className="border-top pt-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold">
-                <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
-                  Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
-                </p>
-                <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
-              </div>
-            )}
-            <div className="d-flex justify-content-center mt-3">
+            {/* Buttons */}
+            <div className="d-flex justify-content-center">
               {slotError && (
                 <div
                   className="text-center mb-3 p-2 rounded"
@@ -785,251 +864,55 @@ const CreateMatches = () => {
                 </div>
               )}
             </div>
-
-            <div className="d-flex justify-content-center mt-3">
-              <button style={buttonStyle} onClick={handleBookNow}>
-                <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#fff" />
-                    </linearGradient>
-                  </defs>
-                  <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill="url(#grad)" />
-                  <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
-                  <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={`M ${circleX - arrowSize * 0.3} ${circleY + arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4}`} />
-                    <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX - arrowSize * 0.1} ${circleY - arrowSize * 0.4}`} />
-                    <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY + arrowSize * 0.1}`} />
-                  </g>
-                </svg>
-                <div style={contentStyle}>Submit</div>
-              </button>
+            <div
+              className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"
+                } align-items-center p-3`}
+            >
+              {currentStep > 0 && (
+                <Button
+                  className="rounded-pill px-4 me-2"
+                  style={{
+                    backgroundColor: window.innerWidth < 768 ? "transparent" : "#374151",
+                    border: "none",
+                    color: window.innerWidth < 768 ? "#001B76" : "#fff",
+                  }}
+                  onClick={handleBack}
+                >
+                  Back
+                </Button>
+              )}
+              <Button
+                className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1
+                  ? "p-3 rounded-circle d-flex align-items-center justify-content-center"
+                  : "rounded-pill"
+                  }`}
+                style={{
+                  background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                  border: "none",
+                  color: "#fff",
+                }}
+                disabled={
+                  !selectedLevel ||
+                  (currentStep === 1 && selectedLevel.length === 0)
+                }
+                onClick={handleNext}
+              >
+                {userMatches?.matchesLoading ? (
+                  <ButtonLoading />
+                ) : currentStep === steps.length - 1 ? (
+                  "Submit"
+                ) : window.innerWidth < 768 ? (
+                  ""
+                ) : (
+                  "Next"
+                )}
+              </Button>
             </div>
           </div>
         </Col>
       </Row>
 
-      {/* Steps Modal */}
-      <Modal show={showStepsModal} onHide={() => setShowStepsModal(false)} size="xl" centered>
-        <Modal.Body className="p-0 border rounded-3">
-          <Row className="g-0 mx-auto">
-            {/* Left Image (Desktop Only) */}
-            <Col md={6} className="d-flex d-none d-lg-block align-items-center justify-content-center p-0">
-              <img src={frame} alt="Padel" className="img-fluid w-100" style={{ objectFit: "cover" }} />
-            </Col>
 
-            {/* Right Form */}
-            <Col md={6} className="ps-lg-3" style={{ backgroundColor: "#F1F4FF" }}>
-              {/* Step Indicators */}
-              <div className="d-flex gap-2 ps-4 pt-4">
-                {steps.map((_, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
-                      color: "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 14,
-                      fontWeight: 600,
-                    }}
-                  >
-                    
-                  </div>
-                ))}
-              </div>
-
-              {/* Form Content */}
-              <div className="p-4">
-                <h6 className="mb-4" style={{ fontSize: "18px", fontWeight: 600, color: "#1f2937" }}>
-                  {steps[currentStep].question}
-                </h6>
-
-                <Form style={{ height: "350px", overflowY: "auto" }}>
-                  {/* STEP 2: Multiple Select (Checkboxes) */}
-                  {currentStep === 1 ? (
-                    steps[currentStep].options.map((opt, i) => (
-                      <div
-                        key={i}
-                        onClick={() => {
-                          setSelectedLevel((prev) =>
-                            prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
-                          );
-                        }}
-                        className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                        style={{
-                          backgroundColor: selectedLevel.includes(opt) ? "#eef2ff" : "#fff",
-                          borderColor: selectedLevel.includes(opt) ? "#4f46e5" : "#e5e7eb",
-                          cursor: "pointer",
-                          gap: "12px",
-                          minHeight: "60px",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        <Form.Check
-                          type="checkbox"
-                          checked={selectedLevel.includes(opt)}
-                          onChange={() => { }}
-                          style={{ flexShrink: 0, marginTop: 0 }}
-                        />
-                        <span
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: 500,
-                            color: "#1f2937",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {opt}
-                        </span>
-                      </div>
-                    ))
-                  ) : currentStep === steps.length - 1 ? (
-                    /* LAST STEP: Skill Level (Radio + Code) */
-                    steps[currentStep].options.map((opt, i) => (
-                      <div
-                        key={i}
-                        onClick={() => setSelectedLevel(opt.code)}
-                        className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                        style={{
-                          backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
-                          borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
-                          cursor: "pointer",
-                          gap: "12px",
-                          minHeight: "60px",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        <Form.Check
-                          type="radio"
-                          name="last"
-                          checked={selectedLevel === opt.code}
-                          onChange={() => { }}
-                          style={{ flexShrink: 0, marginTop: 0 }}
-                        />
-                        <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
-                          <span
-                            style={{
-                              fontSize: "24px",
-                              fontWeight: 700,
-                              color: "#1d4ed8",
-                              minWidth: "38px",
-                              textAlign: "center",
-                            }}
-                          >
-                            {opt.code}
-                          </span>
-                          <strong
-                            style={{
-                              fontSize: "16px",
-                              color: "#1f2937",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                            title={opt.title}
-                          >
-                            {opt.title}
-                          </strong>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    /* OTHER STEPS: Single Radio */
-                    steps[currentStep].options.map((opt, i) => (
-                      <div
-                        key={i}
-                        onClick={() => setSelectedLevel(opt)}
-                        className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                        style={{
-                          backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
-                          borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
-                          cursor: "pointer",
-                          gap: "12px",
-                          minHeight: "60px",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        <Form.Check
-                          type="radio"
-                          name={`step${currentStep}`}
-                          checked={selectedLevel === opt}
-                          onChange={() => { }}
-                          style={{ flexShrink: 0, marginTop: 0 }}
-                        />
-                        <span
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: 500,
-                            color: "#1f2937",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {opt}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </Form>
-              </div>
-
-              {/* Buttons */}
-              <div
-                className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"
-                  } align-items-center p-3`}
-              >
-                {currentStep > 0 && (
-                  <Button
-                    className="rounded-pill px-4 me-2"
-                    style={{
-                      backgroundColor: window.innerWidth < 768 ? "transparent" : "#374151",
-                      border: "none",
-                      color: window.innerWidth < 768 ? "#001B76" : "#fff",
-                    }}
-                    onClick={handleBack}
-                  >
-                    Back
-                  </Button>
-                )}
-                <Button
-                  className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1
-                      ? "p-3 rounded-circle d-flex align-items-center justify-content-center"
-                      : "rounded-pill"
-                    }`}
-                  style={{
-                    background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                    border: "none",
-                    color: "#fff",
-                  }}
-                  disabled={
-                    !selectedLevel ||
-                    (currentStep === 1 && selectedLevel.length === 0)
-                  }
-                  onClick={handleNext}
-                >
-                  {userMatches?.matchesLoading ? (
-                    <ButtonLoading />
-                  ) : currentStep === steps.length - 1 ? (
-                    "Submit"
-                  ) : window.innerWidth < 768 ? (
-                    ""
-                  ) : (
-                    "Next"
-                  )}
-                </Button>
-              </div>
-            </Col>
-          </Row>
-        </Modal.Body>
-      </Modal>
     </Container >
   );
 };
