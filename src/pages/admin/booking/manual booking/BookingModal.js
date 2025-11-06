@@ -255,6 +255,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
           color: "#1F2937",
         }}
       >
+        {console.log(bookingDetails?.bookingStatus,'bookingDetails?.bookingStatus')}
         {bookingDetails?.bookingStatus === 'upcoming' ? "Booking Details" : bookingDetails?.bookingStatus === 'refunded' ? "Cancellation Details" : ""}
       </h4>
       <i

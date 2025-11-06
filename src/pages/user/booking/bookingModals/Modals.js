@@ -103,7 +103,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
           </h4>
 
           <i
-            className="bi bi-x fs-2 text-danger fw-bold position-absolute end-0 me-3"
+            className="bi bi-x fs-2 text-dark fw-bold position-absolute end-0 me-3"
             onClick={handleClose}
             style={{ cursor: "pointer" }}
           ></i>
@@ -325,7 +325,7 @@ export const BookingHistorySuccessModal = ({ show, onHide, safeFormatDate, booki
         <div className="d-flex justify-content-end">
           <button
             type="button"
-            className="bi bi-x fs-4 text-danger"
+            className="bi bi-x fs-4 text-dark"
             style={{ border: 'none', background: 'none' }}
             aria-label="Close"
             onClick={onHide}
@@ -374,7 +374,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
         <div className="d-flex justify-content-end">
           <button
             type="button"
-            className="bi bi-x fs-4 text-danger"
+            className="bi bi-x fs-4 text-dark"
             style={{ border: 'none', background: 'none' }}
             aria-label="Close"
             onClick={onHide}
@@ -470,7 +470,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
           Booking {booking?.booking?.bookingStatus === 'in-progress' ? "Requested" : booking?.booking?.bookingStatus === 'rejected' ? "Rejected" : "Cancelled"}
         </h4>
         <i
-          className="bi bi-x fs-2 text-danger fw-bold"
+          className="bi bi-x fs-2 text-dark fw-bold"
           onClick={onHide}
           style={{ cursor: "pointer" }}
         ></i>

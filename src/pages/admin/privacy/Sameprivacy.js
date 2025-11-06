@@ -1,7 +1,7 @@
 import { Container, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-const Privacy = () => {
+const Sameprivacy = () => {
   const navigate = useNavigate();
 
   const headingStyle = {
@@ -42,7 +42,7 @@ const Privacy = () => {
     <>
       <Container>
         <Row>
-          <div className="col-md-12">
+          <div className="col-md-12 mt-3">
             <div className="privacy-policy">
               <h1 style={headingStyle} className="privacy-policy-heading">Terms of Use and Privacy Policy</h1>
               <h1 style={headingStyle} className="privacy-policy-heading">Rules and regulations, privacy policy and user agreement for access and / or usage</h1>
@@ -385,4 +385,4 @@ const Privacy = () => {
   );
 };
 
-export default Privacy;
+export default Sameprivacy;

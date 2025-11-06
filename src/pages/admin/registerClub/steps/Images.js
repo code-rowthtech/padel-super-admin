@@ -211,6 +211,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           for (let h = minEndHour; h <= 23; h++) {
             allowedEndTimes.push(`${h.toString().padStart(2, "0")}:00`);
           }
+          
 
           return (
             <Row key={day} className="align-items-center mb-1 ms-3">
@@ -231,12 +232,12 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     }}
                     style={{
                       height: "32px",
-                      borderRadius: "8px 0 0 8px",
+                      borderRadius: "8px",
                       fontSize: "14px",
                       textAlign: "center",
                       boxShadow: "none",
                     }}
-                    className="py-0 border-end-0"
+                    className="py-0 "
                   >
                     {Array.from({ length: 13 }, (_, i) => {
                       const h = i + 5;
@@ -249,7 +250,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     })}
                   </FormControl>
 
-                  <InputGroup.Text
+                  {/* <InputGroup.Text
                     className="bg-white"
                     style={{ height: "32px", borderRadius: "0 8px 8px 0" }}
                     onClick={(e) => {
@@ -259,7 +260,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     }}
                   >
                     <FiClock style={{ cursor: "pointer" }} size={16} color="#6B7280" />
-                  </InputGroup.Text>
+                  </InputGroup.Text> */}
                 </InputGroup>
               </Col>
 
@@ -280,12 +281,12 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     }}
                     style={{
                       height: "32px",
-                      borderRadius: "8px 0 0 8px",
+                      borderRadius: "8px",
                       fontSize: "14px",
                       textAlign: "center",
                       boxShadow: "none",
                     }}
-                    className="py-0 border-end-0"
+                    className="py-0 "
                   >
                     {allowedEndTimes.map((t) => (
                       <option key={t} value={t}>
@@ -294,7 +295,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     ))}
                   </FormControl>
 
-                  <InputGroup.Text
+                  {/* <InputGroup.Text
                     className="bg-white"
                     style={{ height: "32px", borderRadius: "0 8px 8px 0" }}
                     onClick={(e) => {
@@ -304,7 +305,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     }}
                   >
                     <FiClock style={{ cursor: "pointer" }} size={16} color="#6B7280" />
-                  </InputGroup.Text>
+                  </InputGroup.Text> */}
                 </InputGroup>
               </Col>
             </Row>
@@ -644,7 +645,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     style={{ cursor: "pointer" }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate("/admin/privacy");
+                      navigate("/admin/sameprivacy");
                     }}
                   >
                     Terms & conditions
@@ -655,7 +656,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     style={{ cursor: "pointer" }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate("/admin/privacy");
+                      navigate("/admin/sameprivacy");
                     }}
                   >
                     Privacy policy

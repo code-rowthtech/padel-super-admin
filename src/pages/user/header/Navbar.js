@@ -160,7 +160,7 @@ const Navbar = () => {
     const initialFormData = {
         fullName: user?.response?.name || updateName?.fullName  || User?.name || "",
         phone: user?.response?.phoneNumber || updateName?.phone  || User?.phoneNumber || "",
-        profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic || "",
+        profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic  || updateName?.profile,
     };
 
     useEffect(() => {
@@ -468,7 +468,7 @@ const Navbar = () => {
                                     {/* Profile for large screens */}
                                     <div className="d-none d-lg-flex align-items-center gap-2">
                                         <img
-                                            src={User?.user?.response?.profilePic || userData?.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                            src={User?.user?.response?.profilePic || userData?.profilePic || initialFormData?.profileImage || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                             alt="user"
                                             className="rounded-circle"
                                             width="40"

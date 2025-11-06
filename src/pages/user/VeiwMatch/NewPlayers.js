@@ -195,7 +195,6 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             </small>
                         )}
                     </div>
-
                     {/* Email */}
                     <div className="mb-3">
                         <label className="form-label">
@@ -222,7 +221,6 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             </small>
                         )}
                     </div>
-
                     {/* Phone */}
                     <div className="mb-3">
                         <label className="form-label">
