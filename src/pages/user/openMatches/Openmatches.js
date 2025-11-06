@@ -701,6 +701,7 @@ const Openmatches = () => {
                                 <DataLoading />
                             ) : (
                                 <>
+                                    {/* Left: Overall Rating */}
                                     <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
                                         <div className="w-100">
                                             <p className="mb-0" style={{ fontSize: "16px", fontWeight: "500", color: "#111", fontFamily: "Poppins" }}>
@@ -723,42 +724,62 @@ const Openmatches = () => {
                                                     })}
                                                 </div>
                                                 <div className="text-muted ps-2 pb-2" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}>
-                                                  Based on  {reviewData?.totalReviews || 0} reviews
+                                                    Based on {reviewData?.totalReviews || 0} reviews
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
+                                    {/* Right: Rating Bars */}
                                     <div className="col-12 col-lg-8 ps-lg-4 pe-0">
                                         <div className="w-100">
                                             {[5, 4, 3, 2, 1].map((star, idx) => {
                                                 const total = reviewData?.totalReviews || 1;
                                                 let count = 0;
-                                                if (star === 3 && reviewData?.ratingCategory === "Average") count = reviewData?.ratingCounts?.Average || 0;
-                                                else if (star === 4 && reviewData?.ratingCounts?.Good) count = reviewData?.ratingCounts?.Good || 0;
+                                                if (star === 5) count = reviewData?.ratingCounts?.Excellent || 0;
+                                                else if (star === 4) count = reviewData?.ratingCounts?.Good || 0;
+                                                else if (star === 3) count = reviewData?.ratingCounts?.Average || 0;
                                                 else if (star <= 2) count = reviewData?.ratingCounts?.Below || 0;
-                                                else if (star === 5) count = reviewData?.ratingCounts?.Excellent || 0;
 
                                                 const percent = Math.round((count / total) * 100);
 
                                                 return (
-                                                    <div className="d-flex align-items-center mb-2 gap-2  justify-content-between w-100" key={star}>
-                                                        <div className="text-nowrap"
+                                                    <div
+                                                        key={star}
+                                                        className="d-flex align-items-center mb-3 gap-3"
+                                                        style={{ width: "100%" }}
+                                                    >
+                                                        {/* Fixed Width Label */}
+                                                        <div
+                                                            className="text-nowrap"
                                                             style={{
                                                                 width: "110px",
-                                                                textAlign: "left",
+                                                                minWidth: "110px",
                                                                 fontSize: "14px",
                                                                 fontWeight: "500",
                                                                 fontFamily: "Poppins",
                                                                 color: "#111",
                                                             }}
                                                         >
-                                                            {star === 5 ? "Excellent" : star === 4 ? "Good" : star === 3 ? "Average" : star === 2 ? "Below Average" : "Poor"}
+                                                            {star === 5
+                                                                ? "Excellent"
+                                                                : star === 4
+                                                                    ? "Good"
+                                                                    : star === 3
+                                                                        ? "Average"
+                                                                        : star === 2
+                                                                            ? "Below Average"
+                                                                            : "Poor"}
                                                         </div>
 
+                                                        {/* Progress Bar - Takes Remaining Space */}
                                                         <div
-                                                            className="progress  w-100 border"
-                                                            style={{ height: "10px", backgroundColor: "#eee" }}
+                                                            className="progress flex-grow-1 border"
+                                                            style={{
+                                                                height: "10px",
+                                                                backgroundColor: "#eee",
+                                                                minWidth: 0,
+                                                            }}
                                                         >
                                                             <div
                                                                 className="progress-bar"
@@ -774,11 +795,15 @@ const Openmatches = () => {
                                                                                     : star === 2
                                                                                         ? "#FC702B"
                                                                                         : "#E9341F",
+                                                                    transition: "width 0.4s ease",
                                                                 }}
-                                                            ></div>
+                                                            />
                                                         </div>
 
-
+                                                        {/* Optional: Show Count */}
+                                                        {/* <small className="text-muted ms-2" style={{ fontSize: "12px" }}>
+                  {count}
+                </small> */}
                                                     </div>
                                                 );
                                             })}

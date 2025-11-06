@@ -283,7 +283,7 @@ const Home = () => {
 
                     {/* Right Column: Upcoming Matches */}
                     <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 ">
-                        <div className="text-white  position-relative h-100" style={{ background: 'linear-gradient(180deg, #0034E4 0%, #001B76 100%)', border: "0.5px solid #d4d1d1ff", borderRadius: "20px", height: "auto" }}>
+                        <div className="text-white  position-relative h-100" style={{ background: 'linear-gradient(180deg, #0034E4 0%, #001B76 100%)', border: "2px solid #eceaeaff", borderRadius: "20px", height: "auto" }}>
                             <div className='pt-5 pb-1 px-3' style={{ padding: '2rem' }}>
                                 <button className="btn mb-3 rounded-pill text-white px-4 py-1" onClick={() => navigate('/open-matches')}
                                     style={{ border: "3px solid #FFFFFF", fontSize: "23px", fontFamily: "Poppins", fontWeight: "500" }}>

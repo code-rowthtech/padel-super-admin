@@ -248,7 +248,7 @@ const AdminDashboard = () => {
                       <div
                         className={`d-flex align-items-center gap-1 text-${card.color} fw-semibold`}
                       >
-                        <div
+                        {/* <div
                           className="d-flex align-items-center justify-content-center"
                           style={{
                             display: "inline-flex",
@@ -275,9 +275,9 @@ const AdminDashboard = () => {
                           >
                             {card.icon}
                           </span>
-                        </div>
+                        </div> */}
 
-                        <span className="small">{card.percent}</span>
+                        {/* <span className="small">{card.percent}</span> */}
                       </div>
                     </div>
                     <div className=" mb-2 text-end">

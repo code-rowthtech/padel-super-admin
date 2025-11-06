@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Navbar from "../../pages/user/header/Navbar";
 import Footer from "../../pages/user/footer/Footer";
 import { getUserFromSession } from "../api/apiCore";
@@ -39,13 +39,29 @@ const DefaultLayout = () => {
     );
   }, [currentPageName, excludedPages, location.pathname]);
 
+  useEffect(() => {
+    const currentPath = location.pathname;
+    if (currentPath !== "/match-payment") {
+      const cleanup = () => {
+        localStorage.removeItem("addedPlayers");
+      };
+      return cleanup;
+    }
+
+    return undefined;
+  }, [location.pathname]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname])
+
   return (
     <div className="d-flex flex-column" style={{ height: "100vh", overflowY: "auto", overflowX: "hidden" }}>
       {!shouldHideHeaderFooter && <Navbar user={user} />}
 
       <div
         className="flex-grow-1"
-        style={{marginTop:!shouldHideHeaderFooter ? "5.5rem" :"" }}
+        style={{ marginTop: !shouldHideHeaderFooter ? "5.5rem" : "" }}
       >
         <Outlet />
       </div>
