@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Alert } from "react-bootstrap";
 import { showSuccess } from "../../../helpers/Toast";
 import { Box, Button, Modal } from "@mui/material";
 import { Usersignup } from "../../../redux/user/auth/authThunk";
@@ -24,15 +23,13 @@ const modalStyle = {
 };
 
 const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot }) => {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [errorShow, setErrorShow] = useState(false);
-    const [error, setError] = useState(null);
+    const [formData, setFormData] = useState({
+        name: "", email: "", phoneNumber: "", gender: "", level: ""
+    });
+    const [errors, setErrors] = useState({});
     const dispatch = useDispatch();
     const userLoading = useSelector((state) => state?.userAuth);
     const { finalSkillDetails = [] } = useSelector((state) => state.location?.state || {});
-    const [formData, setFormData] = useState({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
 
     const lavel = [
         { code: "A", title: "Top Player" },
@@ -47,17 +44,15 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
 
     const levelOptions = lavel.map((item) => {
         const lastSkillLevel = finalSkillDetails?.slice(-1)[0];
-        const addedPlayers = localStorage.getItem('addedPlayers')
-            ? JSON.parse(localStorage.getItem('addedPlayers'))
-            : {};
-        const existingLevels = Object.values(addedPlayers).map(player => player?.level);
-
+        const addedPlayers = JSON.parse(localStorage.getItem('addedPlayers') || '{}');
+        const existingLevels = Object.values(addedPlayers).map(p => p?.level);
         const isDisabled = item.code === lastSkillLevel || existingLevels.includes(item.code);
+
         return {
             value: item.code,
             label: (
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                    <span style={{ color: "#1d4ed8", fontWeight: "600", fontSize: "15px", fontFamily: "Poppins" }}>
+                    <span style={{ color: "#1d4ed8", fontWeight: 600, fontSize: "15px", fontFamily: "Poppins" }}>
                         {item.code}
                     </span>
                     <span style={{ color: "#374151", fontSize: "13px" }}>
@@ -65,243 +60,245 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                     </span>
                 </div>
             ),
+            isDisabled,
         };
     });
 
-    const handleSubmit = () => {
-        const errors = [];
-        if (!formData.name) {
-            errors.push("Name is required");
-        } else if (!formData.phoneNumber) {
-            errors.push("Phone number must be 10 digits starting with 6, 7, 8, or 9");
-        } else if (!formData.email) {
-            errors.push("Email is required");
-        } else if (!formData.level) {
-            errors.push("Select Level Name is required");
+    const validate = () => {
+        const newErrors = {};
+
+        // Name
+        if (!formData.name.trim()) {
+            newErrors.name = "Name is required";
         }
 
-        const addedPlayers = localStorage.getItem('addedPlayers')
-            ? JSON.parse(localStorage.getItem('addedPlayers'))
-            : {};
-        const existingLevels = Object.values(addedPlayers).map(player => player.level);
+        // Email
+        if (!formData.email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+            newErrors.email = "Enter a valid email";
+        }
+
+        // Phone
+        if (!formData.phoneNumber) {
+            newErrors.phoneNumber = "Phone number is required";
+        } else if (!/^[6-9]\d{9}$/.test(formData.phoneNumber)) {
+            newErrors.phoneNumber = "Must be 10 digits, start with 6-9";
+        }
+
+        // Level
+        if (!formData.level) {
+            newErrors.level = "Please select a level";
+        }
+
+        // Duplicate level
+        const addedPlayers = JSON.parse(localStorage.getItem('addedPlayers') || '{}');
+        const existingLevels = Object.values(addedPlayers).map(p => p?.level);
         if (existingLevels.includes(formData.level)) {
-            errors.push("A player with this level already exists. Please select a different level.");
+            newErrors.level = "This level is already taken";
         }
 
-        if (errors.length > 0) {
-            setError(errors.join(", "));
-            setErrorShow(true);
-            return;
-        }
-        setError(null);
-        setErrorShow(false);
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+
+        setErrors({});
 
         dispatch(Usersignup(formData))
             .unwrap()
             .then((res) => {
                 if (res?.status === "200") {
-                    const addedPlayers = localStorage.getItem('addedPlayers')
-                        ? JSON.parse(localStorage.getItem('addedPlayers'))
-                        : {};
+                    const addedPlayers = JSON.parse(localStorage.getItem('addedPlayers') || '{}');
                     addedPlayers[activeSlot] = { ...res?.response, level: formData.level };
                     localStorage.setItem('addedPlayers', JSON.stringify(addedPlayers));
-                    setPhoneNumber('');
-                    setName('');
-                    setEmail('');
+
+                    setFormData({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
                     setShowAddMeForm(false);
                     setActiveSlot(null);
                     showSuccess("Player Added Successfully");
-                    setFormData({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
                 }
-            }).catch((err) => {
-                setError(err?.response?.data?.message || "An error occurred. Please try again.");
-                setErrorShow(true);
+            })
+            .catch((err) => {
+                setErrors({ submit: err?.response?.data?.message || "Failed to add player" });
             });
     };
 
-    useEffect(() => {
-        if (errorShow) {
-            const timer = setTimeout(() => {
-                setErrorShow(false);
-                setError('');
-            }, 2000);
-            return () => clearTimeout(timer);
-        }
-    }, [errorShow]);
+    const handleInputChange = (field, value, formatFn = null) => {
+        const formatted = formatFn ? formatFn(value) : value;
+        setFormData(prev => ({ ...prev, [field]: formatted }));
+        setErrors(prev => ({ ...prev, [field]: "" }));
+    };
 
     return (
-        <>
-            <Modal
-                open={showAddMeForm}
-                onClose={() => {
-                    setShowAddMeForm(false);
-                    setActiveSlot(null);
-                }}
-                aria-labelledby="parent-modal-title"
-                aria-describedby="parent-modal-description"
-            >
-                <Box sx={modalStyle}>
-                    <h6 id="modal-title" className="mb-3 text-center" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>
-                        Player Information
-                    </h6>
-                    {errorShow && <Alert variant="danger" className='mb-3' style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>{error}</Alert>}
-                    <form>
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Name <span className="text-danger">*</span>
-                            </label>
+        <Modal
+            open={showAddMeForm}
+            onClose={() => {
+                setShowAddMeForm(false);
+                setActiveSlot(null);
+                setErrors({});
+            }}
+        >
+            <Box sx={modalStyle}>
+                <h6 className="mb-4 text-center" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
+                    Player Information
+                </h6>
+
+                <form onSubmit={handleSubmit}>
+                    {/* Name */}
+                    <div className="mb-3">
+                        <label className="form-label">
+                            Name <span className="text-danger">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => {
+                                let value = e.target.value;
+                                if (/^[A-Za-z\s]*$/.test(value)) {
+                                    if (value.length > 30) value = value.slice(0, 30);
+                                    const formatted = value
+                                        .trimStart()
+                                        .replace(/\s+/g, " ")
+                                        .toLowerCase()
+                                        .replace(/(^|\s)\w/g, l => l.toUpperCase());
+                                    handleInputChange('name', formatted);
+                                }
+                            }}
+                            className={`form-control p-2 ${errors.name ? 'border-danger' : ''}`}
+                            placeholder="Enter your name"
+                        />
+                        {errors.name && <small className="text-danger d-block mt-1">{errors.name}</small>}
+                    </div>
+
+                    {/* Email */}
+                    <div className="mb-3">
+                        <label className="form-label">
+                            Email <span className="text-danger">*</span>
+                        </label>
+                        <input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
+                                    const formatted = value.replace(/\s+/g, "")
+                                        .replace(/^(.)(.*)(@.*)?$/, (m, f, r, d = "") => f.toUpperCase() + r.toLowerCase() + d);
+                                    handleInputChange('email', formatted);
+                                }
+                            }}
+                            className={`form-control p-2 ${errors.email ? 'border-danger' : ''}`}
+                            placeholder="Enter your email"
+                        />
+                        {errors.email && <small className="text-danger d-block mt-1">{errors.email}</small>}
+                    </div>
+
+                    {/* Phone */}
+                    <div className="mb-3">
+                        <label className="form-label">
+                            Phone No <span className="text-danger">*</span>
+                        </label>
+                        <div className="input-group border rounded">
+                            <span className="input-group-text border-0 p-2 bg-white">
+                                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
+                            </span>
                             <input
                                 type="text"
-                                value={formData.name}
-                                style={{ boxShadow: "none" }}
+                                maxLength={10}
+                                value={formData.phoneNumber}
                                 onChange={(e) => {
-                                    let value = e.target.value;
-
-                                    // ✅ Allow only letters & spaces (so backspace bhi kaam kare)
-                                    if (/^[A-Za-z\s]*$/.test(value)) {
-                                        // ✅ Limit to max 20 characters
-                                        if (value.length > 30) {
-                                            value = value.slice(0, 30);
-                                        }
-
-                                        // ✅ Format: trim start, single spaces, capitalize first letter of each word
-                                        const formattedValue = value
-                                            .trimStart()
-                                            .replace(/\s+/g, " ")
-                                            .toLowerCase()
-                                            .replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
-
-                                        setFormData((prev) => ({ ...prev, name: formattedValue }));
+                                    const value = e.target.value.replace(/[^0-9]/g, '');
+                                    if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
+                                        handleInputChange('phoneNumber', value);
                                     }
                                 }}
-                                className="form-control border p-2"
-                                placeholder="Enter your name"
-                                aria-label="Name"
+                                className={`form-control border-0 p-2 ${errors.phoneNumber ? 'border-danger' : ''}`}
+                                placeholder="Enter phone number"
                             />
+                        </div>
+                        {errors.phoneNumber && <small className="text-danger d-block mt-1">{errors.phoneNumber}</small>}
+                    </div>
 
+                    {/* Gender */}
+                    <div className="mb-3">
+                        <label className="form-label">Gender</label>
+                        <div className="d-flex flex-wrap gap-3">
+                            {["Male", "Female", "Other"].map((g) => (
+                                <div key={g} className="form-check">
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="gender"
+                                        id={g}
+                                        value={g}
+                                        checked={formData.gender === g}
+                                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                                    />
+                                    <label className="form-check-label" htmlFor={g}>{g}</label>
+                                </div>
+                            ))}
                         </div>
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Email <span className="text-danger">*</span>
-                            </label>
-                            <input
-                                type="email"
-                                value={formData.email}
-                                style={{ boxShadow: "none" }}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
-                                        if (value.length === 0) {
-                                            setFormData((prev) => ({ ...prev, email: '' }));
-                                            return;
-                                        }
-                                        const formattedValue = value
-                                            .replace(/\s+/g, "")
-                                            .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
-                                                return first.toUpperCase() + rest.toLowerCase() + domain;
-                                            });
-                                        setFormData((prev) => ({ ...prev, email: formattedValue }));
-                                    }
-                                }}
-                                className="form-control border p-2"
-                                placeholder="Enter your email"
-                            />
+                    </div>
+
+                    {/* Level */}
+                    <div className="mb-3">
+                        <label className="form-label">
+                            Select Level <span className="text-danger">*</span>
+                        </label>
+                        <Select
+                            options={levelOptions}
+                            value={levelOptions.find(opt => opt.value === formData.level)}
+                            onChange={(opt) => handleInputChange('level', opt.value)}
+                            classNamePrefix="select"
+                            isOptionDisabled={(opt) => opt.isDisabled}
+                            styles={{
+                                control: (base) => ({
+                                    ...base,
+                                    borderColor: errors.level ? '#dc3545' : base.borderColor,
+                                    boxShadow: 'none',
+                                    '&:hover': { borderColor: errors.level ? '#dc3545' : '#ced4da' }
+                                })
+                            }}
+                        />
+                        {errors.level && <small className="text-danger d-block mt-1">{errors.level}</small>}
+                    </div>
+
+                    {/* Submit Error */}
+                    {errors.submit && (
+                        <div className="text-danger text-center mb-3 p-2 bg-light rounded">
+                            {errors.submit}
                         </div>
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Phone No <span className="text-danger">*</span>
-                            </label>
-                            <div className="input-group border">
-                                <span className="input-group-text border-0 p-2">
-                                    <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
-                                    <span>+91</span>
-                                </span>
-                                <input
-                                    type="text"
-                                    maxLength={10}
-                                    value={formData.phoneNumber}
-                                    style={{ boxShadow: "none" }}
-                                    onChange={(e) => {
-                                        const value = e.target.value.replace(/[^0-9]/g, '');
-                                        if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                                            setFormData((prev) => ({ ...prev, phoneNumber: value }));
-                                        }
-                                    }}
-                                    className="form-control border-0 p-2"
-                                    placeholder="Enter phone number"
-                                    pattern="[6-9][0-9]{9}"
-                                    title="Phone number must be 10 digits and start with 6, 7, 8, or 9"
-                                />
-                            </div>
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Gender
-                            </label>
-                            <div className="d-flex flex-wrap gap-3">
-                                {["Male", "Female", "Other"].map((gender) => (
-                                    <div key={gender} className="form-check">
-                                        <input
-                                            className="form-check-input"
-                                            type="radio"
-                                            name="gender"
-                                            id={gender}
-                                            value={gender}
-                                            checked={formData.gender === gender}
-                                            disabled={userLoading?.userSignUpLoading}
-                                            onChange={(e) =>
-                                                setFormData((prev) => ({
-                                                    ...prev,
-                                                    gender: e.target.value,
-                                                }))
-                                            }
-                                        />
-                                        <label className="form-check-label" htmlFor={gender}>
-                                            {gender}
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Select Level <span className="text-danger">*</span>
-                            </label>
-                            <Select
-                                options={levelOptions}
-                                value={levelOptions.find((opt) => opt.value === formData.level)}
-                                onChange={(option) => setFormData((prev) => ({ ...prev, level: option.value }))}
-                                className="basic-single"
-                                classNamePrefix="select"
-                                style={{ boxShadow: "none" }}
-                                isOptionDisabled={(option) => option.isDisabled}
-                            />
-                        </div>
-                        <div className="d-flex flex-column flex-sm-row justify-content-between gap-2">
-                            <Button
-                                variant="outlined"
-                                color="secondary"
-                                onClick={() => {
-                                    setShowAddMeForm(false);
-                                    setActiveSlot(null);
-                                }}
-                                sx={{ width: { xs: "100%", sm: "45%" } }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                sx={{ width: { xs: "100%", sm: "45%" } }}
-                                className="text-white"
-                                style={{ backgroundColor: "#3DBE64" }}
-                                onClick={() => handleSubmit()}
-                            >
-                                {userLoading?.userSignUpLoading ? <ButtonLoading color={'white'} /> : "Submit"}
-                            </Button>
-                        </div>
-                    </form>
-                </Box>
-            </Modal>
-        </>
+                    )}
+
+                    {/* Buttons */}
+                    <div className="d-flex flex-column flex-sm-row gap-2 mt-4">
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            fullWidth
+                            onClick={() => {
+                                setShowAddMeForm(false);
+                                setActiveSlot(null);
+                                setErrors({});
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            fullWidth
+                            style={{ backgroundColor: "#3DBE64", color: "white" }}
+                            disabled={userLoading?.userSignUpLoading}
+                        >
+                            {userLoading?.userSignUpLoading ? <ButtonLoading color="white" /> : "Submit"}
+                        </Button>
+                    </div>
+                </form>
+            </Box>
+        </Modal>
     );
 };
 

@@ -32,11 +32,10 @@ const OpenmatchPayment = () => {
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [showShareDropdown, setShowShareDropdown] = useState(false);
-
+    const location = useLocation();
     const dispatch = useDispatch();
     const { state } = useLocation();
     const navigate = useNavigate();
-
     const User = getUserFromSession();
     const userData = useSelector((state) => state?.userAuth?.user?.response);
     const matchesLoading = useSelector((state) => state?.userMatchesReducer?.matchesLoading);
@@ -197,6 +196,15 @@ const OpenmatchPayment = () => {
     const svgStyle = { width: "100%", height: "100%", position: "absolute", top: 0, left: 0, zIndex: 1 };
     const contentStyle = { position: "relative", zIndex: 2, color: "#001B76", fontWeight: 600, fontSize: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", height: "100%", paddingRight: `${circleRadius * 2}px` };
 
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 4000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
     return (
         <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
             <div className="row w-100">
@@ -253,7 +261,6 @@ const OpenmatchPayment = () => {
                     <div className="p-3 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: error && Object.values(addedPlayers).filter(Boolean).length < 1 ? "1px solid red" : "1px solid #ddd6d6ff" }}>
                         <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: 600 }}>
                             Players
-                            {error && Object.values(addedPlayers).filter(Boolean).length < 1 && <span className="text-danger" style={{ fontSize: "15px" }}> — Add at least 2 players</span>}
                         </h6>
                         <div className="row mx-auto">
                             {/* Team A */}
@@ -325,21 +332,6 @@ const OpenmatchPayment = () => {
                         </div>
                     </div>
 
-                    {/* Club Info */}
-                    <div className="border rounded-3 p-3 mb-3" style={{ backgroundColor: "#CBD6FF1A" }}>
-                        <div className="d-lg-flex gap-3 align-items-start text-center text-lg-start">
-                            <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
-                            <div className="flex-grow-1">
-                                <h3 style={{ fontSize: "18px", fontWeight: 600 }}>{clubData?.clubName}</h3>
-                                <p className="mb-0" style={{ fontSize: "14px", color: "#000" }}>
-                                    {[clubData?.address, clubData?.city, clubData?.state, clubData?.zipCode].filter(Boolean).join(", ")}
-                                </p>
-                                <div style={{ color: "#3DBE64", fontSize: "12px" }}>Opened</div>
-                                <p  style={{ color: "#1F41BB", fontSize: "15px", fontWeight: 500 }}>More Info</p>
-                            </div>
-                            <DirectionsIcon style={{ color: "#22C55E", fontSize: 36, cursor: "pointer" }} />
-                        </div>
-                    </div>
 
                     <h6 className="mb-3 mt-4" style={{ fontSize: "18px", fontWeight: 600 }}>Information</h6>
                     <div className="d-flex mb-4 align-items-center gap-3 px-2">
@@ -357,7 +349,7 @@ const OpenmatchPayment = () => {
                     <div className="rounded-4 pt-4 px-5 pb-4" style={{ backgroundColor: "#F5F5F566", border: error && !selectedPayment ? "1px solid red" : "" }}>
                         <h6 className="mb-4" style={{ fontSize: "20px", fontWeight: 600 }}>
                             Payment Method
-                            {error && !selectedPayment && <span className="text-danger" style={{ fontSize: "15px" }}> — Select one</span>}
+
                         </h6>
                         <div className="d-flex flex-column gap-3">
                             {[
@@ -377,7 +369,7 @@ const OpenmatchPayment = () => {
                     </div>
 
                     <div className="border px-3 ms-2 pb-3 pt-3 mt-3 mb-5 mb-lg-0 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
-                        <div className="text-center mb-3">
+                        <div className="text-center d-flex justify-content-center align-items-center flex-column mb-3">
                             {logo ? <Avatar src={logo} style={{ height: 112, width: 112, boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar style={{ height: 112, width: 112, fontSize: 30 }}>{clubData?.clubName?.[0]?.toUpperCase() || "C"}</Avatar>}
                             <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: 600 }}>{clubData?.clubName}</p>
                         </div>
@@ -413,33 +405,50 @@ const OpenmatchPayment = () => {
                             </p>
                             <p style={{ fontSize: 25 }}>₹ {totalAmount}</p>
                         </div>
-
                         <div className="d-flex justify-content-center mt-3">
-                            <button style={buttonStyle} onClick={handleBooking} disabled={isLoading}>
-                                <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-                                    <defs>
-                                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#fff" />
-                                        </linearGradient>
-                                    </defs>
-                                    <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill="url(#grad)" />
-                                    <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
-                                    <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d={`M ${circleX - arrowSize * 0.3} ${circleY + arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4}`} />
-                                        <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX - arrowSize * 0.1} ${circleY - arrowSize * 0.4}`} />
-                                        <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY + arrowSize * 0.1}`} />
-                                    </g>
-                                </svg>
-                                <div style={contentStyle}>{isLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
-                            </button>
+                            {error && (
+                                <div
+                                    className="text-center mb-3 p-2 rounded"
+                                    style={{
+                                        backgroundColor: "#ffebee",
+                                        color: "#c62828",
+                                        border: "1px solid #ffcdd2",
+                                        fontWeight: 500,
+                                        fontSize: "15px",
+                                        width: "100%",
+                                        maxWidth: "370px"
+                                    }}
+                                >
+                                    {error}
+                                </div>
+                            )}
+                            </div>
+                            <div className="d-flex justify-content-center mt-3">
+                                <button style={buttonStyle} onClick={handleBooking} disabled={isLoading}>
+                                    <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+                                        <defs>
+                                            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="#fff" />
+                                            </linearGradient>
+                                        </defs>
+                                        <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill="url(#grad)" />
+                                        <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
+                                        <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d={`M ${circleX - arrowSize * 0.3} ${circleY + arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4}`} />
+                                            <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX - arrowSize * 0.1} ${circleY - arrowSize * 0.4}`} />
+                                            <path d={`M ${circleX + arrowSize * 0.4} ${circleY - arrowSize * 0.4} L ${circleX + arrowSize * 0.4} ${circleY + arrowSize * 0.1}`} />
+                                        </g>
+                                    </svg>
+                                    <div style={contentStyle}>{isLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <NewPlayers activeSlot={activeSlot} setShowAddMeForm={setShowAddMeForm} showAddMeForm={showAddMeForm} setActiveSlot={setActiveSlot} />
-        </div>
-    );
+                <NewPlayers activeSlot={activeSlot} setShowAddMeForm={setShowAddMeForm} showAddMeForm={showAddMeForm} setActiveSlot={setActiveSlot} />
+            </div>
+            );
 };
 
-export default OpenmatchPayment;
+            export default OpenmatchPayment;

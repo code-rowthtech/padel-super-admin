@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef, memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, Row, Col, Form, Button, Alert } from "react-bootstrap";
 import { SlCloudUpload } from "react-icons/sl";
@@ -243,6 +243,7 @@ const ClubUpdateForm = () => {
   const [hasChanged, setHasChanged] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [hitUpdateApi, setHitUpdateApi] = useState(false);
+  const editorRef = useRef(null);
 
   // Track initial form data to detect changes
   const [initialFormData, setInitialFormData] = useState(() =>
@@ -340,6 +341,10 @@ const ClubUpdateForm = () => {
     },
     [countWords]
   );
+
+  const handleBlur = useCallback((field) => {
+    setTouched((p) => ({ ...p, [field]: true }));
+  }, []);
 
 
 
@@ -559,7 +564,7 @@ const ClubUpdateForm = () => {
   };
 
   // -------------------- render helpers --------------------
-  const Input = ({ label, field, type = "text", placeholder }) => (
+  const Input = memo(({ label, field, type = "text", placeholder }) => (
     <Form.Group className="mb-3">
       <Form.Label className="fw-semibold small text-secondary">
         {label}
@@ -580,7 +585,7 @@ const ClubUpdateForm = () => {
         </Form.Control.Feedback>
       )}
     </Form.Group>
-  );
+  ));
 
   // -------------------- UI --------------------
   return (
@@ -589,28 +594,30 @@ const ClubUpdateForm = () => {
         <DataLoading height="80vh" />
       ) : (
         <Form onSubmit={handleSubmit}>
-          <h4 className="fw-bold mb-4">Club Details</h4>
+          <h4 className="fw-bold mb-4">Club Details </h4>
           <Row>
             <Col md={6}>
               <Row>
                 <Col md={4}>
                   <Input
+                    key="courtName"
                     label="Club/Facility Name"
                     field="courtName"
                     placeholder="e.g., Smash Arena"
                   />
                 </Col>
                 <Col md={4}>
-                  <Input label="City" field="city" />
+                  <Input key="city" label="City" field="city" />
                 </Col>
                 <Col md={4}>
-                  <Input label="State" field="state" />
+                  <Input key="state" label="State" field="state" />
                 </Col>{" "}
                 <Col md={3}>
-                  <Input label="Zip Code" field="zip" type="number" />
+                  <Input key="zip" label="Zip Code" field="zip" type="number" />
                 </Col>
                 <Col md={3}>
                   <Input
+                    key="courtCount"
                     label="Number of Courts "
                     field="courtCount"
                     type="number"
@@ -618,6 +625,7 @@ const ClubUpdateForm = () => {
                 </Col>
                 <Col md={6}>
                   <Input
+                    key="address"
                     as="textArea"
                     label="Full Address"
                     field="address"
@@ -637,8 +645,19 @@ const ClubUpdateForm = () => {
                   </span>
                 </div>
                 <MarkdownEditor
+                  ref={editorRef}
+                  key="description-editor"
                   value={formData.description}
-                  onChange={({ text }) => handleChange("description", text)}
+                  onChange={({ text }) => {
+                    const wordCount = countWords(text);
+                    if (wordCount <= MAX_WORDS) {
+                      setFormData((prev) => ({ ...prev, description: text }));
+                      setWordCount(wordCount);
+                      setTouched((prev) => ({ ...prev, description: true }));
+                    } else {
+                      showWarning(`Description cannot exceed ${MAX_WORDS} words.`);
+                    }
+                  }}
                   style={{
                     height: "200px",
                     border: `1px solid ${visibleErrors.description ? "#dc3545" : "#ced4da"

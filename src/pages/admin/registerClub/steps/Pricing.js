@@ -18,6 +18,12 @@ import { useNavigate } from "react-router-dom";
 import { resetClub } from "../../../../redux/admin/club/slice";
 import { showError, showInfo, showWarning } from "../../../../helpers/Toast";
 
+// Helper: Normalize time to consistent format (e.g., "6 am" → "6 am")
+const normalizeTime = (time) => {
+  if (!time) return "";
+  return time.trim().replace(/:\d{2}/g, "").replace(/\s+/g, " ").toLowerCase();
+};
+
 const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
   const dispatch = useDispatch();
   const registerId = sessionStorage.getItem("registerId");
@@ -58,7 +64,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     return hours * 60;
   };
 
-  // Helper: Convert time to 12-hour format
+  // Helper: Convert time to 12-hour format (for display)
   const convertTo12HourFormat = (time) => {
     if (!time) return "";
     let hour, minute, period;
@@ -254,7 +260,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
 
     selectedDaySlots.forEach((slotDay) => {
       slotDay.slotTimes?.forEach((slot) => {
-        if (slot.time) timeSet.add(slot.time.trim());
+        if (slot.time) timeSet.add(normalizeTime(slot.time));
       });
     });
 
@@ -262,9 +268,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       return convertTimeToMinutes(a) - convertTimeToMinutes(b);
     });
 
-    const selectedTimes = Object.keys(formData.prices.All).filter(
-      (time) => formData.prices.All[time] !== undefined
-    );
+    const selectedTimes = Object.keys(formData.prices.All);
 
     const allSelected = allTimes.length > 0 && selectedTimes.length === allTimes.length;
 
@@ -304,7 +308,10 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       if (price === "" || numericPrice <= 4000) {
         setFormData((prev) => {
           const newPrices = { ...prev.prices.All };
-          selectedTimes.forEach((t) => (newPrices[t] = price === "" ? "" : numericPrice));
+          const selectedTimes = Object.keys(newPrices);
+          selectedTimes.forEach((t) => {
+            newPrices[t] = price; // ← Keep as string
+          });
           return { ...prev, prices: { ...prev.prices, All: newPrices } };
         });
       }
@@ -320,7 +327,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
             checked={allSelected}
             onChange={toggleAllSlots}
             className="me-2"
-            style={{ boxShadow: "none" }}
           />
           <span className="text-muted small">
             {selectedTimes.length} of {allTimes.length} slots selected
@@ -344,7 +350,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                   backgroundColor: isSelected ? "#22C55E" : "#F9FAFB",
                 }}
               >
-                {time}
+                {time.toUpperCase()}
               </Button>
             );
           })}
@@ -360,7 +366,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
             <FormControl
               type="number"
               placeholder={selectedTimes.length > 0 ? "Enter price" : ""}
-              value={getCommonPrice() || ""}
+              value={getCommonPrice()}
               onChange={(e) => updatePriceForAll(e.target.value)}
               disabled={selectedTimes.length === 0}
               style={{
@@ -379,21 +385,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     );
   };
 
-  // Helper: Get all slot times of a specific type (Morning/Afternoon/Evening)
-  const getSlotTimesForType = (daySlots, type) => {
-    const typeLower = type.toLowerCase();
-    return daySlots.flatMap(dayObj => {
-      return (dayObj.slotTimes || []).filter(slot => {
-        const t = slot.time?.toLowerCase() || "";
-        const hour = parseInt(t);
-        if (typeLower === "morning") return t.includes("am") && hour < 12;
-        if (typeLower === "afternoon") return t.includes("pm") && hour >= 12 && hour <= 5;
-        if (typeLower === "evening") return t.includes("pm") && hour > 5;
-        return false;
-      });
-    });
-  };
-
+  // Submit Handler - FIXED
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -411,36 +403,30 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
 
     const allSlots = clubData?.data?.[0]?.slot || [];
     let selectedSlotData = [];
-    let slotData = [];
-    let businessHours = [];
 
     if (selectAllChecked) {
       selectedSlotData = allSlots;
-      slotData = allSlots.flatMap(d => d.slotTimes || []);
-      businessHours = allSlots.flatMap(d => d.businessHours || []);
     } else {
       selectedSlotData = allSlots.filter(s =>
         s.businessHours?.[0]?.day && selectedDays.includes(s.businessHours[0].day)
       );
-
-      // Get ALL slots of the selected type from ALL selected days
-      slotData = getSlotTimesForType(selectedSlotData, formData.selectedSlots);
-      businessHours = selectedSlotData.flatMap(d => d.businessHours || []);
     }
 
-    if (slotData.length === 0 || businessHours.length === 0) {
-      showWarning("Slot times or business hours not found.");
+    if (selectedSlotData.length === 0) {
+      showWarning("No slots found for selected days.");
       return;
     }
 
-    // Normalize price keys
-    const normalizeKey = (t) => t.replace(/:\d{2}/, "").trim().toLowerCase();
-
-    const filledSlotTimes = slotData
+    // FIXED: Convert price to string before trim
+    const filledSlotTimes = selectedSlotData
+      .flatMap(day => day.slotTimes || [])
       .map(slot => {
-        const time12hr = convertTo12HourFormat(slot.time);
-        const priceStr = slotPrices[time12hr];
-        if (!priceStr || priceStr.trim() === "") return null;
+        const normalizedApiTime = normalizeTime(slot.time);
+        const priceValue = slotPrices[normalizedApiTime];
+
+        // Convert number to string, then trim
+        const priceStr = priceValue == null ? "" : String(priceValue).trim();
+        if (!priceStr) return null;
 
         const price = parseFloat(priceStr);
         return { _id: slot._id, amount: isNaN(price) ? 0 : price };
@@ -452,6 +438,8 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       return;
     }
 
+    // Business Hours
+    const businessHours = selectedSlotData.flatMap(d => d.businessHours || []);
     const completeBusinessHours = selectedDays.map((day) => {
       const existing = businessHours.find((bh) => bh.day === day);
       return existing || { day, time: "06:00 AM - 11:00 PM" };

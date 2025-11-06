@@ -301,7 +301,7 @@ const ViewMatch = ({ className = "" }) => {
                     </div>
 
                     {/* Club Info */}
-                    <div className="border rounded-3 p-3 mb-3" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    {/* <div className="border rounded-3 p-3 mb-3" style={{ backgroundColor: "#CBD6FF1A" }}>
                         <div className="d-md-flex gap-3 align-items-md-start text-center text-md-start">
                             <img src={clubData?.courtImage?.[0] || club} alt="court" className="rounded" width={150} />
                             <div className="flex-grow-1">
@@ -320,7 +320,7 @@ const ViewMatch = ({ className = "" }) => {
                                 <DirectionsIcon style={{ color: "#22C55E", fontSize: 36, cursor: "pointer" }} />
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Information */}
                     <div>
@@ -354,7 +354,7 @@ const ViewMatch = ({ className = "" }) => {
                 </div>
 
                 {/* Right Section - Booking Summary */}
-                <div className="col-5  mb-5">
+                <div className="col-5  mb-5 ">
                     <div className="container ms-0 ms-lg-2">
                         <div
                             className="row mb-3 align-items-center text-white rounded-4 py-0 pt-2 ps-4"
@@ -382,7 +382,7 @@ const ViewMatch = ({ className = "" }) => {
                                 />
                             </div>
                         </div>
-                        <div className="  px-3  pt-3 border-0" style={{ borderRadius: "10px 30% 10px 10px", height: "80vh", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                        <div className="row  px-3  pt-3 border-0" style={{ borderRadius: "10px 30% 10px 10px", height: "50vh", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="text-center mb-3">
                                 <div className="d-flex justify-content-center">
                                     {logo ? (

@@ -115,7 +115,7 @@ const Payment = ({ className = "" }) => {
                                 email,
                                 register_club_id: localStorage.getItem("register_club_id"),
                                 bookingStatus: "upcoming",
-                                bookingType: "user",
+                                bookingType: "regular",
                                 ownerId: localStorage.getItem("owner_id"),
                                 slot: localSelectedCourts.flatMap((court) => ({
                                     slotId: court.time[0]?._id,
@@ -235,7 +235,7 @@ const Payment = ({ className = "" }) => {
                 email,
                 register_club_id,
                 bookingStatus: "upcoming",
-                bookingType: 'user',
+                bookingType: 'regular',
                 ownerId: owner_id,
                 slot: slotArray,
                 paymentMethod: selectedPayment,
@@ -452,7 +452,7 @@ const Payment = ({ className = "" }) => {
                             }}
                         >
                             <h6 className="mb-4 custom-heading-use">
-                                Payment Method <span className="text-danger" style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500" }}>{errors.paymentMethod}</span>
+                                Payment Method 
                             </h6>
                             <div className="d-flex flex-column gap-3">
                                 {[
@@ -588,6 +588,25 @@ const Payment = ({ className = "" }) => {
                                 <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {localGrandTotal}</p>
                             </div>
                         )}
+
+                        <div className="d-flex justify-content-center mt-3">
+                            {errors.paymentMethod && (
+                                <div
+                                    className="text-center mb-3 p-2 rounded"
+                                    style={{
+                                        backgroundColor: "#ffebee",
+                                        color: "#c62828",
+                                        border: "1px solid #ffcdd2",
+                                        fontWeight: 500,
+                                        fontSize: "15px",
+                                        width: "100%",
+                                        maxWidth: "370px"
+                                    }}
+                                >
+                                    {errors.paymentMethod}
+                                </div>
+                            )}
+                        </div>
 
                         <div className="d-flex justify-content-center mt-3 mb-4">
                             <button

@@ -113,7 +113,7 @@ const Booking = ({ className = "" }) => {
     const toggleTime = (time, courtId, date) => {
         const totalSlots = selectedCourts.reduce((acc, c) => acc + (c.time?.length || 0), 0);
         const dateKey = date || selectedDate.fullDate;
-        const uniqueKey = `${courtId}-${time._id}-${dateKey}`; 
+        const uniqueKey = `${courtId}-${time._id}-${dateKey}`;
 
         const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
         const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
@@ -182,18 +182,42 @@ const Booking = ({ className = "" }) => {
     };
 
     const handleDeleteSlot = (courtId, date, timeId) => {
+        // Remove from selectedTimes
+        setSelectedTimes((prev) => {
+            const courtTimes = prev[courtId]?.[date];
+            if (!courtTimes) return prev;
+
+            const filtered = courtTimes.filter((t) => t._id !== timeId);
+            if (filtered.length === 0) {
+                const { [date]: _, ...restDates } = prev[courtId] || {};
+                const newCourt = Object.keys(restDates).length > 0 ? restDates : undefined;
+                return {
+                    ...prev,
+                    [courtId]: newCourt,
+                };
+            }
+            return {
+                ...prev,
+                [courtId]: {
+                    ...prev[courtId],
+                    [date]: filtered,
+                },
+            };
+        });
+
+        // Remove from selectedBuisness
+        setSelectedBuisness((prev) => prev.filter((t) => !(t._id === timeId && t.date === date)));
+
+        // Remove from selectedCourts
         setSelectedCourts((prev) =>
             prev
-                .map((c) => (c._id === courtId && c.date === date ? { ...c, time: c.time.filter((t) => t._id !== timeId) } : c))
+                .map((c) =>
+                    c._id === courtId && c.date === date
+                        ? { ...c, time: c.time.filter((t) => t._id !== timeId) }
+                        : c
+                )
                 .filter((c) => c.time.length > 0)
         );
-        if (date === selectedDate.fullDate) {
-            setSelectedTimes((prev) => ({
-                ...prev,
-                [courtId]: prev[courtId]?.filter((t) => t._id !== timeId) || [],
-            }));
-            setSelectedBuisness((prev) => prev.filter((t) => t._id !== timeId));
-        }
     };
 
     const handleClearAll = () => {
@@ -448,7 +472,7 @@ const Booking = ({ className = "" }) => {
             </div>
             <div className="container mb-5 px-4">
                 <div className="row g-4">
-                    <div className="col-lg-7 col-12 py-4 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566", border: errorMessage && errorShow ? "1px solid red" : "" }}>
+                    <div className="col-lg-7 col-12 py-4 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <div className="custom-heading-use text-nowrap">
                                 Select Date
@@ -742,38 +766,40 @@ const Booking = ({ className = "" }) => {
                             </div>
                             <div
                                 style={{
-                                    maxHeight: selectedCourts?.length > 0 ? "auto" : "240px",
+                                    maxHeight: selectedCourts?.length > 0 ? "auto" : "310px",
                                     overflowY: selectedCourts?.length === 0 ? "hidden" : "auto",
                                     overflowX: "hidden",
                                 }}
                             >
-                                {selectedCourts.length > 0 ? (
-                                    selectedCourts.map((court, index) =>
-                                        court.time.map((timeSlot, timeIndex) => (
-                                            <div key={`${index}-${timeIndex}`} className="row mb-2">
-                                                <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
-                                                    <div className="d-flex text-white">
-                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
-                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
-                                                        </span>
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
-                                                            {formatTime(timeSlot.time)}
-                                                        </span>
-                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
-                                                    </div>
-                                                    <div className="text-white">
-                                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
-                                                        <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
+                                <div className="div" style={{ height: "25vh" }}>
+                                    {selectedCourts.length > 0 ? (
+                                        selectedCourts.map((court, index) =>
+                                            court.time.map((timeSlot, timeIndex) => (
+                                                <div key={`${index}-${timeIndex}`} className="row mb-2" >
+                                                    <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                                                        <div className="d-flex text-white">
+                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                                {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                            </span>
+                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                                {formatTime(timeSlot.time)}
+                                                            </span>
+                                                            <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
+                                                        </div>
+                                                        <div className="text-white">
+                                                            ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
+                                                            <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))
-                                    )
-                                ) : (
-                                    <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
-                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
-                                    </div>
-                                )}
+                                            ))
+                                        )
+                                    ) : (
+                                        <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
+                                            <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             {totalSlots > 0 && (
                                 <div className="border-top pt-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden" }}>
@@ -783,23 +809,26 @@ const Booking = ({ className = "" }) => {
                                     <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
                                 </div>
                             )}
-                            {errorShow && errorMessage && (
-                                <div
-                                    className="alert-light alert text-center "
-                                    role="alert"
-                                    style={{
-                                        whiteSpace: 'pre-line',
-                                        fontFamily: 'Poppins',
-                                        fontSize: '14px',
-                                        padding: '10px',
-                                        borderRadius: '8px',
-                                    }}
-                                >
-                                    {errorMessage}
-                                </div>
-                            )}
                             <div className="d-flex justify-content-center mt-3">
-                                <button style={{ ...buttonStyle }} className={className} onClick={handleBookNow}>
+                                {errorShow && errorMessage && (
+                                    <div
+                                        className="text-center mb-3 p-2 rounded"
+                                        style={{
+                                            backgroundColor: "#ffebee",
+                                            color: "#c62828",
+                                            border: "1px solid #ffcdd2",
+                                            fontWeight: 500,
+                                            fontSize: "15px",
+                                            width: "100%",
+                                            maxWidth: "370px"
+                                        }}
+                                    >
+                                        {errorMessage}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="d-flex justify-content-center ">
+                                <button style={{ ...buttonStyle }} className={`${className} `} onClick={handleBookNow}>
                                     <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                         <defs>
                                             <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
