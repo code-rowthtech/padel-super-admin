@@ -67,6 +67,13 @@ const Profile = () => {
       store?.userSignUp?.response?.phoneNumber ||
       User?.phoneNumber ||
       "",
+
+    profile:
+      user?.response?.profilePic ||
+      store?.userSignUp?.response?.profilePic ||
+      User?.profilePic ||
+      "",
+
   };
 
   localStorage.setItem("updateprofile", JSON.stringify(updateProfileData));

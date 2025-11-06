@@ -19,6 +19,7 @@ const DefaultLayout = () => {
       "unauthorized",
       "no-internet",
       "not-found",
+      "sameprivacy"
     ],
     []
   );
