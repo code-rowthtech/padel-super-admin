@@ -27,6 +27,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const registerID = sessionStorage.getItem("registerId");
   const { clubLoading } = useSelector((state) => state.club);
   const { updateClubLoading } = useSelector((s) => s.club);
+  const { getLogoLoading } = useSelector((s) => s.logo);
   const ownerId = localStorage.getItem("owner_signup_id");
 
   /* -------------------  IMAGES  ------------------- */
@@ -211,7 +212,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           for (let h = minEndHour; h <= 23; h++) {
             allowedEndTimes.push(`${h.toString().padStart(2, "0")}:00`);
           }
-          
+
 
           return (
             <Row key={day} className="align-items-center mb-1 ms-3">
@@ -424,7 +425,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       } else {
         result = await dispatch(registerClub(apiFormData)).unwrap();
       }
-      console.log({result});
+      console.log({ result });
       console.log({ result });
       // Check status 200
       if (result?.status === 200 || result?.success === true) {
@@ -501,9 +502,9 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     onClick={() => document.getElementById("clubImagesInput").click()}
                     style={{
                       borderRadius: "12px",
-                      width:'80px',
-                      height: '80px' ,
-                      padding: "10px 0px" ,
+                      width: '80px',
+                      height: '80px',
+                      padding: "10px 0px",
                       textAlign: "center",
                       cursor: "pointer",
                       backgroundColor: "#fff",
@@ -592,18 +593,18 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                   onClick={() => document.getElementById("logoInput").click()}
                   style={{
                     borderRadius: "12px",
-                      width:'80px',
-                      height: '80px' ,
-                      padding: "10px 0px" ,
-                      textAlign: "center",
-                      cursor: "pointer",
-                      backgroundColor: "#fff",
+                    width: '80px',
+                    height: '80px',
+                    padding: "10px 0px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    backgroundColor: "#fff",
                   }}
                 >
                   <div className=" gap-3 py-1">
                     <SlCloudUpload size={25} color="#6B7280" />
                     <p className="mb-0 m-0" style={{ fontSize: "15px", color: "#1F2937", fontFamily: "Poppins", fontWeight: 500 }}>
-                      Upload 
+                      Upload
                     </p>
                   </div>
 
@@ -620,7 +621,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           </Col>
 
           <Col md={6}>
-            <h5 style={{ fontWeight: 600, color: "#1F2937",fontFamily:"Poppins" }} className="my-3 ms-3">
+            <h5 style={{ fontWeight: 600, color: "#1F2937", fontFamily: "Poppins" }} className="my-3 ms-3">
               Business Hours
             </h5>
             {renderBusinessHours()}
@@ -698,7 +699,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
             }}
             disabled={previewImages.length === 0}
           >
-            {clubLoading || updateClubLoading ? (
+            {clubLoading || updateClubLoading || getLogoLoading ? (
               <ButtonLoading color="white" />
             ) : (
               "Next"

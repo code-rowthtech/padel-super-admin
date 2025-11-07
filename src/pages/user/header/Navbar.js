@@ -318,13 +318,12 @@ const Navbar = () => {
                                     className="d-flex rounded-circle justify-content-center mt-1 notification-bg align-items-center"
                                     style={{
                                         cursor: "pointer",
-                                        backgroundColor: open ? "black" : "#CBD6FF54",
                                         position: "relative",
                                     }}
                                     onClick={() => setOpen(!open)}
                                 >
                                     <Badge badgeContent={notificationCount?.unreadCount || notifications?.length} color="error">
-                                        <NotificationsIcon className={`${open ? 'text-white' : 'text-dark'}`} />
+                                        <NotificationsIcon size={30} className={`text-dark`} />
                                     </Badge>
                                 </div>
 
@@ -424,7 +423,6 @@ const Navbar = () => {
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            {console.log({ note })}
                                                             {/* Right: Toggle Icon */}
                                                             <div
                                                                 className="mt-2"

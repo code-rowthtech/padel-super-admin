@@ -6,22 +6,19 @@ import {
   Button,
   Form,
   FormCheck,
-  Modal,
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
-import { MdOutlineArrowForwardIos, MdOutlineDeleteOutline } from "react-icons/md";
+import { MdOutlineArrowForwardIos, MdOutlineDeleteOutline, MdOutlineDateRange } from "react-icons/md";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
-import { MdOutlineDateRange } from "react-icons/md";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { frame, morningTab, nighttab, sun } from "../../../assets/files";
-import { Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
-import { IoArrowBackOutline, IoArrowForwardOutline } from "react-icons/io5";
+import MatchPlayer from "./MatchPlayer";
 
 // Parse time string to hour
 const parseTimeToHour = (timeStr) => {
@@ -39,14 +36,10 @@ const filterSlotsByTab = (slot, eventKey) => {
   const slotHour = parseTimeToHour(slot?.time);
   if (slotHour === null) return false;
   switch (eventKey) {
-    case "morning":
-      return slotHour >= 0 && slotHour < 12;
-    case "noon":
-      return slotHour >= 12 && slotHour < 17;
-    case "night":
-      return slotHour >= 17 && slotHour <= 23;
-    default:
-      return true;
+    case "morning": return slotHour >= 0 && slotHour < 12;
+    case "noon": return slotHour >= 12 && slotHour < 17;
+    case "night": return slotHour >= 17 && slotHour <= 23;
+    default: return true;
   }
 };
 
@@ -60,8 +53,8 @@ const CreateMatches = () => {
   const store = useSelector((state) => state);
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedCourts, setSelectedCourts] = useState([]); // Only one date
-  const [selectedTimes, setSelectedTimes] = useState({});   // courtId → [slots]
+  const [selectedCourts, setSelectedCourts] = useState([]);
+  const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedDate, setSelectedDate] = useState({
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
@@ -72,16 +65,24 @@ const CreateMatches = () => {
   const [selectedBuisness, setSelectedBuisness] = useState([]);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState([]);
-  const [skillDetails, setSkillDetails] = useState([]);
+  const [skillDetails, setSkillDetails] = useState([]); // [step0, step1, ..., step5]
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
-  const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0] || {});
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
-  const userMatches = store?.userMatches;
   const [slotError, setSlotError] = useState("");
   const [key, setKey] = useState("morning");
-  const [showStepsModal, setShowStepsModal] = useState(false);
-  const logo = JSON.parse(localStorage.getItem("logo") || "null");
+  const [matchPlayer, setMatchPlayer] = useState(false);
+
+  // Track added players
+  const [addedPlayers, setAddedPlayers] = useState(() => {
+    const saved = localStorage.getItem("addedPlayers");
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Sync with localStorage
+  useEffect(() => {
+    localStorage.setItem("addedPlayers", JSON.stringify(addedPlayers));
+  }, [addedPlayers]);
 
   const tabData = [
     { img: morningTab, label: "Morning", key: "morning" },
@@ -120,19 +121,11 @@ const CreateMatches = () => {
 
   const scrollRef = useRef(null);
 
-  const formatDate = (date) => {
-    if (!date || isNaN(date.getTime())) return null;
-    return date.toISOString().split("T")[0];
-  };
-
   const handleSwitchChange = () => {
     setShowUnavailable(!showUnavailable);
   };
 
-
-
   const toggleTime = (time, courtId) => {
-    // If trying to select a slot from a different date
     if (selectedCourts.length > 0 && selectedCourts[0].date !== selectedDate.fullDate) {
       setSlotError("You have already selected slots for another date. Clear them to select new ones.");
       return;
@@ -142,18 +135,15 @@ const CreateMatches = () => {
     const totalSlots = Object.values(selectedTimes).flat().length;
 
     if (isAlreadySelected) {
-      // Remove
       const filtered = selectedTimes[courtId].filter(t => t._id !== time._id);
       setSelectedTimes(prev => ({ ...prev, [courtId]: filtered }));
       setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
-
       setSelectedCourts(prev =>
         prev
           .map(c => c._id === courtId ? { ...c, time: c.time.filter(t => t._id !== time._id) } : c)
           .filter(c => c.time.length > 0)
       );
     } else {
-      // Add
       if (totalSlots >= 15) {
         setErrorMessage("Maximum 15 slots can be selected.");
         setErrorShow(true);
@@ -219,7 +209,6 @@ const CreateMatches = () => {
     }
   }, [selectedDate.day, currentCourtId, savedClubId, dispatch]);
 
-  // Set default court
   useEffect(() => {
     if (slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0 && selectedCourts.length === 0) {
       const firstCourt = slotData.data[0].courts[0];
@@ -227,7 +216,6 @@ const CreateMatches = () => {
     }
   }, [slotData, selectedDate?.fullDate]);
 
-  // Tab auto-select
   useEffect(() => {
     const counts = [0, 0, 0];
     slotData?.data?.forEach((court) => {
@@ -267,50 +255,49 @@ const CreateMatches = () => {
   ];
 
   const grandTotal = selectedCourts.reduce((sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0), 0);
-  const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
-
+  // FIXED: Save answer on every step
   const handleNext = () => {
     if (selectedCourts.length === 0 || selectedCourts.every(c => c.time.length === 0)) {
       setSlotError("Select a slot to enable booking");
       return;
     }
+
+    // Step 1: Multi-select
     if (currentStep === 1) {
       if (selectedLevel.length > 0) {
-        setSkillDetails(prev => { const n = [...prev]; n[currentStep] = selectedLevel; return n; });
+        setSkillDetails(prev => {
+          const n = [...prev];
+          n[currentStep] = selectedLevel;
+          return n;
+        });
         setCurrentStep(currentStep + 1);
         setSelectedLevel([]);
         setSlotError("");
       }
-    } else if (selectedLevel && currentStep < steps.length - 1) {
-      setSkillDetails(prev => { const n = [...prev]; n[currentStep] = selectedLevel; return n; });
+      return;
+    }
+
+    // Normal steps
+    if (currentStep < steps.length - 1 && selectedLevel) {
+      setSkillDetails(prev => {
+        const n = [...prev];
+        n[currentStep] = selectedLevel;
+        return n;
+      });
       setCurrentStep(currentStep + 1);
       setSelectedLevel("");
       setSlotError("");
-    } else if (currentStep === steps.length - 1 && selectedLevel) {
+      return;
+    }
+
+    // LAST STEP – Save skill code
+    if (currentStep === steps.length - 1 && selectedLevel) {
       const finalSkillDetails = [...skillDetails];
-      finalSkillDetails[currentStep] = selectedLevel;
-
-      const courtIds = selectedCourts.map(c => c._id).join(",");
-
-      navigate("/match-payment", {
-        state: {
-          courtData: {
-            day: selectedDate.day,
-            date: selectedDate.fullDate,
-            time: selectedBuisness,
-            courtId: courtIds,
-            court: selectedCourts,
-            slot: slotData?.data?.[0]?.slots,
-          },
-          clubData,
-          selectedCourts,
-          selectedDate,
-          grandTotal,
-          totalSlots,
-          finalSkillDetails,
-        },
-      });
+      finalSkillDetails[currentStep] = selectedLevel; // This was missing
+      setSkillDetails(finalSkillDetails);
+      setMatchPlayer(true);
+      return;
     }
   };
 
@@ -367,46 +354,11 @@ const CreateMatches = () => {
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
-  const handleDeleteSlot = (courtId, timeId) => {
-    setSelectedCourts(prev =>
-      prev
-        .map(c => c._id === courtId ? { ...c, time: c.time.filter(t => t._id !== timeId) } : c)
-        .filter(c => c.time.length > 0)
-    );
-    setSelectedTimes(prev => ({
-      ...prev,
-      [courtId]: prev[courtId]?.filter(t => t._id !== timeId) || []
-    }));
-    setSelectedBuisness(prev => prev.filter(t => t._id !== timeId));
-  };
-
-  const handleClearAll = () => {
-    setSelectedCourts([]);
-    setSelectedTimes({});
-    setSelectedBuisness([]);
-  };
-
-  const formatTime = (timeStr) => {
-    return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
-  };
-
-  // Button SVG
-  const width = 370, height = 75, circleRadius = height * 0.3;
-  const curvedStart = width * 0.76, circleX = curvedStart + (width * 0.996 - curvedStart) * 0.68 + 1;
-  const circleY = height * 0.5, arrowSize = circleRadius * 0.6;
-
-  const buttonStyle = {
-    position: "relative", width: `${width}px`, height: `${height}px`, border: "none",
-    background: "transparent", cursor: "pointer", opacity: 1, pointerEvents: "auto"
-  };
-  const svgStyle = { width: "100%", height: "100%", position: "absolute", top: 0, left: 0, zIndex: 1 };
-  const contentStyle = { position: "relative", zIndex: 2, color: "#001B76", fontWeight: 600, fontSize: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", height: "100%", paddingRight: `${circleRadius * 2}px` };
-
   return (
     <Container className="p-4 mb-5">
       <Row className="g-3">
         {/* LEFT PANEL */}
-        <Col md={7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
+        <Col md={matchPlayer ? 6 : 7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -465,6 +417,7 @@ const CreateMatches = () => {
               </div>
             </div>
 
+            {/* Date Strip */}
             <div className="d-flex align-items-center gap-2 border-bottom mb-3">
               <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
                 <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
@@ -490,7 +443,6 @@ const CreateMatches = () => {
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
-                          // DO NOT CLEAR SLOTS HERE
                           dispatch(getUserSlotBooking({
                             day: d.day,
                             date: d.fullDate,
@@ -508,7 +460,7 @@ const CreateMatches = () => {
                     );
                   })}
                 </div>
-                <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10 }} onClick={scrollRight}>
+                <button className="btn border-0 p-2" style={{ position: "absolute", right: -24, zIndex: 10 }} onClick={scrollRight}>
                   <MdOutlineArrowForwardIos className="mt-2" size={20} />
                 </button>
               </div>
@@ -533,22 +485,14 @@ const CreateMatches = () => {
             </div>
 
             {/* Slots */}
-            <div className="mb-3 overflow-slot border-0 rounded-3 " style={{ border: slotError ? "1px solid red" : "1px solid #c2babaff" }}>
+            <div className="mb-3 overflow-slot border-0 rounded-3" style={{ border: slotError ? "1px solid red" : "1px solid #c2babaff" }}>
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
                   <DataLoading height={"50vh"} />
                 ) : (
                   <>
                     <div className="row g-3">
-                      <div
-                        className={`d-flex ${slotData.data.length > 4 ? "flex-nowrap overflow-auto" : "flex-wrap"}`}
-                        style={{
-                          gap: "16px",
-                          paddingBottom: "10px",
-                          overflowX: slotData.data.length > 4 ? "auto" : "visible",
-                          whiteSpace: slotData.data.length > 4 ? "nowrap" : "normal",
-                        }}
-                      >
+                      <div className={`d-flex ${slotData.data.length > 4 ? "flex-nowrap overflow-auto" : "flex-wrap"}`} style={{ gap: "16px", paddingBottom: "10px", overflowX: slotData.data.length > 4 ? "auto" : "visible", whiteSpace: slotData.data.length > 4 ? "nowrap" : "normal" }}>
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots
                             ?.filter((slot) =>
@@ -563,7 +507,6 @@ const CreateMatches = () => {
 
                           if (filteredSlots?.length === 0) return null;
 
-                          // find visible court index
                           const visibleCourtIndices = slotData.data
                             .map((c, i) => {
                               const slots = c.slots?.filter(
@@ -579,25 +522,17 @@ const CreateMatches = () => {
                             })
                             .filter((i) => i !== null);
 
-                          const isLast =
-                            visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
+                          const isLast = visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
 
                           return (
                             <div
                               key={court._id}
                               className="court-container p-3"
                               style={{
-                                minWidth:
-                                  slotData.data.length > 4
-                                    ? "170px" // for scroll mode
-                                    : "calc((100% - 48px) / 4)", // exactly 4 in a row, 16px gap * 3 = 48px
+                                minWidth: slotData.data.length > 4 ? "170px" : "calc((100% - 48px) / 4)",
                                 flex: slotData.data.length > 4 ? "0 0 auto" : "1 1 auto",
-                                borderRight: !isLast
-                                  ? "1px solid transparent"
-                                  : "none",
-                                borderImage: !isLast
-                                  ? "linear-gradient(180deg, rgba(255,255,255,0) 0%, #837f7fff 46.63%, rgba(255,255,255,0) 94.23%) 1"
-                                  : "none",
+                                borderRight: !isLast ? "1px solid transparent" : "none",
+                                borderImage: !isLast ? "linear-gradient(180deg, rgba(255,255,255,0) 0%, #837f7fff 46.63%, rgba(255,255,255,0) 94.23%) 1" : "none",
                                 borderImageSlice: !isLast ? 1 : 0,
                               }}
                             >
@@ -607,54 +542,34 @@ const CreateMatches = () => {
 
                               <div className="slots-grid d-flex flex-column align-items-center">
                                 {filteredSlots?.map((slot, i) => {
-                                  const isSelected = selectedTimes[court._id]?.some(
-                                    (t) => t._id === slot._id
-                                  );
+                                  const isSelected = selectedTimes[court._id]?.some((t) => t._id === slot._id);
                                   const totalSlots = Object.values(selectedTimes).flat().length;
                                   const isLimitReached = totalSlots >= 15 && !isSelected;
-                                  const isDisabled =
-                                    isLimitReached ||
-                                    slot.status === "booked" ||
-                                    slot.availabilityStatus !== "available" ||
-                                    isPastTime(slot.time) ||
-                                    slot.amount <= 0;
+                                  const isDisabled = isLimitReached || slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
 
                                   return (
                                     <button
                                       key={i}
-                                      className={`btn rounded-3 ${isSelected ? "border-0" : ""
-                                        } slot-time-btn text-center mb-2`}
+                                      className={`btn rounded-3 ${isSelected ? "border-0" : ""} slot-time-btn text-center mb-2`}
                                       onClick={() => toggleTime(slot, court._id)}
                                       disabled={isDisabled}
                                       style={{
-                                        background:
-                                          slot.status === "booked" ||
-                                            isPastTime(slot.time) ||
-                                            slot.amount <= 0
-                                            ? "#c9cfcfff"
-                                            : isSelected
-                                              ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                              : slot.availabilityStatus !== "available"
-                                                ? "#c9cfcfff"
-                                                : "#FFFFFF",
-                                        color: isDisabled
-                                          ? "#000000"
+                                        background: slot.status === "booked" || isPastTime(slot.time) || slot.amount <= 0
+                                          ? "#c9cfcfff"
                                           : isSelected
-                                            ? "white"
-                                            : "#000000",
+                                            ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                            : slot.availabilityStatus !== "available"
+                                              ? "#c9cfcfff"
+                                              : "#FFFFFF",
+                                        color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
                                         cursor: isDisabled ? "not-allowed" : "pointer",
                                         opacity: isDisabled ? 0.6 : 1,
                                         border: isSelected ? "" : "1px solid #4949491A",
                                         fontSize: "14px",
                                         padding: "8px 4px",
                                       }}
-                                      onMouseEnter={(e) =>
-                                        !isDisabled &&
-                                        (e.currentTarget.style.border = "1px solid #3DBE64")
-                                      }
-                                      onMouseLeave={(e) =>
-                                        (e.currentTarget.style.border = "1px solid #4949491A")
-                                      }
+                                      onMouseEnter={(e) => !isDisabled && (e.currentTarget.style.border = "1px solid #3DBE64")}
+                                      onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
                                     >
                                       {formatTimeForDisplay(slot?.time)}
                                     </button>
@@ -682,238 +597,178 @@ const CreateMatches = () => {
         </Col>
 
         {/* RIGHT PANEL */}
-        <Col md={5} className="ps-2" >
-          <div className="div" style={{ backgroundColor: "#F1F4FF" }}>
-            {/* Step Indicators */}
-            <div className="d-flex gap-2 ps-4 pt-4">
-              {steps.map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 14,
-                    fontWeight: 600,
-                  }}
-                >
+        <Col md={matchPlayer ? 6 : 5} className="ps-2">
+          {!matchPlayer ? (
+            <div style={{ backgroundColor: "#F1F4FF" }}>
+              <div className="d-flex gap-2 ps-4 pt-4">
+                {steps.map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
+                      color: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 14,
+                      fontWeight: 600,
+                    }}
+                  >
+                  </div>
+                ))}
+              </div>
 
+              <div className="p-4 mt-3">
+                <h6 className="mb-4" style={{ fontSize: "20px", fontFamily: "Poppins", fontWeight: 600, color: "#1f2937" }}>
+                  {steps[currentStep].question}
+                </h6>
+
+                <div style={{
+                  opacity: selectedCourts.length === 0 ? 0.5 : 1,
+                  pointerEvents: selectedCourts.length === 0 ? 'none' : 'auto',
+                  transition: 'opacity 0.3s ease'
+                }}>
+                  <Form style={{ height: "350px", overflowY: "auto" }}>
+                    {currentStep === 1 ? (
+                      steps[currentStep].options.map((opt, i) => (
+                        <div
+                          key={i}
+                          onClick={() => {
+                            setSelectedLevel((prev) =>
+                              prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
+                            );
+                          }}
+                          className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                          style={{
+                            backgroundColor: selectedLevel.includes(opt) ? "#eef2ff" : "#fff",
+                            borderColor: selectedLevel.includes(opt) ? "#4f46e5" : "#e5e7eb",
+                            cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                            gap: "12px",
+                            height: "50px",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          <Form.Check
+                            type="checkbox"
+                            checked={selectedLevel.includes(opt)}
+                            onChange={() => { }}
+                            style={{ flexShrink: 0, marginTop: 0 }}
+                          />
+                          <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>{opt}</span>
+                        </div>
+                      ))
+                    ) : currentStep === steps.length - 1 ? (
+                      steps[currentStep].options.map((opt, i) => (
+                        <div
+                          key={i}
+                          onClick={() => setSelectedLevel(opt.code)}
+                          className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                          style={{
+                            backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
+                            borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
+                            cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                            gap: "12px",
+                            height: "50px",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          <Form.Check
+                            type="radio"
+                            name="last"
+                            checked={selectedLevel === opt.code}
+                            onChange={() => { }}
+                            style={{ flexShrink: 0, marginTop: 0 }}
+                          />
+                          <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
+                            <span style={{ fontSize: "24px", fontWeight: 700, color: "#1d4ed8", minWidth: "38px", textAlign: "center" }}>
+                              {opt.code}
+                            </span>
+                            <strong style={{ fontSize: "16px", color: "#1f2937" }}>{opt.title}</strong>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      steps[currentStep].options.map((opt, i) => (
+                        <div
+                          key={i}
+                          onClick={() => setSelectedLevel(opt)}
+                          className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                          style={{
+                            backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
+                            borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
+                            cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                            gap: "12px",
+                            height: "50px",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          <Form.Check
+                            type="radio"
+                            name={`step${currentStep}`}
+                            checked={selectedLevel === opt}
+                            onChange={() => { }}
+                            style={{ flexShrink: 0, marginTop: 0 }}
+                          />
+                          <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>{opt}</span>
+                        </div>
+                      ))
+                    )}
+                  </Form>
                 </div>
-              ))}
-            </div>
+              </div>
 
-            {/* Form Content */}
-            <div className="p-4">
-              <h6 className="mb-4" style={{ fontSize: "20px", fontFamily: "Poppins", fontWeight: 600, color: "#1f2937" }}>
-                {steps[currentStep].question}
-              </h6>
-
-              <Form style={{ height: "350px", overflowY: "auto" }}>
-                {/* STEP 2: Multiple Select (Checkboxes) */}
-                {currentStep === 1 ? (
-                  steps[currentStep].options.map((opt, i) => (
-                    <div
-                      key={i}
-                      onClick={() => {
-                        setSelectedLevel((prev) =>
-                          prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
-                        );
-                      }}
-                      className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                      style={{
-                        backgroundColor: selectedLevel.includes(opt) ? "#eef2ff" : "#fff",
-                        borderColor: selectedLevel.includes(opt) ? "#4f46e5" : "#e5e7eb",
-                        cursor: "pointer",
-                        gap: "12px",
-                        minHeight: "60px",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      <Form.Check
-                        type="checkbox"
-                        checked={selectedLevel.includes(opt)}
-                        onChange={() => { }}
-                        style={{ flexShrink: 0, marginTop: 0 }}
-                      />
-                      <span
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: 500,
-                          color: "#1f2937",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {opt}
-                      </span>
-                    </div>
-                  ))
-                ) : currentStep === steps.length - 1 ? (
-                  /* LAST STEP: Skill Level (Radio + Code) */
-                  steps[currentStep].options.map((opt, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setSelectedLevel(opt.code)}
-                      className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                      style={{
-                        backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
-                        borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
-                        cursor: "pointer",
-                        gap: "12px",
-                        minHeight: "60px",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      <Form.Check
-                        type="radio"
-                        name="last"
-                        checked={selectedLevel === opt.code}
-                        onChange={() => { }}
-                        style={{ flexShrink: 0, marginTop: 0 }}
-                      />
-                      <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
-                        <span
-                          style={{
-                            fontSize: "24px",
-                            fontWeight: 700,
-                            color: "#1d4ed8",
-                            minWidth: "38px",
-                            textAlign: "center",
-                          }}
-                        >
-                          {opt.code}
-                        </span>
-                        <strong
-                          style={{
-                            fontSize: "16px",
-                            color: "#1f2937",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                          title={opt.title}
-                        >
-                          {opt.title}
-                        </strong>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  /* OTHER STEPS: Single Radio */
-                  steps[currentStep].options.map((opt, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setSelectedLevel(opt)}
-                      className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                      style={{
-                        backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
-                        borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
-                        cursor: "pointer",
-                        gap: "12px",
-                        minHeight: "60px",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      <Form.Check
-                        type="radio"
-                        name={`step${currentStep}`}
-                        checked={selectedLevel === opt}
-                        onChange={() => { }}
-                        style={{ flexShrink: 0, marginTop: 0 }}
-                      />
-                      <span
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: 500,
-                          color: "#1f2937",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {opt}
-                      </span>
-                    </div>
-                  ))
+              <div className="d-flex justify-content-center">
+                {slotError && (
+                  <div className="text-center mb-3 p-2 rounded" style={{ backgroundColor: "#ffebee", color: "#c62828", border: "1px solid #ffcdd2", fontWeight: 500, fontSize: "15px", width: "100%", maxWidth: "370px" }}>
+                    {slotError}
+                  </div>
                 )}
-              </Form>
-            </div>
+              </div>
 
-            {/* Buttons */}
-            <div className="d-flex justify-content-center">
-              {slotError && (
-                <div
-                  className="text-center mb-3 p-2 rounded"
-                  style={{
-                    backgroundColor: "#ffebee",
-                    color: "#c62828",
-                    border: "1px solid #ffcdd2",
-                    fontWeight: 500,
-                    fontSize: "15px",
-                    width: "100%",
-                    maxWidth: "370px"
-                  }}
-                >
-                  {slotError}
-                </div>
-              )}
-            </div>
-            <div
-              className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"
-                } align-items-center p-3`}
-            >
-              {currentStep > 0 && (
+              <div className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"} align-items-center p-3`}>
+                {currentStep > 0 && (
+                  <Button
+                    className="rounded-pill px-4 me-2"
+                    style={{
+                      backgroundColor: window.innerWidth < 768 ? "transparent" : "#374151",
+                      border: "none",
+                      color: window.innerWidth < 768 ? "#001B76" : "#fff",
+                    }}
+                    onClick={handleBack}
+                  >
+                    Back
+                  </Button>
+                )}
                 <Button
-                  className="rounded-pill px-4 me-2"
+                  className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1 ? "p-3 rounded-circle d-flex align-items-center justify-content-center" : "rounded-pill"}`}
                   style={{
-                    backgroundColor: window.innerWidth < 768 ? "transparent" : "#374151",
+                    background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                     border: "none",
-                    color: window.innerWidth < 768 ? "#001B76" : "#fff",
+                    color: "#fff",
                   }}
-                  onClick={handleBack}
+                  disabled={!selectedLevel || (currentStep === 1 && selectedLevel.length === 0)}
+                  onClick={handleNext}
                 >
-                  Back
+                  {currentStep === steps.length - 1 ? "Submit" : window.innerWidth < 768 ? "" : "Next"}
                 </Button>
-              )}
-              <Button
-                className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1
-                  ? "p-3 rounded-circle d-flex align-items-center justify-content-center"
-                  : "rounded-pill"
-                  }`}
-                style={{
-                  background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                  border: "none",
-                  color: "#fff",
-                }}
-                disabled={
-                  !selectedLevel ||
-                  (currentStep === 1 && selectedLevel.length === 0)
-                }
-                onClick={handleNext}
-              >
-                {userMatches?.matchesLoading ? (
-                  <ButtonLoading />
-                ) : currentStep === steps.length - 1 ? (
-                  "Submit"
-                ) : window.innerWidth < 768 ? (
-                  ""
-                ) : (
-                  "Next"
-                )}
-              </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <MatchPlayer
+              addedPlayers={addedPlayers}
+              setAddedPlayers={setAddedPlayers}
+              selectedCourts={selectedCourts}
+              selectedDate={selectedDate}
+              finalSkillDetails={skillDetails}
+              totalAmount={grandTotal}
+            />
+          )}
         </Col>
       </Row>
-
-
-    </Container >
+    </Container>
   );
 };
 
