@@ -154,14 +154,14 @@ const AllRoutes = () => {
           element: LoadComponent(OpenMatches),
         },
         {
+          path: "view-match",
+          element: LoadComponent(ViewMatch),
+        },
+        {
           path: "create-matches",
           element: LoadComponent(CreateMatches),
         },
 
-        {
-          path: "view-match",
-          element: LoadComponent(ViewMatch),
-        },
         {
           path: "match-payment",
           element: LoadComponent(OpenmatchPayment),
@@ -193,19 +193,6 @@ const AllRoutes = () => {
         {
           path: "not-found",
           element: LoadComponent(NotFound),
-        },
-        {
-          element: <PrivateRoute />,
-          children: [
-            {
-              path: "open-matches",
-              element: LoadComponent(OpenMatches),
-            },
-            {
-              path: "create-matches",
-              element: LoadComponent(CreateMatches),
-            },
-          ],
         },
       ],
     },

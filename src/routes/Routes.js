@@ -2,6 +2,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { AllRoutes } from './index';
 import NetworkHandler from '../helpers/network/NetworkHandler';
 import AppWrapper from '../AppWrapper';
+import { Suspense } from 'react';
+import { Loading } from '../helpers/loading/Loaders';
 
 const Routes = () => (
     <BrowserRouter future={{
@@ -10,7 +12,9 @@ const Routes = () => (
     }}>
         <NetworkHandler>
             <AppWrapper>
-                <AllRoutes />
+                <Suspense fallback={<Loading color="#3dbe64ff" />}>
+                    <AllRoutes />
+                </Suspense>
             </AppWrapper>
         </NetworkHandler>
     </BrowserRouter>

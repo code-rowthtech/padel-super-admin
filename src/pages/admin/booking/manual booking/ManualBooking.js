@@ -237,9 +237,23 @@ const ManualBooking = () => {
       sessionStorage.removeItem(KEY);
     }
   }, [selectedSlots]);
+  console.log({ selectedCourts });
 
   useEffect(() => {
     if (ownerClubData?.[0]?._id) {
+      dispatch(
+        getActiveCourts({
+          register_club_id: ownerClubData?.[0]?._id,
+          day: selectedDay,
+          date: selectedDate,
+          courtId: '',
+        })
+      );
+    }
+  }, [selectedDay, selectedDate, ownerClubData?.[0]?._id, selectedCourts]);
+
+  useEffect(() => {
+    if (selectedCourts) {
       dispatch(
         getActiveCourts({
           register_club_id: ownerClubData?.[0]?._id,
@@ -249,7 +263,7 @@ const ManualBooking = () => {
         })
       );
     }
-  }, [selectedDay, selectedDate, ownerClubData?.[0]?._id, selectedCourts]);
+  }, [selectedCourts])
 
   useEffect(() => {
     if (courts?.length > 0 && selectedCourts.length === 0) {
@@ -397,7 +411,7 @@ const ManualBooking = () => {
   useEffect(() => {
     if (phone.length === 10 && searchUserData?.result?.name) {
       setName(searchUserData.result.name);
-    }else if(phone.length === 9 || phone.length === 9 || phone.length === 0 ){
+    } else if (phone.length === 9 || phone.length === 9 || phone.length === 0) {
       dispatch(resetSearchData())
     }
   }, [searchUserData, phone]);

@@ -42,7 +42,11 @@ const DefaultLayout = () => {
 
   useEffect(() => {
     const currentPath = location.pathname;
-    if (currentPath !== "/match-payment") {
+    // Only clear addedPlayers when leaving match-related pages
+    const matchPages = ["/create-matches", "/match-payment", "/match-player"];
+    const isMatchPage = matchPages.some(page => currentPath.includes(page));
+    
+    if (!isMatchPage) {
       const cleanup = () => {
         localStorage.removeItem("addedPlayers");
       };
