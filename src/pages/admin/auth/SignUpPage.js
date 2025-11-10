@@ -149,7 +149,7 @@ const SignUpPage = () => {
 
   return (
     <Layout>
-      <div className="w-md-50 w-sm-100">
+      <div className=" w-sm-100">
         <h2 className="mb-1" style={{
           fontFamily: "Poppins",
           fontWeight: 500,

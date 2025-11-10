@@ -115,12 +115,6 @@ const Cancellation = () => {
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
     <Container fluid className="">
-      <h3
-        className=" text-dark mb-1"
-        style={{ fontSize: "clamp(1.5rem, 4vw, 1.4rem)",fontWeight:"600",fontFamily:"Poppins" }}
-      >
-        Cancellations
-      </h3>
       {/* Tabs + Date filters */}
       <Row className="mb-3">
         <Col xs={12}>
@@ -157,37 +151,24 @@ const Cancellation = () => {
             </Box>
 
             <div className="d-flex align-items-center gap-2">
-              <div className="d-flex align-items-center gap-1">
-                <span className="fw-semibold small">From</span>
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date) => {
-                    setStartDate(date);
-                    if (!date) setEndDate(null);
-                  }}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  customInput={<DateButton />}
-                />
-              </div>
-              <div className="d-flex align-items-center gap-1">
-                <span className="fw-semibold small">To</span>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate}
-                  customInput={<DateButton />}
-                />
-              </div>
+              <DatePicker
+                selected={startDate}
+                onChange={(dates) => {
+                  const [start, end] = dates;
+                  setStartDate(start);
+                  setEndDate(end);
+                }}
+                startDate={startDate}
+                endDate={endDate}
+                selectsRange
+                customInput={<DateButton />}
+              />
               {sendDate && (
                 <i
                   className="bi bi-x-square-fill text-danger"
                   onClick={() => {
-                    setStartDate(null, setEndDate(null));
+                    setStartDate(null);
+                    setEndDate(null);
                   }}
                   style={{ cursor: "pointer" }}
                 ></i>

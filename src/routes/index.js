@@ -29,7 +29,7 @@ const AmericanoUser = React.lazy(() =>
   import("../pages/user/americano/Americano")
 );
 const UserProfile = React.lazy(() => import("../pages/user/profile/Profile"));
-const Payment = React.lazy(() => import("../pages/user/payment/Payment"));
+const PaymentWrapper = React.lazy(() => import("../components/PaymentWrapper"));
 const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
 );
@@ -147,7 +147,7 @@ const AllRoutes = () => {
         },
         {
           path: "payment",
-          element: LoadComponent(Payment),
+          element: LoadComponent(PaymentWrapper),
         },
         {
           path: "open-matches",

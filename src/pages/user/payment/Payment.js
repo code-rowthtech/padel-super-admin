@@ -53,9 +53,7 @@ const Payment = ({ className = "" }) => {
     const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
 
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+
 
     useEffect(() => {
         const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);
@@ -463,8 +461,8 @@ const Payment = ({ className = "" }) => {
                                 ].map((method) => (
                                     <label
                                         key={method.id}
-                                        className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill"
-                                        style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5" }}
+                                        className="d-flex justify-content-between align-items-center py-3 p-3 bg-white rounded-4"
+                                        style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5", }}
                                     >
                                         <div className="d-flex align-items-center gap-3">
                                             <img src={method.icon} alt={method.name} width={28} />
@@ -506,11 +504,10 @@ const Payment = ({ className = "" }) => {
                                 maxHeight: "250px",
                                 overflowY: "auto",
                                 overflowX: "hidden",
-                                paddingRight: "16px",           // Right gap for scrollbar
-                                marginRight: "8px",            // Compensate for scrollbar width
+                                paddingRight: "16px",           
+                                marginRight: "8px",         
                             }}
                         >
-                            {/* Custom scrollbar (optional but matches Figma) */}
                             <style jsx>{`
                    div::-webkit-scrollbar {
                      width: 8px;
@@ -535,13 +532,13 @@ const Payment = ({ className = "" }) => {
                                             <div key={`${index}-${timeIndex}`} className="row mb-2" >
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex text-white">
-                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                        <p style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
-                                                        </span>
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                        </p>
+                                                        <p className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {formatTime(timeSlot.time)}
-                                                        </span>
-                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
+                                                        </p>
+                                                        <p className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</p>
                                                     </div>
                                                     <div className="text-white">
                                                         ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>

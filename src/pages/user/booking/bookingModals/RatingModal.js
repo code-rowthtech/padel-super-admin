@@ -64,7 +64,7 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
                 setRating(0);
                 setReview("");
                 onHide();
-                dispatch(getBooking({ type: activeTab === 'all' ? '' : activeTab, page: currentPage, limit: 20 }));
+                dispatch(getBooking({ type: activeTab === 'all' ? '' : activeTab, page: currentPage, limit: 15 }));
             });
     };
 

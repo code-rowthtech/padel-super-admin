@@ -1,16 +1,20 @@
-import React, { useState } from "react";
-import { FaCamera, FaUserCircle } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { FaEdit, FaUserCircle } from "react-icons/fa";
+import { IoTennisballOutline } from "react-icons/io5";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
-import { updateOwner } from "../../../redux/thunks";
+import { updateOwner, getLogo, createLogo, updateLogo } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
-import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 
 const Profile = () => {
   const user = getOwnerFromSession();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { authLoading } = useSelector((state) => state.ownerAuth);
+  const { getLogoData, getLogoLoading } = useSelector((state) => state?.logo);
+  const ownerId = user?._id || user?.generatedBy;
+  const [clubLogo, setClubLogo] = useState(null);
 
   const formatDateForInput = (isoDate) => {
     if (!isoDate) return "";
@@ -30,6 +34,14 @@ const Profile = () => {
     profileImage: user?.profilePic,
   });
 
+  useEffect(() => {
+    dispatch(getLogo({ ownerId: ownerId }));
+  }, [dispatch, ownerId]);
+
+  useEffect(() => {
+    setClubLogo(getLogoData?.logo?.logo?.[0] || null);
+  }, [getLogoData?.logo?._id]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -44,6 +56,27 @@ const Profile = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setClubLogo(reader.result);
+
+      const formData = new FormData();
+      formData.append("ownerId", ownerId);
+      formData.append("image", file);
+
+      if (getLogoData?.logo?._id) {
+        dispatch(updateLogo(formData));
+      } else {
+        dispatch(createLogo(formData));
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const dataURLtoBlob = (dataURL) => {
@@ -128,8 +161,57 @@ const Profile = () => {
       >
         <div
           className="d-flex align-items-center"
-          style={{ marginTop: "-30px" }}
+          style={{ marginTop: "-80px" }}
         >
+          {/* Club Logo */}
+          <div className="position-relative me-3">
+            {getLogoLoading ? (
+              <DataLoading height="100px" color="#ca60ad" />
+            ) : (
+              <>
+                {clubLogo ? (
+                  <img
+                    src={clubLogo}
+                    alt="Club Logo"
+                    className="rounded-circle border bg-secondary"
+                    style={{ objectFit: "cover" }}
+                    width="100"
+                    height="100"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="bg-secondary rounded-circle p-2 d-flex align-items-center justify-content-center" style={{ width: "100px", height: "100px" }}>
+                    <IoTennisballOutline size={60} color="white" />
+                  </div>
+                )}
+
+                <label
+                  htmlFor="logoUpload"
+                  className="position-absolute bottom-0 end-0 rounded-circle p-1"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    backgroundColor: "#565758",
+                    opacity: 0.8,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <FaEdit style={{ color: "white", fontSize: "14px" }} />
+                </label>
+              </>
+            )}
+          </div>
+          {/* Logo File Input (Hidden) */}
+          <input
+            type="file"
+            id="logoUpload"
+            accept="image/*"
+            onChange={handleLogoChange}
+            hidden
+          />
           {/* Profile Image */}
           {/* <div className="position-relative me-3">
             {formData.profileImage ? (
@@ -155,17 +237,17 @@ const Profile = () => {
                 width: "30px",
                 height: "30px",
                 backgroundColor: "#ca60ad",
-                opacity: 0.8, // Slightly transparent
+                opacity: 0.8,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
               }}
             >
-              <FaCamera style={{ color: "white", fontSize: "14px" }} />
+              <FaEdit style={{ color: "white", fontSize: "14px" }} />
             </label>
           </div> */}
-          {/* File Input (Hidden) */}
+          {/* Profile File Input (Hidden) */}
           <input
             type="file"
             id="profileImageUpload"

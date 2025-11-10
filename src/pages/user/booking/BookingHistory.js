@@ -67,7 +67,7 @@ const BookingHistory = () => {
         "aria-controls": `full-width-tabpanel-${index}`,
     });
 
-    const defaultLimit = 20
+    const defaultLimit = 15
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -276,6 +276,8 @@ const BookingHistory = () => {
                                     minHeight: { xs: "32px", md: "38px" },
                                     height: { xs: "32px", md: "38px" },
                                     fontSize: { xs: "12px", md: "14px" },
+                                    fontFamily: 'Poppins',
+                                    fontWeight: "500",
                                     "&.Mui-selected": {
                                         backgroundColor: "#CBD6FFA1",
                                         color: "primary.main",
@@ -338,8 +340,8 @@ const BookingHistory = () => {
                     <div
                         className="custom-scroll-container flex-grow-1"
                         style={{
-                            overflowY: "auto",
-                            overflowX: "auto",
+                            overflowY: "hidden",
+                            overflowX: "hidden",
                             flex: "1 1 auto",
                             maxHeight: "calc(100vh - 300px)",
                         }}
@@ -347,7 +349,7 @@ const BookingHistory = () => {
                         <Table borderless responsive size="sm" className="booking-table p-0 position-relative" style={{ borderCollapse: "collapse" }}>
                             <thead style={{ height: "48px", overflow: "hidden" }}>
                                 <tr className="p-0">
-                                    <th className="text-start ps-5" style={{ borderRadius: "15px 0 0 0", minHeight: "48px", padding: "8px 0" }}>Booking Date / Time</th>
+                                    <th className="text-start ps-5" style={{ borderRadius: "15px 0 0 0", minHeight: "48px", padding: "8px 0", }}>Booking Date / Time</th>
                                     <th className="text-center" style={{ minHeight: "48px", padding: "8px 0" }}>Court Name</th>
                                     <th style={{ minHeight: "48px", padding: "8px 0" }}>Booking Type</th>
                                     {activeTab === "cancelled" && <th style={{ minHeight: "48px", padding: "8px 0" }}>Reason</th>}
@@ -526,12 +528,9 @@ const BookingHistory = () => {
                                                 <td className="py-1 pt-2"
                                                     style={{
                                                         color: "#1A237E",
-                                                        fontSize: "16px",
-                                                        fontFamily: "Poppins",
-                                                        fontWeight: "500",
                                                     }}
                                                 >
-                                                    ₹{booking?.totalAmount || "N/A"}
+                                                    <span style={{ fontFamily: "italic", }}>  ₹ </span>{booking?.totalAmount || "N/A"}
                                                 </td>
                                                 {activeTab === "cancelled" && (
                                                     <td className="py-1 pt-2"
