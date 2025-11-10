@@ -32,6 +32,7 @@ import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { searchUserByNumber } from "../../../../redux/admin/searchUserbynumber/thunk";
 import { resetSearchData } from "../../../../redux/admin/searchUserbynumber/slice";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 const ManualBooking = () => {
   const dispatch = useDispatch();
@@ -385,7 +386,8 @@ const ManualBooking = () => {
   const getCurrentMonth = (selectedDate) => {
     if (!selectedDate) return "Month";
     const dateObj = new Date(selectedDate);
-    return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+    const month = dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+    return month.split('').join('\n');
   };
 
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
@@ -422,17 +424,7 @@ const ManualBooking = () => {
         <Loading />
       ) : (
         <Container className="p-0" fluid>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5
-              className="manual-heading mb-0"
-              style={{
-                fontFamily: "Poppins",
-                fontWeight: "700",
-                color: "#374151",
-              }}
-            >
-              Manual Booking
-            </h5>
+          <div className="d-flex justify-content-between align-items-center mb-2">
             <Button
               className="bg-transparent border-0"
               onClick={() => {
@@ -549,10 +541,22 @@ const ManualBooking = () => {
                 </div>
                 <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
                   <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
-                    <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
+                    <span
+                      className="text-muted mb-0"
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        whiteSpace: "pre-line",
+                        textAlign: "center",
+                        lineHeight: "1",  // Yeh add karo
+                        letterSpacing: "0px" // Optional: agar horizontal spacing bhi tight chahiye
+                      }}
+                    >
+                      {getCurrentMonth(selectedDate)}
+                    </span>
                   </div>
                   <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
-                    <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><FaArrowLeft className="mt-2" size={20} /></button>
+                    <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><IoIosArrowBack className="mt-2" size={20} /></button>
                     <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                       {dates?.map((d, i) => {
                         const formatDate = (date) => {
@@ -561,28 +565,70 @@ const ManualBooking = () => {
                         const isSelected =
                           formatDate(new Date(selectedDate)) === d.fullDate;
 
+                        // Calculate slot count for this date
+                        const dateSlots = selectedSlots[d.fullDate] || {};
+                        const slotCount = Object.values(dateSlots).reduce(
+                          (acc, courtData) => acc + (courtData.slots?.length || 0),
+                          0
+                        );
+
                         return (
                           <button
                             key={i}
                             ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                            className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
-                            style={{ backgroundColor: isSelected ? "#374151" : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151" }}
+                            className={`calendar-day-btn mb-3 me-2 position-relative ${isSelected ? "text-white" : "bg-white"
+                              }`}
+                            style={{
+                              backgroundColor: isSelected ? "#374151" : "#FFFFFF",
+                              boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
+                              borderRadius: "12px",
+                              color: isSelected ? "#FFFFFF" : "#374151",
+                              border: "1px solid #4949491A",
+                              width: "55px",
+                              height: "75px",
+                              position: "relative",
+                            }}
                             onClick={() => {
                               setSelectedDate(d.fullDate);
                               setSelectedDay(dayFullNames[d.day]);
                             }}
-                            onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
-                            onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
+                            onMouseEnter={(e) =>
+                              !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.border = "1px solid #4949491A")
+                            }
                           >
                             <div className="text-center">
-                              <div className="date-center-date">{d.date}</div>
-                              <div className="date-center-day">{d.day}</div>
+                              <div className="date-center-date fw-semibold">{d.date}</div>
+                              <div className="date-center-day small ">{d.day}</div>
                             </div>
+
+                            {slotCount > 0 && (
+                              <span
+                                className="position-absolute badge rounded-pill"
+                                style={{
+                                  fontSize: "10px",
+                                  minWidth: "18px",
+                                  height: "18px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  top: "-4px",
+                                  right: "-4px",
+                                  zIndex: 2,
+                                  backgroundColor: "#22c55e"
+                                }}
+                              >
+                                {slotCount}
+                              </span>
+                            )}
                           </button>
+
                         );
                       })}
                     </div>
-                    <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><FaArrowRight className="mt-2" size={20} /></button>
+                    <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><IoIosArrowForward className="mt-2" size={20} /></button>
                   </div>
                 </div>
                 <hr />
@@ -752,9 +798,9 @@ const ManualBooking = () => {
                 )}
               </div>
             </Col>
-            <Col xs={12} lg={4} className="py-2 py-md-4 px-2 px-md-3">
+            <Col xs={12} lg={4} className="py-2 py-md-4 px-2  px-md-3">
               <div
-                className="shadow rounded-3 p-2 p-md-3 bg-white"
+                className=" rounded-3 p-2 p-md-3 "
                 style={{ minHeight: "40vh" }}
               >
                 <div
@@ -777,10 +823,30 @@ const ManualBooking = () => {
                   style={{
                     height: "26vh",
                     overflowY: "auto",
+                    overflowX: "hidden",
                     fontFamily: "Poppins",
                     fontSize: "14px",
+                    paddingRight: "16px",
+                    marginRight: "8px",
                   }}
                 >
+                  {/* Custom scrollbar styling */}
+                  <style jsx>{`
+                    div::-webkit-scrollbar {
+                      width: 8px;
+                      border-radius: 3px;
+                    }
+                    div::-webkit-scrollbar-track {
+                      background: #F5F5F5;
+                      border-radius: 3px;
+                    }
+                    div::-webkit-scrollbar-thumb {
+                      background: #626262;
+                    }
+                    div::-webkit-scrollbar-thumb:hover {
+                      background: #626262;
+                    }
+                  `}</style>
                   {Object.keys(selectedSlots)?.length === 0 ? (
                     <div
                       className="d-flex text-danger justify-content-center align-items-center"
@@ -789,7 +855,7 @@ const ManualBooking = () => {
                       No selections yet
                     </div>
                   ) : (
-                    <ListGroup variant="flush">
+                    <div>
                       {Object.entries(selectedSlots)
                         .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
                         .map(([date, dateSlots]) =>
@@ -799,62 +865,42 @@ const ManualBooking = () => {
                             const slots = courtData?.slots;
                             return (
                               <React.Fragment key={`${date}-${courtId}`}>
-                                <ListGroup.Item
-                                  variant="secondary"
-                                  className="fw-bold fs-6 py-1 bg-light rounded-top"
-                                  style={{ fontFamily: "Poppins" }}
-                                >
-                                  <div className="d-flex justify-content-between">
-                                    <span>{court?.courtName}</span>
-                                    <span>
-                                      {format(
-                                        new Date(date),
-                                        "EEE, dd/MM/yyyy"
-                                      )}
-                                    </span>
-                                  </div>
-                                </ListGroup.Item>
                                 {slots?.map((slot) => (
-                                  <ListGroup.Item
-                                    key={slot?._id}
-                                    className="d-flex justify-content-between align-items-center py-1 px-2 fs-6"
-                                    style={{
-                                      fontFamily: "Poppins",
-                                      transition: "all 0.2s ease",
-                                    }}
-                                  >
-                                    <span className="ps-lg-2" style={{ fontSize: "14px" }}>
-                                      {slot?.time}
-                                    </span>
-                                    <span
-                                      style={{
-                                        fontSize: "14px",
-                                        fontWeight: "500",
-                                      }}
-                                    >
-                                      ₹{slot?.amount}
-                                    </span>
-                                    <Button
-                                      variant="outline-danger"
-                                      size="sm"
-                                      className="px-1 py-0 border-0"
-                                      onClick={() => removeSlot(date, courtId, slot?._id)}
-                                    >
-                                      <FaTrash size={12} />
-                                    </Button>
-                                  </ListGroup.Item>
+                                  <div key={slot?._id} className="row mb-2">
+                                    <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                                      <div className="d-flex" style={{ color: "#000000" }}>
+                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>
+                                          {new Date(date).toLocaleString("en-US", { day: "2-digit" })}, {new Date(date).toLocaleString("en-US", { month: "short" })}
+                                        </span>
+                                        <span className="ps-2" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>
+                                          {slot?.time?.replace(" am", ":00 am").replace(" pm", ":00 pm")}
+                                        </span>
+                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "13px" }}>
+                                          {court.courtName}
+                                        </span>
+                                      </div>
+                                      <div >
+                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{slot?.amount || "N/A"}</span>
+                                        <FaTrash
+                                          className="ms-2 mb-1 text-danger"
+                                          style={{ cursor: "pointer", fontSize: "12px" }}
+                                          onClick={() => removeSlot(date, courtId, slot?._id)}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 ))}
                               </React.Fragment>
                             );
                           })
                         )}
-                    </ListGroup>
+                    </div>
                   )}
                 </div>
                 {Object.values(selectedSlots).some(
                   (ds) => Object.values(ds).some(({ slots }) => slots.length > 0)
                 ) && (
-                    <div className="mt-2 p-2 rounded shadow-sm bg-light">
+                    <div className="mt-2 p-2 rounded bg-light">
                       <div className="d-flex justify-content-between align-items-center">
                         <span
                           style={{

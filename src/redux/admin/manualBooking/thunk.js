@@ -52,12 +52,12 @@ export const getActiveCourts = createAsyncThunk(
       }
 
       const errorMessage = message || "error fetching active clubs";
-      showError(errorMessage);
+      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || ERROR_MESSAGES.NETWORK_ERROR;
-      showError(error);
+      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }

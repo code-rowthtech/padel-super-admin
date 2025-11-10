@@ -754,12 +754,11 @@ const ClubUpdateForm = () => {
               </Form.Group>
             </Col>
           </Row>
-          <Row></Row>
           <Row>
             <Col md={8}></Col>
           </Row>
 
-          <hr className="my-4" />
+          <hr className="my-3" />
 
           <Row>
             <Col md={4} className="mb-3">
@@ -842,7 +841,7 @@ const ClubUpdateForm = () => {
 
 
 
-          <hr className="my-4" />
+          <hr className="my-3" />
 
           <Row>
             <Col md={7}>

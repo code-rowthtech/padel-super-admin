@@ -426,7 +426,7 @@ const Booking = ({ className = "" }) => {
         if (counts[0] === 0) {
             const firstAvailableIndex = counts.findIndex(count => count > 0);
             if (firstAvailableIndex !== -1) {
-                defaultTab = tabData[firstAvailableIndex].key; // eventKey की जगह key
+                defaultTab = tabData[firstAvailableIndex].key; 
             }
         }
         setKey(defaultTab);
@@ -531,11 +531,18 @@ const Booking = ({ className = "" }) => {
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
                                         const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+
+                                        // Calculate slot count for this specific date
+                                        const slotCount = Object.values(selectedTimes).reduce((acc, courtDates) => {
+                                            const dateSlots = courtDates[d.fullDate] || [];
+                                            return acc + dateSlots.length;
+                                        }, 0);
+
                                         return (
                                             <button
                                                 key={i}
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                                                className={`calendar-day-btn mb-3  me-1 ${isSelected ? "text-white border-0" : "bg-white"}`}
+                                                className={`calendar-day-btn mb-3 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
                                                 style={{
                                                     background: isSelected
                                                         ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
@@ -553,6 +560,25 @@ const Booking = ({ className = "" }) => {
                                                     <div className="date-center-date">{d.date}</div>
                                                     <div className="date-center-day">{dayShortMap[d.day]}</div>
                                                 </div>
+                                                {slotCount > 0 && (
+                                                    <span
+                                                        className="position-absolute badge rounded-pill"
+                                                        style={{
+                                                            fontSize: "10px",
+                                                            minWidth: "18px",
+                                                            height: "18px",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            top: "-1px",
+                                                            right: "-4px",
+                                                            zIndex: 2,
+                                                            backgroundColor: "#22c55e"
+                                                        }}
+                                                    >
+                                                        {slotCount}
+                                                    </span>
+                                                )}
                                             </button>
                                         );
                                     })}
@@ -759,7 +785,7 @@ const Booking = ({ className = "" }) => {
                                 <img src={booking_logo_img} className="booking-logo-img" alt="" />
                                 <div className="text-center ps-2 mt-3">
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                                    <p className="mt-2 mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.state} {clubData?.city} {clubData?.zipCode}</p>
+                                    <p className="mt-2 mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.zipCode}</p>
                                     {/* {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>} */}
                                 </div>
                             </div>
