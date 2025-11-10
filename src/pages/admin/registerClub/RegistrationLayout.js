@@ -13,19 +13,17 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px 8px',
+                padding: '10px 8px',
             }}
         >
             <Container fluid className="px-2 px-md-3">
-                <h2 className="fw-bold text-center mb-3 mb-md-4" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>Register Your Club</h2>
+                <h2 className=" text-center mb-3 mb-md-4" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)',fontWeight:"600",fontFamily:"Poppins" }}>Register Your Club</h2>
 
                 <div
                     className="mx-auto"
                     style={{
-                        backgroundColor: '#F5F8FF',
-                        border: '1px solid #d1d5db',
+                        backgroundColor: '#F1F4FF',
                         borderRadius: '12px',
-                        boxShadow: '0 0 12px rgba(0, 0, 0, 0.05)',
                         padding: 'clamp(16px, 4vw, 32px)',
                         maxWidth: '1100px',
                     }}
@@ -45,8 +43,8 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                                             <div
                                                 className="d-flex justify-content-center align-items-center"
                                                 style={{
-                                                    width: '40px',
-                                                    height: '40px',
+                                                    width: '20px',
+                                                    height: '20px',
                                                     borderRadius: '50%',
                                                     border: '2px solid #2563eb',
                                                     backgroundColor: isCompleted
@@ -57,12 +55,12 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                                                 }}
                                             >
                                                 {isCompleted ? (
-                                                    <FaCheck color="#fff" size={16} />
+                                                    <FaCheck color="#fff" size={10} />
                                                 ) : isActive ? (
                                                     <div
                                                         style={{
-                                                            width: '30px',
-                                                            height: '30px',
+                                                            width: '15px',
+                                                            height: '15px',
                                                             backgroundColor: '#2563eb',
                                                             borderRadius: '50%',
                                                         }}
@@ -97,10 +95,11 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                                             key={label}
                                             className="text-center"
                                             style={{
-                                                width: '300px',
-                                                fontSize: '13px',
+                                                width: '280px',
+                                                fontSize: '14px',
                                                 fontWeight: isActive ? 600 : 500,
                                                 color: isActive ? '#2563eb' : '#000',
+                                                fontFamily:"Poppins"
                                             }}
                                         >
                                             {label}

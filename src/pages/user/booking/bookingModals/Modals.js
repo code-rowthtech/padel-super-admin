@@ -48,9 +48,9 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
     dispatch(bookingStatus({ requestType: 'user', id: tableData?.booking?._id, status: 'in-progress', cancellationReason: otherReason || selectedReason })).unwrap().then((res) => {
       if (res?.status === '200') {
         if (tableData?.booking?.bookingStatus === 'upcoming' && activeTab === 'upcoming') {
-          dispatch(getBooking({ type: 'upcoming', page: currentPage, limit: 20 }))
+          dispatch(getBooking({ type: 'upcoming', page: currentPage, limit: 15 }))
         } else {
-          dispatch(getBooking({ page: currentPage, limit: 20 }))
+          dispatch(getBooking({ page: currentPage, limit: 15 }))
         }
         setShowSuccessModal(true);
         setChangeContent(true)

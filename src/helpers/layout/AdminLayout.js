@@ -10,6 +10,30 @@ const AdminLayout = () => {
     const { pathname } = useLocation();
         console.log("Current pathname:", pathname);
 
+    // Page name mapping
+    const getPageName = (path) => {
+        const pageMap = {
+            '/admin/dashboard': 'Dashboard',
+            '/admin/profile': 'My Profile',
+            '/admin/my-club': 'My Club',
+            '/admin/booking': 'Bookings',
+            '/admin/manualbooking': 'Manual Booking',
+            '/admin/cancellation': 'Cancellation',
+            '/admin/court-availability': 'Court Availability',
+            '/admin/open-matches': 'Open Matches',
+            '/admin/create-match': 'Create Match',
+            '/admin/americano': 'Americano',
+            '/admin/packages': 'Packages',
+            '/admin/package-details': 'Package Details',
+            '/admin/users': 'Users',
+            '/admin/payments': 'Payment',
+            '/admin/customer-reviews': 'Review & Rating',
+            '/admin/help-support': 'Help & Support',
+            '/admin/privacy': 'Privacy'
+        };
+        return pageMap[path] || '';
+    };
+
     useEffect(() => {
 
         if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
@@ -296,6 +320,7 @@ const AdminLayout = () => {
                         sidebarOpen={sidebarOpen}
                         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
                         sidebarCollapsed={sidebarCollapsed}
+                        pageName={getPageName(pathname)}
                     />
                     <div className="admin-scrollable-content">
                         <Outlet />

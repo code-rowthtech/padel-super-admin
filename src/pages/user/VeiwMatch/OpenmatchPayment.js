@@ -10,6 +10,7 @@ import { createBooking } from "../../../redux/user/booking/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { booking_logo_img } from "../../../assets/files";
 
 const formatTime = (timeStr) =>
     timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
@@ -277,7 +278,7 @@ const OpenmatchPayment = () => {
                             ].map(m => (
                                 <label
                                     key={m.id}
-                                    className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill"
+                                    className="d-flex justify-content-between align-items-center py-3 p-3 bg-white rounded-4"
                                     style={{ boxShadow: "3px 4px 6.3px 0px #0000001F" }}
                                 >
                                     <div className="d-flex align-items-center gap-3">
@@ -298,81 +299,89 @@ const OpenmatchPayment = () => {
                 </div>
 
                 {/* Right: Summary */}
-                <div className="col-5 pe-0">
-                    <div
-                        className="border px-3 ms-2 pb-3 pt-3 mt-3 mb-5 mb-lg-0 border-0"
-                        style={{
-                            borderRadius: "10px 30% 10px 10px",
-                            background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                        }}
-                    >
-                        <div className="text-center d-flex justify-content-center align-items-center flex-column mb-3">
-                            {logo ? (
-                                <Avatar src={logo} sx={{ width: 112, height: 112, boxShadow: 3 }} />
-                            ) : (
-                                <Avatar sx={{ width: 112, height: 112, fontSize: 30 }}>
-                                    {clubData?.clubName?.[0]?.toUpperCase() || "C"}
-                                </Avatar>
-                            )}
-                            <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                        </div>
+              
 
-                        <h6 className="border-top p-2 mb-3 text-white ps-0">Booking Summary</h6>
-                        <div style={{ maxHeight: 240, overflowY: "auto" }}>
-                            {selectedCourts.length > 0 ? (
-                                selectedCourts.map(court =>
-                                    court.time?.map(slot => {
-                                        const f = formatDate(court.date || selectedDate.fullDate);
-                                        return (
-                                            <div key={slot._id} className="d-flex justify-content-between align-items-center mb-2 px-2 text-white">
-                                                <div>
-                                                    <span style={{ fontWeight: 600, fontSize: 16 }}>{f.formattedDate}</span>
-                                                    <span className="ps-1" style={{ fontWeight: 600, fontSize: 16 }}>{formatTime(slot.time)}</span>
-                                                    <span className="ps-1" style={{ fontWeight: 500, fontSize: 15 }}>{court.courtName}</span>
-                                                </div>
-                                                <div className="d-flex align-items-center gap-2">
-                                                    <span style={{ fontWeight: 600 }}>₹ {slot.amount || 1000}</span>
-                                                    <MdOutlineDeleteOutline style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, slot._id)} />
+                <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-3 mt-lg-0">
+                    <div className="border w-100    px-0 py-4 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                        <div className="d-flex mb-4 ">
+                            <img src={booking_logo_img} className="booking-logo-img" alt="" />
+                            <div className="text-center ps-2 mt-3">
+                                <p className="mt-2 mb-0 text-white" style={{ fontSize: "25px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                                <p className=" mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.state} {clubData?.city} {clubData?.zipCode}</p>
+                                {/* {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>} */}
+                            </div>
+                        </div>
+                        <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
+                            <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
+                        </div>
+                        <div
+                            className="px-3"
+                            style={{
+                                maxHeight: "250px",
+                                overflowY: "auto",
+                                overflowX: "hidden",
+                                paddingRight: "16px",           // Right gap for scrollbar
+                                marginRight: "8px",            // Compensate for scrollbar width
+                            }}
+                        >
+                            {/* Custom scrollbar (optional but matches Figma) */}
+                            <style jsx>{`
+                                   div::-webkit-scrollbar {
+                                     width: 8px;
+                                     border-radius : 3px;
+                                   }
+                                   div::-webkit-scrollbar-track {
+                                     background: #F5F5F5;
+                                     border-radius: 3px;
+                                   }
+                                   div::-webkit-scrollbar-thumb {
+                                     background:  #626262;
+                                     
+                                   }
+                                   div::-webkit-scrollbar-thumb:hover {
+                                     background: #626262;
+                                   }
+                                 `}</style>
+                            <div className="div " style={{ height: "25vh" }}>
+                                {selectedCourts.length > 0 ? (
+                                    selectedCourts.map((court, index) =>
+                                        court.time.map((timeSlot, timeIndex) => (
+                                            <div key={`${index}-${timeIndex}`} className="row mb-2" >
+                                                <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                                                    <div className="d-flex text-white">
+                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                        </span>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                            {formatTime(timeSlot.time)}
+                                                        </span>
+                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
+                                                    </div>
+                                                    <div className="text-white">
+                                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
+                                                        <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        );
-                                    })
-                                )
-                            ) : (
-                                <div className="text-white">
-                                    No slot selected <Link className="text-success" to="/create-matches">Add slot</Link>
-                                </div>
-                            )}
+                                        ))
+                                    )
+                                ) : (
+                                    <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
+                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-
-                        <div className="border-top pt-2 text-white d-flex justify-content-between align-items-center fw-bold">
-                            <p className="d-flex flex-column" style={{ fontSize: 16 }}>
-                                Total to pay
-                                <span style={{ fontSize: 14 }}>
-                                    Players: {totalPlayers}/4 | Slots: {selectedCourts.reduce((t, c) => t + c.time.length, 0)}
-                                </span>
-                            </p>
-                            <p style={{ fontSize: 25 }}>₹ {totalAmount}</p>
-                        </div>
-
-                        {(error.addedPlayers || error.paymentMethod) && (
-                            <div
-                                className="text-center mb-3 p-2 rounded"
-                                style={{
-                                    backgroundColor: "#ffebee",
-                                    color: "#c62828",
-                                    border: "1px solid #ffcdd2",
-                                    fontWeight: 500,
-                                    fontSize: 15,
-                                    maxWidth: 370,
-                                    margin: "0 auto"
-                                }}
-                            >
-                                {error.addedPlayers || error.paymentMethod}
+                        {selectedCourts.reduce((t, c) => t + c.time.length, 0) > 0 && (
+                            <div className="border-top pt-3 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden", height: "10vh" }}>
+                                <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
+                                    Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {selectedCourts.reduce((t, c) => t + c.time.length, 0)}</span>
+                                </p>
+                                <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {totalAmount}</p>
                             </div>
                         )}
 
-                        <div className="d-flex justify-content-center mt-3">
+                        <div className="d-flex justify-content-center align-items-center  ">
                             <button
                                 style={{
                                     position: "relative", width: 370, height: 75, border: "none",
@@ -410,7 +419,10 @@ const OpenmatchPayment = () => {
                                     {isLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}
                                 </div>
                             </button>
+
+
                         </div>
+
                     </div>
                 </div>
             </div>

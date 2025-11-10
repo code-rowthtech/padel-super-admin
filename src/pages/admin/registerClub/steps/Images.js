@@ -19,7 +19,7 @@ import {
 } from "../../../../redux/thunks";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { showInfo } from "../../../../helpers/Toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const dispatch = useDispatch();
@@ -32,6 +32,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
 
   /* -------------------  IMAGES  ------------------- */
   const [previewImages, setPreviewImages] = useState([]);
+  const [duplicateError, setDuplicateError] = useState("");
   const navigate = useNavigate()
   useEffect(() => {
     const newImages = formData.images || [];
@@ -66,10 +67,51 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       return;
     }
 
-    const updatedFiles = [...(formData.images || []), ...files];
+    // Get all currently uploaded images from both sources
+    const allExistingImages = [
+      ...(formData.images || []),
+      ...previewImages.filter(img => img.file).map(img => img.file)
+    ];
+
+    const duplicateFiles = [];
+    const newFiles = [];
+
+    files.forEach((file, index) => {
+      // Check against ALL existing images
+      const isDuplicateInExisting = allExistingImages.some(existingFile =>
+        existingFile.name === file.name &&
+        existingFile.size === file.size
+      );
+
+      // Check against other files in current selection
+      const isDuplicateInCurrentSelection = files.some((otherFile, otherIndex) =>
+        otherIndex < index &&
+        otherFile.name === file.name &&
+        otherFile.size === file.size
+      );
+
+      if (isDuplicateInExisting || isDuplicateInCurrentSelection) {
+        duplicateFiles.push(file.name);
+      } else {
+        newFiles.push(file);
+      }
+      console.log(isDuplicateInExisting, isDuplicateInCurrentSelection, 'pankaj');
+
+    });
+    if (duplicateFiles.length > 0) {
+      const errorMsg = `Duplicate image detected: ${duplicateFiles.join(', ')}. This image is already uploaded.`;
+      setDuplicateError(errorMsg);
+      e.target.value = '';
+      setTimeout(() => setDuplicateError(""), 5000);
+      return;
+    }
+
+    setDuplicateError("");
+
+    const updatedFiles = [...(formData.images || []), ...newFiles];
     updateFormData({ images: updatedFiles });
 
-    const newPreviews = files.map((file) => ({
+    const newPreviews = newFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
     }));
@@ -138,7 +180,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const [hasChanged, setHasChanged] = useState(false);
 
   const convertAmPmTo24Hour = (timeStr) => {
-    if (!timeStr) return "05:00";
+    if (!timeStr) return "06:00";
     const [time, modifier] = timeStr.split(" ");
     let [hours, minutes] = time.split(":");
     hours = parseInt(hours, 10);
@@ -148,7 +190,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   };
 
   const convert24HourToAmPm = (timeStr) => {
-    if (!timeStr) return "5:00 AM";
+    if (!timeStr) return "6:00 AM";
     let [hours, minutes] = timeStr.split(":");
     hours = parseInt(hours, 10);
     const modifier = hours >= 12 ? "PM" : "AM";
@@ -203,7 +245,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       <>
         {days.map((day) => {
           const dayHours =
-            formData.businessHours[day] || { start: "05:00 AM", end: "11:00 PM" };
+            formData.businessHours[day] || { start: "06:00 AM", end: "11:00 PM" };
           const startTime24 = convertAmPmTo24Hour(dayHours.start);
           const endTime24 = convertAmPmTo24Hour(dayHours.end);
           const startHour = parseInt(startTime24.split(":")[0], 10);
@@ -217,7 +259,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           return (
             <Row key={day} className="align-items-center mb-1 ms-3">
               <Col md={3}>
-                <span style={{ fontSize: "14px" }}>{day}</span>
+                <span style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>{day}</span>
               </Col>
 
               {/* START */}
@@ -234,13 +276,15 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     style={{
                       height: "32px",
                       borderRadius: "8px",
-                      fontSize: "14px",
+                      fontSize: "11px",
                       textAlign: "center",
                       boxShadow: "none",
+                      fontWeight: "500",
+                      fontFamily: "Poppins"
                     }}
                     className="py-0 "
                   >
-                    {Array.from({ length: 13 }, (_, i) => {
+                    {Array.from({ length: 14 }, (_, i) => {
                       const h = i + 5;
                       const t = `${h.toString().padStart(2, "0")}:00`;
                       return (
@@ -265,7 +309,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 </InputGroup>
               </Col>
 
-              <Col md={1} style={{ textAlign: "center" }}>
+              <Col md={1} style={{ textAlign: "center", fontSize: '12px', fontFamily: "Poppins", color: '#374151', fontWeight: "500" }}>
                 To
               </Col>
 
@@ -283,9 +327,11 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     style={{
                       height: "32px",
                       borderRadius: "8px",
-                      fontSize: "14px",
+                      fontSize: "11px",
                       textAlign: "center",
                       boxShadow: "none",
+                      fontWeight: "500",
+                      fontFamily: "Poppins"
                     }}
                     className="py-0 "
                   >
@@ -312,27 +358,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
             </Row>
           );
         })}
-
-        <Row className="justify-content-end mt-3">
-          <Col md="auto">
-            <button
-              type="button"
-              onClick={applyToAll}
-              disabled={!hasChanged}
-              style={{
-                backgroundColor: hasChanged ? "#22c55e" : "#ccc",
-                color: "#fff",
-                padding: "6px 14px",
-                borderRadius: "6px",
-                fontSize: "14px",
-                border: "none",
-                cursor: hasChanged ? "pointer" : "not-allowed",
-              }}
-            >
-              Apply to All
-            </button>
-          </Col>
-        </Row>
       </>
     );
   };
@@ -447,101 +472,110 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={6}>
-            <h5 style={{ fontWeight: 600, color: "#1F2937", fontFamily: "Poppins" }} className="my-3">
+            <h5 style={{ fontWeight: 600, color: "#374151", fontFamily: "Poppins", fontSize: "20px" }} className="my-3">
               Upload Club Images
             </h5>
             <div className="mb-0">
-              <div className="d-flex flex-wrap gap-2 mb-3">
-                {previewImages.length > 0 && (
-                  previewImages.map((image, index) => (
-                    <div key={index} style={{ position: "relative" }}>
-                      <img
-                        src={image.preview}
-                        alt={`Preview ${index}`}
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          objectFit: "cover",
-                          borderRadius: "8px",
-                          border: "1px solid #E5E7EB",
-                        }}
-                        loading="lazy"
-                      />
-                      {image.file && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeImage(index);
-                          }}
+              <div className="d-flex align-items-start gap-2">
+                <div className="d-flex flex-wrap gap-2 mb-3">
+                  {previewImages.length > 0 && (
+                    previewImages.map((image, index) => (
+                      <div key={index} style={{ position: "relative" }}>
+                        <img
+                          src={image.preview}
+                          alt={`Preview ${index}`}
                           style={{
-                            position: "absolute",
-                            top: "-8px",
-                            right: "-8px",
-                            background: "#ef4444",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "50%",
-                            width: "20px",
-                            height: "20px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            fontSize: "12px",
+                            width: "80px",
+                            height: "80px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                            border: "1px solid #E5E7EB",
                           }}
-                        >
-                          x
-                        </button>
-                      )}
+                          loading="lazy"
+                        />
+                        {image.file && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage(index);
+                            }}
+                            style={{
+                              position: "absolute",
+                              top: "-8px",
+                              right: "-8px",
+                              background: "#ef4444",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "50%",
+                              width: "20px",
+                              height: "20px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                              fontSize: "12px",
+                            }}
+                          >
+                            x
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                  {previewImages.filter((i) => i.file).length < MAX_IMAGES && (
+                    <div className="border"
+                      onClick={() => document.getElementById("clubImagesInput").click()}
+                      style={{
+                        borderRadius: "12px",
+                        width: '80px',
+                        height: '80px',
+                        padding: "10px 0px",
+                        textAlign: "center",
+                        cursor: "pointer",
+                        backgroundColor: "#fff",
+                      }}
+                    >
+                      <div className={` gap-3`}>
+                        <SlCloudUpload size={25} color="#6B7280" />
+                        <p className="mb-0 m-0" style={{ fontSize: "16px", color: "#374151", fontFamily: "Poppins", fontWeight: 500 }}>
+                          Upload
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        id="clubImagesInput"
+                        multiple
+                        accept="image/png,image/jpeg,image/gif"
+                        style={{ display: "none" }}
+                        onChange={handleFileChange}
+                      />
                     </div>
-                  ))
-                )}
-                {previewImages.filter((i) => i.file).length < MAX_IMAGES && (
-                  <div className="border"
-                    onClick={() => document.getElementById("clubImagesInput").click()}
-                    style={{
-                      borderRadius: "12px",
-                      width: '80px',
-                      height: '80px',
-                      padding: "10px 0px",
-                      textAlign: "center",
-                      cursor: "pointer",
-                      backgroundColor: "#fff",
-                    }}
-                  >
-                    <div className={` gap-3`}>
-                      <SlCloudUpload size={25} color="#6B7280" />
-                      <p className="mb-0 m-0" style={{ fontSize: "16px", color: "#1F2937", fontWeight: 500 }}>
-                        Upload
-                      </p>
-                    </div>
-                    {/* <p className="text-muted m-0" style={{ fontSize: "12px", fontWeight: 400 }}>
-                      {previewImages.length > 0 ? '' : 'PNG, JPG, GIF up to 5MB each'}
-                    </p> */}
-                    <input
-                      type="file"
-                      id="clubImagesInput"
-                      multiple
-                      accept="image/png,image/jpeg,image/gif"
-                      style={{ display: "none" }}
-                      onChange={handleFileChange}
-                    />
+                  )}
+                </div>
+                {duplicateError && (
+                  <div style={{
+                    backgroundColor: "#FEF2F2",
+                    border: "1px solid #FECACA",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    marginLeft: "10px",
+                    maxWidth: "200px"
+                  }}>
+                    <p className="mb-0" style={{
+                      fontSize: "12px",
+                      color: "#DC2626",
+                      fontWeight: 500
+                    }}>
+                      {duplicateError}
+                    </p>
                   </div>
                 )}
               </div>
-              {previewImages.length > 0 && (
-                <Alert variant="info" className="py-2">
-                  <small>
-                    {previewImages.filter((i) => i.file).length} new {" "}
-                    {previewImages.filter((i) => i.isSaved).length} saved
-                  </small>
-                </Alert>
-              )}
             </div>
 
             <div>
-              <h5 style={{ fontWeight: 600, color: "#1F2937", fontFamily: "Poppins" }} className="">
+              <h5 style={{ fontWeight: 600, color: "#374151", fontFamily: "Poppins", fontSize: "20px" }} className="mb-2">
                 Upload Club Logo
               </h5>
 
@@ -603,7 +637,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 >
                   <div className=" gap-3 py-1">
                     <SlCloudUpload size={25} color="#6B7280" />
-                    <p className="mb-0 m-0" style={{ fontSize: "15px", color: "#1F2937", fontFamily: "Poppins", fontWeight: 500 }}>
+                    <p className="mb-0 m-0" style={{ fontSize: "16px", color: "#374151", fontFamily: "Poppins", fontWeight: 500 }}>
                       Upload
                     </p>
                   </div>
@@ -621,9 +655,25 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           </Col>
 
           <Col md={6}>
-            <h5 style={{ fontWeight: 600, color: "#1F2937", fontFamily: "Poppins" }} className="my-3 ms-3">
-              Business Hours
-            </h5>
+            <div className="d-flex justify-content-between">
+              <h5 style={{ fontWeight: 600, color: "#374151", fontFamily: "Poppins", fontSize: "20px" }} className="my-3 ms-3">
+                Business Hours
+              </h5>
+              <Link
+                onClick={applyToAll}
+                disabled={!hasChanged}
+                className="mt-3"
+                style={{
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: hasChanged ? "pointer" : "not-allowed",
+                }}
+                title={hasChanged ? "" : "No changes to apply"}
+              >
+                Apply to All
+              </Link>
+            </div>
             {renderBusinessHours()}
           </Col>
 
@@ -637,9 +687,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               type="checkbox"
               id="termsCheckbox"
               checked={formData.termsAccepted}
+              style={{boxShadow:"none"}}
               onChange={(e) => updateFormData({ termsAccepted: e.target.checked })}
               label={
-                <span style={{ fontSize: "14px", color: "#1F2937", fontWeight: 500 }}>
+                <span style={{ fontSize: "12px", color: "#374151", fontFamily: "Poppins", fontWeight: 500 }}>
                   I agree to the{" "}
                   <b
                     className="text-primary"
@@ -677,11 +728,12 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               backgroundColor: "#374151",
               border: "none",
               borderRadius: "30px",
-              padding: "10px 30px",
+              padding: "8px 34px",
               fontWeight: 600,
               fontSize: "16px",
               color: "#fff",
               marginRight: "10px",
+              fontFamily: "Poppins"
             }}
           >
             Back
@@ -692,10 +744,11 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               backgroundColor: "#22C55E",
               border: "none",
               borderRadius: "30px",
-              padding: "10px 30px",
+              padding: "8px 34px",
               fontWeight: 600,
               fontSize: "16px",
               color: "#fff",
+              fontFamily: "Poppins"
             }}
             disabled={previewImages.length === 0}
           >

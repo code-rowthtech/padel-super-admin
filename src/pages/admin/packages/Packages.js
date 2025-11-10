@@ -152,10 +152,7 @@ const Packages = () => {
       </Modal>
 
       {/* Header */}
-      <Row className="mb-4 justify-content-between align-items-center">
-        <Col xs="auto">
-          <h3 className="fw-bold text-dark mb-0">Packages</h3>
-        </Col>
+      <Row className="mb-4 justify-content-end align-items-center">
         <Col xs="auto">
           <button
             className="d-flex align-items-center position-relative p-0 border-0"

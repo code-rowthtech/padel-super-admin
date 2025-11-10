@@ -50,17 +50,17 @@ const MatchPlayer = ({
 
         syncFromStorage();
         window.addEventListener("storage", syncFromStorage);
-        
+
         // Custom event for same-tab updates
         const handleCustomUpdate = () => syncFromStorage();
         window.addEventListener("playersUpdated", handleCustomUpdate);
-        
+
         return () => {
             window.removeEventListener("storage", syncFromStorage);
             window.removeEventListener("playersUpdated", handleCustomUpdate);
         };
     }, [setParentAddedPlayers]);
-    
+
     // Force refresh every 500ms to catch localStorage changes
     useEffect(() => {
         const interval = setInterval(() => {
@@ -71,7 +71,7 @@ const MatchPlayer = ({
                 setParentAddedPlayers(parsed);
             }
         }, 500);
-        
+
         return () => clearInterval(interval);
     }, [localPlayers, setParentAddedPlayers]);
 
@@ -117,20 +117,18 @@ const MatchPlayer = ({
     const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: "Fri", formattedDate: "29 Aug" };
     const matchTime = selectedCourts.length
         ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
-        : "5 am, 6 am";
+        : "";
 
-    // ── Player Count & Booking Logic ───────────────────────────────────
     const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
-    const canBook = playerCount >= 2; // At least 1 added player
+    const canBook = playerCount >= 2 && matchTime.length > 0;
 
     const userSkillLevel = finalSkillDetails.length > 0 ? finalSkillDetails[finalSkillDetails.length - 1] : "A";
 
     const handleBookNow = () => {
         const courtIds = selectedCourts.map((c) => c._id).join(",");
 
-        // Get latest players from localStorage
         const latestPlayers = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
-        
+
         console.log('Players being passed to payment:', latestPlayers);
 
         navigate("/match-payment", {
@@ -225,16 +223,16 @@ const MatchPlayer = ({
 
                     <div className="row text-center border-top">
                         <div className="col py-2">
-                            <p className="mb-1 text-muted small">Gender</p>
-                            <p className="mb-0 fw-semibold">Mixed</p>
+                            <p className="mb-1" style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Gender</p>
+                            <p className="mb-0 " style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>Mixed</p>
                         </div>
                         <div className="col border-start border-end py-2">
-                            <p className="mb-1 text-muted small">Level</p>
-                            <p className="mb-0 fw-semibold">{finalSkillDetails[0] || "Open Match"}</p>
+                            <p className="mb-1 " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Level</p>
+                            <p className="mb-0"style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}} >{finalSkillDetails[0] || "Open Match"}</p>
                         </div>
                         <div className="col py-2">
-                            <p className="mb-1 text-muted small">Price</p>
-                            <p className="mb-0 fw-semibold">₹ {totalAmount}</p>
+                            <p className="mb-1" style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Price</p>
+                            <p className="mb-0 " style={{fontSize:'18px',fontWeight:"500",color:'#1F41BB'}}>₹ {totalAmount}</p>
                         </div>
                     </div>
                 </div>
@@ -247,19 +245,12 @@ const MatchPlayer = ({
                 <div className="p-3 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
                     <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: 600 }}>Players</h6>
 
-                    {/* Need at least 1 more player */}
-                    {playerCount < 2 && (
-                        <div className="text-center mb-2 text-muted small">
-                            Add at least <strong>1 player</strong> to book
-                        </div>
-                    )}
-
                     <div className="row mx-auto">
                         {/* TEAM A: User (fixed) + 1 added */}
-                        <div className="col-6 d-flex flex-column flex-lg-row gap-3 justify-content-center">
+                        <div className="col-6 d-flex flex-column flex-lg-row ps-0">
                             {/* USER - Always First */}
                             {User && (
-                                <div className="d-flex flex-column align-items-center mx-auto mb-3">
+                                <div className="d-flex flex-column align-items-center me-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex align-items-center justify-content-center"
                                         style={{
@@ -279,7 +270,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2 fw-semibold text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={User.name}
                                     >
@@ -294,7 +285,7 @@ const MatchPlayer = ({
 
                             {/* SLOT 2 - Team A Partner */}
                             {localPlayers.slot2 ? (
-                                <div className="d-flex flex-column align-items-center mx-auto mb-3">
+                                <div className="d-flex flex-column align-items-center me-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -312,29 +303,37 @@ const MatchPlayer = ({
                                             </span>
                                         )}
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold">{localPlayers.slot2.name}</p>
+                                    <p
+                                        className="mb-0 mt-2 text-center"
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}
+                                        data-tooltip-id="you"
+                                        data-tooltip-content={localPlayers.slot2.name}
+                                    >
+                                        {localPlayers.slot2.name?.length > 12 ? `${localPlayers.slot2.name.substring(0, 12)}...` : localPlayers.slot2.name}
+                                    </p>
+                                    <Tooltip id="you" />
                                     <span className="badge text-white" style={{ backgroundColor: "#3DBE64" }}>
                                         {localPlayers.slot2.level}
                                     </span>
                                 </div>
                             ) : (
-                                <div className="text-center mx-auto" onClick={() => handleAddMeClick("slot2")} style={{ cursor: "pointer" }}>
+                                <div className="text-center me-auto" onClick={() => handleAddMeClick("slot2")} style={{ cursor: "pointer" }}>
                                     <div
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #3DBE64" }}
                                     >
                                         <span className="fs-3" style={{ color: "#3DBE64" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold" style={{ color: "#3DBE64" }}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#3DBE64",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}>Add Me</p>
                                 </div>
                             )}
                         </div>
 
                         {/* TEAM B: 2 Players */}
-                        <div className="col-6 d-flex flex-column flex-lg-row gap-3 align-items-start justify-content-center border-start">
+                        <div className="col-6 d-flex flex-column flex-lg-row pe-0 border-start">
                             {/* SLOT 3 */}
                             {localPlayers.slot3 ? (
-                                <div className="d-flex flex-column align-items-center mx-auto mb-3">
+                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -352,26 +351,34 @@ const MatchPlayer = ({
                                             </span>
                                         )}
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold">{localPlayers.slot3.name}</p>
+                                    <p
+                                        className="mb-0 mt-2  text-center"
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}
+                                        data-tooltip-id="you"
+                                        data-tooltip-content={localPlayers.slot3.name}
+                                    >
+                                        {localPlayers.slot3.name?.length > 12 ? `${localPlayers.slot3.name.substring(0, 12)}...` : localPlayers.slot3.name}
+                                    </p>
+                                    <Tooltip id="you" />
                                     <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>
                                         {localPlayers.slot3.level}
                                     </span>
                                 </div>
                             ) : (
-                                <div className="text-center mx-auto" onClick={() => handleAddMeClick("slot3")} style={{ cursor: "pointer" }}>
+                                <div className="text-center ms-auto" onClick={() => handleAddMeClick("slot3")} style={{ cursor: "pointer" }}>
                                     <div
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
                                     >
                                         <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}>Add Me</p>
                                 </div>
                             )}
 
                             {/* SLOT 4 */}
                             {localPlayers.slot4 ? (
-                                <div className="d-flex flex-column align-items-center mx-auto mb-3">
+                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -389,28 +396,36 @@ const MatchPlayer = ({
                                             </span>
                                         )}
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold">{localPlayers.slot4.name}</p>
+                                    <p
+                                        className="mb-0 mt-2  text-center"
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}
+                                        data-tooltip-id="you"
+                                        data-tooltip-content={localPlayers.slot4.name}
+                                    >
+                                        {localPlayers.slot4.name?.length > 12 ? `${localPlayers.slot4.name.substring(0, 12)}...` : localPlayers.slot4.name}
+                                    </p>
+                                    <Tooltip id="you" />
                                     <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>
                                         {localPlayers.slot4.level}
                                     </span>
                                 </div>
                             ) : (
-                                <div className="text-center mx-auto" onClick={() => handleAddMeClick("slot4")} style={{ cursor: "pointer" }}>
+                                <div className="text-center ms-auto" onClick={() => handleAddMeClick("slot4")} style={{ cursor: "pointer" }}>
                                     <div
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
                                     >
                                         <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 fw-semibold" style={{ color: "#1F41BB" }}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}>Add Me</p>
                                 </div>
                             )}
                         </div>
                     </div>
 
                     <div className="d-flex justify-content-between mt-2">
-                        <p className="mb-1" style={{ fontSize: "14px", color: "#3DBE64" }}>Team A</p>
-                        <p className="mb-0" style={{ fontSize: "14px", color: "#1F41BB" }}>Team B</p>
+                        <p className="mb-1" style={{ fontSize:"11px",fontWeight:"500",fontFamily:"Poppins", color: "#3DBE64" }}>Team A</p>
+                        <p className="mb-0" style={{ fontSize:"11px",fontWeight:"500",fontFamily:"Poppins", color: "#1F41BB" }}>Team B</p>
                     </div>
                 </div>
 
@@ -444,7 +459,7 @@ const MatchPlayer = ({
                             height: "31px",
                         }}
                         onClick={handleBookNow}
-                        disabled={!canBook}
+                        disabled={!canBook || totalAmount === 0}
                     >
                         Book Now <FaArrowRight />
                     </button>

@@ -8,6 +8,7 @@ import {
   FormControl,
   Dropdown,
 } from "react-bootstrap";
+import { IoChevronDown } from "react-icons/io5";
 import { getSlots, updateCourt } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
@@ -110,8 +111,8 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
   const PricingData = clubData?.data || [];
   const [formData, setFormData] = useState({
     selectedSlots: "Morning",
-    days: DAYS_OF_WEEK.reduce((acc, day, idx) => {
-      acc[day] = idx === 0; // Monday selected by default
+    days: DAYS_OF_WEEK.reduce((acc, day) => {
+      acc[day] = true; // All days selected by default
       return acc;
     }, {}),
     prices: { Morning: {}, Afternoon: {}, Evening: {}, All: {} },
@@ -138,7 +139,12 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
             [prev.selectedSlots]: slotTimes.reduce((acc, slot) => {
               // Store keys using display format for UI (we normalize later for matching)
               const display = formatTo12HourDisplay(slot?.time);
-              acc[display] = slot?.amount?.toString() || "";
+              acc[display] = slot?.amount?.toString() || "100"; // Default price 100
+              return acc;
+            }, {}),
+            All: slotTimes.reduce((acc, slot) => {
+              const display = formatTo12HourDisplay(slot?.time);
+              acc[display] = slot?.amount?.toString() || "100"; // Default price for All slots
               return acc;
             }, {}),
           },
@@ -188,7 +194,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
     setFormData((prev) => ({
       ...prev,
       days: DAYS_OF_WEEK.reduce((acc, day) => {
-        acc[day] = checked || day === "Monday";
+        acc[day] = checked;
         return acc;
       }, {}),
     }));
@@ -218,12 +224,13 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
             checked={!!formData.days[day]}
             onChange={() => handleDayChange(day)}
             style={{
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "4px",
               border: "2px solid #1F2937",
               backgroundColor: formData.days[day] ? "#1F2937" : "transparent",
               cursor: "pointer",
+              transform: "scale(1.2)"
             }}
           />
           <label
@@ -265,6 +272,8 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                 outline: "none",
                 boxShadow: "none",
                 cursor: "default",
+                height: "30px",
+                fontSize: "14px"
               }}
             />
           </Col>
@@ -280,7 +289,11 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                   handlePriceChange(slotType, display, e.target.value)
                 }
                 isInvalid={invalid}
-                style={{ background: "transparent" }}
+                style={{
+                  background: "transparent",
+                  height: "30px",
+                  fontSize: "14px"
+                }}
               />
             </InputGroup>
           </Col>
@@ -379,9 +392,9 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
             {selectedTimes.length} of {allTimesRaw.length} slots selected
           </span>
         </div>
-        <div className="d-flex flex-wrap gap-2 mb-3">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "16px" }}>
           {allTimesRaw.map((timeRaw) => {
-            console.log({timeRaw});
+            console.log({ timeRaw });
             const display = formatTo12HourDisplay(timeRaw);
             const isSelected = formData.prices.All?.[display] !== undefined;
             const price = formData.prices.All?.[display];
@@ -391,14 +404,15 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
             return (
               <Button
                 key={timeRaw}
-                variant={isSelected ? "primary" : "outline-primary"}
+                variant={isSelected ? "" : "outline-primary"}
                 onClick={() => toggleSlot(timeRaw)}
+                className="text-nowrap"
                 style={{
                   padding: "8px 16px",
                   fontSize: "14px",
                   color: isSelected ? "#fff" : "#1F2937",
                   borderRadius: "8px",
-                  border: `1px solid ${invalid ? "red" : "#E5E7EB"}`,
+                  border: `1px solid "#E5E7EB"}`,
                   backgroundColor: isSelected ? "#22C55E" : "#F9FAFB",
                 }}
               >
@@ -409,16 +423,11 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
         </div>
         <div className="mt-3">
           <h5
-            style={{
-              fontWeight: 700,
-              color: "#1F2937",
-              marginBottom: "10px",
-            }}
+            style={{ fontSize: "20px", fontWeight: "600", color: "#374151", fontFamily: "Poppins" , marginBottom:'10px'}}
           >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${
-                  selectedTimes.length > 1 ? "s" : ""
-                }`
+              ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""
+              }`
               : "Set Price (select slots first)"}
           </h5>
           <InputGroup>
@@ -427,6 +436,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
               min="1"
               placeholder={selectedTimes.length > 0 ? "Enter price" : ""}
               value={common}
+              className="w-100"
               onChange={(e) => updatePriceForAll(e.target.value)}
               disabled={selectedTimes.length === 0}
               isInvalid={commonInvalid}
@@ -481,8 +491,8 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
     const selectedDisplayTimes = Object.keys(slotPrices);
     const targetedSlotTimes = selectAllChecked
       ? slotTimes.filter((slot) =>
-          selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
-        )
+        selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
+      )
       : slotTimes;
     if (targetedSlotTimes.length === 0) {
       showWarning("No targeted slots to update.");
@@ -591,7 +601,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
               style={{
                 position: "absolute",
                 top: "-3em",
-                right: "12em",
+                left: "1.2em",
               }}
               id="all-days"
             >
@@ -607,7 +617,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                   border: "2px solid #1F2937",
                   backgroundColor: selectAllChecked ? "#1F2937" : "transparent",
                   cursor: "pointer",
-                  boxShadow:"none"
+                  boxShadow: "none"
                 }}
               />
               <label
@@ -622,6 +632,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                 Select All
               </label>
             </Form.Check>
+            
           </div>
           <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
             <Form.Check
@@ -666,9 +677,13 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                   borderRadius: "8px",
                   color: "#1F2937",
                   fontSize: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
                 }}
               >
                 {formData.selectedSlots}
+                <IoChevronDown style={{ fontSize: "10px" }} />
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 {["Morning", "Afternoon", "Evening"].map((slot) => (
@@ -696,9 +711,13 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                   position: "absolute",
                   top: "-3em",
                   right: "1em",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
                 }}
               >
                 {formData.selectedSlots} slots
+                <IoChevronDown style={{ fontSize: "12px" }} />
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 {["Morning", "Afternoon", "Evening"].map((slot) => (

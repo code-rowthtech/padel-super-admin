@@ -224,7 +224,7 @@ const CourtAvailability = () => {
           register_club_id: ownerClubData?.[0]?._id,
           day: selectedDay,
           date: selectedDate,
-          courtId: selectedCourts[0],
+          courtId: selectedCourts[0] || '',
         })
       );
     }
@@ -351,33 +351,6 @@ const CourtAvailability = () => {
         <Loading />
       ) : (
         <Container className="p-0" fluid>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5
-              className="manual-heading mb-0"
-              style={{
-                fontFamily: "Poppins",
-                fontWeight: "700",
-                color: "#374151",
-              }}
-            >
-              Court Availability
-            </h5>
-            <Button
-              className="bg-transparent border-0"
-              onClick={() => {
-                navigate(-1);
-                dispatch(resetOwnerClub());
-              }}
-              style={{
-                color: "#1F41BB",
-                fontSize: "18px",
-                fontWeight: "600",
-                fontFamily: "Poppins",
-              }}
-            >
-              <FaArrowLeft className="me-2" /> Back
-            </Button>
-          </div>
           <Row className="mx-auto bg-white shadow-sm rounded-3">
             <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
@@ -693,7 +666,7 @@ const CourtAvailability = () => {
             </Col>
             <Col xs={12} lg={4} className="py-2 py-md-4 px-2 px-md-3">
               <div
-                className="shadow rounded-3 p-2 p-md-3 bg-white"
+                className=" rounded-3 p-2 p-md-3 bg-white"
                 style={{ minHeight: "40vh" }}
               >
                 <div className="mt-2">

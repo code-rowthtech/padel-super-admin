@@ -49,7 +49,7 @@ const Booking = () => {
   } = useSelector((state) => state.booking);
 
   const tabCount = useSelector((state) => state.booking.bookingCount)
-console.log({tabCount});
+  console.log({ tabCount });
   const bookings = getBookingData?.bookings || [];
   const totalItems = getBookingData?.totalItems || 0;
   const allCount = tabCount?.allCount || 0;
@@ -102,61 +102,6 @@ console.log({tabCount});
   return (
     <Container fluid className="px-2 px-md-4">
       {/* Heading & Manual Booking Button */}
-      <div className="d-flex justify-content-between align-items-center mb-1">
-        <h4 className=" mb-0" style={{ fontWeight: '600', fontFamily: "Poppins", fontSize: "clamp(1.5rem, 4vw, 1.4rem)" }}>
-          Bookings
-        </h4>
-        <button
-          className="d-flex align-items-center position-relative p-0 border-0"
-          style={{
-            borderRadius: "20px 10px 10px 20px",
-            background: "none",
-            overflow: "hidden",
-            cursor: "pointer",
-            transition: "all 0.3s ease",
-            flexShrink: 0,
-          }}
-          onClick={() => {
-            navigate("/admin/manualbooking");
-            dispatch(resetOwnerClub());
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = "0.9";
-            e.currentTarget.style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = "1";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
-          <div className="p-1 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
-            <div
-              className="d-flex justify-content-center align-items-center text-white fw-bold"
-              style={{
-                backgroundColor: "#1F41BB",
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                fontSize: "20px",
-              }}
-            >
-              <span className="mb-1">+</span>
-            </div>
-          </div>
-          <div
-            className="d-flex align-items-center text-white fw-medium rounded-end-3"
-            style={{
-              backgroundColor: "#1F41BB",
-              padding: "0 16px",
-              height: "36px",
-              fontSize: "14px",
-              fontFamily: "Nunito, sans-serif",
-            }}
-          >
-            Manual Booking
-          </div>
-        </button>
-      </div>
 
       <Row className="mb-3">
         <Col xs={12}>
@@ -210,6 +155,56 @@ console.log({tabCount});
                 </Tabs>
               </AppBar>
             </Box>
+            <button
+              className="d-flex align-items-center position-relative p-0 border-0"
+              style={{
+                borderRadius: "20px 10px 10px 20px",
+                background: "none",
+                overflow: "hidden",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                flexShrink: 0,
+              }}
+              onClick={() => {
+                navigate("/admin/manualbooking");
+                dispatch(resetOwnerClub());
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "0.9";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "1";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              <div className="p-1 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
+                <div
+                  className="d-flex justify-content-center align-items-center text-white fw-bold"
+                  style={{
+                    backgroundColor: "#1F41BB",
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    fontSize: "20px",
+                  }}
+                >
+                  <span className="mb-1">+</span>
+                </div>
+              </div>
+              <div
+                className="d-flex align-items-center text-white fw-medium rounded-end-3"
+                style={{
+                  backgroundColor: "#1F41BB",
+                  padding: "0 16px",
+                  height: "36px",
+                  fontSize: "14px",
+                  fontFamily: "Nunito, sans-serif",
+                }}
+              >
+                Manual Booking
+              </div>
+            </button>
           </div>
         </Col>
       </Row>

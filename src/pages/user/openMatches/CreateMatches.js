@@ -258,28 +258,35 @@ const CreateMatches = () => {
 
   // FIXED: Save answer on every step
   const handleNext = () => {
+    // First check if slots are selected
     if (selectedCourts.length === 0 || selectedCourts.every(c => c.time.length === 0)) {
       setSlotError("Select a slot to enable booking");
       return;
     }
 
-    // Step 1: Multi-select
+    // Step 1: Multi-select - must have at least one selection
     if (currentStep === 1) {
-      if (selectedLevel.length > 0) {
-        setSkillDetails(prev => {
-          const n = [...prev];
-          n[currentStep] = selectedLevel;
-          return n;
-        });
-        setCurrentStep(currentStep + 1);
-        setSelectedLevel([]);
-        setSlotError("");
+      if (selectedLevel.length === 0) {
+        setSlotError("Please select at least one option");
+        return;
       }
+      setSkillDetails(prev => {
+        const n = [...prev];
+        n[currentStep] = selectedLevel;
+        return n;
+      });
+      setCurrentStep(currentStep + 1);
+      setSelectedLevel([]);
+      setSlotError("");
       return;
     }
 
-    // Normal steps
-    if (currentStep < steps.length - 1 && selectedLevel) {
+    // Normal steps - must have a selection
+    if (currentStep < steps.length - 1) {
+      if (!selectedLevel || (Array.isArray(selectedLevel) && selectedLevel.length === 0)) {
+        setSlotError("Please select an option");
+        return;
+      }
       setSkillDetails(prev => {
         const n = [...prev];
         n[currentStep] = selectedLevel;
@@ -292,9 +299,13 @@ const CreateMatches = () => {
     }
 
     // LAST STEP – Save skill code
-    if (currentStep === steps.length - 1 && selectedLevel) {
+    if (currentStep === steps.length - 1) {
+      if (!selectedLevel) {
+        setSlotError("Please select an option");
+        return;
+      }
       const finalSkillDetails = [...skillDetails];
-      finalSkillDetails[currentStep] = selectedLevel; // This was missing
+      finalSkillDetails[currentStep] = selectedLevel;
       setSkillDetails(finalSkillDetails);
       setMatchPlayer(true);
       return;
@@ -358,7 +369,7 @@ const CreateMatches = () => {
     <Container className="p-4 mb-5">
       <Row className="g-3">
         {/* LEFT PANEL */}
-        <Col md={matchPlayer ? 6 : 7} className="p-3" style={{ backgroundColor: "#F5F5F566" }}>
+        <Col md={ 7} className="p-3" >
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -597,7 +608,7 @@ const CreateMatches = () => {
         </Col>
 
         {/* RIGHT PANEL */}
-        <Col md={matchPlayer ? 6 : 5} className="ps-2">
+        <Col md={5} className="ps-2">
           {!matchPlayer ? (
             <div style={{ backgroundColor: "#F1F4FF" }}>
               <div className="d-flex gap-2 ps-4 pt-4">
@@ -749,7 +760,12 @@ const CreateMatches = () => {
                     border: "none",
                     color: "#fff",
                   }}
-                  disabled={!selectedLevel || (currentStep === 1 && selectedLevel.length === 0)}
+                  disabled={
+                    selectedCourts.length === 0 || 
+                    !selectedLevel || 
+                    (currentStep === 1 && selectedLevel.length === 0) ||
+                    (Array.isArray(selectedLevel) && selectedLevel.length === 0)
+                  }
                   onClick={handleNext}
                 >
                   {currentStep === steps.length - 1 ? "Submit" : window.innerWidth < 768 ? "" : "Next"}

@@ -284,6 +284,7 @@ const Booking = ({ className = "" }) => {
     const clubId = localStorage.getItem("register_club_id");
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         dispatch(getUserClub({ search: "" }));
         dispatch(
             getUserSlotBooking({
@@ -472,7 +473,7 @@ const Booking = ({ className = "" }) => {
             </div>
             <div className="container mb-5 px-4">
                 <div className="row g-4">
-                    <div className="col-lg-7 col-12 py-4 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
+                    <div className="col-lg-7 col-12 py-4 rounded-3 px-4" >
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <div className="custom-heading-use text-nowrap">
                                 Select Date

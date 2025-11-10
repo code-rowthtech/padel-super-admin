@@ -8,6 +8,7 @@ import {
   FormControl,
   Dropdown,
 } from "react-bootstrap";
+import { IoChevronDown } from "react-icons/io5";
 import { getSlots, updateCourt } from "../../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -36,12 +37,12 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     selectedSlots: "Morning",
     days: {
       Monday: true,
-      Tuesday: false,
-      Wednesday: false,
-      Thursday: false,
-      Friday: false,
-      Saturday: false,
-      Sunday: false,
+      Tuesday: true,
+      Wednesday: true,
+      Thursday: true,
+      Friday: true,
+      Saturday: true,
+      Sunday: true,
     },
     prices: {
       Morning: {},
@@ -51,7 +52,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     },
   });
 
-  const [selectAllChecked, setSelectAllChecked] = useState(false);
+  const [selectAllChecked, setSelectAllChecked] = useState(true);
 
   // Helper: Convert time to minutes for sorting
   const convertTimeToMinutes = (timeStr) => {
@@ -118,10 +119,25 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
           newPrices[prev.selectedSlots][time12hr] = slot.amount?.toString() || "";
         });
 
+        // Auto-select all slots for "All" category when selectAllChecked is true
+        if (selectAllChecked) {
+          const timeSet = new Set();
+          selectedDaySlots.forEach((slotDay) => {
+            slotDay.slotTimes?.forEach((slot) => {
+              if (slot.time) timeSet.add(normalizeTime(slot.time));
+            });
+          });
+          const allTimes = Array.from(timeSet);
+          newPrices.All = {};
+          allTimes.forEach((time) => {
+            newPrices.All[time] = "";
+          });
+        }
+
         return { ...prev, prices: newPrices };
       });
     }
-  }, [clubData?.data, formData.selectedSlots, formData.days]);
+  }, [clubData?.data, formData.selectedSlots, formData.days, selectAllChecked]);
 
   // Sync selectAllChecked
   useEffect(() => {
@@ -182,7 +198,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
             className="mb-1 d-flex justify-content-between align-items-center"
             style={{ display: "flex", alignItems: "center", gap: "10px" }}
           >
-            <Form.Label style={{ fontSize: "16px", color: "#1F2937", fontWeight: 500 }}>
+            <Form.Label style={{ fontSize: "12px", color: "#1D1B20", fontWeight: 400,fontFamily:"Poppins" }}>
               {day}
             </Form.Label>
             <Form.Check.Input
@@ -333,7 +349,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
           </span>
         </div>
 
-        <div className="d-flex flex-wrap gap-2 mb-3">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px", marginBottom: "16px" }}>
           {allTimes.map((time) => {
             const isSelected = formData.prices.All[time] !== undefined;
             return (
@@ -357,7 +373,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         </div>
 
         <div className="mt-3">
-          <h5 style={{ fontWeight: 700, color: "#1F2937", marginBottom: "10px" }}>
+          <h5 style={{ fontWeight: 500, color: "#000000", marginBottom: "10px", fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
             {selectedTimes.length > 0
               ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""}`
               : "Set Price (select slots first)"}
@@ -365,7 +381,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
           <InputGroup>
             <FormControl
               type="number"
-              placeholder={selectedTimes.length > 0 ? "Enter price" : ""}
+              placeholder={selectedTimes.length > 0 ? "Enter Amount" : ""}
               value={getCommonPrice()}
               onChange={(e) => updatePriceForAll(e.target.value)}
               disabled={selectedTimes.length === 0}
@@ -375,6 +391,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                 border: "1px solid #E5E7EB",
                 fontSize: "14px",
                 backgroundColor: "#fff",
+                fontFamily: 'Poppins'
               }}
               min={0}
               max={4000}
@@ -501,7 +518,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         <Row>
           <Col md={6}>
             <div className="d-flex justify-content-between">
-              <h5 style={{ fontWeight: 700, color: "#1F2937", marginBottom: "10px" }}>
+              <h5 style={{ fontWeight: 600, fontSize: "20px", color: "#374151", fontFamily: "Poppins", marginBottom: "10px" }}>
                 Set Price
               </h5>
               <Form.Check
@@ -515,10 +532,8 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
             </div>
             <div
               style={{
-                border: "1px solid #E5E7EB",
                 borderRadius: "8px",
                 padding: "10px",
-                background: "#F9FAFB",
               }}
             >
               {renderDays()}
@@ -531,18 +546,22 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                   variant="secondary"
                   id="slot-selector"
                   style={{
-                    backgroundColor: "#F9FAFB",
-                    borderColor: "#E5E7EB",
+                    backgroundColor: "#EDEDED69",
+                    borderColor: "#bebec0ff",
                     borderRadius: "8px",
-                    padding: "6px 12px",
+                    padding: "8px 12px",
                     fontSize: "14px",
                     color: "#1F2937",
                     position: "absolute",
                     top: "-1em",
                     right: "0%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",fontSize: "12px",fontWeight:"500", fontFamily:"Poppins",color:"#000000"
                   }}
                 >
                   {formData.selectedSlots} slots
+                  <IoChevronDown className="" style={{ fontSize: "12px" }} />
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => handleSlotChange("Morning")}>
@@ -558,15 +577,13 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
               </Dropdown>
             )}
 
-            <h5 style={{ fontWeight: 700, color: "#1F2937", marginBottom: "10px" }}>
+            <h5 style={{ fontWeight: 500, color: "#000000", marginBottom: "10px", fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
               {selectAllChecked ? "All" : formData.selectedSlots} slots
             </h5>
             <div
               style={{
-                border: "1px solid #E5E7EB",
                 borderRadius: "8px",
                 padding: "10px",
-                background: "#F9FAFB",
               }}
             >
               {clubLoading ? <DataLoading /> : renderTimeSlots()}
@@ -586,7 +603,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                 backgroundColor: "#374151",
                 border: "none",
                 borderRadius: "30px",
-                padding: "10px 30px",
+                padding: "9px 34px",
                 fontWeight: 600,
                 fontSize: "16px",
                 color: "#fff",
@@ -601,7 +618,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                 backgroundColor: "#22C55E",
                 border: "none",
                 borderRadius: "30px",
-                padding: "10px 30px",
+                padding: "8px 34px",
                 fontWeight: 600,
                 fontSize: "16px",
                 color: "#fff",
