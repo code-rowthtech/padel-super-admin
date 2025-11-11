@@ -15,6 +15,9 @@ import { Button, Dropdown } from "react-bootstrap";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MdOutlineArrowBackIosNew, MdOutlineArrowForwardIos } from "react-icons/md";
+import { HiMoon } from "react-icons/hi";
+import { BsSunFill } from "react-icons/bs";
+import { PiSunHorizonFill } from "react-icons/pi";
 
 
 const parseTimeToHour = (timeStr) => {
@@ -98,8 +101,12 @@ const Booking = ({ className = "" }) => {
         };
     });
 
-    const getCurrentMonth = (selectedDate) => (!selectedDate ? "Month" : new Date(selectedDate.fullDate).toLocaleDateString("en-US", { month: "short" }).toUpperCase());
-
+    const getCurrentMonth = (selectedDate) => {
+        if (!selectedDate || !selectedDate.fullDate) return "MONTH";
+        const dateObj = new Date(selectedDate.fullDate);
+        const month = dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+        return month.split('').join('\n');
+    };
     useEffect(() => {
         if (slotData?.message === "jwt token is expired") setExpireModal(true);
     }, [slotData?.message]);
@@ -182,7 +189,6 @@ const Booking = ({ className = "" }) => {
     };
 
     const handleDeleteSlot = (courtId, date, timeId) => {
-        // Remove from selectedTimes
         setSelectedTimes((prev) => {
             const courtTimes = prev[courtId]?.[date];
             if (!courtTimes) return prev;
@@ -205,10 +211,8 @@ const Booking = ({ className = "" }) => {
             };
         });
 
-        // Remove from selectedBuisness
         setSelectedBuisness((prev) => prev.filter((t) => !(t._id === timeId && t.date === date)));
 
-        // Remove from selectedCourts
         setSelectedCourts((prev) =>
             prev
                 .map((c) =>
@@ -324,7 +328,7 @@ const Booking = ({ className = "" }) => {
                             slot: slotData?.data?.[0]?.slots,
                         },
                         clubData,
-                        selectedCourts, // Data only, no setter
+                        selectedCourts,
                         selectedDate,
                         grandTotal,
                         totalSlots,
@@ -344,7 +348,7 @@ const Booking = ({ className = "" }) => {
                         slot: slotData?.data?.[0]?.slots,
                     },
                     clubData,
-                    selectedCourts, // Data only, no setter
+                    selectedCourts,
                     selectedDate,
                     grandTotal,
                     totalSlots,
@@ -397,15 +401,10 @@ const Booking = ({ className = "" }) => {
 
 
     const tabData = [
-        { img: morningTab, label: 'Morning', key: 'morning' },
-        { img: sun, label: 'Afternoon', key: 'noon' },
-        { img: nighttab, label: 'Evening', key: 'night' },
+        { Icon: PiSunHorizonFill, label: 'Morning', key: 'morning' },
+        { Icon: BsSunFill, label: 'Noon', key: 'noon' },
+        { Icon: HiMoon, label: 'Evening', key: 'night' },
     ];
-    const padelOption = [
-        { img: tennis2, label: 'Padel', key: 'padel' },
-        { img: tennis2, label: 'Tannis', key: 'tannis' },
-        { img: tennis2, label: 'Pickleball', key: 'pickleball' },
-    ]
 
     useEffect(() => {
         const counts = [0, 0, 0];
@@ -426,7 +425,7 @@ const Booking = ({ className = "" }) => {
         if (counts[0] === 0) {
             const firstAvailableIndex = counts.findIndex(count => count > 0);
             if (firstAvailableIndex !== -1) {
-                defaultTab = tabData[firstAvailableIndex].key; 
+                defaultTab = tabData[firstAvailableIndex].key;
             }
         }
         setKey(defaultTab);
@@ -522,8 +521,30 @@ const Booking = ({ className = "" }) => {
                             </div>
                         </div>
                         <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
-                            <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
-                                <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
+                            <div
+                                className="d-flex justify-content-center align-items-center rounded-pill p-0 mb-3"
+                                style={{
+                                    backgroundColor: "#f3f3f5",
+                                    width: "32px",
+                                    minHeight: "48px",   // Dynamic height
+                                    padding: "2px 0"     // Tight vertical padding
+                                }}
+                            >
+                                <span
+                                    style={{
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        whiteSpace: "pre-line",
+                                        textAlign: "center",
+                                        lineHeight: "1",
+                                        letterSpacing: "0px",
+                                        margin: 0,
+                                        padding: 0,
+                                        display: "block"
+                                    }}
+                                >
+                                    {getCurrentMonth(selectedDate)}
+                                </span>
                             </div>
                             <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
                                 <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
@@ -570,7 +591,7 @@ const Booking = ({ className = "" }) => {
                                                             display: "flex",
                                                             alignItems: "center",
                                                             justifyContent: "center",
-                                                            top: "-1px",
+                                                            top: "-0px",
                                                             right: "-4px",
                                                             zIndex: 2,
                                                             backgroundColor: "#22c55e"
@@ -591,29 +612,39 @@ const Booking = ({ className = "" }) => {
                         <div className="row mb-2 mx-xs-auto">
                             <div className="col-12 d-flex p-0 justify-content-center align-items-center">
                                 <div className="weather-tabs-wrapper w-100">
-                                    <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                                        {tabData.map((tab, index) => (
-                                            <div
-                                                key={index}
-                                                className={`tab-item rounded-3 ${key === tab.key ? 'active' : ''}`}
-                                                onClick={() => setKey(tab.key)}
-                                            >
-                                                <img className="tab-icon" src={tab.img} alt={tab.label} />
-                                            </div>
-                                        ))}
+                                    {/* ---------- ICON ROW ---------- */}
+                                    <div className="weather-tabs-wrapper w-100">
+                                        <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
+                                            {tabData.map((tab, index) => {
+                                                const Icon = tab.Icon;
+                                                const active = key === tab.key;
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className={`tab-item rounded-3 ${key === tab.key ? 'active' : ''}`}
+                                                        onClick={() => setKey(tab.key)}
+                                                    >
+                                                        <Icon
+                                                            size={24}
+                                                            className={active ? 'text-primary' : 'text-dark'}   // dark when inactive
+                                                        />
+
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Labels below tabs */}
+                                        <div className="tab-labels d-flex justify-content-between">
+                                            {tabData.map((tab, index) => (
+                                                <p key={index} className={`tab-label ${key === tab.key ? 'active text-primary' : 'text-muted'}`}>
+                                                    {tab.label}
+                                                </p>
+                                            ))}
+                                        </div>
                                     </div>
 
-                                    {/* Labels below tabs */}
-                                    <div className="tab-labels d-flex justify-content-between">
-                                        {tabData.map((tab, index) => (
-                                            <p key={index} className="tab-label text-muted">
-                                                {tab.label}
-                                            </p>
-                                        ))}
-                                    </div>
                                 </div>
-
-
                             </div>
 
                         </div>

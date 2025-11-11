@@ -213,12 +213,47 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                 backgroundColor: formData.days[day] ? "#1F2937" : "transparent",
                 cursor: "pointer",
                 marginLeft: "auto",
+                boxShadow: "none",
               }}
             />
           </Form.Check>
         ))}
       </div>
     );
+  };
+
+  // Filter slots by time period
+  const filterSlotsByPeriod = (slots, period) => {
+    return slots.filter((slot) => {
+      const timeStr = slot.time;
+      if (!timeStr) return false;
+
+      // Parse hour from time string
+      let hour;
+      if (timeStr.includes(":")) {
+        const [hourStr] = timeStr.split(":");
+        hour = parseInt(hourStr, 10);
+      } else {
+        const match = timeStr.match(/(\d+)\s*(am|pm)/i);
+        if (!match) return false;
+        hour = parseInt(match[1], 10);
+        const periodStr = match[2].toLowerCase();
+        if (periodStr === "pm" && hour !== 12) hour += 12;
+        if (periodStr === "am" && hour === 12) hour = 0;
+      }
+
+      // Filter by time period
+      switch (period) {
+        case "Morning":
+          return hour >= 0 && hour <= 11;
+        case "Afternoon":
+          return hour >= 12 && hour <= 16;
+        case "Evening":
+          return hour >= 17 && hour <= 23;
+        default:
+          return true;
+      }
+    });
   };
 
   // Render slots for single day
@@ -228,10 +263,15 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     const selectedDaySlots = getSelectedDaySlots();
     if (selectedDaySlots.length === 0) return <div>No slots available</div>;
 
-    const slotData = selectedDaySlots[0]?.slotTimes || [];
+    const allSlotData = selectedDaySlots[0]?.slotTimes || [];
+    const filteredSlotData = filterSlotsByPeriod(allSlotData, formData.selectedSlots);
     const slots = formData.selectedSlots;
 
-    return slotData.map((slot) => {
+    if (filteredSlotData.length === 0) {
+      return <div>No {formData.selectedSlots.toLowerCase()} slots available</div>;
+    }
+
+    return filteredSlotData.map((slot) => {
       const time12hr = convertTo12HourFormat(slot.time);
       return (
         <Row key={slot._id} className="align-items-center mb-2">
@@ -344,6 +384,14 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
             onChange={toggleAllSlots}
             className="me-2"
           />
+          <style jsx>{`
+            #select-all-slots {
+              box-shadow: none !important;
+            }
+            #select-all-slots:focus {
+              box-shadow: none !important;
+            }
+          `}</style>
           <span className="text-muted small">
             {selectedTimes.length} of {allTimes.length} slots selected
           </span>
@@ -391,7 +439,8 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                 border: "1px solid #E5E7EB",
                 fontSize: "14px",
                 backgroundColor: "#fff",
-                fontFamily: 'Poppins'
+                fontFamily: 'Poppins',
+                boxShadow: "none"
               }}
               min={0}
               max={4000}
@@ -529,6 +578,14 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                 label="Select All"
                 style={{ fontSize: "14px", color: "#1F2937", fontWeight: 500 }}
               />
+              <style jsx>{`
+                #selectAll {
+                  box-shadow: none !important;
+                }
+                #selectAll:focus {
+                  box-shadow: none !important;
+                }
+              `}</style>
             </div>
             <div
               style={{

@@ -244,8 +244,11 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     return (
       <>
         {days.map((day) => {
-          const dayHours =
-            formData.businessHours[day] || { start: "06:00 AM", end: "11:00 PM" };
+          const dayHours = {
+            start: "06:00 AM",
+            end: "11:00 PM",
+            ...formData.businessHours[day]
+          };
           const startTime24 = convertAmPmTo24Hour(dayHours.start);
           const endTime24 = convertAmPmTo24Hour(dayHours.end);
           const startHour = parseInt(startTime24.split(":")[0], 10);

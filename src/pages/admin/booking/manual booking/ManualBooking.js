@@ -539,7 +539,7 @@ const ManualBooking = () => {
                     )}
                   </div>
                 </div>
-                <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
+                <div className="d-flex align-items-center mb-3 gap-2 ">
                   <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
                     <span
                       className="text-muted mb-0"
@@ -548,8 +548,8 @@ const ManualBooking = () => {
                         fontWeight: "500",
                         whiteSpace: "pre-line",
                         textAlign: "center",
-                        lineHeight: "1",  // Yeh add karo
-                        letterSpacing: "0px" // Optional: agar horizontal spacing bhi tight chahiye
+                        lineHeight: "1", 
+                        letterSpacing: "0px" 
                       }}
                     >
                       {getCurrentMonth(selectedDate)}
@@ -614,7 +614,7 @@ const ManualBooking = () => {
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
-                                  top: "-4px",
+                                  top: "-1px",
                                   right: "-4px",
                                   zIndex: 2,
                                   backgroundColor: "#22c55e"
@@ -798,7 +798,7 @@ const ManualBooking = () => {
                 )}
               </div>
             </Col>
-            <Col xs={12} lg={4} className="py-2 py-md-4 px-2  px-md-3">
+            <Col xs={12} lg={4} className="py-2  py-md-4 px-2  px-md-3">
               <div
                 className=" rounded-3 p-2 p-md-3 "
                 style={{ minHeight: "40vh" }}
@@ -900,7 +900,7 @@ const ManualBooking = () => {
                 {Object.values(selectedSlots).some(
                   (ds) => Object.values(ds).some(({ slots }) => slots.length > 0)
                 ) && (
-                    <div className="mt-2 p-2 rounded bg-light">
+                    <div className="mt-2 p-2 rounded ">
                       <div className="d-flex justify-content-between align-items-center">
                         <span
                           style={{
