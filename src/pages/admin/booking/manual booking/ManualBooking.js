@@ -444,7 +444,7 @@ const ManualBooking = () => {
               <FaArrowLeft className="me-2" /> Back
             </Button>
           </div>
-          <Row className="mx-auto bg-white shadow-sm rounded-3">
+          <Row className="mx-auto  bg-white shadow-sm rounded-3" style={{height:"83vh"}}>
             <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
               <div className="mb-3 mb-md-4">
