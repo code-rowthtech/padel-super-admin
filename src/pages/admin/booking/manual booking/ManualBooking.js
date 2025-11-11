@@ -394,14 +394,12 @@ const ManualBooking = () => {
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
-  // Is useEffect ko replace karo
   useEffect(() => {
     if (phone.length === 10) {
       dispatch(searchUserByNumber({ phoneNumber: phone }));
     }
   }, [phone, dispatch]);
 
-  // Naya useEffect add karo — sirf tab name set karo jab user ne khud se nahi dala
   useEffect(() => {
     if (searchUserData?.result?.name && phone.length === 10) {
       // Sirf tab name set karo jab user ne manually kuch nahi dala ho
@@ -444,7 +442,7 @@ const ManualBooking = () => {
               <FaArrowLeft className="me-2" /> Back
             </Button>
           </div>
-          <Row className="mx-auto bg-white shadow-sm rounded-3">
+          <Row className="mx-auto  bg-white shadow-sm rounded-3" style={{height:"83vh"}}>
             <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
               <div className="mb-3 mb-md-4">
