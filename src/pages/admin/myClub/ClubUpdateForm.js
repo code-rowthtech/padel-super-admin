@@ -648,6 +648,7 @@ const ClubUpdateForm = () => {
                     label="Number of Courts "
                     field="courtCount"
                     type="number"
+                    max={4000}
                   />
                 </Col>
                 <Col md={6}>

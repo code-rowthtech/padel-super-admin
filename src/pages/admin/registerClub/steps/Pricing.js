@@ -292,9 +292,12 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
             <InputGroup>
               ₹
               <FormControl
+                type="number"
                 placeholder="Price"
                 value={formData.prices[slots][time12hr] || ""}
                 onChange={(e) => handlePriceChange(slots, time12hr, e.target.value)}
+                min="0"
+                max="4000"
                 style={{
                   height: "30px",
                   border: "none",

@@ -801,7 +801,7 @@ const ManualBooking = () => {
             </Col>
             <Col xs={12} lg={4} className="py-2  py-md-4 px-2 mt-lg-4  px-md-3">
               <div
-                className=" rounded-3 p-2 p-md-3 "
+                className=" rounded-3 p-2 p-md-3  "
                 style={{ minHeight: "40vh" }}
               >
                 <div

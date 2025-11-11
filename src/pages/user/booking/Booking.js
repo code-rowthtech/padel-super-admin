@@ -74,7 +74,7 @@ const Booking = ({ className = "" }) => {
     const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorShow, setErrorShow] = useState(false);
-    const logo = JSON.parse(localStorage.getItem("logo"));
+    const logo = JSON.parse(localStorage.getItem("logo")) || clubData?.register_club_id?.logo?.[0];
     const [showDropdown, setShowDropdown] = useState(false);
     const dateRefs = useRef({});
     const [key, setKey] = useState('morning');
@@ -812,12 +812,43 @@ const Booking = ({ className = "" }) => {
                     </div>
                     <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
                         <div className="border w-100    px-0 py-4 border-0" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
-                            <div className="d-flex mb-4 ">
+                            <div className="d-flex mb-4 position-relative">
                                 <img src={booking_logo_img} className="booking-logo-img" alt="" />
                                 <div className="text-center ps-2 mt-3">
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.zipCode}</p>
-                                    {/* {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>} */}
+                                </div>
+                                <div className="position-absolute" style={{ top: "11px", left: "17.5%" }}>
+                                    {logo ? (
+                                        <img 
+                                            src={logo} 
+                                            alt="Club Logo" 
+                                            className="rounded-circle"
+                                            style={{ 
+                                                height: "120px", 
+                                                width: "120px", 
+                                                objectFit: "cover",
+                                                border: "2px solid white",
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E" 
+                                            }} 
+                                        />
+                                    ) : (
+                                        <div 
+                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                            style={{ 
+                                                height: "60px", 
+                                                width: "60px", 
+                                                backgroundColor: "#374151",
+                                                border: "2px solid white",
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E",
+                                                fontSize: "24px",
+                                                fontWeight: "600",
+                                                color: "white"
+                                            }}
+                                        >
+                                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
