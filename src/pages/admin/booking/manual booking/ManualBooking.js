@@ -394,14 +394,12 @@ const ManualBooking = () => {
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
-  // Is useEffect ko replace karo
   useEffect(() => {
     if (phone.length === 10) {
       dispatch(searchUserByNumber({ phoneNumber: phone }));
     }
   }, [phone, dispatch]);
 
-  // Naya useEffect add karo — sirf tab name set karo jab user ne khud se nahi dala
   useEffect(() => {
     if (searchUserData?.result?.name && phone.length === 10) {
       // Sirf tab name set karo jab user ne manually kuch nahi dala ho
