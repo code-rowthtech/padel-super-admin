@@ -10,7 +10,7 @@ import {
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import { FaArrowLeft, FaArrowRight, FaTrash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { BookingSuccessModal } from "./BookingModal";
 import {
   getOwnerRegisteredClub,
@@ -38,6 +38,7 @@ const ManualBooking = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
   const ownerId = Owner?.generatedBy ? Owner?.generatedBy : Owner?._id;
+  const location = useLocation();
   const {
     manualBookingLoading,
     ownerClubLoading,
@@ -418,6 +419,8 @@ const ManualBooking = () => {
     }
   }, [searchUserData, phone]);
 
+
+
   return (
     <>
       {ownerClubLoading ? (
@@ -609,7 +612,7 @@ const ManualBooking = () => {
                                 className="position-absolute badge rounded-pill"
                                 style={{
                                   fontSize: "10px",
-                                  minWidth: "18px",
+                                  width: "18px",
                                   height: "18px",
                                   display: "flex",
                                   alignItems: "center",
@@ -805,6 +808,7 @@ const ManualBooking = () => {
               >
                 <div
                   className="all-matches d-flex justify-content-between align-items-center mb-3"
+                  style={{color:'#374151'}}
                 >
                   Selected Bookings
                   {Object.entries(selectedSlots)?.length > 0 && (

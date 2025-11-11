@@ -44,6 +44,11 @@ const AdminLayout = () => {
             localStorage.removeItem("clubFormData");
             console.log("Removed for dashboard");
         }
+
+        // Clear manual booking slots when navigating away from manual booking page
+        if (!pathname.includes('/admin/manualbooking')) {
+            sessionStorage.removeItem('manual-booking-slots');
+        }
     }, [pathname]);
 
     return (
