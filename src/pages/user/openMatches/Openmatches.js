@@ -398,9 +398,10 @@ const Openmatches = () => {
     };
 
     const getCurrentMonth = (selectedDate) => {
-        if (!selectedDate) return "Month";
+        if (!selectedDate || !selectedDate.fullDate) return "MONTH";
         const dateObj = new Date(selectedDate.fullDate);
-        return dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+        const month = dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+        return month.split('').join('\n');
     };
 
     const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
@@ -457,7 +458,17 @@ const Openmatches = () => {
                         </div>
                         <div className="d-flex align-items-center gap-2 border-bottom">
                             <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
-                                <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
+                                <span className="text-muted" style={{
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                    whiteSpace: "pre-line",
+                                    textAlign: "center",
+                                    lineHeight: "1",
+                                    letterSpacing: "0px",
+                                    margin: 0,
+                                    padding: 0,
+                                    display: "block"
+                                }}>{getCurrentMonth(selectedDate)}</span>
                             </div>
                             <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
                                 <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
@@ -504,16 +515,15 @@ const Openmatches = () => {
                                 <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
                                     {tabs.map((tab, index) => {
                                         const Icon = tab.Icon;
-                                        const active = activeTab === tab.key;
                                         return (
                                             <div
                                                 key={index}
-                                                className={`tab-item rounded-3 ${activeTab === tab.key ? 'active' : ''}`}
-                                                onClick={() => setActiveTab(tab.key)}
+                                                className={`tab-item rounded-3 ${activeTab === index ? 'active' : ''}`}
+                                                onClick={() => setActiveTab(index)}
                                             >
                                                 <Icon
                                                     size={24}
-                                                    className={active ? 'text-primary' : 'text-dark'}   // dark when inactive
+                                                    className={activeTab === index ? 'text-primary' : 'text-dark'}   // dark when inactive
                                                 />
 
                                             </div>
@@ -524,7 +534,7 @@ const Openmatches = () => {
                                 {/* Labels below tabs */}
                                 <div className="tab-labels d-flex justify-content-between">
                                     {tabs.map((tab, index) => (
-                                        <p key={index} className={`tab-label ${activeTab === tab.key ? 'active text-primary' : 'text-muted'}`}>
+                                        <p key={index} className={`tab-label ${activeTab === index ? 'active text-primary' : 'text-muted'}`}>
                                             {tab.label}
                                         </p>
                                     ))}
