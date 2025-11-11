@@ -193,14 +193,6 @@ const OpenMatches = () => {
         <DataLoading height={"80vh"} />
       ) : (
         <div className="container-fluid px-2 px-md-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3
-              className=" text-dark mb-1"
-              style={{ fontSize: "clamp(1.5rem, 4vw, 1.4rem)", fontWeight: "600", fontFamily: "Poppins" }}
-            >
-              Open Matches
-            </h3>
-          </div>
           {openMatchesData?.data?.length > 0 ? (
             <>
               <Row className="justify-content-center">

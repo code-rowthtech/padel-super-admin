@@ -6,8 +6,9 @@ import { loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
-import { success2 } from "../../../assets/files";
+import { booking_logo_img, success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { MdOutlineDeleteOutline } from "react-icons/md";
 
 // Load PayPal SDK (kept if needed later)
 const loadPayPal = (callback) => {
@@ -52,9 +53,7 @@ const Payment = ({ className = "" }) => {
     const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
 
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [logo]);
+
 
     useEffect(() => {
         const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);
@@ -452,7 +451,7 @@ const Payment = ({ className = "" }) => {
                             }}
                         >
                             <h6 className="mb-4 custom-heading-use">
-                                Payment Method 
+                                Payment Method
                             </h6>
                             <div className="d-flex flex-column gap-3">
                                 {[
@@ -462,8 +461,8 @@ const Payment = ({ className = "" }) => {
                                 ].map((method) => (
                                     <label
                                         key={method.id}
-                                        className="d-flex justify-content-between align-items-center p-3 bg-white rounded-pill"
-                                        style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5" }}
+                                        className="d-flex justify-content-between align-items-center py-3 p-3 bg-white rounded-4"
+                                        style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5", }}
                                     >
                                         <div className="d-flex align-items-center gap-3">
                                             <img src={method.icon} alt={method.name} width={28} />
@@ -486,139 +485,87 @@ const Payment = ({ className = "" }) => {
                 </div>
 
                 {/* Booking Summary */}
-                <div className="col-12 col-lg-5">
-                    <div className="border px-3 py-5 border-0" style={{ borderRadius: "10px 30% 10px 10px", background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
-                        <div className="text-center mb-3">
-                            <div className="d-flex justify-content-center">
-                                {logo ? (
-                                    <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} />
-                                ) : (
-                                    <Avatar style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>
-                                        {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
-                                    </Avatar>
-                                )}
+                <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
+                    <div className="border w-100    px-0 py-4 border-0" style={{  borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                        <div className="d-flex mb-4 ">
+                            <img src={booking_logo_img} className="booking-logo-img" alt="" />
+                            <div className="text-center ps-2 mt-3">
+                                <p className="mt-2 mb-0 text-white" style={{ fontSize: "25px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                                <p className=" mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.state} {clubData?.city} {clubData?.zipCode}</p>
+                                {/* {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>} */}
                             </div>
-                            <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
-                                {clubData?.clubName}
-                            </p>
                         </div>
-
-                        <h6 className="border-top p-2 pt-3 mb-3 ps-0 custom-heading-use text-white">Booking Summary</h6>
-                        <div style={{ maxHeight: "240px", overflowY: "auto", overflowX: "hidden" }}>
-                            {localSelectedCourts?.length > 0 ? (
-                                localSelectedCourts?.map((court, index) => (
-                                    <React.Fragment key={`${index}`}>
-                                        {court?.time?.map((timeSlot, timeIndex) => (
-                                            <div key={`${index}-${timeIndex}`} className="row mb-2">
+                        <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
+                            <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
+                        </div>
+                        <div
+                            className="px-3"
+                            style={{
+                                maxHeight: "250px",
+                                overflowY: "auto",
+                                overflowX: "hidden",
+                                paddingRight: "16px",           
+                                marginRight: "8px",         
+                            }}
+                        >
+                            <style jsx>{`
+                   div::-webkit-scrollbar {
+                     width: 8px;
+                     border-radius : 3px;
+                   }
+                   div::-webkit-scrollbar-track {
+                     background: #F5F5F5;
+                     border-radius: 3px;
+                   }
+                   div::-webkit-scrollbar-thumb {
+                     background:  #626262;
+                     
+                   }
+                   div::-webkit-scrollbar-thumb:hover {
+                     background: #626262;
+                   }
+                 `}</style>
+                            <div className="div " style={{ height: "25vh" }}>
+                                {selectedCourts.length > 0 ? (
+                                    selectedCourts.map((court, index) =>
+                                        court.time.map((timeSlot, timeIndex) => (
+                                            <div key={`${index}-${timeIndex}`} className="row mb-2" >
                                                 <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                     <div className="d-flex text-white">
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
-                                                            {(() => {
-                                                                if (!court?.date) return "";
-                                                                const date = new Date(court.date);
-                                                                const day = date.toLocaleString("en-US", { day: "2-digit" });
-                                                                const month = date.toLocaleString("en-US", { month: "short" });
-                                                                return `${day}, ${month}`;
-                                                            })()}
-                                                        </span>
-                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                        <p style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                        </p>
+                                                        <p className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
                                                             {formatTime(timeSlot.time)}
-                                                        </span>
-                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>
-                                                            {court?.courtName}
-                                                        </span>
+                                                        </p>
+                                                        <p className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</p>
                                                     </div>
-                                                    <div className="d-flex align-items-center text-white">
-                                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>
-                                                            {timeSlot?.amount || 2000}
-                                                        </span>
-                                                        <button
-                                                            className="btn btn-sm text-white delete-btn"
-                                                            onClick={() => handleDeleteSlot(index, timeIndex)}
-                                                        >
-                                                            <i className="bi bi-trash-fill text-white mb-2"></i>
-                                                        </button>
+                                                    <div className="text-white">
+                                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
+                                                        <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}
-                                    </React.Fragment>
-                                ))
-                            ) : (
-                                <div
-                                    className="d-flex flex-column justify-content-center align-items-center text-center"
-                                    style={{ height: "25vh" }}
-                                >
-                                    <p
-                                        className="text-white mb-2"
-                                        style={{
-                                            fontSize: "15px",
-                                            fontFamily: "Poppins",
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        No court selected
-                                    </p>
-                                    <button
-                                        className="btn px-4 border-0 py-2 rounded-pill"
-                                        style={{
-                                            background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                                            color: "#fff",
-                                            fontFamily: "Poppins",
-                                            fontSize: "14px",
-                                            fontWeight: "500",
-                                        }}
-                                        onClick={() => navigate("/booking")}
-                                    >
-                                        Select Slot
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        {errors.general && (
-                            <div className="text-white" style={{ fontSize: "12px", marginTop: "8px" }}>
-                                {errors.general}
+                                        ))
+                                    )
+                                ) : (
+                                    <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
+                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        {localTotalSlots > 0 && (
-                            <div className="border-top text-white pt-3 mt-2 d-flex align-items-center justify-content-between fw-bold">
+                        </div>
+                        {totalSlots > 0 && (
+                            <div className="border-top pt-3 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden", height: "10vh" }}>
                                 <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
-                                    Total to Pay <span style={{ fontSize: "14px", fontWeight: "600" }}>Slots {localTotalSlots}</span>
+                                    Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
                                 </p>
-                                <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {localGrandTotal}</p>
+                                <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
                             </div>
                         )}
 
-                        <div className="d-flex justify-content-center mt-3">
-                            {errors.paymentMethod && (
-                                <div
-                                    className="text-center mb-3 p-2 rounded"
-                                    style={{
-                                        backgroundColor: "#ffebee",
-                                        color: "#c62828",
-                                        border: "1px solid #ffcdd2",
-                                        fontWeight: 500,
-                                        fontSize: "15px",
-                                        width: "100%",
-                                        maxWidth: "370px"
-                                    }}
-                                >
-                                    {errors.paymentMethod}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="d-flex justify-content-center mt-3 mb-4">
-                            <button
-                                style={{
-                                    ...buttonStyle,
-                                    opacity: localSelectedCourts?.length > 0 && localTotalSlots > 0 ? 1 : 0.6,
-                                    cursor: localSelectedCourts?.length > 0 && localTotalSlots > 0 ? "pointer" : "not-allowed",
-                                }}
-                                onClick={handlePayment}
-                                className={className}
-                                disabled={isLoading || localSelectedCourts?.length === 0 || localTotalSlots === 0}
-                            >
+                        <div className="d-flex justify-content-center align-items-center  ">
+                            <button style={{ ...buttonStyle }} className={`${className} `} onClick={handlePayment}>
                                 <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                     <defs>
                                         <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -627,24 +574,7 @@ const Payment = ({ className = "" }) => {
                                             <stop offset="100%" stopColor="#fff" />
                                         </linearGradient>
                                     </defs>
-                                    <path
-                                        d={`M ${width * 0.76} ${height * 0.15} 
-                      C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
-                      C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} 
-                      C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} 
-                      C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} 
-                      C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} 
-                      C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} 
-                      C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} 
-                      C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} 
-                      C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} 
-                      C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} 
-                      L ${width * 0.08} ${height * 0.85} 
-                      C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} 
-                      C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} 
-                      L ${width * 0.76} ${height * 0.15} Z`}
-                                        fill={`url(#buttonGradient-${width}-${height})`}
-                                    />
+                                    <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill={`url(#buttonGradient-${width}-${height})`} />
                                     <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
                                     <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
                                         <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
@@ -656,7 +586,10 @@ const Payment = ({ className = "" }) => {
                                     {isLoading || bookingStatus?.bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}
                                 </div>
                             </button>
+
+
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -664,7 +597,7 @@ const Payment = ({ className = "" }) => {
             {/* Success Modal */}
             <Modal show={modal} centered>
                 <div className="p-4 pt-0 text-center">
-                    <img src={success2} alt="Booking Success" className="img-fluid mx-auto" style={{ width: "294px", height: "394px" }} />
+                    <img src={success2} alt="Booking Success" className="img-fluid mx-auto" style={{ width: "294px", height: "254px" }} />
                     <h4 className="tabel-title" style={{ fontFamily: "Poppins" }}>Booking Successful!</h4>
                     <p className="text-dark" style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>
                         Your slot has been booked successfully.

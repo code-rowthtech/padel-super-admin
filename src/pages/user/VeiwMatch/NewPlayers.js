@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { showSuccess } from "../../../helpers/Toast";
 import { Box, Button, Modal } from "@mui/material";
@@ -7,29 +7,38 @@ import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import Select from "react-select";
 
 const modalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: { xs: '90%', sm: '80%', md: 500 },
-    maxWidth: '500px',
-    bgcolor: 'background.paper',
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: { xs: "90%", sm: "80%", md: 500 },
+    maxWidth: "500px",
+    bgcolor: "background.paper",
     p: { xs: 2, md: 4 },
     borderRadius: 2,
-    border: 'none',
+    border: "none",
     zIndex: 1300,
-    maxHeight: '90vh',
-    overflowY: 'auto',
+    maxHeight: "90vh",
+    overflowY: "auto",
 };
 
-const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot }) => {
+const NewPlayers = ({
+    showAddMeForm,
+    activeSlot,
+    setShowAddMeForm,
+    setActiveSlot,
+}) => {
     const [formData, setFormData] = useState({
-        name: "", email: "", phoneNumber: "", gender: "", level: ""
+        name: "",
+        email: "",
+        phoneNumber: "",
+        gender: "",
+        level: "",
     });
     const [errors, setErrors] = useState({});
-    const [showErrors, setShowErrors] = useState({}); // Visibility control
+    const [showErrors, setShowErrors] = useState({});
     const dispatch = useDispatch();
-    const userLoading = useSelector((state) => state?.userAuth);
+    const userLoading = useSelector((state) => state?.userAuth?.userSignUpLoading);
     const { finalSkillDetails = [] } = useSelector((state) => state.location?.state || {});
 
     const lavel = [
@@ -43,11 +52,14 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         { code: "E", title: "Entry Level" },
     ];
 
+    const userSkillLevel = finalSkillDetails[finalSkillDetails.length - 1];
+
+    const getAddedPlayers = () => JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+
     const levelOptions = lavel.map((item) => {
-        const lastSkillLevel = finalSkillDetails?.slice(-1)[0];
-        const addedPlayers = JSON.parse(localStorage.getItem('addedPlayers') || '{}');
-        const existingLevels = Object.values(addedPlayers).map(p => p?.level);
-        const isDisabled = item.code === lastSkillLevel || existingLevels.includes(item.code);
+        const added = getAddedPlayers();
+        const existing = Object.values(added).map((p) => p?.level);
+        const disabled = item.code === userSkillLevel || existing.includes(item.code);
 
         return {
             value: item.code,
@@ -56,12 +68,10 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                     <span style={{ color: "#1d4ed8", fontWeight: 600, fontSize: "15px", fontFamily: "Poppins" }}>
                         {item.code}
                     </span>
-                    <span style={{ color: "#374151", fontSize: "13px" }}>
-                        {item.title}
-                    </span>
+                    <span style={{ color: "#374151", fontSize: "13px" }}>{item.title}</span>
                 </div>
             ),
-            isDisabled,
+            isDisabled: disabled,
         };
     });
 
@@ -82,18 +92,15 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
             newErrors.phoneNumber = "Must be 10 digits, start with 6-9";
         }
 
-        if (!formData.level) {
-            newErrors.level = "Please select a level";
-        }
+        if (!formData.level) newErrors.level = "Please select a level";
 
-        const addedPlayers = JSON.parse(localStorage.getItem('addedPlayers') || '{}');
-        const existingLevels = Object.values(addedPlayers).map(p => p?.level);
-        if (existingLevels.includes(formData.level)) {
+        const added = getAddedPlayers();
+        if (Object.values(added).some((p) => p?.level === formData.level)) {
             newErrors.level = "This level is already taken";
         }
 
         setErrors(newErrors);
-        setShowErrors(Object.fromEntries(Object.keys(newErrors).map(k => [k, true])));
+        setShowErrors(Object.fromEntries(Object.keys(newErrors).map((k) => [k, true])));
         return Object.keys(newErrors).length === 0;
     };
 
@@ -107,16 +114,30 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
         dispatch(Usersignup(formData))
             .unwrap()
             .then((res) => {
-                if (res?.status === "200") {
-                    const addedPlayers = JSON.parse(localStorage.getItem('addedPlayers') || '{}');
-                    addedPlayers[activeSlot] = { ...res?.response, level: formData.level };
-                    localStorage.setItem('addedPlayers', JSON.stringify(addedPlayers));
+                if (res?.status !== "200") throw new Error("Signup failed");
 
-                    setFormData({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
-                    setShowAddMeForm(false);
-                    setActiveSlot(null);
-                    showSuccess("Player Added Successfully");
-                }
+                const playerData = { 
+                    ...res.response, 
+                    level: formData.level,
+                    _id: res.response._id || res.response.id // Ensure ID is included
+                };
+
+                // ---- UPDATE localStorage ----
+                const current = getAddedPlayers();
+                const updated = { ...current, [activeSlot]: playerData };
+                localStorage.setItem("addedPlayers", JSON.stringify(updated));
+                
+                // Trigger custom event for real-time update
+                window.dispatchEvent(new Event("playersUpdated"));
+                
+                console.log('Player added with ID:', playerData._id); // Debug log
+
+
+                // ---- UI cleanup ----
+                setFormData({ name: "", email: "", phoneNumber: "", gender: "", level: "" });
+                setShowAddMeForm(false);
+                setActiveSlot(null);
+                showSuccess("Player Added Successfully");
             })
             .catch((err) => {
                 const msg = err?.response?.data?.message || "Failed to add player";
@@ -127,19 +148,16 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
 
     const handleInputChange = (field, value, formatFn = null) => {
         const formatted = formatFn ? formatFn(value) : value;
-        setFormData(prev => ({ ...prev, [field]: formatted }));
-        setErrors(prev => ({ ...prev, [field]: "" }));
-        setShowErrors(prev => ({ ...prev, [field]: false }));
+        setFormData((prev) => ({ ...prev, [field]: formatted }));
+        setErrors((prev) => ({ ...prev, [field]: "" }));
+        setShowErrors((prev) => ({ ...prev, [field]: false }));
     };
 
-    // Auto-hide errors after 2 sec
+    // Auto-hide errors
     useEffect(() => {
         const timers = Object.keys(showErrors)
-            .filter(field => showErrors[field])
-            .map(field => setTimeout(() => {
-                setShowErrors(prev => ({ ...prev, [field]: false }));
-            }, 2000));
-
+            .filter((f) => showErrors[f])
+            .map((f) => setTimeout(() => setShowErrors((p) => ({ ...p, [f]: false })), 2000));
         return () => timers.forEach(clearTimeout);
     }, [showErrors]);
 
@@ -174,15 +192,15 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             type="text"
                             value={formData.name}
                             onChange={(e) => {
-                                let value = e.target.value;
-                                if (/^[A-Za-z\s]*$/.test(value)) {
-                                    if (value.length > 30) value = value.slice(0, 30);
-                                    const formatted = value
+                                let v = e.target.value;
+                                if (/^[A-Za-z\s]*$/.test(v)) {
+                                    if (v.length > 30) v = v.slice(0, 30);
+                                    const formatted = v
                                         .trimStart()
                                         .replace(/\s+/g, " ")
                                         .toLowerCase()
-                                        .replace(/(^|\s)\w/g, l => l.toUpperCase());
-                                    handleInputChange('name', formatted);
+                                        .replace(/(^|\s)\w/g, (l) => l.toUpperCase());
+                                    handleInputChange("name", formatted);
                                 }
                             }}
                             className="form-control p-2"
@@ -190,11 +208,12 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             style={inputStyle("name")}
                         />
                         {showErrors.name && errors.name && (
-                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px" }}>
                                 {errors.name}
                             </small>
                         )}
                     </div>
+
                     {/* Email */}
                     <div className="mb-3">
                         <label className="form-label">
@@ -204,11 +223,12 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             type="email"
                             value={formData.email}
                             onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
-                                    const formatted = value.replace(/\s+/g, "")
+                                const v = e.target.value;
+                                if (v === "" || /^[A-Za-z0-9@.]*$/.test(v)) {
+                                    const formatted = v
+                                        .replace(/\s+/g, "")
                                         .replace(/^(.)(.*)(@.*)?$/, (m, f, r, d = "") => f.toUpperCase() + r.toLowerCase() + d);
-                                    handleInputChange('email', formatted);
+                                    handleInputChange("email", formatted);
                                 }
                             }}
                             className="form-control p-2"
@@ -216,17 +236,18 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             style={inputStyle("email")}
                         />
                         {showErrors.email && errors.email && (
-                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px" }}>
                                 {errors.email}
                             </small>
                         )}
                     </div>
+
                     {/* Phone */}
                     <div className="mb-3">
                         <label className="form-label">
                             Phone No <span className="text-danger">*</span>
                         </label>
-                        <div className="input-group border rounded" >
+                        <div className="input-group border rounded">
                             <span className="input-group-text border-0 p-2 bg-white">
                                 <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
                             </span>
@@ -235,9 +256,9 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                 maxLength={10}
                                 value={formData.phoneNumber}
                                 onChange={(e) => {
-                                    const value = e.target.value.replace(/[^0-9]/g, '');
-                                    if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                                        handleInputChange('phoneNumber', value);
+                                    const v = e.target.value.replace(/[^0-9]/g, "");
+                                    if (v === "" || /^[6-9][0-9]{0,9}$/.test(v)) {
+                                        handleInputChange("phoneNumber", v);
                                     }
                                 }}
                                 style={inputStyle("phoneNumber")}
@@ -246,7 +267,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             />
                         </div>
                         {showErrors.phoneNumber && errors.phoneNumber && (
-                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px" }}>
                                 {errors.phoneNumber}
                             </small>
                         )}
@@ -265,7 +286,7 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                         id={g}
                                         value={g}
                                         checked={formData.gender === g}
-                                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                                        onChange={(e) => handleInputChange("gender", e.target.value)}
                                     />
                                     <label className="form-check-label" htmlFor={g}>{g}</label>
                                 </div>
@@ -281,8 +302,8 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                         <div style={inputStyle("level")}>
                             <Select
                                 options={levelOptions}
-                                value={levelOptions.find(opt => opt.value === formData.level)}
-                                onChange={(opt) => handleInputChange('level', opt.value)}
+                                value={levelOptions.find((o) => o.value === formData.level)}
+                                onChange={(opt) => handleInputChange("level", opt.value)}
                                 classNamePrefix="select"
                                 isOptionDisabled={(opt) => opt.isDisabled}
                                 styles={{
@@ -290,21 +311,21 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                                         ...base,
                                         border: "none",
                                         boxShadow: "none",
-                                    })
+                                    }),
                                 }}
                             />
                         </div>
                         {showErrors.level && errors.level && (
-                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                            <small className="text-danger d-block mt-1" style={{ fontSize: "12px" }}>
                                 {errors.level}
                             </small>
                         )}
                     </div>
 
-                    {/* Submit Error (inline, below buttons) */}
+                    {/* Submit error */}
                     {showErrors.submit && errors.submit && (
                         <div className="text-center mb-3">
-                            <small className="text-danger d-block" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                            <small className="text-danger d-block" style={{ fontSize: "12px" }}>
                                 {errors.submit}
                             </small>
                         </div>
@@ -329,9 +350,9 @@ const NewPlayers = ({ showAddMeForm, activeSlot, setShowAddMeForm, setActiveSlot
                             type="submit"
                             fullWidth
                             style={{ backgroundColor: "#3DBE64", color: "white" }}
-                            disabled={userLoading?.userSignUpLoading}
+                            disabled={userLoading}
                         >
-                            {userLoading?.userSignUpLoading ? <ButtonLoading color="white" /> : "Submit"}
+                            {userLoading ? <ButtonLoading color="white" /> : "Submit"}
                         </Button>
                     </div>
                 </form>

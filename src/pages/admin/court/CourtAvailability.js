@@ -49,8 +49,8 @@ const CourtAvailability = () => {
   const navigate = useNavigate();
   const [showUnavailable, setShowUnavailable] = useState(false);
 
-  // State to track selected slots with their status
-  const [selectedSlots, setSelectedSlots] = useState({}); // { courtId: [{ slot, status }] }
+  // State to track selected slots with their status per date
+  const [selectedSlots, setSelectedSlots] = useState({}); // { date: { courtId: [{ slot, status }] } }
   const [selectedCourts, setSelectedCourts] = useState([]);
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -136,11 +136,14 @@ const CourtAvailability = () => {
     }
 
     const courtId = selectedCourts[0];
-    const courtSlots = selectedSlots[courtId] || [];
+    const dateSlots = selectedSlots[selectedDate] || {};
+    const courtSlots = dateSlots[courtId] || [];
     const exists = courtSlots.some((t) => t.slot?._id === slot?._id);
 
     if (!exists) {
-      const totalSlots = Object.values(selectedSlots).flat().length;
+      const totalSlots = Object.values(selectedSlots).flatMap(dateData => 
+        Object.values(dateData).flat()
+      ).length;
       if (totalSlots >= 15) {
         showInfo("Maximum 15 slots can be selected at a time.");
         return;
@@ -154,15 +157,23 @@ const CourtAvailability = () => {
       newCourtSlots = [
         ...courtSlots,
         { slot, status: slot?.availabilityStatus || "available" },
-      ]; // Use availabilityStatus
+      ];
+    }
+
+    let newDateSlots;
+    if (newCourtSlots.length === 0) {
+      const { [courtId]: _, ...rest } = dateSlots;
+      newDateSlots = rest;
+    } else {
+      newDateSlots = { ...dateSlots, [courtId]: newCourtSlots };
     }
 
     let newSelectedSlots;
-    if (newCourtSlots.length === 0) {
-      const { [courtId]: _, ...rest } = selectedSlots;
+    if (Object.keys(newDateSlots).length === 0) {
+      const { [selectedDate]: _, ...rest } = selectedSlots;
       newSelectedSlots = rest;
     } else {
-      newSelectedSlots = { ...selectedSlots, [courtId]: newCourtSlots };
+      newSelectedSlots = { ...selectedSlots, [selectedDate]: newDateSlots };
     }
 
     setSelectedSlots(newSelectedSlots);
@@ -171,26 +182,39 @@ const CourtAvailability = () => {
   // Handle status change for a specific slot
   const handleStatusChange = (courtId, slotId, newStatus) => {
     setSelectedSlots((prev) => {
-      const courtSlots = prev[courtId] || [];
+      const dateSlots = prev[selectedDate] || {};
+      const courtSlots = dateSlots[courtId] || [];
       const updatedCourtSlots = courtSlots.map((item) =>
         item.slot?._id === slotId ? { ...item, status: newStatus } : item
       );
-      return { ...prev, [courtId]: updatedCourtSlots };
+      const updatedDateSlots = { ...dateSlots, [courtId]: updatedCourtSlots };
+      return { ...prev, [selectedDate]: updatedDateSlots };
     });
   };
 
   // Handle remove slot
   const handleRemoveSlot = (courtId, slotId) => {
     setSelectedSlots((prev) => {
-      const courtSlots = prev[courtId] || [];
+      const dateSlots = prev[selectedDate] || {};
+      const courtSlots = dateSlots[courtId] || [];
       const updatedCourtSlots = courtSlots.filter(
         (item) => item.slot?._id !== slotId
       );
+      
+      let updatedDateSlots;
       if (updatedCourtSlots.length === 0) {
-        const { [courtId]: _, ...rest } = prev;
+        const { [courtId]: _, ...rest } = dateSlots;
+        updatedDateSlots = rest;
+      } else {
+        updatedDateSlots = { ...dateSlots, [courtId]: updatedCourtSlots };
+      }
+      
+      if (Object.keys(updatedDateSlots).length === 0) {
+        const { [selectedDate]: _, ...rest } = prev;
         return rest;
       }
-      return { ...prev, [courtId]: updatedCourtSlots };
+      
+      return { ...prev, [selectedDate]: updatedDateSlots };
     });
   };
 
@@ -201,16 +225,16 @@ const CourtAvailability = () => {
       return;
     }
     setSelectedSlots((prev) => {
-      const newSelectedSlots = {};
-      Object.entries(prev).forEach(([courtId, courtSlots]) => {
-        newSelectedSlots[courtId] = courtSlots.map((item) => ({
+      const dateSlots = prev[selectedDate] || {};
+      const updatedDateSlots = {};
+      Object.entries(dateSlots).forEach(([courtId, courtSlots]) => {
+        updatedDateSlots[courtId] = courtSlots.map((item) => ({
           ...item,
           status: commonStatus,
         }));
       });
-      return newSelectedSlots;
+      return { ...prev, [selectedDate]: updatedDateSlots };
     });
-    // setCommonStatus(""); // Reset after apply
   };
 
   useEffect(() => {
@@ -224,7 +248,7 @@ const CourtAvailability = () => {
           register_club_id: ownerClubData?.[0]?._id,
           day: selectedDay,
           date: selectedDate,
-          courtId: selectedCourts[0],
+          courtId: selectedCourts[0] || '',
         })
       );
     }
@@ -234,7 +258,7 @@ const CourtAvailability = () => {
     if (courts?.length > 0 && selectedCourts.length === 0) {
       setSelectedCourts([courts[0]._id]);
     }
-  }, [courts]);
+  }, [courts?.length]); // Only depend on courts length, not the entire courts array
 
   useEffect(() => {
     if (selectedButtonRef.current && scrollRef.current) {
@@ -255,7 +279,8 @@ const CourtAvailability = () => {
 
   const handleConfirm = async () => {
     const slotsPayload = [];
-    Object.entries(selectedSlots).forEach(([courtId, slotArray]) => {
+    const dateSlots = selectedSlots[selectedDate] || {};
+    Object.entries(dateSlots).forEach(([courtId, slotArray]) => {
       const court = courts.find((c) => c._id === courtId);
       slotArray.forEach(({ slot, status }) => {
         slotsPayload.push({
@@ -298,7 +323,11 @@ const CourtAvailability = () => {
       };
 
       await dispatch(updateCourt(payload)).unwrap();
-      setSelectedSlots({});
+      // Remove only the current date's slots after successful update
+      setSelectedSlots(prev => {
+        const { [selectedDate]: _, ...rest } = prev;
+        return rest;
+      });
       setSelectedCourts([]);
       setCommonStatus("");
     } catch (error) {
@@ -351,33 +380,6 @@ const CourtAvailability = () => {
         <Loading />
       ) : (
         <Container className="p-0" fluid>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5
-              className="manual-heading mb-0"
-              style={{
-                fontFamily: "Poppins",
-                fontWeight: "700",
-                color: "#374151",
-              }}
-            >
-              Court Availability
-            </h5>
-            <Button
-              className="bg-transparent border-0"
-              onClick={() => {
-                navigate(-1);
-                dispatch(resetOwnerClub());
-              }}
-              style={{
-                color: "#1F41BB",
-                fontSize: "18px",
-                fontWeight: "600",
-                fontFamily: "Poppins",
-              }}
-            >
-              <FaArrowLeft className="me-2" /> Back
-            </Button>
-          </div>
           <Row className="mx-auto bg-white shadow-sm rounded-3">
             <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
@@ -490,11 +492,19 @@ const CourtAvailability = () => {
                         {dates.map((d, i) => {
                           const formatDate = (date) => date.toISOString().split("T")[0];
                           const isSelected = formatDate(new Date(selectedDate)) === d.fullDate;
+
+                          // Calculate slot count for this specific date
+                          const dateSlots = selectedSlots[d.fullDate] || {};
+                          const slotCount = Object.values(dateSlots).reduce(
+                            (acc, courtSlots) => acc + (courtSlots?.length || 0),
+                            0
+                          );
+
                           return (
                             <button
                               key={i}
                               ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                              className={`calendar-day-btn mb-3  me-1 ${isSelected ? "text-white border-0" : "bg-white"}`}
+                              className={`calendar-day-btn mb-3 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
                               style={{
                                 background: isSelected
                                   ? "#374151"
@@ -511,6 +521,25 @@ const CourtAvailability = () => {
                                 <div className="date-center-date">{d.date}</div>
                                 <div className="date-center-day">{d.day}</div>
                               </div>
+                              {slotCount > 0 && (
+                                <span
+                                  className="position-absolute badge rounded-pill"
+                                  style={{
+                                    fontSize: "10px",
+                                    minWidth: "18px",
+                                    height: "18px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    top: "-4px",
+                                    right: "-4px",
+                                    zIndex: 2,
+                                    backgroundColor: "#22c55e"
+                                  }}
+                                >
+                                  {slotCount}
+                                </span>
+                              )}
                             </button>
                           );
                         })}
@@ -624,8 +653,8 @@ const CourtAvailability = () => {
                           slotDate.toDateString() === now.toDateString();
                         const isPast =
                           isSameDay && slotDate.getTime() < now.getTime();
-                        const courtSelectedSlots =
-                          selectedSlots[selectedCourts[0]] || [];
+                        const dateSlots = selectedSlots[selectedDate] || {};
+                        const courtSelectedSlots = dateSlots[selectedCourts[0]] || [];
                         const isSelected = courtSelectedSlots.some(
                           (t) => t?.slot?._id === slot?._id
                         );
@@ -693,7 +722,7 @@ const CourtAvailability = () => {
             </Col>
             <Col xs={12} lg={4} className="py-2 py-md-4 px-2 px-md-3">
               <div
-                className="shadow rounded-3 p-2 p-md-3 bg-white"
+                className=" rounded-3 p-2 p-md-3 bg-white"
                 style={{ minHeight: "40vh" }}
               >
                 <div className="mt-2">
@@ -705,7 +734,7 @@ const CourtAvailability = () => {
                     Selected Slots
                   </h6>
                   {/* Apply to All Section */}
-                  {Object.values(selectedSlots)?.flat()?.length > 2 && (
+                  {Object.values(selectedSlots[selectedDate] || {})?.flat()?.length > 2 && (
                     <div className="d-flex align-items-center gap-2 mb-3">
                       <Form.Select
                         value={commonStatus}
@@ -745,7 +774,7 @@ const CourtAvailability = () => {
                       paddingRight: "10px",
                     }}
                   >
-                    {Object.entries(selectedSlots)?.length === 0 ? (
+                    {Object.entries(selectedSlots[selectedDate] || {})?.length === 0 ? (
                       <div
                         className="text-danger d-flex align-items-center justify-content-center py-3"
                         style={{
@@ -757,7 +786,7 @@ const CourtAvailability = () => {
                         No slots selected
                       </div>
                     ) : (
-                      Object.entries(selectedSlots).map(
+                      Object.entries(selectedSlots[selectedDate] || {}).map(
                         ([courtId, slotArray]) => {
                           const court = courts.find((c) => c?._id === courtId);
                           return (
@@ -842,7 +871,7 @@ const CourtAvailability = () => {
                       )
                     )}
                   </div>
-                  {Object.entries(selectedSlots)?.length > 0 && (
+                  {Object.entries(selectedSlots[selectedDate] || {})?.length > 0 && (
                     <div className="d-flex justify-content-end gap-3 align-items-end mt-2">
                       <button
                         className="btn btn-secondary rounded-pill px-4 py-2 shadow-sm"
@@ -853,7 +882,11 @@ const CourtAvailability = () => {
                           fontSize: "12px",
                         }}
                         onClick={() => {
-                          setSelectedSlots({});
+                          // Clear only current date's slots
+                          setSelectedSlots(prev => {
+                            const { [selectedDate]: _, ...rest } = prev;
+                            return rest;
+                          });
                           setSelectedCourts([]);
                           setCommonStatus("");
                         }}

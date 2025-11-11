@@ -47,9 +47,8 @@ const SubOwner = () => {
       <Row className="mb-3">
         <Col
           md={12}
-          className="d-flex justify-content-between align-items-center"
+          className="d-flex justify-content-end align-items-center"
         >
-          <h3>Users</h3>
           {!Owner?.generatedBy && (
             <button
               className="d-flex align-items-center position-relative p-0 border-0"

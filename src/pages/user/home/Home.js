@@ -42,6 +42,7 @@ const Home = () => {
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }))
+        window.scrollTo(0, 0);
     }, [])
 
     useEffect(() => {
@@ -138,6 +139,10 @@ const Home = () => {
                             >
                                 <p className='mb-0 custom-title text-white' style={{ fontWeight: "400" }}>Welcome To Good Court</p>
                                 <h1 className="home-main-heading ">Your Game, <br />Your Court,<br />Just a Tap Away.</h1>
+                                <Link to="/booking" className="text-decoration-none bg-white rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center"
+                                    style={{ color: "#2043BA", fontWeight: "600", fontSize: "24px", minWidth: "200px", fontFamily: "Poppins", justifyContent: "center", width: "150px" }}>
+                                    Book Now
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -270,12 +275,7 @@ const Home = () => {
                                             <span>{day?.time || (idx === 2 ? "6:00 AM - 11:00 PM" : "6:00 AM - 10:00 PM")}</span>
                                         </div>
                                     ))}
-                                    <p className="mt-3 mb-0 text-center" style={{ fontWeight: "500", fontSize: "13px", fontFamily: "Poppins" }}>Time zone (India Standard Time)</p>
-                                    <div className='text-center mb-2'>
-                                        <Link to="/booking" state={{ clubData }} className="court-book-link animate__animated animate__fadeInUp" style={{ fontSize: "13px", fontFamily: "Poppins" }}>
-                                            Court Book <i className="bi bi-arrow-right"></i>
-                                        </Link>
-                                    </div>
+                                    <p className="mt-3 mb-0 text-center" style={{ fontWeight: "500", fontSize: "12px", fontFamily: "Poppins" }}>Time zone (India Standard Time)</p>
                                 </div>
                             </div>
                         </div>
@@ -297,7 +297,7 @@ const Home = () => {
                                 </div>
                                 <div className='text-start mb-3'>
                                     <Link to="/open-matches" className="text-decoration-none bg-white rounded-pill px-4 py-2 custom-title d-inline-flex align-items-center"
-                                        style={{ color: "#2043BA", fontWeight: "500", fontSize: "19px", minWidth: "120px", justifyContent: "center" }}>
+                                        style={{ color: "#2043BA", fontWeight: "500", fontSize: "21px", minWidth: "120px", justifyContent: "center", fontFamily: "Poppins" }}>
                                         View all <FaArrowRight className='ms-2' />
                                     </Link>
                                 </div>
@@ -313,10 +313,10 @@ const Home = () => {
                     <div className="overflow-hidden rounded-3">
                         <div
                             className={`d-flex ${clubData?.courtImage?.length > 4
-                                    ? window.innerWidth >= 992
-                                        ? 'justify-content-start'
-                                        : 'justify-content-start'
-                                    : 'justify-content-center'
+                                ? window.innerWidth >= 992
+                                    ? 'justify-content-start'
+                                    : 'justify-content-start'
+                                : 'justify-content-center'
                                 } align-items-center`}
                             style={{
                                 transform:
@@ -497,12 +497,32 @@ const Home = () => {
                 >
                     Here’s what our previous players <br /> have to say!
                 </h4>
-
-              
+                <div className="position-relative  ">
+                    <div className="overflow-hidden ">
+                        <div
+                            className="d-flex"
+                            style={{
+                                transform: window.innerWidth >= 992 ? `translateX(-${reviewSlide * 33.333}%)` : `translateX(-${reviewSlide * 100}%)`,
+                                transition: reviewSlide === 0 && reviewSlide !== getReviewData?.reviews?.length ? "none" : "transform 0.5s ease"
+                            }}
+                        >
+                            {getReviewData?.reviews?.concat(getReviewData?.reviews?.slice(0, 3))?.map((review, index) => (
+                                <div key={index} className="flex-shrink-0  d-lg-block d-none" style={{ width: "33.333%" }}>
+                                    <ReviewCard review={review} />
+                                </div>
+                            ))}
+                            {getReviewData?.reviews?.concat(getReviewData?.reviews?.slice(0, 1))?.map((review, index) => (
+                                <div key={`mobile-${index}`} className="flex-shrink-0 d-lg-none d-block" style={{ width: "100%" }}>
+                                    <ReviewCard review={review} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Map Section */}
-            <div className="container">
+            {/* Map Section */ }
+            <div div className = "container" >
                 <div className="row">
                     <div className="col-12">
                         <div className="mt-5 mb-5">
@@ -536,7 +556,7 @@ const Home = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     );
 };

@@ -29,7 +29,7 @@ const AmericanoUser = React.lazy(() =>
   import("../pages/user/americano/Americano")
 );
 const UserProfile = React.lazy(() => import("../pages/user/profile/Profile"));
-const Payment = React.lazy(() => import("../pages/user/payment/Payment"));
+const PaymentWrapper = React.lazy(() => import("../components/PaymentWrapper"));
 const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
 );
@@ -147,21 +147,21 @@ const AllRoutes = () => {
         },
         {
           path: "payment",
-          element: LoadComponent(Payment),
+          element: LoadComponent(PaymentWrapper),
         },
         {
           path: "open-matches",
           element: LoadComponent(OpenMatches),
         },
         {
+          path: "view-match",
+          element: LoadComponent(ViewMatch),
+        },
+        {
           path: "create-matches",
           element: LoadComponent(CreateMatches),
         },
 
-        {
-          path: "view-match",
-          element: LoadComponent(ViewMatch),
-        },
         {
           path: "match-payment",
           element: LoadComponent(OpenmatchPayment),
@@ -193,19 +193,6 @@ const AllRoutes = () => {
         {
           path: "not-found",
           element: LoadComponent(NotFound),
-        },
-        {
-          element: <PrivateRoute />,
-          children: [
-            {
-              path: "open-matches",
-              element: LoadComponent(OpenMatches),
-            },
-            {
-              path: "create-matches",
-              element: LoadComponent(CreateMatches),
-            },
-          ],
         },
       ],
     },

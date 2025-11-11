@@ -42,7 +42,7 @@ export const getActiveCourts = createAsyncThunk(
     try {
       const res = await ownerApi.get(
         `${Url.GET_ACTIVE_COURTS}?register_club_id=${params?.register_club_id
-        }&day=${params?.day}&date=${params?.date}`
+        }&day=${params?.day}&date=${params?.date}&courtId=${params?.courtId}`
       );
 
       // Destructure response data
@@ -52,12 +52,12 @@ export const getActiveCourts = createAsyncThunk(
       }
 
       const errorMessage = message || "error fetching active clubs";
-      showError(errorMessage);
+      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || ERROR_MESSAGES.NETWORK_ERROR;
-      showError(error);
+      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }

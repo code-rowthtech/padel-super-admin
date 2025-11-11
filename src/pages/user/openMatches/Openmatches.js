@@ -19,6 +19,7 @@ import { MdOutlineDateRange } from "react-icons/md";
 import debounce from "lodash/debounce";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import ViewMatch from "../VeiwMatch/VeiwMatch";
 
 const normalizeTime = (time) => {
     if (!time) return null;
@@ -69,6 +70,8 @@ const Openmatches = () => {
     const [showModal, setShowModal] = useState(false);
     const [matchId, setMatchId] = useState(null);
     const [teamName, setTeamName] = useState('');
+    const [showViewMatch, setShowViewMatch] = useState(false);
+    const [selectedMatch, setSelectedMatch] = useState(null);
 
     const debouncedFetchMatches = useCallback(
         debounce((payload) => {
@@ -220,7 +223,7 @@ const Openmatches = () => {
     const formatTimes = (slots) => {
         if (!slots || slots.length === 0) return "N/A";
         const formatted = slots
-            .slice(0, 2)
+            .slice(0, 1)
             .map((slot) => {
                 const time = slot?.slotTimes?.[0]?.time;
                 if (!time) return null;
@@ -234,7 +237,7 @@ const Openmatches = () => {
                 return `${formattedHour}${period}`;
             })
             .filter(Boolean);
-        return formatted.join(",") + (slots.length > 2 ? "...." : "");
+        return formatted.join(",") + (slots.length > 1 ? "...." : "");
     };
 
     const TagWrapper = ({ children }) => (
@@ -277,7 +280,7 @@ const Openmatches = () => {
                 <span className="mb-1">+</span>
             </div>
 
-            <div className="d-flex flex-column align-items-start">
+            <div className="d-flex flex-column ps-0 align-items-start">
                 <span style={{ fontWeight: 600, color: "#1F41BB", fontSize: "10px" }}>
                     Available
                 </span>
@@ -310,7 +313,7 @@ const Openmatches = () => {
                     </span>
                 )}
             </div>
-            <div className="ps-0 text-start">
+            <div className="ps-1 text-start">
                 <p
                     className="m-0"
                     title={player?.name || "Player"}
@@ -325,8 +328,8 @@ const Openmatches = () => {
                     }}
                 >
                     {player?.name
-                        ? player.name.length > 14
-                            ? `${player.name.slice(0, 14)}...`
+                        ? player.name.length > 6
+                            ? `${player.name.slice(0, 6)}...`
                             : player.name
                         : "Player"}
                 </p>
@@ -401,7 +404,7 @@ const Openmatches = () => {
     const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
     return (
-        <div className="container mt-lg-4 px-3 px-md-4">
+        <div className="container mt-lg-4 px-3 px-md-4 mb-4">
             <div className="row g-md-4 mx-auto">
                 {/* Left Section */}
                 <div className="col-lg-7 col-12 py-4 rounded-3 px-4 order-2 order-md-1" style={{ backgroundColor: "#F5F5F566" }}>
@@ -523,9 +526,9 @@ const Openmatches = () => {
                     <div className="pb-4">
                         <div className="d-flex flex-column flex-md-row justify-content-start align-items-start align-items-md-center gap-3 mb-4">
                             <h5 className="mb-0 custom-heading-use">All Matches</h5>
-                            <div className="dropdown">
+                            <div className="dropdown w-25">
                                 <button
-                                    className="btn btn-light text-nowrap rounded-pill border py-1 px-3 d-flex align-items-center gap-2"
+                                    className="btn btn-light text-nowrap rounded-3 border py-1 px-3 d-flex align-items-center gap-2"
                                     type="button"
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false"
@@ -537,7 +540,7 @@ const Openmatches = () => {
                                     </span>
                                     <FaChevronDown style={{ fontSize: "10px" }} />
                                 </button>
-                                <ul className="dropdown-menu shadow-sm">
+                                <ul className="dropdown-menu shadow-sm w-50">
                                     {['beginner', 'intermediate', 'advanced', 'professional'].map((level) => (
                                         <li key={level}>
                                             <button
@@ -555,26 +558,26 @@ const Openmatches = () => {
 
                         <div
                             style={{
-                                minHeight: "480px",
-                                maxHeight: filteredMatches.length > 4 ? "480px" : "auto",
+                                minHeight: "380px",
+                                maxHeight: filteredMatches.length > 4 ? "380px" : "auto",
                                 overflowY: filteredMatches.length > 4 ? "auto" : "visible",
                                 scrollBehavior: "smooth",
                             }}
                             className="no-scrollbar"
                         >
                             {matchLoading ? (
-                                <DataLoading height={480} />
+                                <DataLoading height={380} />
                             ) : filteredMatches.length > 0 ? (
                                 <div className="row">
                                     {filteredMatches?.map((match, index) => (
-                                        <div className="col-lg-6 col-12 ps-0 pe-1 gap-2" key={index}>
+                                        <div className="col-lg-6 col-12 ps-0 pe-0 gap-2" key={index}>
                                             <div
-                                                className="card border mb-3 py-3 p-0 shadow-0 rounded-2"
-                                                style={{ backgroundColor: "#CBD6FF1A", border: '0.5px solid #0000001A', boxShadow: "none" }}
+                                                className="card  mb-3 py-3 p-0 shadow-0 rounded-2"
+                                                style={{ backgroundColor: "#CBD6FF1A", border: '0.45px solid #0000001A', boxShadow: "none" }}
                                             >
-                                                <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items-center flex-wrap">
+                                                <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items- flex-wrap">
                                                     <div className="col-lg-7 col-6">
-                                                        <p className="mb-3 all-match-time" style={{ fontWeight: "600" }}>
+                                                        <p className="mb-3 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
                                                             {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
                                                             <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
                                                                 {match?.skillLevel
@@ -631,14 +634,17 @@ const Openmatches = () => {
 
                                                             <div className="d-flex flex-column align-items-center gap-1">
                                                                 <div
-                                                                    className="text-primary all-matches"
-                                                                    style={{ fontWeight: "600", fontFamily: "none" }}
+                                                                    className=" all-matches"
+                                                                    style={{ fontWeight: "500",fontSize:"18px", fontFamily: "none",color:"#1F41BB" }}
                                                                 >
-                                                                    ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "20px", fontWeight: "500", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                                    ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "25px", fontWeight: "600",fontFamily:"Poppins", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
                                                                 </div>
                                                                 <button
-                                                                    className="btn border-0 rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-white"
-                                                                    onClick={() => navigate("/view-match", { state: { match } })}
+                                                                    className="btn  rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-dark"
+                                                                    onClick={() => {
+                                                                        setSelectedMatch(match);
+                                                                        setShowViewMatch(true);
+                                                                    }}
                                                                     aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
                                                                 >
                                                                     View
@@ -667,7 +673,8 @@ const Openmatches = () => {
                     </div>
                 </div>
 
-                <div className="col-12 col-lg-5 ps-md-4 pt-md-3 pt-4 order-1 order-md-2">
+                <div className={`col-12 col-lg-5 ${!showViewMatch ? 'ps-md-4 pt-md-3 pt-4' : ''} order-1 order-md-2`}>
+                    {!showViewMatch ? 
                     <div className="ms-0 ms-lg-2">
                         <div
                             className="row align-items-center text-white rounded-4 py-0 ps-4"
@@ -813,6 +820,12 @@ const Openmatches = () => {
                             )}
                         </div>
                     </div>
+                    :
+                    <ViewMatch 
+                        match={selectedMatch}
+                        onBack={() => setShowViewMatch(false)}
+                    />
+                        }
                 </div>
             </div>
             <UpdatePlayers

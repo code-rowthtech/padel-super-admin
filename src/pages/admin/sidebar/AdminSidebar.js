@@ -7,6 +7,8 @@ import {
   FaChevronUp,
   FaEdit,
   FaUsersCog,
+  FaBuilding,
+  FaUser,
 } from "react-icons/fa";
 import { logout } from "../../../redux/admin/auth/slice";
 import { useDispatch, useSelector } from "react-redux";
@@ -32,7 +34,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const [clubLogo, setClubLogo] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const bookingPaths = ["/admin/booking", "/admin/cancellation", "/admin/manualbooking"];
+  const bookingPaths = ["/admin/booking", "/admin/cancellation", "/admin/manualbooking", "/admin/court-availability"];
 
   useEffect(() => {
     if (bookingPaths.includes(location.pathname)) {
@@ -51,40 +53,22 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const isDropdownActive = bookingPaths.includes(location.pathname);
   const isActiveLink = bookingPaths.includes(location.pathname);
 
-  const handleLogoChange = useCallback(
-    (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
 
-      // Create a preview URL for UI display
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setClubLogo(reader.result);
-
-        // Prepare FormData
-        const formData = new FormData();
-        formData.append("ownerId", ownerId);
-        formData.append("image", file);
-
-        // Dispatch with FormData
-        if (getLogoData?.logo?._id) {
-          dispatch(updateLogo(formData));
-        } else {
-          dispatch(createLogo(formData));
-        }
-      };
-      reader.readAsDataURL(file);
-    },
-    [dispatch, ownerId, getLogoData?.logo?._id]
-  );
 
   useEffect(() => {
     dispatch(getLogo({ ownerId: ownerId }));
   }, [dispatch, ownerId]);
 
+  // Refetch logo when navigating away from profile page
+  useEffect(() => {
+    if (location.pathname !== "/admin/profile") {
+      dispatch(getLogo({ ownerId: ownerId }));
+    }
+  }, [location.pathname, dispatch, ownerId]);
+
   useEffect(() => {
     setClubLogo(getLogoData?.logo?.logo?.[0] || null);
-  }, [getLogoData?.logo?._id]);
+  }, [getLogoData?.logo?._id, getLogoData?.logo?.logo]);
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -149,45 +133,71 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               )}
             </>
           )}
-          {!getLogoLoading && (!isCollapsed || window.innerWidth <= 768) && (
-            <label
-              htmlFor="clubLogoUpload"
-              className="position-absolute bottom-0 end-0 rounded-circle p-0"
-              style={{
-                width: window.innerWidth <= 768 ? "30px" : "25px",
-                height: window.innerWidth <= 768 ? "30px" : "25px",
-                backgroundColor: "#565758",
-                opacity: 0.8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-              }}
-            >
-              <FaEdit
-                style={{
-                  color: "white",
-                  fontSize: window.innerWidth <= 768 ? "16px" : "14px",
-                }}
-              />
-            </label>
-          )}
+
         </div>
-        <input
-          type="file"
-          id="clubLogoUpload"
-          accept="image/*"
-          hidden
-          onChange={handleLogoChange}
-        />
+
       </div>
 
       <nav className="flex-grow-1 mt-2">
+
+
         {!isCollapsed && (
           <p className="px-4 py-0 mb-1" style={{ color: "#8A99AF" }}>
             MENU
           </p>
         )}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("myprofile")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/profile"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "#333B48" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <FaUser
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "My Profile"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "myprofile" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              My Profile
+            </div>
+          )}
+        </div>
+
         <div
           className="position-relative"
           onMouseEnter={() =>
@@ -262,7 +272,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             className={`btn ${
               isCollapsed && window.innerWidth > 768
                 ? "w-auto d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                : "w-75 d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+                : " d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
             } ${isDropdownActive ? "active-parent-link" : "bg-transparent"}`}
             style={{
               backgroundColor: isDropdownActive ? "#333B48" : "transparent",
@@ -272,7 +282,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontFamily: "Poppins",
               boxShadow: isDropdownActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "225px",
             }}
           >
             <div
@@ -355,6 +365,30 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               >
                 Cancellation
               </NavLink>
+              <NavLink
+                to="/admin/court-availability"
+                className="d-block px-3 py-2 my-1 text-decoration-none rounded"
+                style={({ isActive }) => ({
+                  backgroundColor: isActive ? "#333B48" : "transparent",
+                  color: "#CCD2DD",
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+                  transition: "background-color 0.2s",
+                  whiteSpace: "nowrap",
+                })}
+                onMouseEnter={(e) => (e.target.style.backgroundColor = "#4A5568")}
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = location.pathname === "/admin/court-availability" ? "#333B48" : "transparent")
+                }
+                onClick={() => {
+                  setShowDropdown(false);
+                  window.innerWidth <= 768 && onClose();
+                }}
+              >
+                Court Availability
+              </NavLink>
             </div>
           )}
         </div>
@@ -402,6 +436,27 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               onClick={() => window.innerWidth <= 768 && onClose()}
             >
               Cancellation
+            </NavLink>
+            <NavLink
+              to="/admin/court-availability"
+              className={({ isActive }) =>
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
+                  isActive ? "active-child-link" : ""
+                }`
+              }
+              style={({ isActive }) => ({
+                backgroundColor: isActive ? "#333B48" : "transparent",
+                color: "#CCD2DD",
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+                borderRadius: "4px",
+                whiteSpace: "nowrap",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
+            >
+              Court Availability
             </NavLink>
           </div>
         )}
@@ -690,6 +745,58 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               }}
             >
               Payment
+            </div>
+          )}
+        </div>
+
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("myclub")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/my-club"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "#333B48" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <FaBuilding
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "My Club"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "myclub" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              My Club
             </div>
           )}
         </div>

@@ -29,6 +29,7 @@ const FEATURES = [
   { key: "shower", label: "Shower" },
   { key: "chillPad", label: "Chill Pad" },
   { key: "coachingAvailable", label: "Coaching Available" },
+  { key: "shed", label: "Shed" },
 ];
 
 const BUSINESS_HOURS_TEMPLATE = {
@@ -129,7 +130,17 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
         id={`${idPrefix}-hour`}
         value={hour}
         onChange={(e) => onChange(formatAmPm(Number(e.target.value), meridian))}
-        style={{ maxWidth: 110 }}
+        style={{
+          height: "32px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          textAlign: "center",
+          boxShadow: "none",
+          fontWeight: "500",
+          fontFamily: "Poppins",
+          maxWidth: 110
+
+        }}
       >
         {hours.map((h) => (
           <option key={h} value={h}>
@@ -142,7 +153,17 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
         id={`${idPrefix}-ampm`}
         value={meridian}
         onChange={(e) => onChange(formatAmPm(hour, e.target.value))}
-        style={{ maxWidth: 110 }}
+        style={{
+          height: "32px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          textAlign: "center",
+          boxShadow: "none",
+          fontWeight: "500",
+          fontFamily: "Poppins",
+          maxWidth: 110
+
+        }}
       >
         <option value="AM">AM</option>
         <option value="PM">PM</option>
@@ -576,6 +597,13 @@ const ClubUpdateForm = () => {
         onChange={(e) => handleChange(field, e.target.value)}
         onBlur={() => setTouched((p) => ({ ...p, [field]: true }))}
         isInvalid={!!visibleErrors[field]}
+        style={{
+          height: "38px",
+          borderRadius: "12px",
+          fontSize: "14px",
+          backgroundColor: "#fff",
+          boxShadow: "none"
+        }}
       />
       {visibleErrors[field] && (
         <Form.Control.Feedback type="invalid" className="d-block small">
@@ -594,7 +622,6 @@ const ClubUpdateForm = () => {
         <DataLoading height="80vh" />
       ) : (
         <Form onSubmit={handleSubmit}>
-          <h4 className="fw-bold mb-4">Club Details </h4>
           <Row>
             <Col md={6}>
               <Row>
@@ -632,6 +659,28 @@ const ClubUpdateForm = () => {
                     placeholder="Street, Area"
                   />
                 </Col>
+                <h6 className="fw-bold mb-2">Photos</h6>
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <div className="text-muted small">
+                    {previews.length}/{MAX_IMAGES} images
+                  </div>
+                </div>
+                <div className="d-flex flex-wrap gap-2">
+                  {previews.map((img, i) => (
+                    <ImageTile
+                      key={i}
+                      src={img.preview}
+                      onRemove={() => removeImage(i)}
+                    />
+                  ))}
+                  <AddImageTile
+                    onFiles={handleAddFiles}
+                    hidden={previews.length >= MAX_IMAGES}
+                  />
+                </div>
+                <div className="text-muted small mt-2">
+                  PNG, JPG, GIF up to 2MB each
+                </div>
               </Row>
             </Col>
             <Col md={6}>
@@ -668,9 +717,9 @@ const ClubUpdateForm = () => {
                   renderHTML={(text) => mdParser.render(text)}
                   config={{
                     view: {
-                      menu: true,
-                      md: true,
-                      html: true,
+                      menu: true,   // show toolbar
+                      md: true,     // show markdown input
+                      html: false,  // hide preview panel
                     },
                     placeholder: "Short description (max 500 words)",
                     toolbar: [
@@ -683,13 +732,16 @@ const ClubUpdateForm = () => {
                       "ordered-list",
                       "|",
                       "link",
-                      "preview",
                     ],
                     canView: {
+                      menu: true,     // keep toolbar visible
+                      md: true,       // keep markdown editor visible
+                      html: false,    // ❌ remove preview (eye) button
                       fullScreen: false,
                       hideMenu: false,
                     },
                   }}
+
                 />
                 {visibleErrors.description && (
                   <Form.Control.Feedback
@@ -702,16 +754,15 @@ const ClubUpdateForm = () => {
               </Form.Group>
             </Col>
           </Row>
-          <Row></Row>
           <Row>
             <Col md={8}></Col>
           </Row>
 
-          <hr className="my-4" />
+          <hr className="my-3" />
 
           <Row>
             <Col md={4} className="mb-3">
-              <h6 className="fw-bold mb-2">
+              <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
                 Court Type{" "}
                 {visibleErrors.courtTypes && (
                   <span className="text-danger small">
@@ -722,7 +773,11 @@ const ClubUpdateForm = () => {
               <div className="d-flex flex-column gap-2">
                 <Form.Check
                   type="checkbox"
-                  label="Indoor"
+                  label={
+                    <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                      Indoor
+                    </span>
+                  }
                   id="ct-indoor"
                   checked={!!formData.courtTypes.indoor}
                   onChange={() => handleCheckbox("courtTypes", "indoor")}
@@ -730,17 +785,29 @@ const ClubUpdateForm = () => {
                 />
                 <Form.Check
                   type="checkbox"
-                  label="Outdoor"
+                  label={
+                    <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                      Outdoor
+                    </span>
+                  }
                   id="ct-outdoor"
                   checked={!!formData.courtTypes.outdoor}
                   onChange={() => handleCheckbox("courtTypes", "outdoor")}
                   onBlur={() => setTouched((p) => ({ ...p, courtTypes: true }))}
                 />
+                <style jsx>{`
+        input[type="checkbox"] {
+          width: 20px !important;
+          height: 20px !important;
+          transform: scale(1.2);
+          box-shadow: none !important;
+        }
+      `}</style>
               </div>
             </Col>
 
             <Col md={8} className="mb-3">
-              <h6 className="fw-bold mb-2">
+              <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
                 Features{" "}
                 {visibleErrors.features && (
                   <span className="text-danger small">
@@ -750,11 +817,15 @@ const ClubUpdateForm = () => {
               </h6>
               <Row>
                 {FEATURES.map((f) => (
-                  <Col md={4} key={f.key} className="mb-2">
+                  <Col md={3} key={f.key} className="mb-2">
                     <Form.Check
                       type="checkbox"
                       id={`feat-${f.key}`}
-                      label={f.label}
+                      label={
+                        <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                          {f.label}
+                        </span>
+                      }
                       checked={!!formData.features[f.key]}
                       onChange={() => handleCheckbox("features", f.key)}
                       onBlur={() =>
@@ -767,37 +838,15 @@ const ClubUpdateForm = () => {
             </Col>
           </Row>
 
-          <hr className="my-4" />
 
-          <h6 className="fw-bold mb-2">Photos</h6>
-          <div className="d-flex align-items-center justify-content-between mb-2">
-            <div className="text-muted small">
-              {previews.length}/{MAX_IMAGES} images
-            </div>
-          </div>
-          <div className="d-flex flex-wrap gap-2">
-            {previews.map((img, i) => (
-              <ImageTile
-                key={i}
-                src={img.preview}
-                onRemove={() => removeImage(i)}
-              />
-            ))}
-            <AddImageTile
-              onFiles={handleAddFiles}
-              hidden={previews.length >= MAX_IMAGES}
-            />
-          </div>
-          <div className="text-muted small mt-2">
-            PNG, JPG, GIF up to 2MB each
-          </div>
 
-          <hr className="my-4" />
+
+          <hr className="my-3" />
 
           <Row>
             <Col md={7}>
               <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 className="fw-bold mb-0">Business Hours</h6>
+                <h6 className=" mb-0" style={{ fontSize: "20px", fontWeight: "600", color: "#374151", fontFamily: "Poppins" }}>Business Hours</h6>
                 {hasChanged && (
                   <Button
                     type="button"
@@ -818,7 +867,7 @@ const ClubUpdateForm = () => {
                 return (
                   <Row key={day} className="align-items-center g-2 mb-2">
                     <Col md={3} className="text-secondary small fw-semibold">
-                      {day}
+                      <span style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>{day}</span>
                     </Col>
                     <Col md={4}>
                       <TimeSelect
@@ -827,8 +876,8 @@ const ClubUpdateForm = () => {
                         onChange={(v) => handleHoursChange(day, "start", v)}
                       />
                     </Col>
-                    <Col md={1} className="text-center text-secondary">
-                      to
+                    <Col md={1} style={{ textAlign: "center", fontSize: '12px', fontFamily: "Poppins", color: '#374151', fontWeight: "500" }}>
+                      To
                     </Col>
                     <Col md={4}>
                       <TimeSelect
@@ -843,7 +892,7 @@ const ClubUpdateForm = () => {
             </Col>
             <Col md={5}>
               <div className="d-flex justify-content-between align-items-center">
-                <h6 className="fw-bold mb-0">Set Price</h6>
+                <h6 className=" mb-0" style={{ fontSize: "20px", fontWeight: "600", color: "#374151", fontFamily: "Poppins" }}>Set Price</h6>
 
                 {/* <Form.Check
                   type="checkbox"
