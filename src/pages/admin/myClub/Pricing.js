@@ -248,12 +248,41 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
         </div>
       </Form.Check>
     ));
+  /** Helper function to filter slots by time period */
+  const filterSlotsByPeriod = (slots, period) => {
+    return slots.filter(slot => {
+      const timeStr = slot?.time;
+      if (!timeStr) return false;
+      
+      // Parse time to get hour in 24-hour format
+      const display = formatTo12HourDisplay(timeStr);
+      const [time, meridian] = display.split(' ');
+      const [hour] = time.split(':').map(Number);
+      let hour24 = hour;
+      
+      if (meridian === 'PM' && hour !== 12) hour24 += 12;
+      if (meridian === 'AM' && hour === 12) hour24 = 0;
+      
+      switch (period) {
+        case 'Morning':
+          return hour24 >= 0 && hour24 < 12;
+        case 'Afternoon':
+          return hour24 >= 12 && hour24 < 17;
+        case 'Evening':
+          return hour24 >= 17 && hour24 <= 23;
+        default:
+          return true;
+      }
+    });
+  };
+
   /** Render time slots for current slot type (Morning/Afternoon/Evening) */
   const renderTimeSlots = () => {
     if (selectAllChecked) return renderAllSlots();
     const slotType = formData.selectedSlots;
-    const slotData = PricingData?.[0]?.slot?.[0]?.slotTimes || [];
-    if (!slotData.length) return <div>No slots available</div>;
+    const allSlotData = PricingData?.[0]?.slot?.[0]?.slotTimes || [];
+    const slotData = filterSlotsByPeriod(allSlotData, slotType);
+    if (!slotData.length) return <div>No {slotType.toLowerCase()} slots available</div>;
     return slotData.map((slot) => {
       const display = formatTo12HourDisplay(slot?.time);
       const key = slot?._id || `${display}-${slot?.time}`;

@@ -20,6 +20,9 @@ import debounce from "lodash/debounce";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import ViewMatch from "../VeiwMatch/VeiwMatch";
+import { HiMoon } from "react-icons/hi";
+import { BsSunFill } from "react-icons/bs";
+import { PiSunHorizonFill } from "react-icons/pi";
 
 const normalizeTime = (time) => {
     if (!time) return null;
@@ -215,9 +218,9 @@ const Openmatches = () => {
     };
 
     const tabs = [
-        { img: morningTab, label: 'Morning', key: 'morning' },
-        { img: sun, label: 'Afternoon', key: 'noon' },
-        { img: nighttab, label: 'Evening', key: 'night' },
+        { Icon: PiSunHorizonFill, label: 'Morning', key: 'morning' },
+        { Icon: BsSunFill, label: 'Noon', key: 'noon' },
+        { Icon: HiMoon, label: 'Evening', key: 'night' },
     ];
 
     const formatTimes = (slots) => {
@@ -499,21 +502,29 @@ const Openmatches = () => {
                         <div className="col-12 d-flex justify-content-center align-items-center">
                             <div className="weather-tabs-wrapper w-100">
                                 <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                                    {tabs.map((tab, index) => (
-                                        <div
-                                            key={index}
-                                            className={`tab-item rounded-3 ${activeTab === index ? 'active' : ''}`}
-                                            onClick={() => setActiveTab(index)}
-                                        >
-                                            <img className="tab-icon" src={tab.img} alt={tab.label} />
-                                        </div>
-                                    ))}
+                                    {tabs.map((tab, index) => {
+                                        const Icon = tab.Icon;
+                                        const active = activeTab === tab.key;
+                                        return (
+                                            <div
+                                                key={index}
+                                                className={`tab-item rounded-3 ${activeTab === tab.key ? 'active' : ''}`}
+                                                onClick={() => setActiveTab(tab.key)}
+                                            >
+                                                <Icon
+                                                    size={24}
+                                                    className={active ? 'text-primary' : 'text-dark'}   // dark when inactive
+                                                />
+
+                                            </div>
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Labels below tabs */}
                                 <div className="tab-labels d-flex justify-content-between">
                                     {tabs.map((tab, index) => (
-                                        <p key={index} className={`tab-label ${activeTab === index ? 'active' : ''}`}>
+                                        <p key={index} className={`tab-label ${activeTab === tab.key ? 'active text-primary' : 'text-muted'}`}>
                                             {tab.label}
                                         </p>
                                     ))}
@@ -635,9 +646,9 @@ const Openmatches = () => {
                                                             <div className="d-flex flex-column align-items-center gap-1">
                                                                 <div
                                                                     className=" all-matches"
-                                                                    style={{ fontWeight: "500",fontSize:"18px", fontFamily: "none",color:"#1F41BB" }}
+                                                                    style={{ fontWeight: "500", fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
                                                                 >
-                                                                    ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "25px", fontWeight: "600",fontFamily:"Poppins", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                                    ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "25px", fontWeight: "600", fontFamily: "Poppins", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
                                                                 </div>
                                                                 <button
                                                                     className="btn  rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-dark"
@@ -674,158 +685,158 @@ const Openmatches = () => {
                 </div>
 
                 <div className={`col-12 col-lg-5 ${!showViewMatch ? 'ps-md-4 pt-md-3 pt-4' : ''} order-1 order-md-2`}>
-                    {!showViewMatch ? 
-                    <div className="ms-0 ms-lg-2">
-                        <div
-                            className="row align-items-center text-white rounded-4 py-0 ps-4"
-                            style={{
-                                backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
-                                position: "relative",
-                                backgroundSize: "cover",
-                                backgroundRepeat: "no-repeat",
-                                backgroundPosition: "right center",
-                                height: "312px",
-                                borderRadius: "20px",
-                                overflow: "hidden",
-                                marginTop: "-20px"
-                            }}
-                        >
-                            <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
-                                <h4 className="open-match-img-heading text-nowrap">Got a score to <br /> settle?</h4>
-                                <p className="text-light">Great for competitive vibes.</p>
-                                <button
-                                    className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-3 ps-3 pe-3"
-                                    onClick={createMatchesHandle}
-                                    style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}
-                                    aria-label="Create open matches"
-                                >
-                                    Create Open Matches
-                                </button>
+                    {!showViewMatch ?
+                        <div className="ms-0 ms-lg-2">
+                            <div
+                                className="row align-items-center text-white rounded-4 py-0 ps-4"
+                                style={{
+                                    backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
+                                    position: "relative",
+                                    backgroundSize: "cover",
+                                    backgroundRepeat: "no-repeat",
+                                    backgroundPosition: "right center",
+                                    height: "312px",
+                                    borderRadius: "20px",
+                                    overflow: "hidden",
+                                    marginTop: "-20px"
+                                }}
+                            >
+                                <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
+                                    <h4 className="open-match-img-heading text-nowrap">Got a score to <br /> settle?</h4>
+                                    <p className="text-light">Great for competitive vibes.</p>
+                                    <button
+                                        className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-3 ps-3 pe-3"
+                                        onClick={createMatchesHandle}
+                                        style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}
+                                        aria-label="Create open matches"
+                                    >
+                                        Create Open Matches
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <div className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100" style={{ backgroundColor: "#F6F7FB" }}>
-                            {reviewLoading ? (
-                                <DataLoading />
-                            ) : (
-                                <>
-                                    {/* Left: Overall Rating */}
-                                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
-                                        <div className="w-100">
-                                            <p className="mb-0" style={{ fontSize: "16px", fontWeight: "500", color: "#111", fontFamily: "Poppins" }}>
-                                                Overall Rating
-                                            </p>
-                                            <div className="d-flex flex-lg-column align-items-center justify-content-center">
-                                                <div className="mb-2" style={{ fontFamily: "Poppins", fontWeight: "600", fontSize: "40px", color: "#111" }}>
-                                                    {reviewData?.averageRating?.toFixed(1) || "0.0"}
-                                                </div>
-                                                <div className="mb-2 d-flex gap-lg-2">
-                                                    {[...Array(5)].map((_, i) => {
-                                                        const rating = reviewData?.averageRating || 0;
-                                                        if (i < Math.floor(rating)) {
-                                                            return <StarIcon key={i} style={{ color: "#32B768", fontSize: "25px" }} />;
-                                                        } else if (i < rating && rating % 1 >= 0.5) {
-                                                            return <StarHalfIcon key={i} style={{ color: "#32B768", fontSize: "25px" }} />;
-                                                        } else {
-                                                            return <StarBorderIcon key={i} style={{ color: "#ccc", fontSize: "25px" }} />;
-                                                        }
-                                                    })}
-                                                </div>
-                                                <div className="text-muted ps-2 pb-2" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}>
-                                                    Based on {reviewData?.totalReviews || 0} reviews
+                            <div className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100" style={{ backgroundColor: "#F6F7FB" }}>
+                                {reviewLoading ? (
+                                    <DataLoading />
+                                ) : (
+                                    <>
+                                        {/* Left: Overall Rating */}
+                                        <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
+                                            <div className="w-100">
+                                                <p className="mb-0" style={{ fontSize: "16px", fontWeight: "500", color: "#111", fontFamily: "Poppins" }}>
+                                                    Overall Rating
+                                                </p>
+                                                <div className="d-flex flex-lg-column align-items-center justify-content-center">
+                                                    <div className="mb-2" style={{ fontFamily: "Poppins", fontWeight: "600", fontSize: "40px", color: "#111" }}>
+                                                        {reviewData?.averageRating?.toFixed(1) || "0.0"}
+                                                    </div>
+                                                    <div className="mb-2 d-flex gap-lg-2">
+                                                        {[...Array(5)].map((_, i) => {
+                                                            const rating = reviewData?.averageRating || 0;
+                                                            if (i < Math.floor(rating)) {
+                                                                return <StarIcon key={i} style={{ color: "#32B768", fontSize: "25px" }} />;
+                                                            } else if (i < rating && rating % 1 >= 0.5) {
+                                                                return <StarHalfIcon key={i} style={{ color: "#32B768", fontSize: "25px" }} />;
+                                                            } else {
+                                                                return <StarBorderIcon key={i} style={{ color: "#ccc", fontSize: "25px" }} />;
+                                                            }
+                                                        })}
+                                                    </div>
+                                                    <div className="text-muted ps-2 pb-2" style={{ fontSize: "12px", fontWeight: "400", fontFamily: "Poppins" }}>
+                                                        Based on {reviewData?.totalReviews || 0} reviews
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Right: Rating Bars */}
-                                    <div className="col-12 col-lg-8 ps-lg-4 pe-0">
-                                        <div className="w-100">
-                                            {[5, 4, 3, 2, 1].map((star, idx) => {
-                                                const total = reviewData?.totalReviews || 1;
-                                                let count = 0;
-                                                if (star === 5) count = reviewData?.ratingCounts?.Excellent || 0;
-                                                else if (star === 4) count = reviewData?.ratingCounts?.Good || 0;
-                                                else if (star === 3) count = reviewData?.ratingCounts?.Average || 0;
-                                                else if (star <= 2) count = reviewData?.ratingCounts?.Below || 0;
+                                        {/* Right: Rating Bars */}
+                                        <div className="col-12 col-lg-8 ps-lg-4 pe-0">
+                                            <div className="w-100">
+                                                {[5, 4, 3, 2, 1].map((star, idx) => {
+                                                    const total = reviewData?.totalReviews || 1;
+                                                    let count = 0;
+                                                    if (star === 5) count = reviewData?.ratingCounts?.Excellent || 0;
+                                                    else if (star === 4) count = reviewData?.ratingCounts?.Good || 0;
+                                                    else if (star === 3) count = reviewData?.ratingCounts?.Average || 0;
+                                                    else if (star <= 2) count = reviewData?.ratingCounts?.Below || 0;
 
-                                                const percent = Math.round((count / total) * 100);
+                                                    const percent = Math.round((count / total) * 100);
 
-                                                return (
-                                                    <div
-                                                        key={star}
-                                                        className="d-flex align-items-center mb-3 gap-3"
-                                                        style={{ width: "100%" }}
-                                                    >
-                                                        {/* Fixed Width Label */}
+                                                    return (
                                                         <div
-                                                            className="text-nowrap"
-                                                            style={{
-                                                                width: "110px",
-                                                                minWidth: "110px",
-                                                                fontSize: "14px",
-                                                                fontWeight: "500",
-                                                                fontFamily: "Poppins",
-                                                                color: "#111",
-                                                            }}
+                                                            key={star}
+                                                            className="d-flex align-items-center mb-3 gap-3"
+                                                            style={{ width: "100%" }}
                                                         >
-                                                            {star === 5
-                                                                ? "Excellent"
-                                                                : star === 4
-                                                                    ? "Good"
-                                                                    : star === 3
-                                                                        ? "Average"
-                                                                        : star === 2
-                                                                            ? "Below Average"
-                                                                            : "Poor"}
-                                                        </div>
-
-                                                        {/* Progress Bar - Takes Remaining Space */}
-                                                        <div
-                                                            className="progress flex-grow-1 border"
-                                                            style={{
-                                                                height: "10px",
-                                                                backgroundColor: "#eee",
-                                                                minWidth: 0,
-                                                            }}
-                                                        >
+                                                            {/* Fixed Width Label */}
                                                             <div
-                                                                className="progress-bar"
+                                                                className="text-nowrap"
                                                                 style={{
-                                                                    width: `${percent}%`,
-                                                                    backgroundColor:
-                                                                        star === 5
-                                                                            ? "#3DBE64"
-                                                                            : star === 4
-                                                                                ? "#7CBA3D"
-                                                                                : star === 3
-                                                                                    ? "#ECD844"
-                                                                                    : star === 2
-                                                                                        ? "#FC702B"
-                                                                                        : "#E9341F",
-                                                                    transition: "width 0.4s ease",
+                                                                    width: "110px",
+                                                                    minWidth: "110px",
+                                                                    fontSize: "14px",
+                                                                    fontWeight: "500",
+                                                                    fontFamily: "Poppins",
+                                                                    color: "#111",
                                                                 }}
-                                                            />
-                                                        </div>
+                                                            >
+                                                                {star === 5
+                                                                    ? "Excellent"
+                                                                    : star === 4
+                                                                        ? "Good"
+                                                                        : star === 3
+                                                                            ? "Average"
+                                                                            : star === 2
+                                                                                ? "Below Average"
+                                                                                : "Poor"}
+                                                            </div>
 
-                                                        {/* Optional: Show Count */}
-                                                        {/* <small className="text-muted ms-2" style={{ fontSize: "12px" }}>
+                                                            {/* Progress Bar - Takes Remaining Space */}
+                                                            <div
+                                                                className="progress flex-grow-1 border"
+                                                                style={{
+                                                                    height: "10px",
+                                                                    backgroundColor: "#eee",
+                                                                    minWidth: 0,
+                                                                }}
+                                                            >
+                                                                <div
+                                                                    className="progress-bar"
+                                                                    style={{
+                                                                        width: `${percent}%`,
+                                                                        backgroundColor:
+                                                                            star === 5
+                                                                                ? "#3DBE64"
+                                                                                : star === 4
+                                                                                    ? "#7CBA3D"
+                                                                                    : star === 3
+                                                                                        ? "#ECD844"
+                                                                                        : star === 2
+                                                                                            ? "#FC702B"
+                                                                                            : "#E9341F",
+                                                                        transition: "width 0.4s ease",
+                                                                    }}
+                                                                />
+                                                            </div>
+
+                                                            {/* Optional: Show Count */}
+                                                            {/* <small className="text-muted ms-2" style={{ fontSize: "12px" }}>
                   {count}
                 </small> */}
-                                                    </div>
-                                                );
-                                            })}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                </>
-                            )}
+                                    </>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                    :
-                    <ViewMatch 
-                        match={selectedMatch}
-                        onBack={() => setShowViewMatch(false)}
-                    />
-                        }
+                        :
+                        <ViewMatch
+                            match={selectedMatch}
+                            onBack={() => setShowViewMatch(false)}
+                        />
+                    }
                 </div>
             </div>
             <UpdatePlayers

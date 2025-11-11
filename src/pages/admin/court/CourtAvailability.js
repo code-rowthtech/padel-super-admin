@@ -531,7 +531,7 @@ const CourtAvailability = () => {
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    top: "-4px",
+                                    top: "-1px",
                                     right: "-4px",
                                     zIndex: 2,
                                     backgroundColor: "#22c55e"
