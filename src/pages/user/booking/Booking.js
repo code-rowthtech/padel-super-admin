@@ -586,7 +586,7 @@ const Booking = ({ className = "" }) => {
                                                         className="position-absolute badge rounded-pill"
                                                         style={{
                                                             fontSize: "10px",
-                                                            minWidth: "18px",
+                                                            width: "18px",
                                                             height: "18px",
                                                             display: "flex",
                                                             alignItems: "center",

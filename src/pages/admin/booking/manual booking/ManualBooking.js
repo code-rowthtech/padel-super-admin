@@ -10,7 +10,7 @@ import {
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import { FaArrowLeft, FaArrowRight, FaTrash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { BookingSuccessModal } from "./BookingModal";
 import {
   getOwnerRegisteredClub,
@@ -38,6 +38,7 @@ const ManualBooking = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
   const ownerId = Owner?.generatedBy ? Owner?.generatedBy : Owner?._id;
+  const location = useLocation();
   const {
     manualBookingLoading,
     ownerClubLoading,
@@ -418,6 +419,8 @@ const ManualBooking = () => {
     }
   }, [searchUserData, phone]);
 
+
+
   return (
     <>
       {ownerClubLoading ? (
@@ -548,8 +551,8 @@ const ManualBooking = () => {
                         fontWeight: "500",
                         whiteSpace: "pre-line",
                         textAlign: "center",
-                        lineHeight: "1", 
-                        letterSpacing: "0px" 
+                        lineHeight: "1",
+                        letterSpacing: "0px"
                       }}
                     >
                       {getCurrentMonth(selectedDate)}
@@ -609,7 +612,7 @@ const ManualBooking = () => {
                                 className="position-absolute badge rounded-pill"
                                 style={{
                                   fontSize: "10px",
-                                  minWidth: "18px",
+                                  width: "18px",
                                   height: "18px",
                                   display: "flex",
                                   alignItems: "center",
@@ -798,16 +801,25 @@ const ManualBooking = () => {
                 )}
               </div>
             </Col>
-            <Col xs={12} lg={4} className="py-2  py-md-4 px-2  px-md-3">
+            <Col xs={12} lg={4} className="py-2  py-md-4 px-2 mt-lg-4  px-md-3">
               <div
                 className=" rounded-3 p-2 p-md-3 "
                 style={{ minHeight: "40vh" }}
               >
                 <div
                   className="all-matches d-flex justify-content-between align-items-center mb-3"
+                  style={{ color: '#374151' }}
                 >
                   Selected Bookings
-                  {Object.entries(selectedSlots)?.length > 0 && (
+                  {Object.values(selectedSlots).reduce(
+                    (acc, dateSlots) =>
+                      acc +
+                      Object.values(dateSlots).reduce(
+                        (acc2, { slots }) => acc2 + slots.length,
+                        0
+                      ),
+                    0
+                  ) >= 4 && (
                     <Button
                       variant="outline-secondary"
                       size="sm"
@@ -1064,6 +1076,14 @@ const ManualBooking = () => {
             handleClose={() => {
               setShowSuccess(false);
               clearSessionStorage();
+              dispatch(
+                getActiveCourts({
+                  register_club_id: ownerClubData?.[0]?._id,
+                  day: selectedDay,
+                  date: selectedDate,
+                  courtId: selectedCourts[0],
+                })
+              );
             }}
             openDetails={() => {
               setShowSuccess(false);

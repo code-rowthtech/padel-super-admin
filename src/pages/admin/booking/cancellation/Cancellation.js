@@ -6,12 +6,13 @@ import {
   Table,
   OverlayTrigger,
   Tooltip,
+  InputGroup,
 } from "react-bootstrap";
-import DatePicker from "react-datepicker";
 import "bootstrap/dist/css/bootstrap.min.css";
+import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { MdDateRange } from "react-icons/md";
-import { FaEye } from "react-icons/fa";
+import { MdOutlineDateRange } from "react-icons/md";
+import { FaEye, FaTimes } from "react-icons/fa";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import {
   BookingCancellationModal,
@@ -41,8 +42,9 @@ const Cancellation = () => {
   const ownerId = getOwnerFromSession()?._id;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [startDate, setStartDate] = useState(null); // empty by default
-  const [endDate, setEndDate] = useState(null); // empty by default
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadingBookingId, setLoadingBookingId] = useState(null);
 
   const [tab, setTab] = useState(0);
@@ -91,22 +93,7 @@ const Cancellation = () => {
     }
   };
 
-  // Date picker button
-  const DateButton = ({ value, onClick }) => (
-    <button
-      onClick={onClick}
-      style={{
-        border: "none",
-        backgroundColor: "white",
-        padding: "8px 16px",
-        cursor: "pointer",
-        fontWeight: 600,
-        color: "#495057",
-      }}
-    >
-      {value || "Select Date"} <MdDateRange className="ms-2 mb-1" size={20} />
-    </button>
-  );
+
   const totalRecords = getBookingData?.totalItems || 1;
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -150,28 +137,65 @@ const Cancellation = () => {
               </AppBar>
             </Box>
 
-            <div className="d-flex align-items-center gap-2">
-              <DatePicker
-                selected={startDate}
-                onChange={(dates) => {
-                  const [start, end] = dates;
-                  setStartDate(start);
-                  setEndDate(end);
-                }}
-                startDate={startDate}
-                endDate={endDate}
-                selectsRange
-                customInput={<DateButton />}
-              />
-              {sendDate && (
-                <i
-                  className="bi bi-x-square-fill text-danger"
-                  onClick={() => {
-                    setStartDate(null);
-                    setEndDate(null);
+            <div className="d-flex align-items-center">
+              {!showDatePicker && !startDate && !endDate ? (
+                <div
+                  className="d-flex align-items-center justify-content-center rounded p-2"
+                  style={{
+                    backgroundColor: "#FAFBFF",
+                    width: "40px",
+                    height: "38px",
+                    border: "1px solid #dee2e6",
+                    cursor: "pointer"
                   }}
-                  style={{ cursor: "pointer" }}
-                ></i>
+                  onClick={() => setShowDatePicker(true)}
+                >
+                  <MdOutlineDateRange size={16} className="text-muted" />
+                </div>
+              ) : (
+                <div
+                  className="d-flex align-items-center justify-content-center rounded p-1"
+                  style={{
+                    backgroundColor: "#FAFBFF",
+                    maxWidth: "280px",
+                    height: "38px",
+                    border: "1px solid #dee2e6",
+                    gap: "8px"
+                  }}
+                >
+                  <div className="px-2">
+                    <MdOutlineDateRange size={16} className="text-muted" />
+                  </div>
+                  <DatePicker
+                    selectsRange
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={(update) => {
+                      setDateRange(update);
+                      const [start, end] = update;
+                      if (start && end) {
+                        setShowDatePicker(false);
+                      }
+                    }}
+                    dateFormat="dd/MM/yy"
+                    placeholderText="DD/MM/YY – DD/MM/YY"
+                    className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                    open={showDatePicker}
+                    onClickOutside={() => setShowDatePicker(false)}
+                  />
+                  {(startDate || endDate) && (
+                    <div
+                      className="px-2"
+                      onClick={() => {
+                        setDateRange([null, null]);
+                        setShowDatePicker(false);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <FaTimes size={14} className="text-danger" />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -225,7 +249,7 @@ const Cancellation = () => {
                           >
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
@@ -283,7 +307,7 @@ const Cancellation = () => {
                           <span className="mobile-card-value">
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>
@@ -396,7 +420,7 @@ const Cancellation = () => {
               id: bookingDetails._id,
               status: "rejected",
               cancellationReasonForOwner: reason,
-              requestType:'admin'
+              requestType: 'admin'
             })
           )
             .unwrap()
@@ -418,15 +442,15 @@ const Cancellation = () => {
       <BookingRefundModal
         show={showRefund}
         handleClose={() => setShowRefund(false)}
-        onRefundSuccess={(refundDescription,setReason,amount,refundDate) => {
+        onRefundSuccess={(refundDescription, setReason, amount, refundDate) => {
           dispatch(
             updateBookingStatus({
               id: bookingDetails._id,
               status: "refunded",
               refundDescription,
               refundDate,
-              refundAmount : amount,
-              requestType:'admin'
+              refundAmount: amount,
+              requestType: 'admin'
             })
           )
             .unwrap()
