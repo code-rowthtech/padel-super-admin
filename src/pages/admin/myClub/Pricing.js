@@ -200,6 +200,12 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
     }));
   }, []);
   const handlePriceChange = useCallback((slotType, timeKey, value) => {
+    // Prevent values greater than 4000
+    const numericValue = Number(value);
+    if (value !== "" && (numericValue > 4000 || numericValue < 0)) {
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       prices: {
@@ -253,16 +259,16 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
     return slots.filter(slot => {
       const timeStr = slot?.time;
       if (!timeStr) return false;
-      
+
       // Parse time to get hour in 24-hour format
       const display = formatTo12HourDisplay(timeStr);
       const [time, meridian] = display.split(' ');
       const [hour] = time.split(':').map(Number);
       let hour24 = hour;
-      
+
       if (meridian === 'PM' && hour !== 12) hour24 += 12;
       if (meridian === 'AM' && hour === 12) hour24 = 0;
-      
+
       switch (period) {
         case 'Morning':
           return hour24 >= 0 && hour24 < 12;
@@ -312,6 +318,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
               <FormControl
                 type="number"
                 min="1"
+                max="4000"
                 placeholder="Price"
                 value={value}
                 onChange={(e) =>
@@ -330,7 +337,6 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
       );
     });
   };
-  /** Select-many: set prices for multiple chosen slot times across all days */
   const renderAllSlots = () => {
     let allTimesRaw = Array.from(
       new Set(
@@ -387,6 +393,12 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
       });
     };
     const updatePriceForAll = (price) => {
+      // Auto-cap values above 4000
+      const numericValue = Number(price);
+      if (price !== "" && (numericValue > 4000 || numericValue < 0)) {
+        return;
+      }
+      
       setFormData((prev) => {
         const newPrices = { ...(prev.prices.All || {}) };
         selectedTimes.forEach((t) => {
@@ -452,7 +464,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
         </div>
         <div className="mt-3">
           <h5
-            style={{ fontSize: "20px", fontWeight: "600", color: "#374151", fontFamily: "Poppins" , marginBottom:'10px'}}
+            style={{ fontSize: "20px", fontWeight: "600", color: "#374151", fontFamily: "Poppins", marginBottom: '10px' }}
           >
             {selectedTimes.length > 0
               ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""
@@ -462,7 +474,8 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
           <InputGroup>
             <FormControl
               type="number"
-              min="1"
+              min={0}
+              max={4000}
               placeholder={selectedTimes.length > 0 ? "Enter price" : ""}
               value={common}
               className="w-100"
@@ -661,7 +674,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                 Select All
               </label>
             </Form.Check>
-            
+
           </div>
           <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
             <Form.Check

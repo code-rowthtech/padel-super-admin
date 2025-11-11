@@ -233,14 +233,15 @@ const Navbar = () => {
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
                     {logo ?
-                        <Avatar
+                        <img
                             src={logo}
                             alt="User Profile"
+                            className='rounded-circle'
                             style={{
                                 width: "50px",
                                 height: "50px",
-                                border: "0.5px solid #928f8fff",
-                                objectFit: "contain",
+                                // border: "0.5px solid #928f8fff",
+                                objectFit: "cover",
                                 imageRendering: "auto",
                                 padding: "0px"
                             }}
