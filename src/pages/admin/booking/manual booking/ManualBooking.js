@@ -3,14 +3,13 @@ import {
   Button,
   Col,
   Container,
-  ListGroup,
   OverlayTrigger,
   Row,
   Tooltip,
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaArrowLeft, FaArrowRight, FaTrash } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom";
+import { FaArrowLeft, FaTrash } from "react-icons/fa";
+import { useNavigate, } from "react-router-dom";
 import { BookingSuccessModal } from "./BookingModal";
 import {
   getOwnerRegisteredClub,
@@ -25,7 +24,6 @@ import {
 } from "../../../../helpers/loading/Loaders";
 import { showInfo } from "../../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
-import { format } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatSlotTime } from "../../../../helpers/Formatting";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
@@ -38,7 +36,6 @@ const ManualBooking = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
   const ownerId = Owner?.generatedBy ? Owner?.generatedBy : Owner?._id;
-  const location = useLocation();
   const {
     manualBookingLoading,
     ownerClubLoading,
@@ -103,14 +100,14 @@ const ManualBooking = () => {
   const scrollRef = useRef(null);
   const selectedButtonRef = useRef(null);
 
-  const scroll = (direction) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -120 : 120,
-        behavior: "smooth",
-      });
-    }
-  };
+  // const scroll = (direction) => {
+  //   if (scrollRef.current) {
+  //     scrollRef.current.scrollBy({
+  //       left: direction === "left" ? -120 : 120,
+  //       behavior: "smooth",
+  //     });
+  //   }
+  // };
 
   const courts = activeCourtsData?.[0]?.courts || [];
   const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
@@ -352,10 +349,6 @@ const ManualBooking = () => {
     }
   };
 
-  const [currentMonth, setCurrentMonth] = useState(
-    new Date().toLocaleDateString("en-US", { month: "long" })
-  );
-
   useEffect(() => {
     const handleScroll = () => {
       if (scrollRef.current) {
@@ -371,7 +364,6 @@ const ManualBooking = () => {
           const month = new Date(visibleDate).toLocaleDateString("en-US", {
             month: "long",
           });
-          setCurrentMonth(month);
         }
       }
     };
@@ -402,7 +394,6 @@ const ManualBooking = () => {
 
   useEffect(() => {
     if (searchUserData?.result?.name && phone.length === 10) {
-      // Sirf tab name set karo jab user ne manually kuch nahi dala ho
       if (!name || name.trim() === "") {
         setName(searchUserData.result.name);
       }
@@ -495,18 +486,18 @@ const ManualBooking = () => {
                     ref={wrapperRef}
                   >
                     <span
-                      className="rounded px-1 ms-2 shadow-sm"
+                      className="rounded px-1 ms-2 "
                       style={{
                         cursor: "pointer",
-                        width: "26px",
-                        height: "26px",
-                        backgroundColor: "rgb(229, 233, 236)",
+                        width: "22px",
+                        height: "22px",
+                        // backgroundColor: "rgb(229, 233, 236)",
                       }}
                       onClick={() => setIsOpen(!isOpen)}
                     >
                       <i
                         className="bi bi-calendar2-week"
-                        style={{ width: "14px", height: "16px" }}
+                        style={{ width: "12px", height: "12px" }}
                       ></i>
                     </span>
 
@@ -565,8 +556,6 @@ const ManualBooking = () => {
                         };
                         const isSelected =
                           formatDate(new Date(selectedDate)) === d.fullDate;
-
-                        // Calculate slot count for this date
                         const dateSlots = selectedSlots[d.fullDate] || {};
                         const slotCount = Object.values(dateSlots).reduce(
                           (acc, courtData) => acc + (courtData.slots?.length || 0),
