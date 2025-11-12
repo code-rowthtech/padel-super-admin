@@ -3,14 +3,13 @@ import {
   Button,
   Col,
   Container,
-  ListGroup,
   OverlayTrigger,
   Row,
   Tooltip,
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaArrowLeft, FaArrowRight, FaTrash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { FaArrowLeft, FaTrash } from "react-icons/fa";
+import { useNavigate, } from "react-router-dom";
 import { BookingSuccessModal } from "./BookingModal";
 import {
   getOwnerRegisteredClub,
@@ -25,7 +24,6 @@ import {
 } from "../../../../helpers/loading/Loaders";
 import { showInfo } from "../../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
-import { format } from "date-fns";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatSlotTime } from "../../../../helpers/Formatting";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
@@ -102,14 +100,14 @@ const ManualBooking = () => {
   const scrollRef = useRef(null);
   const selectedButtonRef = useRef(null);
 
-  const scroll = (direction) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -120 : 120,
-        behavior: "smooth",
-      });
-    }
-  };
+  // const scroll = (direction) => {
+  //   if (scrollRef.current) {
+  //     scrollRef.current.scrollBy({
+  //       left: direction === "left" ? -120 : 120,
+  //       behavior: "smooth",
+  //     });
+  //   }
+  // };
 
   const courts = activeCourtsData?.[0]?.courts || [];
   const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
@@ -351,10 +349,6 @@ const ManualBooking = () => {
     }
   };
 
-  const [currentMonth, setCurrentMonth] = useState(
-    new Date().toLocaleDateString("en-US", { month: "long" })
-  );
-
   useEffect(() => {
     const handleScroll = () => {
       if (scrollRef.current) {
@@ -370,7 +364,6 @@ const ManualBooking = () => {
           const month = new Date(visibleDate).toLocaleDateString("en-US", {
             month: "long",
           });
-          setCurrentMonth(month);
         }
       }
     };
@@ -393,17 +386,14 @@ const ManualBooking = () => {
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
-  // Is useEffect ko replace karo
   useEffect(() => {
     if (phone.length === 10) {
       dispatch(searchUserByNumber({ phoneNumber: phone }));
     }
   }, [phone, dispatch]);
 
-  // Naya useEffect add karo — sirf tab name set karo jab user ne khud se nahi dala
   useEffect(() => {
     if (searchUserData?.result?.name && phone.length === 10) {
-      // Sirf tab name set karo jab user ne manually kuch nahi dala ho
       if (!name || name.trim() === "") {
         setName(searchUserData.result.name);
       }
@@ -417,6 +407,8 @@ const ManualBooking = () => {
       dispatch(resetSearchData())
     }
   }, [searchUserData, phone]);
+
+
 
   return (
     <>
@@ -441,7 +433,7 @@ const ManualBooking = () => {
               <FaArrowLeft className="me-2" /> Back
             </Button>
           </div>
-          <Row className="mx-auto bg-white shadow-sm rounded-3">
+          <Row className="mx-auto  bg-white shadow-sm rounded-3" style={{height:"83vh"}}>
             <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
               <div className="mb-3 mb-md-4">
@@ -494,18 +486,18 @@ const ManualBooking = () => {
                     ref={wrapperRef}
                   >
                     <span
-                      className="rounded px-1 ms-2 shadow-sm"
+                      className="rounded px-1 ms-2 "
                       style={{
                         cursor: "pointer",
-                        width: "26px",
-                        height: "26px",
-                        backgroundColor: "rgb(229, 233, 236)",
+                        width: "22px",
+                        height: "22px",
+                        // backgroundColor: "rgb(229, 233, 236)",
                       }}
                       onClick={() => setIsOpen(!isOpen)}
                     >
                       <i
                         className="bi bi-calendar2-week"
-                        style={{ width: "14px", height: "16px" }}
+                        style={{ width: "12px", height: "12px" }}
                       ></i>
                     </span>
 
@@ -539,7 +531,7 @@ const ManualBooking = () => {
                     )}
                   </div>
                 </div>
-                <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
+                <div className="d-flex align-items-center mb-3 gap-2 ">
                   <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
                     <span
                       className="text-muted mb-0"
@@ -548,8 +540,8 @@ const ManualBooking = () => {
                         fontWeight: "500",
                         whiteSpace: "pre-line",
                         textAlign: "center",
-                        lineHeight: "1",  // Yeh add karo
-                        letterSpacing: "0px" // Optional: agar horizontal spacing bhi tight chahiye
+                        lineHeight: "1",
+                        letterSpacing: "0px"
                       }}
                     >
                       {getCurrentMonth(selectedDate)}
@@ -564,8 +556,6 @@ const ManualBooking = () => {
                         };
                         const isSelected =
                           formatDate(new Date(selectedDate)) === d.fullDate;
-
-                        // Calculate slot count for this date
                         const dateSlots = selectedSlots[d.fullDate] || {};
                         const slotCount = Object.values(dateSlots).reduce(
                           (acc, courtData) => acc + (courtData.slots?.length || 0),
@@ -609,12 +599,12 @@ const ManualBooking = () => {
                                 className="position-absolute badge rounded-pill"
                                 style={{
                                   fontSize: "10px",
-                                  minWidth: "18px",
+                                  width: "18px",
                                   height: "18px",
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
-                                  top: "-4px",
+                                  top: "-1px",
                                   right: "-4px",
                                   zIndex: 2,
                                   backgroundColor: "#22c55e"
@@ -798,16 +788,25 @@ const ManualBooking = () => {
                 )}
               </div>
             </Col>
-            <Col xs={12} lg={4} className="py-2 py-md-4 px-2  px-md-3">
+            <Col xs={12} lg={4} className="py-2  py-md-4 px-2 mt-lg-4  px-md-3">
               <div
-                className=" rounded-3 p-2 p-md-3 "
+                className=" rounded-3 p-2 p-md-3  "
                 style={{ minHeight: "40vh" }}
               >
                 <div
                   className="all-matches d-flex justify-content-between align-items-center mb-3"
+                  style={{ color: '#374151' }}
                 >
                   Selected Bookings
-                  {Object.entries(selectedSlots)?.length > 0 && (
+                  {Object.values(selectedSlots).reduce(
+                    (acc, dateSlots) =>
+                      acc +
+                      Object.values(dateSlots).reduce(
+                        (acc2, { slots }) => acc2 + slots.length,
+                        0
+                      ),
+                    0
+                  ) >= 4 && (
                     <Button
                       variant="outline-secondary"
                       size="sm"
@@ -900,7 +899,7 @@ const ManualBooking = () => {
                 {Object.values(selectedSlots).some(
                   (ds) => Object.values(ds).some(({ slots }) => slots.length > 0)
                 ) && (
-                    <div className="mt-2 p-2 rounded bg-light">
+                    <div className="mt-2 p-2 rounded ">
                       <div className="d-flex justify-content-between align-items-center">
                         <span
                           style={{
@@ -1064,6 +1063,14 @@ const ManualBooking = () => {
             handleClose={() => {
               setShowSuccess(false);
               clearSessionStorage();
+              dispatch(
+                getActiveCourts({
+                  register_club_id: ownerClubData?.[0]?._id,
+                  day: selectedDay,
+                  date: selectedDate,
+                  courtId: selectedCourts[0],
+                })
+              );
             }}
             openDetails={() => {
               setShowSuccess(false);

@@ -99,10 +99,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
 
     });
     if (duplicateFiles.length > 0) {
-      const errorMsg = `Duplicate image detected: ${duplicateFiles.join(', ')}. This image is already uploaded.`;
-      setDuplicateError(errorMsg);
+      showInfo(`Duplicate image detected: ${duplicateFiles.join(', ')}. This image is already uploaded.`);
       e.target.value = '';
-      setTimeout(() => setDuplicateError(""), 5000);
       return;
     }
 
@@ -244,8 +242,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     return (
       <>
         {days.map((day) => {
-          const dayHours =
-            formData.businessHours[day] || { start: "06:00 AM", end: "11:00 PM" };
+          const dayHours = formData.businessHours[day] || {
+            start: "06:00 AM",
+            end: "11:00 PM"
+          };
           const startTime24 = convertAmPmTo24Hour(dayHours.start);
           const endTime24 = convertAmPmTo24Hour(dayHours.end);
           const startHour = parseInt(startTime24.split(":")[0], 10);
@@ -284,8 +284,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     }}
                     className="py-0 "
                   >
-                    {Array.from({ length: 14 }, (_, i) => {
-                      const h = i + 5;
+                    {Array.from({ length: 13 }, (_, i) => {
+                      const h = i + 6;
                       const t = `${h.toString().padStart(2, "0")}:00`;
                       return (
                         <option key={t} value={t}>
@@ -687,10 +687,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               type="checkbox"
               id="termsCheckbox"
               checked={formData.termsAccepted}
-              style={{boxShadow:"none"}}
+              style={{ boxShadow: "none" }}
               onChange={(e) => updateFormData({ termsAccepted: e.target.checked })}
               label={
-                <span style={{ fontSize: "12px", color: "#374151", fontFamily: "Poppins", fontWeight: 500 }}>
+                <span className="" style={{ fontSize: "13px", color: "#374151", fontFamily: "Poppins", fontWeight: 500 }}>
                   I agree to the{" "}
                   <b
                     className="text-primary"
@@ -716,6 +716,15 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 </span>
               }
             />
+            <style jsx>{`
+        input[type="checkbox"] {
+          width: 13px !important;
+          height: 13px !important;
+          transform: scale(1.2);
+          box-shadow: none !important;
+          border : 1px solid #636161ff !important;
+        }
+      `}</style>
           </Col>
         </Row>
 

@@ -464,6 +464,58 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         <div
           className="position-relative"
           onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("myclub")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/my-club"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "#333B48" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <FaBuilding
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "My Club"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "myclub" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              My Club
+            </div>
+          )}
+        </div>
+
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
             isCollapsed && window.innerWidth > 768 && setHoveredItem("matches")
           }
           onMouseLeave={() => setHoveredItem(null)}
@@ -745,58 +797,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               }}
             >
               Payment
-            </div>
-          )}
-        </div>
-
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("myclub")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/my-club"
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses
-            }
-            style={({ isActive }) => ({
-              backgroundColor: isActive ? "#333B48" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
-          >
-            <FaBuilding
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "My Club"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "myclub" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              My Club
             </div>
           )}
         </div>

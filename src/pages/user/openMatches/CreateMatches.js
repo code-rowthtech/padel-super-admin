@@ -12,13 +12,15 @@ import { useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
-import { MdOutlineArrowForwardIos, MdOutlineDeleteOutline, MdOutlineDateRange } from "react-icons/md";
+import { MdOutlineArrowForwardIos, MdOutlineDateRange } from "react-icons/md";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { frame, morningTab, nighttab, sun } from "../../../assets/files";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import MatchPlayer from "./MatchPlayer";
+import { HiMoon } from "react-icons/hi";
+import { BsSunFill } from "react-icons/bs";
+import { PiSunHorizonFill } from "react-icons/pi";
 
 // Parse time string to hour
 const parseTimeToHour = (timeStr) => {
@@ -85,9 +87,9 @@ const CreateMatches = () => {
   }, [addedPlayers]);
 
   const tabData = [
-    { img: morningTab, label: "Morning", key: "morning" },
-    { img: sun, label: "Afternoon", key: "noon" },
-    { img: nighttab, label: "Evening", key: "night" },
+    { Icon: PiSunHorizonFill, label: 'Morning', key: 'morning' },
+    { Icon: BsSunFill, label: 'Noon', key: 'noon' },
+    { Icon: HiMoon, label: 'Evening', key: 'night' },
   ];
 
   const handleClickOutside = (e) => {
@@ -327,9 +329,11 @@ const CreateMatches = () => {
     }
   }, [slotError]);
 
-  const getCurrentMonth = (date) => {
-    if (!date) return "Month";
-    return new Date(date.fullDate).toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+  const getCurrentMonth = (selectedDate) => {
+    if (!selectedDate || !selectedDate.fullDate) return "MONTH";
+    const dateObj = new Date(selectedDate.fullDate);
+    const month = dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+    return month.split('').join('\n');
   };
 
   const formatTimeForDisplay = (time) => {
@@ -369,7 +373,7 @@ const CreateMatches = () => {
     <Container className="p-4 mb-5">
       <Row className="g-3">
         {/* LEFT PANEL */}
-        <Col md={ 7} className="p-3" >
+        <Col md={7} className="p-3" >
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -431,7 +435,17 @@ const CreateMatches = () => {
             {/* Date Strip */}
             <div className="d-flex align-items-center gap-2 border-bottom mb-3">
               <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
-                <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
+                <span className="text-muted" style={{
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  whiteSpace: "pre-line",
+                  textAlign: "center",
+                  lineHeight: "1",
+                  letterSpacing: "0px",
+                  margin: 0,
+                  padding: 0,
+                  display: "block"
+                }}>{getCurrentMonth(selectedDate)}</span>
               </div>
               <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
                 <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10 }} onClick={scrollLeft}>
@@ -440,11 +454,17 @@ const CreateMatches = () => {
                 <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                   {dates.map((d, i) => {
                     const isSelected = selectedDate.fullDate === d.fullDate;
+
+                    // Calculate slot count for this specific date
+                    const slotCount = selectedCourts
+                      .filter(court => court.date === d.fullDate)
+                      .reduce((acc, court) => acc + (court.time?.length || 0), 0);
+
                     return (
                       <button
                         key={i}
                         ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                        className={`calendar-day-btn mb-3 me-1 ${isSelected ? "text-white border-0" : "bg-white"}`}
+                        className={`calendar-day-btn mb-3 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
                         style={{
                           background: isSelected ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF",
                           boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
@@ -467,6 +487,25 @@ const CreateMatches = () => {
                           <div className="date-center-date">{d.date}</div>
                           <div className="date-center-day">{dayShortMap[d.day]}</div>
                         </div>
+                        {slotCount > 0 && (
+                          <span
+                            className="position-absolute badge rounded-pill"
+                            style={{
+                              fontSize: "10px",
+                              width: "18px",
+                              height: "18px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              top: "-1px",
+                              right: "-4px",
+                              zIndex: 2,
+                              backgroundColor: "#22c55e"
+                            }}
+                          >
+                            {slotCount}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -482,14 +521,32 @@ const CreateMatches = () => {
               <div className="col-12 d-flex justify-content-center align-items-center">
                 <div className="weather-tabs-wrapper w-100">
                   <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                    {tabData.map((tab, index) => (
-                      <div key={index} className={`tab-item rounded-3 ${key === tab.key ? "active" : ""}`} onClick={() => setKey(tab.key)}>
-                        <img className="tab-icon" src={tab.img} alt={tab.label} />
-                      </div>
-                    ))}
+                    {tabData.map((tab, index) => {
+                      const Icon = tab.Icon;
+                      const active = key === tab.key;
+                      return (
+                        <div
+                          key={index}
+                          className={`tab-item rounded-3 ${key === tab.key ? 'active' : ''}`}
+                          onClick={() => setKey(tab.key)}
+                        >
+                          <Icon
+                            size={24}
+                            className={active ? 'text-primary' : 'text-dark'}   // dark when inactive
+                          />
+
+                        </div>
+                      );
+                    })}
                   </div>
+
+                  {/* Labels below tabs */}
                   <div className="tab-labels d-flex justify-content-between">
-                    {tabData.map((tab, index) => <p key={index} className="tab-label">{tab.label}</p>)}
+                    {tabData.map((tab, index) => (
+                      <p key={index} className={`tab-label ${key === tab.key ? 'active text-primary' : 'text-muted'}`}>
+                        {tab.label}
+                      </p>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -553,7 +610,11 @@ const CreateMatches = () => {
 
                               <div className="slots-grid d-flex flex-column align-items-center">
                                 {filteredSlots?.map((slot, i) => {
-                                  const isSelected = selectedTimes[court._id]?.some((t) => t._id === slot._id);
+                                  const isSelected = selectedCourts.some(selectedCourt =>
+                                    selectedCourt._id === court._id &&
+                                    selectedCourt.date === selectedDate.fullDate &&
+                                    selectedCourt.time.some(t => t._id === slot._id)
+                                  );
                                   const totalSlots = Object.values(selectedTimes).flat().length;
                                   const isLimitReached = totalSlots >= 15 && !isSelected;
                                   const isDisabled = isLimitReached || slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
@@ -761,8 +822,8 @@ const CreateMatches = () => {
                     color: "#fff",
                   }}
                   disabled={
-                    selectedCourts.length === 0 || 
-                    !selectedLevel || 
+                    selectedCourts.length === 0 ||
+                    !selectedLevel ||
                     (currentStep === 1 && selectedLevel.length === 0) ||
                     (Array.isArray(selectedLevel) && selectedLevel.length === 0)
                   }

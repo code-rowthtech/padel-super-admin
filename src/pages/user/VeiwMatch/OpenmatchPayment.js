@@ -15,6 +15,53 @@ import { booking_logo_img } from "../../../assets/files";
 const formatTime = (timeStr) =>
     timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
 
+// Button styling variables
+const width = 370;
+const height = 75;
+const circleRadius = height * 0.3;
+const curvedSectionStart = width * 0.76;
+const curvedSectionEnd = width * 0.996;
+const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
+const circleY = height * 0.5;
+const arrowSize = circleRadius * 0.6;
+const arrowX = circleX;
+const arrowY = circleY;
+
+const buttonStyle = {
+    position: "relative",
+    width: `${width}px`,
+    height: `${height}px`,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    padding: 0,
+    overflow: "visible",
+};
+
+const svgStyle = {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 1,
+};
+
+const contentStyle = {
+    position: "relative",
+    zIndex: 2,
+    color: "#001B76",
+    fontWeight: "600",
+    fontSize: "16px",
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    paddingRight: `${circleRadius * 2}px`,
+    fontFamily: "Poppins",
+};
+
 const OpenmatchPayment = () => {
     const [selectedPayment, setSelectedPayment] = useState("");
     const [error, setError] = useState({});
@@ -299,7 +346,7 @@ const OpenmatchPayment = () => {
                 </div>
 
                 {/* Right: Summary */}
-              
+
 
                 <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-3 mt-lg-0">
                     <div className="border w-100    px-0 py-4 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
@@ -307,7 +354,7 @@ const OpenmatchPayment = () => {
                             <img src={booking_logo_img} className="booking-logo-img" alt="" />
                             <div className="text-center ps-2 mt-3">
                                 <p className="mt-2 mb-0 text-white" style={{ fontSize: "25px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                                <p className=" mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.state} {clubData?.city} {clubData?.zipCode}</p>
+                                <p className=" mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br />  {clubData?.zipCode}</p>
                                 {/* {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>} */}
                             </div>
                         </div>
@@ -381,46 +428,38 @@ const OpenmatchPayment = () => {
                             </div>
                         )}
 
-                        <div className="d-flex justify-content-center align-items-center  ">
-                            <button
+                        <div className="d-flex justify-content-center align-items-center">
+                            <button 
                                 style={{
-                                    position: "relative", width: 370, height: 75, border: "none",
-                                    background: "transparent", cursor: isLoading ? "not-allowed" : "pointer",
-                                    opacity: isLoading ? 0.7 : 1, pointerEvents: isLoading ? "none" : "auto"
-                                }}
+                                    ...buttonStyle,
+                                    opacity: selectedCourts.length === 0 ? 0.5 : 1,
+                                    cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                                    pointerEvents: selectedCourts.length === 0 ? "none" : "auto",
+                                }} 
+                                className="" 
                                 onClick={handleBooking}
-                                disabled={isLoading}
+                                disabled={isLoading || selectedCourts.length === 0}
                             >
-                                <svg style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, zIndex: 1 }} viewBox="0 0 370 75" preserveAspectRatio="none">
+                                <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                     <defs>
-                                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
                                             <stop offset="0%" stopColor="#fff" />
+                                            <stop offset="50%" stopColor="#fff" />
                                             <stop offset="100%" stopColor="#fff" />
                                         </linearGradient>
                                     </defs>
-                                    <path
-                                        d={`M 281 11.25 C 292 11.25 300 15 306 22.5 C 306 24 307 25.5 307 25.5 C 308 25.5 309 24 309 22.5 C 314 15 322 11.25 333 11.25 C 355 11.25 368 22.5 368 37.5 C 368 52.5 355 63.75 333 63.75 C 322 63.75 314 60 309 52.5 C 309 51 308 49.5 307 49.5 C 307 49.5 306 51 306 52.5 C 300 60 292 63.75 281 63.75 L 30 63.75 C 15 63.75 1.5 52.5 1.5 37.5 C 1.5 22.5 15 11.25 30 11.25 L 281 11.25 Z`}
-                                        fill="url(#grad)"
-                                    />
-                                    <circle cx="340" cy="37.5" r="22.5" fill="#001B76" />
-                                    <g stroke="white" strokeWidth="2.25" fill="none" strokeLinecap="round">
-                                        <path d="M 330 45 L 345 35" />
-                                        <path d="M 345 35 L 330 35" />
-                                        <path d="M 345 35 L 345 40" />
+                                    <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill={`url(#buttonGradient-${width}-${height})`} />
+                                    <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
+                                    <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
+                                        <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
+                                        <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                     </g>
                                 </svg>
-                                <div
-                                    style={{
-                                        position: "relative", zIndex: 2, color: "#001B76", fontWeight: 600,
-                                        fontSize: 16, textAlign: "center", display: "flex", alignItems: "center",
-                                        justifyContent: "center", height: "100%", paddingRight: 45
-                                    }}
-                                >
+                                <div style={contentStyle}>
                                     {isLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}
                                 </div>
                             </button>
-
-
                         </div>
 
                     </div>

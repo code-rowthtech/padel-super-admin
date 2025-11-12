@@ -69,8 +69,8 @@ const PlayerSlot = memo(function PlayerSlot({
             <div
                 className="rounded-circle border d-flex align-items-center justify-content-center"
                 style={{
-                    width: 64,
-                    height: 64,
+                    width: 68,
+                    height: 68,
                     backgroundColor: user.profilePic
                         ? "transparent"
                         : team === "A"

@@ -289,8 +289,8 @@ const MatchPlayer = ({
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
-                                            width: 64,
-                                            height: 64,
+                                            width: 68,
+                                            height: 68,
                                             backgroundColor: localPlayers.slot2.profilePic ? "transparent" : "#3DBE64",
                                             overflow: "hidden",
                                         }}
@@ -337,8 +337,8 @@ const MatchPlayer = ({
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
-                                            width: 64,
-                                            height: 64,
+                                            width: 68,
+                                            height: 68,
                                             backgroundColor: localPlayers.slot3.profilePic ? "transparent" : "#1F41BB",
                                             overflow: "hidden",
                                         }}
@@ -382,8 +382,8 @@ const MatchPlayer = ({
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
-                                            width: 64,
-                                            height: 64,
+                                            width: 68,
+                                            height: 68,
                                             backgroundColor: localPlayers.slot4.profilePic ? "transparent" : "#1F41BB",
                                             overflow: "hidden",
                                         }}

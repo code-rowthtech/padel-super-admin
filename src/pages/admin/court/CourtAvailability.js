@@ -141,7 +141,7 @@ const CourtAvailability = () => {
     const exists = courtSlots.some((t) => t.slot?._id === slot?._id);
 
     if (!exists) {
-      const totalSlots = Object.values(selectedSlots).flatMap(dateData => 
+      const totalSlots = Object.values(selectedSlots).flatMap(dateData =>
         Object.values(dateData).flat()
       ).length;
       if (totalSlots >= 15) {
@@ -200,7 +200,7 @@ const CourtAvailability = () => {
       const updatedCourtSlots = courtSlots.filter(
         (item) => item.slot?._id !== slotId
       );
-      
+
       let updatedDateSlots;
       if (updatedCourtSlots.length === 0) {
         const { [courtId]: _, ...rest } = dateSlots;
@@ -208,12 +208,12 @@ const CourtAvailability = () => {
       } else {
         updatedDateSlots = { ...dateSlots, [courtId]: updatedCourtSlots };
       }
-      
+
       if (Object.keys(updatedDateSlots).length === 0) {
         const { [selectedDate]: _, ...rest } = prev;
         return rest;
       }
-      
+
       return { ...prev, [selectedDate]: updatedDateSlots };
     });
   };
@@ -371,7 +371,12 @@ const CourtAvailability = () => {
     }
   }, [dates]);
 
-  const getCurrentMonth = (selectedDate) => (!selectedDate ? "Month" : new Date(selectedDate).toLocaleDateString("en-US", { month: "short" }).toUpperCase());
+  const getCurrentMonth = (selectedDate) => {
+    if (!selectedDate) return "MONTH";
+    const dateObj = new Date(selectedDate);
+    const month = dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+    return month.split('').join('\n');
+  };
   const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
   return (
@@ -484,8 +489,21 @@ const CourtAvailability = () => {
                   {/* Replace the date selector section with this code */}
                   <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
                     <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
-                      <span className="text-muted" style={{ transform: "rotate(270deg)", fontSize: "14px", fontWeight: "500" }}>{getCurrentMonth(selectedDate)}</span>
-                    </div>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          whiteSpace: "pre-line",
+                          textAlign: "center",
+                          lineHeight: "1",
+                          letterSpacing: "0px",
+                          margin: 0,
+                          padding: 0,
+                          display: "block"
+                        }}
+                      >
+                        {getCurrentMonth(selectedDate)}
+                      </span>                    </div>
                     <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
                       <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
                       <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
@@ -526,12 +544,12 @@ const CourtAvailability = () => {
                                   className="position-absolute badge rounded-pill"
                                   style={{
                                     fontSize: "10px",
-                                    minWidth: "18px",
+                                    width: "18px",
                                     height: "18px",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    top: "-4px",
+                                    top: "-1px",
                                     right: "-4px",
                                     zIndex: 2,
                                     backgroundColor: "#22c55e"

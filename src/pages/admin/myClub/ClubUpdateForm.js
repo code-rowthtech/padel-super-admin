@@ -648,6 +648,7 @@ const ClubUpdateForm = () => {
                     label="Number of Courts "
                     field="courtCount"
                     type="number"
+                    max={4000}
                   />
                 </Col>
                 <Col md={6}>
@@ -659,28 +660,7 @@ const ClubUpdateForm = () => {
                     placeholder="Street, Area"
                   />
                 </Col>
-                <h6 className="fw-bold mb-2">Photos</h6>
-                <div className="d-flex align-items-center justify-content-between mb-2">
-                  <div className="text-muted small">
-                    {previews.length}/{MAX_IMAGES} images
-                  </div>
-                </div>
-                <div className="d-flex flex-wrap gap-2">
-                  {previews.map((img, i) => (
-                    <ImageTile
-                      key={i}
-                      src={img.preview}
-                      onRemove={() => removeImage(i)}
-                    />
-                  ))}
-                  <AddImageTile
-                    onFiles={handleAddFiles}
-                    hidden={previews.length >= MAX_IMAGES}
-                  />
-                </div>
-                <div className="text-muted small mt-2">
-                  PNG, JPG, GIF up to 2MB each
-                </div>
+
               </Row>
             </Col>
             <Col md={6}>
@@ -753,10 +733,36 @@ const ClubUpdateForm = () => {
                 )}
               </Form.Group>
             </Col>
+
           </Row>
+
           <Row>
-            <Col md={8}></Col>
+            <Col md={12}>
+              <h6 className="fw-bold mb-2">Photos</h6>
+              <div className="d-flex align-items-center justify-content-between mb-2">
+                <div className="text-muted small">
+                  {previews.length}/{MAX_IMAGES} images
+                </div>
+              </div>
+              <div className="d-flex flex-wrap gap-2">
+                {previews.map((img, i) => (
+                  <ImageTile
+                    key={i}
+                    src={img.preview}
+                    onRemove={() => removeImage(i)}
+                  />
+                ))}
+                <AddImageTile
+                  onFiles={handleAddFiles}
+                  hidden={previews.length >= MAX_IMAGES}
+                />
+              </div>
+              <div className="text-muted small mt-2">
+                PNG, JPG, GIF up to 2MB each
+              </div>
+            </Col>
           </Row>
+
 
           <hr className="my-3" />
 

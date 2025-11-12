@@ -230,7 +230,7 @@ const AdminDashboard = () => {
   return (
     <Container
       fluid
-      className="p-2 p-md-4"
+      className="p-2 "
       style={{ background: "#f4f7fd", minHeight: "100vh" }}
     >
       {dashboardLoading ? (
