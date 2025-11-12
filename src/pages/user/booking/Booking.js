@@ -529,24 +529,60 @@ const Booking = ({ className = "" }) => {
                             </div>
                         </div>
                         <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
-                            <div
-                                className="d-flex justify-content-center align-items-center rounded-pill p-0 mb-3"
-                                style={{
-                                    backgroundColor: "#f3f3f5",
-                                    width: "32px",
-                                    height: "58px",   // Dynamic height
-                                    padding: "2px 0"     // Tight vertical padding
-                                }}
-                            >
-                               
+                            <div className="position-relative">
+                                <div
+                                    className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-3"
+                                    style={{
+                                        backgroundColor: "transparent",
+                                        width: "52px",
+                                        height: "58px",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                >
+                                    <div className="d-flex align-items-center gap-0 p-0">
+                                        <img src={booking_dropdown_img} style={{ width: "34px", height: "34px" }} alt="" />
+                                        <MdKeyboardArrowDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                                    </div>
+                                </div>
+                                {showDropdown && (
+                                    <div
+                                        className="position-absolute bg-white  rounded shadow"
+                                        style={{
+                                            top: "100%",
+                                            left: "-10px",
+                                            width: "105px",
+                                            zIndex: 1000,
+                                            marginTop: "-15px"
+                                        }}
+                                    >
+                                        <div className="d-flex align-items-center p-2 border-bottom" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Paddle</div>
+                                            </div>
+                                            <img src={booking_dropdown_img2} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                        <div className="d-flex align-items-center p-2 border-bottom" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Tennis</div>
+                                            </div>
+                                            <img src={booking_dropdown_img3} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                        <div className="d-flex align-items-center p-2" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Pickle Ball</div>
+                                            </div>
+                                            <img src={booking_dropdown_img4} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div
-                                className="d-flex justify-content-center align-items-center rounded-pill p-0 mb-3"
+                                className="d-flex   justify-content-center align-items-center rounded-pill  mb-3"
                                 style={{
                                     backgroundColor: "#f3f3f5",
-                                    width: "32px",
-                                    height: "58px",   // Dynamic height
-                                    padding: "2px 0"     // Tight vertical padding
+                                    height: "58px",
+                                    padding: "2px 10px"
                                 }}
                             >
                                 <span
@@ -565,8 +601,8 @@ const Booking = ({ className = "" }) => {
                                     {getCurrentMonth(selectedDate)}
                                 </span>
                             </div>
-                            <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
-                                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
+                            <div className="d-flex gap-1 " style={{ position: "relative", maxWidth: "86%" }}>
+                                <button className="btn p-2 border-0" style={{ position: "absolute", left: '-21%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
                                 <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
