@@ -8,11 +8,11 @@ import { DataLoading } from "../../../helpers/loading/Loaders";
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
-import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import { MdKeyboardArrowDown, MdOutlineArrowBackIosNew } from "react-icons/md";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { getReviewClub } from "../../../redux/user/club/thunk";
 import "react-datepicker/dist/react-datepicker.css";
-import { morningTab, nighttab, player, player2, sun } from "../../../assets/files";
+import { booking_dropdown_img, booking_dropdown_img2, booking_dropdown_img3, booking_dropdown_img4, morningTab, nighttab, player, player2, sun } from "../../../assets/files";
 import UpdatePlayers from "../VeiwMatch/UpdatePlayers";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
 import { MdOutlineDateRange } from "react-icons/md";
@@ -52,6 +52,7 @@ const getTimeCategory = (time) => {
 const Openmatches = () => {
     const [startDate, setStartDate] = useState(new Date());
     const [isOpen, setIsOpen] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
     const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
     const [selectedLevel, setSelectedLevel] = useState(null);
     const [selectedTime, setSelectedTime] = useState(null);
@@ -417,12 +418,11 @@ const Openmatches = () => {
                             Select Date
                             <div className="position-relative d-inline-block" ref={wrapperRef}>
                                 <span
-                                    className="rounded p-1 pt-0 ms-2 bg-white"
+                                    className="rounded p-1 pt-0 ms-1"
                                     style={{
                                         cursor: "pointer",
                                         width: "26px !important",
                                         height: "26px !important",
-                                        boxShadow: "0px 4px 4px 0px #00000014",
                                     }}
                                     onClick={() => setIsOpen(!isOpen)}
                                 >
@@ -457,6 +457,54 @@ const Openmatches = () => {
                             </div>
                         </div>
                         <div className="d-flex align-items-center gap-2 border-bottom">
+                            <div className="position-relative">
+                                <div
+                                    className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-3"
+                                    style={{
+                                        backgroundColor: "transparent",
+                                        width: "52px",
+                                        height: "58px",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                >
+                                    <div className="d-flex align-items-center gap-0 p-0">
+                                        <img src={booking_dropdown_img} style={{ width: "34px", height: "34px" }} alt="" />
+                                        <MdKeyboardArrowDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                                    </div>
+                                </div>
+                                {showDropdown && (
+                                    <div
+                                        className="position-absolute bg-white  rounded shadow"
+                                        style={{
+                                            top: "100%",
+                                            left: "-10px",
+                                            width: "105px",
+                                            zIndex: 1000,
+                                            marginTop: "-15px"
+                                        }}
+                                    >
+                                        <div className="d-flex align-items-center p-2 border-bottom" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Paddle</div>
+                                            </div>
+                                            <img src={booking_dropdown_img2} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                        <div className="d-flex align-items-center p-2 border-bottom" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Tennis</div>
+                                            </div>
+                                            <img src={booking_dropdown_img3} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                        <div className="d-flex align-items-center p-2" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Pickle Ball</div>
+                                            </div>
+                                            <img src={booking_dropdown_img4} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                             <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
                                 <span className="text-muted" style={{
                                     fontSize: "14px",
@@ -470,8 +518,8 @@ const Openmatches = () => {
                                     display: "block"
                                 }}>{getCurrentMonth(selectedDate)}</span>
                             </div>
-                            <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
-                                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
+                            <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "86%" }}>
+                                <button className="btn p-2 border-0" style={{ position: "absolute", left: '-21%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
                                 <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
@@ -682,7 +730,7 @@ const Openmatches = () => {
                                 <div
                                     className="d-flex flex-column justify-content-center align-items-center text-danger fw-medium"
                                     style={{
-                                        minHeight: "250px",
+                                        minHeight: "210px",
                                         fontSize: "18px",
                                         fontFamily: "Poppins",
                                     }}

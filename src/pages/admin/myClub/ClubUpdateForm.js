@@ -264,6 +264,7 @@ const ClubUpdateForm = () => {
   const [hasChanged, setHasChanged] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [hitUpdateApi, setHitUpdateApi] = useState(false);
+  const [selectAllDays, setSelectAllDays] = useState(true);
   const editorRef = useRef(null);
 
   // Track initial form data to detect changes
@@ -623,7 +624,7 @@ const ClubUpdateForm = () => {
       ) : (
         <Form onSubmit={handleSubmit}>
           <Row>
-            <Col md={6}>
+            <Col md={5}>
               <Row>
                 <Col md={4}>
                   <Input
@@ -660,84 +661,80 @@ const ClubUpdateForm = () => {
                     placeholder="Street, Area"
                   />
                 </Col>
+                <Col md={12}>
+                  <Form.Group className="mb-3">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <Form.Label className="fw-semibold small text-secondary">
+                        Description
+                      </Form.Label>
+                      <span className="small text-muted">
+                        {wordCount}/{MAX_WORDS} words
+                      </span>
+                    </div>
+                    <MarkdownEditor
+                      ref={editorRef}
+                      key="description-editor"
+                      value={formData.description}
+                      onChange={({ text }) => {
+                        const wordCount = countWords(text);
+                        if (wordCount <= MAX_WORDS) {
+                          setFormData((prev) => ({ ...prev, description: text }));
+                          setWordCount(wordCount);
+                          setTouched((prev) => ({ ...prev, description: true }));
+                        } else {
+                          showWarning(`Description cannot exceed ${MAX_WORDS} words.`);
+                        }
+                      }}
+                      style={{
+                        height: "130px",
+                        border: `1px solid ${visibleErrors.description ? "#dc3545" : "#ced4da"
+                          }`,
+                        borderRadius: "4px",
+                        backgroundColor: "#fff",
+                      }}
+                      renderHTML={(text) => mdParser.render(text)}
+                      config={{
+                        view: {
+                          menu: true,   // show toolbar
+                          md: true,     // show markdown input
+                          html: false,  // hide preview panel
+                        },
+                        placeholder: "Short description (max 500 words)",
+                        toolbar: [
+                          "bold",
+                          "italic",
+                          "heading",
+                          "|",
+                          "quote",
+                          "unordered-list",
+                          "ordered-list",
+                          "|",
+                          "link",
+                        ],
+                        canView: {
+                          menu: true,     // keep toolbar visible
+                          md: true,       // keep markdown editor visible
+                          html: false,    // ❌ remove preview (eye) button
+                          fullScreen: false,
+                          hideMenu: false,
+                        },
+                      }}
+
+                    />
+                    {visibleErrors.description && (
+                      <Form.Control.Feedback
+                        type="invalid"
+                        className="d-block small"
+                      >
+                        This field is required
+                      </Form.Control.Feedback>
+                    )}
+                  </Form.Group>
+                </Col>
 
               </Row>
             </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <Form.Label className="fw-semibold small text-secondary">
-                    Description
-                  </Form.Label>
-                  <span className="small text-muted">
-                    {wordCount}/{MAX_WORDS} words
-                  </span>
-                </div>
-                <MarkdownEditor
-                  ref={editorRef}
-                  key="description-editor"
-                  value={formData.description}
-                  onChange={({ text }) => {
-                    const wordCount = countWords(text);
-                    if (wordCount <= MAX_WORDS) {
-                      setFormData((prev) => ({ ...prev, description: text }));
-                      setWordCount(wordCount);
-                      setTouched((prev) => ({ ...prev, description: true }));
-                    } else {
-                      showWarning(`Description cannot exceed ${MAX_WORDS} words.`);
-                    }
-                  }}
-                  style={{
-                    height: "200px",
-                    border: `1px solid ${visibleErrors.description ? "#dc3545" : "#ced4da"
-                      }`,
-                    borderRadius: "4px",
-                    backgroundColor: "#fff",
-                  }}
-                  renderHTML={(text) => mdParser.render(text)}
-                  config={{
-                    view: {
-                      menu: true,   // show toolbar
-                      md: true,     // show markdown input
-                      html: false,  // hide preview panel
-                    },
-                    placeholder: "Short description (max 500 words)",
-                    toolbar: [
-                      "bold",
-                      "italic",
-                      "heading",
-                      "|",
-                      "quote",
-                      "unordered-list",
-                      "ordered-list",
-                      "|",
-                      "link",
-                    ],
-                    canView: {
-                      menu: true,     // keep toolbar visible
-                      md: true,       // keep markdown editor visible
-                      html: false,    // ❌ remove preview (eye) button
-                      fullScreen: false,
-                      hideMenu: false,
-                    },
-                  }}
-
-                />
-                {visibleErrors.description && (
-                  <Form.Control.Feedback
-                    type="invalid"
-                    className="d-block small"
-                  >
-                    This field is required
-                  </Form.Control.Feedback>
-                )}
-              </Form.Group>
-            </Col>
-
-          </Row>
-
-          <Row>
-            <Col md={12}>
+            <Col md={7}>
               <h6 className="fw-bold mb-2">Photos</h6>
               <div className="d-flex align-items-center justify-content-between mb-2">
                 <div className="text-muted small">
@@ -760,48 +757,43 @@ const ClubUpdateForm = () => {
               <div className="text-muted small mt-2">
                 PNG, JPG, GIF up to 2MB each
               </div>
-            </Col>
-          </Row>
-
-
-          <hr className="my-3" />
-
-          <Row>
-            <Col md={4} className="mb-3">
-              <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
-                Court Type{" "}
-                {visibleErrors.courtTypes && (
-                  <span className="text-danger small">
-                    (Select at least one)
-                  </span>
-                )}
-              </h6>
-              <div className="d-flex flex-column gap-2">
-                <Form.Check
-                  type="checkbox"
-                  label={
-                    <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
-                      Indoor
-                    </span>
-                  }
-                  id="ct-indoor"
-                  checked={!!formData.courtTypes.indoor}
-                  onChange={() => handleCheckbox("courtTypes", "indoor")}
-                  onBlur={() => setTouched((p) => ({ ...p, courtTypes: true }))}
-                />
-                <Form.Check
-                  type="checkbox"
-                  label={
-                    <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
-                      Outdoor
-                    </span>
-                  }
-                  id="ct-outdoor"
-                  checked={!!formData.courtTypes.outdoor}
-                  onChange={() => handleCheckbox("courtTypes", "outdoor")}
-                  onBlur={() => setTouched((p) => ({ ...p, courtTypes: true }))}
-                />
-                <style jsx>{`
+              <hr className="my-2" />
+              <Row>
+                <Col md={2} className="mb-3">
+                  <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
+                    Court Type{" "}
+                    {visibleErrors.courtTypes && (
+                      <span className="text-danger small">
+                        (Select at least one)
+                      </span>
+                    )}
+                  </h6>
+                  <div className="d-flex flex-column gap-2">
+                    <Form.Check
+                      type="checkbox"
+                      label={
+                        <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                          Indoor
+                        </span>
+                      }
+                      id="ct-indoor"
+                      checked={!!formData.courtTypes.indoor}
+                      onChange={() => handleCheckbox("courtTypes", "indoor")}
+                      onBlur={() => setTouched((p) => ({ ...p, courtTypes: true }))}
+                    />
+                    <Form.Check
+                      type="checkbox"
+                      label={
+                        <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                          Outdoor
+                        </span>
+                      }
+                      id="ct-outdoor"
+                      checked={!!formData.courtTypes.outdoor}
+                      onChange={() => handleCheckbox("courtTypes", "outdoor")}
+                      onBlur={() => setTouched((p) => ({ ...p, courtTypes: true }))}
+                    />
+                    <style jsx>{`
         input[type="checkbox"] {
           width: 20px !important;
           height: 20px !important;
@@ -809,45 +801,45 @@ const ClubUpdateForm = () => {
           box-shadow: none !important;
         }
       `}</style>
-              </div>
-            </Col>
+                  </div>
+                </Col>
 
-            <Col md={8} className="mb-3">
-              <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
-                Features{" "}
-                {visibleErrors.features && (
-                  <span className="text-danger small">
-                    (Select at least one)
-                  </span>
-                )}
-              </h6>
-              <Row>
-                {FEATURES.map((f) => (
-                  <Col md={3} key={f.key} className="mb-2">
-                    <Form.Check
-                      type="checkbox"
-                      id={`feat-${f.key}`}
-                      label={
-                        <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
-                          {f.label}
-                        </span>
-                      }
-                      checked={!!formData.features[f.key]}
-                      onChange={() => handleCheckbox("features", f.key)}
-                      onBlur={() =>
-                        setTouched((p) => ({ ...p, features: true }))
-                      }
-                    />
-                  </Col>
-                ))}
+                <Col md={10} className="mb-3">
+                  <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
+                    Features{" "}
+                    {visibleErrors.features && (
+                      <span className="text-danger small">
+                        (Select at least one)
+                      </span>
+                    )}
+                  </h6>
+                  <Row>
+                    {FEATURES.map((f) => (
+                      <Col md={4} key={f.key} className="mb-2">
+                        <Form.Check
+                          type="checkbox"
+                          id={`feat-${f.key}`}
+                          label={
+                            <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                              {f.label}
+                            </span>
+                          }
+                          checked={!!formData.features[f.key]}
+                          onChange={() => handleCheckbox("features", f.key)}
+                          onBlur={() =>
+                            setTouched((p) => ({ ...p, features: true }))
+                          }
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                </Col>
               </Row>
             </Col>
+
           </Row>
 
-
-
-
-          <hr className="my-3" />
+          <hr className="my-2" />
 
           <Row>
             <Col md={7}>
@@ -864,6 +856,7 @@ const ClubUpdateForm = () => {
                     Apply last change to all days
                   </Button>
                 )}
+
               </div>
               {Object.keys(formData.businessHours).map((day) => {
                 const val = formData.businessHours[day] || {
@@ -897,19 +890,13 @@ const ClubUpdateForm = () => {
               })}
             </Col>
             <Col md={5}>
-              <div className="d-flex justify-content-between align-items-center">
-                <h6 className=" mb-0" style={{ fontSize: "20px", fontWeight: "600", color: "#374151", fontFamily: "Poppins" }}>Set Price</h6>
 
-                {/* <Form.Check
-                  type="checkbox"
-                  checked={selectAllChecked}
-                  onChange={(e) => handleSelectAllChange(e.target.checked)}
-                  label="Select All"
-                /> */}
-              </div>
               <Pricing
                 hitApi={hitUpdateApi}
                 setHitUpdateApi={setHitUpdateApi}
+                selectAllDays={selectAllDays}
+                onSelectAllChange={setSelectAllDays}
+                setSelectAllDays={setSelectAllDays}
               />
             </Col>
           </Row>

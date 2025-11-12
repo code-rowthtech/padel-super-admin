@@ -137,11 +137,11 @@ const Home = () => {
                                     top: "-10%"
                                 }}
                             >
-                                <p className='mb-0 custom-title text-white' style={{ fontWeight: "400" }}>Welcome To Good Court</p>
                                 <h1 className="home-main-heading ">Your Game, <br />Your Court,<br />Just a Tap Away.</h1>
-                                <Link to="/booking" className="text-decoration-none bg-white rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center"
+                                <Link to="/booking" className="liquid-btn22 text-decoration-none rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center book-now-btn"
                                     style={{ color: "#2043BA", fontWeight: "600", fontSize: "24px", minWidth: "200px", fontFamily: "Poppins", justifyContent: "center", width: "150px" }}>
-                                    Book Now
+                                    Book Now <FaArrowRight className='ms-2' />
+                                    <div className="liquid"></div>
                                 </Link>
                             </div>
                         </div>
@@ -259,12 +259,7 @@ const Home = () => {
 
                             <div className=" col-lg-4 col-12 ps-md-3 ">
                                 <div className="pt-4">
-                                    <div className="d-flex justify-content-center mb-4">
-                                        <strong className='me-2 open-now-time' style={{ fontWeight: "600" }}>
-                                            {/* <LuClock4 size={20} /> */}
-                                            Open Now {clubData?.businessHours?.[adjustedIndex]?.time}
-                                        </strong>
-                                    </div>
+
                                     {clubData?.businessHours?.length < 0 ? <div className='text-center py-5' style={{ fontFamily: "Poppins" }}>No Timing</div> : clubData?.businessHours?.map((day, idx) => (
                                         <div
                                             key={idx}
@@ -521,8 +516,8 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* Map Section */ }
-            <div div className = "container" >
+            {/* Map Section */}
+            <div div className="container" >
                 <div className="row">
                     <div className="col-12">
                         <div className="mt-5 mb-5">

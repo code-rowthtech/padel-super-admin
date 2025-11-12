@@ -245,24 +245,11 @@ const ManualBooking = () => {
           register_club_id: ownerClubData?.[0]?._id,
           day: selectedDay,
           date: selectedDate,
-          courtId: '',
+          courtId: selectedCourts[0] || '',
         })
       );
     }
-  }, [selectedDay, selectedDate, ownerClubData?.[0]?._id, selectedCourts]);
-
-  useEffect(() => {
-    if (selectedCourts) {
-      dispatch(
-        getActiveCourts({
-          register_club_id: ownerClubData?.[0]?._id,
-          day: selectedDay,
-          date: selectedDate,
-          courtId: selectedCourts[0],
-        })
-      );
-    }
-  }, [selectedCourts])
+  }, [selectedDay, selectedDate, ownerClubData?.[0]?._id, selectedCourts[0]]);
 
   useEffect(() => {
     if (courts?.length > 0 && selectedCourts.length === 0) {

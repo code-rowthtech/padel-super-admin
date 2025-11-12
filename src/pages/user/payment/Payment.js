@@ -489,9 +489,9 @@ const Payment = ({ className = "" }) => {
                     <div className="border w-100    px-0 py-4 border-0" style={{  borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                         <div className="d-flex mb-4 ">
                             <img src={booking_logo_img} className="booking-logo-img" alt="" />
-                            <div className="text-center ps-2 mt-3">
+                            <div className="text-center ps-2 pe-2 mt-3">
                                 <p className="mt-2 mb-0 text-white" style={{ fontSize: "25px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                                <p className=" mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.state} {clubData?.city} {clubData?.zipCode}</p>
+                                <p className=" mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br />  {clubData?.zipCode}</p>
                                 {/* {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>} */}
                             </div>
                         </div>

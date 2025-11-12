@@ -190,18 +190,26 @@ const Booking = ({ className = "" }) => {
 
     const handleDeleteSlot = (courtId, date, timeId) => {
         setSelectedTimes((prev) => {
-            const courtTimes = prev[courtId]?.[date];
-            if (!courtTimes) return prev;
+            if (!prev[courtId] || !prev[courtId][date]) return prev;
 
+            const courtTimes = prev[courtId][date];
             const filtered = courtTimes.filter((t) => t._id !== timeId);
+
             if (filtered.length === 0) {
-                const { [date]: _, ...restDates } = prev[courtId] || {};
+                const { [date]: _, ...restDates } = prev[courtId];
                 const newCourt = Object.keys(restDates).length > 0 ? restDates : undefined;
+
+                if (!newCourt) {
+                    const { [courtId]: __, ...restCourts } = prev;
+                    return restCourts;
+                }
+
                 return {
                     ...prev,
                     [courtId]: newCourt,
                 };
             }
+
             return {
                 ...prev,
                 [courtId]: {
@@ -521,13 +529,60 @@ const Booking = ({ className = "" }) => {
                             </div>
                         </div>
                         <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
+                            <div className="position-relative">
+                                <div
+                                    className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-3"
+                                    style={{
+                                        backgroundColor: "transparent",
+                                        width: "52px",
+                                        height: "58px",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                >
+                                    <div className="d-flex align-items-center gap-0 p-0">
+                                        <img src={booking_dropdown_img} style={{ width: "34px", height: "34px" }} alt="" />
+                                        <MdKeyboardArrowDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                                    </div>
+                                </div>
+                                {showDropdown && (
+                                    <div
+                                        className="position-absolute bg-white  rounded shadow"
+                                        style={{
+                                            top: "100%",
+                                            left: "-10px",
+                                            width: "105px",
+                                            zIndex: 1000,
+                                            marginTop: "-15px"
+                                        }}
+                                    >
+                                        <div className="d-flex align-items-center p-2 border-bottom" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Paddle</div>
+                                            </div>
+                                            <img src={booking_dropdown_img2} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                        <div className="d-flex align-items-center p-2 border-bottom" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Tennis</div>
+                                            </div>
+                                            <img src={booking_dropdown_img3} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                        <div className="d-flex align-items-center p-2" style={{ cursor: "pointer" }}>
+                                            <div className="flex-grow-1">
+                                                <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Pickle Ball</div>
+                                            </div>
+                                            <img src={booking_dropdown_img4} style={{ width: "23px", height: "23px" }} alt="" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                             <div
-                                className="d-flex justify-content-center align-items-center rounded-pill p-0 mb-3"
+                                className="d-flex   justify-content-center align-items-center rounded-pill  mb-3"
                                 style={{
                                     backgroundColor: "#f3f3f5",
-                                    width: "32px",
-                                    minHeight: "48px",   // Dynamic height
-                                    padding: "2px 0"     // Tight vertical padding
+                                    height: "58px",
+                                    padding: "2px 10px"
                                 }}
                             >
                                 <span
@@ -546,8 +601,8 @@ const Booking = ({ className = "" }) => {
                                     {getCurrentMonth(selectedDate)}
                                 </span>
                             </div>
-                            <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
-                                <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
+                            <div className="d-flex gap-1 " style={{ position: "relative", maxWidth: "86%" }}>
+                                <button className="btn p-2 border-0" style={{ position: "absolute", left: '-21%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
                                 <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
@@ -814,30 +869,30 @@ const Booking = ({ className = "" }) => {
                         <div className="border w-100    px-0 py-4 border-0" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="d-flex mb-4 position-relative">
                                 <img src={booking_logo_img} className="booking-logo-img" alt="" />
-                                <div className="text-center ps-2 mt-3">
+                                <div className="text-center ps-2 pe-2 mt-3">
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.zipCode}</p>
                                 </div>
                                 <div className="position-absolute" style={{ top: "11px", left: "17.5%" }}>
                                     {logo ? (
-                                        <img 
-                                            src={logo} 
-                                            alt="Club Logo" 
+                                        <img
+                                            src={logo}
+                                            alt="Club Logo"
                                             className="rounded-circle"
-                                            style={{ 
-                                                height: "120px", 
-                                                width: "120px", 
+                                            style={{
+                                                height: "120px",
+                                                width: "120px",
                                                 objectFit: "cover",
                                                 border: "2px solid white",
-                                                boxShadow: "0px 4px 11.4px 0px #0000002E" 
-                                            }} 
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E"
+                                            }}
                                         />
                                     ) : (
-                                        <div 
+                                        <div
                                             className="rounded-circle d-flex align-items-center justify-content-center"
-                                            style={{ 
-                                                height: "60px", 
-                                                width: "60px", 
+                                            style={{
+                                                height: "60px",
+                                                width: "60px",
                                                 backgroundColor: "#374151",
                                                 border: "2px solid white",
                                                 boxShadow: "0px 4px 11.4px 0px #0000002E",

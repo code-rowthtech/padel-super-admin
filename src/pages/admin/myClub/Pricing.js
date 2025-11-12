@@ -101,7 +101,7 @@ function to24hMinutes(time) {
   return hours * 60 + (m || 0);
 }
 
-const Pricing = ({ hitApi, setHitUpdateApi }) => {
+const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, setSelectAllDays }) => {
   const dispatch = useDispatch();
   const { ownerClubData } = useSelector((state) => state.manualBooking);
   const registerId = ownerClubData?.[0]?._id || "";
@@ -120,8 +120,8 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
   });
   const [hasPriceChanges, setHasPriceChanges] = useState(false);
   const selectAllChecked = useMemo(
-    () => Object.values(formData.days).every(Boolean),
-    [formData.days]
+    () => selectAllDays !== undefined ? selectAllDays : Object.values(formData.days).every(Boolean),
+    [selectAllDays, formData.days]
   );
   /** Initialize formData prices from API for the selected slot type */
   useEffect(() => {
@@ -198,7 +198,10 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
         return acc;
       }, {}),
     }));
-  }, []);
+    if (onSelectAllChange) {
+      onSelectAllChange(checked);
+    }
+  }, [onSelectAllChange]);
   const handlePriceChange = useCallback((slotType, timeKey, value) => {
     // Prevent values greater than 4000
     const numericValue = Number(value);
@@ -398,7 +401,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
       if (price !== "" && (numericValue > 4000 || numericValue < 0)) {
         return;
       }
-      
+
       setFormData((prev) => {
         const newPrices = { ...(prev.prices.All || {}) };
         selectedTimes.forEach((t) => {
@@ -419,19 +422,29 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
         parseFloat(common) <= 0 ||
         isNaN(parseFloat(common)));
     return (
-      <div>
-        <div className="d-flex align-items-center mb-3">
+      <>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h6
+            className=" mb-0"
+            style={{
+              fontSize: "20px",
+              fontWeight: "600",
+              color: "#374151",
+              fontFamily: "Poppins"
+            }}
+          >
+            Set Price
+          </h6>
           <Form.Check
             type="checkbox"
             id="select-all-slots"
-            label="Select All"
+            label={<span className="text-muted ms-2 small">
+              Select All  {selectedTimes.length} of {allTimesRaw.length} slots selected
+            </span>}
             checked={allSelected}
             onChange={toggleAllSlots}
             className="me-2"
           />
-          <span className="text-muted small">
-            {selectedTimes.length} of {allTimesRaw.length} slots selected
-          </span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "16px" }}>
           {allTimesRaw.map((timeRaw) => {
@@ -449,7 +462,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
                 onClick={() => toggleSlot(timeRaw)}
                 className="text-nowrap"
                 style={{
-                  padding: "8px 16px",
+                  padding: "4px 16px",
                   fontSize: "14px",
                   color: isSelected ? "#fff" : "#1F2937",
                   borderRadius: "8px",
@@ -492,7 +505,7 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
             />
           </InputGroup>
         </div>
-      </div>
+      </>
     );
   };
   /** Submit Handler (same flow, but safer normalization & params) */
@@ -616,98 +629,67 @@ const Pricing = ({ hitApi, setHitUpdateApi }) => {
       setHitUpdateApi(false);
     }
   }, [hitApi, hasPriceChanges]);
+
+  // Sync formData.days when selectAllDays prop changes
+  useEffect(() => {
+    if (selectAllDays !== undefined) {
+      setFormData((prev) => ({
+        ...prev,
+        days: DAYS_OF_WEEK.reduce((acc, day) => {
+          acc[day] = selectAllDays;
+          return acc;
+        }, {}),
+      }));
+    }
+  }, [selectAllDays]);
+
   return (
-    <div className="py-3">
+    <div className="">
       <Row>
         <Col xs={12} md={2}>
           <div style={containerStyle} className="mb-3 mb-md-0">
-            {renderDays()}
-          </div>
-        </Col>
-        <Col xs={12} md={8} className="position-relative">
-          <div className="d-flex justify-content-end align-items-center">
-            {/* <Form.Check
-              type="checkbox"
-              checked={selectAllChecked}
-              onChange={(e) => handleSelectAllChange(e.target.checked)}
-              label="Select All"
-              style={{
-                position: "absolute",
-                top: "-2em",
-                right: "18.5em",
-              }}
-            /> */}
             <Form.Check
               type="checkbox"
-              className="d-none d-md-flex justify-content-between align-items-center"
-              style={{
-                position: "absolute",
-                top: "-3em",
-                left: "1.2em",
-              }}
-              id="all-days"
+              className="d-flex mb-3 align-items-start"
+              id="select-all-days"
             >
+
               <Form.Check.Input
                 type="checkbox"
-                checked={selectAllChecked}
-                id="all-days"
-                onChange={(e) => handleSelectAllChange(e.target.checked)}
+                id="select-all-days"
+                checked={selectAllDays}
+                onChange={(e) => setSelectAllDays(e.target.checked)}
                 style={{
                   width: "20px",
                   height: "20px",
                   borderRadius: "4px",
                   border: "2px solid #1F2937",
-                  backgroundColor: selectAllChecked ? "#1F2937" : "transparent",
+                  backgroundColor: selectAllDays ? "#1F2937" : "transparent",
                   cursor: "pointer",
                   boxShadow: "none"
                 }}
               />
               <label
-                htmlFor="all-days"
-                className="mt-2 ms-2"
+                htmlFor="select-all-days"
+                className="ms-2 mb-0"
                 style={{
                   fontSize: "16px",
                   color: "#1F2937",
                   fontWeight: 500,
+                  fontFamily: "Poppins"
                 }}
               >
-                Select All
+                All
               </label>
-            </Form.Check>
 
-          </div>
-          <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
-            <Form.Check
-              type="checkbox"
-              className="d-flex align-items-center"
-              id="all-days-mobile"
-            >
-              <Form.Check.Input
-                type="checkbox"
-                checked={selectAllChecked}
-                id="all-days-mobile"
-                onChange={(e) => handleSelectAllChange(e.target.checked)}
-                style={{
-                  width: "20px",
-                  height: "20px",
-                  borderRadius: "4px",
-                  border: "2px solid #1F2937",
-                  backgroundColor: selectAllChecked ? "#1F2937" : "transparent",
-                  cursor: "pointer",
-                }}
-              />
-              <label
-                htmlFor="all-days-mobile"
-                className="ms-2 mb-0"
-                style={{
-                  fontSize: "14px",
-                  color: "#1F2937",
-                  fontWeight: 500,
-                }}
-              >
-                Select All
-              </label>
             </Form.Check>
+            {renderDays()}
+          </div>
+        </Col>
+        <Col xs={12} md={8} className="position-relative">
+
+          <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
+
 
             <Dropdown>
               <Dropdown.Toggle

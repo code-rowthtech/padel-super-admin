@@ -231,7 +231,7 @@ const Navbar = () => {
         <nav className="navbar navbar-expand-lg fixed-top bg-white py-2">
             <div className="container  px-0 p-0 py-1">
                 {/* Logo */}
-                <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
+                <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand">
                     {logo ?
                         <img
                             src={logo}
@@ -251,11 +251,11 @@ const Navbar = () => {
                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                         </Avatar>
                     }
-                    {/* <h4 className='text-dark fw-bold m-0' style={{ fontFamily: "Poppins" }}>Logo</h4> */}
+                    <h4 className='text-dark m-0 ps-2' style={{ fontFamily: "Poppins",fontSize:"18px",fontWeight:"500" }}>{clubData?.clubName || "Logo"}</h4>
                 </Link>
 
                 {/* Navigation links - Hidden on mobile */}
-                <div className="d-none me-auto d-lg-flex">
+                <div className="d-none mx-auto d-lg-flex">
                     <ul className="navbar-nav ps-md-5 ps-0 ms-md-5  ms-0 mb-2 mb-lg-0 gap-md-5">
                         <li className="nav-item">
                             <NavLink

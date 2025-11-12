@@ -41,7 +41,7 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                                     return (
                                         <React.Fragment key={stepIndex}>
                                             <div
-                                                className="d-flex justify-content-center align-items-center"
+                                                className="d-flex justify-content-center p-0 align-items-center"
                                                 style={{
                                                     width: '20px',
                                                     height: '20px',
@@ -57,12 +57,13 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                                                 {isCompleted ? (
                                                     <FaCheck color="#fff" size={10} />
                                                 ) : isActive ? (
-                                                    <div
+                                                    <div className='d-flex justify-content-center align-items-center'
                                                         style={{
-                                                            width: '15px',
-                                                            height: '15px',
+                                                            width: '18px',
+                                                            height: '18px',
                                                             backgroundColor: '#2563eb',
                                                             borderRadius: '50%',
+                                                            
                                                         }}
                                                     />
                                                 ) : null}
