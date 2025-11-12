@@ -158,9 +158,9 @@ const Navbar = () => {
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
     const initialFormData = {
-        fullName: user?.response?.name || updateName?.fullName  || User?.name || "",
-        phone: user?.response?.phoneNumber || updateName?.phone  || User?.phoneNumber || "",
-        profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic  || updateName?.profile,
+        fullName: user?.response?.name || updateName?.fullName || User?.name || "",
+        phone: user?.response?.phoneNumber || updateName?.phone || User?.phoneNumber || "",
+        profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic || updateName?.profile,
     };
 
     useEffect(() => {
@@ -232,26 +232,48 @@ const Navbar = () => {
             <div className="container  px-0 p-0 py-1">
                 {/* Logo */}
                 <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand">
-                    {logo ?
-                        <img
-                            src={logo}
-                            alt="User Profile"
-                            className='rounded-circle'
+                    {logo ? (
+                        <div
                             style={{
                                 width: "50px",
                                 height: "50px",
-                                // border: "0.5px solid #928f8fff",
-                                objectFit: "cover",
-                                imageRendering: "auto",
-                                padding: "0px"
+                                borderRadius: "50%",
+                                overflow: "hidden",
+                                border: "1px solid #ddd", // optional
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                backgroundColor: "#f9f9f9",
                             }}
-                        />
-                        :
-                        <Avatar>
+                        >
+                            <img
+                                src={logo}
+                                alt="User Profile"
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    backgroundSize: "cover",
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <Avatar
+                            style={{
+                                width: "50px",
+                                height: "50px",
+                                borderRadius: "50%",
+                                fontSize: "20px",
+                                backgroundColor: "#ccc",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                         </Avatar>
-                    }
-                    <h4 className='text-dark m-0 ps-2' style={{ fontFamily: "Poppins",fontSize:"18px",fontWeight:"500" }}>{clubData?.clubName || "Logo"}</h4>
+                    )}
+
+                    <h4 className='text-dark m-0 ps-2' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
                 </Link>
 
                 {/* Navigation links - Hidden on mobile */}
@@ -478,7 +500,7 @@ const Navbar = () => {
                                             <div className="fw-semibold">
                                                 {userData?.name
                                                     ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                    : initialFormData?.fullName  || 'User'}
+                                                    : initialFormData?.fullName || 'User'}
 
                                             </div>
                                             <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>

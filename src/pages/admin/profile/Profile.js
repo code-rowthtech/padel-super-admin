@@ -147,7 +147,7 @@ const Profile = () => {
     <div className="container p-5">
       <div
         style={{
-          background: "linear-gradient(to right, #A18CD1, #FBC2EB)",
+          background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
           height: "80px",
           borderTopLeftRadius: "12px",
           borderTopRightRadius: "12px",
@@ -170,15 +170,29 @@ const Profile = () => {
             ) : (
               <>
                 {clubLogo ? (
-                  <img
-                    src={clubLogo}
-                    alt="Club Logo"
-                    className="rounded-circle border bg-secondary"
-                    style={{ objectFit: "cover" }}
-                    width="100"
-                    height="100"
-                    loading="lazy"
-                  />
+                  <div
+                    style={{
+                      width: "100px",
+                      height: "100px",
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      border: "1px solid #ddd", // optional
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#f9f9f9",
+                    }}
+                  >
+                    <img
+                      src={clubLogo}
+                      alt="User Profile"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        backgroundSize: "contain",
+                      }}
+                    />
+                  </div>
                 ) : (
                   <div className="bg-secondary rounded-circle p-2 d-flex align-items-center justify-content-center" style={{ width: "100px", height: "100px" }}>
                     <IoTennisballOutline size={60} color="white" />
@@ -305,6 +319,7 @@ const Profile = () => {
               value={formData.dob}
               onChange={handleChange}
               className="form-control"
+              max="2024-12-31"
             />
           </div>
           <div className="col-md-4 mb-3">
@@ -345,8 +360,8 @@ const Profile = () => {
           </button>
           <button
             type="submit"
-            className="btn text-white px-4"
-            style={{ backgroundColor: "#3DBE64" }}
+            className="btn border-0 text-white px-4"
+            style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}
           >
             {authLoading ? <ButtonLoading /> : "Update"}
           </button>
