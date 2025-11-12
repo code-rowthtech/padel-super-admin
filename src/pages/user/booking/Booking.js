@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import { booking_dropdown_img, booking_dropdown_img2, booking_dropdown_img3, booking_dropdown_img4, booking_logo_img, morningTab, nighttab, sun, tennis2, twoball } from "../../../assets/files";
+import { morningTab, nighttab, sun, tennis2, twoball } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
-import { MdKeyboardArrowDown, MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
+import { MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { FaArrowRight } from "react-icons/fa";
 import { Avatar } from "@mui/material";
-import { Button, Dropdown } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MdOutlineArrowBackIosNew, MdOutlineArrowForwardIos } from "react-icons/md";
@@ -72,7 +72,7 @@ const Booking = ({ className = "" }) => {
     const [errorMessage, setErrorMessage] = useState("");
     const [errorShow, setErrorShow] = useState(false);
     const logo = JSON.parse(localStorage.getItem("logo"));
-    const [showDropdown, setShowDropdown] = useState(false);
+
     const dateRefs = useRef({});
     const [key, setKey] = useState('morning');
     const [key2, setKey2] = useState('padel');
@@ -87,7 +87,7 @@ const Booking = ({ className = "" }) => {
 
     const dayShortMap = { Monday: "Mon", Tuesday: "Tue", Wednesday: "Wed", Thursday: "Thu", Friday: "Fri", Saturday: "Sat", Sunday: "Sun" };
     const today = new Date();
-    const dates = Array.from({ length: 40 }, (_, i) => {
+    const dates = Array.from({ length: 15 }, (_, i) => {
         const date = new Date();
         date.setDate(today.getDate() + i);
         return {
@@ -284,7 +284,6 @@ const Booking = ({ className = "" }) => {
     const clubId = localStorage.getItem("register_club_id");
 
     useEffect(() => {
-        window.scrollTo(0, 0);
         dispatch(getUserClub({ search: "" }));
         dispatch(
             getUserSlotBooking({
@@ -354,7 +353,6 @@ const Booking = ({ className = "" }) => {
     };
 
     const handleSwitchChange = () => setShowUnavailable(!showUnavailable);
-
     const formatTimeForDisplay = (time) => {
         if (!time) return "";
         const timeLower = time.toLowerCase();
@@ -370,7 +368,6 @@ const Booking = ({ className = "" }) => {
         }
         return `${hourPart} ${periodPart}`;
     };
-
     const isPastTime = (timeStr) => {
         const slotHour = parseTimeToHour(timeStr);
         if (slotHour === null) return false;
@@ -384,7 +381,6 @@ const Booking = ({ className = "" }) => {
         }
         return false;
     };
-
     useEffect(() => {
         if (errorShow || errorMessage) {
             const timer = setTimeout(() => {
@@ -394,8 +390,6 @@ const Booking = ({ className = "" }) => {
             return () => clearTimeout(timer);
         }
     }, [errorShow, errorMessage]);
-
-
     const tabData = [
         { img: morningTab, label: 'Morning', key: 'morning' },
         { img: sun, label: 'Afternoon', key: 'noon' },
@@ -406,7 +400,6 @@ const Booking = ({ className = "" }) => {
         { img: tennis2, label: 'Tannis', key: 'tannis' },
         { img: tennis2, label: 'Pickleball', key: 'pickleball' },
     ]
-
     useEffect(() => {
         const counts = [0, 0, 0];
         slotData?.data?.forEach((court) => {
@@ -421,21 +414,18 @@ const Booking = ({ className = "" }) => {
                 }
             });
         });
-
         let defaultTab = 'morning';
         if (counts[0] === 0) {
             const firstAvailableIndex = counts.findIndex(count => count > 0);
             if (firstAvailableIndex !== -1) {
-                defaultTab = tabData[firstAvailableIndex].key; 
+                defaultTab = tabData[firstAvailableIndex].key; // eventKey की जगह key
             }
         }
         setKey(defaultTab);
     }, [slotData, showUnavailable]);
-
     const formatTime = (timeStr) => {
         return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
     };
-
     return (
         <>
             <div className="container px-0 mb-lg-3">
@@ -473,7 +463,7 @@ const Booking = ({ className = "" }) => {
             </div>
             <div className="container mb-5 px-4">
                 <div className="row g-4">
-                    <div className="col-lg-7 col-12 py-4 rounded-3 px-4" >
+                    <div className="col-lg-7 col-12 py-4 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <div className="custom-heading-use text-nowrap">
                                 Select Date
@@ -531,18 +521,11 @@ const Booking = ({ className = "" }) => {
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
                                         const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
-
-                                        // Calculate slot count for this specific date
-                                        const slotCount = Object.values(selectedTimes).reduce((acc, courtDates) => {
-                                            const dateSlots = courtDates[d.fullDate] || [];
-                                            return acc + dateSlots.length;
-                                        }, 0);
-
                                         return (
                                             <button
                                                 key={i}
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                                                className={`calendar-day-btn mb-3 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
+                                                className={`calendar-day-btn mb-3  me-1 ${isSelected ? "text-white border-0" : "bg-white"}`}
                                                 style={{
                                                     background: isSelected
                                                         ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
@@ -560,25 +543,6 @@ const Booking = ({ className = "" }) => {
                                                     <div className="date-center-date">{d.date}</div>
                                                     <div className="date-center-day">{dayShortMap[d.day]}</div>
                                                 </div>
-                                                {slotCount > 0 && (
-                                                    <span
-                                                        className="position-absolute badge rounded-pill"
-                                                        style={{
-                                                            fontSize: "10px",
-                                                            minWidth: "18px",
-                                                            height: "18px",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            top: "-1px",
-                                                            right: "-4px",
-                                                            zIndex: 2,
-                                                            backgroundColor: "#22c55e"
-                                                        }}
-                                                    >
-                                                        {slotCount}
-                                                    </span>
-                                                )}
                                             </button>
                                         );
                                     })}
@@ -586,7 +550,6 @@ const Booking = ({ className = "" }) => {
                                 <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
                             </div>
                         </div>
-
                         {/* Global Tabs above courts */}
                         <div className="row mb-2 mx-xs-auto">
                             <div className="col-12 d-flex p-0 justify-content-center align-items-center">
@@ -602,7 +565,6 @@ const Booking = ({ className = "" }) => {
                                             </div>
                                         ))}
                                     </div>
-
                                     {/* Labels below tabs */}
                                     <div className="tab-labels d-flex justify-content-between">
                                         {tabData.map((tab, index) => (
@@ -612,10 +574,7 @@ const Booking = ({ className = "" }) => {
                                         ))}
                                     </div>
                                 </div>
-
-
                             </div>
-
                         </div>
                         <div className={`mb-3 overflow-slot border-0 rounded-3 ${slotData?.data?.some(court => court?.slots?.filter(slot => showUnavailable ? true : slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time) && slot.amount > 0).filter(slot => filterSlotsByTab(slot, key)).length > 0) ? 'border' : 'border-0'}`}>
                             {slotData?.data?.length > 0 ? (
@@ -645,9 +604,7 @@ const Booking = ({ className = "" }) => {
                                                     const filteredSlots = baseFilteredSlots.filter((slot) =>
                                                         filterSlotsByTab(slot, key)
                                                     );
-
                                                     if (filteredSlots?.length === 0) return null;
-
                                                     // Count visible courts
                                                     const visibleCourtIndices = slotData.data
                                                         .map((c, i) => {
@@ -663,10 +620,8 @@ const Booking = ({ className = "" }) => {
                                                             return slots.length > 0 ? i : null;
                                                         })
                                                         .filter(Boolean);
-
                                                     const isLast =
                                                         visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
-
                                                     return (
                                                         <div
                                                             key={court._id}
@@ -696,7 +651,6 @@ const Booking = ({ className = "" }) => {
                                                                     ({court?.register_club_id?.courtType})
                                                                 </p>
                                                             </div>
-
                                                             <div className="slots-grid d-flex flex-column align-items-center">
                                                                 {filteredSlots.map((slot, i) => {
                                                                     const isSelected = selectedTimes[court._id]?.[selectedDate.fullDate]?.some(
@@ -709,7 +663,6 @@ const Booking = ({ className = "" }) => {
                                                                         slot.availabilityStatus !== "available" ||
                                                                         isPastTime(slot.time) ||
                                                                         slot.amount <= 0;
-
                                                                     return (
                                                                         <button
                                                                             key={i}
@@ -759,9 +712,7 @@ const Booking = ({ className = "" }) => {
                                                     );
                                                 })}
                                             </div>
-
                                         </div>
-
                                         {slotData?.data.every((court) =>
                                             !court?.slots?.some((slot) =>
                                                 (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) &&
@@ -780,48 +731,25 @@ const Booking = ({ className = "" }) => {
                         </div>
                     </div>
                     <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
-                        <div className="border w-100    px-0 py-4 border-0" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
-                            <div className="d-flex mb-4 ">
-                                <img src={booking_logo_img} className="booking-logo-img" alt="" />
-                                <div className="text-center ps-2 mt-3">
-                                    <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                                    <p className="mt-2 mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.zipCode}</p>
-                                    {/* {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>} */}
+                        <div className="border w-100   px-3 py-5 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                            <div className="text-center mb-3">
+                                <div className="d-flex justify-content-center">
+                                    {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>}
                                 </div>
+                                <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                             </div>
-                            <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
+                            <div className="d-flex border-top pt-2 justify-content-between align-items-center">
                                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
                                 {totalSlots >= 10 && <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ cursor: "pointer", background: "#111827", fontSize: "10px", fontWeight: "600", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
                             </div>
                             <div
-                                className="px-3"
                                 style={{
-                                    maxHeight: "250px",
-                                    overflowY: "auto",
+                                    maxHeight: selectedCourts?.length > 0 ? "auto" : "310px",
+                                    overflowY: selectedCourts?.length === 0 ? "hidden" : "auto",
                                     overflowX: "hidden",
-                                    paddingRight: "16px",           // Right gap for scrollbar
-                                    marginRight: "8px",            // Compensate for scrollbar width
                                 }}
                             >
-                                {/* Custom scrollbar (optional but matches Figma) */}
-                                <style jsx>{`
-    div::-webkit-scrollbar {
-      width: 8px;
-      border-radius : 3px;
-    }
-    div::-webkit-scrollbar-track {
-      background: #F5F5F5;
-      border-radius: 3px;
-    }
-    div::-webkit-scrollbar-thumb {
-      background:  #626262;
-      
-    }
-    div::-webkit-scrollbar-thumb:hover {
-      background: #626262;
-    }
-  `}</style>
-                                <div className="div " style={{ height: "25vh" }}>
+                                <div className="div" style={{ height: "25vh" }}>
                                     {selectedCourts.length > 0 ? (
                                         selectedCourts.map((court, index) =>
                                             court.time.map((timeSlot, timeIndex) => (
@@ -852,20 +780,33 @@ const Booking = ({ className = "" }) => {
                                 </div>
                             </div>
                             {totalSlots > 0 && (
-                                <div className="border-top pt-3 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden", height: "10vh" }}>
+                                <div className="border-top pt-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden" }}>
                                     <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
                                         Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
                                     </p>
                                     <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
                                 </div>
                             )}
-                            <div className="d-flex justify-content-center align-items-center  ">
-                                <button style={{
-                                    ...buttonStyle,
-                                    opacity: totalSlots === 0 ? 0.5 : 1,
-                                    cursor: totalSlots === 0 ? "not-allowed" : "pointer",
-                                    pointerEvents: totalSlots === 0 ? "none" : "auto",
-                                }} className={`${className} `} disabled={totalSlots === 0} onClick={handleBookNow}>
+                            <div className="d-flex justify-content-center mt-3">
+                                {errorShow && errorMessage && (
+                                    <div
+                                        className="text-center mb-3 p-2 rounded"
+                                        style={{
+                                            backgroundColor: "#ffebee",
+                                            color: "#c62828",
+                                            border: "1px solid #ffcdd2",
+                                            fontWeight: 500,
+                                            fontSize: "15px",
+                                            width: "100%",
+                                            maxWidth: "370px"
+                                        }}
+                                    >
+                                        {errorMessage}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="d-flex justify-content-center ">
+                                <button style={{ ...buttonStyle }} className={`${className} `} onClick={handleBookNow}>
                                     <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
                                         <defs>
                                             <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -884,24 +825,6 @@ const Booking = ({ className = "" }) => {
                                     </svg>
                                     <div style={contentStyle}>Book Now</div>
                                 </button>
-
-
-                            </div>
-                            <div className="d-flex align-items-center w-100 ps-5 pe-5 justify-content-start mt-3" style={{ height: "30px" }}>
-                                {errorShow && errorMessage && (
-                                    <div
-                                        className="text-center w-100  mb-3 p-2 rounded"
-                                        style={{
-                                            fontWeight: 500,
-                                            backgroundColor: "#ffebee",
-                                            color: "#c62828",
-                                            border: "1px solid #ffcdd2",
-                                            fontSize: "15px",
-                                        }}
-                                    >
-                                        {errorMessage}
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
@@ -911,5 +834,4 @@ const Booking = ({ className = "" }) => {
         </>
     );
 };
-
 export default Booking;
