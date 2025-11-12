@@ -139,10 +139,35 @@ const Home = () => {
                             >
                                 <p className='mb-0 custom-title text-white' style={{ fontWeight: "400" }}>Welcome To Good Court</p>
                                 <h1 className="home-main-heading ">Your Game, <br />Your Court,<br />Just a Tap Away.</h1>
-                                <Link to="/booking" className="text-decoration-none bg-white rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center"
+                                <Link to="/booking" className="text-decoration-none rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center book-now-btn"
                                     style={{ color: "#2043BA", fontWeight: "600", fontSize: "24px", minWidth: "200px", fontFamily: "Poppins", justifyContent: "center", width: "150px" }}>
-                                    Book Now
+                                    Book Now <FaArrowRight className='ms-2' />
                                 </Link>
+                                <style jsx>{`
+                                    .book-now-btn {
+                                        background: #ffffff;
+                                        position: relative;
+                                        overflow: hidden;
+                                    }
+                                    .book-now-btn::before {
+                                        content: '';
+                                        position: absolute;
+                                        top: 0;
+                                        left: -100%;
+                                        width: 100%;
+                                        height: 100%;
+                                        background: linear-gradient(90deg, transparent, rgba(32, 67, 186, 0.4), transparent);
+                                        animation: shimmer 2.5s infinite;
+                                    }
+                                    @keyframes shimmer {
+                                        0% {
+                                            left: -100%;
+                                        }
+                                        100% {
+                                            left: 100%;
+                                        }
+                                    }
+                                `}</style>
                             </div>
                         </div>
                     </div>
@@ -259,12 +284,7 @@ const Home = () => {
 
                             <div className=" col-lg-4 col-12 ps-md-3 ">
                                 <div className="pt-4">
-                                    <div className="d-flex justify-content-center mb-4">
-                                        <strong className='me-2 open-now-time' style={{ fontWeight: "600" }}>
-                                            {/* <LuClock4 size={20} /> */}
-                                            Open Now {clubData?.businessHours?.[adjustedIndex]?.time}
-                                        </strong>
-                                    </div>
+                                  
                                     {clubData?.businessHours?.length < 0 ? <div className='text-center py-5' style={{ fontFamily: "Poppins" }}>No Timing</div> : clubData?.businessHours?.map((day, idx) => (
                                         <div
                                             key={idx}

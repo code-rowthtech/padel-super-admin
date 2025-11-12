@@ -190,18 +190,26 @@ const Booking = ({ className = "" }) => {
 
     const handleDeleteSlot = (courtId, date, timeId) => {
         setSelectedTimes((prev) => {
-            const courtTimes = prev[courtId]?.[date];
-            if (!courtTimes) return prev;
+            if (!prev[courtId] || !prev[courtId][date]) return prev;
 
+            const courtTimes = prev[courtId][date];
             const filtered = courtTimes.filter((t) => t._id !== timeId);
+
             if (filtered.length === 0) {
-                const { [date]: _, ...restDates } = prev[courtId] || {};
+                const { [date]: _, ...restDates } = prev[courtId];
                 const newCourt = Object.keys(restDates).length > 0 ? restDates : undefined;
+
+                if (!newCourt) {
+                    const { [courtId]: __, ...restCourts } = prev;
+                    return restCourts;
+                }
+
                 return {
                     ...prev,
                     [courtId]: newCourt,
                 };
             }
+
             return {
                 ...prev,
                 [courtId]: {
@@ -526,7 +534,18 @@ const Booking = ({ className = "" }) => {
                                 style={{
                                     backgroundColor: "#f3f3f5",
                                     width: "32px",
-                                    minHeight: "48px",   // Dynamic height
+                                    height: "58px",   // Dynamic height
+                                    padding: "2px 0"     // Tight vertical padding
+                                }}
+                            >
+                               
+                            </div>
+                            <div
+                                className="d-flex justify-content-center align-items-center rounded-pill p-0 mb-3"
+                                style={{
+                                    backgroundColor: "#f3f3f5",
+                                    width: "32px",
+                                    height: "58px",   // Dynamic height
                                     padding: "2px 0"     // Tight vertical padding
                                 }}
                             >
@@ -814,30 +833,30 @@ const Booking = ({ className = "" }) => {
                         <div className="border w-100    px-0 py-4 border-0" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="d-flex mb-4 position-relative">
                                 <img src={booking_logo_img} className="booking-logo-img" alt="" />
-                                <div className="text-center ps-2 mt-3">
+                                <div className="text-center ps-2 pe-2 mt-3">
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.zipCode}</p>
                                 </div>
                                 <div className="position-absolute" style={{ top: "11px", left: "17.5%" }}>
                                     {logo ? (
-                                        <img 
-                                            src={logo} 
-                                            alt="Club Logo" 
+                                        <img
+                                            src={logo}
+                                            alt="Club Logo"
                                             className="rounded-circle"
-                                            style={{ 
-                                                height: "120px", 
-                                                width: "120px", 
+                                            style={{
+                                                height: "120px",
+                                                width: "120px",
                                                 objectFit: "cover",
                                                 border: "2px solid white",
-                                                boxShadow: "0px 4px 11.4px 0px #0000002E" 
-                                            }} 
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E"
+                                            }}
                                         />
                                     ) : (
-                                        <div 
+                                        <div
                                             className="rounded-circle d-flex align-items-center justify-content-center"
-                                            style={{ 
-                                                height: "60px", 
-                                                width: "60px", 
+                                            style={{
+                                                height: "60px",
+                                                width: "60px",
                                                 backgroundColor: "#374151",
                                                 border: "2px solid white",
                                                 boxShadow: "0px 4px 11.4px 0px #0000002E",

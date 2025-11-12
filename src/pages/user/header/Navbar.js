@@ -255,7 +255,7 @@ const Navbar = () => {
                 </Link>
 
                 {/* Navigation links - Hidden on mobile */}
-                <div className="d-none me-auto d-lg-flex">
+                <div className="d-none mx-auto d-lg-flex">
                     <ul className="navbar-nav ps-md-5 ps-0 ms-md-5  ms-0 mb-2 mb-lg-0 gap-md-5">
                         <li className="nav-item">
                             <NavLink
