@@ -97,7 +97,7 @@ const LoginPage = () => {
 
   return (
     <Layout>
-      <div className="w-md-50 w-sm-100">
+      <div className="w-75 w-sm-100">
         <style>
           {`
             @media (max-width: 768px) {

@@ -12,13 +12,13 @@ const defaultFormData = {
   images: [],                     // <-- **File[]** (only while wizard is open)
   previewUrls: [],                // <-- URLs that survive page reload / update
   businessHours: {
-    Monday: { start: "05:00 AM", end: "11:00 PM" },
-    Tuesday: { start: "05:00 AM", end: "11:00 PM" },
-    Wednesday: { start: "05:00 AM", end: "11:00 PM" },
-    Thursday: { start: "05:00 AM", end: "11:00 PM" },
-    Friday: { start: "05:00 AM", end: "11:00 PM" },
-    Saturday: { start: "05:00 AM", end: "11:00 PM" },
-    Sunday: { start: "05:00 AM", end: "11:00 PM" },
+    Monday: { start: "06:00 AM", end: "11:00 PM" },
+    Tuesday: { start: "06:00 AM", end: "11:00 PM" },
+    Wednesday: { start: "06:00 AM", end: "11:00 PM" },
+    Thursday: { start: "06:00 AM", end: "11:00 PM" },
+    Friday: { start: "06:00 AM", end: "11:00 PM" },
+    Saturday: { start: "06:00 AM", end: "11:00 PM" },
+    Sunday: { start: "06:00 AM", end: "11:00 PM" },
   },
   termsAccepted: false,
 };
@@ -26,8 +26,22 @@ const defaultFormData = {
 const RegisterClub = () => {
   const dispatch = useDispatch();
   const registerID = sessionStorage.getItem("registerId");
-  const [step, setStep] = useState(registerID ? 3 : 1);
+  
+  // Initialize step from localStorage or default logic
+  const [step, setStep] = useState(() => {
+    const savedStep = localStorage.getItem("clubRegistrationStep");
+    if (savedStep) {
+      return parseInt(savedStep, 10);
+    }
+    return registerID ? 3 : 1;
+  });
+  
   const [updateImage, setUpdateImage] = useState(false);
+  
+  // Save step to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("clubRegistrationStep", step.toString());
+  }, [step]);
 
   const [formData, setFormData] = useState(() => {
     const saved = localStorage.getItem("clubFormData");
@@ -88,6 +102,9 @@ const RegisterClub = () => {
             setUpdateImage={setUpdateImage}
             onFinalSuccess={() => {
               localStorage.removeItem("clubFormData");
+              localStorage.removeItem("clubRegistrationStep");
+              localStorage.removeItem("clubImages");
+              localStorage.removeItem("clubLogo");
               sessionStorage.removeItem("registerId");
             }}
           />

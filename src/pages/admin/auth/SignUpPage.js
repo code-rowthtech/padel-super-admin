@@ -149,7 +149,7 @@ const SignUpPage = () => {
 
   return (
     <Layout>
-      <div className=" w-sm-100">
+      <div className=" w-sm-100 w-75">
         <h2 className="mb-1" style={{
           fontFamily: "Poppins",
           fontWeight: 500,
@@ -163,7 +163,7 @@ const SignUpPage = () => {
         }}>Please enter your details to sign up.</p>
 
         <Form onSubmit={handleSubmit} noValidate className="small">
-          <span className="p-1 text-danger small d-block">{errors.api}</span>
+          {/* <span className="p-1 text-danger small d-block">{errors.api}</span> */}
 
           {/* Name */}
           <Form.Group controlId="name" className="mb-2">

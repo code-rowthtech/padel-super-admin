@@ -34,6 +34,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const [previewImages, setPreviewImages] = useState([]);
   const [duplicateError, setDuplicateError] = useState("");
   const navigate = useNavigate()
+  
+  // Initialize preview images from formData
   useEffect(() => {
     const newImages = formData.images || [];
     const previews = newImages.map((file) => ({
@@ -42,6 +44,95 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     }));
     setPreviewImages(previews);
   }, [formData.images]);
+  
+  // Save images to localStorage when they change
+  useEffect(() => {
+    if (formData.images && formData.images.length > 0) {
+      // Convert File objects to base64 for storage
+      const saveImages = async () => {
+        const imagePromises = formData.images.map(file => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve({
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              data: e.target.result
+            });
+            reader.readAsDataURL(file);
+          });
+        });
+        
+        const imageData = await Promise.all(imagePromises);
+        localStorage.setItem('clubImages', JSON.stringify(imageData));
+      };
+      
+      saveImages();
+    }
+  }, [formData.images]);
+  
+  // Save logo to localStorage when it changes
+  useEffect(() => {
+    if (formData.logo && formData.logo instanceof File) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const logoData = {
+          name: formData.logo.name,
+          size: formData.logo.size,
+          type: formData.logo.type,
+          data: e.target.result
+        };
+        localStorage.setItem('clubLogo', JSON.stringify(logoData));
+      };
+      reader.readAsDataURL(formData.logo);
+    }
+  }, [formData.logo]);
+  
+  // Restore images from localStorage on component mount
+  useEffect(() => {
+    const savedImages = localStorage.getItem('clubImages');
+    if (savedImages && (!formData.images || formData.images.length === 0)) {
+      try {
+        const imageData = JSON.parse(savedImages);
+        const restoredFiles = imageData.map(img => {
+          // Convert base64 back to File
+          const byteCharacters = atob(img.data.split(',')[1]);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          return new File([byteArray], img.name, { type: img.type });
+        });
+        
+        updateFormData({ images: restoredFiles });
+      } catch (error) {
+        console.error('Error restoring images:', error);
+      }
+    }
+    
+    // Restore logo from localStorage
+    const savedLogo = localStorage.getItem('clubLogo');
+    if (savedLogo && !logoPreview) {
+      try {
+        const logoData = JSON.parse(savedLogo);
+        // Convert base64 back to File
+        const byteCharacters = atob(logoData.data.split(',')[1]);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const restoredLogo = new File([byteArray], logoData.name, { type: logoData.type });
+        
+        const preview = URL.createObjectURL(restoredLogo);
+        setLogoPreview({ file: restoredLogo, preview });
+        updateFormData({ logo: restoredLogo });
+      } catch (error) {
+        console.error('Error restoring logo:', error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (updateImage) {
@@ -171,6 +262,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     if (logoPreview?.preview) URL.revokeObjectURL(logoPreview.preview);
     setLogoPreview(null);
     updateFormData({ logo: null });
+    // Remove from localStorage
+    localStorage.removeItem('clubLogo');
   };
 
   /* -------------------  BUSINESS HOURS  ------------------- */
@@ -665,7 +758,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 className="mt-3"
                 style={{
                   borderRadius: "6px",
-                  fontSize: "14px",
+                  fontSize: "12px",
                   fontWeight: "500",
                   cursor: hasChanged ? "pointer" : "not-allowed",
                 }}

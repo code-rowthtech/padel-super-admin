@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { morningTab, nighttab, sun, tennis2, twoball } from "../../../assets/files";
+import { booking_logo_img, morningTab, nighttab, sun, tennis2, twoball } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
@@ -190,18 +190,26 @@ const Booking = ({ className = "" }) => {
 
     const handleDeleteSlot = (courtId, date, timeId) => {
         setSelectedTimes((prev) => {
-            const courtTimes = prev[courtId]?.[date];
-            if (!courtTimes) return prev;
+            if (!prev[courtId] || !prev[courtId][date]) return prev;
 
+            const courtTimes = prev[courtId][date];
             const filtered = courtTimes.filter((t) => t._id !== timeId);
+
             if (filtered.length === 0) {
-                const { [date]: _, ...restDates } = prev[courtId] || {};
+                const { [date]: _, ...restDates } = prev[courtId];
                 const newCourt = Object.keys(restDates).length > 0 ? restDates : undefined;
+
+                if (!newCourt) {
+                    const { [courtId]: __, ...restCourts } = prev;
+                    return restCourts;
+                }
+
                 return {
                     ...prev,
                     [courtId]: newCourt,
                 };
             }
+
             return {
                 ...prev,
                 [courtId]: {
@@ -521,7 +529,18 @@ const Booking = ({ className = "" }) => {
                                 style={{
                                     backgroundColor: "#f3f3f5",
                                     width: "32px",
-                                    minHeight: "48px",   // Dynamic height
+                                    height: "58px",   // Dynamic height
+                                    padding: "2px 0"     // Tight vertical padding
+                                }}
+                            >
+                               
+                            </div>
+                            <div
+                                className="d-flex justify-content-center align-items-center rounded-pill p-0 mb-3"
+                                style={{
+                                    backgroundColor: "#f3f3f5",
+                                    width: "32px",
+                                    height: "58px",   // Dynamic height
                                     padding: "2px 0"     // Tight vertical padding
                                 }}
                             >
@@ -777,14 +796,47 @@ const Booking = ({ className = "" }) => {
                         </div>
                     </div>
                     <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
-                        <div className="border w-100   px-3 py-5 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
-                            <div className="text-center mb-3">
-                                <div className="d-flex justify-content-center">
-                                    {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>}
+                        <div className="border w-100    px-0 py-4 border-0" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                            <div className="d-flex mb-4 position-relative">
+                                <img src={booking_logo_img} className="booking-logo-img" alt="" />
+                                <div className="text-center ps-2 pe-2 mt-3">
+                                    <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                                    <p className="mt-2 mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.zipCode}</p>
                                 </div>
-                                <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
+                                <div className="position-absolute" style={{ top: "11px", left: "17.5%" }}>
+                                    {logo ? (
+                                        <img
+                                            src={logo}
+                                            alt="Club Logo"
+                                            className="rounded-circle"
+                                            style={{
+                                                height: "120px",
+                                                width: "120px",
+                                                objectFit: "cover",
+                                                border: "2px solid white",
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E"
+                                            }}
+                                        />
+                                    ) : (
+                                        <div
+                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                            style={{
+                                                height: "60px",
+                                                width: "60px",
+                                                backgroundColor: "#374151",
+                                                border: "2px solid white",
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E",
+                                                fontSize: "24px",
+                                                fontWeight: "600",
+                                                color: "white"
+                                            }}
+                                        >
+                                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                            <div className="d-flex border-top pt-2 justify-content-between align-items-center">
+                            <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
                                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
                                 {totalSlots >= 10 && <Button className="float-end me-3 btn border-0 shadow rounded-pill" style={{ cursor: "pointer", background: "#111827", fontSize: "10px", fontWeight: "600", fontFamily: "Poppins" }} onClick={handleClearAll}>Clear All</Button>}
                             </div>
