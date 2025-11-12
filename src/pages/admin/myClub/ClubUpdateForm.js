@@ -587,7 +587,7 @@ const ClubUpdateForm = () => {
 
   // -------------------- render helpers --------------------
   const Input = memo(({ label, field, type = "text", placeholder }) => (
-    <Form.Group className="mb-3">
+    <Form.Group className="mb-2">
       <Form.Label className="fw-semibold small text-secondary">
         {label}
       </Form.Label>
@@ -618,7 +618,7 @@ const ClubUpdateForm = () => {
 
   // -------------------- UI --------------------
   return (
-    <Card className="p-4 shadow-sm border-0">
+    <Card className="p-4 pt-2 shadow-sm border-0">
       {ownerClubLoading ? (
         <DataLoading height="80vh" />
       ) : (
@@ -662,7 +662,7 @@ const ClubUpdateForm = () => {
                   />
                 </Col>
                 <Col md={12}>
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-2">
                     <div className="d-flex justify-content-between align-items-center">
                       <Form.Label className="fw-semibold small text-secondary">
                         Description
@@ -695,9 +695,9 @@ const ClubUpdateForm = () => {
                       renderHTML={(text) => mdParser.render(text)}
                       config={{
                         view: {
-                          menu: true,   // show toolbar
-                          md: true,     // show markdown input
-                          html: false,  // hide preview panel
+                          menu: true,   
+                          md: true,     
+                          html: false,  
                         },
                         placeholder: "Short description (max 500 words)",
                         toolbar: [
@@ -712,9 +712,9 @@ const ClubUpdateForm = () => {
                           "link",
                         ],
                         canView: {
-                          menu: true,     // keep toolbar visible
-                          md: true,       // keep markdown editor visible
-                          html: false,    // ❌ remove preview (eye) button
+                          menu: true,    
+                          md: true,       
+                          html: false,    
                           fullScreen: false,
                           hideMenu: false,
                         },
@@ -735,9 +735,10 @@ const ClubUpdateForm = () => {
               </Row>
             </Col>
             <Col md={7}>
-              <h6 className="fw-bold mb-2">Photos</h6>
-              <div className="d-flex align-items-center justify-content-between mb-2">
-                <div className="text-muted small">
+              
+              <div className="d-flex align-items-center gap-3 mb-1">
+                <h6 className="fw-bold mb-2">Photos</h6>
+                <div className="text-muted mb-2 small">
                   {previews.length}/{MAX_IMAGES} images
                 </div>
               </div>

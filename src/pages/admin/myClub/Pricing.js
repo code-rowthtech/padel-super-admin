@@ -299,7 +299,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
       const invalid =
         !value || parseFloat(value) <= 0 || isNaN(parseFloat(value));
       return (
-        <Row key={key} className="align-items-center mb-2">
+        <Row key={key} className="align-items-center  mb-2">
           <Col xs={6}>
             <FormControl
               readOnly
@@ -658,7 +658,20 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                 type="checkbox"
                 id="select-all-days"
                 checked={selectAllDays}
-                onChange={(e) => setSelectAllDays(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setSelectAllDays(checked);
+                  if (!checked) {
+                    // When unchecking All, select only first day
+                    setFormData(prev => ({
+                      ...prev,
+                      days: DAYS_OF_WEEK.reduce((acc, day, index) => {
+                        acc[day] = index === 0;
+                        return acc;
+                      }, {})
+                    }));
+                  }
+                }}
                 style={{
                   width: "20px",
                   height: "20px",
@@ -691,7 +704,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
           <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
 
 
-            <Dropdown>
+            <Dropdown className="">
               <Dropdown.Toggle
                 variant="secondary"
                 size="sm"
@@ -733,7 +746,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                   borderRadius: "8px",
                   color: "#1F2937",
                   position: "absolute",
-                  top: "-3em",
+                  top: "0.5em",
                   right: "1em",
                   display: "flex",
                   alignItems: "center",
@@ -758,7 +771,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
           {/* <h5 style={{ fontWeight: 700, color: "#1F2937" }}>
             {selectAllChecked ? "All" : formData.selectedSlots} slots
           </h5> */}
-          <div style={containerStyle}>
+          <div style={containerStyle} className={selectAllChecked ? "" : "mt-5"}>
             {clubLoading ? <DataLoading height="20vh" /> : renderTimeSlots()}
           </div>
         </Col>

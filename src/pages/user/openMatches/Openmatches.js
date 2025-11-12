@@ -412,7 +412,7 @@ const Openmatches = () => {
         <div className="container mt-lg-4 px-3 px-md-4 mb-4">
             <div className="row g-md-4 mx-auto">
                 {/* Left Section */}
-                <div className="col-lg-7 col-12 py-4 rounded-3 px-4 order-2 order-md-1" style={{ backgroundColor: "#F5F5F566" }}>
+                <div className="col-lg-7 col-12 py-4 rounded-3 px-4 order-2 order-md-1" style={{ backgroundColor: "#F5F5F566",height:"auto" }}>
                     <div className="calendar-strip mb-3">
                         <div className="mb-4 custom-heading-use">
                             Select Date

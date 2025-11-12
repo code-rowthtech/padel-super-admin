@@ -158,7 +158,7 @@ const Profile = () => {
       <div
         className="mt-5"
         style={{
-          background: "linear-gradient(to right, #A18CD1, #FBC2EB)",
+          background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
           height: "80px",
           borderTopLeftRadius: "12px",
           borderTopRightRadius: "12px",
@@ -268,6 +268,7 @@ const Profile = () => {
               onChange={handleChange}
               className="form-control"
               style={{ boxShadow: "none" }}
+              max="2024-12-31"
             />
           </div>
           <div className="col-12 col-md-4 mb-3">
@@ -306,8 +307,8 @@ const Profile = () => {
           </button>
           <button
             type="submit"
-            className="btn text-white px-4"
-            style={{ backgroundColor: "#3DBE64" }}
+            className="btn text-white border-0 px-4"
+            style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}
           >
             {userLoading ? <ButtonLoading color={'white'} /> : "Update"}
           </button>

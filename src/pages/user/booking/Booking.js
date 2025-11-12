@@ -869,24 +869,37 @@ const Booking = ({ className = "" }) => {
                         <div className="border w-100    px-0 py-4 border-0" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="d-flex mb-4 position-relative">
                                 <img src={booking_logo_img} className="booking-logo-img" alt="" />
+
                                 <div className="text-center ps-2 pe-2 mt-3">
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
                                     <p className="mt-2 mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br /> {clubData?.zipCode}</p>
                                 </div>
                                 <div className="position-absolute" style={{ top: "11px", left: "17.5%" }}>
                                     {logo ? (
-                                        <img
-                                            src={logo}
-                                            alt="Club Logo"
-                                            className="rounded-circle"
+
+                                        <div
                                             style={{
-                                                height: "120px",
                                                 width: "120px",
-                                                objectFit: "cover",
-                                                border: "2px solid white",
-                                                boxShadow: "0px 4px 11.4px 0px #0000002E"
+                                                height: "120px",
+                                                borderRadius: "50%",
+                                                overflow: "hidden",
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                backgroundColor: "#f9f9f9",
                                             }}
-                                        />
+                                        >
+                                            <img
+                                                src={logo}
+                                                alt="Club logo"
+                                                style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    backgroundSize: "contain",
+                                                }}
+                                            />
+                                        </div>
                                     ) : (
                                         <div
                                             className="rounded-circle d-flex align-items-center justify-content-center"
