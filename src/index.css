@@ -905,6 +905,9 @@ border-top-right-radius: 20px;
    .step-heading-data {
     font-size: 16px!important;
   }
+  .navbar-shadow-mobile{
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  }
 
   /* Adjust padding for mobile */
   .position-absolute.p-5 {
@@ -1398,7 +1401,7 @@ border-top-right-radius: 20px;
 /* Home Second Banner Responsive */
 @media (min-width: 368px) and (max-width: 768px) {
   .home-second-banner {
-    margin-top: 20px !important;
+    margin-top: 5px !important;
     padding: 0.5rem 1rem !important;
   }
 
@@ -1700,8 +1703,8 @@ border-top-right-radius: 20px;
 
   /* Player images full size on mobile */
   .rounded-circle {
-    width: 80px !important;
-    height: 80px !important;
+    width: 50px !important;
+    height: 50px !important;
   }
 
   /* Player images fill circle completely */
