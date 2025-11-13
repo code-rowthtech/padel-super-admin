@@ -159,9 +159,9 @@ const Navbar = () => {
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
     const initialFormData = {
-        fullName: user?.response?.name || updateName?.fullName  || User?.name || "",
-        phone: user?.response?.phoneNumber || updateName?.phone  || User?.phoneNumber || "",
-        profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic  || updateName?.profile,
+        fullName: user?.response?.name || updateName?.fullName || User?.name || "",
+        phone: user?.response?.phoneNumber || updateName?.phone || User?.phoneNumber || "",
+        profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic || updateName?.profile,
     };
 
     useEffect(() => {
@@ -484,7 +484,7 @@ const Navbar = () => {
                                             <div className="fw-semibold">
                                                 {userData?.name
                                                     ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                    : initialFormData?.fullName  || 'User'}
+                                                    : initialFormData?.fullName || 'User'}
 
                                             </div>
                                             <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>

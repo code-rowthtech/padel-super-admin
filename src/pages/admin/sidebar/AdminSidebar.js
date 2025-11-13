@@ -46,8 +46,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
   // Utility function for active link styling
   const linkClasses = ({ isActive }) =>
-    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${
-      isActive ? "active-parent-link" : "bg-transparent"
+    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${isActive ? "active-parent-link" : "bg-transparent"
     }`;
 
   const isDropdownActive = bookingPaths.includes(location.pathname);
@@ -79,9 +78,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
   return (
     <aside
-      className={`admin-sidebar text-white vh-100 d-flex flex-column ${isOpen ? "mobile-open" : ""} ${
-        isCollapsed ? "collapsed" : ""
-      }`}
+      className={`admin-sidebar text-white vh-100 d-flex flex-column ${isOpen ? "mobile-open" : ""} ${isCollapsed ? "collapsed" : ""
+        }`}
       style={{
         width: isCollapsed ? "70px" : "250px",
         backgroundColor: "#1C2434",
@@ -100,28 +98,43 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           ) : (
             <>
               {clubLogo ? (
-                <img
-                  src={clubLogo}
-                  alt="Profile"
-                  className="rounded-circle"
-                  loading="lazy"
+
+                <div
                   style={{
-                    width: isCollapsed
-                      ? "60px"
-                      : window.innerWidth <= 768
-                      ? "90px"
-                      : "110px",
-                    height: isCollapsed
-                      ? "60px"
-                      : window.innerWidth <= 768
-                      ? "90px"
-                      : "110px",
-                    objectFit: "cover",
-                    cursor: "pointer",
-                    marginTop: "13px",
+                    width: "100px",
+                    height: "100px",
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#f9f9f9",
                   }}
-                  onClick={() => handleNavigation("/admin/dashboard")}
-                />
+                >
+                  <img
+                    src={clubLogo}
+                    alt="User Profile"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      backgroundSize: "contain",
+                      width: isCollapsed
+                        ? "60px"
+                        : window.innerWidth <= 768
+                          ? "90px"
+                          : "110px",
+                      height: isCollapsed
+                        ? "60px"
+                        : window.innerWidth <= 768
+                          ? "90px"
+                          : "110px",
+                      cursor: "pointer",
+                      marginTop: "13px",
+                    }}
+                    onClick={() => handleNavigation("/admin/dashboard")}
+
+                  />
+                </div>
               ) : (
                 <div className="bg-secondary rounded-circle p-2">
                   <IoTennisballOutline
@@ -269,11 +282,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 setBookingOpen((prev) => !prev);
               }
             }}
-            className={`btn ${
-              isCollapsed && window.innerWidth > 768
-                ? "w-auto d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                : " d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-            } ${isDropdownActive ? "active-parent-link" : "bg-transparent"}`}
+            className={`btn ${isCollapsed && window.innerWidth > 768
+              ? "w-auto d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+              : " d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+              } ${isDropdownActive ? "active-parent-link" : "bg-transparent"}`}
             style={{
               backgroundColor: isDropdownActive ? "#333B48" : "transparent",
               color: "#CCD2DD",
@@ -286,9 +298,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             }}
           >
             <div
-              className={`d-flex align-items-center fs-6 ${
-                isCollapsed && window.innerWidth > 768 ? "" : "w-100"
-              }`}
+              className={`d-flex align-items-center fs-6 ${isCollapsed && window.innerWidth > 768 ? "" : "w-100"
+                }`}
             >
               <FaCalendarAlt
                 className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
@@ -398,8 +409,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/booking"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
-                  isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -419,8 +429,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/cancellation"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
-                  isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -440,8 +449,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/court-availability"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
-                  isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -523,20 +531,18 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/open-matches"
             className={({ isActive }) =>
-              `d-flex align-items-center ${
-                isCollapsed && window.innerWidth > 768
-                  ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                  : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-              } cursor-pointer ${
-                isActive || location.pathname === "/admin/create-match"
-                  ? "active-parent-link"
-                  : ""
+              `d-flex align-items-center ${isCollapsed && window.innerWidth > 768
+                ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+              } cursor-pointer ${isActive || location.pathname === "/admin/create-match"
+                ? "active-parent-link"
+                : ""
               }`
             }
             style={() => ({
               backgroundColor:
                 location.pathname === "/admin/open-matches" ||
-                location.pathname === "/admin/create-match"
+                  location.pathname === "/admin/create-match"
                   ? "#333B48"
                   : "transparent",
               color: "#CCD2DD",
@@ -545,7 +551,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontFamily: "Poppins",
               boxShadow:
                 location.pathname === "/admin/open-matches" ||
-                location.pathname === "/admin/create-match"
+                  location.pathname === "/admin/create-match"
                   ? "-28px 22px 45px 0px #1B1D4224"
                   : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
@@ -641,20 +647,18 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/packages"
             className={({ isActive }) =>
-              `d-flex align-items-center ${
-                isCollapsed && window.innerWidth > 768
-                  ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                  : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-              } cursor-pointer ${
-                isActive || location.pathname === "/admin/package-details"
-                  ? "active-parent-link"
-                  : ""
+              `d-flex align-items-center ${isCollapsed && window.innerWidth > 768
+                ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+              } cursor-pointer ${isActive || location.pathname === "/admin/package-details"
+                ? "active-parent-link"
+                : ""
               }`
             }
             style={() => ({
               backgroundColor:
                 location.pathname === "/admin/packages" ||
-                location.pathname === "/admin/package-details"
+                  location.pathname === "/admin/package-details"
                   ? "#333B48"
                   : "transparent",
               color: "#CCD2DD",
@@ -663,7 +667,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontFamily: "Poppins",
               boxShadow:
                 location.pathname === "/admin/packages" ||
-                location.pathname === "/admin/package-details"
+                  location.pathname === "/admin/package-details"
                   ? "-28px 22px 45px 0px #1B1D4224"
                   : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",

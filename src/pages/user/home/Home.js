@@ -139,7 +139,6 @@ const Home = () => {
                                     top: "-10%"
                                 }}
                             >
-                                <p className='mb-0 custom-title text-white' style={{ fontWeight: "400" }}>Welcome To Good Court</p>
                                 <h1 className="home-main-heading ">Your Game, <br />Your Court,<br />Just a Tap Away.</h1>
                                 <Link to="/booking" className="text-decoration-none rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center book-now-btn d-md-flex d-none"
                                     style={{ color: "#2043BA", fontWeight: "600", fontSize: "24px", minWidth: "200px", fontFamily: "Poppins", justifyContent: "center", width: "150px" }}>
@@ -286,6 +285,7 @@ const Home = () => {
 
                             <div className=" col-lg-4 col-12 ps-md-3 ">
                                 <div className="pt-4">
+
 
                                     {clubData?.businessHours?.length < 0 ? <div className='text-center py-5' style={{ fontFamily: "Poppins" }}>No Timing</div> : clubData?.businessHours?.map((day, idx) => (
                                         <div
