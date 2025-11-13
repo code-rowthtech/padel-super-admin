@@ -3,7 +3,8 @@ import { Row, Col, Container, Table, Card } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { MdDateRange } from "react-icons/md";
+import { MdDateRange, MdOutlineDateRange } from "react-icons/md";
+import { FaTimes } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
@@ -26,8 +27,14 @@ import Pagination from "../../../helpers/Pagination";
 const Payments = () => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const setDateRange = (update) => {
+    setStartDate(update[0]);
+    setEndDate(update[1]);
+  };
 
   const dispatch = useDispatch();
   const { getBookingData, getBookingLoading, getBookingDetailsData } =
@@ -40,21 +47,7 @@ const Payments = () => {
     setCurrentPage(1);
   };
 
-  const DateButton = ({ value, onClick }) => (
-    <button
-      onClick={onClick}
-      style={{
-        border: "none",
-        backgroundColor: "white",
-        padding: "8px 16px",
-        cursor: "pointer",
-        fontWeight: 600,
-        color: "#495057",
-      }}
-    >
-      {value || "Select Date"} <MdDateRange className="ms-2 mb-1" size={20} />
-    </button>
-  );
+
 
   const payments = getBookingData?.bookings || [];
   const paymentDetails = getBookingDetailsData?.booking || {};
@@ -189,41 +182,65 @@ const Payments = () => {
               </AppBar>
             </Box>
 
-            <div className="d-flex align-items-center gap-2">
-              <div className="d-flex align-items-center gap-1">
-                <span className="fw-semibold small">From</span>
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date) => {
-                    setStartDate(date);
-                    if (!date) setEndDate(null);
+            <div className="d-flex align-items-center">
+              {!showDatePicker && !startDate && !endDate ? (
+                <div
+                  className="d-flex align-items-center justify-content-center rounded p-2"
+                  style={{
+                    backgroundColor: "#FAFBFF",
+                    width: "40px",
+                    height: "38px",
+                    border: "1px solid #dee2e6",
+                    cursor: "pointer"
                   }}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  customInput={<DateButton />}
-                />
-              </div>
-              <div className="d-flex align-items-center gap-1">
-                <span className="fw-semibold small">To</span>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate}
-                  customInput={<DateButton />}
-                />
-              </div>
-              {sendDate && (
-                <i
-                  className="bi bi-x-square-fill text-danger"
-                  onClick={() => {
-                    setStartDate(null, setEndDate(null));
+                  onClick={() => setShowDatePicker(true)}
+                >
+                  <MdOutlineDateRange size={16} className="text-muted" />
+                </div>
+              ) : (
+                <div
+                  className="d-flex align-items-center justify-content-center rounded p-1"
+                  style={{
+                    backgroundColor: "#FAFBFF",
+                    maxWidth: "280px",
+                    height: "38px",
+                    border: "1px solid #dee2e6",
+                    gap: "8px"
                   }}
-                  style={{ cursor: "pointer" }}
-                ></i>
+                >
+                  <div className="px-2">
+                    <MdOutlineDateRange size={16} className="text-muted" />
+                  </div>
+                  <DatePicker
+                    selectsRange
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={(update) => {
+                      setDateRange(update);
+                      const [start, end] = update;
+                      if (start && end) {
+                        setShowDatePicker(false);
+                      }
+                    }}
+                    dateFormat="dd/MM/yy"
+                    placeholderText="DD/MM/YY – DD/MM/YY"
+                    className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                    open={showDatePicker}
+                    onClickOutside={() => setShowDatePicker(false)}
+                  />
+                  {(startDate || endDate) && (
+                    <div
+                      className="px-2"
+                      onClick={() => {
+                        setDateRange([null, null]);
+                        setShowDatePicker(false);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <FaTimes size={14} className="text-danger" />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -510,12 +510,19 @@ const CourtAvailability = () => {
                 </p>
                 <div className="form-switch d-flex align-items-center gap-2">
                   <input
-                    className="form-check-input"
+                    className="form-check-input fs-5  mb-2"
                     type="checkbox"
+                    role="switch"
+                    id="flexSwitchCheckDefault"
                     checked={showUnavailable}
                     onChange={(e) => setShowUnavailable(e.target.checked)}
+                    style={{ boxShadow: "none" }}
                   />
-                  <label className="table-data text-dark mb-0" style={{ fontSize: "13px", fontFamily: "Poppins" }}>
+                  <label
+                    className="form-check-label"
+                    htmlFor="flexSwitchCheckDefault"
+                    style={{ whiteSpace: "nowrap", fontFamily: "Poppins", color: "#626262" }}
+                  >
                     Show Unavailable Slots
                   </label>
                 </div>
@@ -589,8 +596,10 @@ const CourtAvailability = () => {
                         const buttonEl = (
                           <button
                             key={slot._id}
-                            className="btn border rounded-2 px-4 py-2 shadow-sm"
-                            onClick={() => toggleTime(slot)}
+                            className={`border rounded-3 slot-time-btn text-nowrap py-1 ${isBooked
+                              ? "bg-danger text-white" : ''
+
+                              }`} onClick={() => toggleTime(slot)}
                             disabled={isDisabled}
                             style={{
                               backgroundColor: isSelected

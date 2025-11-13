@@ -149,13 +149,14 @@ const SignUpPage = () => {
 
   return (
     <Layout>
-      <div className=" w-sm-100 w-75">
-        <h2 className="mb-1" style={{
+      <div className="w-100">
+        <div className="mx-auto" style={{ maxWidth: "500px", width: "100%" }}>
+        <h2 className="mb-0" style={{
           fontFamily: "Poppins",
           fontWeight: 500,
           fontSize: "34px",
         }}>WELCOME</h2>
-        <p className="text-muted mb-3" style={{
+        <p className="text-muted mb-1" style={{
           fontFamily: "Poppins",
           fontWeight: 400,
           fontSize: "14px",
@@ -358,6 +359,7 @@ const SignUpPage = () => {
               Login!
             </Link>
           </p>
+        </div>
         </div>
       </div>
     </Layout>

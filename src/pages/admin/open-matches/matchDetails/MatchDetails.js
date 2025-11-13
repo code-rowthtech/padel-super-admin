@@ -157,17 +157,6 @@ const MatchDetails = () => {
       ) : (
         <>
           <div className="d-flex justify-content-between align-items-center mb-4 px-2 px-md-0">
-            <h5
-              className="manual-heading mb-0"
-              style={{
-                fontFamily: "Poppins",
-                fontWeight: "700",
-                color: "#374151",
-                fontSize: "clamp(1.25rem, 4vw, 1.5rem)",
-              }}
-            >
-              Match Deatils
-            </h5>
             <Button
               className="bg-transparent border-0"
               onClick={() => {

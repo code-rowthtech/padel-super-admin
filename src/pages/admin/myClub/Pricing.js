@@ -497,6 +497,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
               isInvalid={commonInvalid}
               style={{
                 height: "40px",
+                width:"100%",
                 borderRadius: "8px",
                 border: "1px solid #E5E7EB",
                 fontSize: "14px",

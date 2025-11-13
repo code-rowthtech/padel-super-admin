@@ -21,7 +21,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import updateLocale from "dayjs/plugin/updateLocale";
 import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from '../../../redux/user/notifiction/thunk';
-import {clearall} from '../../../assets/files'
+import { clearall } from '../../../assets/files'
 const SOCKET_URL = config.API_URL;
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -233,25 +233,48 @@ const Navbar = () => {
             <div className="container py-1">
                 <div className="d-flex justify-content-between align-items-center w-100 px-2 px-md-0">
                     {/* Logo */}
-                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
-                        {logo ?
-                            <img
-                                src={logo}
-                                alt="User Profile"
-                                className='rounded-circle'
+                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand">
+                        {logo ? (
+                            <div
                                 style={{
                                     width: "50px",
                                     height: "50px",
-                                    objectFit: "cover",
-                                    imageRendering: "auto",
-                                    padding: "0px"
+                                    borderRadius: "50%",
+                                    overflow: "hidden",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    backgroundColor: "#f9f9f9",
                                 }}
-                            />
-                            :
-                            <Avatar>
+                            >
+                                <img
+                                    src={logo}
+                                    alt="User Profile"
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        backgroundSize: "cover",
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            <Avatar
+                                style={{
+                                    width: "50px",
+                                    height: "50px",
+                                    borderRadius: "50%",
+                                    fontSize: "20px",
+                                    backgroundColor: "#ccc",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
                                 {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
                             </Avatar>
-                        }
+                        )}
+
+                        <h4 className='text-dark m-0 ps-2' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
                     </Link>
 
                     {/* Navigation links - Hidden on mobile */}
@@ -309,230 +332,230 @@ const Navbar = () => {
                     </div>
 
                     {/* Mobile Menu Toggle */}
-                    <button 
+                    <button
                         className="btn d-lg-none p-0 border-0 bg-transparent"
                         onClick={() => setShowOffcanvas(true)}
                     >
                         {/* <FaBars size={24} className="text-dark" /> */}
-                        <img src={clearall} alt='' style={{width:"25px",height:"15px"}}/>
+                        <img src={clearall} alt='' style={{ width: "25px", height: "15px" }} />
                     </button>
 
                     {/* Profile Section - Desktop only */}
                     <div className="d-none d-lg-flex gap-3 align-items-center">
 
-                    {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
-                        <>
-                            <div className="position-relative" ref={dropdownRef}>
-                                {/* Bell Icon */}
-                                <div
-                                    className="d-flex rounded-circle justify-content-center mt-1 notification-bg align-items-center"
-                                    style={{
-                                        cursor: "pointer",
-                                        position: "relative",
-                                    }}
-                                    onClick={() => setOpen(!open)}
-                                >
-                                    <Badge badgeContent={notificationCount?.unreadCount || notifications?.length} color="error">
-                                        <NotificationsIcon size={30} className={`text-dark`} />
-                                    </Badge>
-                                </div>
-
-                                {/* Dropdown */}
-                                {open && (
+                        {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
+                            <>
+                                <div className="position-relative" ref={dropdownRef}>
+                                    {/* Bell Icon */}
                                     <div
-                                        className="shadow-sm p-2"
+                                        className="d-flex rounded-circle justify-content-center mt-1 notification-bg align-items-center"
                                         style={{
-                                            position: "absolute",
-                                            top: "50px",
-                                            right: 0,
-                                            width: "320px",
-                                            backgroundColor: "#fff",
-                                            borderRadius: "12px",
-                                            zIndex: 10,
+                                            cursor: "pointer",
+                                            position: "relative",
                                         }}
+                                        onClick={() => setOpen(!open)}
                                     >
-                                        <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
-                                            <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
-                                            {notifications.length > 3 && (
-                                                <button
-                                                    className="btn btn-link p-0"
-                                                    style={{
-                                                        fontSize: "13px",
-                                                        fontWeight: 500,
-                                                        textDecoration: "none",
-                                                        color: "#007bff",
-                                                    }}
-                                                    onClick={handleMarkAllRead}
-                                                >
-                                                    Mark all as read
-                                                </button>
-                                            )}
-                                        </div>
+                                        <Badge badgeContent={notificationCount?.unreadCount || notifications?.length} color="error">
+                                            <NotificationsIcon size={30} className={`text-dark`} />
+                                        </Badge>
+                                    </div>
 
-                                        <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
-                                            {notificationLoading ? <DataLoading /> :
-                                                notifications?.length > 0 ? (
-                                                    notifications?.map((note) => (
-                                                        <div
-                                                            key={note._id}
-                                                            className="d-flex gap-3 align-items-start justify-content-between p-3 mb-2 rounded"
-                                                            style={{
-                                                                borderBottom: "1px solid #f0f0f0",
-                                                                cursor: "pointer",
-                                                            }}
-                                                        >
-                                                            {/* Left: Profile Image or Initial */}
+                                    {/* Dropdown */}
+                                    {open && (
+                                        <div
+                                            className="shadow-sm p-2"
+                                            style={{
+                                                position: "absolute",
+                                                top: "50px",
+                                                right: 0,
+                                                width: "320px",
+                                                backgroundColor: "#fff",
+                                                borderRadius: "12px",
+                                                zIndex: 10,
+                                            }}
+                                        >
+                                            <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
+                                                <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
+                                                {notifications.length > 3 && (
+                                                    <button
+                                                        className="btn btn-link p-0"
+                                                        style={{
+                                                            fontSize: "13px",
+                                                            fontWeight: 500,
+                                                            textDecoration: "none",
+                                                            color: "#007bff",
+                                                        }}
+                                                        onClick={handleMarkAllRead}
+                                                    >
+                                                        Mark all as read
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
+                                                {notificationLoading ? <DataLoading /> :
+                                                    notifications?.length > 0 ? (
+                                                        notifications?.map((note) => (
+                                                            <div
+                                                                key={note._id}
+                                                                className="d-flex gap-3 align-items-start justify-content-between p-3 mb-2 rounded"
+                                                                style={{
+                                                                    borderBottom: "1px solid #f0f0f0",
+                                                                    cursor: "pointer",
+                                                                }}
+                                                            >
+                                                                {/* Left: Profile Image or Initial */}
 
 
-                                                            {/* Middle: Notification content */}
-                                                            <div style={{ flex: 1 }}>
-                                                                <div style={{ fontWeight: 500, fontSize: "13px" }}>
-                                                                    {note?.adminId ? "Padel" : ''} – {note.title}
-                                                                </div>
-                                                                {note?.message && (
+                                                                {/* Middle: Notification content */}
+                                                                <div style={{ flex: 1 }}>
+                                                                    <div style={{ fontWeight: 500, fontSize: "13px" }}>
+                                                                        {note?.adminId ? "Padel" : ''} – {note.title}
+                                                                    </div>
+                                                                    {note?.message && (
+                                                                        <p
+                                                                            className="text-muted mb-1"
+                                                                            style={{ fontSize: "12px", fontFamily: "Poppins" }}
+                                                                        >
+                                                                            {note.message}
+                                                                        </p>
+                                                                    )}
                                                                     <p
-                                                                        className="text-muted mb-1"
+                                                                        className="text-muted text-nowrap mb-0"
                                                                         style={{ fontSize: "12px", fontFamily: "Poppins" }}
                                                                     >
-                                                                        {note.message}
-                                                                    </p>
-                                                                )}
-                                                                <p
-                                                                    className="text-muted text-nowrap mb-0"
-                                                                    style={{ fontSize: "12px", fontFamily: "Poppins" }}
-                                                                >
-                                                                    {dayjs(note.createdAt).fromNow()} <b>.</b>{" "}
-                                                                    <OverlayTrigger
-                                                                        placement="top"
-                                                                        overlay={
-                                                                            <Tooltip id={`tooltip-${note._id}`}>
-                                                                                {note?.notificationType}
-                                                                            </Tooltip>
-                                                                        }
-                                                                    >
-                                                                        <span style={{ cursor: "pointer" }}>
-                                                                            {note?.notificationType?.length > 15
-                                                                                ? note?.notificationType.slice(0, 15) + "..."
-                                                                                : note?.notificationType}
-                                                                        </span>
-                                                                    </OverlayTrigger>
-                                                                </p>
-
-
-                                                                {/* Show when expanded */}
-                                                                {openNoteId === note._id && (
-                                                                    <div className="d-flex gap-2 mt-2">
-                                                                        <button
-                                                                            className="btn btn-dark btn-sm py-0 px-3"
-                                                                            style={{ fontSize: "13px" }}
-                                                                            onClick={() => handleViewNotification(note)
+                                                                        {dayjs(note.createdAt).fromNow()} <b>.</b>{" "}
+                                                                        <OverlayTrigger
+                                                                            placement="top"
+                                                                            overlay={
+                                                                                <Tooltip id={`tooltip-${note._id}`}>
+                                                                                    {note?.notificationType}
+                                                                                </Tooltip>
                                                                             }
                                                                         >
-                                                                            View
-                                                                        </button>
-                                                                    </div>
-                                                                )}
+                                                                            <span style={{ cursor: "pointer" }}>
+                                                                                {note?.notificationType?.length > 15
+                                                                                    ? note?.notificationType.slice(0, 15) + "..."
+                                                                                    : note?.notificationType}
+                                                                            </span>
+                                                                        </OverlayTrigger>
+                                                                    </p>
+
+
+                                                                    {/* Show when expanded */}
+                                                                    {openNoteId === note._id && (
+                                                                        <div className="d-flex gap-2 mt-2">
+                                                                            <button
+                                                                                className="btn btn-dark btn-sm py-0 px-3"
+                                                                                style={{ fontSize: "13px" }}
+                                                                                onClick={() => handleViewNotification(note)
+                                                                                }
+                                                                            >
+                                                                                View
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                {/* Right: Toggle Icon */}
+                                                                <div
+                                                                    className="mt-2"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setOpenNoteId(openNoteId === note._id ? null : note._id);
+                                                                    }}
+                                                                    style={{ cursor: "pointer" }}
+                                                                >
+                                                                    {openNoteId === note._id ? (
+                                                                        <IoIosArrowUp size={20} color="#555" />
+                                                                    ) : (
+                                                                        <IoIosArrowDown size={20} color="#555" />
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                            {/* Right: Toggle Icon */}
-                                                            <div
-                                                                className="mt-2"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setOpenNoteId(openNoteId === note._id ? null : note._id);
-                                                                }}
-                                                                style={{ cursor: "pointer" }}
-                                                            >
-                                                                {openNoteId === note._id ? (
-                                                                    <IoIosArrowUp size={20} color="#555" />
-                                                                ) : (
-                                                                    <IoIosArrowDown size={20} color="#555" />
-                                                                )}
-                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div
+                                                            className="text-center text-muted py-3"
+                                                            style={{
+                                                                fontWeight: 400,
+                                                                fontFamily: "Poppins",
+                                                            }}
+                                                        >
+                                                            No new notifications
                                                         </div>
-                                                    ))
-                                                ) : (
-                                                    <div
-                                                        className="text-center text-muted py-3"
-                                                        style={{
-                                                            fontWeight: 400,
-                                                            fontFamily: "Poppins",
-                                                        }}
-                                                    >
-                                                        No new notifications
-                                                    </div>
-                                                )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
-                                <Dropdown.Toggle
-                                    variant="white"
-                                    className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
-                                >
-                                    {/* Profile for all screens */}
-                                    <div className="d-flex align-items-center gap-2">
-                                        <img
-                                            src={User?.user?.response?.profilePic || userData?.profilePic || initialFormData?.profileImage || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                                            alt="user"
-                                            className="rounded-circle"
-                                            width="40"
-                                            height="40"
-                                            loading="lazy"
-                                        />
-                                        <div className="text-start d-none d-lg-block">
-                                            <div className="fw-semibold">
-                                                {userData?.name
-                                                    ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
-                                                    : initialFormData?.fullName || 'User'}
-
+                                                    )}
                                             </div>
-                                            <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
                                         </div>
-                                        <FaChevronDown className="ms-2 text-muted d-none d-lg-block" />
-                                    </div>
-                                </Dropdown.Toggle>
-
-                                <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
-                                        <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
-                                    </Dropdown.Item>
-
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
-                                        <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
-                                    </Dropdown.Item>
-
-                                    <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/support">
-                                        <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
-                                    </Dropdown.Item>
-
-                                    <Dropdown.Item
-                                        className='mb-2 d-flex align-items-center'
-                                        onClick={() => {
-                                            dispatch(logoutUser());
-                                            localStorage.removeItem('padel_user');
-                                            localStorage.removeItem('logo');
-                                            localStorage.removeItem('updateprofile');
-                                            setUserData(null);
-                                            navigate('/home');
-                                        }}
+                                    )}
+                                </div>
+                                <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
+                                    <Dropdown.Toggle
+                                        variant="white"
+                                        className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
                                     >
-                                        <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
-                                    </Dropdown.Item>
-                                </Dropdown.Menu>
+                                        {/* Profile for all screens */}
+                                        <div className="d-flex align-items-center gap-2">
+                                            <img
+                                                src={User?.user?.response?.profilePic || userData?.profilePic || initialFormData?.profileImage || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                                alt="user"
+                                                className="rounded-circle"
+                                                width="40"
+                                                height="40"
+                                                loading="lazy"
+                                            />
+                                            <div className="text-start d-none d-lg-block">
+                                                <div className="fw-semibold">
+                                                    {userData?.name
+                                                        ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
+                                                        : initialFormData?.fullName || 'User'}
 
-                            </Dropdown>
-                        </>
+                                                </div>
+                                                <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
+                                            </div>
+                                            <FaChevronDown className="ms-2 text-muted d-none d-lg-block" />
+                                        </div>
+                                    </Dropdown.Toggle>
 
-                    ) : (
-                        <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
-                            <button
-                                className=" login-btn px-4 border-0   rounded-pill text-white"
-                            >
-                                Login
-                            </button>
-                        </Link>
-                    )}
+                                    <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
+                                            <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
+                                        </Dropdown.Item>
+
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
+                                            <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
+                                        </Dropdown.Item>
+
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/support">
+                                            <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
+                                        </Dropdown.Item>
+
+                                        <Dropdown.Item
+                                            className='mb-2 d-flex align-items-center'
+                                            onClick={() => {
+                                                dispatch(logoutUser());
+                                                localStorage.removeItem('padel_user');
+                                                localStorage.removeItem('logo');
+                                                localStorage.removeItem('updateprofile');
+                                                setUserData(null);
+                                                navigate('/home');
+                                            }}
+                                        >
+                                            <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
+                                        </Dropdown.Item>
+                                    </Dropdown.Menu>
+
+                                </Dropdown>
+                            </>
+
+                        ) : (
+                            <Link to="/login" style={{ textDecoration: 'none' }} className="text-white">
+                                <button
+                                    className=" login-btn px-4 border-0   rounded-pill text-white"
+                                >
+                                    Login
+                                </button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>
@@ -558,7 +581,7 @@ const Navbar = () => {
                             </Avatar>
                         }
                     </Offcanvas.Title>
-                    <button 
+                    <button
                         className="btn p-0 border-0 bg-transparent"
                         onClick={() => setShowOffcanvas(false)}
                     >
@@ -581,7 +604,7 @@ const Navbar = () => {
                                 <span className="me-3">🏠</span>
                                 <span>Home</span>
                             </NavLink>
-                            
+
                             <NavLink
                                 to="/booking"
                                 className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
@@ -594,7 +617,7 @@ const Navbar = () => {
                                 <span className="me-3">📅</span>
                                 <span>Booking</span>
                             </NavLink>
-                            
+
                             <NavLink
                                 to="/open-matches"
                                 className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
@@ -607,7 +630,7 @@ const Navbar = () => {
                                 <MdSportsTennis size={20} className="me-3" />
                                 <span>Open Matches</span>
                             </NavLink>
-                            
+
                             <NavLink
                                 to="/americano"
                                 className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
@@ -627,7 +650,7 @@ const Navbar = () => {
                                     <div className="px-4 py-2 bg-light border-bottom">
                                         <small className="text-muted fw-semibold">ACCOUNT</small>
                                     </div>
-                                    
+
                                     <NavLink
                                         to="/user-profile"
                                         className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
@@ -640,7 +663,7 @@ const Navbar = () => {
                                         <FaRegUserCircle size={20} className="me-3" />
                                         <span>Profile</span>
                                     </NavLink>
-                                    
+
                                     <NavLink
                                         to="/booking-history"
                                         className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
@@ -653,7 +676,7 @@ const Navbar = () => {
                                         <MdOutlineDateRange size={20} className="me-3" />
                                         <span>My Booking</span>
                                     </NavLink>
-                                    
+
                                     <NavLink
                                         to="/support"
                                         className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
@@ -695,7 +718,7 @@ const Navbar = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Logout */}
                                     <button
                                         className="btn w-100 d-flex align-items-center px-4 py-3 text-start border-0 bg-transparent"

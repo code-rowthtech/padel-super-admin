@@ -183,7 +183,7 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
 
 const ImageTile = ({ src, onRemove }) => (
   <div
-    style={{ position: "relative", width: 88, height: 88 }}
+    style={{ position: "relative", width: 60, height: 60 }}
     className="rounded overflow-hidden shadow-sm bg-light"
   >
     <img
@@ -199,10 +199,16 @@ const ImageTile = ({ src, onRemove }) => (
       onClick={onRemove}
       style={{
         position: "absolute",
-        top: 4,
-        right: 4,
+        top: 1,
+        right: 1,
         lineHeight: 1,
-        padding: "0.1rem 0.35rem",
+        padding: "0",
+        fontSize: "10px",
+        width: "14px",
+        height: "14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
       }}
       aria-label="Remove image"
     >
@@ -230,7 +236,7 @@ const AddImageTile = ({ onFiles, hidden }) => {
       onDrop={onDrop}
       className={`d-flex align-items-center justify-content-center border border-secondary-subtle rounded bg-white text-muted cursor-pointer ${hidden ? "d-none" : ""
         }`}
-      style={{ width: 88, height: 88, cursor: "pointer" }}
+      style={{ width: 60, height: 60, cursor: "pointer" }}
     >
       <input
         type="file"
@@ -240,8 +246,8 @@ const AddImageTile = ({ onFiles, hidden }) => {
         className="d-none"
       />
       <div className="text-center">
-        <SlCloudUpload size={22} className="mb-1" />
-        <div style={{ fontSize: 11 }}>Add</div>
+        <SlCloudUpload size={18} className="mb-1" />
+        <div style={{ fontSize: 10 }}>Add</div>
       </div>
     </label>
   );
@@ -624,7 +630,7 @@ const ClubUpdateForm = () => {
         onBlur={() => setTouched((p) => ({ ...p, [field]: true }))}
         isInvalid={!!visibleErrors[field]}
         style={{
-          height: "38px",
+          height: "33px",
           borderRadius: "12px",
           fontSize: "14px",
           backgroundColor: "#fff",
@@ -652,7 +658,7 @@ const ClubUpdateForm = () => {
             <Col md={5}>
               <Row>
                 <Col md={4}>
-                  <Input
+                  <Input className=""
                     key="courtName"
                     label="Club/Facility Name"
                     field="courtName"
@@ -767,12 +773,13 @@ const ClubUpdateForm = () => {
                   {previews.length}/{MAX_IMAGES} images
                 </div>
               </div>
-              <div className="d-flex flex-wrap gap-2">
+              <div className="d-flex flex-wrap  gap-2">
                 {previews.map((img, i) => (
                   <ImageTile
                     key={i}
                     src={img.preview}
                     onRemove={() => removeImage(i)}
+                    className="admin-club-image"
                   />
                 ))}
                 <AddImageTile
@@ -783,7 +790,7 @@ const ClubUpdateForm = () => {
               <div className="text-muted small mt-2">
                 PNG, JPG, GIF up to 2MB each
               </div>
-              <hr className="my-2" />
+              <hr className="my-3" />
               <Row>
                 <Col md={2} className="mb-3">
                   <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
@@ -926,7 +933,7 @@ const ClubUpdateForm = () => {
               />
             </Col>
           </Row>
-          <div className="d-flex justify-content-end gap-2 mt-4">
+          <div className="d-flex justify-content-end gap-2 ">
             <Button
               type="button"
               variant="secondary"
