@@ -79,6 +79,15 @@ const getInitialFormState = (club = {}) => ({
       : BUSINESS_HOURS_TEMPLATE[day];
     return acc;
   }, {}),
+  days: {
+    Monday: true,
+    Tuesday: true,
+    Wednesday: true,
+    Thursday: true,
+    Friday: true,
+    Saturday: true,
+    Sunday: true,
+  },
   courtImage: club?.courtImage,
   termsAccepted: club?.termsAccepted ?? true,
 });
@@ -274,6 +283,22 @@ const ClubUpdateForm = () => {
   const [initialPreviews, setInitialPreviews] = useState(() =>
     getInitialPreviews(clubDetails?.images || clubDetails?.courtImage)
   );
+
+  // Handle selectAllDays change
+  useEffect(() => {
+    if (!selectAllDays) {
+      // When "All" is unchecked, select only Monday by default
+      const firstDayOnly = Object.keys(formData.businessHours).reduce((acc, day) => {
+        acc[day] = day === "Monday";
+        return acc;
+      }, {});
+      
+      setFormData(prev => ({
+        ...prev,
+        days: firstDayOnly
+      }));
+    }
+  }, [selectAllDays]);
 
   // fetch once
   useEffect(() => {

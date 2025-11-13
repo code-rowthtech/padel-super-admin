@@ -181,13 +181,13 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
     []
   );
   const handleDayChange = useCallback((day) => {
-    // Select one day exclusively
+    // Toggle individual day selection
     setFormData((prev) => ({
       ...prev,
-      days: DAYS_OF_WEEK.reduce((acc, d) => {
-        acc[d] = d === day;
-        return acc;
-      }, {}),
+      days: {
+        ...prev.days,
+        [day]: !prev.days[day]
+      }
     }));
   }, []);
   const handleSelectAllChange = useCallback((checked) => {
@@ -642,6 +642,21 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
       }));
     }
   }, [selectAllDays]);
+
+  // Ensure at least one day is selected when not all selected
+  useEffect(() => {
+    const selectedDays = Object.values(formData.days).filter(Boolean);
+    if (selectedDays.length === 0 && !selectAllDays) {
+      // If no days selected and not "All", select Monday by default
+      setFormData(prev => ({
+        ...prev,
+        days: {
+          ...prev.days,
+          Monday: true
+        }
+      }));
+    }
+  }, [formData.days, selectAllDays]);
 
   return (
     <div className="">
