@@ -821,9 +821,37 @@ h1.display-5 {
   }
 
   .home-second-banner {
-    margin-top: 30px;
+    margin-top: 10px;
   }
+.add_font_small_mobile{
+  font-size: 11px!important;
+  line-height: 15px!important;
+}
+.open-now-time{
+   font-size: 11px!important;
+  line-height: 9px!important;
+}
+.border_right_bottom {
+  border-bottom: 1px solid transparent!important;
+  border-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    #002DC7 46.63%,
+    rgba(255, 255, 255, 0) 94.23%
+  )!important;
+  border-image-slice: 1!important;
 
+}
+.add_font_heading_mobile{
+  font-size: 13px;
+  line-height: 16px;
+}
+.add_shadow_rounded{
+box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+border-top-left-radius: 20px;
+border-top-right-radius: 20px;
+
+}
   .login-btn {
     font-size: 15px;
     font-weight: 500;
@@ -844,15 +872,38 @@ h1.display-5 {
   /* HomePage top banner responsive */
   .home-main-heading {
     font-size: 20px !important;
-    line-height: 20px;
+    line-height: 27px;
   }
-
+.topzero{
+  top: 0px!important;
+}
   .custom-title {
-    font-size: 14px !important;
+    font-size: 10px !important;
   }
-
+  .reviews-heading{
+    font-size: 20px!important;
+  }
+.address_data{
+  font-size: 12px!important;
+}
+.font_heading_address{
+  font-size: 20px!important;
+}
+.height_mention{
+  height: auto!important;
+  min-height: auto!important;
+}
   .home-upcoming-heading {
-    font-size: 20px !important;
+    font-size: 12px !important;
+  }
+  .padding_top_none{
+    padding-top: 0px!important;
+  }
+  .add_font_star{
+    font-size: 20px!important;
+  }
+   .step-heading-data {
+    font-size: 16px!important;
   }
 
   /* Adjust padding for mobile */
@@ -1337,8 +1388,9 @@ h1.display-5 {
 /* Review Card Responsive */
 @media (min-width: 368px) and (max-width: 768px) {
   .card {
-    width: 90% !important;
-    max-width: 350px !important;
+    width: 100% !important;
+    /* max-width: 350px !important; */
+        max-width: auto !important;
     margin: 0 auto !important;
   }
 }
