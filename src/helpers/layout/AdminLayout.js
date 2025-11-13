@@ -31,6 +31,14 @@ const AdminLayout = () => {
             '/admin/help-support': 'Help & Support',
             '/admin/privacy': 'Privacy'
         };
+        
+        // Handle dynamic routes
+        if (path.startsWith('/admin/match-details/')) {
+            return 'View Match';
+        }
+        if (path.startsWith('/admin/manual-booking')) {
+            return 'Manual Booking';
+        }
         return pageMap[path] || '';
     };
 

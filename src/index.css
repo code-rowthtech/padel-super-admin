@@ -744,7 +744,7 @@ h1.display-5 {
   font-family: "Poppins";
   height: 45px;
   width: 138px;
-  background: #3dbe64;
+  background: #3dbe64!important;
 }
 
 .nav-item {
@@ -815,15 +815,43 @@ h1.display-5 {
   color: #374151 !important;
 }
 
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .auth-wrapper {
     padding: 1rem;
   }
 
   .home-second-banner {
-    margin-top: 30px;
+    margin-top: 10px;
   }
+.add_font_small_mobile{
+  font-size: 11px!important;
+  line-height: 15px!important;
+}
+.open-now-time{
+   font-size: 11px!important;
+  line-height: 9px!important;
+}
+.border_right_bottom {
+  border-bottom: 1px solid transparent!important;
+  border-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    #002DC7 46.63%,
+    rgba(255, 255, 255, 0) 94.23%
+  )!important;
+  border-image-slice: 1!important;
 
+}
+.add_font_heading_mobile{
+  font-size: 13px;
+  line-height: 16px;
+}
+.add_shadow_rounded{
+box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+border-top-left-radius: 20px;
+border-top-right-radius: 20px;
+
+}
   .login-btn {
     font-size: 15px;
     font-weight: 500;
@@ -844,15 +872,38 @@ h1.display-5 {
   /* HomePage top banner responsive */
   .home-main-heading {
     font-size: 20px !important;
-    line-height: 20px;
+    line-height: 27px;
   }
-
+.topzero{
+  top: 0px!important;
+}
   .custom-title {
-    font-size: 14px !important;
+    font-size: 10px !important;
   }
-
+  .reviews-heading{
+    font-size: 20px!important;
+  }
+.address_data{
+  font-size: 12px!important;
+}
+.font_heading_address{
+  font-size: 20px!important;
+}
+.height_mention{
+  height: auto!important;
+  min-height: auto!important;
+}
   .home-upcoming-heading {
-    font-size: 20px !important;
+    font-size: 12px !important;
+  }
+  .padding_top_none{
+    padding-top: 0px!important;
+  }
+  .add_font_star{
+    font-size: 20px!important;
+  }
+   .step-heading-data {
+    font-size: 16px!important;
   }
 
   /* Adjust padding for mobile */
@@ -1018,14 +1069,14 @@ h1.display-5 {
     margin: 1px !important;
   }
 
-  /* Slots responsive for booking page */
+  /* Slots responsive for booking page - 4 per row */
   .slot-time-btn {
     width: 100% !important;
-    height: 35px !important;
-    font-size: 12px !important;
-    margin: 2px !important;
-    padding: 4px 8px !important;
-    line-height: 1.2 !important;
+    height: 24px !important;
+    font-size: 7px !important;
+    margin: 1px !important;
+    padding: 2px 1px !important;
+    line-height: 1.1 !important;
   }
 
   /* Large screen slot buttons */
@@ -1175,18 +1226,37 @@ h1.display-5 {
 
 /* date scroll css */
 .overflow-auto::-webkit-scrollbar {
-  height: 8px;
-  margin: 20px 0px;
+  height: 4px;
+  margin: 10px 0px;
 }
 
 .overflow-auto::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .overflow-auto::-webkit-scrollbar-thumb {
   background: #c9c8c8ff;
-  border-radius: 4px;
+  border-radius: 2px;
+}
+
+/* Date scroll container specific styling */
+.date-scroll-container::-webkit-scrollbar {
+  height: 2px;
+}
+
+.date-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.date-scroll-container::-webkit-scrollbar-thumb {
+  background: #c9c8c8ff;
+  border-radius: 1px;
+}
+
+.date-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #c9c8c8ff transparent;
 }
 
 .overflow-slot::-webkit-scrollbar {
@@ -1337,8 +1407,9 @@ h1.display-5 {
 /* Review Card Responsive */
 @media (min-width: 368px) and (max-width: 768px) {
   .card {
-    width: 90% !important;
-    max-width: 350px !important;
+    width: 100% !important;
+    /* max-width: 350px !important; */
+        max-width: auto !important;
     margin: 0 auto !important;
   }
 }
@@ -1951,5 +2022,388 @@ h1.display-5 {
   transition-delay: 0.2s;
 }
 
+.admin-club-image{
+  height: 100px;
+  width: 100px;
+}
+
+/* Booking Page Responsive Styles */
+@media (min-width: 368px) and (max-width: 768px) {
+  /* Mobile app-like layout */
+  .mobile-booking-content {
+    padding-bottom: 200px !important;
+  }
+  
+  .mobile-booking-summary {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .mobile-summary-container {
+    height: auto !important;
+    border-radius: 20px 20px 0 0 !important;
+    min-height: 80px !important;
+    max-height: 300px !important;
+    overflow-y: visible !important;
+    padding: 10px 0 5px 0 !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  /* Mobile slots container */
+  .mobile-slots-container {
+    max-height: 120px !important;
+    overflow: visible !important;
+  }
+  
+  .mobile-slots-list {
+    position: relative !important;
+  }
+  
+  /* Expandable slots without scroll */
+  .mobile-expanded-slots.expanded {
+    max-height: 200px !important;
+    overflow: hidden !important;
+  }
+  
+  /* Slide up animation */
+  .mobile-summary-container.slide-up {
+    transform: translateY(-100px) !important;
+    max-height: 400px !important;
+  }
+  
+  /* Mobile total section */
+  .mobile-total-section {
+    padding: 8px 12px !important;
+    margin-top: 8px !important;
+  }
+  
+  .mobile-total-section p {
+    font-size: 12px !important;
+  }
+  
+  .mobile-total-section p:last-child {
+    font-size: 18px !important;
+  }
+  
+  /* Add space below banner */
+  .container.mb-5.px-4 {
+    margin-top: 30px !important;
+  }
+  
+  /* Mobile banner spacing */
+  .mobile-banner-container {
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+  }
+  
+  .mobile-banner {
+    margin-bottom: 30px !important;
+    margin-top: 0 !important;
+  }
+  
+  /* Banner height reduction */
+  .container.px-0.mb-lg-3 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Remove top space from mobile banner */
+  .mobile-banner-container.container {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  
+  /* Container padding reduction */
+  .container.mb-5.px-4 {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .col-lg-7.col-12.py-4.rounded-3.px-4 {
+    padding: 1rem 0.5rem !important;
+  }
+  
+  /* Date scroll enable only on mobile */
+  .d-flex.gap-1 > div {
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  .d-flex.gap-1 > div::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  /* Scroll container height reduction */
+  div[style*="maxHeight: 60vh"] {
+    max-height: 40vh !important;
+  }
+  
+  /* Court alignment and sizing for mobile */
+  .court-item {
+    min-height: 40px !important;
+    padding: 4px !important;
+  }
+  
+  .court-item div {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+  
+  .court-item p {
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+  }
+  
+  /* Headers responsive */
+  .all-matches {
+    font-size: 11px !important;
+  }
+  
+  /* Slot buttons responsive - 4 per row */
+  .slot-time-btn {
+    width: 100% !important;
+    height: 24px !important;
+    font-size: 7px !important;
+    padding: 1px !important;
+    line-height: 1.1 !important;
+  }
+  
+  /* Calendar day buttons responsive */
+  .calendar-day-btn {
+    max-width: 35px !important;
+    height: 40px !important;
+    padding: 1px 6px !important;
+    margin-right: 3px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .date-center-date {
+    font-size: 11px !important;
+  }
+  
+  .date-center-day {
+    font-size: 8px !important;
+  }
+  
+  /* Dropdown responsive */
+  .d-flex.justify-content-start.border {
+    width: 35px !important;
+    height: 40px !important;
+  }
+  
+  .d-flex.justify-content-start.border img {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Month display responsive */
+  .d-flex.justify-content-center.align-items-center.rounded-pill {
+    height: 40px !important;
+    padding: 2px 4px !important;
+  }
+  
+  .d-flex.justify-content-center.align-items-center.rounded-pill span {
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+  
+  /* Booking summary responsive */
+  .booking-logo-img {
+    height: 60px !important;
+    width: 100px !important;
+  }
+  
+  /* Club logo responsive */
+  .position-absolute[style*="top: 11px"] {
+    top: 3px !important;
+    left: 8% !important;
+  }
+  
+  .position-absolute[style*="top: 11px"] > div {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  /* Booking summary text responsive */
+  .booking-summary-item span {
+    font-size: 9px !important;
+  }
+  
+  /* Book now button responsive */
+  .book-now-button-container button {
+    width: 200px !important;
+    height: 45px !important;
+  }
+  
+  /* Custom heading responsive */
+  .custom-heading-use {
+    font-size: 14px !important;
+  }
+}
+
+/* Border end for all screens */
+.border-end {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+/* Remove border end on very small screens */
+@media (max-width: 480px) {
+  .border-end {
+    border-right: none !important;
+  }
+}
+
+/* Date scroll styling - only on mobile */
+@media (max-width: 768px) {
+  .d-flex.gap-1[style*="position: relative"] {
+    max-width: 100% !important;
+  }
+  
+  .d-flex.gap-1 > div {
+    overflow-x: auto !important;
+  }
+}
+
+/* Desktop - no scroll */
+@media (min-width: 769px) {
+  .d-flex.gap-1 > div {
+    overflow-x: hidden !important;
+  }
+}
+
 /* dataloader css */
 
+.arrow-shake-infinite {
+  animation: arrowShakeInfinite 0.8s ease-in-out infinite;
+}
+
+@keyframes arrowShakeInfinite {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(3px);
+  }
+}
+
+/* Hide scrollbars in mobile booking/payment sections */
+@media (max-width: 768px) {
+  .overflow-slot::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .overflow-slot {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Mobile Booking Summary Styles */
+.mobile-expanded-slots {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.mobile-expanded-slots.expanded {
+  max-height: 300px;
+  overflow: hidden;
+}
+
+/* Mobile slots scrollbar when more than 4 slots */
+.mobile-expanded-slots.expanded::-webkit-scrollbar {
+  width: 6px;
+  border-radius: 3px;
+}
+
+.mobile-expanded-slots.expanded::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  margin: 4px 0;
+}
+
+.mobile-expanded-slots.expanded::-webkit-scrollbar-thumb {
+  background: #ffffff;
+  border-radius: 3px;
+  border: 1px solid #001B76;
+}
+
+.mobile-expanded-slots.expanded::-webkit-scrollbar-thumb:hover {
+  background: #cccccc;
+}
+
+/* Firefox scrollbar */
+.mobile-expanded-slots {
+  scrollbar-color: #ffffff rgba(255, 255, 255, 0.2);
+  scrollbar-width: thin;
+}
+
+/* Mobile Payment Page Styles */
+@media (max-width: 991px) {
+  .mobile-payment-content {
+    padding-bottom: 200px !important;
+  }
+  
+  .mobile-payment-summary {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .mobile-payment-summary-container {
+    height: auto !important;
+    border-radius: 20px 20px 0 0 !important;
+    min-height: 80px !important;
+    max-height: 300px !important;
+    padding: 10px 0 5px 0 !important;
+  }
+  
+  /* Mobile Booking Page Styles */
+  .mobile-booking-content {
+    padding-bottom: 200px !important;
+  }
+  
+  .mobile-booking-summary {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .mobile-summary-container {
+    height: auto !important;
+    border-radius: 20px 20px 0 0 !important;
+    min-height: 80px !important;
+    max-height: 300px !important;
+    padding: 10px 0 5px 0 !important;
+  }
+  
+  /* Hide scrollbars but keep scroll functionality */
+  .mobile-expanded-slots::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .mobile-expanded-slots {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

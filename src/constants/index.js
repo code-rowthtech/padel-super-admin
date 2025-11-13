@@ -13,7 +13,7 @@ export const VALIDATION_RULES = {
 export const COMMON_STYLES = {
   INPUT: {
     borderRadius: "8px",
-    height: "50px",
+    height: "40px",
     boxShadow: "none"
   },
   BUTTON: {

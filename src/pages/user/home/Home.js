@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { home_banner, football, cricket, tennis2, batmintain, swiming } from '../../../assets/files';
+import { home_banner, football, cricket, tennis2, batmintain, swiming, bannerimg } from '../../../assets/files';
 import { LuClock4 } from "react-icons/lu";
 import StarIcon from '@mui/icons-material/Star';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
@@ -53,7 +53,51 @@ const Home = () => {
         }
     }, [clubData]);
 
+    const width = 370;
+    const height = 70;
+    const circleRadius = height * 0.3;
+    const curvedSectionStart = width * 0.76;
+    const curvedSectionEnd = width * 0.996;
+    const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.70 + 1;
+    const circleY = height * 0.5;
+    const arrowSize = circleRadius * 0.6;
+    const arrowX = circleX;
+    const arrowY = circleY;
+    const buttonStyle = {
+        position: "relative",
+        width: `${width}px`,
+        height: `${height}px`,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        padding: 0,
+        overflow: "visible",
+    };
 
+    const svgStyle = {
+        width: "100%",
+        height: "100%",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: 1,
+    };
+
+    const contentStyle = {
+        position: "relative",
+        zIndex: 2,
+        color: "#fff",
+        fontWeight: "600",
+        fontSize: "13px",
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        paddingRight: `${circleRadius * 2}px`,
+        fontFamily: "Poppins",
+        textDecoration:"none"
+    };
 
     useEffect(() => {
         const id = clubData._id || '';
@@ -124,13 +168,15 @@ const Home = () => {
     return (
         <>
             <div className="container px-0">
-                <div className="row g-4">
+                <div className="row g-4 px-3 px-md-0">
                     {/* Hero Section */}
-                    <div className="col-12 ps-md-0">
+                    <div className="col-12 ps-md-0 pt-0 mt-2 mt-md-4">
                         <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{ height: '100%' }}>
-                            <img src={home_banner} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover rounded-3" />
+                            <img src={home_banner} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover rounded-3 d-md-block d-none" />
+                            <img src={bannerimg} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover rounded-3 d-block d-md-none" />
+
                             <div
-                                className="position-absolute start-0 w-100 h-100 d-flex flex-column justify-content-center text-white p-5  pb-2 pt-0"
+                                className="position-absolute start-0 w-100 h-100 d-flex flex-column justify-content-center text-white p-md-5 px-3  pb-2 pt-0 topzero"
                                 style={{
                                     background: 'linear-gradient(269.34deg, rgba(158, 153, 153, 0) 0.57%, rgba(17, 24, 39, 0.5) 94.62%)', backgroundBlendMode: 'multiply',
                                     backgroundBlendMode: 'multiply',
@@ -138,11 +184,35 @@ const Home = () => {
                                 }}
                             >
                                 <h1 className="home-main-heading ">Your Game, <br />Your Court,<br />Just a Tap Away.</h1>
-                                <Link to="/booking" className="liquid-btn22 text-decoration-none rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center book-now-btn"
+                                <Link to="/booking" className="text-decoration-none rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center book-now-btn d-md-flex d-none"
                                     style={{ color: "#2043BA", fontWeight: "600", fontSize: "24px", minWidth: "200px", fontFamily: "Poppins", justifyContent: "center", width: "150px" }}>
                                     Book Now <FaArrowRight className='ms-2' />
-                                    <div className="liquid"></div>
                                 </Link>
+                                <style jsx>{`
+                                    .book-now-btn {
+                                        background: #ffffff;
+                                        position: relative;
+                                        overflow: hidden;
+                                    }
+                                    .book-now-btn::before {
+                                        content: '';
+                                        position: absolute;
+                                        top: 0;
+                                        left: -100%;
+                                        width: 100%;
+                                        height: 100%;
+                                        background: linear-gradient(90deg, transparent, rgba(32, 67, 186, 0.4), transparent);
+                                        animation: shimmer 2.5s infinite;
+                                    }
+                                    @keyframes shimmer {
+                                        0% {
+                                            left: -100%;
+                                        }
+                                        100% {
+                                            left: 100%;
+                                        }
+                                    }
+                                `}</style>
                             </div>
                         </div>
                     </div>
@@ -150,11 +220,11 @@ const Home = () => {
             </div>
 
             <div className="container  p-lg-0 rounded-3 home-second-banner" style={{ backgroundColor: "#F5F5F569", }}>
-                <div className="row position-relative align-items-stretch">
+                <div className="row position-relative align-items-stretch px-0 px-md-0">
 
                     {/* Left Column: Club Name, About, Address, and Timings */}
-                    <div className="col-lg-8 col-12  d-flex">
-                        <div className=" row  me-lg-2  pe-lg-3 bg-white  p-lg-2 flex-fill"
+                    <div className="col-lg-8 col-12  d-md-flex d-block ps-2 ps-md-0" >
+                        <div className=" row mx-2 ms-lg-0 me-lg-2  pe-lg-3 bg-white  p-lg-2 flex-fill"
                             style={{ border: "0.3px solid #858080ff", borderRadius: "20px", }}
                         >
                             <div className='col-lg-8 col-12 ' style={{
@@ -162,7 +232,7 @@ const Home = () => {
                                 borderImage: "linear-gradient(180deg,  rgba(255, 255, 255, 0) 0%, #002DC7 46.63%, rgba(255, 255, 255, 0) 94.23%)",
                                 borderImageSlice: 1,
                             }}>
-                                <div className="mb-4 pt-1   d-flex flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-3">
+                                <div className="mb-md-4 mb-2 pt-md-1 pt-3   d-flex flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-md-3 gap-1">
                                     <div className='mb-2 mt-lg-4 mb-lg-0 flex-shrink-0'>
                                         <Avatar>
                                             {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "User"}
@@ -248,18 +318,22 @@ const Home = () => {
 
                                 <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
                                     {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
-                                    <p className='' style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400" }}>
+                                    <p className='mb-2 mb-md-3 add_font_small_mobile' style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400" }}>
                                         {clubData?.clubName || "The Good Club"} {clubData?.description}
                                     </p>
-                                    <p style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400", margin: "0px" }}>Join the Padel community group on WhatsApp</p>
-                                    <a href="">https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
-                                    <p className='mt-4'><a href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
+                                    <p className='add_font_small_mobile' style={{ fontSize: "13px", fontFamily: "Poppins", fontWeight: "400", margin: "0px" }}>Join the Padel community group on WhatsApp</p>
+                                    <a href="" className='add_font_small_mobile'>https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt</a>
+                                    <p className='mt-md-4 mt-2 add_font_small_mobile'><a href="">https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic</a></p>
                                 </div>
                             </div>
 
                             <div className=" col-lg-4 col-12 ps-md-3 ">
-                                <div className="pt-4">
-
+                                <div className="pt-md-4 pt-0 px-4 px-md-0">
+                                    <div className='col-12 d-md-none d-flex align-items-center justify-content-center border_right_bottom'>
+                                        <h6 className='mb-2 add_font_heading_mobile'>
+                                            Open now   6 AM - 11 PM
+                                        </h6>
+                                    </div>
                                     {clubData?.businessHours?.length < 0 ? <div className='text-center py-5' style={{ fontFamily: "Poppins" }}>No Timing</div> : clubData?.businessHours?.map((day, idx) => (
                                         <div
                                             key={idx}
@@ -270,14 +344,42 @@ const Home = () => {
                                             <span>{day?.time || (idx === 2 ? "6:00 AM - 11:00 PM" : "6:00 AM - 10:00 PM")}</span>
                                         </div>
                                     ))}
-                                    <p className="mt-3 mb-0 text-center" style={{ fontWeight: "500", fontSize: "12px", fontFamily: "Poppins" }}>Time zone (India Standard Time)</p>
+                                    <p className="mt-3 mb-2 mb-md-0 text-center add_font_small_mobile" style={{ fontWeight: "500", fontSize: "12px", fontFamily: "Poppins" }}>Time zone (India Standard Time)</p>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div className='row p-2 mt-3 add_shadow_rounded mx-auto d-block d-md-none'>
+                        <div className="d-flex justify-content-center align-items-center px-0 ">
+                            <button style={{
+                                ...buttonStyle,
+                            }} className  >
+                                <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#001B76" />
+                                            <stop offset="50%" stopColor="#001B76" />
+                                            <stop offset="100%" stopColor="#001B76" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill={`url(#buttonGradient-${width}-${height})`} />
+                                    <circle cx={circleX} cy={circleY} r={circleRadius} fill="#fff" />
+                                    <g stroke="#001B76" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
+                                        <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
+                                        <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
+                                    </g>
+                                </svg>
+                                <Link to={"/booking"} style={contentStyle} >Book Now</Link>
+                            </button>
+
+
+                        </div>
+                    </div>
+
 
                     {/* Right Column: Upcoming Matches */}
-                    <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 ">
+                    <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-block d-none ">
                         <div className="text-white  position-relative h-100" style={{ background: 'linear-gradient(180deg, #0034E4 0%, #001B76 100%)', border: "2px solid #eceaeaff", borderRadius: "20px", height: "auto" }}>
                             <div className='pt-5 pb-1 px-3' style={{ padding: '2rem' }}>
                                 <button className="btn mb-3 rounded-pill text-white px-4 py-1" onClick={() => navigate('/open-matches')}
@@ -303,7 +405,7 @@ const Home = () => {
             </div>
 
             {/* Photos Gallery Section */}
-            <div className="mt-5 mb-5">
+            <div className="mt-md-5 mb-md-5 my-4">
                 <div className="position-relative">
                     <div className="overflow-hidden rounded-3">
                         <div
@@ -477,9 +579,34 @@ const Home = () => {
                     />
                 )}
             </div>
+            <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-none d-block px-1">
+                <div className="text-white  position-relative h-100" style={{ background: 'linear-gradient(180deg, #0034E4 0%, #001B76 100%)', border: "2px solid #eceaeaff", borderRadius: "20px", height: "auto" }}>
+                    <div className='pt-4 pb-4 px-3' style={{ padding: '2rem' }}>
+                        <button className="btn mb-0 rounded-pill text-white px-4 py-1" onClick={() => navigate('/open-matches')}
+                            style={{ border: "3px solid #FFFFFF", fontSize: "10px", fontFamily: "Poppins", fontWeight: "500" }}>
+                            Open Matches
+                        </button>
+                        <div className='d-flex align-items-center justify-content-between'>
+                            <div className=''>
+                                <h4 className="home-upcoming-heading mt-2 mb-0">Upcoming Open Matches</h4>
+                                <p className="mb-0 custom-title text-white" style={{ fontWeight: "400" }}>
+                                    Join open matches happening around you right now.
+                                </p>
+                            </div>
 
+                            <div className='text-start mb-0'>
+                                <Link to="/open-matches" className="text-decoration-none bg-white rounded-pill px-2 py-1 custom-title d-inline-flex align-items-center"
+                                    style={{ color: "#2043BA", fontWeight: "500", fontSize: "21px", minWidth: "94px", justifyContent: "center", fontFamily: "Poppins" }}>
+                                    View all <FaArrowRight className='ms-2' />
+                                </Link>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
             {/* Reviews Section */}
-            <div className="container my-5">
+            <div className="container my-md-5 mt-4 mb-0">
                 <h4
                     className="reviews-heading"
                     style={{
@@ -520,9 +647,9 @@ const Home = () => {
             <div div className="container" >
                 <div className="row">
                     <div className="col-12">
-                        <div className="mt-5 mb-5">
-                            <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "34px", color: "#1C1B1F" }}>Address</h4>
-                            <p
+                        <div className="my-md-5 my-4">
+                            <h4 className='font_heading_address' style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "34px", color: "#1C1B1F" }}>Address</h4>
+                            <p className='address_data'
                                 style={{
                                     fontSize: '16px',
                                     fontWeight: 500,

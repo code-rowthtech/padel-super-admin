@@ -112,15 +112,18 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     if (slotData.length > 0 && formData.selectedSlots) {
       setFormData((prev) => {
         const newPrices = { ...prev.prices };
-        newPrices[prev.selectedSlots] = {};
-
-        slotData.forEach((slot) => {
-          const time12hr = convertTo12HourFormat(slot.time);
-          newPrices[prev.selectedSlots][time12hr] = slot.amount?.toString() || "";
-        });
+        
+        // Only initialize if the slot type doesn't have prices yet
+        if (!newPrices[prev.selectedSlots] || Object.keys(newPrices[prev.selectedSlots]).length === 0) {
+          newPrices[prev.selectedSlots] = {};
+          slotData.forEach((slot) => {
+            const time12hr = convertTo12HourFormat(slot.time);
+            newPrices[prev.selectedSlots][time12hr] = slot.amount?.toString() || "";
+          });
+        }
 
         // Auto-select all slots for "All" category when selectAllChecked is true
-        if (selectAllChecked) {
+        if (selectAllChecked && (!newPrices.All || Object.keys(newPrices.All).length === 0)) {
           const timeSet = new Set();
           selectedDaySlots.forEach((slotDay) => {
             slotDay.slotTimes?.forEach((slot) => {
@@ -146,13 +149,13 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
   }, [formData.days]);
 
   const handleDayChange = (day) => {
-    const updatedDays = Object.keys(formData.days).reduce((acc, d) => {
-      acc[d] = d === day;
-      return acc;
-    }, {});
-
-    setFormData((prev) => ({ ...prev, days: updatedDays }));
-    setSelectAllChecked(false);
+    setFormData((prev) => ({
+      ...prev,
+      days: {
+        ...prev.days,
+        [day]: !prev.days[day]
+      }
+    }));
   };
 
   const handleSelectAllChange = (e) => {
@@ -491,7 +494,10 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       .flatMap(day => day.slotTimes || [])
       .map(slot => {
         const normalizedApiTime = normalizeTime(slot.time);
-        const priceValue = slotPrices[normalizedApiTime];
+        const time12hr = convertTo12HourFormat(slot.time);
+        
+        // Try both normalized time and 12hr format for price lookup
+        const priceValue = slotPrices[normalizedApiTime] || slotPrices[time12hr];
 
         // Convert number to string, then trim
         const priceStr = priceValue == null ? "" : String(priceValue).trim();

@@ -25,7 +25,7 @@ export const ReviewCard = ({ review }) => {
 
     return (
         <Card
-            className="p-4 ms-3 me-3 shadow-sm d-flex flex-column  justify-content-between"
+            className="p-md-4 p-4 mx-md-3 mx-0 shadow-sm d-flex flex-column  justify-content-between height_mention"
             style={{
                 borderRadius: "27px",
                 backgroundColor: "#012FCF26",
@@ -36,8 +36,8 @@ export const ReviewCard = ({ review }) => {
                 margin: "0"
             }}
         >
-            <div className="flex-grow-1 d-flex flex-column" style={{ paddingTop: "30px" }}>
-                <p className="text-start d-flex align-items-center justify-content-start mb-0 flex-grow-1"
+            <div className="flex-grow-1 d-flex flex-column padding_top_none" style={{ paddingTop: "30px" }}>
+                <p className="text-start d-flex align-items-center justify-content-start mb-md-0 mb-4 flex-grow-1 height_mention home-upcoming-heading"
                     style={{
                         fontSize: "19px",
                         color: "#000000",
@@ -55,7 +55,7 @@ export const ReviewCard = ({ review }) => {
                 </p>
             </div>
 
-            <div className="d-flex align-items-center mb-lg-5 mb-3 justify-content-between gap-3" style={{ marginTop: "5px" }}>
+            <div className="d-flex align-items-center mb-lg-4 mb-3 justify-content-between gap-3" style={{ marginTop: "5px" }}>
                     <img
                         src={
                             review?.avatar ||
@@ -69,26 +69,28 @@ export const ReviewCard = ({ review }) => {
                     <h6
                         style={{
                             margin: 0,
-                            fontSize: "23px",
+                            fontSize: "20px",
                             fontWeight: "600",
                             color: "#111827",
                             fontFamily:"Inter"
                         }}
+                        className="step-heading-data"
                     >
                         {review?.userId?.name?.charAt(0).toUpperCase() +
                             review?.userId?.name?.slice(1) || "Anonymous"}
                     </h6>
                     <div className="d-flex align-items-center">
                         {[...Array(fullStars)].map((_, i) => (
-                            <StarIcon key={i} style={{ fontSize: "30px", color: "#22C55E" }} />
+                            <StarIcon key={i} style={{ fontSize: "30px", color: "#22C55E" }} className="add_font_star" />
                         ))}
                         {hasHalfStar && (
-                            <StarHalfIcon style={{ fontSize: "30px", color: "#22C55E" }} />
+                            <StarHalfIcon style={{ fontSize: "30px", color: "#22C55E" }} className="add_font_star" />
                         )}
                         {[...Array(emptyStars)].map((_, i) => (
                             <MdOutlineStar
                                 key={i}
                                 style={{ fontSize: "30px", color: "#F5F5F5" }}
+                                className="add_font_star"
                             />
                         ))}
                     </div>

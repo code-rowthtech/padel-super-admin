@@ -795,9 +795,8 @@ const ManualBooking = () => {
                     0
                   ) >= 4 && (
                     <Button
-                      variant="outline-secondary"
                       size="sm"
-                      className="rounded-pill"
+                      className="rounded-pill border-0 text-primary bg-white"
                       onClick={clearSessionStorage}
                       style={{ fontSize: "12px", padding: "4px 10px" }}
                     >
@@ -805,7 +804,7 @@ const ManualBooking = () => {
                     </Button>
                   )}
                 </div>
-                <div
+                <div className={`${Object.keys(selectedSlots)?.length === 0 ? '' : 'bg-light'}`}
                   style={{
                     height: "26vh",
                     overflowY: "auto",
@@ -852,7 +851,7 @@ const ManualBooking = () => {
                             return (
                               <React.Fragment key={`${date}-${courtId}`}>
                                 {slots?.map((slot) => (
-                                  <div key={slot?._id} className="row mb-2">
+                                  <div key={slot?._id} className="row mb-2 pt-2 ps-2 ">
                                     <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                       <div className="d-flex" style={{ color: "#000000" }}>
                                         <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>

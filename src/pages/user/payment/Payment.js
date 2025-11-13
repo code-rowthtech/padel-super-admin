@@ -9,6 +9,7 @@ import { Button, Modal } from "react-bootstrap";
 import { booking_logo_img, success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdOutlineDeleteOutline } from "react-icons/md";
+import { MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown } from "react-icons/md";
 
 // Load PayPal SDK (kept if needed later)
 const loadPayPal = (callback) => {
@@ -51,6 +52,7 @@ const Payment = ({ className = "" }) => {
     const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
     const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
     const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
+    const [isExpanded, setIsExpanded] = useState(false);
 
 
 
@@ -332,7 +334,7 @@ const Payment = ({ className = "" }) => {
     return (
         <div className="container mt-lg-4 mb-3 px-3 px-md-4">
             <div className="row g-4">
-                <div className="col-12 col-lg-7">
+                <div className="col-12 col-lg-7 mobile-payment-content" style={{ paddingBottom: "200px" }}>
                     <div className="bg-white rounded">
                         {/* Info Section */}
                         <div
@@ -485,18 +487,17 @@ const Payment = ({ className = "" }) => {
                 </div>
 
                 {/* Booking Summary */}
-                <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0">
-                    <div className="border w-100    px-0 py-4 border-0" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
-                        <div className="d-flex mb-4 position-relative ">
+                <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-payment-summary">
+                    <div className="border w-100 px-0 py-4 border-0 mobile-payment-summary-container" style={{ borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                        {/* Desktop Logo/Address Section */}
+                        <div className="d-flex mb-4 position-relative d-none d-lg-flex">
                             <img src={booking_logo_img} className="booking-logo-img" alt="" />
-                            <div className="text-center ps-2 pe-2 mt-3">
+                            <div className="text-center ps-2 pe-1 mt-3">
                                 <p className="mt-2 mb-0 text-white" style={{ fontSize: "25px", fontWeight: "600", fontFamily: "Poppins" }}>{clubData?.clubName}</p>
-                                <p className=" mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.clubName} {clubData?.address} <br />  {clubData?.zipCode}</p>
-                                {/* {logo ? <Avatar src={logo} alt="User Profile" style={{ height: "112px", width: "112px", boxShadow: "0px 4px 11.4px 0px #0000002E" }} /> : <Avatar alt={clubData?.clubName?.charAt(0).toUpperCase() + clubData?.clubName?.slice(1)} style={{ height: "112px", width: "112px", fontSize: "30px", boxShadow: "0px 4px 11.4px 0px #0000002E" }}>{clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}</Avatar>} */}
+                                <p className=" mb-1 text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{clubData?.address} <br />  {clubData?.zipCode}</p>
                             </div>
                             <div className="position-absolute" style={{ top: "11px", left: "17.5%" }}>
                                 {logo ? (
-
                                     <div
                                         style={{
                                             width: "120px",
@@ -539,68 +540,168 @@ const Payment = ({ className = "" }) => {
                                 )}
                             </div>
                         </div>
-                        <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
-                            <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
-                        </div>
-                        <div
-                            className="px-3"
-                            style={{
-                                maxHeight: "250px",
-                                overflowY: "auto",
-                                overflowX: "hidden",
-                                paddingRight: "16px",
-                                marginRight: "8px",
-                            }}
-                        >
-                            <style jsx>{`
-                   div::-webkit-scrollbar {
-                     width: 8px;
-                     border-radius : 3px;
-                   }
-                   div::-webkit-scrollbar-track {
-                     background: #F5F5F5;
-                     border-radius: 3px;
-                   }
-                   div::-webkit-scrollbar-thumb {
-                     background:  #626262;
-                     
-                   }
-                   div::-webkit-scrollbar-thumb:hover {
-                     background: #626262;
-                   }
-                 `}</style>
-                            <div className="div " style={{ height: "25vh" }}>
-                                {selectedCourts.length > 0 ? (
-                                    selectedCourts.map((court, index) =>
-                                        court.time.map((timeSlot, timeIndex) => (
-                                            <div key={`${index}-${timeIndex}`} className="row mb-2" >
-                                                <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
-                                                    <div className="d-flex text-white">
-                                                        <p style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
-                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
-                                                        </p>
-                                                        <p className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
-                                                            {formatTime(timeSlot.time)}
-                                                        </p>
-                                                        <p className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</p>
+
+                        {/* Desktop Booking Summary */}
+                        <div className="d-none d-lg-block">
+                            <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
+                                <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
+                            </div>
+                            <div className="px-3">
+                                <style jsx>{`
+                       .slots-container::-webkit-scrollbar {
+                         width: 8px;
+                         border-radius : 3px;
+                       }
+                       .slots-container::-webkit-scrollbar-track {
+                         background: #F5F5F5;
+                         border-radius: 3px;
+                       }
+                       .slots-container::-webkit-scrollbar-thumb {
+                         background:  #626262;
+                         
+                       }
+                       .slots-container::-webkit-scrollbar-thumb:hover {
+                         background: #626262;
+                       }
+                     `}</style>
+                                <div
+                                    className="slots-container"
+                                    style={{
+                                        maxHeight: totalSlots > 4 ? "200px" : "auto",
+                                        overflowY: totalSlots > 4 ? "auto" : "visible",
+                                        overflowX: "hidden",
+                                        paddingRight: "8px",
+                                    }}
+                                >
+                                    {selectedCourts.length > 0 ? (
+                                        selectedCourts.map((court, index) =>
+                                            court.time.map((timeSlot, timeIndex) => (
+                                                <div key={`${index}-${timeIndex}`} className="row mb-2">
+                                                    <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                                                        <div className="d-flex text-white">
+                                                            <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                                {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                            </span>
+                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "16px" }}>
+                                                                {formatTime(timeSlot.time)}
+                                                            </span>
+                                                            <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
+                                                        </div>
+                                                        <div className="text-white">
+                                                            ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
+                                                            <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
+                                                        </div>
                                                     </div>
-                                                    <div className="text-white">
-                                                        ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
-                                                        <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
+                                                </div>
+                                            ))
+                                        )
+                                    ) : (
+                                        <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
+                                            <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Mobile Booking Summary - Updated */}
+                        <div className="d-lg-none">
+                            <div className={`mobile-expanded-slots ${isExpanded ? 'expanded' : ''}`} style={{ maxHeight: isExpanded ? "200px" : "0", overflow: isExpanded ? "auto" : "hidden", transition: "max-height 0.3s ease" }}>
+
+                                <style jsx>{`
+                                    /* Webkit Browsers (Chrome, Safari, Edge) */
+                                    .mobile-expanded-slots.expanded::-webkit-scrollbar {
+                                        width: 6px;
+                                        border-radius: 3px;
+                                    }
+                                    .mobile-expanded-slots.expanded::-webkit-scrollbar-track {
+                                        background: rgba(255, 255, 255, 0.2);
+                                        border-radius: 3px;
+                                        margin: 4px 0;
+                                    }
+                                    .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb {
+                                        background: #ffffff;
+                                        border-radius: 3px;
+                                        border: 1px solid #001B76;
+                                    }
+                                    .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb:hover {
+                                        background: #cccccc;
+                                    }
+
+                                    /* Firefox */
+                                    .mobile-expanded-slots {
+                                        scrollbar-color: #ffffff rgba(255, 255, 255, 0.2);
+                                        scrollbar-width: thin;
+                                    }
+                                `}</style>
+
+                                {localSelectedCourts.length > 0 ? (
+                                    localSelectedCourts.map((court, index) =>
+                                        court.time.map((timeSlot, timeIndex) => (
+                                            <div key={`${index}-${timeIndex}`} className="px-3 py-2 border-bottom border-light" style={{
+                                                maxHeight: isExpanded ? (localTotalSlots > 2 ? "180px" : "auto") : "0",
+                                                overflowY: localTotalSlots > 2 && isExpanded ? "auto" : "hidden",
+                                            }}>
+                                                <div className="d-flex justify-content-between align-items-center text-white">
+                                                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "12px" }}>
+                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })} ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                        </span>
+                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "12px" }}>
+                                                            {formatTime(timeSlot.time)}
+                                                        </span>
+                                                        <span style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "11px" }}>{court.courtName}</span>
+                                                    </div>
+                                                    <div className="d-flex align-items-center gap-2">
+                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>₹{timeSlot.amount || "N/A"}</span>
+                                                        <MdOutlineDeleteOutline
+                                                            className="text-white"
+                                                            style={{ cursor: "pointer", fontSize: "16px" }}
+                                                            onClick={() => handleDeleteSlot(index, timeIndex)}
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
                                         ))
                                     )
                                 ) : (
-                                    <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
-                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
+                                    <div className="d-flex justify-content-center align-items-center text-white py-4">
+                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", margin: 0 }}>No slot selected</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Expand/Collapse Arrow */}
+                            <div className="border-top px-3 pt-2">
+                                <div className="d-flex justify-content-center align-items-center mb-2">
+                                    <div
+                                        className="text-white d-flex align-items-center justify-content-center"
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => setIsExpanded(!isExpanded)}
+                                    >
+                                        {isExpanded ? (
+                                            <MdKeyboardDoubleArrowUp className="arrow-shake-infinite" size={24} />
+                                        ) : (
+                                            <MdKeyboardDoubleArrowDown className="arrow-shake-infinite" size={24} />
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Total */}
+                                {localTotalSlots > 0 && (
+                                    <div className="d-flex justify-content-between align-items-center text-white">
+                                        <div className="d-flex flex-column">
+                                            <span style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>Total to Pay</span>
+                                            <span style={{ fontSize: "13px", fontWeight: "500", fontFamily: "Poppins" }}>Total slots {localTotalSlots}</span>
+                                        </div>
+                                        <span style={{ fontSize: "25px", fontWeight: "600", fontFamily: "Poppins" }}>₹ {localGrandTotal}</span>
                                     </div>
                                 )}
                             </div>
                         </div>
+                        {/* Desktop Total Section */}
                         {totalSlots > 0 && (
-                            <div className="border-top pt-3 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden", height: "10vh" }}>
+                            <div className="d-none d-lg-flex border-top pt-3 px-3 mt-2 text-white justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden", height: "10vh" }}>
                                 <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
                                     Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
                                 </p>
