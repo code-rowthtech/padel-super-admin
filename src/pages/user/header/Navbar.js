@@ -1,7 +1,7 @@
 import { logo } from '../../../assets/files';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Dropdown, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle, FaBars, FaBell } from 'react-icons/fa';
+import { Dropdown, OverlayTrigger, Tooltip, Offcanvas } from 'react-bootstrap';
+import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle, FaBars, FaBell, FaTimes } from 'react-icons/fa';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
@@ -21,12 +21,13 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import updateLocale from "dayjs/plugin/updateLocale";
 import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from '../../../redux/user/notifiction/thunk';
-
+import {clearall} from '../../../assets/files'
 const SOCKET_URL = config.API_URL;
 const Navbar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
+    const [showOffcanvas, setShowOffcanvas] = useState(false);
     const [openNoteId, setOpenNoteId] = useState(null);
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
@@ -228,110 +229,96 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="navbar navbar-expand-lg fixed-top bg-white py-2">
-            <div className="container  px-0 p-0 py-1">
-                {/* Logo */}
-                <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand">
-                    {logo ? (
-                        <div
-                            style={{
-                                width: "50px",
-                                height: "50px",
-                                borderRadius: "50%",
-                                overflow: "hidden",
-                                border: "1px solid #ddd", // optional
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: "#f9f9f9",
-                            }}
-                        >
+        <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0">
+            <div className="container py-1">
+                <div className="d-flex justify-content-between align-items-center w-100 px-2 px-md-0">
+                    {/* Logo */}
+                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white navbar-brand">
+                        {logo ?
                             <img
                                 src={logo}
                                 alt="User Profile"
+                                className='rounded-circle'
                                 style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    backgroundSize: "cover",
+                                    width: "50px",
+                                    height: "50px",
+                                    objectFit: "cover",
+                                    imageRendering: "auto",
+                                    padding: "0px"
                                 }}
                             />
-                        </div>
-                    ) : (
-                        <Avatar
-                            style={{
-                                width: "50px",
-                                height: "50px",
-                                borderRadius: "50%",
-                                fontSize: "20px",
-                                backgroundColor: "#ccc",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
-                        </Avatar>
-                    )}
+                            :
+                            <Avatar>
+                                {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                            </Avatar>
+                        }
+                    </Link>
 
-                    <h4 className='text-dark m-0 ps-2' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
-                </Link>
+                    {/* Navigation links - Hidden on mobile */}
+                    <div className="mx-auto d-none d-lg-flex">
+                        <ul className="navbar-nav ps-md-5 ps-0 ms-md-5 ms-0 mb-2 mb-lg-0 gap-md-5">
+                            <li className="nav-item">
+                                <NavLink
+                                    to="/home"
+                                    className={`nav-link`}
+                                    style={({ isActive }) => ({
+                                        color: isActive ? '#1F41BB' : '#374151',
+                                        textDecoration: 'none',
+                                    })}
+                                >
+                                    Home
+                                </NavLink>
+                            </li>
+                            <li className="nav-item">
+                                <NavLink
+                                    to="/booking"
+                                    className={`nav-link`}
+                                    style={({ isActive }) => ({
+                                        color: isActive ? '#1F41BB' : '#374151',
+                                        textDecoration: 'none',
+                                    })}
+                                >
+                                    Booking
+                                </NavLink>
+                            </li>
+                            <li className="nav-item">
+                                <NavLink
+                                    to="/open-matches"
+                                    className={`nav-link`}
+                                    style={({ isActive }) => ({
+                                        color: isActive ? '#1F41BB' : '#374151',
+                                        textDecoration: 'none',
+                                    })}
+                                >
+                                    Open Matches
+                                </NavLink>
+                            </li>
+                            <li className="nav-item">
+                                <NavLink
+                                    to="/americano"
+                                    className='nav-link'
+                                    style={({ isActive }) => ({
+                                        color: isActive ? '#1F41BB' : '#374151',
+                                        textDecoration: 'none',
+                                    })}
+                                >
+                                    Americanos
+                                </NavLink>
+                            </li>
+                        </ul>
+                    </div>
 
-                {/* Navigation links - Hidden on mobile */}
-                <div className="d-none mx-auto d-lg-flex">
-                    <ul className="navbar-nav ps-md-5 ps-0 ms-md-5  ms-0 mb-2 mb-lg-0 gap-md-5">
-                        <li className="nav-item">
-                            <NavLink
-                                to="/home"
-                                className={`nav-link`}
-                                style={({ isActive }) => ({
-                                    color: isActive ? '#1F41BB' : '#374151',
-                                    textDecoration: 'none',
-                                })}
-                            >
-                                Home
-                            </NavLink>
-                        </li>
-                        <li className="nav-item">
-                            <NavLink
-                                to="/booking"
-                                className={`nav-link`}
-                                style={({ isActive }) => ({
-                                    color: isActive ? '#1F41BB' : '#374151',
-                                    textDecoration: 'none',
-                                })}
-                            >
-                                Booking
-                            </NavLink>
-                        </li>
-                        <li className="nav-item">
-                            <NavLink
-                                to="/open-matches"
-                                className={`nav-link`}
-                                style={({ isActive }) => ({
-                                    color: isActive ? '#1F41BB' : '#374151',
-                                    textDecoration: 'none',
-                                })}
-                            >
-                                Open Matches
-                            </NavLink>
-                        </li>
-                        <li className="nav-item">
-                            <NavLink
-                                to="/americano"
-                                className='nav-link'
-                                style={({ isActive }) => ({
-                                    color: isActive ? '#1F41BB' : '#374151',
-                                    textDecoration: 'none',
-                                })}
-                            >
-                                Americanos
-                            </NavLink>
-                        </li>
-                    </ul>
-                </div>
+                    {/* Mobile Menu Toggle */}
+                    <button 
+                        className="btn d-lg-none p-0 border-0 bg-transparent"
+                        onClick={() => setShowOffcanvas(true)}
+                    >
+                        {/* <FaBars size={24} className="text-dark" /> */}
+                        <img src={clearall} alt='' style={{width:"25px",height:"15px"}}/>
+                    </button>
 
-                {/* Profile Section */}
-                <div className="d-flex gap-3 align-items-center">
+                    {/* Profile Section - Desktop only */}
+                    <div className="d-none d-lg-flex gap-3 align-items-center">
 
                     {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
                         <>
@@ -483,11 +470,8 @@ const Navbar = () => {
                                     variant="white"
                                     className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
                                 >
-                                    {/* Menu icon for small screens */}
-                                    <FaBars size={24} className="text-dark d-lg-none" />
-
-                                    {/* Profile for large screens */}
-                                    <div className="d-none d-lg-flex align-items-center gap-2">
+                                    {/* Profile for all screens */}
+                                    <div className="d-flex align-items-center gap-2">
                                         <img
                                             src={User?.user?.response?.profilePic || userData?.profilePic || initialFormData?.profileImage || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                             alt="user"
@@ -496,7 +480,7 @@ const Navbar = () => {
                                             height="40"
                                             loading="lazy"
                                         />
-                                        <div className="text-start">
+                                        <div className="text-start d-none d-lg-block">
                                             <div className="fw-semibold">
                                                 {userData?.name
                                                     ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
@@ -505,28 +489,11 @@ const Navbar = () => {
                                             </div>
                                             <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
                                         </div>
-                                        <FaChevronDown className="ms-2 text-muted" />
+                                        <FaChevronDown className="ms-2 text-muted d-none d-lg-block" />
                                     </div>
                                 </Dropdown.Toggle>
 
-                                <Dropdown.Menu className="table-data mt-2  border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
-                                    {/* Navigation items - visible on mobile */}
-                                    <div className="d-lg-none">
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/home">
-                                            <span className="me-2">🏠</span> Home
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking">
-                                            <span className="me-2">📅</span> Booking
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/open-matches">
-                                            <MdSportsTennis size={20} style={{ minWidth: "24px" }} className="me-2" /> Open Matches
-                                        </Dropdown.Item>
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/americano">
-                                            <PiRanking size={20} style={{ minWidth: "24px" }} className="me-2" /> Americano
-                                        </Dropdown.Item>
-                                        <hr className="my-2" />
-                                    </div>
-
+                                <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
                                     <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
                                         <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
                                     </Dropdown.Item>
@@ -566,8 +533,200 @@ const Navbar = () => {
                             </button>
                         </Link>
                     )}
+                    </div>
                 </div>
             </div>
+
+            {/* Mobile Offcanvas Menu */}
+            <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end" className="border-0 w-auto ">
+                <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2">
+                    <Offcanvas.Title className="d-flex align-items-center gap-3">
+                        {logo ?
+                            <img
+                                src={logo}
+                                alt="Logo"
+                                className='rounded-circle'
+                                style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    objectFit: "cover",
+                                }}
+                            />
+                            :
+                            <Avatar sx={{ width: 40, height: 40 }}>
+                                {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                            </Avatar>
+                        }
+                    </Offcanvas.Title>
+                    <button 
+                        className="btn p-0 border-0 bg-transparent"
+                        onClick={() => setShowOffcanvas(false)}
+                    >
+                        <FaTimes size={20} />
+                    </button>
+                </Offcanvas.Header>
+                <Offcanvas.Body className="p-0">
+                    <div className="d-flex flex-column h-100">
+                        {/* Navigation Links */}
+                        <div className="flex-grow-1">
+                            <NavLink
+                                to="/home"
+                                className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
+                                style={({ isActive }) => ({
+                                    color: isActive ? '#1F41BB' : '#374151',
+                                    backgroundColor: isActive ? '#f8f9fa' : 'transparent'
+                                })}
+                                onClick={() => setShowOffcanvas(false)}
+                            >
+                                <span className="me-3">🏠</span>
+                                <span>Home</span>
+                            </NavLink>
+                            
+                            <NavLink
+                                to="/booking"
+                                className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
+                                style={({ isActive }) => ({
+                                    color: isActive ? '#1F41BB' : '#374151',
+                                    backgroundColor: isActive ? '#f8f9fa' : 'transparent'
+                                })}
+                                onClick={() => setShowOffcanvas(false)}
+                            >
+                                <span className="me-3">📅</span>
+                                <span>Booking</span>
+                            </NavLink>
+                            
+                            <NavLink
+                                to="/open-matches"
+                                className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
+                                style={({ isActive }) => ({
+                                    color: isActive ? '#1F41BB' : '#374151',
+                                    backgroundColor: isActive ? '#f8f9fa' : 'transparent'
+                                })}
+                                onClick={() => setShowOffcanvas(false)}
+                            >
+                                <MdSportsTennis size={20} className="me-3" />
+                                <span>Open Matches</span>
+                            </NavLink>
+                            
+                            <NavLink
+                                to="/americano"
+                                className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
+                                style={({ isActive }) => ({
+                                    color: isActive ? '#1F41BB' : '#374151',
+                                    backgroundColor: isActive ? '#f8f9fa' : 'transparent'
+                                })}
+                                onClick={() => setShowOffcanvas(false)}
+                            >
+                                <PiRanking size={20} className="me-3" />
+                                <span>Americanos</span>
+                            </NavLink>
+
+                            {/* User Menu Items */}
+                            {(store?.user?.status === '200' || token || store?.user?.status === 200) && (
+                                <>
+                                    <div className="px-4 py-2 bg-light border-bottom">
+                                        <small className="text-muted fw-semibold">ACCOUNT</small>
+                                    </div>
+                                    
+                                    <NavLink
+                                        to="/user-profile"
+                                        className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
+                                        style={({ isActive }) => ({
+                                            color: isActive ? '#1F41BB' : '#374151',
+                                            backgroundColor: isActive ? '#f8f9fa' : 'transparent'
+                                        })}
+                                        onClick={() => setShowOffcanvas(false)}
+                                    >
+                                        <FaRegUserCircle size={20} className="me-3" />
+                                        <span>Profile</span>
+                                    </NavLink>
+                                    
+                                    <NavLink
+                                        to="/booking-history"
+                                        className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
+                                        style={({ isActive }) => ({
+                                            color: isActive ? '#1F41BB' : '#374151',
+                                            backgroundColor: isActive ? '#f8f9fa' : 'transparent'
+                                        })}
+                                        onClick={() => setShowOffcanvas(false)}
+                                    >
+                                        <MdOutlineDateRange size={20} className="me-3" />
+                                        <span>My Booking</span>
+                                    </NavLink>
+                                    
+                                    <NavLink
+                                        to="/support"
+                                        className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
+                                        style={({ isActive }) => ({
+                                            color: isActive ? '#1F41BB' : '#374151',
+                                            backgroundColor: isActive ? '#f8f9fa' : 'transparent'
+                                        })}
+                                        onClick={() => setShowOffcanvas(false)}
+                                    >
+                                        <FaHeadphones size={20} className="me-3" />
+                                        <span>Help & Support</span>
+                                    </NavLink>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Bottom Section */}
+                        <div className="border-top">
+                            {(store?.user?.status === '200' || token || store?.user?.status === 200) ? (
+                                <>
+                                    {/* User Info */}
+                                    <div className="px-4 py-3 border-bottom">
+                                        <div className="d-flex align-items-center gap-3">
+                                            <img
+                                                src={User?.user?.response?.profilePic || userData?.profilePic || initialFormData?.profileImage || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                                alt="user"
+                                                className="rounded-circle"
+                                                width="50"
+                                                height="50"
+                                                loading="lazy"
+                                            />
+                                            <div>
+                                                <div className="fw-semibold">
+                                                    {userData?.name
+                                                        ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
+                                                        : initialFormData?.fullName || 'User'}
+                                                </div>
+                                                <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Logout */}
+                                    <button
+                                        className="btn w-100 d-flex align-items-center px-4 py-3 text-start border-0 bg-transparent"
+                                        style={{ color: '#dc3545' }}
+                                        onClick={() => {
+                                            dispatch(logoutUser());
+                                            localStorage.removeItem('padel_user');
+                                            localStorage.removeItem('logo');
+                                            localStorage.removeItem('updateprofile');
+                                            setUserData(null);
+                                            setShowOffcanvas(false);
+                                            navigate('/home');
+                                        }}
+                                    >
+                                        <IoIosLogOut size={20} className="me-3" />
+                                        <span>Logout</span>
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="p-4">
+                                    <Link to="/login" className="text-decoration-none" onClick={() => setShowOffcanvas(false)}>
+                                        <button className="btn text-white fw-semibold w-100 rounded-pill w-100 login-btn">
+                                            Login
+                                        </button>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </Offcanvas.Body>
+            </Offcanvas>
         </nav>
     );
 };

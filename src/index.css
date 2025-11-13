@@ -744,7 +744,7 @@ h1.display-5 {
   font-family: "Poppins";
   height: 45px;
   width: 138px;
-  background: #3dbe64;
+  background: #3dbe64!important;
 }
 
 .nav-item {
@@ -815,7 +815,7 @@ h1.display-5 {
   color: #374151 !important;
 }
 
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .auth-wrapper {
     padding: 1rem;
   }
