@@ -510,9 +510,9 @@ const Booking = ({ className = "" }) => {
                     </div>
                 </div>
             </div>
-            <div className="container mb-5 pt-3 pt-lg-0 px-4">
+            <div className="container mb-5 pt-3 pt-lg-0 px-lg-4">
                 <div className="row g-4">
-                    <div className="col-lg-7 col-12 py-4 rounded-3 px-4 mobile-booking-content" >
+                    <div className="col-lg-7 col-12 py-4 rounded-3 px-lg-4 mobile-booking-content" >
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <div className="custom-heading-use text-nowrap">
                                 Select Date
@@ -610,7 +610,7 @@ const Booking = ({ className = "" }) => {
                                 )}
                             </div>
                             <div
-                                className="d-flex   justify-content-center align-items-center rounded-pill  mb-3"
+                                className="d-flex calendar-day-btn   justify-content-center align-items-center rounded-3  mb-3"
                                 style={{
                                     backgroundColor: "#f3f3f5",
                                     height: "58px",
@@ -634,8 +634,8 @@ const Booking = ({ className = "" }) => {
                                 </span>
                             </div>
                             <div className="d-flex gap-1 " style={{ position: "relative", maxWidth: "86%" }}>
-                                <button className="btn p-2 border-0 d-none d-md-block" style={{ position: "absolute", left: '-21%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
-                                <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+                                <button className="btn p-2 border-0 d-none d-md-block" style={{ position: "absolute", left: '-23%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
+                                <div ref={scrollRef} className="d-flex gap-1 date-scroll-container" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
                                         const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
@@ -782,7 +782,7 @@ const Booking = ({ className = "" }) => {
                                                     return (
                                                         <div key={court._id} className="row mb-3 align-items-start">
                                                             <div className="col-3 border-end mb-2 mb-md-0">
-                                                                <div className="court-item p-2 ps-0 ps-md-1 text-center h-100" style={{ minHeight: "60px" }}>
+                                                                <div className="court-item p-1 ps-0 ps-md-1 text-center h-100" style={{ minHeight: "50px" }}>
                                                                     <div className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{court?.courtName}</div>
                                                                     <p
                                                                         className="text-muted mb-0"
@@ -992,8 +992,31 @@ const Booking = ({ className = "" }) => {
                                         </div>
                                     )}
                                 </div>
-                                <div className="div d-lg-none px-2 mobile-slots-container">
-                                    <div className={`mobile-expanded-slots ${isExpanded ? 'expanded' : ''}`} style={{ maxHeight: isExpanded ? "200px" : "0", overflow: isExpanded ? "auto" : "hidden", transition: "max-height 0.3s ease" }}>
+                                <div className="div d-lg-none px-2 border-bottom mobile-slots-container">
+                                    <div className={`mobile-expanded-slots ${isExpanded ? 'expanded' : ''}`} style={{ 
+                                        maxHeight: isExpanded ? (totalSlots > 2 ? "140px" : "auto") : "0", 
+                                        overflowY: totalSlots > 2 && isExpanded ? "auto" : "hidden",
+                                        transition: "max-height 0.3s ease",
+                                    }}>
+                                        <style jsx>{`
+                                            .mobile-expanded-slots.expanded::-webkit-scrollbar {
+                                                width: 6px;
+                                                border-radius: 3px;
+                                            }
+                                            .mobile-expanded-slots.expanded::-webkit-scrollbar-track {
+                                                background: rgba(255, 255, 255, 0.2);
+                                                border-radius: 3px;
+                                                margin: 4px 0;
+                                            }
+                                            .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb {
+                                                background: #ffffff;
+                                                border-radius: 3px;
+                                                border: 1px solid #001B76;
+                                            }
+                                            .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb:hover {
+                                                background: #cccccc;
+                                            }
+                                        `}</style>
                                         {selectedCourts.length > 0 && selectedCourts.map((court, index) =>
                                             court.time.map((timeSlot, timeIndex) => (
                                                 <div key={`${index}-${timeIndex}`} className="row mb-1" >
@@ -1008,7 +1031,7 @@ const Booking = ({ className = "" }) => {
                                                             <span className="ps-1" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "10px" }}>{court.courtName}</span>
                                                         </div>
                                                         <div className="text-white">
-                                                            ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "11px" }}>{timeSlot.amount || "N/A"}</span>
+                                                            <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "11px" }}>₹ {timeSlot.amount || "N/A"}</span>
                                                             <MdOutlineDeleteOutline className="ms-1 text-white" style={{ cursor: "pointer", fontSize: "14px" }} onClick={() => handleDeleteSlot(court._id, court.date, timeSlot._id)} />
                                                         </div>
                                                     </div>

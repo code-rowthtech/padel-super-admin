@@ -1226,18 +1226,37 @@ border-top-right-radius: 20px;
 
 /* date scroll css */
 .overflow-auto::-webkit-scrollbar {
-  height: 8px;
-  margin: 20px 0px;
+  height: 4px;
+  margin: 10px 0px;
 }
 
 .overflow-auto::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .overflow-auto::-webkit-scrollbar-thumb {
   background: #c9c8c8ff;
-  border-radius: 4px;
+  border-radius: 2px;
+}
+
+/* Date scroll container specific styling */
+.date-scroll-container::-webkit-scrollbar {
+  height: 2px;
+}
+
+.date-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.date-scroll-container::-webkit-scrollbar-thumb {
+  background: #c9c8c8ff;
+  border-radius: 1px;
+}
+
+.date-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #c9c8c8ff transparent;
 }
 
 .overflow-slot::-webkit-scrollbar {
@@ -2127,18 +2146,18 @@ border-top-right-radius: 20px;
   
   /* Court alignment and sizing for mobile */
   .court-item {
-    min-height: 35px !important;
-    padding: 3px !important;
+    min-height: 40px !important;
+    padding: 4px !important;
   }
   
   .court-item div {
-    font-size: 9px !important;
-    line-height: 1.1 !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
   }
   
   .court-item p {
-    font-size: 7px !important;
-    line-height: 1 !important;
+    font-size: 8px !important;
+    line-height: 1.1 !important;
   }
   
   /* Headers responsive */
@@ -2301,6 +2320,34 @@ border-top-right-radius: 20px;
 .mobile-expanded-slots.expanded {
   max-height: 300px;
   overflow: hidden;
+}
+
+/* Mobile slots scrollbar when more than 4 slots */
+.mobile-expanded-slots.expanded::-webkit-scrollbar {
+  width: 6px;
+  border-radius: 3px;
+}
+
+.mobile-expanded-slots.expanded::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  margin: 4px 0;
+}
+
+.mobile-expanded-slots.expanded::-webkit-scrollbar-thumb {
+  background: #ffffff;
+  border-radius: 3px;
+  border: 1px solid #001B76;
+}
+
+.mobile-expanded-slots.expanded::-webkit-scrollbar-thumb:hover {
+  background: #cccccc;
+}
+
+/* Firefox scrollbar */
+.mobile-expanded-slots {
+  scrollbar-color: #ffffff rgba(255, 255, 255, 0.2);
+  scrollbar-width: thin;
 }
 
 /* Mobile Payment Page Styles */
