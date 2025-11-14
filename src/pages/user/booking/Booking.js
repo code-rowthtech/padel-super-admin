@@ -619,7 +619,7 @@ const Booking = ({ className = "" }) => {
                             >
                                 <span
                                     style={{
-                                        fontSize: "14px",
+                                        fontSize: window.innerWidth <= 768 ? "12px" : "14px",
                                         fontWeight: "500",
                                         whiteSpace: "pre-line",
                                         textAlign: "center",
@@ -781,8 +781,8 @@ const Booking = ({ className = "" }) => {
 
                                                     return (
                                                         <div key={court._id} className="row mb-3 align-items-start">
-                                                            <div className="col-3 border-end mb-2 mb-md-0">
-                                                                <div className="court-item p-1 ps-0 ps-md-1 text-center h-100" style={{ minHeight: "50px" }}>
+                                                            <div className="col-lg-3 col-12 border-end mb-2 mb-md-0">
+                                                                <div className="court-item p-1 ps-0 ps-md-1  text-start h-100" style={{ minHeight: "50px" }}>
                                                                     <div className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{court?.courtName}</div>
                                                                     <p
                                                                         className="text-muted mb-0"
@@ -796,7 +796,7 @@ const Booking = ({ className = "" }) => {
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                            <div className="col-9">
+                                                            <div className="col-lg-9 col-12">
                                                                 <div className="row g-1">
                                                                     {filteredSlots.map((slot, i) => {
                                                                         const isSelected = selectedTimes[court._id]?.[selectedDate.fullDate]?.some(
@@ -992,7 +992,7 @@ const Booking = ({ className = "" }) => {
                                         </div>
                                     )}
                                 </div>
-                                <div className="div d-lg-none px-2 border-bottom mobile-slots-container">
+                                <div className={`div d-lg-none px-2 ${isExpanded ? 'mobile-slots-container' : ''} `}>
                                     <div className={`mobile-expanded-slots ${isExpanded ? 'expanded' : ''}`} style={{ 
                                         maxHeight: isExpanded ? (totalSlots > 2 ? "140px" : "auto") : "0", 
                                         overflowY: totalSlots > 2 && isExpanded ? "auto" : "hidden",
@@ -1045,7 +1045,7 @@ const Booking = ({ className = "" }) => {
                                 <>
                                     <div className="d-lg-none py-0">
                                         <div
-                                            className="d-flex justify-content-between align-items-center px-3"
+                                            className={`d-flex justify-content-between ${isExpanded ? 'border-top' : ''}  align-items-center px-3`}
                                             onClick={() => setIsExpanded(!isExpanded)}
                                             style={{ cursor: "pointer" }}
                                         >

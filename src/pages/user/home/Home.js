@@ -170,7 +170,7 @@ const Home = () => {
             <div className="container px-0">
                 <div className="row g-4 px-3 px-md-0">
                     {/* Hero Section */}
-                    <div className="col-12 ps-md-0 pt-0 mt-2 mt-md-4">
+                    <div className="col-12 ps-md-0 pt-0 mt-3 mt-md-4">
                         <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{ height: '100%' }}>
                             <img src={home_banner} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover rounded-3 d-md-block d-none" />
                             <img src={bannerimg} alt="Paddle" className="img-fluid w-100 h-100 object-fit-cover rounded-3 d-block d-md-none" />

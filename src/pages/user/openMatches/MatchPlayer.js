@@ -431,7 +431,7 @@ const MatchPlayer = ({
 
                 {/* Information */}
                 <h6 className="mb-3 mt-4" style={{ fontSize: "18px", fontWeight: 600 }}>Information</h6>
-                <div className="d-flex justify-content-evenly">
+                <div className="d-lg-flex justify-content-evenly">
                     <div className="d-flex mb-4 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
                         <div>

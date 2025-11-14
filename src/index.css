@@ -2056,8 +2056,9 @@ border-top-right-radius: 20px;
   
   /* Mobile slots container */
   .mobile-slots-container {
-    max-height: 120px !important;
+    height: 140px !important;
     overflow: visible !important;
+    transition: all 0.5s ease-in;
   }
   
   .mobile-slots-list {
@@ -2397,12 +2398,37 @@ border-top-right-radius: 20px;
     padding: 10px 0 5px 0 !important;
   }
   
+  /* Mobile Create Matches Page Styles */
+  .mobile-create-matches-content {
+    padding-bottom: 200px !important;
+  }
+  
+  .mobile-create-matches-summary {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
   /* Hide scrollbars but keep scroll functionality */
   .mobile-expanded-slots::-webkit-scrollbar {
     display: none;
   }
   
   .mobile-expanded-slots {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Hide scrollbars in slots containers */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }

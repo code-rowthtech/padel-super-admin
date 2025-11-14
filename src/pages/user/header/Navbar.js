@@ -229,7 +229,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0">
+        <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0 navbar-shadow-mobile">
             <div className="container py-md-1 py-0">
                 <div className="d-flex justify-content-between align-items-center w-100 px-2 px-md-0">
                     {/* Logo */}
@@ -561,7 +561,7 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Offcanvas Menu */}
-            <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end" className="border-0 w-auto ">
+            <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end" className="border-0 w-75 ">
                 <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2">
                     <Offcanvas.Title className="d-flex align-items-center gap-3">
                         {logo ?

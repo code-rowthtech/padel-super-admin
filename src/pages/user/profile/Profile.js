@@ -154,9 +154,9 @@ const Profile = () => {
     navigate("/");
   };
   return (
-    <div className="container py-lg-4 mb-5 mt-lg-5 px-3 px-md-5" style={{ borderRadius: "12px" }}>
+    <div className="container py-lg-4 mb-md-5 mb-4 mt-lg-5 px-3 px-md-5" style={{ borderRadius: "12px" }}>
       <div
-        className="mt-5"
+        className="mt-md-5 mt-0"
         style={{
           background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
           height: "80px",
@@ -165,7 +165,7 @@ const Profile = () => {
         }}
       ></div>
 
-      <form onSubmit={handleSubmit} className="bg-white mb-5 rounded-bottom shadow p-3 p-md-4">
+      <form onSubmit={handleSubmit} className="bg-white mb-md-5 mb-4 rounded-bottom shadow p-3 p-md-4">
         <div className="d-flex align-items-center" style={{ marginTop: "-70px" }}>
           <div className="position-relative me-3">
             {formData.profileImage ? (
