@@ -905,9 +905,6 @@ border-top-right-radius: 20px;
    .step-heading-data {
     font-size: 16px!important;
   }
-  .navbar-shadow-mobile{
-    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-  }
 
   /* Adjust padding for mobile */
   .position-absolute.p-5 {
@@ -1420,7 +1417,7 @@ border-top-right-radius: 20px;
 /* Home Second Banner Responsive */
 @media (min-width: 368px) and (max-width: 768px) {
   .home-second-banner {
-    margin-top: 5px !important;
+    margin-top: 20px !important;
     padding: 0.5rem 1rem !important;
   }
 
@@ -1722,8 +1719,8 @@ border-top-right-radius: 20px;
 
   /* Player images full size on mobile */
   .rounded-circle {
-    width: 50px !important;
-    height: 50px !important;
+    width: 80px !important;
+    height: 80px !important;
   }
 
   /* Player images fill circle completely */
@@ -2059,8 +2056,9 @@ border-top-right-radius: 20px;
   
   /* Mobile slots container */
   .mobile-slots-container {
-    max-height: 120px !important;
+    height: 140px !important;
     overflow: visible !important;
+    transition: all 0.5s ease-in;
   }
   
   .mobile-slots-list {
@@ -2400,12 +2398,37 @@ border-top-right-radius: 20px;
     padding: 10px 0 5px 0 !important;
   }
   
+  /* Mobile Create Matches Page Styles */
+  .mobile-create-matches-content {
+    padding-bottom: 200px !important;
+  }
+  
+  .mobile-create-matches-summary {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
   /* Hide scrollbars but keep scroll functionality */
   .mobile-expanded-slots::-webkit-scrollbar {
     display: none;
   }
   
   .mobile-expanded-slots {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Hide scrollbars in slots containers */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }

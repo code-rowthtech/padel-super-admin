@@ -12,8 +12,19 @@ import { useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
-import { MdKeyboardArrowDown, MdOutlineArrowForwardIos, MdOutlineDateRange } from "react-icons/md";
-import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import {
+  MdKeyboardArrowDown,
+  MdOutlineArrowForwardIos,
+  MdOutlineDateRange,
+} from "react-icons/md";
+import {
+  MdOutlineArrowBackIosNew,
+  MdOutlineDeleteOutline,
+} from "react-icons/md";
+import {
+  MdKeyboardDoubleArrowUp,
+  MdKeyboardDoubleArrowDown,
+} from "react-icons/md";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { getUserClub } from "../../../redux/user/club/thunk";
@@ -21,9 +32,14 @@ import MatchPlayer from "./MatchPlayer";
 import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
-import { booking_dropdown_img, booking_dropdown_img2, booking_dropdown_img3, booking_dropdown_img4 } from "../../../assets/files";
+import {
+  booking_dropdown_img,
+  booking_dropdown_img2,
+  booking_dropdown_img3,
+  booking_dropdown_img4,
+} from "../../../assets/files";
 
-// Parse time string to hour
+/* ──────────────────────── Helper Functions ──────────────────────── */
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
   const [hourStr, period] = timeStr.toLowerCase().split(" ");
@@ -34,18 +50,22 @@ const parseTimeToHour = (timeStr) => {
   return hour;
 };
 
-// Filter slots by tab
 const filterSlotsByTab = (slot, eventKey) => {
   const slotHour = parseTimeToHour(slot?.time);
   if (slotHour === null) return false;
   switch (eventKey) {
-    case "morning": return slotHour >= 0 && slotHour < 12;
-    case "noon": return slotHour >= 12 && slotHour < 17;
-    case "night": return slotHour >= 17 && slotHour <= 23;
-    default: return true;
+    case "morning":
+      return slotHour >= 0 && slotHour < 12;
+    case "noon":
+      return slotHour >= 12 && slotHour < 17;
+    case "night":
+      return slotHour >= 17 && slotHour <= 23;
+    default:
+      return true;
   }
 };
 
+/* ──────────────────────── Main Component ──────────────────────── */
 const CreateMatches = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
@@ -82,6 +102,7 @@ const CreateMatches = () => {
     const saved = localStorage.getItem("addedPlayers");
     return saved ? JSON.parse(saved) : {};
   });
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Sync with localStorage
   useEffect(() => {
@@ -89,9 +110,9 @@ const CreateMatches = () => {
   }, [addedPlayers]);
 
   const tabData = [
-    { Icon: PiSunHorizonFill, label: 'Morning', key: 'morning' },
-    { Icon: BsSunFill, label: 'Noon', key: 'noon' },
-    { Icon: HiMoon, label: 'Evening', key: 'night' },
+    { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
+    { Icon: BsSunFill, label: "Noon", key: "noon" },
+    { Icon: HiMoon, label: "Evening", key: "night" },
   ];
 
   const handleClickOutside = (e) => {
@@ -119,8 +140,13 @@ const CreateMatches = () => {
   });
 
   const dayShortMap = {
-    Monday: "Mon", Tuesday: "Tue", Wednesday: "Wed", Thursday: "Thu",
-    Friday: "Fri", Saturday: "Sat", Sunday: "Sun",
+    Monday: "Mon",
+    Tuesday: "Tue",
+    Wednesday: "Wed",
+    Thursday: "Thu",
+    Friday: "Fri",
+    Saturday: "Sat",
+    Sunday: "Sun",
   };
 
   const scrollRef = useRef(null);
@@ -130,22 +156,37 @@ const CreateMatches = () => {
   };
 
   const toggleTime = (time, courtId) => {
-    if (selectedCourts.length > 0 && selectedCourts[0].date !== selectedDate.fullDate) {
-      setSlotError("You have already selected slots for another date. Clear them to select new ones.");
+    if (
+      selectedCourts.length > 0 &&
+      selectedCourts[0].date !== selectedDate.fullDate
+    ) {
+      setSlotError(
+        "You have already selected slots for another date. Clear them to select new ones."
+      );
       return;
     }
 
-    const isAlreadySelected = selectedTimes[courtId]?.some(t => t._id === time._id);
+    const isAlreadySelected = selectedTimes[courtId]?.some(
+      (t) => t._id === time._id
+    );
     const totalSlots = Object.values(selectedTimes).flat().length;
 
     if (isAlreadySelected) {
-      const filtered = selectedTimes[courtId].filter(t => t._id !== time._id);
-      setSelectedTimes(prev => ({ ...prev, [courtId]: filtered }));
-      setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
-      setSelectedCourts(prev =>
+      const filtered = selectedTimes[courtId].filter(
+        (t) => t._id !== time._id
+      );
+      setSelectedTimes((prev) => ({ ...prev, [courtId]: filtered }));
+      setSelectedBuisness((prev) =>
+        prev.filter((t) => t._id !== time._id)
+      );
+      setSelectedCourts((prev) =>
         prev
-          .map(c => c._id === courtId ? { ...c, time: c.time.filter(t => t._id !== time._id) } : c)
-          .filter(c => c.time.length > 0)
+          .map((c) =>
+            c._id === courtId
+              ? { ...c, time: c.time.filter((t) => t._id !== time._id) }
+              : c
+          )
+          .filter((c) => c.time.length > 0)
       );
     } else {
       if (totalSlots >= 15) {
@@ -154,32 +195,39 @@ const CreateMatches = () => {
         return;
       }
 
-      const newTimeEntry = { _id: time._id, time: time.time, amount: time.amount || 1000 };
+      const newTimeEntry = {
+        _id: time._id,
+        time: time.time,
+        amount: time.amount || 1000,
+      };
 
-      setSelectedTimes(prev => ({
+      setSelectedTimes((prev) => ({
         ...prev,
-        [courtId]: [...(prev[courtId] || []), time]
+        [courtId]: [...(prev[courtId] || []), time],
       }));
-      setSelectedBuisness(prev => [...prev, time]);
+      setSelectedBuisness((prev) => [...prev, time]);
 
-      setSelectedCourts(prev => {
-        const existingCourt = prev.find(c => c._id === courtId);
+      setSelectedCourts((prev) => {
+        const existingCourt = prev.find((c) => c._id === courtId);
         if (existingCourt) {
-          return prev.map(c =>
+          return prev.map((c) =>
             c._id === courtId
               ? { ...c, time: [...c.time, newTimeEntry] }
               : c
           );
         } else {
-          const currentCourt = slotData?.data?.find(c => c._id === courtId);
-          return [...prev, {
-            _id: currentCourt._id,
-            courtName: currentCourt.courtName,
-            type: currentCourt.type,
-            date: selectedDate.fullDate,
-            day: selectedDate.day,
-            time: [newTimeEntry],
-          }];
+          const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+          return [
+            ...prev,
+            {
+              _id: currentCourt._id,
+              courtName: currentCourt.courtName,
+              type: currentCourt.type,
+              date: selectedDate.fullDate,
+              day: selectedDate.day,
+              time: [newTimeEntry],
+            },
+          ];
         }
       });
     }
@@ -189,7 +237,10 @@ const CreateMatches = () => {
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
 
   useEffect(() => {
-    if (selectedDate?.fullDate && dateRefs.current[selectedDate?.fullDate]) {
+    if (
+      selectedDate?.fullDate &&
+      dateRefs.current[selectedDate?.fullDate]
+    ) {
       dateRefs.current[selectedDate?.fullDate].scrollIntoView({
         behavior: "smooth",
         inline: "center",
@@ -211,10 +262,19 @@ const CreateMatches = () => {
         })
       );
     }
-  }, [selectedDate.day, currentCourtId, savedClubId, dispatch]);
+  }, [
+    selectedDate.day,
+    currentCourtId,
+    savedClubId,
+    dispatch,
+  ]);
 
   useEffect(() => {
-    if (slotData?.data?.length > 0 && slotData.data[0]?.courts?.length > 0 && selectedCourts.length === 0) {
+    if (
+      slotData?.data?.length > 0 &&
+      slotData.data[0]?.courts?.length > 0 &&
+      selectedCourts.length === 0
+    ) {
       const firstCourt = slotData.data[0].courts[0];
       setCurrentCourtId(firstCourt._id);
     }
@@ -224,7 +284,12 @@ const CreateMatches = () => {
     const counts = [0, 0, 0];
     slotData?.data?.forEach((court) => {
       court?.slots?.forEach((slot) => {
-        if (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) {
+        if (
+          showUnavailable ||
+          (slot.availabilityStatus === "available" &&
+            slot.status !== "booked" &&
+            !isPastTime(slot.time))
+        ) {
           const slotHour = parseTimeToHour(slot.time);
           if (slotHour !== null) {
             if (slotHour >= 0 && slotHour < 12) counts[0]++;
@@ -237,44 +302,81 @@ const CreateMatches = () => {
 
     let defaultTab = "morning";
     if (counts[0] === 0) {
-      const firstAvailableIndex = counts.findIndex((count) => count > 0);
-      if (firstAvailableIndex !== -1) defaultTab = tabData[firstAvailableIndex].key;
+      const firstAvailableIndex = counts.findIndex((c) => c > 0);
+      if (firstAvailableIndex !== -1)
+        defaultTab = tabData[firstAvailableIndex].key;
     }
     setKey(defaultTab);
   }, [slotData, showUnavailable]);
 
   const steps = [
-    { question: "On the following scale, where would you place yourself?", options: ["Beginner", "Intermediate", "Advanced", "Professional"] },
-    { question: "Select the racket sport you have played before?", options: ["Tennis", "Badminton", "Squash", "Others"] },
-    { question: "Have you received or are you receiving training in padel?", options: ["No", "Yes, in the past", "Yes, currently"] },
-    { question: "How old are you?", options: ["Between 18 and 30 years", "Between 31 and 40 years", "Between 41 and 50 years", "Over 50"] },
-    { question: "On the volley?", options: ["I hardly get to the net", "I don't feel safe at the net, I make too many mistakes", "I can volley forehand and backhand with some difficulties", "I have good positioning at the net and I volley confidently", "I don't know"] },
     {
-      question: "Which Padel Player Are You?", options: [
-        { code: "A", title: "Top Player" }, { code: "B1", title: "Experienced Player" }, { code: "B2", title: "Advanced Player" },
-        { code: "C1", title: "Confident Player" }, { code: "C2", title: "Intermediate Player" }, { code: "D1", title: "Amateur Player" },
-        { code: "D2", title: "Novice Player" }, { code: "E", title: "Entry Level" },
-      ]
+      question:
+        "On the following scale, where would you place yourself?",
+      options: ["Beginner", "Intermediate", "Advanced", "Professional"],
+    },
+    {
+      question: "Select the racket sport you have played before?",
+      options: ["Tennis", "Badminton", "Squash", "Others"],
+    },
+    {
+      question:
+        "Have you received or are you receiving training in padel?",
+      options: ["No", "Yes, in the past", "Yes, currently"],
+    },
+    {
+      question: "How old are you?",
+      options: [
+        "Between 18 and 30 years",
+        "Between 31 and 40 years",
+        "Between 41 and 50 years",
+        "Over 50",
+      ],
+    },
+    {
+      question: "On the volley?",
+      options: [
+        "I hardly get to the net",
+        "I don't feel safe at the net, I make too many mistakes",
+        "I can volley forehand and backhand with some difficulties",
+        "I have good positioning at the net and I volley confidently",
+        "I don't know",
+      ],
+    },
+    {
+      question: "Which Padel Player Are You?",
+      options: [
+        { code: "A", title: "Top Player" },
+        { code: "B1", title: "Experienced Player" },
+        { code: "B2", title: "Advanced Player" },
+        { code: "C1", title: "Confident Player" },
+        { code: "C2", title: "Intermediate Player" },
+        { code: "D1", title: "Amateur Player" },
+        { code: "D2", title: "Novice Player" },
+        { code: "E", title: "Entry Level" },
+      ],
     },
   ];
 
-  const grandTotal = selectedCourts.reduce((sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0), 0);
+  const grandTotal = selectedCourts.reduce(
+    (sum, c) =>
+      sum +
+      c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
+    0
+  );
 
-  // FIXED: Save answer on every step
   const handleNext = () => {
-    // First check if slots are selected
-    if (selectedCourts.length === 0 || selectedCourts.every(c => c.time.length === 0)) {
+    if (selectedCourts.length === 0 || selectedCourts.every((c) => c.time.length === 0)) {
       setSlotError("Select a slot to enable booking");
       return;
     }
 
-    // Step 1: Multi-select - must have at least one selection
     if (currentStep === 1) {
       if (selectedLevel.length === 0) {
         setSlotError("Please select at least one option");
         return;
       }
-      setSkillDetails(prev => {
+      setSkillDetails((prev) => {
         const n = [...prev];
         n[currentStep] = selectedLevel;
         return n;
@@ -285,13 +387,12 @@ const CreateMatches = () => {
       return;
     }
 
-    // Normal steps - must have a selection
     if (currentStep < steps.length - 1) {
       if (!selectedLevel || (Array.isArray(selectedLevel) && selectedLevel.length === 0)) {
         setSlotError("Please select an option");
         return;
       }
-      setSkillDetails(prev => {
+      setSkillDetails((prev) => {
         const n = [...prev];
         n[currentStep] = selectedLevel;
         return n;
@@ -302,7 +403,6 @@ const CreateMatches = () => {
       return;
     }
 
-    // LAST STEP – Save skill code
     if (currentStep === steps.length - 1) {
       if (!selectedLevel) {
         setSlotError("Please select an option");
@@ -319,7 +419,10 @@ const CreateMatches = () => {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      setSelectedLevel(skillDetails[currentStep - 1] || (currentStep === 1 ? [] : ""));
+      setSelectedLevel(
+        skillDetails[currentStep - 1] ||
+        (currentStep === 1 ? [] : "")
+      );
       setSlotError("");
     }
   };
@@ -334,8 +437,10 @@ const CreateMatches = () => {
   const getCurrentMonth = (selectedDate) => {
     if (!selectedDate || !selectedDate.fullDate) return "MONTH";
     const dateObj = new Date(selectedDate.fullDate);
-    const month = dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
-    return month.split('').join('\n');
+    const month = dateObj
+      .toLocaleDateString("en-US", { month: "short" })
+      .toUpperCase();
+    return month.split("").join("\n");
   };
 
   const formatTimeForDisplay = (time) => {
@@ -368,14 +473,17 @@ const CreateMatches = () => {
     return false;
   };
 
-  const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
-  const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+  const scrollLeft = () =>
+    scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+  const scrollRight = () =>
+    scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
+  /* ──────────────────────── JSX ──────────────────────── */
   return (
     <Container className="p-4 mb-5">
       <Row className="g-3">
-        {/* LEFT PANEL */}
-        <Col md={7} className="p-3" >
+        {/* ────── LEFT PANEL ────── */}
+        <Col md={7} className="p-3 mobile-create-matches-content" style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -383,14 +491,17 @@ const CreateMatches = () => {
                 Select Date
                 <div className="position-relative d-inline-block" ref={wrapperRef}>
                   <span
-                    className="rounded p-1 pt-0 ms-1 "
-                    style={{ cursor: "pointer", width: "26px !important", height: "26px !important",}}
+                    className="rounded p-1 pt-0 ms-1"
+                    style={{ cursor: "pointer", width: "26px !important", height: "26px !important" }}
                     onClick={() => setIsOpen(!isOpen)}
                   >
                     <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
                   </span>
                   {isOpen && (
-                    <div className="position-absolute mt-2 z-3 bg-white border rounded shadow" style={{ top: "100%", left: "0", minWidth: "100%" }}>
+                    <div
+                      className="position-absolute mt-2 z-3 bg-white border rounded shadow"
+                      style={{ top: "100%", left: "0", minWidth: "100%" }}
+                    >
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <StaticDatePicker
                           displayStaticWrapperAs="desktop"
@@ -404,10 +515,13 @@ const CreateMatches = () => {
                             setSelectedCourts([]);
                             setSelectedTimes({});
                             setSelectedBuisness([]);
-                            dispatch(getUserSlotBooking({
-                              day, date: formattedDate,
-                              register_club_id: localStorage.getItem("register_club_id") || "",
-                            }));
+                            dispatch(
+                              getUserSlotBooking({
+                                day,
+                                date: formattedDate,
+                                register_club_id: localStorage.getItem("register_club_id") || "",
+                              })
+                            );
                           }}
                           minDate={new Date()}
                           maxDate={maxSelectableDate}
@@ -419,7 +533,11 @@ const CreateMatches = () => {
                 </div>
               </div>
               <div className="form-switch d-flex justify-content-center align-items-center gap-2">
-                <label className="form-check-label mb-0" htmlFor="flexSwitchCheckDefault" style={{ whiteSpace: "nowrap", fontFamily: "Poppins" }}>
+                <label
+                  className="form-check-label mb-0"
+                  htmlFor="flexSwitchCheckDefault"
+                  style={{ whiteSpace: "nowrap", fontFamily: "Poppins" }}
+                >
                   Show Unavailable Slots
                 </label>
                 <input
@@ -443,24 +561,30 @@ const CreateMatches = () => {
                     backgroundColor: "transparent",
                     width: "52px",
                     height: "58px",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                   onClick={() => setShowDropdown(!showDropdown)}
                 >
                   <div className="d-flex align-items-center gap-0 p-0">
                     <img src={booking_dropdown_img} style={{ width: "34px", height: "34px" }} alt="" />
-                    <MdKeyboardArrowDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                    <MdKeyboardArrowDown
+                      size={16}
+                      style={{
+                        transform: showDropdown ? "rotate(180deg)" : "rotate(0deg)",
+                        transition: "transform 0.3s",
+                      }}
+                    />
                   </div>
                 </div>
                 {showDropdown && (
                   <div
-                    className="position-absolute bg-white  rounded shadow"
+                    className="position-absolute bg-white rounded shadow"
                     style={{
                       top: "100%",
                       left: "-10px",
                       width: "105px",
                       zIndex: 1000,
-                      marginTop: "-15px"
+                      marginTop: "-15px",
                     }}
                   >
                     <div className="d-flex align-items-center p-2 border-bottom" style={{ cursor: "pointer" }}>
@@ -484,31 +608,43 @@ const CreateMatches = () => {
                   </div>
                 )}
               </div>
-              <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
-                <span className="text-muted" style={{
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  whiteSpace: "pre-line",
-                  textAlign: "center",
-                  lineHeight: "1",
-                  letterSpacing: "0px",
-                  margin: 0,
-                  padding: 0,
-                  display: "block"
-                }}>{getCurrentMonth(selectedDate)}</span>
+
+              <div
+                className="d-flex calendar-day-btn   justify-content-center align-items-center rounded-3  mb-3"
+                style={{
+                  backgroundColor: "#f3f3f5",
+                  height: "58px",
+                  padding: "2px 10px"
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: window.innerWidth <= 768 ? "12px" : "14px",
+                    fontWeight: "500",
+                    whiteSpace: "pre-line",
+                    textAlign: "center",
+                    lineHeight: "1",
+                    letterSpacing: "0px",
+                    margin: 0,
+                    padding: 0,
+                    display: "block"
+                  }}
+                >
+                  {getCurrentMonth(selectedDate)}
+                </span>
               </div>
-              <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "86%" }}>
-                <button className="btn p-2 border-0" style={{ position: "absolute", left: '-21%', zIndex: 10 }} onClick={scrollLeft}>
-                  <MdOutlineArrowBackIosNew className="mt-2" size={20} />
-                </button>
-                <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+              <div className="d-flex gap-1 " style={{ position: "relative", maxWidth: "85%" }}>
+                <button className="btn p-2 border-0 d-none d-md-block" style={{ position: "absolute", left: '-23%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
+                <div ref={scrollRef} className="d-flex gap-1 date-scroll-container" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
                   {dates.map((d, i) => {
-                    const isSelected = selectedDate.fullDate === d.fullDate;
+                    const formatDate = (date) => date.toISOString().split("T")[0];
+                    const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
 
                     // Calculate slot count for this specific date
-                    const slotCount = selectedCourts
-                      .filter(court => court.date === d.fullDate)
-                      .reduce((acc, court) => acc + (court.time?.length || 0), 0);
+                    const slotCount = Object.values(selectedTimes).reduce((acc, courtDates) => {
+                      const dateSlots = courtDates[d.fullDate] || [];
+                      return acc + dateSlots.length;
+                    }, 0);
 
                     return (
                       <button
@@ -516,19 +652,14 @@ const CreateMatches = () => {
                         ref={(el) => (dateRefs.current[d.fullDate] = el)}
                         className={`calendar-day-btn mb-3 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
                         style={{
-                          background: isSelected ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF",
-                          boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
-                          borderRadius: "12px",
-                          color: isSelected ? "#FFFFFF" : "#374151"
+                          background: isSelected
+                            ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                            : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151"
                         }}
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
-                          dispatch(getUserSlotBooking({
-                            day: d.day,
-                            date: d.fullDate,
-                            register_club_id: localStorage.getItem("register_club_id") || ""
-                          }));
+                          dispatch(getUserSlotBooking({ day: d.day, date: d.fullDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
                         onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
@@ -547,7 +678,7 @@ const CreateMatches = () => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              top: "-1px",
+                              top: "-0px",
                               right: "-4px",
                               zIndex: 2,
                               backgroundColor: "#22c55e"
@@ -560,143 +691,138 @@ const CreateMatches = () => {
                     );
                   })}
                 </div>
-                <button className="btn border-0 p-2" style={{ position: "absolute", right: -24, zIndex: 10 }} onClick={scrollRight}>
-                  <MdOutlineArrowForwardIos className="mt-2" size={20} />
-                </button>
+                <button className="btn border-0 p-2 d-none d-md-block" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
               </div>
             </div>
 
-            {/* Tabs */}
-            <div className="row mb-2 mx-auto">
-              <div className="col-12 d-flex justify-content-center align-items-center">
-                <div className="weather-tabs-wrapper w-100">
-                  <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                    {tabData.map((tab, index) => {
-                      const Icon = tab.Icon;
-                      const active = key === tab.key;
-                      return (
-                        <div
-                          key={index}
-                          className={`tab-item rounded-3 ${key === tab.key ? 'active' : ''}`}
-                          onClick={() => setKey(tab.key)}
-                        >
-                          <Icon
-                            size={24}
-                            className={active ? 'text-primary' : 'text-dark'}   // dark when inactive
-                          />
-
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Labels below tabs */}
-                  <div className="tab-labels d-flex justify-content-between">
-                    {tabData.map((tab, index) => (
-                      <p key={index} className={`tab-label ${key === tab.key ? 'active text-primary' : 'text-muted'}`}>
-                        {tab.label}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Slots */}
-            <div className="mb-3 overflow-slot border-0 rounded-3" style={{ border: slotError ? "1px solid red" : "1px solid #c2babaff" }}>
+            {/* ────── SLOTS ────── */}
+            <div
+              className="mb-3 overflow-slot border-0 rounded-3"
+              style={{
+                border: slotError ? "1px solid red" : "1px solid #c2babaff",
+              }}
+            >
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
-                  <DataLoading height={"50vh"} />
+                  <DataLoading height="50vh" />
                 ) : (
                   <>
-                    <div className="row g-3">
-                      <div className={`d-flex ${slotData.data.length > 4 ? "flex-nowrap overflow-auto" : "flex-wrap"}`} style={{ gap: "16px", paddingBottom: "10px", overflowX: slotData.data.length > 4 ? "auto" : "visible", whiteSpace: slotData.data.length > 4 ? "nowrap" : "normal" }}>
-                        {slotData?.data?.map((court, courtIndex) => {
-                          const filteredSlots = court?.slots
-                            ?.filter((slot) =>
-                              showUnavailable
-                                ? true
-                                : slot.availabilityStatus === "available" &&
-                                slot.status !== "booked" &&
-                                !isPastTime(slot.time) &&
-                                slot.amount > 0
-                            )
-                            .filter((slot) => filterSlotsByTab(slot, key));
+                    <div className="p-0">
+                      <div className="row mb-2">
+                        <div className="col-4 col-md-3">
+                          <h6 className="all-matches text-start">Courts</h6>
+                        </div>
+                        <div className="col-8 col-md-9">
+                          <h6 className="all-matches text-center">Available Slots</h6>
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          maxHeight: "60vh",
+                          overflowY: "auto",
+                          overflowX: "hidden",
+                          paddingRight: "8px",
+                          msOverflowStyle: "none",
+                          scrollbarWidth: "none",
+                        }}
+                        className="hide-scrollbar"
+                      >
+                        <style jsx>{`
+                          .hide-scrollbar::-webkit-scrollbar {
+                            display: none;
+                          }
+                          .hide-scrollbar {
+                            -ms-overflow-style: none;
+                            scrollbar-width: none;
+                          }
+                        `}</style>
+                        {slotData?.data.map((court, courtIndex) => {
+                          const filteredSlots = court?.slots?.filter((slot) =>
+                            showUnavailable
+                              ? true
+                              : slot.availabilityStatus === "available" &&
+                              slot.status !== "booked" &&
+                              !isPastTime(slot.time) &&
+                              slot.amount > 0
+                          );
 
                           if (filteredSlots?.length === 0) return null;
 
-                          const visibleCourtIndices = slotData.data
-                            .map((c, i) => {
-                              const slots = c.slots?.filter(
-                                (s) =>
-                                  (showUnavailable ||
-                                    (s.availabilityStatus === "available" &&
-                                      s.status !== "booked" &&
-                                      !isPastTime(s.time) &&
-                                      s.amount > 0)) &&
-                                  filterSlotsByTab(s, key)
-                              );
-                              return slots?.length > 0 ? i : null;
-                            })
-                            .filter((i) => i !== null);
-
-                          const isLast = visibleCourtIndices[visibleCourtIndices.length - 1] === courtIndex;
-
                           return (
-                            <div
-                              key={court._id}
-                              className="court-container p-3"
-                              style={{
-                                minWidth: slotData.data.length > 4 ? "170px" : "calc((100% - 48px) / 4)",
-                                flex: slotData.data.length > 4 ? "0 0 auto" : "1 1 auto",
-                                borderRight: !isLast ? "1px solid transparent" : "none",
-                                borderImage: !isLast ? "linear-gradient(180deg, rgba(255,255,255,0) 0%, #837f7fff 46.63%, rgba(255,255,255,0) 94.23%) 1" : "none",
-                                borderImageSlice: !isLast ? 1 : 0,
-                              }}
-                            >
-                              <div className="mb-3 text-center">
-                                <h5 className="all-matches mb-1">{court?.courtName}</h5>
+                            <div key={court._id} className="row mb-3 align-items-start">
+                              <div className="col-12 col-lg-3 border-end mb-2 mb-md-0">
+                                <div className="court-item p-1 ps-0 ps-md-1 text-start h-100" style={{ minHeight: "50px" }}>
+                                  <div className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{court?.courtName}</div>
+                                  <p
+                                    className="text-muted mb-lg-0 mb-2"
+                                    style={{
+                                      fontFamily: "Poppins",
+                                      fontWeight: "400",
+                                      fontSize: "10px",
+                                    }}
+                                  >
+                                    ({court?.register_club_id?.courtType})
+                                  </p>
+                                </div>
                               </div>
+                              <div className="col-12 col-lg-9">
+                                <div className="row g-1">
+                                  {filteredSlots.map((slot, i) => {
+                                    const isSelected = selectedTimes[court._id]?.some(
+                                      (t) => t._id === slot._id
+                                    );
+                                    const isDisabled =
+                                      slot.status === "booked" ||
+                                      slot.availabilityStatus !== "available" ||
+                                      isPastTime(slot.time) ||
+                                      slot.amount <= 0;
 
-                              <div className="slots-grid d-flex flex-column align-items-center">
-                                {filteredSlots?.map((slot, i) => {
-                                  const isSelected = selectedCourts.some(selectedCourt =>
-                                    selectedCourt._id === court._id &&
-                                    selectedCourt.date === selectedDate.fullDate &&
-                                    selectedCourt.time.some(t => t._id === slot._id)
-                                  );
-                                  const totalSlots = Object.values(selectedTimes).flat().length;
-                                  const isLimitReached = totalSlots >= 15 && !isSelected;
-                                  const isDisabled = isLimitReached || slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
-
-                                  return (
-                                    <button
-                                      key={i}
-                                      className={`btn rounded-3 ${isSelected ? "border-0" : ""} slot-time-btn text-center mb-2`}
-                                      onClick={() => toggleTime(slot, court._id)}
-                                      disabled={isDisabled}
-                                      style={{
-                                        background: slot.status === "booked" || isPastTime(slot.time) || slot.amount <= 0
-                                          ? "#c9cfcfff"
-                                          : isSelected
-                                            ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                            : slot.availabilityStatus !== "available"
-                                              ? "#c9cfcfff"
-                                              : "#FFFFFF",
-                                        color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
-                                        cursor: isDisabled ? "not-allowed" : "pointer",
-                                        opacity: isDisabled ? 0.6 : 1,
-                                        border: isSelected ? "" : "1px solid #4949491A",
-                                        fontSize: "14px",
-                                        padding: "8px 4px",
-                                      }}
-                                      onMouseEnter={(e) => !isDisabled && (e.currentTarget.style.border = "1px solid #3DBE64")}
-                                      onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
-                                    >
-                                      {formatTimeForDisplay(slot?.time)}
-                                    </button>
-                                  );
-                                })}
+                                    return (
+                                      <div key={i} className="col-3 col-sm-4 col-md-3 col-lg-2 mb-1">
+                                        <button
+                                          className={`btn rounded-3 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
+                                          onClick={() => toggleTime(slot, court._id)}
+                                          disabled={isDisabled}
+                                          style={{
+                                            background:
+                                              isDisabled ||
+                                                slot.status === "booked" ||
+                                                isPastTime(slot.time) ||
+                                                slot.amount <= 0
+                                                ? "#c9cfcfff"
+                                                : isSelected
+                                                  ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                                  : "#FFFFFF",
+                                            color:
+                                              isDisabled || slot.status === "booked" || isPastTime(slot.time)
+                                                ? "#000000"
+                                                : isSelected
+                                                  ? "white"
+                                                  : "#000000",
+                                            cursor: isDisabled ? "not-allowed" : "pointer",
+                                            opacity: isDisabled ? 0.6 : 1,
+                                            border: isSelected ? "" : "1px solid #4949491A",
+                                            fontSize: "11px",
+                                            padding: "4px 2px",
+                                            height: "32px"
+                                          }}
+                                          onMouseEnter={(e) =>
+                                            !isDisabled &&
+                                            slot.availabilityStatus === "available" &&
+                                            (e.currentTarget.style.border = "1px solid #3DBE64")
+                                          }
+                                          onMouseLeave={(e) =>
+                                            !isDisabled &&
+                                            slot.availabilityStatus === "available" &&
+                                            (e.currentTarget.style.border = "1px solid #4949491A")
+                                          }
+                                        >
+                                          {formatTimeForDisplay(slot?.time)}
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
                             </div>
                           );
@@ -704,22 +830,188 @@ const CreateMatches = () => {
                       </div>
                     </div>
 
-                    {slotData?.data?.every(court => !court?.slots?.some(slot => (showUnavailable || (slot.availabilityStatus === "available" && slot.status !== "booked" && !isPastTime(slot.time))) && filterSlotsByTab(slot, key))) && (
-                      <div className="text-center py-4 text-danger" style={{ fontFamily: "Poppins", fontWeight: "500" }}>
-                        No {showUnavailable ? "unavailable" : "available"} slots
-                      </div>
-                    )}
+                    {slotData?.data?.every(
+                      (court) =>
+                        !court?.slots?.some(
+                          (slot) =>
+                            showUnavailable ||
+                            (slot.availabilityStatus === "available" &&
+                              slot.status !== "booked" &&
+                              !isPastTime(slot.time))
+                        )
+                    ) && (
+                        <div
+                          className="text-center py-4 text-danger"
+                          style={{ fontFamily: "Poppins", fontWeight: 500 }}
+                        >
+                          No {showUnavailable ? "unavailable" : "available"} slots
+                        </div>
+                      )}
                   </>
                 )
               ) : (
-                <div className="text-center py-4 text-muted">No courts available</div>
+                <div className="text-center py-4 text-muted">
+                  No courts available
+                </div>
               )}
             </div>
           </div>
         </Col>
 
-        {/* RIGHT PANEL */}
+        {/* ────── RIGHT PANEL ────── */}
         <Col md={5} className="ps-2">
+          {/* ────── MOBILE SUMMARY (fixed bottom) ────── */}
+          <div
+            className="d-lg-none mobile-create-matches-summary"
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+              borderRadius: "10px 10px 0 0",
+              padding: "10px 15px",
+            }}
+          >
+            {selectedCourts.length > 0 && (
+              <>
+                {/* Expandable slots list */}
+                <div
+                  className="mobile-expanded-slots"
+                  style={{
+                    maxHeight: isExpanded
+                      ? selectedCourts.reduce((s, c) => s + c.time.length, 0) > 2
+                        ? "120px"
+                        : "auto"
+                      : "0px",
+                    overflowY:
+                      selectedCourts.reduce((s, c) => s + c.time.length, 0) > 2 && isExpanded
+                        ? "auto"
+                        : "hidden",
+                    overflowX: "hidden",
+                    paddingRight: "8px",
+                    transition: "max-height 0.3s ease",
+                    marginBottom: isExpanded ? "10px" : "0",
+                  }}
+                >
+                  {/* SAME SCROLLBAR STYLE AS DESKTOP */}
+                  <style jsx>{`
+                    .mobile-expanded-slots::-webkit-scrollbar {
+                      width: 8px;
+                      border-radius: 3px;
+                    }
+                    .mobile-expanded-slots::-webkit-scrollbar-track {
+                      background: #f5f5f5;
+                      border-radius: 3px;
+                    }
+                    .mobile-expanded-slots::-webkit-scrollbar-thumb {
+                      background: #626262;
+                      border-radius: 3px;
+                    }
+                    .mobile-expanded-slots::-webkit-scrollbar-thumb:hover {
+                      background: #626262;
+                    }
+                    .mobile-expanded-slots {
+                      scrollbar-width: thin;
+                      scrollbar-color: #626262 #f5f5f5;
+                    }
+                  `}</style>
+
+                  {selectedCourts.map((court, idx) =>
+                    court.time.map((timeSlot, tIdx) => (
+                      <div key={`${idx}-${tIdx}`} className="row mb-1">
+                        <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
+                          <div className="d-flex text-white">
+                            <span
+                              style={{
+                                fontWeight: "600",
+                                fontFamily: "Poppins",
+                                fontSize: "11px",
+                              }}
+                            >
+                              {court.date
+                                ? `${new Date(court.date).toLocaleString("en-US", {
+                                  day: "2-digit",
+                                })}, ${new Date(court.date).toLocaleString("en-US", {
+                                  month: "short",
+                                })}`
+                                : ""}
+                            </span>
+                            <span
+                              className="ps-1"
+                              style={{
+                                fontWeight: "600",
+                                fontFamily: "Poppins",
+                                fontSize: "11px",
+                              }}
+                            >
+                              {formatTimeForDisplay(timeSlot.time)}
+                            </span>
+                            <span
+                              className="ps-1"
+                              style={{
+                                fontWeight: "500",
+                                fontFamily: "Poppins",
+                                fontSize: "10px",
+                              }}
+                            >
+                              {court.courtName}
+                            </span>
+                          </div>
+
+                          <div className="text-white">
+                            <span
+                              className="ps-1"
+                              style={{
+                                fontWeight: "600",
+                                fontFamily: "Poppins",
+                                fontSize: "11px",
+                              }}
+                            >
+                              ₹ {timeSlot.amount || "N/A"}
+                            </span>
+                            <MdOutlineDeleteOutline
+                              className="ms-1 text-white"
+                              style={{ cursor: "pointer", fontSize: "14px" }}
+                              onClick={() => {
+                                const updatedCourts = selectedCourts
+                                  .map((c) =>
+                                    c._id === court._id
+                                      ? {
+                                        ...c,
+                                        time: c.time.filter((t) => t._id !== timeSlot._id),
+                                      }
+                                      : c
+                                  )
+                                  .filter((c) => c.time.length > 0);
+                                setSelectedCourts(updatedCourts);
+
+                                const updatedTimes = { ...selectedTimes };
+                                if (updatedTimes[court._id]) {
+                                  updatedTimes[court._id] = updatedTimes[court._id].filter(
+                                    (t) => t._id !== timeSlot._id
+                                  );
+                                  if (updatedTimes[court._id].length === 0)
+                                    delete updatedTimes[court._id];
+                                }
+                                setSelectedTimes(updatedTimes);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Total line (toggle) */}
+               
+              </>
+            )}
+          </div>
+
+          {/* ────── QUESTIONNAIRE / MATCH PLAYER ────── */}
           {!matchPlayer ? (
             <div style={{ backgroundColor: "#F1F4FF" }}>
               <div className="d-flex gap-2 ps-4 pt-4">
@@ -738,29 +1030,40 @@ const CreateMatches = () => {
                       fontSize: 14,
                       fontWeight: 600,
                     }}
-                  >
-                  </div>
+                  ></div>
                 ))}
               </div>
 
               <div className="p-4 mt-3">
-                <h6 className="mb-4" style={{ fontSize: "20px", fontFamily: "Poppins", fontWeight: 600, color: "#1f2937" }}>
+                <h6
+                  className="mb-4"
+                  style={{
+                    fontSize: "20px",
+                    fontFamily: "Poppins",
+                    fontWeight: 600,
+                    color: "#1f2937",
+                  }}
+                >
                   {steps[currentStep].question}
                 </h6>
 
-                <div style={{
-                  opacity: selectedCourts.length === 0 ? 0.5 : 1,
-                  pointerEvents: selectedCourts.length === 0 ? 'none' : 'auto',
-                  transition: 'opacity 0.3s ease'
-                }}>
+                <div
+                  style={{
+                    opacity: selectedCourts.length === 0 ? 0.5 : 1,
+                    pointerEvents: selectedCourts.length === 0 ? "none" : "auto",
+                    transition: "opacity 0.3s ease",
+                  }}
+                >
                   <Form style={{ height: "350px", overflowY: "auto" }}>
-                    {currentStep === 1 ? (
-                      steps[currentStep].options.map((opt, i) => (
+                    {currentStep === 1
+                      ? steps[currentStep].options.map((opt, i) => (
                         <div
                           key={i}
                           onClick={() => {
                             setSelectedLevel((prev) =>
-                              prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
+                              prev.includes(opt)
+                                ? prev.filter((x) => x !== opt)
+                                : [...prev, opt]
                             );
                           }}
                           className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
@@ -779,78 +1082,102 @@ const CreateMatches = () => {
                             onChange={() => { }}
                             style={{ flexShrink: 0, marginTop: 0 }}
                           />
-                          <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>{opt}</span>
+                          <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                            {opt}
+                          </span>
                         </div>
                       ))
-                    ) : currentStep === steps.length - 1 ? (
-                      steps[currentStep].options.map((opt, i) => (
-                        <div
-                          key={i}
-                          onClick={() => setSelectedLevel(opt.code)}
-                          className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                          style={{
-                            backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
-                            borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
-                            cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
-                            gap: "12px",
-                            height: "50px",
-                            transition: "all 0.2s ease",
-                          }}
-                        >
-                          <Form.Check
-                            type="radio"
-                            name="last"
-                            checked={selectedLevel === opt.code}
-                            onChange={() => { }}
-                            style={{ flexShrink: 0, marginTop: 0 }}
-                          />
-                          <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
-                            <span style={{ fontSize: "24px", fontWeight: 700, color: "#1d4ed8", minWidth: "38px", textAlign: "center" }}>
-                              {opt.code}
-                            </span>
-                            <strong style={{ fontSize: "16px", color: "#1f2937" }}>{opt.title}</strong>
+                      : currentStep === steps.length - 1
+                        ? steps[currentStep].options.map((opt, i) => (
+                          <div
+                            key={i}
+                            onClick={() => setSelectedLevel(opt.code)}
+                            className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                            style={{
+                              backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
+                              borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
+                              cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                              gap: "12px",
+                              height: "50px",
+                              transition: "all 0.2s ease",
+                            }}
+                          >
+                            <Form.Check
+                              type="radio"
+                              name="last"
+                              checked={selectedLevel === opt.code}
+                              onChange={() => { }}
+                              style={{ flexShrink: 0, marginTop: 0 }}
+                            />
+                            <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
+                              <span
+                                style={{
+                                  fontSize: "24px",
+                                  fontWeight: 700,
+                                  color: "#1d4ed8",
+                                  minWidth: "38px",
+                                  textAlign: "center",
+                                }}
+                              >
+                                {opt.code}
+                              </span>
+                              <strong style={{ fontSize: "16px", color: "#1f2937" }}>{opt.title}</strong>
+                            </div>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      steps[currentStep].options.map((opt, i) => (
-                        <div
-                          key={i}
-                          onClick={() => setSelectedLevel(opt)}
-                          className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                          style={{
-                            backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
-                            borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
-                            cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
-                            gap: "12px",
-                            height: "50px",
-                            transition: "all 0.2s ease",
-                          }}
-                        >
-                          <Form.Check
-                            type="radio"
-                            name={`step${currentStep}`}
-                            checked={selectedLevel === opt}
-                            onChange={() => { }}
-                            style={{ flexShrink: 0, marginTop: 0 }}
-                          />
-                          <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>{opt}</span>
-                        </div>
-                      ))
-                    )}
+                        ))
+                        : steps[currentStep].options.map((opt, i) => (
+                          <div
+                            key={i}
+                            onClick={() => setSelectedLevel(opt)}
+                            className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                            style={{
+                              backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
+                              borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
+                              cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                              gap: "12px",
+                              height: "50px",
+                              transition: "all 0.2s ease",
+                            }}
+                          >
+                            <Form.Check
+                              type="radio"
+                              name={`step${currentStep}`}
+                              checked={selectedLevel === opt}
+                              onChange={() => { }}
+                              style={{ flexShrink: 0, marginTop: 0 }}
+                            />
+                            <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                              {opt}
+                            </span>
+                          </div>
+                        ))}
                   </Form>
                 </div>
               </div>
 
               <div className="d-flex justify-content-center">
                 {slotError && (
-                  <div className="text-center mb-3 p-2 rounded" style={{ backgroundColor: "#ffebee", color: "#c62828", border: "1px solid #ffcdd2", fontWeight: 500, fontSize: "15px", width: "100%", maxWidth: "370px" }}>
+                  <div
+                    className="text-center mb-3 p-2 rounded"
+                    style={{
+                      backgroundColor: "#ffebee",
+                      color: "#c62828",
+                      border: "1px solid #ffcdd2",
+                      fontWeight: 500,
+                      fontSize: "15px",
+                      width: "100%",
+                      maxWidth: "370px",
+                    }}
+                  >
                     {slotError}
                   </div>
                 )}
               </div>
 
-              <div className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"} align-items-center p-3`}>
+              <div
+                className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"
+                  } align-items-center p-3`}
+              >
                 {currentStep > 0 && (
                   <Button
                     className="rounded-pill px-4 me-2"
@@ -865,7 +1192,10 @@ const CreateMatches = () => {
                   </Button>
                 )}
                 <Button
-                  className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1 ? "p-3 rounded-circle d-flex align-items-center justify-content-center" : "rounded-pill"}`}
+                  className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1
+                    ? "p-3 rounded-circle d-flex align-items-center justify-content-center"
+                    : "rounded-pill"
+                    }`}
                   style={{
                     background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                     border: "none",
@@ -879,7 +1209,11 @@ const CreateMatches = () => {
                   }
                   onClick={handleNext}
                 >
-                  {currentStep === steps.length - 1 ? "Submit" : window.innerWidth < 768 ? "" : "Next"}
+                  {currentStep === steps.length - 1
+                    ? "Submit"
+                    : window.innerWidth < 768
+                      ? ""
+                      : "Next"}
                 </Button>
               </div>
             </div>
