@@ -510,15 +510,15 @@ const Booking = ({ className = "" }) => {
                     </div>
                 </div>
             </div>
-            <div className="container mb-5 pt-3 pt-lg-0 px-lg-4">
+            <div className="container mb-md-5 mb-0 pt-3 pt-lg-0 px-lg-4">
                 <div className="row g-4">
-                    <div className="col-lg-7 col-12 py-4 rounded-3 px-lg-4 mobile-booking-content" >
+                    <div className="col-lg-7 col-12 py-md-4 pt-4 pb-0 rounded-3 px-lg-4 mobile-booking-content" >
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <div className="custom-heading-use text-nowrap">
                                 Select Date
                                 <div className="position-relative d-inline-block" ref={wrapperRef}>
-                                    <span className="rounded p-1 pt-0 ms-2 " style={{ cursor: "pointer", width: "26px !important", height: "26px !important", }} onClick={() => setIsOpen(!isOpen)}>
-                                        <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
+                                    <span className="rounded p-1 pt-0 ms-1 " style={{ cursor: "pointer", width: "26px !important", height: "26px !important", }} onClick={() => setIsOpen(!isOpen)}>
+                                        <MdOutlineDateRange size={17} style={{ color: "#374151" }} />
                                     </span>
                                     {isOpen && (
                                         <div
@@ -557,7 +557,7 @@ const Booking = ({ className = "" }) => {
                             </div>
                             <div className="form-switch d-flex justify-content-center align-items-center gap-2">
                                 <label className="form-check-label mb-0" htmlFor="flexSwitchCheckDefault" style={{ whiteSpace: "nowrap", fontFamily: "Poppins" }}>Show Unavailable Slots</label>
-                                <input className="form-check-input fs-5 ms-1 mb-1" type="checkbox" role="switch" id="flexSwitchCheckDefault" checked={showUnavailable} onChange={handleSwitchChange} style={{ boxShadow: "none" }} />
+                                <input className="form-check-input fs-5 ms-md-1 ms-0 mb-1" type="checkbox" role="switch" id="flexSwitchCheckDefault" checked={showUnavailable} onChange={handleSwitchChange} style={{ boxShadow: "none" }} />
                             </div>
                         </div>
                         <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
@@ -610,14 +610,14 @@ const Booking = ({ className = "" }) => {
                                 )}
                             </div>
                             <div
-                                className="d-flex calendar-day-btn   justify-content-center align-items-center rounded-3  mb-3"
+                                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-3"
                                 style={{
                                     backgroundColor: "#f3f3f5",
                                     height: "58px",
                                     padding: "2px 10px"
                                 }}
                             >
-                                <span
+                                <span className="add_font_small_span"
                                     style={{
                                         fontSize: "14px",
                                         fontWeight: "500",
@@ -654,7 +654,7 @@ const Booking = ({ className = "" }) => {
                                                 style={{
                                                     background: isSelected
                                                         ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                                        : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151"
+                                                        : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "5px", color: isSelected ? "#FFFFFF" : "#374151"
                                                 }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d.fullDate, day: d.day });
@@ -782,8 +782,8 @@ const Booking = ({ className = "" }) => {
                                                     return (
                                                         <div key={court._id} className="row mb-3 align-items-start">
                                                             <div className="col-3 border-end mb-2 mb-md-0">
-                                                                <div className="court-item p-1 ps-0 ps-md-1 text-center h-100" style={{ minHeight: "50px" }}>
-                                                                    <div className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{court?.courtName}</div>
+                                                                <div className="court-item p-1 ps-0 ps-md-1 text-start text-md-center h-100" style={{ minHeight: "50px" }}>
+                                                                    <div className="mb-1" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{court?.courtName}</div>
                                                                     <p
                                                                         className="text-muted mb-0"
                                                                         style={{
@@ -809,9 +809,9 @@ const Booking = ({ className = "" }) => {
                                                                             slot.amount <= 0;
 
                                                                         return (
-                                                                            <div key={i} className="col-3 col-sm-4 col-md-3 col-lg-2 mb-1">
+                                                                            <div key={i} className="col-4 col-sm-4 col-md-3 col-lg-2 mb-md-1 mb-0 mt-md-0 mt-1">
                                                                                 <button
-                                                                                    className={`btn rounded-3 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
+                                                                                    className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
                                                                                     onClick={() => toggleTime(slot, court._id)}
                                                                                     disabled={isDisabled}
                                                                                     style={{
@@ -993,8 +993,8 @@ const Booking = ({ className = "" }) => {
                                     )}
                                 </div>
                                 <div className="div d-lg-none px-2 border-bottom mobile-slots-container">
-                                    <div className={`mobile-expanded-slots ${isExpanded ? 'expanded' : ''}`} style={{ 
-                                        maxHeight: isExpanded ? (totalSlots > 2 ? "140px" : "auto") : "0", 
+                                    <div className={`mobile-expanded-slots ${isExpanded ? 'expanded' : ''}`} style={{
+                                        maxHeight: isExpanded ? (totalSlots > 2 ? "140px" : "auto") : "0",
                                         overflowY: totalSlots > 2 && isExpanded ? "auto" : "hidden",
                                         transition: "max-height 0.3s ease",
                                     }}>

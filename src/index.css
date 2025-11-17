@@ -954,7 +954,12 @@ border-top-right-radius: 20px;
     min-width: 60px;
     flex: 1;
   }
-
+.mobile-payment-content{
+  padding-bottom: 0px!important;
+}
+.home-upcoming-heading-mobile{
+  font-size: 12px!important;
+}
   .icon-circle {
     width: 40px !important;
     height: 40px !important;
@@ -963,7 +968,9 @@ border-top-right-radius: 20px;
   .label {
     font-size: 12px !important;
   }
-
+.add_font_small_span{
+  font-size: 10px!important;
+}
   /* Photos gallery responsive */
   .custom-gallery {
     grid-template-areas:
@@ -1075,8 +1082,8 @@ border-top-right-radius: 20px;
   /* Slots responsive for booking page - 4 per row */
   .slot-time-btn {
     width: 100% !important;
-    height: 24px !important;
-    font-size: 7px !important;
+    height: 30px !important;
+    font-size: 12px !important;
     margin: 1px !important;
     padding: 2px 1px !important;
     line-height: 1.1 !important;
@@ -1408,7 +1415,7 @@ border-top-right-radius: 20px;
 }
 
 /* Review Card Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .card {
     width: 100% !important;
     /* max-width: 350px !important; */
@@ -1418,7 +1425,7 @@ border-top-right-radius: 20px;
 }
 
 /* Home Second Banner Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .home-second-banner {
     margin-top: 5px !important;
     padding: 0.5rem 1rem !important;
@@ -1477,7 +1484,7 @@ border-top-right-radius: 20px;
 }
 
 /* Right Column Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .home-banner-right-column {
     padding-right: 1rem !important;
     padding-left: 1rem !important;
@@ -1485,7 +1492,7 @@ border-top-right-radius: 20px;
 }
 
 /* Sport Box Left Alignment */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .sport-box {
     margin-left: 0 !important;
     margin-right: auto !important;
@@ -1493,7 +1500,7 @@ border-top-right-radius: 20px;
 }
 
 /* Banner Image Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .image-zoom-container {
     height: 250px !important;
   }
@@ -1514,7 +1521,7 @@ border-top-right-radius: 20px;
 }
 
 /* WhatsApp Link Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .home-second-banner a {
     word-break: break-all !important;
     overflow-wrap: break-word !important;
@@ -1528,7 +1535,7 @@ border-top-right-radius: 20px;
 }
 
 /* Login Page Mobile Center Fix */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .auth-wrapper {
     display: flex !important;
     align-items: center !important;
@@ -1555,7 +1562,7 @@ border-top-right-radius: 20px;
 }
 
 /* Booking Page Banner Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .booking-img-heading {
     font-size: 28px !important;
     line-height: 32px !important;
@@ -1576,14 +1583,14 @@ border-top-right-radius: 20px;
 }
 
 /* Booking Summary Border Radius Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .booking-summary-container .booking-summary-border {
     border-radius: 10px !important;
   }
 }
 
 /* Open Match Date Arrow Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .date-navigation-right {
     right: -10px !important;
     background: transparent !important;
@@ -1608,7 +1615,7 @@ border-top-right-radius: 20px;
 }
 
 /* Open Match Review Section Bottom Space */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .match-review-container .rounded-4[style*="backgroundColor"] {
     margin-bottom: 3rem !important;
   }
@@ -1619,14 +1626,14 @@ border-top-right-radius: 20px;
 }
 
 /* No Matches Available Height Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .no-matches-container {
     min-height: 250px !important;
   }
 }
 
 /* Open Match Container Height Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .no-scrollbar {
     min-height: 200px !important;
     max-height: 300px !important;
@@ -1651,14 +1658,14 @@ border-top-right-radius: 20px;
   align-items: center !important;
 }
 
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .create-match-date-section {
     flex-wrap: nowrap !important;
   }
 }
 
 /* Match Payment Slots and Players Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
 
   /* Slots alignment in top right */
   .match-payment-slots {
@@ -1796,7 +1803,7 @@ border-top-right-radius: 20px;
 }
 
 /* Match Payment Summary Border Radius Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .match-payment-summary .payment-summary-border {
     border-radius: 10px !important;
   }
@@ -1819,7 +1826,7 @@ border-top-right-radius: 20px;
 }
 
 /* OpenmatchPayment Border Radius Remove */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .openmatch-payment-border {
     border-radius: 0 !important;
   }
@@ -1852,7 +1859,7 @@ border-top-right-radius: 20px;
 }
 
 /* Responsive court layout */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .court-container {
     margin-bottom: 1rem !important;
   }
@@ -1889,7 +1896,7 @@ border-top-right-radius: 20px;
 }
 
 /* CreateMatches Responsive */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   .notification-bg {
     height: 40px !important;
     width: 40px !important;
@@ -2031,7 +2038,7 @@ border-top-right-radius: 20px;
 }
 
 /* Booking Page Responsive Styles */
-@media (min-width: 368px) and (max-width: 768px) {
+@media (min-width: 360px) and (max-width: 768px) {
   /* Mobile app-like layout */
   .mobile-booking-content {
     padding-bottom: 200px !important;
@@ -2154,7 +2161,7 @@ border-top-right-radius: 20px;
   }
   
   .court-item div {
-    font-size: 10px !important;
+    font-size: 13px !important;
     line-height: 1.2 !important;
   }
   
@@ -2165,40 +2172,47 @@ border-top-right-radius: 20px;
   
   /* Headers responsive */
   .all-matches {
-    font-size: 11px !important;
+    font-size: 14px !important;
   }
   
   /* Slot buttons responsive - 4 per row */
   .slot-time-btn {
     width: 100% !important;
-    height: 24px !important;
-    font-size: 7px !important;
+    height: 32px !important;
+    font-size: 12px !important;
     padding: 1px !important;
     line-height: 1.1 !important;
   }
   
   /* Calendar day buttons responsive */
   .calendar-day-btn {
-    max-width: 35px !important;
-    height: 40px !important;
+    max-width: 40px !important;
+    height: 50px !important;
     padding: 1px 6px !important;
     margin-right: 3px !important;
     flex-shrink: 0 !important;
+    border-radius: 5px !important;
   }
   
   .date-center-date {
-    font-size: 11px !important;
+    font-size: 14px !important;
   }
   
   .date-center-day {
-    font-size: 8px !important;
+    font-size: 12px !important;
   }
   
   /* Dropdown responsive */
   .d-flex.justify-content-start.border {
-    width: 35px !important;
-    height: 40px !important;
+    width: 40px !important;
+    height: 50px !important;
   }
+  .calendar-day-btn-mobile{
+  max-width: 25px !important;
+        height: 50px !important;
+        padding: 1px 6px !important;
+        border-radius: 5px !important;
+        }
   
   .d-flex.justify-content-start.border img {
     width: 20px !important;
@@ -2355,9 +2369,9 @@ border-top-right-radius: 20px;
 
 /* Mobile Payment Page Styles */
 @media (max-width: 991px) {
-  .mobile-payment-content {
+  /* .mobile-payment-content {
     padding-bottom: 200px !important;
-  }
+  } */
   
   .mobile-payment-summary {
     position: fixed !important;
