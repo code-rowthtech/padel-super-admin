@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { booking_dropdown_img, booking_dropdown_img2, booking_dropdown_img3, booking_dropdown_img4, booking_logo_img, morningTab, nighttab, sun, tennis2, twoball } from "../../../assets/files";
+import { booking_dropdown_img, booking_dropdown_img2, booking_dropdown_img3, booking_dropdown_img4, booking_logo_img, morningTab, nighttab, sun, tennis2, twoball, bannerimg } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
-import { MdKeyboardArrowDown, MdKeyboardDoubleArrowDown, MdKeyboardDoubleArrowUp, MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
+import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdKeyboardDoubleArrowDown, MdKeyboardDoubleArrowUp, MdOutlineDateRange, MdOutlineDeleteOutline } from "react-icons/md";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
@@ -87,6 +87,8 @@ const Booking = ({ className = "" }) => {
         fullDate: new Date().toISOString().split("T")[0],
         day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
     });
+    const [activeTab, setActiveTab] = useState(0); // Default to morning tab
+
     const [isExpanded, setIsExpanded] = useState(false);
 
     const dayShortMap = { Monday: "Mon", Tuesday: "Tue", Wednesday: "Wed", Thursday: "Thu", Friday: "Fri", Saturday: "Sat", Sunday: "Sun" };
@@ -188,6 +190,11 @@ const Booking = ({ className = "" }) => {
             }
         }
     };
+    const tabs = [
+        { Icon: PiSunHorizonFill, label: 'Morning', key: 'morning' },
+        { Icon: BsSunFill, label: 'Noon', key: 'noon' },
+        { Icon: HiMoon, label: 'Evening', key: 'night' },
+    ];
 
     const handleDeleteSlot = (courtId, date, timeId) => {
         setSelectedTimes((prev) => {
@@ -446,7 +453,7 @@ const Booking = ({ className = "" }) => {
 
     return (
         <>
-            <div className="container px-0 mb-lg-3 mobile-banner-container">
+            <div className="container px-0 mb-lg-3 mb-0 mobile-banner-container">
                 <div className="ps-0 d-none d-lg-block" style={{ height: "340px" }} >
                     <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{
                         height: "100%",
@@ -464,6 +471,7 @@ const Booking = ({ className = "" }) => {
                                 filter: "none"
                             }}
                         />
+
                         <div className="position-absolute top-0 start-0 w-100 h-100 pt-lg-0 d-flex flex-column justify-content-center text-white p-5"
                             style={{
                                 background: "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)",
@@ -478,13 +486,13 @@ const Booking = ({ className = "" }) => {
                         </div>
                     </div>
                 </div>
-                <div className="ps-0 d-lg-none mobile-banner" style={{ height: "200px" }}>
+                <div className="px-3 d-lg-none mobile-banner">
                     <div className="image-zoom-container position-relative overflow-hidden rounded-3" style={{
                         height: "100%",
                         background: 'linear-gradient(269.34deg, rgba(80, 78, 78, 0.61) 0.57%, #111827 94.62%)',
                         backgroundBlendMode: 'multiply'
                     }}>
-                        <img
+                        {/* <img
                             src={twoball}
                             alt="Paddle"
                             className="img-fluid w-100 h-100 object-fit-cover sharp-image"
@@ -494,13 +502,15 @@ const Booking = ({ className = "" }) => {
                                 imageRendering: "-webkit-optimize-contrast",
                                 filter: "none"
                             }}
-                        />
+                        /> */}
+                        <img src={bannerimg} alt="Paddle" className="img-fluid w-100 object-fit-cover rounded-3 d-block d-md-none" style={{ height: "173px" }} />
+
                         <div className="position-absolute top-0 start-0 w-100 h-100 pt-lg-0 d-flex flex-column justify-content-center text-white p-5"
                             style={{
                                 background: "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)",
                                 backgroundBlendMode: "multiply"
                             }}>
-                            <p className="mb-0 ps-md-4" style={{ fontSize: "20px", fontFamily: "Poppins", fontWeight: "500" }}>
+                            <p className="mb-0 ps-md-4" style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500" }}>
                                 BOOK YOUR SLOT
                             </p>
                             <h1 className="booking-img-heading ps-md-4">
@@ -510,10 +520,10 @@ const Booking = ({ className = "" }) => {
                     </div>
                 </div>
             </div>
-            <div className="container mb-md-5 mb-0 pt-3 pt-lg-0 px-lg-4">
+            <div className="container mb-md-5 mb-0 pt-1 pt-lg-0 px-lg-4">
                 <div className="row g-4">
-                    <div className="col-lg-7 col-12 py-md-4 pt-4 pb-0 rounded-3 px-lg-4 mobile-booking-content" >
-                        <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div className="col-lg-7 col-12 py-md-4 pt-0 pb-0 rounded-3 px-lg-4 mobile-booking-content px-3" >
+                        <div className="d-flex justify-content-between align-items-center mb-md-2 mb-0">
                             <div className="custom-heading-use text-nowrap">
                                 Select Date
                                 <div className="position-relative d-inline-block" ref={wrapperRef}>
@@ -560,10 +570,10 @@ const Booking = ({ className = "" }) => {
                                 <input className="form-check-input fs-5 ms-md-1 ms-0 mb-1" type="checkbox" role="switch" id="flexSwitchCheckDefault" checked={showUnavailable} onChange={handleSwitchChange} style={{ boxShadow: "none" }} />
                             </div>
                         </div>
-                        <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
-                            <div className="position-relative">
+                        <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
+                            <div className="position-relative mt-md-0 mt-2">
                                 <div
-                                    className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-3"
+                                    className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
                                     style={{
                                         backgroundColor: "transparent",
                                         width: "52px",
@@ -574,7 +584,7 @@ const Booking = ({ className = "" }) => {
                                 >
                                     <div className="d-flex align-items-center gap-0 p-0">
                                         <img src={booking_dropdown_img} style={{ width: "34px", height: "34px" }} alt="" />
-                                        <MdKeyboardArrowDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                                        <MdKeyboardArrowDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} className="d-md-flex d-none" />
                                     </div>
                                 </div>
                                 {showDropdown && (
@@ -610,7 +620,7 @@ const Booking = ({ className = "" }) => {
                                 )}
                             </div>
                             <div
-                                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-3"
+                                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-2 mt-2 mt-md-0"
                                 style={{
                                     backgroundColor: "#f3f3f5",
                                     height: "58px",
@@ -635,7 +645,7 @@ const Booking = ({ className = "" }) => {
                             </div>
                             <div className="d-flex gap-1 " style={{ position: "relative", maxWidth: "86%" }}>
                                 <button className="btn p-2 border-0 d-none d-md-block" style={{ position: "absolute", left: '-23%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
-                                <div ref={scrollRef} className="d-flex gap-1 date-scroll-container" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+                                <div ref={scrollRef} className="d-flex gap-1 date-scroll-container pt-md-0 pt-2" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", }}>
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
                                         const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
@@ -650,7 +660,7 @@ const Booking = ({ className = "" }) => {
                                             <button
                                                 key={i}
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                                                className={`calendar-day-btn mb-3 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
+                                                className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
                                                 style={{
                                                     background: isSelected
                                                         ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
@@ -678,9 +688,9 @@ const Booking = ({ className = "" }) => {
                                                             display: "flex",
                                                             alignItems: "center",
                                                             justifyContent: "center",
-                                                            top: "-0px",
+                                                            top: "-8px",
                                                             right: "-4px",
-                                                            zIndex: 2,
+                                                            zIndex: 22,
                                                             backgroundColor: "#22c55e"
                                                         }}
                                                     >
@@ -736,12 +746,43 @@ const Booking = ({ className = "" }) => {
                                 ) : (
                                     <>
                                         <div className=" p-0   ">
-                                            <div className="row mb-2">
-                                                <div className="col-3">
+                                            <div className="row mb-md-2 mb-0">
+                                                <div className="col-3 d-md-block d-none">
                                                     <h6 className="all-matches text-start">Courts</h6>
                                                 </div>
-                                                <div className="col-9">
-                                                    <h6 className="all-matches text-center">Available Slots</h6>
+                                                <div className="col-md-9 col-12">
+                                                    <h6 className="all-matches text-center mb-0 me-2 me-md-0">Available Slots</h6>
+                                                </div>
+                                            </div>
+                                            <div className="row mt-2 mb-0 mx-auto d-block d-md-none">
+                                                <div className="col-12 d-flex justify-content-center align-items-center px-0">
+                                                    <div className="weather-tabs-wrapper w-100">
+                                                        <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
+                                                            {tabs.map((tab, index) => {
+                                                                const Icon = tab.Icon;
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={`tab-item rounded-3 ${activeTab === index ? 'active' : ''}`}
+                                                                        onClick={() => setActiveTab(index)}
+                                                                    >
+                                                                        <Icon
+                                                                            size={20}
+                                                                            className={activeTab === index ? 'text-primary' : 'text-dark'}   // dark when inactive
+                                                                        />
+
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                        <div className="tab-labels d-flex justify-content-between">
+                                                            {tabs.map((tab, index) => (
+                                                                <p key={index} className={`tab-label ${activeTab === index ? 'active text-primary mb-0' : 'text-muted mb-0'}`}>
+                                                                    {tab.label}
+                                                                </p>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div
@@ -759,14 +800,14 @@ const Booking = ({ className = "" }) => {
                                                 {/* Your content here */}
 
                                                 <style jsx>{`
-    .hide-scrollbar::-webkit-scrollbar {
-      display: none; /* Safari and Chrome */
-    }
-    .hide-scrollbar {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;     /* Firefox */
-    }
-  `}</style>
+                                                           .hide-scrollbar::-webkit-scrollbar {
+                                                                       display: none; /* Safari and Chrome */
+                                                               }
+                                                            .hide-scrollbar {
+                                                                 -ms-overflow-style: none;  /* IE and Edge */
+                                                               scrollbar-width: none;     /* Firefox */
+                                                                     }
+                                                      `}</style>
                                                 {slotData?.data.map((court, courtIndex) => {
                                                     const filteredSlots = court?.slots?.filter((slot) =>
                                                         showUnavailable
@@ -780,12 +821,12 @@ const Booking = ({ className = "" }) => {
                                                     if (filteredSlots?.length === 0) return null;
 
                                                     return (
-                                                        <div key={court._id} className="row mb-3 align-items-start">
-                                                            <div className="col-3 border-end mb-2 mb-md-0">
-                                                                <div className="court-item p-1 ps-0 ps-md-1 text-start text-md-center h-100" style={{ minHeight: "50px" }}>
-                                                                    <div className="mb-1" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{court?.courtName}</div>
+                                                        <div key={court._id} className="row mb-md-3 mb-0 align-items-start">
+                                                            <div className="col-md-3 col-12 border-end mb-0 mb-md-0 d-flex d-md-block align-items-center justify-content-start ">
+                                                                <div className="court-item p-1 ps-0 ps-md-1 text-center text-md-center h-100 d-flex d-md-block align-items-center justify-content-center" style={{ minHeight: "50px" }}>
+                                                                    <div className="mb-md-1 mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{court?.courtName}</div>
                                                                     <p
-                                                                        className="text-muted mb-0"
+                                                                        className="text-muted mb-0 ms-1 ms-md-0"
                                                                         style={{
                                                                             fontFamily: "Poppins",
                                                                             fontWeight: "400",
@@ -796,7 +837,7 @@ const Booking = ({ className = "" }) => {
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                            <div className="col-9">
+                                                            <div className="col-md-9 col-12">
                                                                 <div className="row g-1">
                                                                     {filteredSlots.map((slot, i) => {
                                                                         const isSelected = selectedTimes[court._id]?.[selectedDate.fullDate]?.some(
@@ -809,7 +850,7 @@ const Booking = ({ className = "" }) => {
                                                                             slot.amount <= 0;
 
                                                                         return (
-                                                                            <div key={i} className="col-4 col-sm-4 col-md-3 col-lg-2 mb-md-1 mb-0 mt-md-0 mt-1">
+                                                                            <div key={i} className="col-3 col-sm-3 col-md-3 col-lg-2 mb-md-1 mb-0 mt-md-0 mt-1">
                                                                                 <button
                                                                                     className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
                                                                                     onClick={() => toggleTime(slot, court._id)}
@@ -878,7 +919,7 @@ const Booking = ({ className = "" }) => {
                         </div>
                     </div>
                     <div className={`col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-booking-summary ${totalSlots === 0 ? 'd-lg-block d-none' : ''}`}>
-                        <div className="border w-100 px-0 py-4 border-0 mobile-summary-container" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                        {/* <div className="border w-100 px-0 pt-3 pb-0 border-0 mobile-summary-container" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="d-flex mb-4 position-relative d-none d-lg-flex">
                                 <img src={booking_logo_img} className="booking-logo-img" alt="" />
 
@@ -941,28 +982,27 @@ const Booking = ({ className = "" }) => {
                                     maxHeight: "250px",
                                     overflowY: "auto",
                                     overflowX: "hidden",
-                                    paddingRight: "16px",           // Right gap for scrollbar
-                                    marginRight: "8px",            // Compensate for scrollbar width
+                                    paddingRight: "16px",         
+                                    marginRight: "8px",            
                                 }}
                             >
-                                {/* Custom scrollbar (optional but matches Figma) */}
                                 <style jsx>{`
-    div::-webkit-scrollbar {
-      width: 8px;
-      border-radius : 3px;
-    }
-    div::-webkit-scrollbar-track {
-      background: #F5F5F5;
-      border-radius: 3px;
-    }
-    div::-webkit-scrollbar-thumb {
-      background:  #626262;
+                                     div::-webkit-scrollbar {
+                                              width: 8px;
+                                    border-radius : 3px;
+                                                  }
+                                                   div::-webkit-scrollbar-track {
+                                                    background: #F5F5F5;
+                                                  border-radius: 3px;
+                                                    }
+                                                       div::-webkit-scrollbar-thumb {
+                                                        background:  #626262;
       
-    }
-    div::-webkit-scrollbar-thumb:hover {
-      background: #626262;
-    }
-  `}</style>
+                                                 }
+                                                  div::-webkit-scrollbar-thumb:hover {
+                                                  background: #626262;
+                                                   }
+                                             `}</style>
                                 <div className="div d-none d-lg-block" style={{ height: "25vh" }}>
                                     {selectedCourts.length > 0 ? (
                                         selectedCourts.map((court, index) =>
@@ -992,7 +1032,7 @@ const Booking = ({ className = "" }) => {
                                         </div>
                                     )}
                                 </div>
-                                <div className="div d-lg-none px-2 border-bottom mobile-slots-container">
+                                <div className="div d-lg-none px-2 mobile-slots-container">
                                     <div className={`mobile-expanded-slots ${isExpanded ? 'expanded' : ''}`} style={{
                                         maxHeight: isExpanded ? (totalSlots > 2 ? "140px" : "auto") : "0",
                                         overflowY: totalSlots > 2 && isExpanded ? "auto" : "hidden",
@@ -1017,10 +1057,15 @@ const Booking = ({ className = "" }) => {
                                                 background: #cccccc;
                                             }
                                         `}</style>
+                                        <h6 className="mb-0 text-white fw-semibold">
+                                            Order Summary :
+                                        </h6>
                                         {selectedCourts.length > 0 && selectedCourts.map((court, index) =>
                                             court.time.map((timeSlot, timeIndex) => (
                                                 <div key={`${index}-${timeIndex}`} className="row mb-1" >
+
                                                     <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
+
                                                         <div className="d-flex text-white">
                                                             <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "11px" }}>
                                                                 {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
@@ -1085,7 +1130,7 @@ const Booking = ({ className = "" }) => {
                                     </div>
                                 </>
                             )}
-                            <div className="d-flex justify-content-center align-items-center">
+                            <div className="d-flex justify-content-center align-items-center px-3">
                                 <button style={{
                                     ...buttonStyle,
                                     opacity: totalSlots === 0 ? 0.5 : 1,
@@ -1108,7 +1153,7 @@ const Booking = ({ className = "" }) => {
                                             <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
                                         </g>
                                     </svg>
-                                    <div style={contentStyle}>Book Now</div>
+                                    <div style={contentStyle}> Book Now</div>
                                 </button>
                             </div>
                             <div className="d-flex align-items-center w-100 ps-5 pe-5 justify-content-start" style={{ height: "30px" }}>
@@ -1127,7 +1172,435 @@ const Booking = ({ className = "" }) => {
                                     </div>
                                 )}
                             </div>
+                        </div> */}
+
+
+
+
+
+
+
+
+
+
+
+                        <div
+                            className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
+                            style={{
+                                height: "85vh",
+                                borderRadius: "10px 30% 10px 10px",
+                                background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                                position: "relative",
+                            }}
+                        >
+                            <div
+                                className="small-curve-arrow d-lg-none"
+                                onClick={() => setIsExpanded(!isExpanded)}
+                            >
+                                {!isExpanded ? (
+                                    <MdKeyboardArrowUp size={25} color="white" className="arrow-shake-infinite"
+                                    />
+                                ) : (
+                                    <MdKeyboardArrowDown size={25} color="white" className="arrow-shake-infinite"
+                                    />
+                                )}
+                            </div>
+
+                            <style jsx>{`
+    
+
+   .small-curve-arrow {
+      position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    background: #0b39d7;
+    width: 49px;
+    height: 27px;
+    border-radius: 20px 20px 0 0;
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+    padding-top: 2px;
+    cursor: pointer;
+}
+
+      `}</style>
+
+                            <div className="d-flex mb-4 position-relative d-none d-lg-flex">
+                                <img src={booking_logo_img} className="booking-logo-img" alt="" />
+
+                                <div className="text-center ps-2 pe-1 mt-3" style={{ maxWidth: "200px" }}>
+                                    <p
+                                        className="mt-2 mb-1 text-white"
+                                        style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}
+                                    >
+                                        {clubData?.clubName}
+                                    </p>
+                                    <p
+                                        className="mt-2 mb-1 text-white"
+                                        style={{
+                                            fontSize: "14px",
+                                            fontWeight: "500",
+                                            fontFamily: "Poppins",
+                                            lineHeight: "1.3",
+                                            wordWrap: "break-word",
+                                        }}
+                                    >
+                                        {clubData?.address} <br /> {clubData?.zipCode}
+                                    </p>
+                                </div>
+                                <div className="position-absolute" style={{ top: "11px", left: "17.5%" }}>
+                                    {logo ? (
+                                        <div
+                                            style={{
+                                                width: "120px",
+                                                height: "120px",
+                                                borderRadius: "50%",
+                                                overflow: "hidden",
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                backgroundColor: "#f9f9f9",
+                                            }}
+                                        >
+                                            <img
+                                                src={logo}
+                                                alt="Club logo"
+                                                style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    backgroundSize: "contain",
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                            style={{
+                                                height: "60px",
+                                                width: "60px",
+                                                backgroundColor: "#374151",
+                                                border: "2px solid white",
+                                                boxShadow: "0px 4px 11.4px 0px #0000002E",
+                                                fontSize: "24px",
+                                                fontWeight: "600",
+                                                color: "white",
+                                            }}
+                                        >
+                                            {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
+                                <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
+                                {totalSlots >= 10 && (
+                                    <Button
+                                        className="float-end me-3 btn border-0 shadow rounded-pill"
+                                        style={{
+                                            cursor: "pointer",
+                                            background: "#111827",
+                                            fontSize: "10px",
+                                            fontWeight: "600",
+                                            fontFamily: "Poppins",
+                                        }}
+                                        onClick={handleClearAll}
+                                    >
+                                        Clear All
+                                    </Button>
+                                )}
+                            </div>
+
+                            <div
+                                className="px-3"
+                                style={{
+                                    maxHeight: "250px",
+                                    overflowY: "auto",
+                                    overflowX: "hidden",
+                                    paddingRight: "16px",
+                                }}
+                            >
+                                <style jsx>{`
+          div::-webkit-scrollbar {
+            width: 8px;
+            border-radius: 3px;
+          }
+          div::-webkit-scrollbar-track {
+            background: #f5f5f5;
+            border-radius: 3px;
+          }
+          div::-webkit-scrollbar-thumb {
+            background: #626262;
+          }
+          div::-webkit-scrollbar-thumb:hover {
+            background: #626262;
+          }
+        `}</style>
+
+                                {/* Desktop Slots */}
+                                <div className="div d-none d-lg-block" style={{ height: "25vh" }}>
+                                    {selectedCourts.length > 0 ? (
+                                        selectedCourts.map((court, index) =>
+                                            court.time.map((timeSlot, timeIndex) => (
+                                                <div key={`${index}-${timeIndex}`} className="row mb-2">
+                                                    <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                                                        <div className="d-flex text-white">
+                                                            <span
+                                                                style={{
+                                                                    fontWeight: "600",
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: "16px",
+                                                                }}
+                                                            >
+                                                                {court.date
+                                                                    ? `${new Date(court.date).toLocaleString("en-US", {
+                                                                        day: "2-digit",
+                                                                    })}, ${new Date(court.date).toLocaleString("en-US", {
+                                                                        month: "short",
+                                                                    })}`
+                                                                    : ""}
+                                                            </span>
+                                                            <span
+                                                                className="ps-1"
+                                                                style={{
+                                                                    fontWeight: "600",
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: "16px",
+                                                                }}
+                                                            >
+                                                                {formatTime(timeSlot.time)}
+                                                            </span>
+                                                            <span
+                                                                className="ps-2"
+                                                                style={{
+                                                                    fontWeight: "500",
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: "15px",
+                                                                }}
+                                                            >
+                                                                {court.courtName}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-white">
+                                                            ₹
+                                                            <span
+                                                                className="ps-1"
+                                                                style={{ fontWeight: "600", fontFamily: "Poppins" }}
+                                                            >
+                                                                {timeSlot.amount || "N/A"}
+                                                            </span>
+                                                            <MdOutlineDeleteOutline
+                                                                className="ms-2 mb-2 text-white"
+                                                                style={{ cursor: "pointer" }}
+                                                                onClick={() =>
+                                                                    handleDeleteSlot(court._id, court.date, timeSlot._id)
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )
+                                    ) : (
+                                        <div
+                                            className="d-flex flex-column justify-content-center align-items-center text-white"
+                                            style={{ height: "25vh" }}
+                                        >
+                                            <p
+                                                style={{
+                                                    fontSize: "14px",
+                                                    fontFamily: "Poppins",
+                                                    fontWeight: "500",
+                                                }}
+                                            >
+                                                No slot selected
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="div d-lg-none px-0 mobile-slots-container">
+
+                                    <div
+                                        className={`mobile-expanded-slots ${isExpanded ? "expanded border-bottom" : " "}`}
+                                        style={{
+                                            maxHeight: isExpanded
+                                                ? totalSlots > 2
+                                                    ? "140px"
+                                                    : "auto"
+                                                : "0",
+                                            overflowY: totalSlots > 2 && isExpanded ? "auto" : "hidden",
+                                            transition: "max-height 0.3s ease",
+                                        }}
+                                    >
+                                        <h6 className="mb-0 pb-1 text-white fw-semibold pt-2" style={{ fontSize: '15px' }}>Order Summary :</h6>
+
+                                        <style jsx>{`
+                                                            .mobile-expanded-slots.expanded::-webkit-scrollbar {
+                                                                 width: 6px;
+                                                                  border-radius: 3px;
+                                                                       }
+                                                             .mobile-expanded-slots.expanded::-webkit-scrollbar-track {
+                                                              background: rgba(255, 255, 255, 0.2);
+                                                                      border-radius: 3px;
+                                                                margin: 4px 0;
+                                                                    }
+                                                     .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb {
+                                                  background: #ffffff;
+                                                        border-radius: 3px;
+                                                  border: 1px solid #001b76;
+                                                        }
+                                                 .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb:hover {
+                                           background: #cccccc;
+                                            }
+                                      `}</style>
+
+                                        {selectedCourts.length > 0 &&
+                                            selectedCourts.map((court, index) =>
+                                                court.time.map((timeSlot, timeIndex) => (
+
+                                                    <div key={`${index}-${timeIndex}`} className="row mb-1">
+                                                        <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
+                                                            <div className="d-flex text-white">
+                                                                <span
+                                                                    style={{
+                                                                        fontWeight: "600",
+                                                                        fontFamily: "Poppins",
+                                                                        fontSize: "11px",
+                                                                    }}
+                                                                >
+                                                                    {court.date
+                                                                        ? `${new Date(court.date).toLocaleString("en-US", {
+                                                                            day: "2-digit",
+                                                                        })}, ${new Date(court.date).toLocaleString("en-US", {
+                                                                            month: "short",
+                                                                        })}`
+                                                                        : ""}
+                                                                </span>
+                                                                <span
+                                                                    className="ps-1"
+                                                                    style={{
+                                                                        fontWeight: "600",
+                                                                        fontFamily: "Poppins",
+                                                                        fontSize: "11px",
+                                                                    }}
+                                                                >
+                                                                    {formatTime(timeSlot.time)}
+                                                                </span>
+                                                                <span
+                                                                    className="ps-1"
+                                                                    style={{
+                                                                        fontWeight: "500",
+                                                                        fontFamily: "Poppins",
+                                                                        fontSize: "10px",
+                                                                    }}
+                                                                >
+                                                                    {court.courtName}
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-white">
+                                                                <span
+                                                                    className="ps-1"
+                                                                    style={{
+                                                                        fontWeight: "600",
+                                                                        fontFamily: "Poppins",
+                                                                        fontSize: "11px",
+                                                                    }}
+                                                                >
+                                                                    ₹ {timeSlot.amount || "N/A"}
+                                                                </span>
+                                                                <MdOutlineDeleteOutline
+                                                                    className="ms-1 text-white"
+                                                                    style={{ cursor: "pointer", fontSize: "14px" }}
+                                                                    onClick={() =>
+                                                                        handleDeleteSlot(court._id, court.date, timeSlot._id)
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {totalSlots > 0 && (
+                                <>
+                                    <div className="d-lg-none py-0 pt-1">
+                                        <div
+                                            className="d-flex justify-content-between align-items-center px-3"
+                                            onClick={() => setIsExpanded(!isExpanded)}
+                                            style={{ cursor: "pointer" }}
+                                        >
+                                            <div className="d-flex flex-column">
+                                                <span
+                                                    className="text-white"
+                                                    style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}
+                                                >
+                                                    Total to Pay
+                                                </span>
+                                                <span
+                                                    className="text-white"
+                                                    style={{ fontSize: "12px", color: "#e5e7eb", fontFamily: "Poppins" }}
+                                                >
+                                                    Total Slot: {totalSlots}
+                                                </span>
+                                            </div>
+
+                                            <div>
+                                                <span
+                                                    className="text-white"
+                                                    style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}
+                                                >
+                                                    ₹{grandTotal}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-lg-flex">
+                                        <p className="d-flex flex-column mb-0" style={{ fontSize: "16px", fontWeight: "600" }}>
+                                            Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
+                                        </p>
+                                        <p className="mb-0" style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="d-flex justify-content-center align-items-center px-3">
+                                <button style={{
+                                    ...buttonStyle,
+                                    opacity: totalSlots === 0 ? 0.5 : 1,
+                                    cursor: totalSlots === 0 ? "not-allowed" : "pointer",
+                                    pointerEvents: totalSlots === 0 ? "none" : "auto",
+                                }} className={`${className} `} disabled={totalSlots === 0} onClick={handleBookNow}>
+                                    <svg style={svgStyle} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+                                        <defs>
+                                            <linearGradient id={`buttonGradient-${width}-${height}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stopColor="#fff" />
+                                                <stop offset="50%" stopColor="#fff" />
+                                                <stop offset="100%" stopColor="#fff" />
+                                            </linearGradient>
+                                        </defs>
+                                        <path d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.30} C ${width * 0.88} ${height * 0.20} ${width * 0.90} ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15} ${width * 0.996} ${height * 0.30} ${width * 0.996} ${height * 0.50} C ${width * 0.996} ${height * 0.70} ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.90} ${height * 0.85} ${width * 0.88} ${height * 0.80} ${width * 0.86} ${height * 0.70} C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.70} C ${width * 0.81} ${height * 0.80} ${width * 0.79} ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.70} ${width * 0.004} ${height * 0.50} C ${width * 0.004} ${height * 0.30} ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`} fill={`url(#buttonGradient-${width}-${height})`} />
+                                        <circle cx={circleX} cy={circleY} r={circleRadius} fill="#001B76" />
+                                        <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
+                                            <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />
+                                            <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1}`} />
+                                        </g>
+                                    </svg>
+                                    <div style={contentStyle}> Book Now</div>
+                                </button>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             </div>
