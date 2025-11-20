@@ -2285,7 +2285,7 @@ h1.display-5 {
   /* Month display responsive */
   .d-flex.justify-content-center.align-items-center.rounded-pill {
     height: 40px !important;
-    padding: 2px 4px !important;
+    /* padding: 2px 4px !important; */
   }
 
   .d-flex.justify-content-center.align-items-center.rounded-pill span {

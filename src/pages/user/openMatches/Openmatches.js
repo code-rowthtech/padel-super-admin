@@ -625,7 +625,7 @@ const Openmatches = () => {
 
                     </div>
 
-                    <div className="row mb-md-4 mb-0 mx-auto">
+                    <div className="row mb-md-2 mb-0 mx-auto">
                         <div className="col-12 d-flex justify-content-center align-items-center px-0">
                             <div className="weather-tabs-wrapper w-100">
                                 <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
@@ -661,7 +661,7 @@ const Openmatches = () => {
 
                     {/* Match List */}
                     <div className="pb-4">
-                        <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-4 mb-2">
+                        <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-2 mb-2">
                             <h5 className="mb-0 custom-heading-use">All Matches</h5>
                             <div className="dropdown">
                                 <button
@@ -774,7 +774,7 @@ const Openmatches = () => {
                                                                 style={{ width: "100%" }}
                                                             >
                                                                 <div
-                                                                    className="d-flex align-items-center gap-2"
+                                                                    className="d-flex align-items-center gap-1"
                                                                     style={{ fontWeight: 500, fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
                                                                 >
                                                                     ₹
@@ -807,7 +807,7 @@ const Openmatches = () => {
 
 
                                             <div
-                                                className="card  mb-2 pt-3 pb-3 p-0 shadow-0 rounded-3 d-block d-md-none"
+                                                className="card  mb-2 py-2 p-0 shadow-0 rounded-3 d-block d-md-none"
                                                 style={{ backgroundColor: "#CBD6FF1A", border: '0.45px solid #0000001A', boxShadow: "none" }}
                                             >
                                                 <div className="row px-0 px-md-3 pt-0 pb-0 d-flex justify-content-between align-items- flex-wrap mx-auto">
@@ -879,7 +879,7 @@ const Openmatches = () => {
                                                             <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
                                                                 <div
                                                                     className="rounded-circle border d-flex align-items-center justify-content-center"
-                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(61, 190, 100)", overflow: "hidden" }}
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(31, 65, 187)", overflow: "hidden" }}
                                                                 >
                                                                     <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>A</span>
                                                                 </div>
@@ -913,7 +913,7 @@ const Openmatches = () => {
                                                             <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
                                                                 <div
                                                                     className="rounded-circle border d-flex align-items-center justify-content-center"
-                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(61, 190, 100)", overflow: "hidden" }}
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(31, 65, 187)", overflow: "hidden" }}
                                                                 >
                                                                     <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>A</span>
                                                                 </div>
@@ -965,7 +965,7 @@ const Openmatches = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="row mx-auto border-top pt-2">
+                                                    <div className="row mx-auto border-top pt-1">
                                                         <div className="col-6 ps-0">
 
                                                             <p className="mb-1 all-match-name-level">
@@ -979,14 +979,14 @@ const Openmatches = () => {
                                                                 {match?.clubId?.city.charAt(0)?.toUpperCase() + match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
                                                             </p>
                                                         </div>
-                                                        <div className="col-6 pe-0 d-flex align-items-center justify-content-end">
+                                                        {/* <div className="col-6 pe-0 d-flex align-items-center justify-content-end">
                                                             <div
                                                                 className=" all-matches"
-                                                                style={{ fontWeight: "500", fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
+                                                                style={{ fontWeight: "500", fontSize: "20px", fontFamily: "none", color: "#1F41BB" }}
                                                             >
                                                                 ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "25px", fontWeight: "600", fontFamily: "Poppins", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
                                                             </div>
-                                                            {/* <button
+                                                            <button
                                                                 className="btn  rounded-pill d-flex justify-content-end align-items-center text-end view-match-btn text-dark p-0 border-0"
                                                                 onClick={() => {
                                                                     setSelectedMatch(match);
@@ -995,8 +995,35 @@ const Openmatches = () => {
                                                                 aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
                                                             >
                                                                 View
-                                                            </button> */}
-                                                        </div>
+                                                            </button>
+                                                        </div> */}
+                                                         <div
+                                                                className="col-6 pe-0 d-flex align-items-center justify-content-end"
+                                                                // style={{ width: "100%" }}
+                                                            >
+                                                                <div
+                                                                    className="d-flex align-items-center gap-1"
+                                                                    style={{ fontWeight: 500, fontSize: "20px", fontFamily: "none", color: "#1F41BB" }}
+                                                                >
+                                                                    ₹
+                                                                    <span
+                                                                        style={{ fontSize: "25px", fontWeight: 600, fontFamily: "Poppins", color: "#1F41BB" }}
+                                                                    >
+                                                                        {calculateMatchPrice(match?.slot) || 0}
+                                                                    </span>
+
+                                                                    <button
+                                                                        className="btn rounded-pill d-flex justify-content-center align-items-center text-dark p-0 border-0"
+                                                                        onClick={() => {
+                                                                            setSelectedMatch(match);
+                                                                            setShowViewMatch(true);
+                                                                        }}
+                                                                        aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                                    >
+                                                                        <IoIosArrowForward />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                     </div>
 
                                                 </div>

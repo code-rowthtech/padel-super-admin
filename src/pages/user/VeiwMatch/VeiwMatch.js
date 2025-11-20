@@ -236,7 +236,7 @@ const ViewMatch = ({ match, onBack }) => {
     return (
         <>
             {/* Left Section */}
-            <div className=" rounded-3 px-3 py-2" style={{ backgroundColor: "#F5F5F566" }}>
+            <div className=" rounded-3 px-3 py-2 h-100" style={{ backgroundColor: "#F5F5F566" }}>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-2">
                         {onBack && (
