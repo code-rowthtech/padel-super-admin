@@ -802,7 +802,7 @@ const Openmatches = () => {
           </div>
 
           {/* Match List */}
-          <div className="pb-4">
+          <div className="pb-0">
             <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-2 mb-2">
               <h5 className="mb-0 custom-heading-use">All Matches</h5>
               <div className="dropdown">
@@ -851,9 +851,10 @@ const Openmatches = () => {
 
             <div
               style={{
-                minHeight: "380px",
+                minHeight: "400px",
+                height:"400px",
                 maxHeight: filteredMatches.length > 4 ? "380px" : "auto",
-                overflowY: filteredMatches.length > 4 ? "auto" : "visible",
+                overflowY: filteredMatches.length > 4 ? "auto" : "auto",
                 scrollBehavior: "smooth",
               }}
               className="no-scrollbar"
@@ -1342,7 +1343,44 @@ const Openmatches = () => {
           {!showViewMatch ? (
             <div className="ms-0 ms-lg-2">
               <div
-                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner"
+                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner mx-auto d-flex d-md-none"
+                style={{
+                  backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
+                  position: "relative",
+                  backgroundSize: "cover",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right center",
+                  height: "312px",
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  marginTop: "-20px",
+                }}
+              >
+                <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
+                  <h4 className="open-match-img-heading text-nowrap">
+                    Got a score to <br /> settle?
+                  </h4>
+                  <p className="text-light font_small_size">
+                    Great for competitive vibes.
+                  </p>
+                  <button
+                    className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
+                    onClick={createMatchesHandle}
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                      fontSize: "14px",
+                      fontFamily: "Poppins",
+                      fontWeight: "500",
+                    }}
+                    aria-label="Create open matches"
+                  >
+                    Create Open Matches
+                  </button>
+                </div>
+              </div>
+                <div
+                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-block"
                 style={{
                   backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
                   position: "relative",
