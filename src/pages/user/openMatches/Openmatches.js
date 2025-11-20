@@ -708,26 +708,29 @@ const Openmatches = () => {
                                 <div className="row mx-auto">
                                     {filteredMatches?.map((match, index) => (
                                         <div className="col-lg-6 col-12 ps-0 pe-0 gap-2" key={index}>
-                                            <div
-                                                className="card  mb-2 pt-2 pb-0 p-0 shadow-0 rounded-2 d-md-block d-none"
-                                                style={{ backgroundColor: "#CBD6FF1A", border: '0.45px solid #0000001A', boxShadow: "none" }}
+                                            <div className="row px-1">
+                                                <div className="col">
+ <div
+                                                className="card  mb-2 py-3 p-0 shadow-0 rounded-2 d-md-block d-none"
+                                                style={{ backgroundColor: "#CBD6FF1A", border: '0.45px solid #0000001A', boxShadow: "none",height:"10rem" }}
                                             >
-                                                <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items- flex-wrap">
+                                                <div className="row px-2 mx-auto px-md-0 py-2 d-flex justify-content-between align-items- flex-wrap">
                                                     <div className="col-lg-7 col-6">
-                                                        <p className="mb-4 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
+                                                        <p className="mb-0 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
                                                             {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
-                                                            <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
+                                                           
+                                                        </p>
+                                                         <span className="text-muted all-match-name-level ms-0 d-none d-md-inline">
                                                                 {match?.skillLevel
                                                                     ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
                                                                     : "N/A"}
                                                             </span>
-                                                        </p>
                                                         <p className="all-match-time mb-0 d-md-none d-lg-none">
                                                             {match?.skillLevel
                                                                 ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
                                                                 : "N/A"}
                                                         </p>
-                                                        <p className="mb-1 all-match-name-level">
+                                                        <p className="mb-1 all-match-name-level mt-4">
                                                             {match?.clubId?.clubName || "Unknown Club"}
                                                         </p>
                                                         <p
@@ -741,7 +744,7 @@ const Openmatches = () => {
 
                                                     <div className="col-6 col-lg-5 d-flex justify-content-end align-items-center">
                                                         <div className="d-flex flex-column align-items-end">
-                                                            <div className="d-flex align-items-center mb-3">
+                                                            <div className="d-flex align-items-center mb-4">
                                                                 {match?.teamA?.length === 1 || match?.teamA?.length === 0 ? (
                                                                     <AvailableTag team="Team A" match={match} name="teamA" />
                                                                 ) : match?.teamB?.length === 1 || match?.teamB?.length === 0 ? (
@@ -775,11 +778,11 @@ const Openmatches = () => {
                                                             >
                                                                 <div
                                                                     className="d-flex align-items-center gap-1"
-                                                                    style={{ fontWeight: 500, fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
+                                                                    style={{ fontWeight: 500, fontSize: "20px", fontFamily: "none", color: "#1F41BB" }}
                                                                 >
                                                                     ₹
                                                                     <span
-                                                                        style={{ fontSize: "25px", fontWeight: 600, fontFamily: "Poppins", color: "#1F41BB" }}
+                                                                        style={{ fontSize: "28px", fontWeight: 600, fontFamily: "Poppins", color: "#1F41BB" }}
                                                                     >
                                                                         {calculateMatchPrice(match?.slot) || 0}
                                                                     </span>
@@ -801,6 +804,9 @@ const Openmatches = () => {
                                                     </div>
                                                 </div>
                                             </div>
+                                                </div>
+                                            </div>
+                                           
 
 
 
@@ -1047,7 +1053,7 @@ const Openmatches = () => {
                     </div>
                 </div>
 
-                <div className={`col-12 col-lg-5 ${!showViewMatch ? 'ps-md-4 pt-md-3 pt-4' : ''} order-1 order-md-2`}>
+                <div className={`col-12 col-lg-5 px-md-3 px-0 ${!showViewMatch ? 'ps-md-4 pt-md-3 pt-4' : ''} order-1 order-md-2`}>
                     {!showViewMatch ?
                         <div className="ms-0 ms-lg-2">
                             <div

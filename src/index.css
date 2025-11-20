@@ -809,12 +809,12 @@ h1.display-5 {
 }
 
 .all-match-time {
-  font-size: 13px;
+  font-size: 14px;
   font-family: "Poppins";
 }
 
 .all-match-name-level {
-  font-size: 12px;
+  font-size: 13px;
   font-family: "Poppins";
   font-weight: 500;
 }
@@ -866,7 +866,9 @@ h1.display-5 {
     border-top-right-radius: 20px;
 
   }
-
+.bgchangemobile{
+  background-color: white!important;
+}
   .login-btn {
     font-size: 15px;
     font-weight: 500;
@@ -881,6 +883,12 @@ h1.display-5 {
   .cart-booking-btn {
     width: 20px !important;
     height: 20px !important;
+  }
+  .add_font_mobile{
+    font-size: 11px!important;
+  }
+  .add_font_mobile_bottom{
+    font-size: 12px!important;
   }
 
 
@@ -1769,9 +1777,14 @@ h1.display-5 {
 
   /* Player images full size on mobile */
   .rounded-circle {
-    width: 80px !important;
-    height: 80px !important;
+    width: 50px !important;
+    height: 50px !important;
   }
+.all-matches {
+    font-size: 15px!important;
+
+}
+
 
   /* Player images fill circle completely */
   .rounded-circle img {
