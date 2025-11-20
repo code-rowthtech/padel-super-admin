@@ -23,6 +23,7 @@ import ViewMatch from "../VeiwMatch/VeiwMatch";
 import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
+import { IoIosArrowForward } from "react-icons/io";
 
 const normalizeTime = (time) => {
     if (!time) return null;
@@ -660,7 +661,7 @@ const Openmatches = () => {
 
                     {/* Match List */}
                     <div className="pb-4">
-                        <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-4">
+                        <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-4 mb-2">
                             <h5 className="mb-0 custom-heading-use">All Matches</h5>
                             <div className="dropdown">
                                 <button
@@ -692,7 +693,7 @@ const Openmatches = () => {
                             </div>
                         </div>
 
-                        {/* <div
+                        <div
                             style={{
                                 minHeight: "380px",
                                 maxHeight: filteredMatches.length > 4 ? "380px" : "auto",
@@ -700,20 +701,20 @@ const Openmatches = () => {
                                 scrollBehavior: "smooth",
                             }}
                             className="no-scrollbar"
-                                     >
+                        >
                             {matchLoading ? (
                                 <DataLoading height={380} />
                             ) : filteredMatches.length > 0 ? (
-                                <div className="row">
+                                <div className="row mx-auto">
                                     {filteredMatches?.map((match, index) => (
                                         <div className="col-lg-6 col-12 ps-0 pe-0 gap-2" key={index}>
                                             <div
-                                                className="card  mb-3 py-3 p-0 shadow-0 rounded-2"
+                                                className="card  mb-2 pt-2 pb-0 p-0 shadow-0 rounded-2 d-md-block d-none"
                                                 style={{ backgroundColor: "#CBD6FF1A", border: '0.45px solid #0000001A', boxShadow: "none" }}
                                             >
                                                 <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items- flex-wrap">
                                                     <div className="col-lg-7 col-6">
-                                                        <p className="mb-3 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
+                                                        <p className="mb-4 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
                                                             {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
                                                             <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
                                                                 {match?.skillLevel
@@ -731,9 +732,9 @@ const Openmatches = () => {
                                                         </p>
                                                         <p
                                                             className="mb-0 text-muted all-match-name-level"
-                                                            style={{ fontSize: "8px", fontWeight: "400" }}
+                                                            style={{ fontSize: "10px", fontWeight: "400" }}
                                                         >
-                                                            <FaMapMarkerAlt className="me-1" style={{ fontSize: "8px" }} />
+                                                            <FaMapMarkerAlt className="me-1" style={{ fontSize: "10px" }} />
                                                             {match?.clubId?.city.charAt(0)?.toUpperCase() + match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
                                                         </p>
                                                     </div>
@@ -768,26 +769,236 @@ const Openmatches = () => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="d-flex flex-column align-items-center gap-1">
+                                                            <div
+                                                                className="d-flex align-items-center justify-content-end"
+                                                                style={{ width: "100%" }}
+                                                            >
                                                                 <div
-                                                                    className=" all-matches"
-                                                                    style={{ fontWeight: "500", fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
+                                                                    className="d-flex align-items-center gap-2"
+                                                                    style={{ fontWeight: 500, fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
                                                                 >
-                                                                    ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "25px", fontWeight: "600", fontFamily: "Poppins", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                                    ₹
+                                                                    <span
+                                                                        style={{ fontSize: "25px", fontWeight: 600, fontFamily: "Poppins", color: "#1F41BB" }}
+                                                                    >
+                                                                        {calculateMatchPrice(match?.slot) || 0}
+                                                                    </span>
+
+                                                                    <button
+                                                                        className="btn rounded-pill d-flex justify-content-center align-items-center text-dark p-0 border-0"
+                                                                        onClick={() => {
+                                                                            setSelectedMatch(match);
+                                                                            setShowViewMatch(true);
+                                                                        }}
+                                                                        aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                                    >
+                                                                        <IoIosArrowForward />
+                                                                    </button>
                                                                 </div>
-                                                                <button
-                                                                    className="btn  rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-dark"
-                                                                    onClick={() => {
-                                                                        setSelectedMatch(match);
-                                                                        setShowViewMatch(true);
-                                                                    }}
-                                                                    aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+
+
+                                            <div
+                                                className="card  mb-2 pt-3 pb-3 p-0 shadow-0 rounded-3 d-block d-md-none"
+                                                style={{ backgroundColor: "#CBD6FF1A", border: '0.45px solid #0000001A', boxShadow: "none" }}
+                                            >
+                                                <div className="row px-0 px-md-3 pt-0 pb-0 d-flex justify-content-between align-items- flex-wrap mx-auto">
+                                                    <div className="col-12">
+                                                        <p className="mb-1 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
+                                                            {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
+
+                                                        </p>
+                                                    </div>
+                                                    <div className="col-12">
+                                                        <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
+                                                            {match?.skillLevel
+                                                                ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
+                                                                : "N/A"}
+                                                        </span>
+
+
+                                                    </div>
+                                                    <div className="col-12 mb-2">
+                                                        <p className="all-match-time mb-0 d-md-none d-lg-none">
+                                                            {match?.skillLevel
+                                                                ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
+                                                                : "N/A"}
+                                                        </p>
+                                                    </div>
+                                                    {/* <div className="col-12 d-flex justify-content-end align-items-center">
+                                                        <div className="d-flex flex-column align-items-end">
+                                                            <div className="d-flex align-items-center mb-3">
+                                                                {match?.teamA?.length === 1 || match?.teamA?.length === 0 ? (
+                                                                    <AvailableTag team="Team A" match={match} name="teamA" />
+                                                                ) : match?.teamB?.length === 1 || match?.teamB?.length === 0 ? (
+                                                                    <AvailableTag team="Team B" match={match} name="teamB" />
+                                                                ) : match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
+                                                                    <FirstPlayerTag player={match?.teamA[0]?.userId} />
+                                                                ) : null}
+
+                                                                <div className="d-flex align-items-center ms-2">
+                                                                    {[
+                                                                        ...(match?.teamA?.filter((_, idx) =>
+                                                                            match?.teamA?.length === 2 && match?.teamB?.length === 2
+                                                                                ? idx !== 0
+                                                                                : true
+                                                                        ) || []),
+                                                                        ...(match?.teamB || []),
+                                                                    ].map((player, idx, arr) => (
+                                                                        <PlayerAvatar
+                                                                            key={`player-${idx}`}
+                                                                            player={player}
+                                                                            idx={idx}
+                                                                            total={arr.length}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+
+                                                        </div>
+
+                                                    </div> */}
+
+
+
+                                                    <div className="row mx-auto">
+                                                        {/* LEFT SIDE */}
+                                                        <div className="col-6 px-0 d-flex justify-content-between align-items-center  flex-wrap">
+
+
+                                                            {/* Player 1 */}
+                                                            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                                                <div
+                                                                    className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(61, 190, 100)", overflow: "hidden" }}
                                                                 >
-                                                                    View
-                                                                </button>
+                                                                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>A</span>
+                                                                </div>
+
+
+                                                                <span
+                                                                    data-tooltip-id="player-A-0"
+                                                                    data-tooltip-content="Abhishek Balyani"
+                                                                    className="mb-0 mt-2"
+                                                                    style={{
+                                                                        maxWidth: "150px",
+                                                                        overflow: "hidden",
+                                                                        textOverflow: "ellipsis",
+                                                                        whiteSpace: "nowrap",
+                                                                        display: "inline-block",
+                                                                        cursor: "pointer",
+                                                                        fontSize: "10px",
+                                                                        fontWeight: 500,
+                                                                        fontFamily: "Poppins",
+                                                                    }}
+                                                                >
+                                                                    Abhishek Bal...
+                                                                </span>
+
+
+                                                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(61, 190, 100)" }}>A|B</span> */}
+                                                            </div>
+
+
+                                                            {/* Player 2 */}
+                                                            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                                                <div
+                                                                    className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(61, 190, 100)", overflow: "hidden" }}
+                                                                >
+                                                                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>A</span>
+                                                                </div>
+
+
+                                                                <p className="mb-0 mt-2" style={{ fontSize: "10px", fontWeight: 500, fontFamily: "Poppins" }}>Ankit</p>
+
+
+                                                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(61, 190, 100)" }}>B2</span> */}
+                                                            </div>
+                                                        </div>
+
+
+                                                        {/* RIGHT SIDE */}
+                                                        <div className="col-6  px-0 d-flex justify-content-between align-items-center flex-wrap border-start border-0 border-lg-start">
+
+
+                                                            {/* Player 3 */}
+                                                            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                                                <div
+                                                                    className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(31, 65, 187)", overflow: "hidden" }}
+                                                                >
+                                                                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>D</span>
+                                                                </div>
+
+
+                                                                <p className="mb-0 mt-2" style={{ fontSize: "10px", fontWeight: 500, fontFamily: "Poppins" }}>Diksha</p>
+
+
+                                                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(31, 65, 187)" }}>D1</span> */}
+                                                            </div>
+
+
+                                                            {/* Player 4 */}
+                                                            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                                                <div
+                                                                    className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(31, 65, 187)", overflow: "hidden" }}
+                                                                >
+                                                                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>H</span>
+                                                                </div>
+
+
+                                                                <p className="mb-0 mt-2" style={{ fontSize: "10px", fontWeight: 500, fontFamily: "Poppins" }}>H</p>
+
+
+                                                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(31, 65, 187)" }}>C2</span> */}
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div className="row mx-auto border-top pt-2">
+                                                        <div className="col-6 ps-0">
+
+                                                            <p className="mb-1 all-match-name-level">
+                                                                {match?.clubId?.clubName || "Unknown Club"}
+                                                            </p>
+                                                            <p
+                                                                className="mb-0 text-muted all-match-name-level"
+                                                                style={{ fontSize: "10px", fontWeight: "400" }}
+                                                            >
+                                                                <FaMapMarkerAlt className="me-1" style={{ fontSize: "10px" }} />
+                                                                {match?.clubId?.city.charAt(0)?.toUpperCase() + match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
+                                                            </p>
+                                                        </div>
+                                                        <div className="col-6 pe-0 d-flex align-items-center justify-content-end">
+                                                            <div
+                                                                className=" all-matches"
+                                                                style={{ fontWeight: "500", fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
+                                                            >
+                                                                ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "25px", fontWeight: "600", fontFamily: "Poppins", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                            </div>
+                                                            {/* <button
+                                                                className="btn  rounded-pill d-flex justify-content-end align-items-center text-end view-match-btn text-dark p-0 border-0"
+                                                                onClick={() => {
+                                                                    setSelectedMatch(match);
+                                                                    setShowViewMatch(true);
+                                                                }}
+                                                                aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                            >
+                                                                View
+                                                            </button> */}
+                                                        </div>
+                                                    </div>
+
                                                 </div>
                                             </div>
                                         </div>
@@ -805,7 +1016,7 @@ const Openmatches = () => {
                                     <p>No matches available</p>
                                 </div>
                             )}
-                        </div> */}
+                        </div>
                     </div>
                 </div>
 
@@ -839,7 +1050,7 @@ const Openmatches = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100 d-none d-md-block" style={{ backgroundColor: "#F6F7FB" }}>
+                            <div className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100 d-none d-md-flex" style={{ backgroundColor: "#F6F7FB" }}>
                                 {reviewLoading ? (
                                     <DataLoading />
                                 ) : (

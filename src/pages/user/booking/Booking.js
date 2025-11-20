@@ -629,7 +629,7 @@ const Booking = ({ className = "" }) => {
                             >
                                 <span className="add_font_small_span"
                                     style={{
-                                        fontSize: "14px",
+                                        fontSize: window.innerWidth <= 768 ? "12px" : "14px",
                                         fontWeight: "500",
                                         whiteSpace: "pre-line",
                                         textAlign: "center",
@@ -1090,7 +1090,7 @@ const Booking = ({ className = "" }) => {
                                 <>
                                     <div className="d-lg-none py-0">
                                         <div
-                                            className="d-flex justify-content-between align-items-center px-3"
+                                            className={`d-flex justify-content-between ${isExpanded ? 'border-top' : ''}  align-items-center px-3`}
                                             onClick={() => setIsExpanded(!isExpanded)}
                                             style={{ cursor: "pointer" }}
                                         >

@@ -567,8 +567,8 @@ const Payment = ({ className = "" }) => {
                                 <div
                                     className="slots-container"
                                     style={{
-                                        maxHeight: totalSlots > 4 ? "200px" : "auto",
-                                        overflowY: totalSlots > 4 ? "auto" : "visible",
+                                        maxHeight: localTotalSlots > 4 ? "200px" : "auto",
+                                        overflowY: localTotalSlots > 4 ? "auto" : "visible",
                                         overflowX: "hidden",
                                         paddingRight: "8px",
                                     }}
@@ -603,110 +603,160 @@ const Payment = ({ className = "" }) => {
                                 </div>
                             </div>
                         </div>
-
+                        {console.log(localTotalSlots, isExpanded, 'muskannegi')}
                         {/* Mobile Booking Summary - Updated */}
-                        <div className="d-lg-none">
-                            <div className={`mobile-expanded-slots ${isExpanded ? 'expanded' : ''}`} style={{ maxHeight: isExpanded ? "200px" : "0", overflow: isExpanded ? "auto" : "hidden", transition: "max-height 0.3s ease" }}>
+                        <div className={`div d-lg-none px-2 ${isExpanded ? 'mobile-slots-container' : ''} `}>
+                            <div
+                                className="mobile-expanded-slots"
+                                style={{
+                                    maxHeight: isExpanded
+                                        ? localTotalSlots > 2
+                                            ? "140px"
+                                            : "auto"
+                                        : "0px",
+                                    overflowY: isExpanded && localTotalSlots > 2 ? "auto" : "hidden",
+                                    overflowX: "hidden",
+                                    transition: "max-height 0.3s ease",
+                                    paddingRight: isExpanded && localTotalSlots > 2 ? "8px" : "0",
+                                }}
+                            >
+                                {/* Inline scrollbar styles - applied directly when expanded */}
+                                {isExpanded && localTotalSlots > 2 && (
+                                    <style jsx>{`
+        .mobile-expanded-slots::-webkit-scrollbar {
+          width: 6px;
+          border-radius: 3px;
+        }
+        .mobile-expanded-slots::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 3px;
+          margin: 4px 0;
+        }
+        .mobile-expanded-slots::-webkit-scrollbar-thumb {
+          background: #ffffff;
+          border-radius: 3px;
+          border: 1px solid #001B76;
+        }
+        .mobile-expanded-slots::-webkit-scrollbar-thumb:hover {
+          background: #cccccc;
+        }
+        .mobile-expanded-slots {
+          scrollbar-width: thin;
+          scrollbar-color: #ffffff rgba(255, 255, 255, 0.2);
+        }
+      `}</style>
+                                )}
 
-                                <style jsx>{`
-                                    /* Webkit Browsers (Chrome, Safari, Edge) */
-                                    .mobile-expanded-slots.expanded::-webkit-scrollbar {
-                                        width: 6px;
-                                        border-radius: 3px;
-                                    }
-                                    .mobile-expanded-slots.expanded::-webkit-scrollbar-track {
-                                        background: rgba(255, 255, 255, 0.2);
-                                        border-radius: 3px;
-                                        margin: 4px 0;
-                                    }
-                                    .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb {
-                                        background: #ffffff;
-                                        border-radius: 3px;
-                                        border: 1px solid #001B76;
-                                    }
-                                    .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb:hover {
-                                        background: #cccccc;
-                                    }
-
-                                    /* Firefox */
-                                    .mobile-expanded-slots {
-                                        scrollbar-color: #ffffff rgba(255, 255, 255, 0.2);
-                                        scrollbar-width: thin;
-                                    }
-                                `}</style>
-
-                                {localSelectedCourts.length > 0 ? (
-                                    localSelectedCourts.map((court, index) =>
-                                        court.time.map((timeSlot, timeIndex) => (
-                                            <div key={`${index}-${timeIndex}`} className="px-3 py-2 border-bottom border-light" style={{
-                                                maxHeight: isExpanded ? (localTotalSlots > 2 ? "180px" : "auto") : "0",
-                                                overflowY: localTotalSlots > 2 && isExpanded ? "auto" : "hidden",
-                                            }}>
-                                                <div className="d-flex justify-content-between align-items-center text-white">
-                                                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "12px" }}>
-                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })} ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                {/* Use localSelectedCourts (consistent state) */}
+                                {localSelectedCourts.length > 0 &&
+                                    localSelectedCourts.map((court, courtIdx) =>
+                                        court.time.map((timeSlot, timeIdx) => (
+                                            <div key={`${courtIdx}-${timeIdx}`} className="row mb-1">
+                                                <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
+                                                    <div className="d-flex text-white">
+                                                        <span
+                                                            style={{
+                                                                fontWeight: "600",
+                                                                fontFamily: "Poppins",
+                                                                fontSize: "11px",
+                                                            }}
+                                                        >
+                                                            {court.date
+                                                                ? `${new Date(court.date).toLocaleString("en-US", {
+                                                                    day: "2-digit",
+                                                                })}, ${new Date(court.date).toLocaleString("en-US", {
+                                                                    month: "short",
+                                                                })}`
+                                                                : ""}
                                                         </span>
-                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "12px" }}>
+                                                        <span
+                                                            className="ps-1"
+                                                            style={{
+                                                                fontWeight: "600",
+                                                                fontFamily: "Poppins",
+                                                                fontSize: "11px",
+                                                            }}
+                                                        >
                                                             {formatTime(timeSlot.time)}
                                                         </span>
-                                                        <span style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "11px" }}>{court.courtName}</span>
+                                                        <span
+                                                            className="ps-1"
+                                                            style={{
+                                                                fontWeight: "500",
+                                                                fontFamily: "Poppins",
+                                                                fontSize: "10px",
+                                                            }}
+                                                        >
+                                                            {court.courtName}
+                                                        </span>
                                                     </div>
-                                                    <div className="d-flex align-items-center gap-2">
-                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>₹{timeSlot.amount || "N/A"}</span>
+                                                    <div className="text-white d-flex align-items-center">
+                                                        <span
+                                                            className="ps-1"
+                                                            style={{
+                                                                fontWeight: "600",
+                                                                fontFamily: "Poppins",
+                                                                fontSize: "11px",
+                                                            }}
+                                                        >
+                                                            ₹ {timeSlot.amount || "N/A"}
+                                                        </span>
                                                         <MdOutlineDeleteOutline
-                                                            className="text-white"
-                                                            style={{ cursor: "pointer", fontSize: "16px" }}
-                                                            onClick={() => handleDeleteSlot(index, timeIndex)}
+                                                            className="ms-1 text-white"
+                                                            style={{ cursor: "pointer", fontSize: "14px" }}
+                                                            onClick={() => handleDeleteSlot(courtIdx, timeIdx)}
                                                         />
                                                     </div>
                                                 </div>
                                             </div>
                                         ))
-                                    )
-                                ) : (
-                                    <div className="d-flex justify-content-center align-items-center text-white py-4">
-                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500", margin: 0 }}>No slot selected</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Expand/Collapse Arrow */}
-                            <div className="border-top px-3 pt-2">
-                                <div className="d-flex justify-content-center align-items-center mb-2">
-                                    <div
-                                        className="text-white d-flex align-items-center justify-content-center"
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => setIsExpanded(!isExpanded)}
-                                    >
-                                        {isExpanded ? (
-                                            <MdKeyboardDoubleArrowUp className="arrow-shake-infinite" size={24} />
-                                        ) : (
-                                            <MdKeyboardDoubleArrowDown className="arrow-shake-infinite" size={24} />
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Total */}
-                                {localTotalSlots > 0 && (
-                                    <div className="d-flex justify-content-between align-items-center text-white">
-                                        <div className="d-flex flex-column">
-                                            <span style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>Total to Pay</span>
-                                            <span style={{ fontSize: "13px", fontWeight: "500", fontFamily: "Poppins" }}>Total slots {localTotalSlots}</span>
-                                        </div>
-                                        <span style={{ fontSize: "25px", fontWeight: "600", fontFamily: "Poppins" }}>₹ {localGrandTotal}</span>
-                                    </div>
-                                )}
+                                    )}
                             </div>
                         </div>
                         {/* Desktop Total Section */}
-                        {totalSlots > 0 && (
-                            <div className="d-none d-lg-flex border-top pt-3 px-3 mt-2 text-white justify-content-between align-items-center fw-bold" style={{ overflowX: "hidden", height: "10vh" }}>
-                                <p className="d-flex flex-column" style={{ fontSize: "16px", fontWeight: "600" }}>
-                                    Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {totalSlots}</span>
-                                </p>
-                                <p style={{ fontSize: "25px", fontWeight: "600" }}>₹ {grandTotal}</p>
-                            </div>
+                        {localTotalSlots > 0 && (
+                            <>
+                                <div className="d-lg-none py-0">
+                                    <div
+                                        className={`d-flex justify-content-between ${isExpanded ? 'border-top' : ''}  align-items-center px-3`}
+                                        onClick={() => setIsExpanded(!isExpanded)}
+                                        style={{ cursor: "pointer" }}
+                                    >
+                                        <div className="d-flex flex-column">
+                                            <span className="text-white" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>Total to Pay</span>
+                                            <span className="text-white" style={{ fontSize: "12px", color: "#e5e7eb", fontFamily: "Poppins" }}>Total Slot: {localTotalSlots}</span>
+                                        </div>
+                                        <div className="d-flex align-items-center gap-1">
+                                            {!isExpanded ? (
+                                                <>
+                                                    <MdKeyboardDoubleArrowUp
+                                                        size={25}
+                                                        style={{ color: "white" }}
+                                                        className="arrow-shake-infinite"
+                                                    />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <MdKeyboardDoubleArrowDown
+                                                        size={25}
+                                                        style={{ color: "white" }}
+                                                        className="arrow-shake-infinite"
+                                                    />
+                                                </>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <span className="text-white" style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}>₹{localGrandTotal}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-lg-flex">
+                                    <p className="d-flex flex-column mb-0" style={{ fontSize: "16px", fontWeight: "600" }}>
+                                        Total to Pay <span style={{ fontSize: "13px", fontWeight: "500" }}>Total slots {localTotalSlots}</span>
+                                    </p>
+                                    <p className="mb-0" style={{ fontSize: "25px", fontWeight: "600" }}>₹ {localGrandTotal}</p>
+                                </div>
+                            </>
                         )}
 
                         <div className="d-flex justify-content-center align-items-center  ">

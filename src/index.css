@@ -809,12 +809,12 @@ h1.display-5 {
 }
 
 .all-match-time {
-  font-size: 12px;
+  font-size: 13px;
   font-family: "Poppins";
 }
 
 .all-match-name-level {
-  font-size: 8px;
+  font-size: 12px;
   font-family: "Poppins";
   font-weight: 500;
 }
@@ -1461,7 +1461,7 @@ h1.display-5 {
 /* Home Second Banner Responsive */
 @media (min-width: 360px) and (max-width: 768px) {
   .home-second-banner {
-    margin-top: 5px !important;
+    margin-top: 20px !important;
     padding: 0.5rem 1rem !important;
   }
 
@@ -1769,8 +1769,8 @@ h1.display-5 {
 
   /* Player images full size on mobile */
   .rounded-circle {
-    width: 50px !important;
-    height: 50px !important;
+    width: 80px !important;
+    height: 80px !important;
   }
 
   /* Player images fill circle completely */
@@ -1790,8 +1790,8 @@ h1.display-5 {
 
   /* Open matches player circles responsive */
   .card .rounded-circle {
-    width: 35px !important;
-    height: 35px !important;
+    width: 50px !important;
+    height: 50px !important;
     border-radius: 50% !important;
   }
 
@@ -2110,6 +2110,7 @@ h1.display-5 {
   /* .mobile-slots-container {
     max-height: 120px !important;
     overflow: visible !important;
+    transition: all 0.5s ease-in;
   }
    */
   .mobile-slots-list {
@@ -2222,9 +2223,9 @@ h1.display-5 {
   }
 
   /* Headers responsive */
-  .all-matches {
+  /* .all-matches {
     font-size: 11px !important;
-  }
+  } */
 
   /* Slot buttons responsive - 4 per row */
   .slot-time-btn {
@@ -2493,7 +2494,6 @@ h1.display-5 {
     max-height: 300px !important;
     padding: 10px 0 5px 0 !important;
   }
-
   /* Hide scrollbars but keep scroll functionality */
   .mobile-expanded-slots::-webkit-scrollbar {
     display: none;
