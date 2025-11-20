@@ -23,6 +23,7 @@ import ViewMatch from "../VeiwMatch/VeiwMatch";
 import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
+import { IoIosArrowForward } from "react-icons/io";
 
 const normalizeTime = (time) => {
     if (!time) return null;
@@ -412,9 +413,9 @@ const Openmatches = () => {
         <div className="container mt-lg-4 px-3 px-md-4 mb-4">
             <div className="row g-md-4 mx-auto">
                 {/* Left Section */}
-                <div className="col-lg-7 col-12 py-4 rounded-3 px-4 order-2 order-md-1" style={{ backgroundColor: "#F5F5F566",height:"auto" }}>
+                <div className="col-lg-7 col-12 py-md-4 py-2 rounded-3 px-md-4 px-0 order-2 order-md-1 bg-white-color" style={{ backgroundColor: "#F5F5F566", height: "auto" }}>
                     <div className="calendar-strip mb-3">
-                        <div className="mb-4 custom-heading-use">
+                        <div className="mb-md-4 mb-0 mt-1 mt-md-0 custom-heading-use">
                             Select Date
                             <div className="position-relative d-inline-block" ref={wrapperRef}>
                                 <span
@@ -426,7 +427,7 @@ const Openmatches = () => {
                                     }}
                                     onClick={() => setIsOpen(!isOpen)}
                                 >
-                                    <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
+                                    <MdOutlineDateRange size={16} style={{ color: "#374151" }} />
                                 </span>
                                 {isOpen && (
                                     <div
@@ -456,10 +457,11 @@ const Openmatches = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="d-flex align-items-center gap-2 border-bottom">
-                            <div className="position-relative">
+                        <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
+                            {/* Dropdown */}
+                            <div className="position-relative mt-md-0 mt-2">
                                 <div
-                                    className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-3"
+                                    className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
                                     style={{
                                         backgroundColor: "transparent",
                                         width: "52px",
@@ -470,12 +472,20 @@ const Openmatches = () => {
                                 >
                                     <div className="d-flex align-items-center gap-0 p-0">
                                         <img src={booking_dropdown_img} style={{ width: "34px", height: "34px" }} alt="" />
-                                        <MdKeyboardArrowDown size={16} style={{ transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                                        <MdKeyboardArrowDown
+                                            size={16}
+                                            style={{
+                                                transform: showDropdown ? "rotate(180deg)" : "rotate(0deg)",
+                                                transition: "transform 0.3s"
+                                            }}
+                                            className="d-none d-md-block"
+                                        />
                                     </div>
                                 </div>
+
                                 {showDropdown && (
                                     <div
-                                        className="position-absolute bg-white  rounded shadow"
+                                        className="position-absolute bg-white rounded shadow"
                                         style={{
                                             top: "100%",
                                             left: "-10px",
@@ -490,12 +500,14 @@ const Openmatches = () => {
                                             </div>
                                             <img src={booking_dropdown_img2} style={{ width: "23px", height: "23px" }} alt="" />
                                         </div>
+
                                         <div className="d-flex align-items-center p-2 border-bottom" style={{ cursor: "pointer" }}>
                                             <div className="flex-grow-1">
                                                 <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Tennis</div>
                                             </div>
                                             <img src={booking_dropdown_img3} style={{ width: "23px", height: "23px" }} alt="" />
                                         </div>
+
                                         <div className="d-flex align-items-center p-2" style={{ cursor: "pointer" }}>
                                             <div className="flex-grow-1">
                                                 <div style={{ fontSize: "11px", fontWeight: "400", fontFamily: "Poppins" }}>Pickle Ball</div>
@@ -505,36 +517,78 @@ const Openmatches = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
-                                <span className="text-muted" style={{
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                    whiteSpace: "pre-line",
-                                    textAlign: "center",
-                                    lineHeight: "1",
-                                    letterSpacing: "0px",
-                                    margin: 0,
-                                    padding: 0,
-                                    display: "block"
-                                }}>{getCurrentMonth(selectedDate)}</span>
+
+                            {/* Month Box */}
+                            <div
+                                className="d-flex calendar-day-btn-mobile justify-content-center align-items-center rounded-1 mb-md-3 mb-2 mt-2 mt-md-0"
+                                style={{
+                                    backgroundColor: "#f3f3f5",
+                                    height: "58px",
+                                    padding: "2px 10px"
+                                }}
+                            >
+                                <span
+                                    className="add_font_small_span"
+                                    style={{
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        whiteSpace: "pre-line",
+                                        textAlign: "center",
+                                        lineHeight: "1",
+                                        letterSpacing: "0px",
+                                        margin: 0,
+                                        padding: 0,
+                                        display: "block"
+                                    }}
+                                >
+                                    {getCurrentMonth(selectedDate)}
+                                </span>
                             </div>
+
+                            {/* Scrollable Dates EXACT copy UI */}
                             <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "86%" }}>
-                                <button className="btn p-2 border-0" style={{ position: "absolute", left: '-21%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
-                                <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+
+                                {/* Left Arrow */}
+                                <button
+                                    className="btn p-2 border-0 d-none d-md-block"
+                                    style={{
+                                        position: "absolute",
+                                        left: "-23%",
+                                        zIndex: 10,
+                                        boxShadow: "none"
+                                    }}
+                                    onClick={scrollLeft}
+                                >
+                                    <MdOutlineArrowBackIosNew className="mt-2" size={20} />
+                                </button>
+
+                                {/* Scrollable dates */}
+                                <div
+                                    ref={scrollRef}
+                                    className="d-flex gap-1 date-scroll-container pt-md-0 pt-2"
+                                    style={{
+                                        scrollBehavior: "smooth",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "100%",
+                                        overflow: "hidden"
+                                    }}
+                                >
                                     {dates.map((d, i) => {
                                         const formatDate = (date) => date.toISOString().split("T")[0];
                                         const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+
                                         return (
                                             <button
                                                 key={i}
                                                 ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                                                className={`calendar-day-btn border-0 mb-3 me-1 ${isSelected ? "text-white" : "bg-white"}`}
+                                                className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
                                                 style={{
                                                     background: isSelected
                                                         ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
                                                         : "#FFFFFF",
-                                                    borderRadius: "12px",
-                                                    color: isSelected ? "#FFFFFF" : "#374151",
+                                                    boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "",
+                                                    borderRadius: "5px",
+                                                    color: isSelected ? "#FFFFFF" : "#374151"
                                                 }}
                                                 onClick={() => {
                                                     setSelectedDate({ fullDate: d.fullDate, day: d.day });
@@ -552,13 +606,27 @@ const Openmatches = () => {
                                         );
                                     })}
                                 </div>
-                                <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
+
+                                {/* Right Arrow */}
+                                <button
+                                    className="btn border-0 p-2 d-none d-md-block"
+                                    style={{
+                                        position: "absolute",
+                                        right: -26,
+                                        zIndex: 10,
+                                        boxShadow: "none"
+                                    }}
+                                    onClick={scrollRight}
+                                >
+                                    <MdOutlineArrowForwardIos className="mt-2" size={20} />
+                                </button>
                             </div>
                         </div>
+
                     </div>
 
-                    <div className="row mb-4 mx-auto">
-                        <div className="col-12 d-flex justify-content-center align-items-center">
+                    <div className="row mb-md-2 mb-0 mx-auto">
+                        <div className="col-12 d-flex justify-content-center align-items-center px-0">
                             <div className="weather-tabs-wrapper w-100">
                                 <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
                                     {tabs.map((tab, index) => {
@@ -593,9 +661,9 @@ const Openmatches = () => {
 
                     {/* Match List */}
                     <div className="pb-4">
-                        <div className="d-flex flex-column flex-md-row justify-content-start align-items-start align-items-md-center gap-3 mb-4">
+                        <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-2 mb-2">
                             <h5 className="mb-0 custom-heading-use">All Matches</h5>
-                            <div className="dropdown w-25">
+                            <div className="dropdown">
                                 <button
                                     className="btn btn-light text-nowrap rounded-3 border py-1 px-3 d-flex align-items-center gap-2"
                                     type="button"
@@ -637,16 +705,16 @@ const Openmatches = () => {
                             {matchLoading ? (
                                 <DataLoading height={380} />
                             ) : filteredMatches.length > 0 ? (
-                                <div className="row">
+                                <div className="row mx-auto">
                                     {filteredMatches?.map((match, index) => (
                                         <div className="col-lg-6 col-12 ps-0 pe-0 gap-2" key={index}>
                                             <div
-                                                className="card  mb-3 py-3 p-0 shadow-0 rounded-2"
+                                                className="card  mb-2 pt-2 pb-0 p-0 shadow-0 rounded-2 d-md-block d-none"
                                                 style={{ backgroundColor: "#CBD6FF1A", border: '0.45px solid #0000001A', boxShadow: "none" }}
                                             >
                                                 <div className="row px-2 px-md-3 py-2 d-flex justify-content-between align-items- flex-wrap">
                                                     <div className="col-lg-7 col-6">
-                                                        <p className="mb-3 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
+                                                        <p className="mb-4 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
                                                             {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
                                                             <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
                                                                 {match?.skillLevel
@@ -664,9 +732,9 @@ const Openmatches = () => {
                                                         </p>
                                                         <p
                                                             className="mb-0 text-muted all-match-name-level"
-                                                            style={{ fontSize: "8px", fontWeight: "400" }}
+                                                            style={{ fontSize: "10px", fontWeight: "400" }}
                                                         >
-                                                            <FaMapMarkerAlt className="me-1" style={{ fontSize: "8px" }} />
+                                                            <FaMapMarkerAlt className="me-1" style={{ fontSize: "10px" }} />
                                                             {match?.clubId?.city.charAt(0)?.toUpperCase() + match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
                                                         </p>
                                                     </div>
@@ -701,26 +769,263 @@ const Openmatches = () => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="d-flex flex-column align-items-center gap-1">
+                                                            <div
+                                                                className="d-flex align-items-center justify-content-end"
+                                                                style={{ width: "100%" }}
+                                                            >
                                                                 <div
-                                                                    className=" all-matches"
-                                                                    style={{ fontWeight: "500", fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
+                                                                    className="d-flex align-items-center gap-1"
+                                                                    style={{ fontWeight: 500, fontSize: "18px", fontFamily: "none", color: "#1F41BB" }}
                                                                 >
-                                                                    ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "25px", fontWeight: "600", fontFamily: "Poppins", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                                    ₹
+                                                                    <span
+                                                                        style={{ fontSize: "25px", fontWeight: 600, fontFamily: "Poppins", color: "#1F41BB" }}
+                                                                    >
+                                                                        {calculateMatchPrice(match?.slot) || 0}
+                                                                    </span>
+
+                                                                    <button
+                                                                        className="btn rounded-pill d-flex justify-content-center align-items-center text-dark p-0 border-0"
+                                                                        onClick={() => {
+                                                                            setSelectedMatch(match);
+                                                                            setShowViewMatch(true);
+                                                                        }}
+                                                                        aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                                    >
+                                                                        <IoIosArrowForward />
+                                                                    </button>
                                                                 </div>
-                                                                <button
-                                                                    className="btn  rounded-pill d-flex justify-content-center align-items-center text-center view-match-btn text-dark"
-                                                                    onClick={() => {
-                                                                        setSelectedMatch(match);
-                                                                        setShowViewMatch(true);
-                                                                    }}
-                                                                    aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+
+
+                                            <div
+                                                className="card  mb-2 py-2 p-0 shadow-0 rounded-3 d-block d-md-none"
+                                                style={{ backgroundColor: "#CBD6FF1A", border: '0.45px solid #0000001A', boxShadow: "none" }}
+                                            >
+                                                <div className="row px-0 px-md-3 pt-0 pb-0 d-flex justify-content-between align-items- flex-wrap mx-auto">
+                                                    <div className="col-12">
+                                                        <p className="mb-1 all-match-time text-nowrap" style={{ fontWeight: "600" }}>
+                                                            {formatMatchDate(match.matchDate)} | {formatTimes(match.slot)}
+
+                                                        </p>
+                                                    </div>
+                                                    <div className="col-12">
+                                                        <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
+                                                            {match?.skillLevel
+                                                                ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
+                                                                : "N/A"}
+                                                        </span>
+
+
+                                                    </div>
+                                                    <div className="col-12 mb-2">
+                                                        <p className="all-match-time mb-0 d-md-none d-lg-none">
+                                                            {match?.skillLevel
+                                                                ? match.skillLevel.charAt(0).toUpperCase() + match.skillLevel.slice(1)
+                                                                : "N/A"}
+                                                        </p>
+                                                    </div>
+                                                    {/* <div className="col-12 d-flex justify-content-end align-items-center">
+                                                        <div className="d-flex flex-column align-items-end">
+                                                            <div className="d-flex align-items-center mb-3">
+                                                                {match?.teamA?.length === 1 || match?.teamA?.length === 0 ? (
+                                                                    <AvailableTag team="Team A" match={match} name="teamA" />
+                                                                ) : match?.teamB?.length === 1 || match?.teamB?.length === 0 ? (
+                                                                    <AvailableTag team="Team B" match={match} name="teamB" />
+                                                                ) : match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
+                                                                    <FirstPlayerTag player={match?.teamA[0]?.userId} />
+                                                                ) : null}
+
+                                                                <div className="d-flex align-items-center ms-2">
+                                                                    {[
+                                                                        ...(match?.teamA?.filter((_, idx) =>
+                                                                            match?.teamA?.length === 2 && match?.teamB?.length === 2
+                                                                                ? idx !== 0
+                                                                                : true
+                                                                        ) || []),
+                                                                        ...(match?.teamB || []),
+                                                                    ].map((player, idx, arr) => (
+                                                                        <PlayerAvatar
+                                                                            key={`player-${idx}`}
+                                                                            player={player}
+                                                                            idx={idx}
+                                                                            total={arr.length}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+
+                                                        </div>
+
+                                                    </div> */}
+
+
+
+                                                    <div className="row mx-auto">
+                                                        {/* LEFT SIDE */}
+                                                        <div className="col-6 px-0 d-flex justify-content-between align-items-center  flex-wrap">
+
+
+                                                            {/* Player 1 */}
+                                                            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                                                <div
+                                                                    className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(31, 65, 187)", overflow: "hidden" }}
                                                                 >
-                                                                    View
-                                                                </button>
+                                                                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>A</span>
+                                                                </div>
+
+
+                                                                <span
+                                                                    data-tooltip-id="player-A-0"
+                                                                    data-tooltip-content="Abhishek Balyani"
+                                                                    className="mb-0 mt-2"
+                                                                    style={{
+                                                                        maxWidth: "150px",
+                                                                        overflow: "hidden",
+                                                                        textOverflow: "ellipsis",
+                                                                        whiteSpace: "nowrap",
+                                                                        display: "inline-block",
+                                                                        cursor: "pointer",
+                                                                        fontSize: "10px",
+                                                                        fontWeight: 500,
+                                                                        fontFamily: "Poppins",
+                                                                    }}
+                                                                >
+                                                                    Abhishek Bal...
+                                                                </span>
+
+
+                                                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(61, 190, 100)" }}>A|B</span> */}
+                                                            </div>
+
+
+                                                            {/* Player 2 */}
+                                                            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                                                <div
+                                                                    className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(31, 65, 187)", overflow: "hidden" }}
+                                                                >
+                                                                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>A</span>
+                                                                </div>
+
+
+                                                                <p className="mb-0 mt-2" style={{ fontSize: "10px", fontWeight: 500, fontFamily: "Poppins" }}>Ankit</p>
+
+
+                                                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(61, 190, 100)" }}>B2</span> */}
+                                                            </div>
+                                                        </div>
+
+
+                                                        {/* RIGHT SIDE */}
+                                                        <div className="col-6  px-0 d-flex justify-content-between align-items-center flex-wrap border-start border-0 border-lg-start">
+
+
+                                                            {/* Player 3 */}
+                                                            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                                                <div
+                                                                    className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(31, 65, 187)", overflow: "hidden" }}
+                                                                >
+                                                                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>D</span>
+                                                                </div>
+
+
+                                                                <p className="mb-0 mt-2" style={{ fontSize: "10px", fontWeight: 500, fontFamily: "Poppins" }}>Diksha</p>
+
+
+                                                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(31, 65, 187)" }}>D1</span> */}
+                                                            </div>
+
+
+                                                            {/* Player 4 */}
+                                                            <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                                                <div
+                                                                    className="rounded-circle border d-flex align-items-center justify-content-center"
+                                                                    style={{ width: "68px", height: "68px", backgroundColor: "rgb(31, 65, 187)", overflow: "hidden" }}
+                                                                >
+                                                                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>H</span>
+                                                                </div>
+
+
+                                                                <p className="mb-0 mt-2" style={{ fontSize: "10px", fontWeight: 500, fontFamily: "Poppins" }}>H</p>
+
+
+                                                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(31, 65, 187)" }}>C2</span> */}
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div className="row mx-auto border-top pt-1">
+                                                        <div className="col-6 ps-0">
+
+                                                            <p className="mb-1 all-match-name-level">
+                                                                {match?.clubId?.clubName || "Unknown Club"}
+                                                            </p>
+                                                            <p
+                                                                className="mb-0 text-muted all-match-name-level"
+                                                                style={{ fontSize: "10px", fontWeight: "400" }}
+                                                            >
+                                                                <FaMapMarkerAlt className="me-1" style={{ fontSize: "10px" }} />
+                                                                {match?.clubId?.city.charAt(0)?.toUpperCase() + match?.clubId?.city.slice(1) || "N/A"} {match?.clubId?.zipCode || ""}
+                                                            </p>
+                                                        </div>
+                                                        {/* <div className="col-6 pe-0 d-flex align-items-center justify-content-end">
+                                                            <div
+                                                                className=" all-matches"
+                                                                style={{ fontWeight: "500", fontSize: "20px", fontFamily: "none", color: "#1F41BB" }}
+                                                            >
+                                                                ₹ <span className="all-matches" style={{ fontWeight: "500", fontSize: "25px", fontWeight: "600", fontFamily: "Poppins", color: "#1F41BB" }}>{calculateMatchPrice(match?.slot) || 0}</span>
+                                                            </div>
+                                                            <button
+                                                                className="btn  rounded-pill d-flex justify-content-end align-items-center text-end view-match-btn text-dark p-0 border-0"
+                                                                onClick={() => {
+                                                                    setSelectedMatch(match);
+                                                                    setShowViewMatch(true);
+                                                                }}
+                                                                aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                            >
+                                                                View
+                                                            </button>
+                                                        </div> */}
+                                                         <div
+                                                                className="col-6 pe-0 d-flex align-items-center justify-content-end"
+                                                                // style={{ width: "100%" }}
+                                                            >
+                                                                <div
+                                                                    className="d-flex align-items-center gap-1"
+                                                                    style={{ fontWeight: 500, fontSize: "20px", fontFamily: "none", color: "#1F41BB" }}
+                                                                >
+                                                                    ₹
+                                                                    <span
+                                                                        style={{ fontSize: "25px", fontWeight: 600, fontFamily: "Poppins", color: "#1F41BB" }}
+                                                                    >
+                                                                        {calculateMatchPrice(match?.slot) || 0}
+                                                                    </span>
+
+                                                                    <button
+                                                                        className="btn rounded-pill d-flex justify-content-center align-items-center text-dark p-0 border-0"
+                                                                        onClick={() => {
+                                                                            setSelectedMatch(match);
+                                                                            setShowViewMatch(true);
+                                                                        }}
+                                                                        aria-label={`View match on ${formatMatchDate(match.matchDate)}`}
+                                                                    >
+                                                                        <IoIosArrowForward />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                    </div>
+
                                                 </div>
                                             </div>
                                         </div>
@@ -746,7 +1051,7 @@ const Openmatches = () => {
                     {!showViewMatch ?
                         <div className="ms-0 ms-lg-2">
                             <div
-                                className="row align-items-center text-white rounded-4 py-0 ps-4"
+                                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner"
                                 style={{
                                     backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
                                     position: "relative",
@@ -761,9 +1066,9 @@ const Openmatches = () => {
                             >
                                 <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
                                     <h4 className="open-match-img-heading text-nowrap">Got a score to <br /> settle?</h4>
-                                    <p className="text-light">Great for competitive vibes.</p>
+                                    <p className="text-light font_small_size">Great for competitive vibes.</p>
                                     <button
-                                        className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-3 ps-3 pe-3"
+                                        className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
                                         onClick={createMatchesHandle}
                                         style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}
                                         aria-label="Create open matches"
@@ -772,7 +1077,7 @@ const Openmatches = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100" style={{ backgroundColor: "#F6F7FB" }}>
+                            <div className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100 d-none d-md-flex" style={{ backgroundColor: "#F6F7FB" }}>
                                 {reviewLoading ? (
                                     <DataLoading />
                                 ) : (

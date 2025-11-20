@@ -18,19 +18,21 @@ const Footer = () => {
           <Col md={6} className="mb-3 mb-md-0">
             {/* Phone */}
             <div className="d-flex align-items-center gap-2  mb-0 m-0">
-              <h4 className='mb-0 m-0 address_data' style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }}> Contact :</h4>
+              <h4 className='mb-0 m-0 address_data col-2' style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }}> Contact :</h4>
               <p className='mt-1 mb-0 m-0 address_data' style={{ fontFamily: "Poppins", fontSize: "14px" }}>+91 9999999999</p>
             </div>
             {/* Email */}
             <div className="d-flex align-items-center gap-2 m-0 mb-0">
-              <h4 style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }} className='address_data'>  Email :</h4>
+              <h4 style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }} className='address_data col-2'>  Email :</h4>
               <p className='mt-2 address_data' style={{ fontFamily: "Poppins", fontSize: "14px" }}>hello@rowthtech.com</p>
             </div>
 
-            <div className="text-muted small address_data">
-              <strong>India</strong><br />
-              Plot No.24, Industrial Area Phase 1<br />
-              Chandigarh, 160002
+             <div className="d-flex align-items-start gap-2  mb-0 m-0">
+              {/* <strong>India</strong><br /> */}
+                            <h4 className='mb-0 m-0 address_data col-2' style={{ fontSize: "15px", fontWeight: "500", fontFamily: "Poppins" }}> Address :</h4>
+
+              <p className='mt-0 mb-0 m-0 address_data' style={{ fontFamily: "Poppins", fontSize: "14px" }}>Plot No.24, Industrial Area Phase 1<br />
+              Chandigarh, 160002</p>
             </div>
           </Col>
 
