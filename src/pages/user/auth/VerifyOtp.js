@@ -1,59 +1,82 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Row, Col, Form, Alert, Collapse, Container } from 'react-bootstrap';
-import { authImg } from '../../../assets/files';
-import { showError, showSuccess, showInfo } from '../../../helpers/Toast';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginUserNumber, sendOtp, verifyOtp } from '../../../redux/user/auth/authThunk';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { resetAuth } from '../../../redux/user/auth/authSlice';
-import { ButtonLoading, DataLoading, Loading } from '../../../helpers/loading/Loaders';
+import React, { useState, useEffect } from "react";
+import {
+  Button,
+  Row,
+  Col,
+  Form,
+  Alert,
+  Collapse,
+  Container,
+} from "react-bootstrap";
+import { authImg } from "../../../assets/files";
+import { showError, showSuccess, showInfo } from "../../../helpers/Toast";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  loginUserNumber,
+  sendOtp,
+  verifyOtp,
+} from "../../../redux/user/auth/authThunk";
+import { useLocation, useNavigate } from "react-router-dom";
+import { resetAuth } from "../../../redux/user/auth/authSlice";
+import {
+  ButtonLoading,
+  DataLoading,
+  Loading,
+} from "../../../helpers/loading/Loaders";
 
 const VerifyOTP = () => {
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState(["", "", "", ""]);
   const [timer, setTimer] = useState(60);
   const [timerExpired, setTimerExpired] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { phone, redirectTo, paymentState } = location.state || {};
-  const { error, user, userAuthLoading, otp: otpData } = useSelector((state) => state?.userAuth);
+  const {
+    error,
+    user,
+    userAuthLoading,
+    otp: otpData,
+  } = useSelector((state) => state?.userAuth);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const storedTimer = localStorage.getItem('otpTimer');
-    const storedTimestamp = localStorage.getItem('otpTimestamp');
-    const storedTimerExpired = localStorage.getItem('timerExpired');
+    const storedTimer = localStorage.getItem("otpTimer");
+    const storedTimestamp = localStorage.getItem("otpTimestamp");
+    const storedTimerExpired = localStorage.getItem("timerExpired");
 
-    if (storedTimerExpired === 'true') {
+    if (storedTimerExpired === "true") {
       setTimerExpired(true);
       setTimer(0);
     } else if (storedTimer && storedTimestamp) {
-      const elapsed = Math.floor((Date.now() - parseInt(storedTimestamp)) / 1000);
+      const elapsed = Math.floor(
+        (Date.now() - parseInt(storedTimestamp)) / 1000
+      );
       const remaining = Math.max(0, parseInt(storedTimer) - elapsed);
       setTimer(remaining);
       setTimerExpired(remaining === 0);
       if (remaining === 0) {
-        localStorage.setItem('timerExpired', 'true');
-        localStorage.removeItem('otpTimer');
-        localStorage.removeItem('otpTimestamp');
-        localStorage.removeItem('otp');
+        localStorage.setItem("timerExpired", "true");
+        localStorage.removeItem("otpTimer");
+        localStorage.removeItem("otpTimestamp");
+        localStorage.removeItem("otp");
       }
     }
   }, []);
 
   useEffect(() => {
-    if (timerExpired) return; 
+    if (timerExpired) return;
 
     const countdown = setInterval(() => {
       setTimer((prev) => {
         const newTimer = prev > 0 ? prev - 1 : 0;
-        localStorage.setItem('otpTimer', newTimer.toString());
+        localStorage.setItem("otpTimer", newTimer.toString());
         if (newTimer === 0) {
           setTimerExpired(true);
-          localStorage.setItem('timerExpired', 'true');
-          localStorage.removeItem('otpTimer');
-          localStorage.removeItem('otpTimestamp');
-          localStorage.removeItem('otp');
+          localStorage.setItem("timerExpired", "true");
+          localStorage.removeItem("otpTimer");
+          localStorage.removeItem("otpTimestamp");
+          localStorage.removeItem("otp");
         }
         return newTimer;
       });
@@ -63,25 +86,25 @@ const VerifyOTP = () => {
 
   useEffect(() => {
     if (otpData?.response) {
-      localStorage.setItem('otp', otpData.response);
-      localStorage.setItem('otpTimestamp', Date.now().toString());
-      localStorage.setItem('otpTimer', timer.toString());
-      localStorage.setItem('timerExpired', 'false');
+      localStorage.setItem("otp", otpData.response);
+      localStorage.setItem("otpTimestamp", Date.now().toString());
+      localStorage.setItem("otpTimer", timer.toString());
+      localStorage.setItem("timerExpired", "false");
     }
   }, [otpData?.response, timer]);
 
   useEffect(() => {
     if (user?.status === "200") {
-      localStorage.removeItem('otp');
-      localStorage.removeItem('otpTimer');
-      localStorage.removeItem('otpTimestamp');
-      localStorage.removeItem('timerExpired');
+      localStorage.removeItem("otp");
+      localStorage.removeItem("otpTimer");
+      localStorage.removeItem("otpTimestamp");
+      localStorage.removeItem("timerExpired");
       if (redirectTo && paymentState) {
         navigate(redirectTo, { state: paymentState });
       } else if (redirectTo) {
         navigate(redirectTo);
       } else {
-        navigate('/home');
+        navigate("/home");
       }
       dispatch(resetAuth());
     }
@@ -90,7 +113,7 @@ const VerifyOTP = () => {
   useEffect(() => {
     if (error) {
       setShowAlert(true);
-      setOtp(['', '', '', '']);
+      setOtp(["", "", "", ""]);
       const alertTimer = setTimeout(() => setShowAlert(false), 3000);
       return () => clearTimeout(alertTimer);
     }
@@ -104,12 +127,12 @@ const VerifyOTP = () => {
 
       if (value && index < 3) {
         document.getElementById(`otp-${index + 1}`).focus();
-      } else if (!value && index > 0 && event?.key === 'Backspace') {
+      } else if (!value && index > 0 && event?.key === "Backspace") {
         document.getElementById(`otp-${index - 1}`).focus();
       }
 
-      if (newOtp.every((digit) => digit !== '')) {
-        const otpValue = Number(newOtp.join(''));
+      if (newOtp.every((digit) => digit !== "")) {
+        const otpValue = Number(newOtp.join(""));
         dispatch(verifyOtp({ otp: otpValue, phoneNumber: phone }))
           .unwrap()
           .then((res) => {
@@ -123,17 +146,22 @@ const VerifyOTP = () => {
   };
 
   const handleResend = () => {
-    dispatch(sendOtp({ phoneNumber: phone, countryCode: '+91', type: 'Signup' }));
+    dispatch(
+      sendOtp({ phoneNumber: phone, countryCode: "+91", type: "Signup" })
+    );
     setTimer(60);
     setTimerExpired(false);
-    localStorage.setItem('otpTimer', '60');
-    localStorage.setItem('otpTimestamp', Date.now().toString());
-    localStorage.setItem('timerExpired', 'false');
-    setOtp(['', '', '', '']);
+    localStorage.setItem("otpTimer", "60");
+    localStorage.setItem("otpTimestamp", Date.now().toString());
+    localStorage.setItem("timerExpired", "false");
+    setOtp(["", "", "", ""]);
   };
 
   return (
-    <div className="auth-wrapper h-100" style={{ backgroundColor: "#F8F8F8", overflow: "hidden" }}>
+    <div
+      className="auth-wrapper h-100"
+      style={{ backgroundColor: "#F8F8F8", overflow: "hidden" }}
+    >
       <Container fluid className="h-lg-100 p-0">
         <Row className="g-0 h-lg-100">
           <Col
@@ -141,32 +169,51 @@ const VerifyOTP = () => {
             lg={6}
             xs={12}
             style={{
-              backgroundColor: '#F8F8F8',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
+              backgroundColor: "#F8F8F8",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            <div className="w-100 h-50 text-center" style={{ maxWidth: '400px' }}>
-              <h2 className="welcome-heading mb-2" style={{ fontSize: '24px', fontWeight: '600' }}>
+            <div
+              className="w-100 h-50 text-center"
+              style={{ maxWidth: "400px" }}
+            >
+              <h2
+                className="welcome-heading mb-2"
+                style={{ fontSize: "24px", fontWeight: "600" }}
+              >
                 WELCOME BACK
               </h2>
-              <div style={{ marginBottom: 30, color: '#666' }}>
-                A verification code has been sent to <strong>+91*****{phone?.slice(5)}</strong>
+              <div style={{ marginBottom: 30, color: "#666" }}>
+                A verification code has been sent to{" "}
+                <strong>+91*****{phone?.slice(5)}</strong>
               </div>
 
-              {timer > 0 && (otpData?.response || localStorage.getItem('otp')) && (
-                <Alert variant="info" className="py-1" style={{ marginBottom: '20px' }}>
-                  Your OTP is: {otpData?.response || localStorage.getItem('otp')}
-                </Alert>
-              )}
+              {timer > 0 &&
+                (otpData?.response || localStorage.getItem("otp")) && (
+                  <Alert
+                    variant="info"
+                    className="py-1"
+                    style={{ marginBottom: "20px" }}
+                  >
+                    Your OTP is:{" "}
+                    {otpData?.response || localStorage.getItem("otp")}
+                  </Alert>
+                )}
 
               <div
                 className="mb-3"
-                style={{ display: 'flex', justifyContent: 'space-evenly', gap: 6 }}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-evenly",
+                  gap: 6,
+                }}
               >
-                {userAuthLoading ? <DataLoading /> :
+                {userAuthLoading ? (
+                  <DataLoading />
+                ) : (
                   otp.map((digit, index) => (
                     <Form.Control
                       key={index}
@@ -174,7 +221,7 @@ const VerifyOTP = () => {
                       type="text"
                       maxLength={1}
                       value={digit}
-                      className='opt-input'
+                      className="opt-input"
                       disabled={userAuthLoading}
                       onChange={(e) => handleChange(index, e.target.value, e)}
                       onKeyDown={(e) => handleChange(index, e.target.value, e)}
@@ -182,30 +229,46 @@ const VerifyOTP = () => {
                         width: 50,
                         height: 50,
                         fontSize: 24,
-                        textAlign: 'center',
-                        borderRadius: '4px',
-                        boxShadow: '0px 1px 6.5px 0px #0000001F inset',
+                        textAlign: "center",
+                        borderRadius: "4px",
+                        boxShadow: "0px 1px 6.5px 0px #0000001F inset",
                       }}
                     />
                   ))
-                }
+                )}
               </div>
               {showAlert && (
-                <p className='m-0 mb-0' style={{ marginBottom: 0, color: 'red', fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>
+                <p
+                  className="m-0 mb-0"
+                  style={{
+                    marginBottom: 0,
+                    color: "red",
+                    fontSize: "14px",
+                    fontFamily: "Poppins",
+                    fontWeight: "500",
+                  }}
+                >
                   {error}
                 </p>
               )}
 
               {!timerExpired ? (
-                <div style={{ marginTop: 20, marginBottom: 20, color: '#555', fontWeight: '500' }}>
-                  00:{String(timer).padStart(2, '0')} Sec
+                <div
+                  style={{
+                    marginTop: 20,
+                    marginBottom: 20,
+                    color: "#555",
+                    fontWeight: "500",
+                  }}
+                >
+                  00:{String(timer).padStart(2, "0")} Sec
                 </div>
               ) : (
                 <div style={{ marginTop: 0 }}>
-                  <span style={{ color: '#777' }}>Didn’t receive code? </span>
+                  <span style={{ color: "#777" }}>Didn’t receive code? </span>
                   <span
                     onClick={handleResend}
-                    style={{ color: '#007bff', cursor: 'pointer' }}
+                    style={{ color: "#007bff", cursor: "pointer" }}
                   >
                     Re-send
                   </span>
@@ -222,7 +285,7 @@ const VerifyOTP = () => {
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover"
+                objectFit: "cover",
               }}
               loading="lazy"
             />
