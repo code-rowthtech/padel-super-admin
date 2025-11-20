@@ -480,10 +480,10 @@ const CreateMatches = () => {
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
-    <Container className="p-4 mb-5">
+    <Container className="p-md-4 py-0 px-2 mb-5">
       <Row className="g-3">
         {/* ────── LEFT PANEL ────── */}
-        <Col md={7} className="p-3 mobile-create-matches-content" style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
+        <Col md={7} className="p-3 mobile-create-matches-content mt-0" style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-4">
