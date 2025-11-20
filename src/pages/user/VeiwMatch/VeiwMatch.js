@@ -64,7 +64,7 @@ const PlayerSlot = memo(function PlayerSlot({
     }
 
     return (
-        <div className="text-center d-flex justify-content-center align-items-center flex-column  mb-3 position-relative">
+        <div className="text-center d-flex justify-content-center align-items-center flex-column  mb-md-3 mb-0 position-relative">
             {/* Avatar */}
             <div
                 className="rounded-circle border d-flex align-items-center justify-content-center"
@@ -236,7 +236,7 @@ const ViewMatch = ({ match, onBack }) => {
     return (
         <>
             {/* Left Section */}
-            <div className=" rounded-3 px-3 py-2 h-100" style={{ backgroundColor: "#F5F5F566" }}>
+            <div className=" rounded-3 px-md-3 px-0 py-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-2">
                         {onBack && (
@@ -312,9 +312,9 @@ const ViewMatch = ({ match, onBack }) => {
                 </div>
 
                 {/* Game Info */}
-                <div className="rounded-4 border px-3 py-2 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <div className="d-flex justify-content-between align-items-start py-2">
-                        <div className="d-flex align-items-center justify-content-between gap-2">
+                <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    <div className="d-md-flex d-block justify-content-between align-items-start py-2">
+                        <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
                             <span className="ms-2 all-matches" style={{ color: "#374151" }}>
                                 PADEL
@@ -323,22 +323,22 @@ const ViewMatch = ({ match, onBack }) => {
                         <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
                             {matchDate.day}, {matchDate.formattedDate} | {matchTime}
                         </small>
-                        <small className="text-muted d-lg-none" style={{ fontWeight: 500 }}>
-                            {matchDate.day}, {matchDate.formattedDate} <br /> {matchTime}
+                        <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
+                            {matchDate.day}, {matchDate.formattedDate} {matchTime}
                         </small>
                     </div>
                     <div className="row text-center border-top">
                         <div className="col py-2">
-                            <p className="mb-1 " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Gender</p>
-                            <p className="mb-0 " style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>{matchesData?.data?.gender || "Any"}</p>
+                            <p className="mb-md-1 mb-0 add_font_mobile " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Gender</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>{matchesData?.data?.gender || "Any"}</p>
                         </div>
                         <div className="col border-start border-end py-2">
-                            <p className="mb-1 " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Level</p>
-                            <p className="mb-0 " style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>{matchesData?.data?.skillLevel || "Intermediate"}</p>
+                            <p className="mb-1 add_font_mobile  " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Level</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>{matchesData?.data?.skillLevel || "Intermediate"}</p>
                         </div>
                         <div className="col py-2">
-                            <p className="mb-1 " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Price</p>
-                            <p className="mb-0 " style={{fontSize:'18px',fontWeight:"500",color:'#1F41BB'}}>
+                            <p className="mb-1 add_font_mobile  " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Price</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{fontSize:'18px',fontWeight:"500",color:'#1F41BB'}}>
                                 ₹{" "}
                                 {matchesData?.data?.slot
                                     ?.reduce((total, court) => {
@@ -358,13 +358,13 @@ const ViewMatch = ({ match, onBack }) => {
                     className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
                     style={{ backgroundColor: "#CBD6FF1A" }}
                 >
-                    <p className="text-muted mb-0" style={{ fontSize: "15px", fontWeight: 500 }}>
+                    <p className="text-muted mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: 500 }}>
                         {matchesData?.data?.matchStatus && "Open Match"}
                     </p>
                 </div>
 
                 {/* Players Section */}
-                <div className="p-3 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
+                <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
                     <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
                         Players
                     </h6>
@@ -419,7 +419,7 @@ const ViewMatch = ({ match, onBack }) => {
                     
                 </div>
                 <div className="d-lg-flex gap-2">
-                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
+                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
                         <div>
                             <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
@@ -434,7 +434,7 @@ const ViewMatch = ({ match, onBack }) => {
                         </div>
                     </div>
 
-                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
+                    <div className="d-flex mb-md-4 mb-2  align-items-center gap-3 px-2">
                         <i className="bi bi-calendar-check fs-2 text-dark" />
                         <div>
                             <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
