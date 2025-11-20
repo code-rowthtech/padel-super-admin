@@ -8,7 +8,7 @@ export const GET_MATCH_API = "";
 export const API = "";
 export const GET_CLUB_API = "/api/club/getAllRegisteredCourts";
 export const GET_SLOT_API = "/api/slot/getAllActiveCourts";
-export const GET_SLOT_BOOKING_API = "/api/slot/getAllActiveCourtsForSlotWise"
+export const GET_SLOT_BOOKING_API = "/api/slot/getAllActiveCourtsForSlotWise";
 export const GET_MATCHES_SLOT_API = "/api/slot/getAvailableSlot";
 export const CREATE_BOOKING_API = "/api/booking/manualBookingByOwner";
 export const GET_BOOKING_API = "/api/booking/getUserBookings";
@@ -18,18 +18,18 @@ export const GET_REVIEW_CLUB = "/api/review/getownerClubReview";
 export const CREATE_MATCHES = "/api/openmatch/createOpenMatch";
 export const GET_OPENMATCH_USER = "/api/openmatch/getAllOpenMatches";
 export const VIEW_OPENMATCH = "/api/openmatch/findByOpenMatchId";
-export const ADD_PLAYERS = "/api/openmatch/addPlayerToMatch"
-export const REMOVE_PLAYERS = "/api/openmatch/removePlayerFromMatch"
-export const UPDATE_USER = '/api/customer/updateCustomer'
-export const GET_USER = '/api/customer/getCustomer'
+export const ADD_PLAYERS = "/api/openmatch/addPlayerToMatch";
+export const REMOVE_PLAYERS = "/api/openmatch/removePlayerFromMatch";
+export const UPDATE_USER = "/api/customer/updateCustomer";
+export const GET_USER = "/api/customer/getCustomer";
+export const GET_STATES = "/api/states/getStates";
 // notifection count api
 export const GET_NOTIFICATION_USER_VIEW = "/api/userNotification/markAsRead";
-export const GET_NOTIFICATION_USER_DATA = "/api/userNotification/readNotification";
+export const GET_NOTIFICATION_USER_DATA =
+  "/api/userNotification/readNotification";
 export const GET_NOTIFICATION_USER_COUNT = "/api/userNotification/ureadCount";
-export const READ_ALL_NOTIFICATION_USER = "/api/userNotification/markAsAllAsRead";
-
-
-
+export const READ_ALL_NOTIFICATION_USER =
+  "/api/userNotification/markAsAllAsRead";
 
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 //-----------------------------------------------A_U_T_H----------------------------------------------//
@@ -79,8 +79,8 @@ export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
 export const GET_NOTIFICATION_VIEW = "/api/adminNotification/markAsRead";
 export const GET_NOTIFICATION_DATA = "/api/adminNotification/readNotification";
 export const GET_NOTIFICATION_COUNT = "/api/adminNotification/ureadCount";
-export const READ_ALL_NOTIFICATION_ADMIN = "/api/adminNotification/markAsAllAsRead";
-
+export const READ_ALL_NOTIFICATION_ADMIN =
+  "/api/adminNotification/markAsAllAsRead";
 
 //-----------------------------------------------U_S_E_R_S-----------------------------------//
 export const GET_SUBOWNER = "/api/owners/getusers";
@@ -98,4 +98,5 @@ export const CREATE_OPEN_MATCH = "/api/openmatch/createOpenMatch ";
 
 // search user by phone number
 
-export const SEARCH_USER_BY_PHONE_NUMBER = "/api/booking/getCustomerDataByPhoneNumber";
+export const SEARCH_USER_BY_PHONE_NUMBER =
+  "/api/booking/getCustomerDataByPhoneNumber";
