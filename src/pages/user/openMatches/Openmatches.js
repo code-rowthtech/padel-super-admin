@@ -464,7 +464,7 @@ const Openmatches = () => {
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
   return (
-    <div className="container mt-lg-4 px-3 px-md-4 mb-4">
+    <div className="container mt-lg-4 px-3 px-md-4 mb-md-4 mb-0">
       <div className="row g-md-4 mx-auto">
         {/* Left Section */}
         <div

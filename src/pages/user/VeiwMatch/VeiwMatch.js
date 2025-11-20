@@ -237,7 +237,7 @@ const ViewMatch = ({ match, onBack }) => {
         <>
             {/* Left Section */}
             <div className=" rounded-3 px-md-3 px-0 py-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
-                <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
                     <div className="d-flex align-items-center gap-2">
                         {onBack && (
                             <button
@@ -413,7 +413,7 @@ const ViewMatch = ({ match, onBack }) => {
 
                 {/* Information */}
                 <div>
-                    <h6 className="mb-3 mt-4 all-matches" style={{ color: "#374151" }}>
+                    <h6 className="mb-md-3 mb-2 mt-4 all-matches" style={{ color: "#374151" }}>
                         Information
                     </h6>
                     

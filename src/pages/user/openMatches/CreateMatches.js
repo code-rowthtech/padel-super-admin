@@ -495,7 +495,7 @@ const CreateMatches = () => {
                     style={{ cursor: "pointer", width: "26px !important", height: "26px !important" }}
                     onClick={() => setIsOpen(!isOpen)}
                   >
-                    <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
+                    <MdOutlineDateRange size={17} style={{ color: "#374151" }} />
                   </span>
                   {isOpen && (
                     <div
@@ -573,6 +573,7 @@ const CreateMatches = () => {
                         transform: showDropdown ? "rotate(180deg)" : "rotate(0deg)",
                         transition: "transform 0.3s",
                       }}
+                      className="d-md-block d-none"
                     />
                   </div>
                 </div>
@@ -871,7 +872,7 @@ const CreateMatches = () => {
               zIndex: 1000,
               background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
               borderRadius: "10px 10px 0 0",
-              padding: "10px 15px",
+              padding: "0px 15px",
             }}
           >
             {selectedCourts.length > 0 && (
