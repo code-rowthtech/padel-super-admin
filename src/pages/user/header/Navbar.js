@@ -231,9 +231,9 @@ const Navbar = () => {
     return (
         <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0 navbar-shadow-mobile">
             <div className="container py-md-1 py-0 ps-0">
-                <div className="d-flex justify-content-between align-items-center w-100 px-2 px-md-0 mt-1">
+                <div className="d-flex justify-content-between align-items-center w-100 px-2 ps-0 mt-1">
                     {/* Logo */}
-                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand">
+                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand col-3">
                         {logo ? (
                             <div className='add_logo_font'
                                 style={{
@@ -278,8 +278,8 @@ const Navbar = () => {
                     </Link>
 
                     {/* Navigation links - Hidden on mobile */}
-                    <div className="mx-auto d-none d-lg-flex">
-                        <ul className="navbar-nav ps-md-5 ps-0 ms-md-0 ms-0 mb-2 mb-lg-0 gap-md-5">
+                    <div className="mx-auto d-none d-lg-flex col-6 align-items-center justify-content-center">
+                        <ul className="navbar-nav ps-md-0 ps-0 ms-md-0 ms-0 mb-2 mb-lg-0 gap-md-5">
                             {/* <li className="nav-item">
                                 <NavLink
                                     to="/home"
@@ -341,7 +341,7 @@ const Navbar = () => {
                     </button>
 
                     {/* Profile Section - Desktop only */}
-                    <div className="d-none d-lg-flex gap-3 align-items-center">
+                    <div className="d-none d-lg-flex gap-3 align-items-center col-3 justify-content-end pe-2">
 
                         {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
                             <>
