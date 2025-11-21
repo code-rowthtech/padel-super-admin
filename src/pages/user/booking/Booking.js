@@ -933,7 +933,7 @@ const Booking = ({ className = "" }) => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              top: "-2px",
+                              top: "-1px",
                               right: "-4px",
                               zIndex: 22,
                               backgroundColor: "#22c55e",
