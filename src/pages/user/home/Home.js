@@ -428,7 +428,7 @@ const Home = () => {
                     {clubData?.clubName || "The Good Club"}{" "}
                     {clubData?.description}
                   </p>
-                  <p
+                  {/* <p
                     className="add_font_small_mobile"
                     style={{
                       fontSize: "13px",
@@ -446,7 +446,7 @@ const Home = () => {
                     <a href="">
                       https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic
                     </a>
-                  </p>
+                  </p> */}
                 </div>
               </div>
 
