@@ -37,6 +37,7 @@ const Home = () => {
   const store = useSelector((state) => state);
 
   const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
+  console.log("clubData", clubData);
   const getReviewData = store?.userClub?.getReviewData?.data;
   const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
 
