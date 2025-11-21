@@ -518,7 +518,7 @@ const OpenmatchPayment = () => {
                                         )}
                                     </div>
                                     <style jsx>{`
-    .small-curve-arrow {
+                                          .small-curve-arrow {
       position: absolute;
       top: -14px;
       left: 50%;
@@ -538,8 +538,8 @@ const OpenmatchPayment = () => {
 
                                     {/* Expandable slots list */}
                                     <div className="mobile-expanded-slots" style={{
-                                        maxHeight: isExpanded ? (localTotalSlots > 2 ? "120px" : "auto") : "0px",
-                                        overflowY: localTotalSlots > 2 && isExpanded ? "auto" : "hidden",
+                                        maxHeight: isExpanded ? (localTotalSlots > 1 ? "120px" : "auto") : "0px",
+                                        overflowY: localTotalSlots > 1 && isExpanded ? "auto" : "hidden",
                                         overflowX: "hidden",
                                         paddingRight: "8px",
                                         transition: "max-height 0.3s ease",

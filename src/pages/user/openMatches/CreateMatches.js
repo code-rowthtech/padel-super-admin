@@ -694,10 +694,9 @@ const CreateMatches = () => {
                     const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
 
                     // Calculate slot count for this specific date
-                    const slotCount = Object.values(selectedTimes).reduce((acc, courtDates) => {
-                      const dateSlots = courtDates[d.fullDate] || [];
-                      return acc + dateSlots.length;
-                    }, 0);
+                    const slotCount = selectedCourts
+                      .filter(court => court.date === d.fullDate)
+                      .reduce((acc, court) => acc + court.time.length, 0);
 
                     return (
                       <button
@@ -722,6 +721,7 @@ const CreateMatches = () => {
                           <div className="date-center-date">{d.date}</div>
                           <div className="date-center-day">{dayShortMap[d.day]}</div>
                         </div>
+                        {console.log(slotCount,'slotCount')}
                         {slotCount > 0 && (
                           <span
                             className="position-absolute badge rounded-pill"
@@ -732,7 +732,7 @@ const CreateMatches = () => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              top: "-0px",
+                              top: "0px",
                               right: "-4px",
                               zIndex: 2,
                               backgroundColor: "#22c55e"
@@ -1615,6 +1615,7 @@ const CreateMatches = () => {
               finalSkillDetails={existsOpenMatchData ? [] : skillDetails}
               totalAmount={grandTotal}
               existsOpenMatchData={existsOpenMatchData}
+              slotError={slotError}
             />
           )}
         </Col>
