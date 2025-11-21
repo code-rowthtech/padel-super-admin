@@ -384,6 +384,13 @@ const Booking = ({ className = "" }) => {
   );
   const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
+  // Close Order Summary when all slots are removed
+  useEffect(() => {
+    if (totalSlots === 0) {
+      setIsExpanded(false);
+    }
+  }, [totalSlots]);
+
   const handleBookNow = () => {
     if (totalSlots === 0) {
       setErrorMessage("Select a slot to enable booking");
@@ -1027,18 +1034,21 @@ const Booking = ({ className = "" }) => {
                 ) : (
                   <>
                     <div className=" p-0   ">
-                      {slotData?.data?.length > 0 && slotData?.data?.some(court => court?.slots?.length > 0) && (
-                        <div className="row mb-md-2 mb-0">
-                          <div className="col-3 d-md-block d-none">
-                            <h6 className="all-matches text-start">Courts</h6>
+                      {slotData?.data?.length > 0 &&
+                        slotData?.data?.some(
+                          (court) => court?.slots?.length > 0
+                        ) && (
+                          <div className="row mb-md-2 mb-0">
+                            <div className="col-3 d-md-block d-none">
+                              <h6 className="all-matches text-start">Courts</h6>
+                            </div>
+                            <div className="col-md-9 col-12">
+                              <h6 className="all-matches text-center mb-0 me-2 me-md-0">
+                                Available Slots
+                              </h6>
+                            </div>
                           </div>
-                          <div className="col-md-9 col-12">
-                            <h6 className="all-matches text-center mb-0 me-2 me-md-0">
-                              Available Slots
-                            </h6>
-                          </div>
-                        </div>
-                      )}
+                        )}
                       <div className="row mt-2 mb-0 mx-auto d-block d-md-none">
                         <div className="col-12 d-flex justify-content-center align-items-center px-0">
                           <div className="weather-tabs-wrapper w-100">
@@ -1134,7 +1144,7 @@ const Booking = ({ className = "" }) => {
                             >
                               <div className="col-md-3 col-12 border-end mb-0 mb-md-0 d-flex d-md-block align-items-center justify-content-start ">
                                 <div
-                                  className="court-item p-1 ps-0 ps-md-1 text-center text-md-center h-100 d-flex d-md-block align-items-center justify-content-center"
+                                  className="court-item p-1 ps-0 ps-md-1 text-center text-lg-start h-100 d-flex d-md-block align-items-center justify-content-center"
                                   style={{ minHeight: "50px" }}
                                 >
                                   <div
@@ -1549,24 +1559,29 @@ const Booking = ({ className = "" }) => {
                 position: "relative",
               }}
             >
-              <div
-                className="small-curve-arrow d-lg-none"
-                onClick={() => setIsExpanded(!isExpanded)}
-              >
-                {!isExpanded ? (
-                  <MdKeyboardArrowUp
-                    size={25}
-                    color="white"
-                    className="arrow-shake-infinite"
-                  />
-                ) : (
-                  <MdKeyboardArrowDown
-                    size={25}
-                    color="white"
-                    className="arrow-shake-infinite"
-                  />
-                )}
-              </div>
+              {totalSlots > 0 && (
+                <div
+                  className="small-curve-arrow d-lg-none"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(!isExpanded);
+                  }}
+                >
+                  {!isExpanded ? (
+                    <MdKeyboardArrowUp
+                      size={25}
+                      color="white"
+                      className="arrow-shake-infinite"
+                    />
+                  ) : (
+                    <MdKeyboardArrowDown
+                      size={25}
+                      color="white"
+                      className="arrow-shake-infinite"
+                    />
+                  )}
+                </div>
+              )}
 
               <style jsx>{`
                 .small-curve-arrow {
@@ -1825,19 +1840,21 @@ const Booking = ({ className = "" }) => {
                       maxHeight: isExpanded
                         ? totalSlots > 2
                           ? "140px"
-                          : "auto"
+                          : "200px"
                         : "0",
                       overflowY:
-                        totalSlots > 2 && isExpanded ? "auto" : "hidden",
+                        isExpanded && totalSlots > 2 ? "auto" : "hidden",
                       transition: "max-height 0.3s ease",
                     }}
                   >
-                    <h6
-                      className="mb-0 pb-1 text-white fw-semibold pt-2"
-                      style={{ fontSize: "15px" }}
-                    >
-                      Order Summary :
-                    </h6>
+                    {isExpanded && (
+                      <h6
+                        className="mb-0 pb-1 text-white fw-semibold pt-2"
+                        style={{ fontSize: "15px" }}
+                      >
+                        Order Summary :
+                      </h6>
+                    )}
 
                     <style jsx>{`
                       .mobile-expanded-slots.expanded::-webkit-scrollbar {
@@ -1859,7 +1876,8 @@ const Booking = ({ className = "" }) => {
                       }
                     `}</style>
 
-                    {selectedCourts.length > 0 &&
+                    {isExpanded &&
+                      selectedCourts.length > 0 &&
                       selectedCourts.map((court, index) =>
                         court.time.map((timeSlot, timeIndex) => (
                           <div
@@ -1949,7 +1967,10 @@ const Booking = ({ className = "" }) => {
                   <div className="d-lg-none py-0 pt-1">
                     <div
                       className="d-flex justify-content-between align-items-center px-3"
-                      onClick={() => setIsExpanded(!isExpanded)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsExpanded(!isExpanded);
+                      }}
                       style={{ cursor: "pointer" }}
                     >
                       <div className="d-flex flex-column">

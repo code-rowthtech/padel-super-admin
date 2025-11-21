@@ -417,16 +417,15 @@ const Home = () => {
 
                 <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
                   {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
-                  <div className="mb-2 mb-md-3 add_font_small_mobile">
-                    <span
-                      style={{
-                        fontSize: "13px",
-                        fontFamily: "Poppins",
-                        fontWeight: "400",
-                      }}
-                    >
-                      {clubData?.clubName || "The Good Club"}{" "}
-                    </span>
+                  <p
+                    className="mb-2 mb-md-3 add_font_small_mobile"
+                    style={{
+                      fontSize: "13px",
+                      fontFamily: "Poppins",
+                      fontWeight: "400",
+                    }}
+                  >
+                    {clubData?.clubName || "The Good Club"}{" "}
                     {clubData?.description
                       ?.replace(/\\r\\n/g, "\n")
                       ?.replace(/\r\n/g, "\n")
@@ -465,7 +464,7 @@ const Home = () => {
                           <br key={index} />
                         );
                       })}
-                  </div>
+                  </p>
                   {/* <p
                     className="add_font_small_mobile"
                     style={{

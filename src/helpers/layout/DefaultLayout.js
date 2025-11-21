@@ -65,8 +65,8 @@ const DefaultLayout = () => {
       {!shouldHideHeaderFooter && <Navbar user={user} />}
 
       <div
-        className="flex-grow-1"
-        style={{ marginTop: !shouldHideHeaderFooter ? "5.5rem" : "" }}
+        className="flex-grow-1 add_top_margin"
+        style={{ marginTop: !shouldHideHeaderFooter ? "" : "" }}
       >
         <Outlet />
       </div>
