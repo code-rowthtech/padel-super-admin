@@ -1172,7 +1172,7 @@ const Home = () => {
                 <iframe
                   src={mapSrc}
                   width="600"
-                  height="300"
+                  height="250"
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
