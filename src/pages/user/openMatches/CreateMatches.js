@@ -639,7 +639,7 @@ const CreateMatches = () => {
               </div>
 
               <div
-                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-2 mt-0 mt-md-0"
+                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-0 mt-0 mt-md-0"
                 style={{
                   backgroundColor: "#f3f3f5",
                   height: "58px",
@@ -666,7 +666,7 @@ const CreateMatches = () => {
               </div>
               <div
                 className="d-flex gap-1 "
-                style={{ position: "relative", maxWidth: "86%" }}
+                style={{ position: "relative"}}
               >
                 <button
                   className="btn p-2 border-0 d-none d-md-block"

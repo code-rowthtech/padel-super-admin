@@ -652,7 +652,7 @@ const Openmatches = () => {
               {/* Scrollable Dates EXACT copy UI */}
               <div
                 className="d-flex gap-1"
-                style={{ position: "relative", maxWidth: "86%" }}
+                style={{ position: "relative" }}
               >
                 {/* Left Arrow */}
                 <button
@@ -742,6 +742,7 @@ const Openmatches = () => {
                 </button>
               </div>
             </div>
+            
           </div>
 
           <div className="row mb-md-2 mb-0 mx-auto">

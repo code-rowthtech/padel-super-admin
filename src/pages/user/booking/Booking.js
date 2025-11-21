@@ -842,7 +842,7 @@ const Booking = ({ className = "" }) => {
               </div>
               <div
                 className="d-flex gap-1 "
-                style={{ position: "relative", maxWidth: "86%" }}
+                style={{ position: "relative"}}
               >
                 <button
                   className="btn p-2 border-0 d-none d-md-block"
