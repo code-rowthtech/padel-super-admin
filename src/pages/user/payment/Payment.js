@@ -32,9 +32,9 @@ const Payment = ({ className = "" }) => {
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
   const [name, setName] = useState(user?.name || updateName?.fullName || "");
   const [phoneNumber, setPhoneNumber] = useState(
-    user?.phoneNumber || updateName?.phone ? `+91 ${user.phoneNumber || updateName?.phone}` : ""
+    updateName?.phone || user?.phoneNumber || updateName?.phone ? `+91 ${user.phoneNumber}` : ""
   );
-  const [email, setEmail] = useState(user?.email || updateName?.email || "");
+  const [email, setEmail] = useState(updateName?.email || user?.email || "");
   const [selectedPayment, setSelectedPayment] = useState("");
   const [errors, setErrors] = useState({
     name: "",
@@ -491,7 +491,7 @@ const Payment = ({ className = "" }) => {
           <div
             className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
             style={{
-              height: "85vh",
+              height: "62vh",
               borderRadius: "10px 30% 10px 10px",
               background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
               position: "relative",
