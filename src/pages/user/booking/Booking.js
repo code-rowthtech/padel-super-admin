@@ -1130,7 +1130,7 @@ const Booking = ({ className = "" }) => {
                             >
                               <div className="col-md-3 col-12 border-end mb-0 mb-md-0 d-flex d-md-block align-items-center justify-content-start ">
                                 <div
-                                  className="court-item p-1 ps-0 ps-md-1 text-center text-md-center h-100 d-flex d-md-block align-items-center justify-content-center"
+                                  className="court-item p-1 ps-0 ps-md-1 text-center text-lg-start h-100 d-flex d-md-block align-items-center justify-content-center"
                                   style={{ minHeight: "50px" }}
                                 >
                                   <div
