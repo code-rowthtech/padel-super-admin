@@ -772,7 +772,7 @@ const Openmatches = () => {
                         onClick={() => setActiveTab(index)}
                       >
                         <Icon
-                          size={24}
+                          size={20}
                           className={
                             activeTab === index ? "text-primary" : "text-dark"
                           } // dark when inactive

@@ -482,7 +482,7 @@ const CreateMatches = () => {
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
-    <Container className="p-md-4 py-0 px-2 mb-5">
+    <Container className="p-md-4 py-0 px-2 mb-md-5 mb-0">
       <Row className="g-3">
         {/* ────── LEFT PANEL ────── */}
         <Col md={7} className={`p-3 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
@@ -851,13 +851,14 @@ const CreateMatches = () => {
                           );
                         })}
                       </div>
-                      <div className="d-flex justify-content-end pt-2 pb-2">
+                      <div className="d-flex d-md-none justify-content-end pt-2 pb-2">
                         <Button
-                          className="rounded-pill px-4"
+                          className="rounded-pill px-4 py-1"
                           style={{
                             background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                             border: "none",
                             fontWeight: "600",
+                            fontSize: "13px",
                           }}
                           disabled={selectedCourts.length === 0}
                           onClick={() => setShowMobileModal(true)}
@@ -896,7 +897,7 @@ const CreateMatches = () => {
         </Col>
 
         {/* ────── RIGHT PANEL ────── */}
-        <Col md={5} className={`ps-2 ${matchPlayer ? 'col-12' : ''}`}>
+        <Col md={5} className={`ps-2 d-md-block d-none ${matchPlayer ? 'col-12' : ''}`}>
           {/* ────── MOBILE SUMMARY (fixed bottom) ────── */}
           <div
             className="d-lg-none mobile-create-matches-summary"
@@ -1056,17 +1057,48 @@ const CreateMatches = () => {
             centered
             className="d-lg-none"
           >
-            <Modal.Header closeButton>
-            </Modal.Header>
-            <Modal.Body className="p-0">
-              <div style={{ backgroundColor: "#F1F4FF", borderRadius: "8px", padding: "20px" }}>
-                <div className="d-flex gap-2 mb-4 justify-content-center">
+            <Modal.Body className="p-0" style={{ position: "relative" }}>
+
+              {/* ❌ Close Button inside Modal Body */}
+              <button
+                onClick={() => setShowMobileModal(false)}
+                style={{
+                  position: "absolute",
+                  top: "3px",
+                  right: "0px",
+                  background: "transparent",
+                  border: "none",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  // boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  zIndex: 999,
+                }}
+              >
+                ✕
+              </button>
+
+              <div
+                style={{
+                  backgroundColor: "#F1F4FF",
+                  borderRadius: "8px",
+                  padding: "35px 10px",
+                }}
+              >
+                {/* Step Indicator */}
+                <div className="d-flex gap-2 mb-4 justify-content-start align-items-center">
                   {steps.map((_, i) => (
                     <div
                       key={i}
                       style={{
-                        width: 30,
-                        height: 30,
+                        width: 20,
+                        height: 20,
                         borderRadius: "50%",
                         backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
                         color: "#fff",
@@ -1080,8 +1112,9 @@ const CreateMatches = () => {
                   ))}
                 </div>
 
+                {/* Question */}
                 <h6
-                  className="mb-3 text-center"
+                  className="mb-3 text-start"
                   style={{
                     fontSize: "18px",
                     fontFamily: "Poppins",
@@ -1092,7 +1125,10 @@ const CreateMatches = () => {
                   {steps[currentStep].question}
                 </h6>
 
-                <Form style={{ maxHeight: "300px", overflowY: "auto" }}>
+                {/* OPTIONS LIST */}
+                <Form
+                // style={{ maxHeight: "300px", overflowY: "auto" }}
+                >
                   {currentStep === 1
                     ? steps[currentStep].options.map((opt, i) => (
                       <div
@@ -1106,11 +1142,15 @@ const CreateMatches = () => {
                         }}
                         className="d-flex align-items-center mb-2 p-2 rounded shadow-sm border step-option"
                         style={{
-                          backgroundColor: selectedLevel.includes(opt) ? "#eef2ff" : "#fff",
-                          borderColor: selectedLevel.includes(opt) ? "#4f46e5" : "#e5e7eb",
+                          backgroundColor: selectedLevel.includes(opt)
+                            ? "#eef2ff"
+                            : "#fff",
+                          borderColor: selectedLevel.includes(opt)
+                            ? "#4f46e5"
+                            : "#e5e7eb",
                           cursor: "pointer",
                           gap: "8px",
-                          height: "40px",
+                          // height: "40px",
                           transition: "all 0.2s ease",
                         }}
                       >
@@ -1120,7 +1160,13 @@ const CreateMatches = () => {
                           onChange={() => { }}
                           style={{ flexShrink: 0, marginTop: 0 }}
                         />
-                        <span style={{ fontSize: "14px", fontWeight: 500, color: "#1f2937" }}>
+                        <span
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 500,
+                            color: "#1f2937",
+                          }}
+                        >
                           {opt}
                         </span>
                       </div>
@@ -1132,11 +1178,13 @@ const CreateMatches = () => {
                           onClick={() => setSelectedLevel(opt.code)}
                           className="d-flex align-items-center mb-2 p-2 rounded shadow-sm border step-option"
                           style={{
-                            backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
-                            borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
+                            backgroundColor:
+                              selectedLevel === opt.code ? "#eef2ff" : "#fff",
+                            borderColor:
+                              selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
                             cursor: "pointer",
                             gap: "8px",
-                            height: "40px",
+                            // height: "40px",
                             transition: "all 0.2s ease",
                           }}
                         >
@@ -1147,7 +1195,10 @@ const CreateMatches = () => {
                             onChange={() => { }}
                             style={{ flexShrink: 0, marginTop: 0 }}
                           />
-                          <div className="d-flex align-items-center flex-grow-1" style={{ gap: "6px" }}>
+                          <div
+                            className="d-flex align-items-center flex-grow-1"
+                            style={{ gap: "6px" }}
+                          >
                             <span
                               style={{
                                 fontSize: "18px",
@@ -1159,7 +1210,14 @@ const CreateMatches = () => {
                             >
                               {opt.code}
                             </span>
-                            <strong style={{ fontSize: "14px", color: "#1f2937" }}>{opt.title}</strong>
+                            <strong
+                              style={{
+                                fontSize: "14px",
+                                color: "#1f2937",
+                              }}
+                            >
+                              {opt.title}
+                            </strong>
                           </div>
                         </div>
                       ))
@@ -1173,7 +1231,7 @@ const CreateMatches = () => {
                             borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
                             cursor: "pointer",
                             gap: "8px",
-                            height: "40px",
+                            // height: "40px",
                             transition: "all 0.2s ease",
                           }}
                         >
@@ -1184,13 +1242,20 @@ const CreateMatches = () => {
                             onChange={() => { }}
                             style={{ flexShrink: 0, marginTop: 0 }}
                           />
-                          <span style={{ fontSize: "14px", fontWeight: 500, color: "#1f2937" }}>
+                          <span
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: 500,
+                              color: "#1f2937",
+                            }}
+                          >
                             {opt}
                           </span>
                         </div>
                       ))}
                 </Form>
 
+                {/* ERROR BOX */}
                 {slotError && (
                   <div
                     className="text-center mb-3 p-2 rounded"
@@ -1206,26 +1271,31 @@ const CreateMatches = () => {
                   </div>
                 )}
 
-                <div className="d-flex justify-content-between align-items-center mt-3">
+                {/* BUTTONS */}
+                <div className="d-flex justify-content-between align-items-center mt-5">
                   {currentStep > 0 && (
                     <Button
-                      className="rounded-pill px-3"
+                      className="rounded-pill px-3 py-1"
                       style={{
                         backgroundColor: "#6c757d",
                         border: "none",
                         color: "#fff",
+                        fontSize: "13px",
                       }}
                       onClick={handleBack}
                     >
                       Back
                     </Button>
                   )}
+
                   <Button
-                    className="rounded-pill px-3 ms-auto"
+                    className="rounded-pill px-3 ms-auto py-1"
                     style={{
                       background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                       border: "none",
                       color: "#fff",
+                      fontSize: "13px",
+
                     }}
                     disabled={
                       !selectedLevel ||
@@ -1234,7 +1304,6 @@ const CreateMatches = () => {
                     }
                     onClick={() => {
                       if (currentStep === steps.length - 1) {
-                        // Submit and close modal, then navigate to match players
                         const finalSkillDetails = [...skillDetails];
                         finalSkillDetails[currentStep] = selectedLevel;
                         setSkillDetails(finalSkillDetails);
@@ -1251,6 +1320,7 @@ const CreateMatches = () => {
               </div>
             </Modal.Body>
           </Modal>
+
 
           {/* ────── QUESTIONNAIRE / MATCH PLAYER (Desktop Only) ────── */}
           {!matchPlayer ? (
