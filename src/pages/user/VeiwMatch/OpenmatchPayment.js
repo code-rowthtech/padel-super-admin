@@ -779,7 +779,9 @@ const OpenmatchPayment = () => {
 
                   {/* Expandable slots list */}
                   <div
-                    className="mobile-expanded-slots"
+                    className={`mobile-expanded-slots ${
+                      isExpanded ? "expanded border-bottom" : " "
+                    }`}
                     style={{
                       maxHeight: isExpanded
                         ? localTotalSlots > 2
@@ -791,9 +793,17 @@ const OpenmatchPayment = () => {
                       overflowX: "hidden",
                       paddingRight: "8px",
                       transition: "max-height 0.3s ease",
-                      marginBottom: isExpanded ? "10px" : "0",
+                      marginBottom: isExpanded ? "0px" : "0",
                     }}
                   >
+                     {isExpanded && (
+                      <h6
+                        className="mb-0 pb-1 text-white fw-semibold pt-2"
+                        style={{ fontSize: "15px" }}
+                      >
+                        Order Summary :
+                      </h6>
+                    )}
                     <style jsx>{`
                       .mobile-expanded-slots::-webkit-scrollbar {
                         width: 8px;
@@ -819,7 +829,7 @@ const OpenmatchPayment = () => {
                     {isExpanded &&
                       localSelectedCourts.map((court, cIdx) =>
                         court.time.map((timeSlot, sIdx) => (
-                          <div key={`${cIdx}-${sIdx}`} className="row mb-1">
+                          <div key={`${cIdx}-${sIdx}`} className="row mb-0">
                             <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
                               <div className="d-flex text-white">
                                 <span

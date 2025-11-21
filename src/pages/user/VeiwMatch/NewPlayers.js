@@ -223,7 +223,7 @@ const NewPlayers = ({
         setShowErrors({});
       }}
     >
-      <Box sx={modalStyle}>
+      <Box sx={modalStyle} style={{overflowY:"visible"}}>
         <h6
           className="mb-4 text-center"
           style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}

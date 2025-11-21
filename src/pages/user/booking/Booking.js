@@ -1882,7 +1882,7 @@ const Booking = ({ className = "" }) => {
                         court.time.map((timeSlot, timeIndex) => (
                           <div
                             key={`${index}-${timeIndex}`}
-                            className="row mb-1"
+                            className="row mb-0"
                           >
                             <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
                               <div className="d-flex text-white">
