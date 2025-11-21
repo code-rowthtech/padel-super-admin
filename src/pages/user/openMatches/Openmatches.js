@@ -1432,7 +1432,7 @@ const Openmatches = () => {
                 ) : (
                   <>
                     {/* Left: Overall Rating */}
-                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
+                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0 ps-0">
                       <div className="w-100">
                         <p
                           className="mb-0"
@@ -1457,7 +1457,7 @@ const Openmatches = () => {
                           >
                             {reviewData?.averageRating?.toFixed(1) || "0.0"}
                           </div>
-                          <div className="mb-2 d-flex gap-lg-2">
+                          <div className="mb-2 d-flex gap-lg-0">
                             {[...Array(5)].map((_, i) => {
                               const rating = reviewData?.averageRating || 0;
                               if (i < Math.floor(rating)) {
@@ -1491,7 +1491,7 @@ const Openmatches = () => {
                             })}
                           </div>
                           <div
-                            className="text-muted ps-2 pb-2"
+                            className="text-muted ps-0 pb-2"
                             style={{
                               fontSize: "12px",
                               fontWeight: "400",
