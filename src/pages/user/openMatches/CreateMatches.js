@@ -39,6 +39,7 @@ import {
   booking_dropdown_img3,
   booking_dropdown_img4,
 } from "../../../assets/files";
+import { getUserProfile } from "../../../redux/user/auth/authThunk";
 
 /* ──────────────────────── Helper Functions ──────────────────────── */
 const parseTimeToHour = (timeStr) => {
@@ -105,6 +106,7 @@ const CreateMatches = () => {
   });
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
+  const [existsOpenMatchData, setExistsOpenMatchData] = useState(false);
 
   // Sync with localStorage
   useEffect(() => {
@@ -124,6 +126,11 @@ const CreateMatches = () => {
   };
 
   useEffect(() => {
+    dispatch(getUserProfile()).then((result) => {
+      if (result.payload?.existsOpenMatchData) {
+        setExistsOpenMatchData(true);
+      }
+    });
     dispatch(getUserClub({ search: "" }));
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -211,15 +218,16 @@ const CreateMatches = () => {
 
       setSelectedCourts((prev) => {
         const existingCourt = prev.find((c) => c._id === courtId);
+        let updatedCourts;
         if (existingCourt) {
-          return prev.map((c) =>
+          updatedCourts = prev.map((c) =>
             c._id === courtId
               ? { ...c, time: [...c.time, newTimeEntry] }
               : c
           );
         } else {
           const currentCourt = slotData?.data?.find((c) => c._id === courtId);
-          return [
+          updatedCourts = [
             ...prev,
             {
               _id: currentCourt._id,
@@ -231,6 +239,10 @@ const CreateMatches = () => {
             },
           ];
         }
+
+
+
+        return updatedCourts;
       });
     }
   };
@@ -480,6 +492,8 @@ const CreateMatches = () => {
   const scrollRight = () =>
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
+
+
   /* ──────────────────────── JSX ──────────────────────── */
   return (
     <Container className="p-md-4 py-0 px-2 mb-5">
@@ -555,8 +569,8 @@ const CreateMatches = () => {
             </div>
 
             {/* Date Strip */}
-            <div className="d-flex align-items-center gap-2 border-bottom mb-md-3 mb-2">
-              <div className="position-relative">
+            <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
+              <div className="position-relative mt-md-0 mt-2">
                 <div
                   className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
                   style={{
@@ -568,14 +582,20 @@ const CreateMatches = () => {
                   onClick={() => setShowDropdown(!showDropdown)}
                 >
                   <div className="d-flex align-items-center gap-0 p-0">
-                    <img src={booking_dropdown_img} style={{ width: "34px", height: "34px" }} alt="" />
+                    <img
+                      src={booking_dropdown_img}
+                      style={{ width: "34px", height: "34px" }}
+                      alt=""
+                    />
                     <MdKeyboardArrowDown
                       size={16}
                       style={{
-                        transform: showDropdown ? "rotate(180deg)" : "rotate(0deg)",
+                        transform: showDropdown
+                          ? "rotate(180deg)"
+                          : "rotate(0deg)",
                         transition: "transform 0.3s",
                       }}
-                      className="d-md-block d-none"
+                      className="d-md-flex d-none"
                     />
                   </div>
                 </div>
@@ -638,9 +658,31 @@ const CreateMatches = () => {
                   {getCurrentMonth(selectedDate)}
                 </span>
               </div>
-              <div className="d-flex gap-1 " style={{ position: "relative", maxWidth: "85%" }}>
-                <button className="btn p-2 border-0 d-none d-md-block" style={{ position: "absolute", left: '-23%', zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
-                <div ref={scrollRef} className="d-flex gap-1 date-scroll-container" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+              <div
+                className="d-flex gap-1 "
+                style={{ position: "relative", maxWidth: "86%" }}
+              >
+                <button
+                  className="btn p-2 border-0 d-none d-md-block"
+                  style={{
+                    position: "absolute",
+                    left: "-23%",
+                    zIndex: 10,
+                    boxShadow: "none",
+                  }}
+                  onClick={scrollLeft}
+                >
+                  <MdOutlineArrowBackIosNew className="mt-2" size={20} />
+                </button>
+                <div
+                  ref={scrollRef}
+                  className="d-flex gap-1 date-scroll-container pt-md-0 pt-2"
+                  style={{
+                    scrollBehavior: "smooth",
+                    whiteSpace: "nowrap",
+                    maxWidth: "100%",
+                  }}
+                >
                   {dates.map((d, i) => {
                     const formatDate = (date) => date.toISOString().split("T")[0];
                     const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
@@ -655,7 +697,8 @@ const CreateMatches = () => {
                       <button
                         key={i}
                         ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                        className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
+                        className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"
+                          }`}
                         style={{
                           background: isSelected
                             ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
@@ -713,16 +756,26 @@ const CreateMatches = () => {
                 ) : (
                   <>
                     <div className="p-0">
-                      <div className="row mb-md-2 mb-0">
-                        <div className="col-3 d-md-block d-none">
-                          <h6 className="all-matches text-start">Courts</h6>
-                        </div>
-                        <div className="col-md-9 col-12">
-                          <h6 className="all-matches text-center mb-0 me-2 me-md-0">
-                            Available Slots
-                          </h6>
-                        </div>
-                      </div>
+                      {slotData?.data?.some((court) =>
+                        court?.slots?.some((slot) =>
+                          showUnavailable ||
+                          (slot.availabilityStatus === "available" &&
+                            slot.status !== "booked" &&
+                            !isPastTime(slot.time) &&
+                            slot.amount > 0)
+                        )
+                      ) && (
+                          <div className="row mb-md-2 mb-0">
+                            <div className="col-3 d-md-block d-none">
+                              <h6 className="all-matches text-start">Courts</h6>
+                            </div>
+                            <div className="col-md-9 col-12 ">
+                              <h6 className="all-matches text-center mb-0 me-2 me-md-0">
+                                Available Slots
+                              </h6>
+                            </div>
+                          </div>
+                        )}
                       <div
                         style={{
                           maxHeight: "60vh",
@@ -851,20 +904,35 @@ const CreateMatches = () => {
                           );
                         })}
                       </div>
-                      <div className="d-flex justify-content-end pt-2 pb-2">
-                        <Button
-                          className="rounded-pill px-4"
-                          style={{
-                            background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                            border: "none",
-                            fontWeight: "600",
-                          }}
-                          disabled={selectedCourts.length === 0}
-                          onClick={() => setShowMobileModal(true)}
-                        >
-                          Next
-                        </Button>
-                      </div>
+                      {slotData?.data?.some((court) =>
+                        court?.slots?.some((slot) =>
+                          showUnavailable ||
+                          (slot.availabilityStatus === "available" &&
+                            slot.status !== "booked" &&
+                            !isPastTime(slot.time))
+                        )
+                      ) && (
+                          <div className="d-flex justify-content-end pt-2 pb-2 d-lg-none">
+                            <Button
+                              className="rounded-pill px-4"
+                              style={{
+                                background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                                border: "none",
+                                fontWeight: "600",
+                              }}
+                              disabled={selectedCourts.length === 0}
+                              onClick={() => {
+                                if (existsOpenMatchData) {
+                                  setMatchPlayer(true);
+                                } else {
+                                  setShowMobileModal(true);
+                                }
+                              }}
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        )}
                     </div>
 
                     {slotData?.data?.every(
@@ -878,16 +946,16 @@ const CreateMatches = () => {
                         )
                     ) && (
                         <div
-                          className="text-center py-4 text-danger"
+                          className="text-center py-4 text-danger d-flex justify-content-center align-items-center "
                           style={{ fontFamily: "Poppins", fontWeight: 500 }}
                         >
-                          No {showUnavailable ? "unavailable" : "available"} slots
+                          <p> No {showUnavailable ? "unavailable" : "available"} slots</p>
                         </div>
                       )}
                   </>
                 )
               ) : (
-                <div className="text-center py-4 text-muted">
+                <div className="text-center py-4 d-flex justify-content-center align-items-center text-muted">
                   No courts available
                 </div>
               )}
@@ -1253,7 +1321,7 @@ const CreateMatches = () => {
           </Modal>
 
           {/* ────── QUESTIONNAIRE / MATCH PLAYER (Desktop Only) ────── */}
-          {!matchPlayer ? (
+          {!matchPlayer && !existsOpenMatchData ? (
             <div className="d-none d-lg-block">
               <div style={{ backgroundColor: "#F1F4FF" }}>
                 <div className="d-flex gap-2 ps-4 pt-4">
@@ -1460,14 +1528,18 @@ const CreateMatches = () => {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : null}
+          
+          {/* Show MatchPlayer when matchPlayer is true OR existsOpenMatchData is true */}
+          {(matchPlayer || existsOpenMatchData) && (
             <MatchPlayer
               addedPlayers={addedPlayers}
               setAddedPlayers={setAddedPlayers}
               selectedCourts={selectedCourts}
               selectedDate={selectedDate}
-              finalSkillDetails={skillDetails}
+              finalSkillDetails={existsOpenMatchData ? [] : skillDetails}
               totalAmount={grandTotal}
+              existsOpenMatchData={existsOpenMatchData}
             />
           )}
         </Col>
