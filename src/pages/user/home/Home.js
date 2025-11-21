@@ -417,17 +417,55 @@ const Home = () => {
 
                 <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
                   {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
-                  <p
-                    className="mb-2 mb-md-3 add_font_small_mobile"
-                    style={{
-                      fontSize: "13px",
-                      fontFamily: "Poppins",
-                      fontWeight: "400",
-                    }}
-                  >
-                    {clubData?.clubName || "The Good Club"}{" "}
-                    {clubData?.description}
-                  </p>
+                  <div className="mb-2 mb-md-3 add_font_small_mobile">
+                    <span
+                      style={{
+                        fontSize: "13px",
+                        fontFamily: "Poppins",
+                        fontWeight: "400",
+                      }}
+                    >
+                      {clubData?.clubName || "The Good Club"}{" "}
+                    </span>
+                    {clubData?.description
+                      ?.replace(/\\r\\n/g, "\n")
+                      ?.replace(/\r\n/g, "\n")
+                      ?.replace(/\\n/g, "\n")
+                      ?.split("\n")
+                      ?.map((line, index) => {
+                        if (line.startsWith("#")) {
+                          return (
+                            <div
+                              key={index}
+                              style={{
+                                fontSize: "15px",
+                                fontFamily: "Poppins",
+                                fontWeight: "600",
+                                marginTop: index > 0 ? "8px" : "0",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              {line.replace(/^#+\s*/, "")}
+                            </div>
+                          );
+                        }
+                        return line ? (
+                          <div
+                            key={index}
+                            style={{
+                              fontSize: "13px",
+                              fontFamily: "Poppins",
+                              fontWeight: "400",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            {line}
+                          </div>
+                        ) : (
+                          <br key={index} />
+                        );
+                      })}
+                  </div>
                   {/* <p
                     className="add_font_small_mobile"
                     style={{
