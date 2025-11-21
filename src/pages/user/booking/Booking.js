@@ -824,7 +824,7 @@ const Booking = ({ className = "" }) => {
                 }}
               >
                 <span
-                  className="add_font_small_span"
+                  className="add_font_small_span "
                   style={{
                     fontSize: window.innerWidth <= 768 ? "12px" : "14px",
                     fontWeight: "500",
@@ -934,7 +934,7 @@ const Booking = ({ className = "" }) => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              top: "-8px",
+                              top: "-2px",
                               right: "-4px",
                               zIndex: 22,
                               backgroundColor: "#22c55e",
@@ -1027,16 +1027,18 @@ const Booking = ({ className = "" }) => {
                 ) : (
                   <>
                     <div className=" p-0   ">
-                      <div className="row mb-md-2 mb-0">
-                        <div className="col-3 d-md-block d-none">
-                          <h6 className="all-matches text-start">Courts</h6>
+                      {slotData?.data?.length > 0 && slotData?.data?.some(court => court?.slots?.length > 0) && (
+                        <div className="row mb-md-2 mb-0">
+                          <div className="col-3 d-md-block d-none">
+                            <h6 className="all-matches text-start">Courts</h6>
+                          </div>
+                          <div className="col-md-9 col-12">
+                            <h6 className="all-matches text-center mb-0 me-2 me-md-0">
+                              Available Slots
+                            </h6>
+                          </div>
                         </div>
-                        <div className="col-md-9 col-12">
-                          <h6 className="all-matches text-center mb-0 me-2 me-md-0">
-                            Available Slots
-                          </h6>
-                        </div>
-                      </div>
+                      )}
                       <div className="row mt-2 mb-0 mx-auto d-block d-md-none">
                         <div className="col-12 d-flex justify-content-center align-items-center px-0">
                           <div className="weather-tabs-wrapper w-100">

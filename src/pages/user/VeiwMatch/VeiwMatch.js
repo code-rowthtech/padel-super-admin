@@ -30,7 +30,7 @@ const PlayerSlot = memo(function PlayerSlot({
             (team === "B" && [2, 3].includes(index))
         ) {
             return (
-                <div className="text-center d-flex   flex-column  mb-4 pb-2">
+                <div className="text-center d-flex align-items-center justify-content-center   flex-column  mb-md-4 mb-3 pb-2 col-6">
                     <button
                         className="bg-white rounded-circle d-flex align-items-center justify-content-center"
                         style={{
@@ -64,7 +64,7 @@ const PlayerSlot = memo(function PlayerSlot({
     }
 
     return (
-        <div className="text-center d-flex justify-content-center align-items-center flex-column  mb-md-3 mb-0 position-relative">
+        <div className="text-center d-flex justify-content-center align-items-center flex-column  mb-md-3 mb-0 position-relative col-6">
             {/* Avatar */}
             <div
                 className="rounded-circle border d-flex align-items-center justify-content-center"
@@ -374,7 +374,7 @@ const ViewMatch = ({ match, onBack }) => {
                     ) : (
                         <div className="row mx-auto">
                             {/* Team A */}
-                            <div className="col-6 d-flex justify-content-start align-items-center gap-3 flex-wrap">
+                            <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 ">
                                 {slots.slice(0, 2).map((s) => (
                                     <PlayerSlot
                                         key={s.index}
@@ -388,7 +388,7 @@ const ViewMatch = ({ match, onBack }) => {
                                 ))}
                             </div>
 
-                            <div className="col-6 d-flex justify-content-end align-items-center gap-3 flex-wrap border-start border-0 border-lg-start">
+                            <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 border-start border-0 border-lg-start">
                                 {slots.slice(2, 4).map((s) => (
                                     <PlayerSlot
                                         key={s.index}

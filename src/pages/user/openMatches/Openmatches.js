@@ -128,24 +128,11 @@ const Openmatches = () => {
 
   useEffect(() => {
     if (selectedDate?.fullDate && dateRefs.current[selectedDate?.fullDate]) {
-      const selectedIndex = dates.findIndex(
-        (d) => d.fullDate === selectedDate.fullDate
-      );
-      if (selectedIndex !== -1) {
-        const targetIndex = Math.max(
-          0,
-          Math.min(
-            selectedIndex - Math.floor(visibleDays / 2),
-            dates.length - visibleDays
-          )
-        );
-        setStartIndex(targetIndex);
-        dateRefs.current[selectedDate?.fullDate].scrollIntoView({
-          behavior: "smooth",
-          inline: "center",
-          block: "nearest",
-        });
-      }
+      dateRefs.current[selectedDate?.fullDate].scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
     }
   }, [selectedDate?.fullDate]);
 
@@ -772,7 +759,7 @@ const Openmatches = () => {
                         onClick={() => setActiveTab(index)}
                       >
                         <Icon
-                          size={24}
+                          size={20}
                           className={
                             activeTab === index ? "text-primary" : "text-dark"
                           } // dark when inactive
@@ -1081,162 +1068,150 @@ const Openmatches = () => {
                                                     </div> */}
 
                           <div className="row mx-auto">
-                            {/* LEFT SIDE */}
-                            <div className="col-6 px-0 d-flex justify-content-between align-items-center  flex-wrap">
-                              {/* Player 1 */}
-                              <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
-                                <div
-                                  className="rounded-circle border d-flex align-items-center justify-content-center"
-                                  style={{
-                                    width: "68px",
-                                    height: "68px",
-                                    backgroundColor: "rgb(31, 65, 187)",
-                                    overflow: "hidden",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      color: "white",
-                                      fontWeight: 600,
-                                      fontSize: "24px",
-                                    }}
-                                  >
-                                    A
-                                  </span>
-                                </div>
-
-                                <span
-                                  data-tooltip-id="player-A-0"
-                                  data-tooltip-content="Abhishek Balyani"
-                                  className="mb-0 mt-2"
-                                  style={{
-                                    maxWidth: "150px",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                    display: "inline-block",
-                                    cursor: "pointer",
-                                    fontSize: "10px",
-                                    fontWeight: 500,
-                                    fontFamily: "Poppins",
-                                  }}
-                                >
-                                  Abhishek Bal...
-                                </span>
-
-                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(61, 190, 100)" }}>A|B</span> */}
-                              </div>
-
-                              {/* Player 2 */}
-                              <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
-                                <div
-                                  className="rounded-circle border d-flex align-items-center justify-content-center"
-                                  style={{
-                                    width: "68px",
-                                    height: "68px",
-                                    backgroundColor: "rgb(31, 65, 187)",
-                                    overflow: "hidden",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      color: "white",
-                                      fontWeight: 600,
-                                      fontSize: "24px",
-                                    }}
-                                  >
-                                    A
-                                  </span>
-                                </div>
-
-                                <p
-                                  className="mb-0 mt-2"
-                                  style={{
-                                    fontSize: "10px",
-                                    fontWeight: 500,
-                                    fontFamily: "Poppins",
-                                  }}
-                                >
-                                  Ankit
-                                </p>
-
-                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(61, 190, 100)" }}>B2</span> */}
-                              </div>
+                            {/* Team A Players */}
+                            <div className="col-6 px-0 d-flex justify-content-between align-items-center flex-wrap">
+                              {[0, 1].map((playerIndex) => {
+                                const player = match?.teamA?.[playerIndex];
+                                const isAvailable = !player;
+                                return (
+                                  <div key={`teamA-${playerIndex}`} className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                    <div
+                                      className="rounded-circle border d-flex align-items-center justify-content-center"
+                                      style={{
+                                        width: "68px",
+                                        height: "68px",
+                                        backgroundColor: isAvailable ? "#f0f0f0" : "rgb(31, 65, 187)",
+                                        overflow: "hidden",
+                                        cursor: isAvailable ? "pointer" : "default",
+                                      }}
+                                      onClick={() => {
+                                        if (isAvailable) {
+                                          setShowModal(true);
+                                          setMatchId(match?._id);
+                                          setTeamName("teamA");
+                                        }
+                                      }}
+                                    >
+                                      {isAvailable ? (
+                                        <span
+                                          style={{
+                                            color: "#1F41BB",
+                                            fontWeight: 600,
+                                            fontSize: "24px",
+                                          }}
+                                        >
+                                          +
+                                        </span>
+                                      ) : player?.userId?.profilePic ? (
+                                        <img
+                                          src={player.userId.profilePic}
+                                          alt={player.userId.name}
+                                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                        />
+                                      ) : (
+                                        <span
+                                          style={{
+                                            color: "white",
+                                            fontWeight: 600,
+                                            fontSize: "24px",
+                                          }}
+                                        >
+                                          {player?.userId?.name?.charAt(0)?.toUpperCase() || "A"}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span
+                                      className="mb-0 mt-2"
+                                      style={{
+                                        maxWidth: "60px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        display: "inline-block",
+                                        fontSize: "10px",
+                                        fontWeight: 500,
+                                        fontFamily: "Poppins",
+                                        color: isAvailable ? "#1F41BB" : "#000",
+                                      }}
+                                    >
+                                      {isAvailable ? "Available" : (player?.userId?.name || "Player")}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
 
-                            {/* RIGHT SIDE */}
-                            <div className="col-6  px-0 d-flex justify-content-between align-items-center flex-wrap border-start border-0 border-lg-start">
-                              {/* Player 3 */}
-                              <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
-                                <div
-                                  className="rounded-circle border d-flex align-items-center justify-content-center"
-                                  style={{
-                                    width: "68px",
-                                    height: "68px",
-                                    backgroundColor: "rgb(31, 65, 187)",
-                                    overflow: "hidden",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      color: "white",
-                                      fontWeight: 600,
-                                      fontSize: "24px",
-                                    }}
-                                  >
-                                    D
-                                  </span>
-                                </div>
-
-                                <p
-                                  className="mb-0 mt-2"
-                                  style={{
-                                    fontSize: "10px",
-                                    fontWeight: 500,
-                                    fontFamily: "Poppins",
-                                  }}
-                                >
-                                  Diksha
-                                </p>
-
-                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(31, 65, 187)" }}>D1</span> */}
-                              </div>
-
-                              {/* Player 4 */}
-                              <div className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
-                                <div
-                                  className="rounded-circle border d-flex align-items-center justify-content-center"
-                                  style={{
-                                    width: "68px",
-                                    height: "68px",
-                                    backgroundColor: "rgb(31, 65, 187)",
-                                    overflow: "hidden",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      color: "white",
-                                      fontWeight: 600,
-                                      fontSize: "24px",
-                                    }}
-                                  >
-                                    H
-                                  </span>
-                                </div>
-
-                                <p
-                                  className="mb-0 mt-2"
-                                  style={{
-                                    fontSize: "10px",
-                                    fontWeight: 500,
-                                    fontFamily: "Poppins",
-                                  }}
-                                >
-                                  H
-                                </p>
-
-                                {/* <span className="badge text-white" style={{ backgroundColor: "rgb(31, 65, 187)" }}>C2</span> */}
-                              </div>
+                            {/* Team B Players */}
+                            <div className="col-6 px-0 d-flex justify-content-between align-items-center flex-wrap border-start border-0 border-lg-start">
+                              {[0, 1].map((playerIndex) => {
+                                const player = match?.teamB?.[playerIndex];
+                                const isAvailable = !player;
+                                return (
+                                  <div key={`teamB-${playerIndex}`} className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                    <div
+                                      className="rounded-circle border d-flex align-items-center justify-content-center"
+                                      style={{
+                                        width: "68px",
+                                        height: "68px",
+                                        backgroundColor: isAvailable ? "#f0f0f0" : "rgb(31, 65, 187)",
+                                        overflow: "hidden",
+                                        cursor: isAvailable ? "pointer" : "default",
+                                      }}
+                                      onClick={() => {
+                                        if (isAvailable) {
+                                          setShowModal(true);
+                                          setMatchId(match?._id);
+                                          setTeamName("teamB");
+                                        }
+                                      }}
+                                    >
+                                      {isAvailable ? (
+                                        <span
+                                          style={{
+                                            color: "#1F41BB",
+                                            fontWeight: 600,
+                                            fontSize: "24px",
+                                          }}
+                                        >
+                                          +
+                                        </span>
+                                      ) : player?.userId?.profilePic ? (
+                                        <img
+                                          src={player.userId.profilePic}
+                                          alt={player.userId.name}
+                                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                        />
+                                      ) : (
+                                        <span
+                                          style={{
+                                            color: "white",
+                                            fontWeight: 600,
+                                            fontSize: "24px",
+                                          }}
+                                        >
+                                          {player?.userId?.name?.charAt(0)?.toUpperCase() || "B"}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span
+                                      className="mb-0 mt-2"
+                                      style={{
+                                        maxWidth: "60px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        display: "inline-block",
+                                        fontSize: "10px",
+                                        fontWeight: 500,
+                                        fontFamily: "Poppins",
+                                        color: isAvailable ? "#1F41BB" : "#000",
+                                      }}
+                                    >
+                                      {isAvailable ? "Available" : (player?.userId?.name || "Player")}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                           <div className="row mx-auto border-top pt-1">
@@ -1380,7 +1355,7 @@ const Openmatches = () => {
                 </div>
               </div>
                 <div
-                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-block"
+                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-flex"
                 style={{
                   backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
                   position: "relative",
