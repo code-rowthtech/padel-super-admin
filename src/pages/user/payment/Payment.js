@@ -825,7 +825,7 @@ const Payment = ({ className = "" }) => {
                     />
                   </g>
                 </svg>
-                <div style={contentStyle}>  {isLoading || bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
+                <div style={contentStyle}> Book Now</div>
               </button>
             </div>
           </div>
