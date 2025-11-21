@@ -897,7 +897,7 @@ const CreateMatches = () => {
         </Col>
 
         {/* ────── RIGHT PANEL ────── */}
-        <Col md={5} className={`ps-2 d-md-block d-none ${matchPlayer ? 'col-12' : ''}`}>
+        <Col md={5} className={`ps-2 d-md-block d-block ${matchPlayer ? 'col-12' : ''}`}>
           {/* ────── MOBILE SUMMARY (fixed bottom) ────── */}
           <div
             className="d-lg-none mobile-create-matches-summary"

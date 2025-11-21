@@ -245,18 +245,18 @@ const OpenmatchPayment = () => {
     }, [error]);
 
     return (
-        <div className="container mt-4 mb-5 d-flex gap-4 px-4 flex-wrap">
-            <div className="row w-100">
+        <div className="container mt-md-4 mt-0 mb-md-5 mb-0 d-flex gap-4 px-md-4 px-0 flex-wrap">
+            <div className="row  mx-auto">
                 {/* Left: Contact + Payment */}
-                <div className="col-lg-7 col-12 py-3 rounded-3 mobile-payment-content">
+                <div className="col-lg-7 col-12 py-md-3 pt-0 pb-3 rounded-3 mobile-payment-content">
                     {/* Contact Info */}
                     <div
-                        className="rounded-4 py-4 px-3 mb-4"
+                        className="rounded-4 py-md-4 py-3 px-3 mb-4"
                         style={{ backgroundColor: "#F5F5F566", border: error.name || error.email || error.phoneNumber ? "1px solid red" : "" }}
                     >
-                        <h6 className="mb-3 custom-heading-use">Contact Info</h6>
-                        <div className="row">
-                            <div className="col-12 col-md-4 mb-3 p-1">
+                        <h6 className="mb-md-3 mb-1 small_font_mobile" style={{ fontSize: 20, fontWeight: 600 }}>Contact Info</h6>
+                        <div className="row mx-auto">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
                                 <label className="form-label mb-0 ps-lg-2" style={{ fontSize: 12, fontWeight: 500 }}>
                                     Name <span className="text-danger">*</span>
                                 </label>
@@ -275,7 +275,7 @@ const OpenmatchPayment = () => {
                                 {error.name && <div className="text-danger" style={{ fontSize: 12, marginTop: 4 }}>{error.name}</div>}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-3 p-1">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
                                 <label className="form-label mb-0 ps-lg-1" style={{ fontSize: 12, fontWeight: 500 }}>
                                     Phone Number <span className="text-danger">*</span>
                                 </label>
@@ -301,7 +301,7 @@ const OpenmatchPayment = () => {
                                 {error.phoneNumber && <div className="text-danger" style={{ fontSize: 12, marginTop: 4 }}>{error.phoneNumber}</div>}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-3 p-1">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
                                 <label className="form-label mb-0 ps-lg-2" style={{ fontSize: 12, fontWeight: 500 }}>
                                     Email <span className="text-danger">*</span>
                                 </label>
@@ -319,10 +319,10 @@ const OpenmatchPayment = () => {
 
                     {/* Payment Method */}
                     <div
-                        className="rounded-4 pt-4 px-5 pb-4"
+                        className="rounded-4 py-3 py-md-4 px-md-3 px-2"
                         style={{ backgroundColor: "#F5F5F566", border: error.paymentMethod ? "1px solid red" : "" }}
                     >
-                        <h6 className="mb-4" style={{ fontSize: 20, fontWeight: 600 }}>Payment Method</h6>
+                        <h6 className="mb-md-4 mb-3 small_font_mobile" style={{ fontSize: 20, fontWeight: 600 }}>Payment Method</h6>
                         <div className="d-flex flex-column gap-3">
                             {[
                                 { id: "google", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
@@ -331,7 +331,7 @@ const OpenmatchPayment = () => {
                             ].map(m => (
                                 <label
                                     key={m.id}
-                                    className="d-flex justify-content-between align-items-center py-3 p-3 bg-white rounded-4"
+                                    className="d-flex justify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
                                     style={{ boxShadow: "3px 4px 6.3px 0px #0000001F" }}
                                 >
                                     <div className="d-flex align-items-center gap-3">

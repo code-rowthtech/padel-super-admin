@@ -2164,7 +2164,7 @@ h1.display-5 {
 
   /* Add space below banner */
   .container.mb-5.px-4 {
-    margin-top: 30px !important;
+    margin-top: 0px !important;
   }
 
   /* Mobile banner spacing */
@@ -2172,7 +2172,9 @@ h1.display-5 {
     margin-bottom: 0 !important;
     padding-top: 0 !important;
   }
-
+.small_font_mobile{
+  font-size: 16px!important;
+}
   .add_height_mobile_banner {
     height: 179px!important;
   }
