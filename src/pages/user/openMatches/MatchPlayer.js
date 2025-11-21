@@ -10,167 +10,182 @@ import NewPlayers from "../VeiwMatch/NewPlayers";
 import { FaArrowRight } from "react-icons/fa";
 
 const dayShortMap = {
-    Monday: "Mon",
-    Tuesday: "Tue",
-    Wednesday: "Wed",
-    Thursday: "Thu",
-    Friday: "Fri",
-    Saturday: "Sat",
-    Sunday: "Sun",
+  Monday: "Mon",
+  Tuesday: "Tue",
+  Wednesday: "Wed",
+  Thursday: "Thu",
+  Friday: "Fri",
+  Saturday: "Sat",
+  Sunday: "Sun",
 };
 
 const MatchPlayer = ({
-    addedPlayers: parentAddedPlayers,
-    setAddedPlayers: setParentAddedPlayers,
-    selectedCourts,
-    selectedDate,
-    finalSkillDetails,
-    totalAmount,
+  addedPlayers: parentAddedPlayers,
+  setAddedPlayers: setParentAddedPlayers,
+  selectedCourts,
+  selectedDate,
+  finalSkillDetails,
+  totalAmount,
 }) => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const User = getUserFromSession();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const User = getUserFromSession();
 
-    // ── LIVE STATE: Sync with parent + localStorage ─────────────────────
-    const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
+  // ── LIVE STATE: Sync with parent + localStorage ─────────────────────
+  const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
 
-    // Sync parent changes
-    useEffect(() => {
-        setLocalPlayers(parentAddedPlayers || {});
-    }, [parentAddedPlayers]);
+  // Sync parent changes
+  useEffect(() => {
+    setLocalPlayers(parentAddedPlayers || {});
+  }, [parentAddedPlayers]);
 
-    // Sync with localStorage (refresh-safe)
-    useEffect(() => {
-        const syncFromStorage = () => {
-            const saved = localStorage.getItem("addedPlayers");
-            const parsed = saved ? JSON.parse(saved) : {};
-            setLocalPlayers(parsed);
-            setParentAddedPlayers(parsed);
-        };
-
-        syncFromStorage();
-        window.addEventListener("storage", syncFromStorage);
-
-        // Custom event for same-tab updates
-        const handleCustomUpdate = () => syncFromStorage();
-        window.addEventListener("playersUpdated", handleCustomUpdate);
-
-        return () => {
-            window.removeEventListener("storage", syncFromStorage);
-            window.removeEventListener("playersUpdated", handleCustomUpdate);
-        };
-    }, [setParentAddedPlayers]);
-
-    // Force refresh every 500ms to catch localStorage changes
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const saved = localStorage.getItem("addedPlayers");
-            const parsed = saved ? JSON.parse(saved) : {};
-            if (JSON.stringify(parsed) !== JSON.stringify(localPlayers)) {
-                setLocalPlayers(parsed);
-                setParentAddedPlayers(parsed);
-            }
-        }, 500);
-
-        return () => clearInterval(interval);
-    }, [localPlayers, setParentAddedPlayers]);
-
-    // ── Modal Controls ─────────────────────────────────────────────────
-    const [showAddMeForm, setShowAddMeForm] = useState(false);
-    const [activeSlot, setActiveSlot] = useState(null);
-    const [showShareDropdown, setShowShareDropdown] = useState(false);
-
-    useEffect(() => {
-        dispatch(getUserClub({ search: "" }));
-    }, [dispatch]);
-
-    const handleAddMeClick = (slot) => {
-        setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
-        setActiveSlot((prev) => (prev === slot ? null : slot));
+  // Sync with localStorage (refresh-safe)
+  useEffect(() => {
+    const syncFromStorage = () => {
+      const saved = localStorage.getItem("addedPlayers");
+      const parsed = saved ? JSON.parse(saved) : {};
+      setLocalPlayers(parsed);
+      setParentAddedPlayers(parsed);
     };
 
-    // ── Helpers ───────────────────────────────────────────────────────
-    const formatDate = (dateString) => {
-        if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
-        const d = new Date(dateString);
-        const day = dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
-        const formattedDate = `${d.toLocaleDateString("en-US", { day: "2-digit" })}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
-        return { day, formattedDate };
+    syncFromStorage();
+    window.addEventListener("storage", syncFromStorage);
+
+    // Custom event for same-tab updates
+    const handleCustomUpdate = () => syncFromStorage();
+    window.addEventListener("playersUpdated", handleCustomUpdate);
+
+    return () => {
+      window.removeEventListener("storage", syncFromStorage);
+      window.removeEventListener("playersUpdated", handleCustomUpdate);
     };
+  }, [setParentAddedPlayers]);
 
-    const calculateEndRegistrationTime = () => {
-        if (!selectedCourts?.length) return "Today at 10:00 PM";
-        const allTimes = selectedCourts.flatMap((c) => c.time.map((s) => s.time));
-        const latestHour = allTimes.reduce((max, t) => {
-            const [h, p] = t.split(" ");
-            let hour = parseInt(h);
-            if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
-            if (p.toLowerCase() === "am" && hour === 12) hour = 0;
-            return Math.max(max, hour);
-        }, 0);
-        const endHour = latestHour + 1;
-        const period = endHour >= 12 ? "PM" : "AM";
-        const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
-        return `Today at ${displayHour}:00 ${period}`;
-    };
+  // Force refresh every 500ms to catch localStorage changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const saved = localStorage.getItem("addedPlayers");
+      const parsed = saved ? JSON.parse(saved) : {};
+      if (JSON.stringify(parsed) !== JSON.stringify(localPlayers)) {
+        setLocalPlayers(parsed);
+        setParentAddedPlayers(parsed);
+      }
+    }, 500);
 
-    const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: "Fri", formattedDate: "29 Aug" };
-    const matchTime = selectedCourts.length
-        ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
-        : "";
+    return () => clearInterval(interval);
+  }, [localPlayers, setParentAddedPlayers]);
 
-    const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
-    const canBook = playerCount >= 2 && matchTime.length > 0;
+  // ── Modal Controls ─────────────────────────────────────────────────
+  const [showAddMeForm, setShowAddMeForm] = useState(false);
+  const [activeSlot, setActiveSlot] = useState(null);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
 
-    const userSkillLevel = finalSkillDetails.length > 0 ? finalSkillDetails[finalSkillDetails.length - 1] : "A";
+  useEffect(() => {
+    dispatch(getUserClub({ search: "" }));
+  }, [dispatch]);
 
-    const handleBookNow = () => {
-        const courtIds = selectedCourts.map((c) => c._id).join(",");
+  const handleAddMeClick = (slot) => {
+    setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
+    setActiveSlot((prev) => (prev === slot ? null : slot));
+  };
 
-        const latestPlayers = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+  // ── Helpers ───────────────────────────────────────────────────────
+  const formatDate = (dateString) => {
+    if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
+    const d = new Date(dateString);
+    const day =
+      dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
+    const formattedDate = `${d.toLocaleDateString("en-US", {
+      day: "2-digit",
+    })}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
+    return { day, formattedDate };
+  };
 
-        console.log('Players being passed to payment:', latestPlayers);
+  const calculateEndRegistrationTime = () => {
+    if (!selectedCourts?.length) return "Today at 10:00 PM";
+    const allTimes = selectedCourts.flatMap((c) => c.time.map((s) => s.time));
+    const latestHour = allTimes.reduce((max, t) => {
+      const [h, p] = t.split(" ");
+      let hour = parseInt(h);
+      if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
+      if (p.toLowerCase() === "am" && hour === 12) hour = 0;
+      return Math.max(max, hour);
+    }, 0);
+    const endHour = latestHour + 1;
+    const period = endHour >= 12 ? "PM" : "AM";
+    const displayHour =
+      endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+    return `Today at ${displayHour}:00 ${period}`;
+  };
 
-        navigate("/match-payment", {
-            state: {
-                courtData: {
-                    day: selectedDate.day,
-                    date: selectedDate.fullDate,
-                    time: selectedCourts.flatMap((c) => c.time),
-                    courtId: courtIds,
-                    court: selectedCourts,
-                },
-                selectedCourts,
-                selectedDate,
-                grandTotal: totalAmount,
-                totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-                finalSkillDetails,
-                addedPlayers: latestPlayers, // Use latest from localStorage
-            },
-        });
-    };
+  const matchDate = selectedDate?.fullDate
+    ? formatDate(selectedDate.fullDate)
+    : { day: "Fri", formattedDate: "29 Aug" };
+  const matchTime = selectedCourts.length
+    ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
+    : "";
 
+  const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
+  const canBook = playerCount >= 2 && matchTime.length > 0;
 
-    return (
-        <>
-            <div className="py-3 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
-                {/* Header */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>Details</h5>
-                    <div className="d-flex align-items-center gap-2 position-relative">
-                        <button
-                            className="btn btn-light rounded-circle p-2 border shadow-sm"
-                            style={{ width: 36, height: 36 }}
-                            onClick={() => setShowShareDropdown((p) => !p)}
-                        >
-                            <i className="bi bi-share"></i>
-                        </button>
-                        <button
-                            className="btn rounded-circle p-2 text-white"
-                            style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
-                        >
-                            <i className="bi bi-chat-left-text"></i>
-                        </button>
+  const userSkillLevel =
+    finalSkillDetails.length > 0
+      ? finalSkillDetails[finalSkillDetails.length - 1]
+      : "A";
+
+  const handleBookNow = () => {
+    const courtIds = selectedCourts.map((c) => c._id).join(",");
+
+    const latestPlayers = JSON.parse(
+      localStorage.getItem("addedPlayers") || "{}"
+    );
+
+    console.log("Players being passed to payment:", latestPlayers);
+
+    navigate("/match-payment", {
+      state: {
+        courtData: {
+          day: selectedDate.day,
+          date: selectedDate.fullDate,
+          time: selectedCourts.flatMap((c) => c.time),
+          courtId: courtIds,
+          court: selectedCourts,
+        },
+        selectedCourts,
+        selectedDate,
+        grandTotal: totalAmount,
+        totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
+        finalSkillDetails,
+        addedPlayers: latestPlayers, // Use latest from localStorage
+      },
+    });
+  };
+
+  return (
+    <>
+      <div
+        className="py-3 rounded-3 px-4"
+        style={{ backgroundColor: "#F5F5F566" }}
+      >
+        {/* Header */}
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>
+            Details
+          </h5>
+          <div className="d-flex align-items-center gap-2 position-relative">
+            <button
+              className="btn btn-light rounded-circle p-2 border shadow-sm"
+              style={{ width: 36, height: 36 }}
+              onClick={() => setShowShareDropdown((p) => !p)}
+            >
+              <i className="bi bi-share"></i>
+            </button>
+            <button
+              className="btn rounded-circle p-2 text-white"
+              style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
+            >
+              <i className="bi bi-chat-left-text"></i>
+            </button>
 
                         {showShareDropdown && (
                             <div
@@ -376,106 +391,193 @@ const MatchPlayer = ({
                                 </div>
                             )}
 
-                            {/* SLOT 4 */}
-                            {localPlayers.slot4 ? (
-                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
-                                    <div
-                                        className="rounded-circle border d-flex justify-content-center align-items-center"
-                                        style={{
-                                            width: 68,
-                                            height: 68,
-                                            backgroundColor: localPlayers.slot4.profilePic ? "transparent" : "#1F41BB",
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        {localPlayers.slot4.profilePic ? (
-                                            <img src={localPlayers.slot4.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                        ) : (
-                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers.slot4.name[0].toUpperCase()}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p
-                                        className="mb-0 mt-2  text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}
-                                        data-tooltip-id="you"
-                                        data-tooltip-content={localPlayers.slot4.name}
-                                    >
-                                        {localPlayers.slot4.name?.length > 12 ? `${localPlayers.slot4.name.substring(0, 12)}...` : localPlayers.slot4.name}
-                                    </p>
-                                    <Tooltip id="you" />
-                                    <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>
-                                        {localPlayers.slot4.level}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="text-center ms-auto" onClick={() => handleAddMeClick("slot4")} style={{ cursor: "pointer" }}>
-                                    <div
-                                        className="rounded-circle d-flex bg-white align-items-center justify-content-center"
-                                        style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
-                                    >
-                                        <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
-                                    </div>
-                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}>Add Me</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="d-flex justify-content-between mt-2">
-                        <p className="mb-1" style={{ fontSize:"11px",fontWeight:"500",fontFamily:"Poppins", color: "#3DBE64" }}>Team A</p>
-                        <p className="mb-0" style={{ fontSize:"11px",fontWeight:"500",fontFamily:"Poppins", color: "#1F41BB" }}>Team B</p>
-                    </div>
-                </div>
-
-                {/* Information */}
-                <h6 className="mb-3 mt-4" style={{ fontSize: "18px", fontWeight: 600 }}>Information</h6>
-                <div className="d-lg-flex justify-content-evenly">
-                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
-                        <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "10px" }}>Type of Court</p>
-                            <p className="mb-0" style={{ fontSize: "13px", color: "#374151" }}>Doubles, Outdoor, Crystal</p>
-                        </div>
-                    </div>
-
-                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
-                        <i className="bi bi-calendar-check fs-2 text-dark"></i>
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "10px" }}>End registration</p>
-                            <p className="mb-0" style={{ fontSize: "13px", color: "#374151" }}>{calculateEndRegistrationTime()}</p>
-                        </div>
-                    </div>
-
-                    {/* BOOK NOW */}
-                    <button
-                        className="btn text-nowrap mt-lg-1 align-items-center rounded-pill py-0 text-white"
+              {/* SLOT 4 */}
+              {localPlayers.slot4 ? (
+                <div className="d-flex flex-column align-items-center ms-auto mb-3">
+                  <div
+                    className="rounded-circle border d-flex justify-content-center align-items-center"
+                    style={{
+                      width: 68,
+                      height: 68,
+                      backgroundColor: localPlayers.slot4.profilePic
+                        ? "transparent"
+                        : "#1F41BB",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {localPlayers.slot4.profilePic ? (
+                      <img
+                        src={localPlayers.slot4.profilePic}
+                        alt=""
                         style={{
-                            background: canBook ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#ccc",
-                            border: "none",
-                            cursor: canBook ? "pointer" : "not-allowed",
-                            opacity: canBook ? 1 : 0.6,
-                            height: "31px",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
                         }}
-                        onClick={handleBookNow}
-                        disabled={!canBook || totalAmount === 0}
-                    >
-                        Book Now <FaArrowRight />
-                    </button>
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "24px",
+                        }}
+                      >
+                        {localPlayers.slot4.name[0].toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    className="mb-0 mt-2  text-center"
+                    style={{
+                      maxWidth: 150,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      fontSize: "10px",
+                      fontWeight: "500",
+                      fontFamily: "Poppins",
+                    }}
+                    data-tooltip-id="you"
+                    data-tooltip-content={localPlayers.slot4.name}
+                  >
+                    {localPlayers.slot4.name?.length > 12
+                      ? `${localPlayers.slot4.name.substring(0, 12)}...`
+                      : localPlayers.slot4.name}
+                  </p>
+                  <Tooltip id="you" />
+                  <span
+                    className="badge text-white"
+                    style={{ backgroundColor: "#1F41BB" }}
+                  >
+                    {localPlayers.slot4.level}
+                  </span>
                 </div>
+              ) : (
+                <div
+                  className="text-center ms-auto"
+                  onClick={() => handleAddMeClick("slot4")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div
+                    className="rounded-circle d-flex bg-white align-items-center justify-content-center"
+                    style={{
+                      width: 64,
+                      height: 64,
+                      border: "1px solid #1F41BB",
+                    }}
+                  >
+                    <span className="fs-3" style={{ color: "#1F41BB" }}>
+                      +
+                    </span>
+                  </div>
+                  <p
+                    className="mb-0 mt-2 "
+                    style={{
+                      color: "#1F41BB",
+                      fontSize: "10px",
+                      fontWeight: "500",
+                      fontFamily: "Poppins",
+                    }}
+                  >
+                    Add Me
+                  </p>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Modal */}
-            <NewPlayers
-                showAddMeForm={showAddMeForm}
-                activeSlot={activeSlot}
-                setShowAddMeForm={setShowAddMeForm}
-                setActiveSlot={setActiveSlot}
-                setAddedPlayers={setParentAddedPlayers}
-            />
-        </>
-    );
+          <div className="d-flex justify-content-between mt-2">
+            <p
+              className="mb-1"
+              style={{
+                fontSize: "11px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#3DBE64",
+              }}
+            >
+              Team A
+            </p>
+            <p
+              className="mb-0"
+              style={{
+                fontSize: "11px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#1F41BB",
+              }}
+            >
+              Team B
+            </p>
+          </div>
+        </div>
+
+        {/* Information */}
+        <h6 className="mb-3 mt-4" style={{ fontSize: "18px", fontWeight: 600 }}>
+          Information
+        </h6>
+        <div className="d-lg-flex justify-content-evenly">
+          <div className="d-flex mb-4 align-items-center gap-3 px-2">
+            <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
+            <div>
+              <p className="mb-0" style={{ fontSize: "10px" }}>
+                Type of Court
+              </p>
+              <p
+                className="mb-0"
+                style={{ fontSize: "13px", color: "#374151" }}
+              >
+                Doubles, Outdoor, Crystal
+              </p>
+            </div>
+          </div>
+
+          <div className="d-flex mb-4 align-items-center gap-3 px-2">
+            <i className="bi bi-calendar-check fs-2 text-dark"></i>
+            <div>
+              <p className="mb-0" style={{ fontSize: "10px" }}>
+                End registration
+              </p>
+              <p
+                className="mb-0"
+                style={{ fontSize: "13px", color: "#374151" }}
+              >
+                {calculateEndRegistrationTime()}
+              </p>
+            </div>
+          </div>
+
+          {/* BOOK NOW */}
+          <button
+            className="btn text-nowrap mt-lg-1 align-items-center rounded-pill py-0 text-white"
+            style={{
+              background: canBook
+                ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                : "#ccc",
+              border: "none",
+              cursor: canBook ? "pointer" : "not-allowed",
+              opacity: canBook ? 1 : 0.6,
+              height: "31px",
+            }}
+            onClick={handleBookNow}
+            disabled={!canBook || totalAmount === 0}
+          >
+            Book Now <FaArrowRight />
+          </button>
+        </div>
+      </div>
+
+      {/* Modal */}
+      <NewPlayers
+        showAddMeForm={showAddMeForm}
+        activeSlot={activeSlot}
+        setShowAddMeForm={setShowAddMeForm}
+        setActiveSlot={setActiveSlot}
+        setAddedPlayers={setParentAddedPlayers}
+      />
+    </>
+  );
 };
 
 export default MatchPlayer;
