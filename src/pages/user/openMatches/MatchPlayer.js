@@ -9,6 +9,55 @@ import { Tooltip } from "react-tooltip";
 import NewPlayers from "../VeiwMatch/NewPlayers";
 import { FaArrowRight } from "react-icons/fa";
 
+// Button styling variables
+const width = 370;
+const height = 75;
+const circleRadius = height * 0.3;
+const curvedSectionStart = width * 0.76;
+const curvedSectionEnd = width * 0.996;
+const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
+const circleY = height * 0.5;
+const arrowSize = circleRadius * 0.6;
+const arrowX = circleX;
+const arrowY = circleY;
+
+const buttonStyle = {
+    position: "relative",
+    width: `${width}px`,
+    height: `${height}px`,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    padding: 0,
+    overflow: "visible",
+};
+
+const svgStyle = {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 1,
+};
+
+const contentStyle = {
+    position: "relative",
+    zIndex: 2,
+    color: "#001B76",
+    fontWeight: "600",
+    fontSize: "16px",
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    paddingRight: `${circleRadius * 2}px`,
+    fontFamily: "Poppins",
+};
+
+const className = "";
+
 const dayShortMap = {
     Monday: "Mon",
     Tuesday: "Tue",
@@ -25,7 +74,7 @@ const MatchPlayer = ({
     selectedCourts,
     selectedDate,
     finalSkillDetails,
-    totalAmount,slotError
+    totalAmount, slotError
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -245,7 +294,7 @@ const MatchPlayer = ({
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{finalSkillDetails[0] || "Open Match"}</p>
                         </div>
                         <div className="col py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Price</p>
+                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your share </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>₹ {totalAmount}</p>
                         </div>
                     </div>
@@ -257,7 +306,7 @@ const MatchPlayer = ({
 
                 {/* Players Section */}
                 <div className="p-md-3 p-2 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
-                    <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: 600 }}>Players</h6>
+                    <h6 className="mb-2" style={{ fontSize: "18px", fontWeight: 600 }}>Players</h6>
 
                     <div className="row mx-auto">
                         {/* TEAM A: User (fixed) + 1 added */}
@@ -284,14 +333,14 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2 fw-semibold text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={User.name}
                                     >
                                         {User.name?.length > 12 ? `${User.name.substring(0, 12)}...` : User.name}
                                     </p>
                                     <Tooltip id="you" />
-                                    <span className="badge text-white" style={{ backgroundColor: "#3DBE64" }}>
+                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
                                         {userSkillLevel}
                                     </span>
                                 </div>
@@ -303,8 +352,8 @@ const MatchPlayer = ({
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
-                                            width: 68,
-                                            height: 68,
+                                            width: 64,
+                                            height: 64,
                                             backgroundColor: localPlayers.slot2.profilePic ? "transparent" : "#3DBE64",
                                             overflow: "hidden",
                                         }}
@@ -318,15 +367,15 @@ const MatchPlayer = ({
                                         )}
                                     </div>
                                     <p
-                                        className="mb-0 mt-2 text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
+                                        className="mb-0 mt-2 fw-semibold text-center"
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot2.name}
                                     >
                                         {localPlayers.slot2.name?.length > 12 ? `${localPlayers.slot2.name.substring(0, 12)}...` : localPlayers.slot2.name}
                                     </p>
                                     <Tooltip id="you" />
-                                    <span className="badge text-white" style={{ backgroundColor: "#3DBE64" }}>
+                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
                                         {localPlayers.slot2.level}
                                     </span>
                                 </div>
@@ -351,8 +400,8 @@ const MatchPlayer = ({
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
-                                            width: 68,
-                                            height: 68,
+                                            width: 64,
+                                            height: 64,
                                             backgroundColor: localPlayers.slot3.profilePic ? "transparent" : "#1F41BB",
                                             overflow: "hidden",
                                         }}
@@ -366,15 +415,15 @@ const MatchPlayer = ({
                                         )}
                                     </div>
                                     <p
-                                        className="mb-0 mt-2  text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
+                                        className="mb-0 mt-2 fw-semibold text-center"
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot3.name}
                                     >
                                         {localPlayers.slot3.name?.length > 12 ? `${localPlayers.slot3.name.substring(0, 12)}...` : localPlayers.slot3.name}
                                     </p>
                                     <Tooltip id="you" />
-                                    <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>
+                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#1F41BB" }}>
                                         {localPlayers.slot3.level}
                                     </span>
                                 </div>
@@ -396,8 +445,8 @@ const MatchPlayer = ({
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
-                                            width: 68,
-                                            height: 68,
+                                            width: 64,
+                                            height: 64,
                                             backgroundColor: localPlayers.slot4.profilePic ? "transparent" : "#1F41BB",
                                             overflow: "hidden",
                                         }}
@@ -411,15 +460,15 @@ const MatchPlayer = ({
                                         )}
                                     </div>
                                     <p
-                                        className="mb-0 mt-2  text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
+                                        className="mb-0 mt-2 fw-semibold text-center"
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot4.name}
                                     >
                                         {localPlayers.slot4.name?.length > 12 ? `${localPlayers.slot4.name.substring(0, 12)}...` : localPlayers.slot4.name}
                                     </p>
                                     <Tooltip id="you" />
-                                    <span className="badge text-white" style={{ backgroundColor: "#1F41BB" }}>
+                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#1F41BB" }}>
                                         {localPlayers.slot4.level}
                                     </span>
                                 </div>
@@ -437,10 +486,97 @@ const MatchPlayer = ({
                         </div>
                     </div>
 
-                    <div className="d-flex justify-content-between mt-md-2 mt-0">
+                    <div className="d-flex justify-content-between mt-md-1 mt-0">
                         <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
                         <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                     </div>
+                </div>
+
+                <div className="d-flex justify-content-center align-items-center px-3">
+                    <button
+                        style={{
+                            ...buttonStyle,
+                            opacity: !canBook || totalAmount === 0 ? 0.5 : 1,
+                            cursor: !canBook || totalAmount === 0 ? "not-allowed" : "pointer",
+                            pointerEvents: !canBook || totalAmount === 0 ? "none" : "auto",
+                        }}
+                        className={`${className} `}
+                        disabled={!canBook || totalAmount === 0}
+                        onClick={handleBookNow}
+                    >
+                        <svg
+                            style={svgStyle}
+                            viewBox={`0 0 ${width} ${height}`}
+                            preserveAspectRatio="none"
+                        >
+                            <defs>
+                                <linearGradient
+                                    id={`buttonGradient-${width}-${height}`}
+                                    x1="0%"
+                                    y1="0%"
+                                    x2="100%"
+                                    y2="0%"
+                                >
+                                    <stop offset="0%" stopColor="#fff" />
+                                    <stop offset="50%" stopColor="#fff" />
+                                    <stop offset="100%" stopColor="#fff" />
+                                </linearGradient>
+                            </defs>
+                            <path
+                                d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79
+                                    } ${height * 0.15} ${width * 0.81} ${height * 0.2} ${width * 0.83
+                                    } ${height * 0.3} C ${width * 0.83} ${height * 0.32} ${width * 0.84
+                                    } ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85
+                                    } ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86
+                                    } ${height * 0.3} C ${width * 0.88} ${height * 0.2} ${width * 0.9
+                                    } ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97
+                                    } ${height * 0.15} ${width * 0.996} ${height * 0.3} ${width * 0.996
+                                    } ${height * 0.5} C ${width * 0.996} ${height * 0.7} ${width * 0.97
+                                    } ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.9
+                                    } ${height * 0.85} ${width * 0.88} ${height * 0.8} ${width * 0.86
+                                    } ${height * 0.7} C ${width * 0.86} ${height * 0.68} ${width * 0.85
+                                    } ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84
+                                    } ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83
+                                    } ${height * 0.7} C ${width * 0.81} ${height * 0.8} ${width * 0.79
+                                    } ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08
+                                    } ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004
+                                    } ${height * 0.7} ${width * 0.004} ${height * 0.5} C ${width * 0.004
+                                    } ${height * 0.3} ${width * 0.04} ${height * 0.15} ${width * 0.08
+                                    } ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`}
+                                fill={`url(#buttonGradient-${width}-${height})`}
+                            />
+                            <circle
+                                cx={circleX}
+                                cy={circleY}
+                                r={circleRadius}
+                                fill="#001B76"
+                            />
+                            <g
+                                stroke="white"
+                                strokeWidth={height * 0.03}
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <path
+                                    d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
+                                        } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                        }`}
+                                />
+                                <path
+                                    d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                        } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
+                                        }`}
+                                />
+                                <path
+                                    d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                        } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
+                                        }`}
+                                />
+                            </g>
+                        </svg>
+                        <div style={contentStyle}> Book Now</div>
+                    </button>
                 </div>
 
                 {/* Information */}
@@ -463,21 +599,7 @@ const MatchPlayer = ({
                     </div>
 
                     {/* BOOK NOW */}
-                    <button
-                        className="btn text-nowrap mt-lg-1 align-items-center rounded-pill py-0 text-white mt-2 font_add_btn_text"
-                        style={{
-                            background: canBook ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#ccc",
-                            border: "none",
-                            cursor: canBook ? "pointer" : "not-allowed",
-                            opacity: canBook ? 1 : 0.6,
-                            height: "31px",
-                            fontSize: "16px"
-                        }}
-                        onClick={handleBookNow}
-                        disabled={!canBook || totalAmount === 0}
-                    >
-                        Book Now <FaArrowRight />
-                    </button>
+
                 </div>
                 {slotError && (
                     <div
