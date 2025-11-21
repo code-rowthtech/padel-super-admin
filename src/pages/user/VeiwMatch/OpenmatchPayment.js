@@ -119,10 +119,6 @@ const OpenmatchPayment = () => {
     const teamA = [User?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
     const teamB = [finalAddedPlayers.slot3?._id, finalAddedPlayers.slot4?._id].filter(Boolean);
 
-    console.log('User ID:', User?._id);
-    console.log('Added Players:', finalAddedPlayers);
-    console.log('Team A IDs:', teamA);
-    console.log('Team B IDs:', teamB);
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
@@ -474,7 +470,7 @@ const OpenmatchPayment = () => {
                                 </div>
                             </div>
                         </div>
-                        {console.log(localTotalSlots, isExpanded, 'muskannegi')}
+                        {console.log(localTotalSlots, isExpanded, 'pankajsingh')}
                         {/* Mobile Booking Summary - Fixed Bottom */}
                         <div className="d-lg-none mobile-openmatch-payment-summary" style={{
                             position: "fixed",
@@ -600,7 +596,7 @@ const OpenmatchPayment = () => {
                                     </div>
 
                                     {/* Total Section - Second row */}
-                                    <div className="py-0 pt-1">
+                                    <div className={`py-0 pt-1 ${isExpanded ? 'border-top' : ''}`}>
                                         <div className="d-flex justify-content-between align-items-center px-0">
                                             <div>
                                                 <span className="text-white" style={{ fontSize: "14px", fontWeight: "500" }}>
