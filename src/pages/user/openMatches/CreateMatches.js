@@ -920,11 +920,12 @@ const CreateMatches = () => {
                       ) && (
                           <div className="d-flex justify-content-end pt-2 pb-2 d-lg-none">
                             <Button
-                              className="rounded-pill px-4"
+                              className="rounded-pill px-4 py-1"
                               style={{
                                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                                 border: "none",
                                 fontWeight: "600",
+                                fontSize: "13px",
                               }}
                               disabled={selectedCourts.length === 0}
                               onClick={() => {
