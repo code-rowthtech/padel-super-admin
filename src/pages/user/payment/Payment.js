@@ -672,10 +672,10 @@ const Payment = ({ className = "" }) => {
                     Order Summary :
                   </h6>
                   <style jsx>{`
-          .mobile-expanded-slots.expanded::-webkit-scrollbar {
-            width: 6px;
-          }
-        `}</style>
+                                 .mobile-expanded-slots.expanded::-webkit-scrollbar {
+                                width: 6px;
+                            }
+                            `}</style>
 
                   {localSelectedCourts.map((court, cIdx) =>
                     court.time.map((slot, sIdx) => (

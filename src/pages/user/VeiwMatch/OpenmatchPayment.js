@@ -9,7 +9,7 @@ import { getUserClub } from "../../../redux/user/club/thunk";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdOutlineDeleteOutline, MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown, MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
-import { loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { getUserProfile, loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { booking_logo_img } from "../../../assets/files";
 
 const formatTime = (timeStr) =>
@@ -179,6 +179,7 @@ const OpenmatchPayment = () => {
             }
 
             const matchRes = await dispatch(createMatches(formattedMatch)).unwrap();
+            dispatch(getUserProfile())
             if (!matchRes?.match?.clubId) throw new Error("Match creation failed.");
 
             const bookingPayload = {
@@ -203,6 +204,7 @@ const OpenmatchPayment = () => {
             };
 
             await dispatch(createBooking(bookingPayload)).unwrap();
+            dispatch(getUserProfile())
 
             // Only clear localStorage after both APIs succeed
             localStorage.removeItem("addedPlayers");

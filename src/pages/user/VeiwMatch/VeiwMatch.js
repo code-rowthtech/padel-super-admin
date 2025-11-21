@@ -251,6 +251,7 @@ const ViewMatch = ({ match, onBack }) => {
                         <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
                             Details
                         </h5>
+                        
                     </div>
                     <div className="d-flex align-items-center gap-2 position-relative">
                         <button
