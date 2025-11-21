@@ -72,10 +72,10 @@ const getInitialFormState = (club = {}) => ({
     const bh = (club?.businessHours || []).find((x) => x.day === day);
     acc[day] = bh
       ? {
-        start: (bh.time || "").split(" - ")[0] || "06:00 AM",
-        end: (bh.time || "").split(" - ")[1] || "11:00 PM",
-        _id: bh._id,
-      }
+          start: (bh.time || "").split(" - ")[0] || "06:00 AM",
+          end: (bh.time || "").split(" - ")[1] || "11:00 PM",
+          _id: bh._id,
+        }
       : BUSINESS_HOURS_TEMPLATE[day];
     return acc;
   }, {}),
@@ -147,8 +147,7 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
           boxShadow: "none",
           fontWeight: "500",
           fontFamily: "Poppins",
-          maxWidth: 110
-
+          maxWidth: 110,
         }}
       >
         {hours.map((h) => (
@@ -170,8 +169,7 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
           boxShadow: "none",
           fontWeight: "500",
           fontFamily: "Poppins",
-          maxWidth: 110
-
+          maxWidth: 110,
         }}
       >
         <option value="AM">AM</option>
@@ -208,7 +206,7 @@ const ImageTile = ({ src, onRemove }) => (
         height: "14px",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
       }}
       aria-label="Remove image"
     >
@@ -234,8 +232,9 @@ const AddImageTile = ({ onFiles, hidden }) => {
         e.dataTransfer.dropEffect = "copy";
       }}
       onDrop={onDrop}
-      className={`d-flex align-items-center justify-content-center border border-secondary-subtle rounded bg-white text-muted cursor-pointer ${hidden ? "d-none" : ""
-        }`}
+      className={`d-flex align-items-center justify-content-center border border-secondary-subtle rounded bg-white text-muted cursor-pointer ${
+        hidden ? "d-none" : ""
+      }`}
       style={{ width: 60, height: 60, cursor: "pointer" }}
     >
       <input
@@ -294,14 +293,17 @@ const ClubUpdateForm = () => {
   useEffect(() => {
     if (!selectAllDays) {
       // When "All" is unchecked, select only Monday by default
-      const firstDayOnly = Object.keys(formData.businessHours).reduce((acc, day) => {
-        acc[day] = day === "Monday";
-        return acc;
-      }, {});
-      
-      setFormData(prev => ({
+      const firstDayOnly = Object.keys(formData.businessHours).reduce(
+        (acc, day) => {
+          acc[day] = day === "Monday";
+          return acc;
+        },
+        {}
+      );
+
+      setFormData((prev) => ({
         ...prev,
-        days: firstDayOnly
+        days: firstDayOnly,
       }));
     }
   }, [selectAllDays]);
@@ -347,7 +349,7 @@ const ClubUpdateForm = () => {
         if (!p.isRemote && p.preview) {
           try {
             URL.revokeObjectURL(p.preview);
-          } catch { }
+          } catch {}
         }
       });
     },
@@ -399,8 +401,6 @@ const ClubUpdateForm = () => {
     setTouched((p) => ({ ...p, [field]: true }));
   }, []);
 
-
-
   const handleCheckbox = useCallback((section, key) => {
     setFormData((prev) => ({
       ...prev,
@@ -433,7 +433,7 @@ const ClubUpdateForm = () => {
       if (img && !img.isRemote && img.preview) {
         try {
           URL.revokeObjectURL(img.preview);
-        } catch { }
+        } catch {}
       }
       next.splice(index, 1);
       return next;
@@ -510,9 +510,9 @@ const ClubUpdateForm = () => {
     for (const day of Object.keys(formData.businessHours)) {
       if (
         formData.businessHours[day].start !==
-        initialFormData.businessHours[day].start ||
+          initialFormData.businessHours[day].start ||
         formData.businessHours[day].end !==
-        initialFormData.businessHours[day].end
+          initialFormData.businessHours[day].end
       )
         return true;
     }
@@ -569,7 +569,8 @@ const ClubUpdateForm = () => {
     fd.append("clubName", formData.courtName);
     fd.append(
       "courtType",
-      `${formData.courtTypes.indoor ? "Indoor" : ""}${formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
+      `${formData.courtTypes.indoor ? "Indoor" : ""}${
+        formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
       }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
     );
     fd.append("courtCount", formData.courtCount);
@@ -634,7 +635,7 @@ const ClubUpdateForm = () => {
           borderRadius: "12px",
           fontSize: "14px",
           backgroundColor: "#fff",
-          boxShadow: "none"
+          boxShadow: "none",
         }}
       />
       {visibleErrors[field] && (
@@ -658,7 +659,8 @@ const ClubUpdateForm = () => {
             <Col md={5}>
               <Row>
                 <Col md={4}>
-                  <Input className=""
+                  <Input
+                    className=""
                     key="courtName"
                     label="Club/Facility Name"
                     field="courtName"
@@ -709,26 +711,35 @@ const ClubUpdateForm = () => {
                       onChange={({ text }) => {
                         const wordCount = countWords(text);
                         if (wordCount <= MAX_WORDS) {
-                          setFormData((prev) => ({ ...prev, description: text }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            description: text,
+                          }));
                           setWordCount(wordCount);
-                          setTouched((prev) => ({ ...prev, description: true }));
+                          setTouched((prev) => ({
+                            ...prev,
+                            description: true,
+                          }));
                         } else {
-                          showWarning(`Description cannot exceed ${MAX_WORDS} words.`);
+                          showWarning(
+                            `Description cannot exceed ${MAX_WORDS} words.`
+                          );
                         }
                       }}
                       style={{
                         height: "130px",
-                        border: `1px solid ${visibleErrors.description ? "#dc3545" : "#ced4da"
-                          }`,
+                        border: `1px solid ${
+                          visibleErrors.description ? "#dc3545" : "#ced4da"
+                        }`,
                         borderRadius: "4px",
                         backgroundColor: "#fff",
                       }}
                       renderHTML={(text) => mdParser.render(text)}
                       config={{
                         view: {
-                          menu: true,   
-                          md: true,     
-                          html: false,  
+                          menu: true,
+                          md: true,
+                          html: false,
                         },
                         placeholder: "Short description (max 500 words)",
                         toolbar: [
@@ -743,14 +754,13 @@ const ClubUpdateForm = () => {
                           "link",
                         ],
                         canView: {
-                          menu: true,    
-                          md: true,       
-                          html: false,    
+                          menu: true,
+                          md: true,
+                          html: false,
                           fullScreen: false,
                           hideMenu: false,
                         },
                       }}
-
                     />
                     {visibleErrors.description && (
                       <Form.Control.Feedback
@@ -762,11 +772,9 @@ const ClubUpdateForm = () => {
                     )}
                   </Form.Group>
                 </Col>
-
               </Row>
             </Col>
             <Col md={7}>
-              
               <div className="d-flex align-items-center gap-3 mb-1">
                 <h6 className="fw-bold mb-2">Photos</h6>
                 <div className="text-muted mb-2 small">
@@ -793,7 +801,16 @@ const ClubUpdateForm = () => {
               <hr className="my-3" />
               <Row>
                 <Col md={2} className="mb-3">
-                  <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
+                  <h6
+                    className="mb-2"
+                    style={{
+                      fontWeight: 600,
+                      marginBottom: "10px",
+                      fontSize: "16px",
+                      color: "#374151",
+                      fontFamily: "Poppins",
+                    }}
+                  >
                     Court Type{" "}
                     {visibleErrors.courtTypes && (
                       <span className="text-danger small">
@@ -805,40 +822,69 @@ const ClubUpdateForm = () => {
                     <Form.Check
                       type="checkbox"
                       label={
-                        <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                        <span
+                          className="ps-3"
+                          style={{
+                            fontSize: "14px",
+                            color: "#374151",
+                            fontWeight: "500",
+                            fontFamily: "Poppins",
+                          }}
+                        >
                           Indoor
                         </span>
                       }
                       id="ct-indoor"
                       checked={!!formData.courtTypes.indoor}
                       onChange={() => handleCheckbox("courtTypes", "indoor")}
-                      onBlur={() => setTouched((p) => ({ ...p, courtTypes: true }))}
+                      onBlur={() =>
+                        setTouched((p) => ({ ...p, courtTypes: true }))
+                      }
                     />
                     <Form.Check
                       type="checkbox"
                       label={
-                        <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                        <span
+                          className="ps-3"
+                          style={{
+                            fontSize: "14px",
+                            color: "#374151",
+                            fontWeight: "500",
+                            fontFamily: "Poppins",
+                          }}
+                        >
                           Outdoor
                         </span>
                       }
                       id="ct-outdoor"
                       checked={!!formData.courtTypes.outdoor}
                       onChange={() => handleCheckbox("courtTypes", "outdoor")}
-                      onBlur={() => setTouched((p) => ({ ...p, courtTypes: true }))}
+                      onBlur={() =>
+                        setTouched((p) => ({ ...p, courtTypes: true }))
+                      }
                     />
                     <style jsx>{`
-        input[type="checkbox"] {
-          width: 20px !important;
-          height: 20px !important;
-          transform: scale(1.2);
-          box-shadow: none !important;
-        }
-      `}</style>
+                      input[type="checkbox"] {
+                        width: 20px !important;
+                        height: 20px !important;
+                        transform: scale(1.2);
+                        box-shadow: none !important;
+                      }
+                    `}</style>
                   </div>
                 </Col>
 
                 <Col md={10} className="mb-3">
-                  <h6 className="mb-2" style={{ fontWeight: 600, marginBottom: "10px", fontSize: '16px', color: "#374151", fontFamily: "Poppins" }}>
+                  <h6
+                    className="mb-2"
+                    style={{
+                      fontWeight: 600,
+                      marginBottom: "10px",
+                      fontSize: "16px",
+                      color: "#374151",
+                      fontFamily: "Poppins",
+                    }}
+                  >
                     Features{" "}
                     {visibleErrors.features && (
                       <span className="text-danger small">
@@ -853,7 +899,15 @@ const ClubUpdateForm = () => {
                           type="checkbox"
                           id={`feat-${f.key}`}
                           label={
-                            <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500', fontFamily: "Poppins" }}>
+                            <span
+                              className="ps-3"
+                              style={{
+                                fontSize: "14px",
+                                color: "#374151",
+                                fontWeight: "500",
+                                fontFamily: "Poppins",
+                              }}
+                            >
                               {f.label}
                             </span>
                           }
@@ -869,7 +923,6 @@ const ClubUpdateForm = () => {
                 </Col>
               </Row>
             </Col>
-
           </Row>
 
           <hr className="my-2" />
@@ -877,7 +930,17 @@ const ClubUpdateForm = () => {
           <Row>
             <Col md={7}>
               <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 className=" mb-0" style={{ fontSize: "20px", fontWeight: "600", color: "#374151", fontFamily: "Poppins" }}>Business Hours</h6>
+                <h6
+                  className=" mb-0"
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: "600",
+                    color: "#374151",
+                    fontFamily: "Poppins",
+                  }}
+                >
+                  Business Hours
+                </h6>
                 {hasChanged && (
                   <Button
                     type="button"
@@ -889,7 +952,6 @@ const ClubUpdateForm = () => {
                     Apply last change to all days
                   </Button>
                 )}
-
               </div>
               {Object.keys(formData.businessHours).map((day) => {
                 const val = formData.businessHours[day] || {
@@ -899,7 +961,16 @@ const ClubUpdateForm = () => {
                 return (
                   <Row key={day} className="align-items-center g-2 mb-2">
                     <Col md={3} className="text-secondary small fw-semibold">
-                      <span style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>{day}</span>
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          fontFamily: "Poppins",
+                          fontWeight: "500",
+                          color: "#374151",
+                        }}
+                      >
+                        {day}
+                      </span>
                     </Col>
                     <Col md={4}>
                       <TimeSelect
@@ -908,7 +979,16 @@ const ClubUpdateForm = () => {
                         onChange={(v) => handleHoursChange(day, "start", v)}
                       />
                     </Col>
-                    <Col md={1} style={{ textAlign: "center", fontSize: '12px', fontFamily: "Poppins", color: '#374151', fontWeight: "500" }}>
+                    <Col
+                      md={1}
+                      style={{
+                        textAlign: "center",
+                        fontSize: "12px",
+                        fontFamily: "Poppins",
+                        color: "#374151",
+                        fontWeight: "500",
+                      }}
+                    >
                       To
                     </Col>
                     <Col md={4}>
@@ -923,7 +1003,6 @@ const ClubUpdateForm = () => {
               })}
             </Col>
             <Col md={5}>
-
               <Pricing
                 hitApi={hitUpdateApi}
                 setHitUpdateApi={setHitUpdateApi}
@@ -953,7 +1032,11 @@ const ClubUpdateForm = () => {
                 fontWeight: 600,
               }}
             >
-              {updateClubLoading ? <ButtonLoading color="#fff" size={13} /> : "Update"}
+              {updateClubLoading ? (
+                <ButtonLoading color="#fff" size={13} />
+              ) : (
+                "Update"
+              )}
             </Button>
           </div>
 

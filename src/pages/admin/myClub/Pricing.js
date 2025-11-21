@@ -101,7 +101,13 @@ function to24hMinutes(time) {
   return hours * 60 + (m || 0);
 }
 
-const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, setSelectAllDays }) => {
+const Pricing = ({
+  hitApi,
+  setHitUpdateApi,
+  selectAllDays,
+  onSelectAllChange,
+  setSelectAllDays,
+}) => {
   const dispatch = useDispatch();
   const { ownerClubData } = useSelector((state) => state.manualBooking);
   const registerId = ownerClubData?.[0]?._id || "";
@@ -120,7 +126,10 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
   });
   const [hasPriceChanges, setHasPriceChanges] = useState(false);
   const selectAllChecked = useMemo(
-    () => selectAllDays !== undefined ? selectAllDays : Object.values(formData.days).every(Boolean),
+    () =>
+      selectAllDays !== undefined
+        ? selectAllDays
+        : Object.values(formData.days).every(Boolean),
     [selectAllDays, formData.days]
   );
   /** Initialize formData prices from API for the selected slot type */
@@ -186,22 +195,25 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
       ...prev,
       days: {
         ...prev.days,
-        [day]: !prev.days[day]
-      }
+        [day]: !prev.days[day],
+      },
     }));
   }, []);
-  const handleSelectAllChange = useCallback((checked) => {
-    setFormData((prev) => ({
-      ...prev,
-      days: DAYS_OF_WEEK.reduce((acc, day) => {
-        acc[day] = checked;
-        return acc;
-      }, {}),
-    }));
-    if (onSelectAllChange) {
-      onSelectAllChange(checked);
-    }
-  }, [onSelectAllChange]);
+  const handleSelectAllChange = useCallback(
+    (checked) => {
+      setFormData((prev) => ({
+        ...prev,
+        days: DAYS_OF_WEEK.reduce((acc, day) => {
+          acc[day] = checked;
+          return acc;
+        }, {}),
+      }));
+      if (onSelectAllChange) {
+        onSelectAllChange(checked);
+      }
+    },
+    [onSelectAllChange]
+  );
   const handlePriceChange = useCallback((slotType, timeKey, value) => {
     // Prevent values greater than 4000
     const numericValue = Number(value);
@@ -239,7 +251,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
               border: "2px solid #1F2937",
               backgroundColor: formData.days[day] ? "#1F2937" : "transparent",
               cursor: "pointer",
-              transform: "scale(1.2)"
+              transform: "scale(1.2)",
             }}
           />
           <label
@@ -259,25 +271,25 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
     ));
   /** Helper function to filter slots by time period */
   const filterSlotsByPeriod = (slots, period) => {
-    return slots.filter(slot => {
+    return slots.filter((slot) => {
       const timeStr = slot?.time;
       if (!timeStr) return false;
 
       // Parse time to get hour in 24-hour format
       const display = formatTo12HourDisplay(timeStr);
-      const [time, meridian] = display.split(' ');
-      const [hour] = time.split(':').map(Number);
+      const [time, meridian] = display.split(" ");
+      const [hour] = time.split(":").map(Number);
       let hour24 = hour;
 
-      if (meridian === 'PM' && hour !== 12) hour24 += 12;
-      if (meridian === 'AM' && hour === 12) hour24 = 0;
+      if (meridian === "PM" && hour !== 12) hour24 += 12;
+      if (meridian === "AM" && hour === 12) hour24 = 0;
 
       switch (period) {
-        case 'Morning':
+        case "Morning":
           return hour24 >= 0 && hour24 < 12;
-        case 'Afternoon':
+        case "Afternoon":
           return hour24 >= 12 && hour24 < 17;
-        case 'Evening':
+        case "Evening":
           return hour24 >= 17 && hour24 <= 23;
         default:
           return true;
@@ -291,7 +303,8 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
     const slotType = formData.selectedSlots;
     const allSlotData = PricingData?.[0]?.slot?.[0]?.slotTimes || [];
     const slotData = filterSlotsByPeriod(allSlotData, slotType);
-    if (!slotData.length) return <div>No {slotType.toLowerCase()} slots available</div>;
+    if (!slotData.length)
+      return <div>No {slotType.toLowerCase()} slots available</div>;
     return slotData.map((slot) => {
       const display = formatTo12HourDisplay(slot?.time);
       const key = slot?._id || `${display}-${slot?.time}`;
@@ -311,7 +324,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                 boxShadow: "none",
                 cursor: "default",
                 height: "30px",
-                fontSize: "14px"
+                fontSize: "14px",
               }}
             />
           </Col>
@@ -331,7 +344,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                 style={{
                   background: "transparent",
                   height: "30px",
-                  fontSize: "14px"
+                  fontSize: "14px",
                 }}
               />
             </InputGroup>
@@ -430,7 +443,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
               fontSize: "20px",
               fontWeight: "600",
               color: "#374151",
-              fontFamily: "Poppins"
+              fontFamily: "Poppins",
             }}
           >
             Set Price
@@ -438,15 +451,25 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
           <Form.Check
             type="checkbox"
             id="select-all-slots"
-            label={<span className="text-muted ms-2 small">
-              Select All  {selectedTimes.length} of {allTimesRaw.length} slots selected
-            </span>}
+            label={
+              <span className="text-muted ms-2 small">
+                Select All {selectedTimes.length} of {allTimesRaw.length} slots
+                selected
+              </span>
+            }
             checked={allSelected}
             onChange={toggleAllSlots}
             className="me-2"
           />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "16px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "8px",
+            marginBottom: "16px",
+          }}
+        >
           {allTimesRaw.map((timeRaw) => {
             console.log({ timeRaw });
             const display = formatTo12HourDisplay(timeRaw);
@@ -477,11 +500,18 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
         </div>
         <div className="mt-3">
           <h5
-            style={{ fontSize: "20px", fontWeight: "600", color: "#374151", fontFamily: "Poppins", marginBottom: '10px' }}
+            style={{
+              fontSize: "20px",
+              fontWeight: "600",
+              color: "#374151",
+              fontFamily: "Poppins",
+              marginBottom: "10px",
+            }}
           >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""
-              }`
+              ? `Set Price for ${selectedTimes.length} slot${
+                  selectedTimes.length > 1 ? "s" : ""
+                }`
               : "Set Price (select slots first)"}
           </h5>
           <InputGroup>
@@ -497,7 +527,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
               isInvalid={commonInvalid}
               style={{
                 height: "40px",
-                width:"100%",
+                width: "100%",
                 borderRadius: "8px",
                 border: "1px solid #E5E7EB",
                 fontSize: "14px",
@@ -547,8 +577,8 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
     const selectedDisplayTimes = Object.keys(slotPrices);
     const targetedSlotTimes = selectAllChecked
       ? slotTimes.filter((slot) =>
-        selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
-      )
+          selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
+        )
       : slotTimes;
     if (targetedSlotTimes.length === 0) {
       showWarning("No targeted slots to update.");
@@ -649,12 +679,12 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
     const selectedDays = Object.values(formData.days).filter(Boolean);
     if (selectedDays.length === 0 && !selectAllDays) {
       // If no days selected and not "All", select Monday by default
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         days: {
           ...prev.days,
-          Monday: true
-        }
+          Monday: true,
+        },
       }));
     }
   }, [formData.days, selectAllDays]);
@@ -669,7 +699,6 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
               className="d-flex mb-3 align-items-start"
               id="select-all-days"
             >
-
               <Form.Check.Input
                 type="checkbox"
                 id="select-all-days"
@@ -679,12 +708,12 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                   setSelectAllDays(checked);
                   if (!checked) {
                     // When unchecking All, select only first day
-                    setFormData(prev => ({
+                    setFormData((prev) => ({
                       ...prev,
                       days: DAYS_OF_WEEK.reduce((acc, day, index) => {
                         acc[day] = index === 0;
                         return acc;
-                      }, {})
+                      }, {}),
                     }));
                   }
                 }}
@@ -695,7 +724,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                   border: "2px solid #1F2937",
                   backgroundColor: selectAllDays ? "#1F2937" : "transparent",
                   cursor: "pointer",
-                  boxShadow: "none"
+                  boxShadow: "none",
                 }}
               />
               <label
@@ -705,21 +734,17 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                   fontSize: "16px",
                   color: "#1F2937",
                   fontWeight: 500,
-                  fontFamily: "Poppins"
+                  fontFamily: "Poppins",
                 }}
               >
                 All
               </label>
-
             </Form.Check>
             {renderDays()}
           </div>
         </Col>
         <Col xs={12} md={8} className="position-relative">
-
           <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
-
-
             <Dropdown className="">
               <Dropdown.Toggle
                 variant="secondary"
@@ -732,7 +757,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                   fontSize: "12px",
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px"
+                  gap: "8px",
                 }}
               >
                 {formData.selectedSlots}
@@ -766,7 +791,7 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
                   right: "1em",
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px"
+                  gap: "8px",
                 }}
               >
                 {formData.selectedSlots} slots
@@ -787,7 +812,10 @@ const Pricing = ({ hitApi, setHitUpdateApi, selectAllDays, onSelectAllChange, se
           {/* <h5 style={{ fontWeight: 700, color: "#1F2937" }}>
             {selectAllChecked ? "All" : formData.selectedSlots} slots
           </h5> */}
-          <div style={containerStyle} className={selectAllChecked ? "" : "mt-5"}>
+          <div
+            style={containerStyle}
+            className={selectAllChecked ? "" : "mt-5"}
+          >
             {clubLoading ? <DataLoading height="20vh" /> : renderTimeSlots()}
           </div>
         </Col>
