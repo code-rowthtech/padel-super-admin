@@ -282,7 +282,7 @@ const Home = () => {
       </div>
 
       <div
-        className="container  p-lg-0 rounded-3 home-second-banner px-0"
+        className="container  p-lg-0 rounded-3 home-second-banner px-0 mt-2"
         style={{ backgroundColor: "#F5F5F569" }}
       >
         <div className="row position-relative align-items-stretch px-0 px-md-0 mx-auto">

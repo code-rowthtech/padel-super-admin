@@ -508,7 +508,7 @@ const CreateMatches = () => {
         <Col md={7} className={`p-md-3 px-3 pt-3 pb-0 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
-            <div className="d-flex justify-content-between align-items-center mb-md-4 mb-2">
+            <div className="d-flex justify-content-between align-items-center mb-md-2 mb-1">
               <div className="custom-heading-use text-nowrap">
                 Select Date
                 <div className="position-relative d-inline-block" ref={wrapperRef}>
@@ -577,7 +577,7 @@ const CreateMatches = () => {
             {/* Date Strip */}
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
               <div className="position-relative mt-md-0 mt-2">
-                <div
+                {/* <div
                   className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
                   style={{
                     backgroundColor: "transparent",
@@ -604,13 +604,13 @@ const CreateMatches = () => {
                       className="d-md-flex d-none"
                     />
                   </div>
-                </div>
+                </div> */}
                 {showDropdown && (
                   <div
                     className="position-absolute bg-white rounded shadow"
                     style={{
                       top: "100%",
-                      left: "-10px",
+                      left: "-9px",
                       width: "105px",
                       zIndex: 1000,
                       marginTop: "-15px",
@@ -639,18 +639,19 @@ const CreateMatches = () => {
               </div>
 
               <div
-                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-0 mt-0 mt-md-0"
+                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-0 mt-0 mt-md-2"
                 style={{
                   backgroundColor: "#f3f3f5",
                   height: "58px",
                   padding: "2px 10px",
+                  width:"20px",
                 }}
               >
                 <span
                   className="add_font_small_span"
 
                   style={{
-                    fontSize: window.innerWidth <= 768 ? "12px" : "14px",
+                    fontSize: window.innerWidth <= 768 ? "12px" : "12px",
                     fontWeight: "500",
                     whiteSpace: "pre-line",
                     textAlign: "center",
@@ -672,21 +673,21 @@ const CreateMatches = () => {
                   className="btn p-2 border-0 d-none d-md-block"
                   style={{
                     position: "absolute",
-                    left: "-23%",
+                    left: "-9%",
                     zIndex: 10,
                     boxShadow: "none",
                   }}
                   onClick={scrollLeft}
                 >
-                  <MdOutlineArrowBackIosNew className="mt-2" size={20} />
+                  <MdOutlineArrowBackIosNew className="mt-3" size={20} />
                 </button>
                 <div
                   ref={scrollRef}
-                  className="d-flex gap-1 date-scroll-container pt-md-0 pt-2"
+                  className="d-flex gap-1 date-scroll-container pt-md-2 pt-2"
                   style={{
                     scrollBehavior: "smooth",
                     whiteSpace: "nowrap",
-                    maxWidth: "100%",
+                    maxWidth: "98%",
                   }}
                 >
                   {dates.map((d, i) => {
@@ -732,7 +733,7 @@ const CreateMatches = () => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              top: "0px",
+                              top: "-7px",
                               right: "-4px",
                               zIndex: 2,
                               backgroundColor: "#22c55e"
@@ -745,7 +746,7 @@ const CreateMatches = () => {
                     );
                   })}
                 </div>
-                <button className="btn border-0 p-2 d-none d-md-block" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
+                <button className="btn border-0 p-2 d-none d-md-block" style={{ position: "absolute", right: -18, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-3" size={20} /></button>
               </div>
             </div>
 
