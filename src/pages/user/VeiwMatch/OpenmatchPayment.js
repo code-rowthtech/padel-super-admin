@@ -159,8 +159,10 @@ const OpenmatchPayment = () => {
             ),
             clubId: savedClubId,
             matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
-            skillLevel: finalSkillDetails[0] || "Open Match",
-            skillDetails: finalSkillDetails.slice(1).map((d, i) => (i === 0 && Array.isArray(d) ? d.join(", ") : d)) || [],
+            ...(finalSkillDetails.length > 0 && {
+                skillLevel: finalSkillDetails[0] || "Open Match",
+                skillDetails: finalSkillDetails.slice(1).map((d, i) => (i === 0 && Array.isArray(d) ? d.join(", ") : d)) || [],
+            }),
             matchStatus: "open",
             matchTime: selectedCourts.flatMap(c => c.time.map(t => t.time)).join(","),
             teamA,
