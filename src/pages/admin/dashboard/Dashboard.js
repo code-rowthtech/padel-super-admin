@@ -408,17 +408,16 @@ const AdminDashboard = () => {
                     </Link>
                   </div>
                   <div
-                    className="custom-scroll-container p-0"
+                    className=" p-0"
                     style={{
-                      height: "250px",
-                      overflowY: "auto",
+                      height: "45vh",
+                      overflowY: dashboardCancelledBookings?.length > 9 ? "auto" : "hidden",
                     }}
                   >
                     {dashboardCancelledBookings?.length > 0 ? (
                       <>
                         {/* Desktop Table */}
                         <Table
-                          responsive
                           borderless
                           size="sm"
                           className="custom-table d-none d-md-table"

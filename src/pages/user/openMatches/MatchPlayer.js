@@ -25,7 +25,7 @@ const MatchPlayer = ({
     selectedCourts,
     selectedDate,
     finalSkillDetails,
-    totalAmount,
+    totalAmount,slotError
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -93,8 +93,11 @@ const MatchPlayer = ({
     const formatDate = (dateString) => {
         if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
         const d = new Date(dateString);
-        const day = dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
-        const formattedDate = `${d.toLocaleDateString("en-US", { day: "2-digit" })}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
+        const day =
+            dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
+        const formattedDate = `${d.toLocaleDateString("en-US", {
+            day: "2-digit",
+        })}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
         return { day, formattedDate };
     };
 
@@ -110,11 +113,14 @@ const MatchPlayer = ({
         }, 0);
         const endHour = latestHour + 1;
         const period = endHour >= 12 ? "PM" : "AM";
-        const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+        const displayHour =
+            endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
         return `Today at ${displayHour}:00 ${period}`;
     };
 
-    const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: "Fri", formattedDate: "29 Aug" };
+    const matchDate = selectedDate?.fullDate
+        ? formatDate(selectedDate.fullDate)
+        : { day: "Fri", formattedDate: "29 Aug" };
     const matchTime = selectedCourts.length
         ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
         : "";
@@ -122,14 +128,19 @@ const MatchPlayer = ({
     const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
     const canBook = playerCount >= 2 && matchTime.length > 0;
 
-    const userSkillLevel = finalSkillDetails.length > 0 ? finalSkillDetails[finalSkillDetails.length - 1] : "A";
+    const userSkillLevel =
+        finalSkillDetails.length > 0
+            ? finalSkillDetails[finalSkillDetails.length - 1]
+            : "A";
 
     const handleBookNow = () => {
         const courtIds = selectedCourts.map((c) => c._id).join(",");
 
-        const latestPlayers = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+        const latestPlayers = JSON.parse(
+            localStorage.getItem("addedPlayers") || "{}"
+        );
 
-        console.log('Players being passed to payment:', latestPlayers);
+        console.log("Players being passed to payment:", latestPlayers);
 
         navigate("/match-payment", {
             state: {
@@ -149,7 +160,6 @@ const MatchPlayer = ({
             },
         });
     };
-
 
     return (
         <>
@@ -461,7 +471,7 @@ const MatchPlayer = ({
                             cursor: canBook ? "pointer" : "not-allowed",
                             opacity: canBook ? 1 : 0.6,
                             height: "31px",
-                            fontSize:"16px"
+                            fontSize: "16px"
                         }}
                         onClick={handleBookNow}
                         disabled={!canBook || totalAmount === 0}
@@ -469,6 +479,20 @@ const MatchPlayer = ({
                         Book Now <FaArrowRight />
                     </button>
                 </div>
+                {slotError && (
+                    <div
+                        className="text-center mb-3 p-2 rounded"
+                        style={{
+                            backgroundColor: "#ffebee",
+                            color: "#c62828",
+                            border: "1px solid #ffcdd2",
+                            fontWeight: 500,
+                            fontSize: "14px",
+                        }}
+                    >
+                        {slotError}
+                    </div>
+                )}
             </div>
 
             {/* Modal */}
