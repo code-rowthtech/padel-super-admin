@@ -1784,6 +1784,12 @@ h1.display-5 {
     font-size: 15px!important;
 
 }
+/* .border_bottom_line{
+  border-bottom: 1px solid #e3dede;
+} */
+.border_bottom_line:not(:last-child) {
+  border-bottom: 1px solid #e3dede;
+}
 
 
   /* Player images fill circle completely */

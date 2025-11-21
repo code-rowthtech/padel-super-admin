@@ -1128,7 +1128,7 @@ const Booking = ({ className = "" }) => {
                           return (
                             <div
                               key={court._id}
-                              className="row mb-md-3 mb-0 align-items-start"
+                              className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0"
                             >
                               <div className="col-md-3 col-12 border-end mb-0 mb-md-0 d-flex d-md-block align-items-center justify-content-start ">
                                 <div

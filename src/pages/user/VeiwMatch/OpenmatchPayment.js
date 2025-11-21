@@ -355,7 +355,7 @@ const OpenmatchPayment = () => {
 
 
                 <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-payment-summary">
-                    <div className="border w-100 px-0 py-4 border-0 mobile-payment-summary-container" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
+                    <div className="border w-100 px-0 py-4 border-0 mobile-payment-summary-container" style={{ height: "62vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                         {/* Desktop Logo/Address Section */}
                         <div className="d-flex mb-4 position-relative d-none d-lg-flex">
                             <img src={booking_logo_img} className="booking-logo-img" alt="" />
