@@ -542,10 +542,10 @@ const Payment = ({ className = "" }) => {
   `}</style>
 
             {/* Desktop Logo & Address */}
-            <div className="d-flex my-3 position-relative d-none d-lg-flex">
+            <div className="d-flex my-4 position-relative d-none d-lg-flex">
               <img src={booking_logo_img} className="booking-logo-img" alt="" />
 
-              <div className="text-center ps-2 pe-1 mt-3" style={{ maxWidth: "200px" }}>
+              <div className="text-center ps-2 pe-0 mt-3" style={{ maxWidth: "200px" }}>
                 <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
                   {clubData?.clubName}
                 </p>
@@ -592,7 +592,7 @@ const Payment = ({ className = "" }) => {
                       color: "#fff",
                     }}
                   >
-                    {clubData?.clubName?.charAt(0).toUpperCase() || "C"}
+                    {clubData?.clubName?.charAt(0).toUpperCase() || "Logo"}
                   </div>
                 )}
               </div>
@@ -606,7 +606,7 @@ const Payment = ({ className = "" }) => {
             </div>
 
             {/* Desktop Slots Scroll */}
-            <div className="px-3" style={{ maxHeight: "250px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
+            <div className="px-3" style={{ maxHeight: "160px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
               <style jsx>{`
       div::-webkit-scrollbar {
         width: 8px;

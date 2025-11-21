@@ -1548,7 +1548,7 @@ const Booking = ({ className = "" }) => {
             <div
               className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
               style={{
-                height: "60vh",
+                height: "63vh",
                 borderRadius: "10px 30% 10px 10px",
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 position: "relative",

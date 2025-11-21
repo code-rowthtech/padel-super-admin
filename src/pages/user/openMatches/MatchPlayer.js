@@ -10,18 +10,19 @@ import NewPlayers from "../VeiwMatch/NewPlayers";
 import { FaArrowRight } from "react-icons/fa";
 
 // Button styling variables
-const width = 370;
-const height = 75;
-const circleRadius = height * 0.3;
-const curvedSectionStart = width * 0.76;
-const curvedSectionEnd = width * 0.996;
-const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
-const circleY = height * 0.5;
-const arrowSize = circleRadius * 0.6;
-const arrowX = circleX;
-const arrowY = circleY;
+ const width = 400;
+  const height = 75;
+  const circleRadius = height * 0.3;
+  const curvedSectionStart = width * 0.76;
+  const curvedSectionEnd = width * 0.996;
+  const circleX =
+    curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
+  const circleY = height * 0.5;
+  const arrowSize = circleRadius * 0.6;
+  const arrowX = circleX;
+  const arrowY = circleY;
 
-const buttonStyle = {
+  const buttonStyle = {
     position: "relative",
     width: `${width}px`,
     height: `${height}px`,
@@ -30,21 +31,21 @@ const buttonStyle = {
     cursor: "pointer",
     padding: 0,
     overflow: "visible",
-};
+  };
 
-const svgStyle = {
+  const svgStyle = {
     width: "100%",
     height: "100%",
     position: "absolute",
     top: 0,
     left: 0,
     zIndex: 1,
-};
+  };
 
-const contentStyle = {
+  const contentStyle = {
     position: "relative",
     zIndex: 2,
-    color: "#001B76",
+    color: "white",
     fontWeight: "600",
     fontSize: "16px",
     textAlign: "center",
@@ -54,9 +55,7 @@ const contentStyle = {
     height: "100%",
     paddingRight: `${circleRadius * 2}px`,
     fontFamily: "Poppins",
-};
-
-const className = "";
+  };
 
 const dayShortMap = {
     Monday: "Mon",
@@ -141,12 +140,14 @@ const MatchPlayer = ({
     // ── Helpers ───────────────────────────────────────────────────────
     const formatDate = (dateString) => {
         if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
-        const d = new Date(dateString);
-        const day =
-            dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
-        const formattedDate = `${d.toLocaleDateString("en-US", {
-            day: "2-digit",
-        })}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
+        
+        // Parse date string as local date to avoid timezone issues
+        const [year, month, dayNum] = dateString.split('-').map(Number);
+        const d = new Date(year, month - 1, dayNum);
+        
+        const day = dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
+        const formattedDate = `${dayNum.toString().padStart(2, '0')}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
+        
         return { day, formattedDate };
     };
 
@@ -492,7 +493,7 @@ const MatchPlayer = ({
                     </div>
                 </div>
 
-                <div className="d-flex justify-content-center align-items-center px-3">
+                <div className="d-flex justify-content-center align-items-center ">
                     <button
                         style={{
                             ...buttonStyle,
@@ -500,7 +501,6 @@ const MatchPlayer = ({
                             cursor: !canBook || totalAmount === 0 ? "not-allowed" : "pointer",
                             pointerEvents: !canBook || totalAmount === 0 ? "none" : "auto",
                         }}
-                        className={`${className} `}
                         disabled={!canBook || totalAmount === 0}
                         onClick={handleBookNow}
                     >
@@ -517,9 +517,9 @@ const MatchPlayer = ({
                                     x2="100%"
                                     y2="0%"
                                 >
-                                    <stop offset="0%" stopColor="#fff" />
-                                    <stop offset="50%" stopColor="#fff" />
-                                    <stop offset="100%" stopColor="#fff" />
+                                    <stop offset="0%" stopColor="#1F41BB" />
+                                    <stop offset="50%" stopColor="#3B5BDB" />
+                                    <stop offset="100%" stopColor="#4F46E5" />
                                 </linearGradient>
                             </defs>
                             <path
@@ -549,10 +549,10 @@ const MatchPlayer = ({
                                 cx={circleX}
                                 cy={circleY}
                                 r={circleRadius}
-                                fill="#001B76"
+                                fill="white"
                             />
                             <g
-                                stroke="white"
+                                stroke="#1F41BB"
                                 strokeWidth={height * 0.03}
                                 fill="none"
                                 strokeLinecap="round"
