@@ -462,7 +462,7 @@ const Openmatches = () => {
           style={{ backgroundColor: "#F5F5F566", height: "auto" }}
         >
           <div className="calendar-strip mb-3">
-            <div className="mb-md-4 mb-0 mt-1 mt-md-0 custom-heading-use">
+            <div className="mb-md-2 mb-0 mt-1 mt-md-0 custom-heading-use">
               Select Date
               <div
                 className="position-relative d-inline-block"
@@ -514,7 +514,7 @@ const Openmatches = () => {
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
               {/* Dropdown */}
               <div className="position-relative mt-md-0 mt-2">
-                <div
+                {/* <div
                   className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
                   style={{
                     backgroundColor: "transparent",
@@ -541,7 +541,7 @@ const Openmatches = () => {
                       className="d-none d-md-block"
                     />
                   </div>
-                </div>
+                </div> */}
 
                 {showDropdown && (
                   <div
@@ -630,12 +630,13 @@ const Openmatches = () => {
                   backgroundColor: "#f3f3f5",
                   height: "58px",
                   padding: "2px 10px",
+                  width:"20px",
                 }}
               >
                 <span
                   className="add_font_small_span"
                   style={{
-                    fontSize: "14px",
+                    fontSize: "12px",
                     fontWeight: "500",
                     whiteSpace: "pre-line",
                     textAlign: "center",
@@ -660,7 +661,7 @@ const Openmatches = () => {
                   className="btn p-2 border-0 d-none d-md-block"
                   style={{
                     position: "absolute",
-                    left: "-23%",
+                    left: "-9%",
                     zIndex: 10,
                     boxShadow: "none",
                   }}
@@ -676,7 +677,7 @@ const Openmatches = () => {
                   style={{
                     scrollBehavior: "smooth",
                     whiteSpace: "nowrap",
-                    maxWidth: "100%",
+                    maxWidth: "98%",
                     overflow: "hidden",
                   }}
                 >
@@ -733,7 +734,7 @@ const Openmatches = () => {
                   className="btn border-0 p-2 d-none d-md-block"
                   style={{
                     position: "absolute",
-                    right: -26,
+                    right: -18,
                     zIndex: 10,
                     boxShadow: "none",
                   }}
@@ -1432,7 +1433,7 @@ const Openmatches = () => {
                 ) : (
                   <>
                     {/* Left: Overall Rating */}
-                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
+                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0 ps-0">
                       <div className="w-100">
                         <p
                           className="mb-0"
@@ -1457,7 +1458,7 @@ const Openmatches = () => {
                           >
                             {reviewData?.averageRating?.toFixed(1) || "0.0"}
                           </div>
-                          <div className="mb-2 d-flex gap-lg-2">
+                          <div className="mb-2 d-flex gap-lg-0">
                             {[...Array(5)].map((_, i) => {
                               const rating = reviewData?.averageRating || 0;
                               if (i < Math.floor(rating)) {
@@ -1491,7 +1492,7 @@ const Openmatches = () => {
                             })}
                           </div>
                           <div
-                            className="text-muted ps-2 pb-2"
+                            className="text-muted ps-0 pb-2"
                             style={{
                               fontSize: "12px",
                               fontWeight: "400",

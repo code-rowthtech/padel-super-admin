@@ -332,9 +332,9 @@ const Payment = ({ className = "" }) => {
   };
 
   return (
-    <div className="container mt-lg-4 mb-3 px-3 px-md-4">
+    <div className="container mt-lg-4 mb-3 mb-md-0 px-3 px-md-4">
       <div className="row g-4">
-        <div className="col-12 col-lg-7 mobile-payment-content" style={{ paddingBottom: "200px" }}>
+        <div className="col-12 col-lg-7 mobile-payment-content">
           <div className="bg-white rounded">
             {/* Info Section */}
             <div
@@ -542,7 +542,7 @@ const Payment = ({ className = "" }) => {
   `}</style>
 
             {/* Desktop Logo & Address */}
-            <div className="d-flex mb-4 position-relative d-none d-lg-flex">
+            <div className="d-flex my-3 position-relative d-none d-lg-flex">
               <img src={booking_logo_img} className="booking-logo-img" alt="" />
 
               <div className="text-center ps-2 pe-1 mt-3" style={{ maxWidth: "200px" }}>
@@ -577,7 +577,7 @@ const Payment = ({ className = "" }) => {
                       justifyContent: "center",
                     }}
                   >
-                    <img src={logo} alt="Club" style={{ width: "100%", height: "100%" }} />
+                    <img src={logo} alt="Club" style={{ width: "100%", height: "auto!important" }} />
                   </div>
                 ) : (
                   <div
@@ -624,23 +624,23 @@ const Payment = ({ className = "" }) => {
                       <div key={`${idx}-${i}`} className="row mb-2">
                         <div className="col-12 d-flex justify-content-between align-items-center text-white">
                           <div className="d-flex">
-                            <span style={{ fontSize: "16px", fontWeight: "600" }}>
+                            <span style={{ fontSize: "14px", fontWeight: "600" }}>
                               {new Date(court.date).toLocaleDateString("en-US", {
                                 day: "2-digit",
                                 month: "short",
                               })}
                             </span>
-                            <span className="ps-1" style={{ fontSize: "16px", fontWeight: "600" }}>
+                            <span className="ps-1" style={{ fontSize: "14px", fontWeight: "600" }}>
                               {formatTime(slot.time)}
                             </span>
-                            <span className="ps-2" style={{ fontSize: "15px", fontWeight: "500" }}>
+                            <span className="ps-2" style={{ fontSize: "14px", fontWeight: "500" }}>
                               {court.courtName}
                             </span>
                           </div>
 
                           <div>
                             ₹
-                            <span className="ps-1" style={{ fontWeight: "600" }}>
+                            <span className="ps-1" style={{ fontWeight: "600",  fontSize: "14px"}}>
                               {slot.amount}
                             </span>
                             <MdOutlineDeleteOutline

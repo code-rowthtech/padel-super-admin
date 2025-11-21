@@ -230,10 +230,10 @@ const Navbar = () => {
 
     return (
         <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0 navbar-shadow-mobile">
-            <div className="container py-md-1 py-0">
-                <div className="d-flex justify-content-between align-items-center w-100 px-2 px-md-0 mt-1 mt-md-0">
+            <div className="container py-md-1 py-0 ps-md-0 ">
+                <div className="d-flex justify-content-between align-items-center w-100 px-0 ps-md-0 mt-1">
                     {/* Logo */}
-                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand">
+                    <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand col-md-3 col-8">
                         {logo ? (
                             <div className='add_logo_font'
                                 style={{
@@ -252,7 +252,7 @@ const Navbar = () => {
                                     alt="User Profile"
                                     style={{
                                         width: "100%",
-                                        height: "100%",
+                                        height: "auto!important",
                                         backgroundSize: "cover",
                                     }}
                                 />
@@ -274,13 +274,13 @@ const Navbar = () => {
                             </Avatar>
                         )}
 
-                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo'  style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
+                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
                     </Link>
 
                     {/* Navigation links - Hidden on mobile */}
-                    <div className="mx-auto d-none d-lg-flex">
-                        <ul className="navbar-nav ps-md-5 ps-0 ms-md-5 ms-0 mb-2 mb-lg-0 gap-md-5">
-                            <li className="nav-item">
+                    <div className="mx-auto d-none d-lg-flex col-6 align-items-center justify-content-center">
+                        <ul className="navbar-nav ps-md-0 ps-0 ms-md-0 ms-0 mb-2 mb-lg-0 gap-md-5">
+                            {/* <li className="nav-item">
                                 <NavLink
                                     to="/home"
                                     className={`nav-link`}
@@ -291,7 +291,7 @@ const Navbar = () => {
                                 >
                                     Home
                                 </NavLink>
-                            </li>
+                            </li> */}
                             <li className="nav-item">
                                 <NavLink
                                     to="/booking"
@@ -316,7 +316,7 @@ const Navbar = () => {
                                     Open Matches
                                 </NavLink>
                             </li>
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                                 <NavLink
                                     to="/americano"
                                     className='nav-link'
@@ -327,7 +327,7 @@ const Navbar = () => {
                                 >
                                     Americanos
                                 </NavLink>
-                            </li>
+                            </li> */}
                         </ul>
                     </div>
 
@@ -341,7 +341,7 @@ const Navbar = () => {
                     </button>
 
                     {/* Profile Section - Desktop only */}
-                    <div className="d-none d-lg-flex gap-3 align-items-center">
+                    <div className="d-none d-lg-flex gap-3 align-items-center col-3 justify-content-end pe-2">
 
                         {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
                             <>
@@ -562,25 +562,39 @@ const Navbar = () => {
 
             {/* Mobile Offcanvas Menu */}
             <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end" className="border-0 w-75 ">
-                <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2">
+                <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2 py-0">
                     <Offcanvas.Title className="d-flex align-items-center gap-3">
-                        {logo ?
-                            <img
-                                src={logo}
-                                alt="Logo"
-                                className='rounded-circle'
-                                style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    objectFit: "cover",
-                                }}
-                            />
-                            :
-                            <Avatar sx={{ width: 40, height: 40 }}>
-                                {clubData?.clubName ? clubData.clubName.charAt(0).toUpperCase() : "C"}
-                            </Avatar>
-                        }
+
+                        {/* Logo / Avatar */}
+                        <Link
+                            to="/home"
+                            className="d-flex align-items-center text-decoration-none"
+                            onClick={() => setShowOffcanvas(false)}
+                            style={{ color: "inherit" }}
+                        >
+                            {logo ? (
+                                <img
+                                    src={logo}
+                                    alt="Logo"
+                                    className="rounded-circle"
+                                    style={{
+                                        width: "40px",
+                                        height: "40px",
+                                        objectFit: "cover",
+                                    }}
+                                />
+                            ) : (
+                                <Avatar sx={{ width: 40, height: 40 }}>
+                                    {clubData?.clubName
+                                        ? clubData.clubName.charAt(0).toUpperCase()
+                                        : "C"}
+                                </Avatar>
+                            )}
+                        </Link>
+
+
                     </Offcanvas.Title>
+
                     <button
                         className="btn p-0 border-0 bg-transparent"
                         onClick={() => setShowOffcanvas(false)}
@@ -592,7 +606,7 @@ const Navbar = () => {
                     <div className="d-flex flex-column h-100">
                         {/* Navigation Links */}
                         <div className="flex-grow-1">
-                            <NavLink
+                            {/* <NavLink
                                 to="/home"
                                 className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
                                 style={({ isActive }) => ({
@@ -603,7 +617,7 @@ const Navbar = () => {
                             >
                                 <span className="me-3">🏠</span>
                                 <span>Home</span>
-                            </NavLink>
+                            </NavLink> */}
 
                             <NavLink
                                 to="/booking"
@@ -631,7 +645,7 @@ const Navbar = () => {
                                 <span>Open Matches</span>
                             </NavLink>
 
-                            <NavLink
+                            {/* <NavLink
                                 to="/americano"
                                 className="d-flex align-items-center px-4 py-3 text-decoration-none border-bottom"
                                 style={({ isActive }) => ({
@@ -642,7 +656,7 @@ const Navbar = () => {
                             >
                                 <PiRanking size={20} className="me-3" />
                                 <span>Americanos</span>
-                            </NavLink>
+                            </NavLink> */}
 
                             {/* User Menu Items */}
                             {(store?.user?.status === '200' || token || store?.user?.status === 200) && (

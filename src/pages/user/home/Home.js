@@ -196,7 +196,7 @@ const Home = () => {
   return (
     <>
       <div className="container px-0">
-        <div className="row g-4 px-3 px-md-0">
+        <div className="row g-4 px-0 px-md-0 mx-auto">
           {/* Hero Section */}
           <div className="col-12 ps-md-0 pt-0 mt-3 mt-md-4">
             <div
@@ -232,7 +232,7 @@ const Home = () => {
                 </h1>
                 <Link
                   to="/booking"
-                  className="text-decoration-none rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center book-now-btn d-md-flex d-none"
+                  className="text-decoration-none rounded-pill px-4 py-1 pt-1 custom-title d-inline-flex align-items-center book-now-btn d-md-flex d-none"
                   style={{
                     color: "#2043BA",
                     fontWeight: "600",
@@ -282,10 +282,10 @@ const Home = () => {
       </div>
 
       <div
-        className="container  p-lg-0 rounded-3 home-second-banner"
+        className="container  p-lg-0 rounded-3 home-second-banner px-0 mt-2"
         style={{ backgroundColor: "#F5F5F569" }}
       >
-        <div className="row position-relative align-items-stretch px-0 px-md-0">
+        <div className="row position-relative align-items-stretch px-0 px-md-0 mx-auto">
           {/* Left Column: Club Name, About, Address, and Timings */}
           <div className="col-lg-8 col-12  d-md-flex d-block ps-2 ps-md-0">
             <div
@@ -682,9 +682,9 @@ const Home = () => {
                   </p>
                 </div>
                 <div className="text-start mb-3">
-                  <Link
+                  {/* <Link
                     to="/open-matches"
-                    className="text-decoration-none bg-white rounded-pill px-4 py-2 custom-title d-inline-flex align-items-center"
+                    className="text-decoration-none bg-white rounded-pill px-4 py-1 custom-title d-inline-flex align-items-center"
                     style={{
                       color: "#2043BA",
                       fontWeight: "500",
@@ -695,7 +695,53 @@ const Home = () => {
                     }}
                   >
                     View all <FaArrowRight className="ms-2" />
-                  </Link>
+                  </Link> */}
+                  <Link
+                  to="/open-matches"
+                  className="text-decoration-none rounded-pill px-3 py-1 pt-1 custom-title d-inline-flex align-items-center book-now-btn d-md-flex d-none"
+                  style={{
+                    color: "#2043BA",
+                    fontWeight: "600",
+                    fontSize: "24px",
+                    minWidth: "175px",
+                    fontFamily: "Poppins",
+                    justifyContent: "center",
+                    width: "100px",
+                  }}
+                >
+                   View all <FaArrowRight className="ms-2" />
+                </Link>
+                <style jsx>{`
+                  .book-now-btn {
+                    background: #ffffff;
+                    position: relative;
+                    overflow: hidden;
+                  }
+                  .book-now-btn::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(
+                      90deg,
+                      transparent,
+                      rgba(32, 67, 186, 0.4),
+                      transparent
+                    );
+                    animation: shimmer 2.5s infinite;
+                  }
+                  @keyframes shimmer {
+                    0% {
+                      left: -100%;
+                    }
+                    100% {
+                      left: 100%;
+                    }
+                  }
+                `}</style>
+                  
                 </div>
               </div>
             </div>
@@ -1126,7 +1172,7 @@ const Home = () => {
                 <iframe
                   src={mapSrc}
                   width="600"
-                  height="450"
+                  height="250"
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
