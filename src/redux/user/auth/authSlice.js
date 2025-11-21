@@ -10,6 +10,7 @@ import {
   Usersignup,
   updateUser,
   getUserProfile,
+  getStates,
 } from "./authThunk";
 import {
   setLoggedInUser,
@@ -28,6 +29,9 @@ const initialState = {
   userSignUpLoading: false,
   userSignUp: null,
   errorSignUp: null,
+  states: [],
+  statesLoading: false,
+  statesError: null,
 };
 
 const authSlice = createSlice({
@@ -205,6 +209,20 @@ const authSlice = createSlice({
       .addCase(getUserProfile.rejected, (state, action) => {
         state.useroLoading = false;
         state.error = action.payload;
+      })
+
+      // get states
+      .addCase(getStates.pending, (state) => {
+        state.statesLoading = true;
+        state.statesError = null;
+      })
+      .addCase(getStates.fulfilled, (state, action) => {
+        state.statesLoading = false;
+        state.states = action.payload;
+      })
+      .addCase(getStates.rejected, (state, action) => {
+        state.statesLoading = false;
+        state.statesError = action.payload;
       })
 
   },

@@ -137,3 +137,16 @@ export const getUserProfile = createAsyncThunk(
     }
   }
 )
+
+export const getStates = createAsyncThunk(
+  "auth/getStates",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.get(Url.GET_STATES);
+      return res?.data;
+    } catch (error) {
+      showError(error?.message || error);
+      return rejectWithValue(error);
+    }
+  }
+)

@@ -37,7 +37,7 @@ export const ReviewCard = ({ review }) => {
             }}
         >
             <div className="flex-grow-1 d-flex flex-column padding_top_none" style={{ paddingTop: "30px" }}>
-                <p className="text-start d-flex align-items-center justify-content-start mb-md-0 mb-4 flex-grow-1 height_mention home-upcoming-heading"
+                <p className="text-start d-flex align-items-center justify-content-start mb-md-0 mb-4 flex-grow-1 height_mention home-upcoming-heading-mobile"
                     style={{
                         fontSize: "19px",
                         color: "#000000",

@@ -4,13 +4,19 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
-import { getUserProfile, updateUser } from "../../../redux/user/auth/authThunk";
+import {
+  getUserProfile,
+  updateUser,
+  getStates,
+} from "../../../redux/user/auth/authThunk";
 
 const Profile = () => {
   const User = getUserFromSession();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user, userLoading, userError } = useSelector((state) => state?.userAuth);
+  const { user, userLoading, userError, states, statesLoading } = useSelector(
+    (state) => state?.userAuth
+  );
   const store = useSelector((state) => state?.userAuth);
 
   // Format date for input
@@ -25,35 +31,54 @@ const Profile = () => {
 
   // Initial form data state
   const initialFormData = {
-    fullName: user?.response?.name || store?.userSignUp?.response?.name || User?.name || "",
-    email: user?.response?.email || store?.userSignUp?.response?.email || User?.email || "",
-    phone: user?.response?.phoneNumber || store?.userSignUp?.response?.phoneNumber || User?.phoneNumber || "",
+    fullName:
+      user?.response?.name ||
+      store?.userSignUp?.response?.name ||
+      User?.name ||
+      "",
+    email:
+      user?.response?.email ||
+      store?.userSignUp?.response?.email ||
+      User?.email ||
+      "",
+    phone:
+      user?.response?.phoneNumber ||
+      store?.userSignUp?.response?.phoneNumber ||
+      User?.phoneNumber ||
+      "",
     dob: formatDateForInput(user?.response?.dob) || "",
-    location: "Chandigarh",
+    location: user?.response?.city || User?.city || "Chandigarh",
     gender: user?.response?.gender || User?.gender || "",
-    profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic || "",
+    profileImage:
+      user?.response?.profilePic ||
+      store?.userSignUp?.response?.profilePic ||
+      User?.profilePic ||
+      "",
   };
 
   const [formData, setFormData] = useState(initialFormData);
   const [initialState, setInitialState] = useState(initialFormData);
 
-  // Fetch user profile and update form data
+  // Fetch user profile and states data
   useEffect(() => {
     dispatch(getUserProfile()).then((result) => {
       if (result.payload) {
         const newFormData = {
           fullName: result.payload.response?.name || User?.name || "",
           email: result.payload.response?.email || User?.email || "",
-          phone: result.payload.response?.phoneNumber || User?.phoneNumber || "",
+          phone:
+            result.payload.response?.phoneNumber || User?.phoneNumber || "",
           dob: formatDateForInput(result.payload.response?.dob) || "",
-          location: "Chandigarh",
+          location: result.payload.response?.city || User?.city || "Chandigarh",
           gender: result.payload.response?.gender || User?.gender || "",
-          profileImage: result.payload.response?.profilePic || User?.profilePic || "",
+          profileImage:
+            result.payload.response?.profilePic || User?.profilePic || "",
         };
         setFormData(newFormData);
         setInitialState(newFormData); // Store initial state for comparison
       }
     });
+    dispatch(getStates());
   }, [dispatch]);
   const updateProfileData = {
     fullName:
@@ -73,7 +98,6 @@ const Profile = () => {
       store?.userSignUp?.response?.profilePic ||
       User?.profilePic ||
       "",
-
   };
 
   localStorage.setItem("updateprofile", JSON.stringify(updateProfileData));
@@ -125,15 +149,17 @@ const Profile = () => {
     if (changedFields.phone) payload.append("phoneNumber", changedFields.phone);
     if (changedFields.dob) payload.append("dob", changedFields.dob);
     if (changedFields.gender) payload.append("gender", changedFields.gender);
-    if (changedFields.profileImage && changedFields.profileImage.startsWith("data:image")) {
+    if (
+      changedFields.profileImage &&
+      changedFields.profileImage.startsWith("data:image")
+    ) {
       const blob = dataURLtoBlob(changedFields.profileImage);
       payload.append("profilePic", blob, "profile.jpg");
     }
 
     // Only append location if it has changed
     if (changedFields.location) {
-      payload.append("location[coordinates][0]", "50.90");
-      payload.append("location[coordinates][1]", "80.09");
+      payload.append("city", changedFields.location);
     }
 
     // Only dispatch if there are changes
@@ -154,7 +180,10 @@ const Profile = () => {
     navigate("/");
   };
   return (
-    <div className="container py-lg-4 mb-md-5 mb-4 mt-lg-5 px-3 px-md-5" style={{ borderRadius: "12px" }}>
+    <div
+      className="container py-lg-4 mb-md-5 mb-4 mt-lg-5 px-3 px-md-5"
+      style={{ borderRadius: "12px" }}
+    >
       <div
         className="mt-md-5 mt-0"
         style={{
@@ -165,8 +194,14 @@ const Profile = () => {
         }}
       ></div>
 
-      <form onSubmit={handleSubmit} className="bg-white mb-md-5 mb-4 rounded-bottom shadow p-3 p-md-4">
-        <div className="d-flex align-items-center" style={{ marginTop: "-70px" }}>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white mb-md-5 mb-4 rounded-bottom shadow p-3 p-md-4"
+      >
+        <div
+          className="d-flex align-items-center"
+          style={{ marginTop: "-70px" }}
+        >
           <div className="position-relative me-3">
             {formData.profileImage ? (
               <img
@@ -245,7 +280,11 @@ const Profile = () => {
               type="text"
               name="phone"
               value={formData.phone}
-              disabled={user?.response?.phoneNumber || store?.userSignUp?.response?.phoneNumber || User?.phoneNumber}
+              disabled={
+                user?.response?.phoneNumber ||
+                store?.userSignUp?.response?.phoneNumber ||
+                User?.phoneNumber
+              }
               onChange={(e) => {
                 const value = e.target.value;
                 if (/^\d{0,10}$/.test(value)) {
@@ -273,17 +312,26 @@ const Profile = () => {
           </div>
           <div className="col-12 col-md-4 mb-3">
             <label className="label">Location / City</label>
-            <input
-              type="text"
+            <select
               name="location"
               value={formData.location}
               onChange={handleChange}
               className="form-control"
               style={{ boxShadow: "none" }}
-            />
+              disabled={statesLoading}
+            >
+              <option value="">Select Location</option>
+              {states?.data?.map((state) => (
+                <option key={state._id} value={state.name}>
+                  {state.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="col-12 col-md-4 mb-3">
-            <label className="label d-block">Gender</label>
+            <label className="label d-block">
+              Gender <span className="text-danger">*</span>
+            </label>
             {["Female", "Male", "Other"].map((g) => (
               <div key={g} className="form-check form-check-inline">
                 <input
@@ -302,15 +350,21 @@ const Profile = () => {
         </div>
 
         <div className="d-flex flex-column flex-md-row justify-content-between justify-content-lg-end gap-3 mb-4">
-          <button type="button" className="btn btn-secondary px-4" onClick={handleCancel}>
+          <button
+            type="button"
+            className="btn btn-secondary px-4"
+            onClick={handleCancel}
+          >
             Cancel
           </button>
           <button
             type="submit"
             className="btn text-white border-0 px-4"
-            style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}
+            style={{
+              background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+            }}
           >
-            {userLoading ? <ButtonLoading color={'white'} /> : "Update"}
+            {userLoading ? <ButtonLoading color={"white"} /> : "Update"}
           </button>
         </div>
       </form>
