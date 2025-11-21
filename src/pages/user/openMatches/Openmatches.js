@@ -1380,7 +1380,7 @@ const Openmatches = () => {
                 </div>
               </div>
                 <div
-                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-block"
+                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-flex"
                 style={{
                   backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
                   position: "relative",
