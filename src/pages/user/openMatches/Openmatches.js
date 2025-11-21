@@ -652,7 +652,7 @@ const Openmatches = () => {
               {/* Scrollable Dates EXACT copy UI */}
               <div
                 className="d-flex gap-1"
-                style={{ position: "relative", maxWidth: "86%" }}
+                style={{ position: "relative" }}
               >
                 {/* Left Arrow */}
                 <button
@@ -742,6 +742,7 @@ const Openmatches = () => {
                 </button>
               </div>
             </div>
+            
           </div>
 
           <div className="row mb-md-2 mb-0 mx-auto">
@@ -839,7 +840,7 @@ const Openmatches = () => {
             <div
               style={{
                 minHeight: "400px",
-                height:"400px",
+                height: "400px",
                 maxHeight: filteredMatches.length > 4 ? "380px" : "auto",
                 overflowY: filteredMatches.length > 4 ? "auto" : "auto",
                 scrollBehavior: "smooth",
@@ -1074,15 +1075,22 @@ const Openmatches = () => {
                                 const player = match?.teamA?.[playerIndex];
                                 const isAvailable = !player;
                                 return (
-                                  <div key={`teamA-${playerIndex}`} className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                  <div
+                                    key={`teamA-${playerIndex}`}
+                                    className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6"
+                                  >
                                     <div
                                       className="rounded-circle border d-flex align-items-center justify-content-center"
                                       style={{
                                         width: "68px",
                                         height: "68px",
-                                        backgroundColor: isAvailable ? "#f0f0f0" : "rgb(31, 65, 187)",
+                                        backgroundColor: isAvailable
+                                          ? "#f0f0f0"
+                                          : "rgb(31, 65, 187)",
                                         overflow: "hidden",
-                                        cursor: isAvailable ? "pointer" : "default",
+                                        cursor: isAvailable
+                                          ? "pointer"
+                                          : "default",
                                       }}
                                       onClick={() => {
                                         if (isAvailable) {
@@ -1106,7 +1114,11 @@ const Openmatches = () => {
                                         <img
                                           src={player.userId.profilePic}
                                           alt={player.userId.name}
-                                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                          style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            objectFit: "cover",
+                                          }}
                                         />
                                       ) : (
                                         <span
@@ -1116,7 +1128,9 @@ const Openmatches = () => {
                                             fontSize: "24px",
                                           }}
                                         >
-                                          {player?.userId?.name?.charAt(0)?.toUpperCase() || "A"}
+                                          {player?.userId?.name
+                                            ?.charAt(0)
+                                            ?.toUpperCase() || "A"}
                                         </span>
                                       )}
                                     </div>
@@ -1134,7 +1148,9 @@ const Openmatches = () => {
                                         color: isAvailable ? "#1F41BB" : "#000",
                                       }}
                                     >
-                                      {isAvailable ? "Available" : (player?.userId?.name || "Player")}
+                                      {isAvailable
+                                        ? "Available"
+                                        : player?.userId?.name || "Player"}
                                     </span>
                                   </div>
                                 );
@@ -1147,15 +1163,22 @@ const Openmatches = () => {
                                 const player = match?.teamB?.[playerIndex];
                                 const isAvailable = !player;
                                 return (
-                                  <div key={`teamB-${playerIndex}`} className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6">
+                                  <div
+                                    key={`teamB-${playerIndex}`}
+                                    className="text-center d-flex justify-content-center align-items-center flex-column mb-2 position-relative col-6"
+                                  >
                                     <div
                                       className="rounded-circle border d-flex align-items-center justify-content-center"
                                       style={{
                                         width: "68px",
                                         height: "68px",
-                                        backgroundColor: isAvailable ? "#f0f0f0" : "rgb(31, 65, 187)",
+                                        backgroundColor: isAvailable
+                                          ? "#f0f0f0"
+                                          : "rgb(31, 65, 187)",
                                         overflow: "hidden",
-                                        cursor: isAvailable ? "pointer" : "default",
+                                        cursor: isAvailable
+                                          ? "pointer"
+                                          : "default",
                                       }}
                                       onClick={() => {
                                         if (isAvailable) {
@@ -1179,7 +1202,11 @@ const Openmatches = () => {
                                         <img
                                           src={player.userId.profilePic}
                                           alt={player.userId.name}
-                                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                          style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            objectFit: "cover",
+                                          }}
                                         />
                                       ) : (
                                         <span
@@ -1189,7 +1216,9 @@ const Openmatches = () => {
                                             fontSize: "24px",
                                           }}
                                         >
-                                          {player?.userId?.name?.charAt(0)?.toUpperCase() || "B"}
+                                          {player?.userId?.name
+                                            ?.charAt(0)
+                                            ?.toUpperCase() || "B"}
                                         </span>
                                       )}
                                     </div>
@@ -1207,7 +1236,9 @@ const Openmatches = () => {
                                         color: isAvailable ? "#1F41BB" : "#000",
                                       }}
                                     >
-                                      {isAvailable ? "Available" : (player?.userId?.name || "Player")}
+                                      {isAvailable
+                                        ? "Available"
+                                        : player?.userId?.name || "Player"}
                                     </span>
                                   </div>
                                 );
@@ -1354,7 +1385,7 @@ const Openmatches = () => {
                   </button>
                 </div>
               </div>
-                <div
+              <div
                 className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-flex"
                 style={{
                   backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,

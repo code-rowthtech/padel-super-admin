@@ -299,7 +299,7 @@ const MatchPlayer = ({
 
                             {/* SLOT 2 - Team A Partner */}
                             {localPlayers.slot2 ? (
-                                <div className="d-flex flex-sm-column align-items-center me-auto mb-3">
+                                <div className="d-flex flex-column align-items-center me-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
