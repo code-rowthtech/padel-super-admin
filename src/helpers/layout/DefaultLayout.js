@@ -66,7 +66,7 @@ const DefaultLayout = () => {
 
       <div
         className="flex-grow-1"
-        style={{ marginTop: !shouldHideHeaderFooter ? "5.5rem" : "" }}
+        style={{ marginTop: !shouldHideHeaderFooter ? "4rem" : "" }}
       >
         <Outlet />
       </div>
