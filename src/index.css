@@ -1404,7 +1404,7 @@ h1.display-5 {
   transition: all 0.3s ease;
 }
  .d-flex.gap-1[style*="position: relative"] {
-    max-width: 86% !important;
+    max-width: 96% !important;
   }
 
 .tab-item.active {
@@ -2344,7 +2344,7 @@ h1.display-5 {
     width: 100px !important;
   }
  .d-flex.gap-1[style*="position: relative"] {
-    max-width: 78% !important;
+    max-width: 89% !important;
   }
   /* Club logo responsive */
   .position-absolute[style*="top: 11px"] {

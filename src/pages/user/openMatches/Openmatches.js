@@ -83,7 +83,7 @@ const Openmatches = () => {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
-  const [activeTab, setActiveTab] = useState(0); 
+  const [activeTab, setActiveTab] = useState(0);
   const scrollRef = useRef(null);
   const dateRefs = useRef({});
   const wrapperRef = useRef(null);
@@ -262,7 +262,6 @@ const Openmatches = () => {
   const formatTimes = (slots) => {
     if (!slots || slots.length === 0) return "N/A";
     const formatted = slots
-      .slice(0, 1)
       .map((slot) => {
         const time = slot?.slotTimes?.[0]?.time;
         if (!time) return null;
@@ -276,7 +275,7 @@ const Openmatches = () => {
         return `${formattedHour}${period}`;
       })
       .filter(Boolean);
-    return formatted.join(",") + (slots.length > 1 ? "...." : "");
+    return formatted.join(",") + (slots.length > 3 ? "...." : "");
   };
 
   const TagWrapper = ({ children }) => (
@@ -301,8 +300,8 @@ const Openmatches = () => {
       <div
         className="d-flex justify-content-center align-items-center rounded-circle"
         style={{
-          width: "30px",
-          height: "30px",
+          width: "33px",
+          height: "33px",
           border: "1px solid #1F41BB",
           color: "#1F41BB",
           fontSize: "24px",
@@ -333,8 +332,8 @@ const Openmatches = () => {
       <div
         className="d-flex justify-content-center align-items-center rounded-circle overflow-hidden"
         style={{
-          width: "30px",
-          height: "30px",
+          width: "33px",
+          height: "33px",
           backgroundColor: player?.userId?.profilePic
             ? "transparent"
             : "#374151",
@@ -396,8 +395,8 @@ const Openmatches = () => {
     <div
       className="rounded-circle border d-flex align-items-center justify-content-center position-relative"
       style={{
-        width: "30px",
-        height: "30px",
+        width: "33px",
+        height: "33px",
         marginLeft: idx !== 0 ? "-15px" : "0",
         zIndex: total - idx,
         backgroundColor: player?.userId?.profilePic ? "transparent" : "#374151",
@@ -456,13 +455,12 @@ const Openmatches = () => {
       <div className="row g-md-4 mx-auto">
         {/* Left Section */}
         <div
-          className={`col-lg-7 col-12 py-md-4 py-2 rounded-3 px-md-4 px-0 order-2 order-md-1 bg-white-color ${
-            showViewMatch ? "d-none d-md-block" : ""
-          }`}
+          className={`col-lg-7 col-12 py-md-4 py-2 rounded-3 px-md-4 px-0 order-2 order-md-1 bg-white-color ${showViewMatch ? "d-none d-md-block" : ""
+            }`}
           style={{ backgroundColor: "#F5F5F566", height: "auto" }}
         >
           <div className="calendar-strip mb-3">
-            <div className="mb-md-4 mb-0 mt-1 mt-md-0 custom-heading-use">
+            <div className="mb-md-2 mb-0 mt-1 mt-md-0 custom-heading-use">
               Select Date
               <div
                 className="position-relative d-inline-block"
@@ -514,7 +512,7 @@ const Openmatches = () => {
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
               {/* Dropdown */}
               <div className="position-relative mt-md-0 mt-2">
-                <div
+                {/* <div
                   className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
                   style={{
                     backgroundColor: "transparent",
@@ -541,7 +539,7 @@ const Openmatches = () => {
                       className="d-none d-md-block"
                     />
                   </div>
-                </div>
+                </div> */}
 
                 {showDropdown && (
                   <div
@@ -630,12 +628,13 @@ const Openmatches = () => {
                   backgroundColor: "#f3f3f5",
                   height: "58px",
                   padding: "2px 10px",
+                  width: "20px",
                 }}
               >
                 <span
                   className="add_font_small_span"
                   style={{
-                    fontSize: "14px",
+                    fontSize: "12px",
                     fontWeight: "500",
                     whiteSpace: "pre-line",
                     textAlign: "center",
@@ -660,7 +659,7 @@ const Openmatches = () => {
                   className="btn p-2 border-0 d-none d-md-block"
                   style={{
                     position: "absolute",
-                    left: "-23%",
+                    left: "-9%",
                     zIndex: 10,
                     boxShadow: "none",
                   }}
@@ -676,7 +675,7 @@ const Openmatches = () => {
                   style={{
                     scrollBehavior: "smooth",
                     whiteSpace: "nowrap",
-                    maxWidth: "100%",
+                    maxWidth: "98%",
                     overflow: "hidden",
                   }}
                 >
@@ -691,9 +690,8 @@ const Openmatches = () => {
                       <button
                         key={i}
                         ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                        className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${
-                          isSelected ? "text-white border-0" : "bg-white"
-                        }`}
+                        className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"
+                          }`}
                         style={{
                           background: isSelected
                             ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
@@ -707,7 +705,7 @@ const Openmatches = () => {
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
-                          dispatch(getMatchesUser({ matchDate: d.fullDate,clubId:localStorage.getItem("register_club_id") || "" }));
+                          dispatch(getMatchesUser({ matchDate: d.fullDate, clubId: localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) =>
                           !isSelected &&
@@ -733,7 +731,7 @@ const Openmatches = () => {
                   className="btn border-0 p-2 d-none d-md-block"
                   style={{
                     position: "absolute",
-                    right: -26,
+                    right: -18,
                     zIndex: 10,
                     boxShadow: "none",
                   }}
@@ -743,7 +741,7 @@ const Openmatches = () => {
                 </button>
               </div>
             </div>
-            
+
           </div>
 
           <div className="row mb-md-2 mb-0 mx-auto">
@@ -755,9 +753,8 @@ const Openmatches = () => {
                     return (
                       <div
                         key={index}
-                        className={`tab-item rounded-3 ${
-                          activeTab === index ? "active" : ""
-                        }`}
+                        className={`tab-item rounded-3 ${activeTab === index ? "active" : ""
+                          }`}
                         onClick={() => setActiveTab(index)}
                       >
                         <Icon
@@ -776,11 +773,10 @@ const Openmatches = () => {
                   {tabs.map((tab, index) => (
                     <p
                       key={index}
-                      className={`tab-label ${
-                        activeTab === index
-                          ? "active text-primary"
-                          : "text-muted"
-                      }`}
+                      className={`tab-label ${activeTab === index
+                        ? "active text-primary"
+                        : "text-muted"
+                        }`}
                     >
                       {tab.label}
                     </p>
@@ -793,7 +789,7 @@ const Openmatches = () => {
           {/* Match List */}
           <div className="pb-0">
             <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-2 mb-2">
-              <h5 className="mb-0 custom-heading-use">All Matches</h5>
+              <h5 className="mb-0 custom-heading-use">Available Matches</h5>
               <div className="dropdown">
                 <button
                   className="btn btn-light text-nowrap rounded-3 border py-1 px-3 d-flex align-items-center gap-2"
@@ -866,10 +862,15 @@ const Openmatches = () => {
                               border: "0.45px solid #0000001A",
                               boxShadow: "none",
                               height: "10rem",
+                              cursor:"pointer"
+                            }}
+                            onClick={() => {
+                              setSelectedMatch(match);
+                              setShowViewMatch(true);
                             }}
                           >
                             <div className="row px-2 mx-auto px-md-0 py-2 d-flex justify-content-between align-items- flex-wrap">
-                              <div className="col-lg-7 col-6">
+                              <div className="col-lg-7 pb-0 col-6">
                                 <p
                                   className="mb-0 all-match-time text-nowrap"
                                   style={{ fontWeight: "600" }}
@@ -880,42 +881,47 @@ const Openmatches = () => {
                                 <span className="text-muted all-match-name-level ms-0 d-none d-md-inline">
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
-                                      match.skillLevel.slice(1)
-                                    : "N/A"}
+                                    match.skillLevel.slice(1)
+                                    : "N/A"} Male
                                 </span>
-                                <p className="all-match-time mb-0 d-md-none d-lg-none">
+                                <p className="all-match-time   mb-0 d-md-none d-lg-none">
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
-                                      match.skillLevel.slice(1)
+                                    match.skillLevel.slice(1)
                                     : "N/A"}
                                 </p>
-                                <p className="mb-1 all-match-name-level mt-4">
-                                  {match?.clubId?.clubName || "Unknown Club"}
-                                </p>
-                                <p
-                                  className="mb-0 text-muted all-match-name-level"
-                                  style={{
-                                    fontSize: "10px",
-                                    fontWeight: "400",
-                                  }}
+                                <div
+                                  className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"
+                                  style={{ width: "100%" }}
                                 >
-                                  <FaMapMarkerAlt
-                                    className="me-1"
-                                    style={{ fontSize: "10px" }}
-                                  />
-                                  {match?.clubId?.city
-                                    .charAt(0)
-                                    ?.toUpperCase() +
-                                    match?.clubId?.city.slice(1) || "N/A"}{" "}
-                                  {match?.clubId?.zipCode || ""}
-                                </p>
+                                  <p className="mb-1  all-match-name-level mt-2">
+                                    {match?.clubId?.clubName || "Unknown Club"}
+                                  </p>
+                                  <p
+                                    className="mb-3 text-muted  all-match-name-level"
+                                    style={{
+                                      fontSize: "10px",
+                                      fontWeight: "400",
+                                    }}
+                                  >
+                                    <FaMapMarkerAlt
+                                      className="me-1"
+                                      style={{ fontSize: "10px" }}
+                                    />
+                                    {match?.clubId?.city
+                                      .charAt(0)
+                                      ?.toUpperCase() +
+                                      match?.clubId?.city.slice(1) || "N/A"}{" "}
+                                    {match?.clubId?.zipCode || ""}
+                                  </p>
+                                </div>
                               </div>
 
                               <div className="col-6 col-lg-5 d-flex justify-content-end align-items-center">
                                 <div className="d-flex flex-column align-items-end">
                                   <div className="d-flex align-items-center mb-4">
                                     {match?.teamA?.length === 1 ||
-                                    match?.teamA?.length === 0 ? (
+                                      match?.teamA?.length === 0 ? (
                                       <AvailableTag
                                         team="Team A"
                                         match={match}
@@ -939,7 +945,7 @@ const Openmatches = () => {
                                       {[
                                         ...(match?.teamA?.filter((_, idx) =>
                                           match?.teamA?.length === 2 &&
-                                          match?.teamB?.length === 2
+                                            match?.teamB?.length === 2
                                             ? idx !== 0
                                             : true
                                         ) || []),
@@ -956,7 +962,7 @@ const Openmatches = () => {
                                   </div>
 
                                   <div
-                                    className="d-flex align-items-center justify-content-end"
+                                    className="d-flex align-items-center mt-lg-4 justify-content-end"
                                     style={{ width: "100%" }}
                                   >
                                     <div
@@ -1022,7 +1028,7 @@ const Openmatches = () => {
                             <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
                               {match?.skillLevel
                                 ? match.skillLevel.charAt(0).toUpperCase() +
-                                  match.skillLevel.slice(1)
+                                match.skillLevel.slice(1)
                                 : "N/A"}
                             </span>
                           </div>
@@ -1030,7 +1036,7 @@ const Openmatches = () => {
                             <p className="all-match-time mb-0 d-md-none d-lg-none">
                               {match?.skillLevel
                                 ? match.skillLevel.charAt(0).toUpperCase() +
-                                  match.skillLevel.slice(1)
+                                match.skillLevel.slice(1)
                                 : "N/A"}
                             </p>
                           </div>
@@ -1246,7 +1252,7 @@ const Openmatches = () => {
                               })}
                             </div>
                           </div>
-                          <div className="row mx-auto border-top pt-1">
+                          <div className="row mx-auto  border-top pt-1">
                             <div className="col-6 ps-0">
                               <p className="mb-1 all-match-name-level">
                                 {match?.clubId?.clubName || "Unknown Club"}
@@ -1284,7 +1290,7 @@ const Openmatches = () => {
                                                         </div> */}
                             <div
                               className="col-6 pe-0 d-flex align-items-center justify-content-end"
-                              // style={{ width: "100%" }}
+                            // style={{ width: "100%" }}
                             >
                               <div
                                 className="d-flex align-items-center gap-1"
@@ -1343,9 +1349,8 @@ const Openmatches = () => {
         </div>
 
         <div
-          className={`col-12 col-lg-5 px-md-3 px-0 ${
-            !showViewMatch ? "ps-md-4 pt-md-3 pt-4" : ""
-          } order-1 order-md-2 ${showViewMatch ? "d-block" : ""}`}
+          className={`col-12 col-lg-5 px-md-3 px-0 ${!showViewMatch ? "ps-md-4 pt-md-3 pt-4" : ""
+            } order-1 order-md-2 ${showViewMatch ? "d-block" : ""}`}
         >
           {!showViewMatch ? (
             <div className="ms-0 ms-lg-2">
@@ -1432,7 +1437,7 @@ const Openmatches = () => {
                 ) : (
                   <>
                     {/* Left: Overall Rating */}
-                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0">
+                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0 ps-0">
                       <div className="w-100">
                         <p
                           className="mb-0"
@@ -1457,7 +1462,7 @@ const Openmatches = () => {
                           >
                             {reviewData?.averageRating?.toFixed(1) || "0.0"}
                           </div>
-                          <div className="mb-2 d-flex gap-lg-2">
+                          <div className="mb-2 d-flex gap-lg-0">
                             {[...Array(5)].map((_, i) => {
                               const rating = reviewData?.averageRating || 0;
                               if (i < Math.floor(rating)) {
@@ -1491,7 +1496,7 @@ const Openmatches = () => {
                             })}
                           </div>
                           <div
-                            className="text-muted ps-2 pb-2"
+                            className="text-muted ps-0 pb-2"
                             style={{
                               fontSize: "12px",
                               fontWeight: "400",
@@ -1542,12 +1547,12 @@ const Openmatches = () => {
                                 {star === 5
                                   ? "Excellent"
                                   : star === 4
-                                  ? "Good"
-                                  : star === 3
-                                  ? "Average"
-                                  : star === 2
-                                  ? "Below Average"
-                                  : "Poor"}
+                                    ? "Good"
+                                    : star === 3
+                                      ? "Average"
+                                      : star === 2
+                                        ? "Below Average"
+                                        : "Poor"}
                               </div>
 
                               {/* Progress Bar - Takes Remaining Space */}
@@ -1567,12 +1572,12 @@ const Openmatches = () => {
                                       star === 5
                                         ? "#3DBE64"
                                         : star === 4
-                                        ? "#7CBA3D"
-                                        : star === 3
-                                        ? "#ECD844"
-                                        : star === 2
-                                        ? "#FC702B"
-                                        : "#E9341F",
+                                          ? "#7CBA3D"
+                                          : star === 3
+                                            ? "#ECD844"
+                                            : star === 2
+                                              ? "#FC702B"
+                                              : "#E9341F",
                                     transition: "width 0.4s ease",
                                   }}
                                 />

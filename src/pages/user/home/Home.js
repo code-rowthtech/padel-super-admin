@@ -684,7 +684,7 @@ const Home = () => {
                 <div className="text-start mb-3">
                   <Link
                     to="/open-matches"
-                    className="text-decoration-none bg-white rounded-pill px-4 py-2 custom-title d-inline-flex align-items-center"
+                    className="text-decoration-none bg-white rounded-pill px-4 py-2 custom-title d-inline-flex book-now-btn align-items-center"
                     style={{
                       color: "#2043BA",
                       fontWeight: "500",

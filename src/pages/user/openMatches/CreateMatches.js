@@ -85,6 +85,7 @@ const CreateMatches = () => {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
+  console.log({selectedDate});
 
   const [errorShow, setErrorShow] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -329,6 +330,31 @@ const CreateMatches = () => {
     setKey(defaultTab);
   }, [slotData, showUnavailable]);
 
+  const getFilteredLastStepOptions = () => {
+    const firstStepAnswer = skillDetails[0];
+    const allOptions = [
+      { code: "A", title: "Top Player" },
+      { code: "B1", title: "Experienced Player" },
+      { code: "B2", title: "Advanced Player" },
+      { code: "C1", title: "Confident Player" },
+      { code: "C2", title: "Intermediate Player" },
+      { code: "D1", title: "Amateur Player" },
+      { code: "D2", title: "Novice Player" },
+      { code: "E", title: "Entry Level" },
+    ];
+
+    if (firstStepAnswer === "Beginner") {
+      return allOptions.filter(opt => ["B1", "B2", "C1"].includes(opt.code));
+    } else if (firstStepAnswer === "Intermediate") {
+      return allOptions.filter(opt => ["C1", "C2", "D1"].includes(opt.code));
+    } else if (firstStepAnswer === "Advanced") {
+      return allOptions.filter(opt => ["A", "B1", "B2"].includes(opt.code));
+    } else if (firstStepAnswer === "Professional") {
+      return allOptions.filter(opt => ["A"].includes(opt.code));
+    }
+    return allOptions;
+  };
+
   const steps = [
     {
       question:
@@ -508,7 +534,7 @@ const CreateMatches = () => {
         <Col md={7} className={`p-md-3 px-3 pt-3 pb-0 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
-            <div className="d-flex justify-content-between align-items-center mb-md-4 mb-2">
+            <div className="d-flex justify-content-between align-items-center mb-md-2 mb-1">
               <div className="custom-heading-use text-nowrap">
                 Select Date
                 <div className="position-relative d-inline-block" ref={wrapperRef}>
@@ -577,7 +603,7 @@ const CreateMatches = () => {
             {/* Date Strip */}
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
               <div className="position-relative mt-md-0 mt-2">
-                <div
+                {/* <div
                   className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
                   style={{
                     backgroundColor: "transparent",
@@ -604,13 +630,13 @@ const CreateMatches = () => {
                       className="d-md-flex d-none"
                     />
                   </div>
-                </div>
+                </div> */}
                 {showDropdown && (
                   <div
                     className="position-absolute bg-white rounded shadow"
                     style={{
                       top: "100%",
-                      left: "-10px",
+                      left: "-9px",
                       width: "105px",
                       zIndex: 1000,
                       marginTop: "-15px",
@@ -639,18 +665,19 @@ const CreateMatches = () => {
               </div>
 
               <div
-                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-0 mt-0 mt-md-0"
+                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-0 mt-0 mt-md-2"
                 style={{
                   backgroundColor: "#f3f3f5",
                   height: "58px",
                   padding: "2px 10px",
+                  width:"20px",
                 }}
               >
                 <span
                   className="add_font_small_span"
 
                   style={{
-                    fontSize: window.innerWidth <= 768 ? "12px" : "14px",
+                    fontSize: window.innerWidth <= 768 ? "12px" : "12px",
                     fontWeight: "500",
                     whiteSpace: "pre-line",
                     textAlign: "center",
@@ -672,21 +699,21 @@ const CreateMatches = () => {
                   className="btn p-2 border-0 d-none d-md-block"
                   style={{
                     position: "absolute",
-                    left: "-23%",
+                    left: "-9%",
                     zIndex: 10,
                     boxShadow: "none",
                   }}
                   onClick={scrollLeft}
                 >
-                  <MdOutlineArrowBackIosNew className="mt-2" size={20} />
+                  <MdOutlineArrowBackIosNew className="mt-3" size={20} />
                 </button>
                 <div
                   ref={scrollRef}
-                  className="d-flex gap-1 date-scroll-container pt-md-0 pt-2"
+                  className="d-flex gap-1 date-scroll-container pt-md-2 pt-2"
                   style={{
                     scrollBehavior: "smooth",
                     whiteSpace: "nowrap",
-                    maxWidth: "100%",
+                    maxWidth: "98%",
                   }}
                 >
                   {dates.map((d, i) => {
@@ -711,7 +738,8 @@ const CreateMatches = () => {
                         }}
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
-                          setStartDate(new Date(d.fullDate));
+                          const [year, month, dayNum] = d.fullDate.split('-').map(Number);
+                          setStartDate(new Date(year, month - 1, dayNum));
                           dispatch(getUserSlotBooking({ day: d.day, date: d.fullDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
@@ -732,7 +760,7 @@ const CreateMatches = () => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              top: "0px",
+                              top: "-7px",
                               right: "-4px",
                               zIndex: 2,
                               backgroundColor: "#22c55e"
@@ -745,7 +773,7 @@ const CreateMatches = () => {
                     );
                   })}
                 </div>
-                <button className="btn border-0 p-2 d-none d-md-block" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
+                <button className="btn border-0 p-2 d-none d-md-block" style={{ position: "absolute", right: -18, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-3" size={20} /></button>
               </div>
             </div>
 
@@ -1248,7 +1276,7 @@ const CreateMatches = () => {
                       </div>
                     ))
                     : currentStep === steps.length - 1
-                      ? steps[currentStep].options.map((opt, i) => (
+                      ? getFilteredLastStepOptions().map((opt, i) => (
                         <div
                           key={i}
                           onClick={() => setSelectedLevel(opt.code)}
@@ -1401,13 +1429,13 @@ const CreateMatches = () => {
           {!matchPlayer && !existsOpenMatchData ? (
             <div className="d-none d-lg-block">
               <div style={{ backgroundColor: "#F1F4FF" }}>
-                <div className="d-flex gap-2 ps-4 pt-4">
+                <div className="d-flex justify-content-center gap-2 ps-4 pt-4">
                   {steps.map((_, i) => (
                     <div
                       key={i}
                       style={{
-                        width: 40,
-                        height: 40,
+                        width: 30,
+                        height: 30,
                         borderRadius: "50%",
                         backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
                         color: "#fff",
@@ -1469,13 +1497,13 @@ const CreateMatches = () => {
                               onChange={() => { }}
                               style={{ flexShrink: 0, marginTop: 0 }}
                             />
-                            <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                            <span style={{ fontSize: "15px", fontWeight: 600,fontFamily:"Poppins", color: "#1f2937" }}>
                               {opt}
                             </span>
                           </div>
                         ))
                         : currentStep === steps.length - 1
-                          ? steps[currentStep].options.map((opt, i) => (
+                          ? getFilteredLastStepOptions().map((opt, i) => (
                             <div
                               key={i}
                               onClick={() => setSelectedLevel(opt.code)}
@@ -1499,7 +1527,7 @@ const CreateMatches = () => {
                               <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
                                 <span
                                   style={{
-                                    fontSize: "24px",
+                                    fontSize: "16px",
                                     fontWeight: 700,
                                     color: "#1d4ed8",
                                     minWidth: "38px",
@@ -1508,7 +1536,7 @@ const CreateMatches = () => {
                                 >
                                   {opt.code}
                                 </span>
-                                <strong style={{ fontSize: "16px", color: "#1f2937" }}>{opt.title}</strong>
+                                <strong style={{ fontSize: "15px",fontWeight: 600, color: "#1f2937" }}>{opt.title}</strong>
                               </div>
                             </div>
                           ))
@@ -1533,7 +1561,7 @@ const CreateMatches = () => {
                                 onChange={() => { }}
                                 style={{ flexShrink: 0, marginTop: 0 }}
                               />
-                              <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                            <span style={{ fontSize: "15px", fontWeight: 600,fontFamily:"Poppins", color: "#1f2937" }}>
                                 {opt}
                               </span>
                             </div>
