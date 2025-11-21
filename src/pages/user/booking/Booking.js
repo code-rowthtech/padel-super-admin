@@ -824,7 +824,7 @@ const Booking = ({ className = "" }) => {
                 }}
               >
                 <span
-                  className="add_font_small_span"
+                  className="add_font_small_span "
                   style={{
                     fontSize: window.innerWidth <= 768 ? "12px" : "14px",
                     fontWeight: "500",
@@ -934,7 +934,7 @@ const Booking = ({ className = "" }) => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              top: "-8px",
+                              top: "-2px",
                               right: "-4px",
                               zIndex: 22,
                               backgroundColor: "#22c55e",
