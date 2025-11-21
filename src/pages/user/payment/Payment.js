@@ -498,24 +498,29 @@ const Payment = ({ className = "" }) => {
             }}
           >
             {/* mobile small curve arrow */}
-            <div
-              className="small-curve-arrow d-lg-none"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {!isExpanded ? (
-                <MdKeyboardArrowUp
-                  size={25}
-                  color="white"
-                  className="arrow-shake-infinite"
-                />
-              ) : (
-                <MdKeyboardArrowDown
-                  size={25}
-                  color="white"
-                  className="arrow-shake-infinite"
-                />
-              )}
-            </div>
+            {localTotalSlots > 0 && (
+              <div
+                className="small-curve-arrow d-lg-none"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+              >
+                {!isExpanded ? (
+                  <MdKeyboardArrowUp
+                    size={25}
+                    color="white"
+                    className="arrow-shake-infinite"
+                  />
+                ) : (
+                  <MdKeyboardArrowDown
+                    size={25}
+                    color="white"
+                    className="arrow-shake-infinite"
+                  />
+                )}
+              </div>
+            )}
 
             <style jsx>{`
     .small-curve-arrow {
@@ -660,24 +665,26 @@ const Payment = ({ className = "" }) => {
                 <div
                   className={`mobile-expanded-slots ${isExpanded ? "expanded border-bottom" : ""}`}
                   style={{
-                    maxHeight: isExpanded ? (localTotalSlots > 2 ? "140px" : "auto") : "0",
-                    overflowY: isExpanded ? "auto" : "hidden",
+                    maxHeight: isExpanded ? (localTotalSlots > 2 ? "140px" : "200px") : "0",
+                    overflowY: isExpanded && localTotalSlots > 2 ? "auto" : "hidden",
                     transition: "max-height 0.3s ease",
                   }}
                 >
-                  <h6
-                    className="mb-0 pb-1 text-white fw-semibold pt-2"
-                    style={{ fontSize: "15px" }}
-                  >
-                    Order Summary :
-                  </h6>
+                  {isExpanded && (
+                    <h6
+                      className="mb-0 pb-1 text-white fw-semibold pt-2"
+                      style={{ fontSize: "15px" }}
+                    >
+                      Order Summary :
+                    </h6>
+                  )}
                   <style jsx>{`
                                  .mobile-expanded-slots.expanded::-webkit-scrollbar {
                                 width: 6px;
                             }
                             `}</style>
 
-                  {localSelectedCourts.map((court, cIdx) =>
+                  {isExpanded && localSelectedCourts.map((court, cIdx) =>
                     court.time.map((slot, sIdx) => (
                       <div key={`${cIdx}-${sIdx}`} className="row mb-1 text-white">
                         <div className="col-12 d-flex justify-content-between align-items-center">
@@ -716,7 +723,14 @@ const Payment = ({ className = "" }) => {
             {localTotalSlots > 0 && (
               <>
                 <div className="d-lg-none py-0 pt-1">
-                  <div className="d-flex justify-content-between align-items-center px-3">
+                  <div 
+                    className="d-flex justify-content-between align-items-center px-3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsExpanded(!isExpanded);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div>
                       <span className="text-white" style={{ fontSize: "14px", fontWeight: "500" }}>
                         Total to Pay
