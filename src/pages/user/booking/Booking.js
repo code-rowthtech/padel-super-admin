@@ -224,20 +224,20 @@ const Booking = ({ className = "" }) => {
           };
           return existingCourt
             ? prev.map((court) =>
-                court._id === courtId && court.date === dateKey
-                  ? { ...court, time: [...court.time, newTimeEntry] }
-                  : court
-              )
+              court._id === courtId && court.date === dateKey
+                ? { ...court, time: [...court.time, newTimeEntry] }
+                : court
+            )
             : [
-                ...prev,
-                {
-                  _id: currentCourt._id,
-                  courtName: currentCourt.courtName,
-                  date: dateKey,
-                  day: selectedDate.day,
-                  time: [newTimeEntry],
-                },
-              ];
+              ...prev,
+              {
+                _id: currentCourt._id,
+                courtName: currentCourt.courtName,
+                date: dateKey,
+                day: selectedDate.day,
+                time: [newTimeEntry],
+              },
+            ];
         });
       }
     }
@@ -885,9 +885,8 @@ const Booking = ({ className = "" }) => {
                       <button
                         key={i}
                         ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                        className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${
-                          isSelected ? "text-white border-0" : "bg-white"
-                        }`}
+                        className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"
+                          }`}
                         style={{
                           background: isSelected
                             ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
@@ -997,29 +996,28 @@ const Booking = ({ className = "" }) => {
                             </div>
                         </div> */}
             <div
-              className={`mb-3 overflow-slot border-0 rounded-3 ${
-                slotData?.data?.some((court) => {
-                  const filteredSlots = court?.slots?.filter((slot) => {
-                    const basicFilter = showUnavailable
-                      ? true
-                      : slot.availabilityStatus === "available" &&
-                        slot.status !== "booked" &&
-                        !isPastTime(slot.time) &&
-                        slot.amount > 0;
+              className={`mb-3 overflow-slot border-0 rounded-3 ${slotData?.data?.some((court) => {
+                const filteredSlots = court?.slots?.filter((slot) => {
+                  const basicFilter = showUnavailable
+                    ? true
+                    : slot.availabilityStatus === "available" &&
+                    slot.status !== "booked" &&
+                    !isPastTime(slot.time) &&
+                    slot.amount > 0;
 
-                    // Apply mobile tab filter only on mobile screens
-                    if (window.innerWidth <= 768) {
-                      const tabKey = tabs[activeTab]?.key;
-                      return basicFilter && filterSlotsByTab(slot, tabKey);
-                    }
+                  // Apply mobile tab filter only on mobile screens
+                  if (window.innerWidth <= 768) {
+                    const tabKey = tabs[activeTab]?.key;
+                    return basicFilter && filterSlotsByTab(slot, tabKey);
+                  }
 
-                    return basicFilter;
-                  });
-                  return filteredSlots?.length > 0;
-                })
+                  return basicFilter;
+                });
+                return filteredSlots?.length > 0;
+              })
                   ? "border"
                   : "border-0"
-              }`}
+                }`}
             >
               {slotData?.data?.length > 0 ? (
                 slotLoading ? (
@@ -1048,9 +1046,8 @@ const Booking = ({ className = "" }) => {
                                 return (
                                   <div
                                     key={index}
-                                    className={`tab-item rounded-3 ${
-                                      activeTab === index ? "active" : ""
-                                    }`}
+                                    className={`tab-item rounded-3 ${activeTab === index ? "active" : ""
+                                      }`}
                                     onClick={() => setActiveTab(index)}
                                   >
                                     <Icon
@@ -1069,11 +1066,10 @@ const Booking = ({ className = "" }) => {
                               {tabs.map((tab, index) => (
                                 <p
                                   key={index}
-                                  className={`tab-label ${
-                                    activeTab === index
+                                  className={`tab-label ${activeTab === index
                                       ? "active text-primary mb-0"
                                       : "text-muted mb-0"
-                                  }`}
+                                    }`}
                                 >
                                   {tab.label}
                                 </p>
@@ -1110,9 +1106,9 @@ const Booking = ({ className = "" }) => {
                             const basicFilter = showUnavailable
                               ? true
                               : slot.availabilityStatus === "available" &&
-                                slot.status !== "booked" &&
-                                !isPastTime(slot.time) &&
-                                slot.amount > 0;
+                              slot.status !== "booked" &&
+                              !isPastTime(slot.time) &&
+                              slot.amount > 0;
 
                             // Apply mobile tab filter only on mobile screens
                             if (window.innerWidth <= 768) {
@@ -1179,9 +1175,8 @@ const Booking = ({ className = "" }) => {
                                         className="col-3 col-sm-3 col-md-3 col-lg-2 mb-md-1 mb-0 mt-md-0 mt-1"
                                       >
                                         <button
-                                          className={`btn rounded-1 w-100 ${
-                                            isSelected ? "border-0" : ""
-                                          } slot-time-btn`}
+                                          className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""
+                                            } slot-time-btn`}
                                           onClick={() =>
                                             toggleTime(slot, court._id)
                                           }
@@ -1189,21 +1184,21 @@ const Booking = ({ className = "" }) => {
                                           style={{
                                             background:
                                               isDisabled ||
-                                              slot.status === "booked" ||
-                                              isPastTime(slot.time) ||
-                                              slot.amount <= 0
+                                                slot.status === "booked" ||
+                                                isPastTime(slot.time) ||
+                                                slot.amount <= 0
                                                 ? "#c9cfcfff"
                                                 : isSelected
-                                                ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                                : "#FFFFFF",
+                                                  ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
+                                                  : "#FFFFFF",
                                             color:
                                               isDisabled ||
-                                              slot.status === "booked" ||
-                                              isPastTime(slot.time)
+                                                slot.status === "booked" ||
+                                                isPastTime(slot.time)
                                                 ? "#000000"
                                                 : isSelected
-                                                ? "white"
-                                                : "#000000",
+                                                  ? "white"
+                                                  : "#000000",
                                             cursor: isDisabled
                                               ? "not-allowed"
                                               : "pointer",
@@ -1218,14 +1213,14 @@ const Booking = ({ className = "" }) => {
                                           onMouseEnter={(e) =>
                                             !isDisabled &&
                                             slot.availabilityStatus ===
-                                              "available" &&
+                                            "available" &&
                                             (e.currentTarget.style.border =
                                               "1px solid #3DBE64")
                                           }
                                           onMouseLeave={(e) =>
                                             !isDisabled &&
                                             slot.availabilityStatus ===
-                                              "available" &&
+                                            "available" &&
                                             (e.currentTarget.style.border =
                                               "1px solid #4949491A")
                                           }
@@ -1261,13 +1256,13 @@ const Booking = ({ className = "" }) => {
                       });
                       return !hasAvailableSlots;
                     }) && (
-                      <div
-                        className="d-flex justify-content-center align-items-center h-100 py-5 mt-5 text-danger"
-                        style={{ fontFamily: "Poppins", fontWeight: "500" }}
-                      >
-                        No Available Slot
-                      </div>
-                    )}
+                        <div
+                          className="d-flex justify-content-center align-items-center h-100 py-5 mt-5 text-danger"
+                          style={{ fontFamily: "Poppins", fontWeight: "500" }}
+                        >
+                          No Available Slot
+                        </div>
+                      )}
                   </>
                 )
               ) : (
@@ -1281,9 +1276,8 @@ const Booking = ({ className = "" }) => {
             </div>
           </div>
           <div
-            className={`col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-booking-summary ${
-              totalSlots === 0 ? "d-lg-block d-none" : ""
-            }`}
+            className={`col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-booking-summary ${totalSlots === 0 ? "d-lg-block d-none" : ""
+              }`}
           >
             {/* <div className="border w-100 px-0 pt-3 pb-0 border-0 mobile-summary-container" style={{ height: "85vh", borderRadius: '10px 30% 10px 10px', background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}>
                             <div className="d-flex mb-4 position-relative d-none d-lg-flex">
@@ -1738,16 +1732,16 @@ const Booking = ({ className = "" }) => {
                               >
                                 {court.date
                                   ? `${new Date(court.date).toLocaleString(
-                                      "en-US",
-                                      {
-                                        day: "2-digit",
-                                      }
-                                    )}, ${new Date(court.date).toLocaleString(
-                                      "en-US",
-                                      {
-                                        month: "short",
-                                      }
-                                    )}`
+                                    "en-US",
+                                    {
+                                      day: "2-digit",
+                                    }
+                                  )}, ${new Date(court.date).toLocaleString(
+                                    "en-US",
+                                    {
+                                      month: "short",
+                                    }
+                                  )}`
                                   : ""}
                               </span>
                               <span
@@ -1818,9 +1812,8 @@ const Booking = ({ className = "" }) => {
 
                 <div className="div d-lg-none px-0 mobile-slots-container">
                   <div
-                    className={`mobile-expanded-slots ${
-                      isExpanded ? "expanded border-bottom" : " "
-                    }`}
+                    className={`mobile-expanded-slots ${isExpanded ? "expanded border-bottom" : " "
+                      }`}
                     style={{
                       maxHeight: isExpanded
                         ? totalSlots > 2
@@ -1877,16 +1870,16 @@ const Booking = ({ className = "" }) => {
                                 >
                                   {court.date
                                     ? `${new Date(court.date).toLocaleString(
-                                        "en-US",
-                                        {
-                                          day: "2-digit",
-                                        }
-                                      )}, ${new Date(court.date).toLocaleString(
-                                        "en-US",
-                                        {
-                                          month: "short",
-                                        }
-                                      )}`
+                                      "en-US",
+                                      {
+                                        day: "2-digit",
+                                      }
+                                    )}, ${new Date(court.date).toLocaleString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                      }
+                                    )}`
                                     : ""}
                                 </span>
                                 <span
@@ -2041,45 +2034,26 @@ const Booking = ({ className = "" }) => {
                       </linearGradient>
                     </defs>
                     <path
-                      d={`M ${width * 0.76} ${height * 0.15} C ${
-                        width * 0.79
-                      } ${height * 0.15} ${width * 0.81} ${height * 0.2} ${
-                        width * 0.83
-                      } ${height * 0.3} C ${width * 0.83} ${height * 0.32} ${
-                        width * 0.84
-                      } ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${
-                        width * 0.85
-                      } ${height * 0.34} ${width * 0.86} ${height * 0.32} ${
-                        width * 0.86
-                      } ${height * 0.3} C ${width * 0.88} ${height * 0.2} ${
-                        width * 0.9
-                      } ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${
-                        width * 0.97
-                      } ${height * 0.15} ${width * 0.996} ${height * 0.3} ${
-                        width * 0.996
-                      } ${height * 0.5} C ${width * 0.996} ${height * 0.7} ${
-                        width * 0.97
-                      } ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${
-                        width * 0.9
-                      } ${height * 0.85} ${width * 0.88} ${height * 0.8} ${
-                        width * 0.86
-                      } ${height * 0.7} C ${width * 0.86} ${height * 0.68} ${
-                        width * 0.85
-                      } ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${
-                        width * 0.84
-                      } ${height * 0.66} ${width * 0.83} ${height * 0.68} ${
-                        width * 0.83
-                      } ${height * 0.7} C ${width * 0.81} ${height * 0.8} ${
-                        width * 0.79
-                      } ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${
-                        width * 0.08
-                      } ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${
-                        width * 0.004
-                      } ${height * 0.7} ${width * 0.004} ${height * 0.5} C ${
-                        width * 0.004
-                      } ${height * 0.3} ${width * 0.04} ${height * 0.15} ${
-                        width * 0.08
-                      } ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`}
+                      d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79
+                        } ${height * 0.15} ${width * 0.81} ${height * 0.2} ${width * 0.83
+                        } ${height * 0.3} C ${width * 0.83} ${height * 0.32} ${width * 0.84
+                        } ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85
+                        } ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86
+                        } ${height * 0.3} C ${width * 0.88} ${height * 0.2} ${width * 0.9
+                        } ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97
+                        } ${height * 0.15} ${width * 0.996} ${height * 0.3} ${width * 0.996
+                        } ${height * 0.5} C ${width * 0.996} ${height * 0.7} ${width * 0.97
+                        } ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.9
+                        } ${height * 0.85} ${width * 0.88} ${height * 0.8} ${width * 0.86
+                        } ${height * 0.7} C ${width * 0.86} ${height * 0.68} ${width * 0.85
+                        } ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84
+                        } ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83
+                        } ${height * 0.7} C ${width * 0.81} ${height * 0.8} ${width * 0.79
+                        } ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08
+                        } ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004
+                        } ${height * 0.7} ${width * 0.004} ${height * 0.5} C ${width * 0.004
+                        } ${height * 0.3} ${width * 0.04} ${height * 0.15} ${width * 0.08
+                        } ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`}
                       fill={`url(#buttonGradient-${width}-${height})`}
                     />
                     <circle
@@ -2096,25 +2070,19 @@ const Booking = ({ className = "" }) => {
                       strokeLinejoin="round"
                     >
                       <path
-                        d={`M ${arrowX - arrowSize * 0.3} ${
-                          arrowY + arrowSize * 0.4
-                        } L ${arrowX + arrowSize * 0.4} ${
-                          arrowY - arrowSize * 0.4
-                        }`}
+                        d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
+                          } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                          }`}
                       />
                       <path
-                        d={`M ${arrowX + arrowSize * 0.4} ${
-                          arrowY - arrowSize * 0.4
-                        } L ${arrowX - arrowSize * 0.1} ${
-                          arrowY - arrowSize * 0.4
-                        }`}
+                        d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                          } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
+                          }`}
                       />
                       <path
-                        d={`M ${arrowX + arrowSize * 0.4} ${
-                          arrowY - arrowSize * 0.4
-                        } L ${arrowX + arrowSize * 0.4} ${
-                          arrowY + arrowSize * 0.1
-                        }`}
+                        d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                          } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
+                          }`}
                       />
                     </g>
                   </svg>

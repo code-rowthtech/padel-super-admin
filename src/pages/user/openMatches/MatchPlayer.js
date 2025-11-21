@@ -247,7 +247,7 @@ const MatchPlayer = ({
 
                     <div className="row mx-auto">
                         {/* TEAM A: User (fixed) + 1 added */}
-                        <div className="col-6 d-flex flex-column flex-lg-row ps-0">
+                        <div className="col-6 d-flex flex-sm-column flex-lg-row ps-0">
                             {/* USER - Always First */}
                             {User && (
                                 <div className="d-flex flex-column align-items-center me-auto mb-3">
@@ -285,7 +285,7 @@ const MatchPlayer = ({
 
                             {/* SLOT 2 - Team A Partner */}
                             {localPlayers.slot2 ? (
-                                <div className="d-flex flex-column align-items-center me-auto mb-3">
+                                <div className="d-flex flex-sm-column align-items-center me-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -330,7 +330,7 @@ const MatchPlayer = ({
                         </div>
 
                         {/* TEAM B: 2 Players */}
-                        <div className="col-6 d-flex flex-column flex-lg-row pe-0 border-start">
+                        <div className="col-6 d-flex flex-sm-column flex-lg-row pe-0 border-start">
                             {/* SLOT 3 */}
                             {localPlayers.slot3 ? (
                                 <div className="d-flex flex-column align-items-center ms-auto mb-3">
