@@ -1321,7 +1321,7 @@ const CreateMatches = () => {
           </Modal>
 
           {/* ────── QUESTIONNAIRE / MATCH PLAYER (Desktop Only) ────── */}
-          {!matchPlayer ? (
+          {!matchPlayer && !existsOpenMatchData ? (
             <div className="d-none d-lg-block">
               <div style={{ backgroundColor: "#F1F4FF" }}>
                 <div className="d-flex gap-2 ps-4 pt-4">
@@ -1528,7 +1528,10 @@ const CreateMatches = () => {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : null}
+          
+          {/* Show MatchPlayer when matchPlayer is true OR existsOpenMatchData is true */}
+          {(matchPlayer || existsOpenMatchData) && (
             <MatchPlayer
               addedPlayers={addedPlayers}
               setAddedPlayers={setAddedPlayers}
