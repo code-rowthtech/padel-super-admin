@@ -6,6 +6,7 @@ import {
   Button,
   Form,
   FormCheck,
+  Modal,
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -103,6 +104,7 @@ const CreateMatches = () => {
     return saved ? JSON.parse(saved) : {};
   });
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showMobileModal, setShowMobileModal] = useState(false);
 
   // Sync with localStorage
   useEffect(() => {
@@ -483,7 +485,7 @@ const CreateMatches = () => {
     <Container className="p-md-4 py-0 px-2 mb-5">
       <Row className="g-3">
         {/* ────── LEFT PANEL ────── */}
-        <Col md={7} className="p-3 mobile-create-matches-content mt-0" style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
+        <Col md={7} className={`p-3 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-md-4 mb-2">
@@ -849,6 +851,20 @@ const CreateMatches = () => {
                           );
                         })}
                       </div>
+                      <div className="d-flex justify-content-end pt-2 pb-2">
+                        <Button
+                          className="rounded-pill px-4"
+                          style={{
+                            background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                            border: "none",
+                            fontWeight: "600",
+                          }}
+                          disabled={selectedCourts.length === 0}
+                          onClick={() => setShowMobileModal(true)}
+                        >
+                          Next
+                        </Button>
+                      </div>
                     </div>
 
                     {slotData?.data?.every(
@@ -880,7 +896,7 @@ const CreateMatches = () => {
         </Col>
 
         {/* ────── RIGHT PANEL ────── */}
-        <Col md={5} className="ps-2">
+        <Col md={5} className={`ps-2 ${matchPlayer ? 'col-12' : ''}`}>
           {/* ────── MOBILE SUMMARY (fixed bottom) ────── */}
           <div
             className="d-lg-none mobile-create-matches-summary"
@@ -1026,40 +1042,48 @@ const CreateMatches = () => {
                   )}
                 </div>
 
-                {/* Total line (toggle) */}
+                {/* Mobile Next Button */}
 
               </>
             )}
           </div>
 
-          {/* ────── QUESTIONNAIRE / MATCH PLAYER ────── */}
-          {!matchPlayer ? (
-            <div style={{ backgroundColor: "#F1F4FF" }}>
-              <div className="d-flex gap-2 ps-4 pt-4">
-                {steps.map((_, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: "50%",
-                      backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
-                      color: "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 14,
-                      fontWeight: 600,
-                    }}
-                  ></div>
-                ))}
-              </div>
+          {/* Mobile Modal for Steps */}
+          <Modal
+            show={showMobileModal}
+            onHide={() => setShowMobileModal(false)}
+            size="lg"
+            centered
+            className="d-lg-none"
+          >
+            <Modal.Header closeButton>
+            </Modal.Header>
+            <Modal.Body className="p-0">
+              <div style={{ backgroundColor: "#F1F4FF", borderRadius: "8px", padding: "20px" }}>
+                <div className="d-flex gap-2 mb-4 justify-content-center">
+                  {steps.map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: "50%",
+                        backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 12,
+                        fontWeight: 600,
+                      }}
+                    ></div>
+                  ))}
+                </div>
 
-              <div className="p-4 mt-3">
                 <h6
-                  className="mb-4"
+                  className="mb-3 text-center"
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontFamily: "Poppins",
                     fontWeight: 600,
                     color: "#1f2937",
@@ -1068,115 +1092,105 @@ const CreateMatches = () => {
                   {steps[currentStep].question}
                 </h6>
 
-                <div
-                  style={{
-                    opacity: selectedCourts.length === 0 ? 0.5 : 1,
-                    pointerEvents: selectedCourts.length === 0 ? "none" : "auto",
-                    transition: "opacity 0.3s ease",
-                  }}
-                >
-                  <Form style={{ height: "350px", overflowY: "auto" }}>
-                    {currentStep === 1
+                <Form style={{ maxHeight: "300px", overflowY: "auto" }}>
+                  {currentStep === 1
+                    ? steps[currentStep].options.map((opt, i) => (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setSelectedLevel((prev) =>
+                            prev.includes(opt)
+                              ? prev.filter((x) => x !== opt)
+                              : [...prev, opt]
+                          );
+                        }}
+                        className="d-flex align-items-center mb-2 p-2 rounded shadow-sm border step-option"
+                        style={{
+                          backgroundColor: selectedLevel.includes(opt) ? "#eef2ff" : "#fff",
+                          borderColor: selectedLevel.includes(opt) ? "#4f46e5" : "#e5e7eb",
+                          cursor: "pointer",
+                          gap: "8px",
+                          height: "40px",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        <Form.Check
+                          type="checkbox"
+                          checked={selectedLevel.includes(opt)}
+                          onChange={() => { }}
+                          style={{ flexShrink: 0, marginTop: 0 }}
+                        />
+                        <span style={{ fontSize: "14px", fontWeight: 500, color: "#1f2937" }}>
+                          {opt}
+                        </span>
+                      </div>
+                    ))
+                    : currentStep === steps.length - 1
                       ? steps[currentStep].options.map((opt, i) => (
                         <div
                           key={i}
-                          onClick={() => {
-                            setSelectedLevel((prev) =>
-                              prev.includes(opt)
-                                ? prev.filter((x) => x !== opt)
-                                : [...prev, opt]
-                            );
-                          }}
-                          className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                          onClick={() => setSelectedLevel(opt.code)}
+                          className="d-flex align-items-center mb-2 p-2 rounded shadow-sm border step-option"
                           style={{
-                            backgroundColor: selectedLevel.includes(opt) ? "#eef2ff" : "#fff",
-                            borderColor: selectedLevel.includes(opt) ? "#4f46e5" : "#e5e7eb",
-                            cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
-                            gap: "12px",
-                            height: "50px",
+                            backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
+                            borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
+                            cursor: "pointer",
+                            gap: "8px",
+                            height: "40px",
                             transition: "all 0.2s ease",
                           }}
                         >
                           <Form.Check
-                            type="checkbox"
-                            checked={selectedLevel.includes(opt)}
+                            type="radio"
+                            name="modalLast"
+                            checked={selectedLevel === opt.code}
                             onChange={() => { }}
                             style={{ flexShrink: 0, marginTop: 0 }}
                           />
-                          <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                          <div className="d-flex align-items-center flex-grow-1" style={{ gap: "6px" }}>
+                            <span
+                              style={{
+                                fontSize: "18px",
+                                fontWeight: 700,
+                                color: "#1d4ed8",
+                                minWidth: "28px",
+                                textAlign: "center",
+                              }}
+                            >
+                              {opt.code}
+                            </span>
+                            <strong style={{ fontSize: "14px", color: "#1f2937" }}>{opt.title}</strong>
+                          </div>
+                        </div>
+                      ))
+                      : steps[currentStep].options.map((opt, i) => (
+                        <div
+                          key={i}
+                          onClick={() => setSelectedLevel(opt)}
+                          className="d-flex align-items-center mb-2 p-2 rounded shadow-sm border step-option"
+                          style={{
+                            backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
+                            borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
+                            cursor: "pointer",
+                            gap: "8px",
+                            height: "40px",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          <Form.Check
+                            type="radio"
+                            name={`modalStep${currentStep}`}
+                            checked={selectedLevel === opt}
+                            onChange={() => { }}
+                            style={{ flexShrink: 0, marginTop: 0 }}
+                          />
+                          <span style={{ fontSize: "14px", fontWeight: 500, color: "#1f2937" }}>
                             {opt}
                           </span>
                         </div>
-                      ))
-                      : currentStep === steps.length - 1
-                        ? steps[currentStep].options.map((opt, i) => (
-                          <div
-                            key={i}
-                            onClick={() => setSelectedLevel(opt.code)}
-                            className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                            style={{
-                              backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
-                              borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
-                              cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
-                              gap: "12px",
-                              height: "50px",
-                              transition: "all 0.2s ease",
-                            }}
-                          >
-                            <Form.Check
-                              type="radio"
-                              name="last"
-                              checked={selectedLevel === opt.code}
-                              onChange={() => { }}
-                              style={{ flexShrink: 0, marginTop: 0 }}
-                            />
-                            <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
-                              <span
-                                style={{
-                                  fontSize: "24px",
-                                  fontWeight: 700,
-                                  color: "#1d4ed8",
-                                  minWidth: "38px",
-                                  textAlign: "center",
-                                }}
-                              >
-                                {opt.code}
-                              </span>
-                              <strong style={{ fontSize: "16px", color: "#1f2937" }}>{opt.title}</strong>
-                            </div>
-                          </div>
-                        ))
-                        : steps[currentStep].options.map((opt, i) => (
-                          <div
-                            key={i}
-                            onClick={() => setSelectedLevel(opt)}
-                            className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
-                            style={{
-                              backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
-                              borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
-                              cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
-                              gap: "12px",
-                              height: "50px",
-                              transition: "all 0.2s ease",
-                            }}
-                          >
-                            <Form.Check
-                              type="radio"
-                              name={`step${currentStep}`}
-                              checked={selectedLevel === opt}
-                              onChange={() => { }}
-                              style={{ flexShrink: 0, marginTop: 0 }}
-                            />
-                            <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
-                              {opt}
-                            </span>
-                          </div>
-                        ))}
-                  </Form>
-                </div>
-              </div>
+                      ))}
+                </Form>
 
-              <div className="d-flex justify-content-center">
                 {slotError && (
                   <div
                     className="text-center mb-3 p-2 rounded"
@@ -1185,57 +1199,265 @@ const CreateMatches = () => {
                       color: "#c62828",
                       border: "1px solid #ffcdd2",
                       fontWeight: 500,
-                      fontSize: "15px",
-                      width: "100%",
-                      maxWidth: "370px",
+                      fontSize: "14px",
                     }}
                   >
                     {slotError}
                   </div>
                 )}
-              </div>
 
-              <div
-                className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"
-                  } align-items-center p-3`}
-              >
-                {currentStep > 0 && (
+                <div className="d-flex justify-content-between align-items-center mt-3">
+                  {currentStep > 0 && (
+                    <Button
+                      className="rounded-pill px-3"
+                      style={{
+                        backgroundColor: "#6c757d",
+                        border: "none",
+                        color: "#fff",
+                      }}
+                      onClick={handleBack}
+                    >
+                      Back
+                    </Button>
+                  )}
                   <Button
-                    className="rounded-pill px-4 me-2"
+                    className="rounded-pill px-3 ms-auto"
                     style={{
-                      backgroundColor: window.innerWidth < 768 ? "transparent" : "#374151",
+                      background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                       border: "none",
-                      color: window.innerWidth < 768 ? "#001B76" : "#fff",
+                      color: "#fff",
                     }}
-                    onClick={handleBack}
+                    disabled={
+                      !selectedLevel ||
+                      (currentStep === 1 && selectedLevel.length === 0) ||
+                      (Array.isArray(selectedLevel) && selectedLevel.length === 0)
+                    }
+                    onClick={() => {
+                      if (currentStep === steps.length - 1) {
+                        // Submit and close modal, then navigate to match players
+                        const finalSkillDetails = [...skillDetails];
+                        finalSkillDetails[currentStep] = selectedLevel;
+                        setSkillDetails(finalSkillDetails);
+                        setShowMobileModal(false);
+                        setMatchPlayer(true);
+                      } else {
+                        handleNext();
+                      }
+                    }}
                   >
-                    Back
+                    {currentStep === steps.length - 1 ? "Submit" : "Next"}
                   </Button>
-                )}
-                <Button
-                  className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1
-                    ? "p-3 rounded-circle d-flex align-items-center justify-content-center"
-                    : "rounded-pill"
-                    }`}
-                  style={{
-                    background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                    border: "none",
-                    color: "#fff",
-                  }}
-                  disabled={
-                    selectedCourts.length === 0 ||
-                    !selectedLevel ||
-                    (currentStep === 1 && selectedLevel.length === 0) ||
-                    (Array.isArray(selectedLevel) && selectedLevel.length === 0)
-                  }
-                  onClick={handleNext}
+                </div>
+              </div>
+            </Modal.Body>
+          </Modal>
+
+          {/* ────── QUESTIONNAIRE / MATCH PLAYER (Desktop Only) ────── */}
+          {!matchPlayer ? (
+            <div className="d-none d-lg-block">
+              <div style={{ backgroundColor: "#F1F4FF" }}>
+                <div className="d-flex gap-2 ps-4 pt-4">
+                  {steps.map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 14,
+                        fontWeight: 600,
+                      }}
+                    ></div>
+                  ))}
+                </div>
+
+                <div className="p-4 mt-3">
+                  <h6
+                    className="mb-4"
+                    style={{
+                      fontSize: "20px",
+                      fontFamily: "Poppins",
+                      fontWeight: 600,
+                      color: "#1f2937",
+                    }}
+                  >
+                    {steps[currentStep].question}
+                  </h6>
+
+                  <div
+                    style={{
+                      opacity: selectedCourts.length === 0 ? 0.5 : 1,
+                      pointerEvents: selectedCourts.length === 0 ? "none" : "auto",
+                      transition: "opacity 0.3s ease",
+                    }}
+                  >
+                    <Form style={{ height: "350px", overflowY: "auto" }}>
+                      {currentStep === 1
+                        ? steps[currentStep].options.map((opt, i) => (
+                          <div
+                            key={i}
+                            onClick={() => {
+                              setSelectedLevel((prev) =>
+                                prev.includes(opt)
+                                  ? prev.filter((x) => x !== opt)
+                                  : [...prev, opt]
+                              );
+                            }}
+                            className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                            style={{
+                              backgroundColor: selectedLevel.includes(opt) ? "#eef2ff" : "#fff",
+                              borderColor: selectedLevel.includes(opt) ? "#4f46e5" : "#e5e7eb",
+                              cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                              gap: "12px",
+                              height: "50px",
+                              transition: "all 0.2s ease",
+                            }}
+                          >
+                            <Form.Check
+                              type="checkbox"
+                              checked={selectedLevel.includes(opt)}
+                              onChange={() => { }}
+                              style={{ flexShrink: 0, marginTop: 0 }}
+                            />
+                            <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                              {opt}
+                            </span>
+                          </div>
+                        ))
+                        : currentStep === steps.length - 1
+                          ? steps[currentStep].options.map((opt, i) => (
+                            <div
+                              key={i}
+                              onClick={() => setSelectedLevel(opt.code)}
+                              className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                              style={{
+                                backgroundColor: selectedLevel === opt.code ? "#eef2ff" : "#fff",
+                                borderColor: selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
+                                cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                                gap: "12px",
+                                height: "50px",
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <Form.Check
+                                type="radio"
+                                name="last"
+                                checked={selectedLevel === opt.code}
+                                onChange={() => { }}
+                                style={{ flexShrink: 0, marginTop: 0 }}
+                              />
+                              <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
+                                <span
+                                  style={{
+                                    fontSize: "24px",
+                                    fontWeight: 700,
+                                    color: "#1d4ed8",
+                                    minWidth: "38px",
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  {opt.code}
+                                </span>
+                                <strong style={{ fontSize: "16px", color: "#1f2937" }}>{opt.title}</strong>
+                              </div>
+                            </div>
+                          ))
+                          : steps[currentStep].options.map((opt, i) => (
+                            <div
+                              key={i}
+                              onClick={() => setSelectedLevel(opt)}
+                              className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                              style={{
+                                backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
+                                borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
+                                cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                                gap: "12px",
+                                height: "50px",
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <Form.Check
+                                type="radio"
+                                name={`step${currentStep}`}
+                                checked={selectedLevel === opt}
+                                onChange={() => { }}
+                                style={{ flexShrink: 0, marginTop: 0 }}
+                              />
+                              <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                                {opt}
+                              </span>
+                            </div>
+                          ))}
+                    </Form>
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-center">
+                  {slotError && (
+                    <div
+                      className="text-center mb-3 p-2 rounded"
+                      style={{
+                        backgroundColor: "#ffebee",
+                        color: "#c62828",
+                        border: "1px solid #ffcdd2",
+                        fontWeight: 500,
+                        fontSize: "15px",
+                        width: "100%",
+                        maxWidth: "370px",
+                      }}
+                    >
+                      {slotError}
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  className={`d-flex ${window.innerWidth < 768 ? "justify-content-between" : "justify-content-end"
+                    } align-items-center p-3`}
                 >
-                  {currentStep === steps.length - 1
-                    ? "Submit"
-                    : window.innerWidth < 768
-                      ? ""
-                      : "Next"}
-                </Button>
+                  {currentStep > 0 && (
+                    <Button
+                      className="rounded-pill px-4 me-2"
+                      style={{
+                        backgroundColor: window.innerWidth < 768 ? "transparent" : "#374151",
+                        border: "none",
+                        color: window.innerWidth < 768 ? "#001B76" : "#fff",
+                      }}
+                      onClick={handleBack}
+                    >
+                      Back
+                    </Button>
+                  )}
+                  <Button
+                    className={`px-4 ${window.innerWidth < 768 && currentStep !== steps.length - 1
+                      ? "p-3 rounded-circle d-flex align-items-center justify-content-center"
+                      : "rounded-pill"
+                      }`}
+                    style={{
+                      background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                      border: "none",
+                      color: "#fff",
+                    }}
+                    disabled={
+                      selectedCourts.length === 0 ||
+                      !selectedLevel ||
+                      (currentStep === 1 && selectedLevel.length === 0) ||
+                      (Array.isArray(selectedLevel) && selectedLevel.length === 0)
+                    }
+                    onClick={handleNext}
+                  >
+                    {currentStep === steps.length - 1
+                      ? "Submit"
+                      : window.innerWidth < 768
+                        ? ""
+                        : "Next"}
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
