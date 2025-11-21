@@ -852,7 +852,7 @@ const Openmatches = () => {
             <div
               style={{
                 minHeight: "400px",
-                height:"400px",
+                height: "400px",
                 maxHeight: filteredMatches.length > 4 ? "380px" : "auto",
                 overflowY: filteredMatches.length > 4 ? "auto" : "auto",
                 scrollBehavior: "smooth",
@@ -1379,7 +1379,7 @@ const Openmatches = () => {
                   </button>
                 </div>
               </div>
-                <div
+              <div
                 className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-block"
                 style={{
                   backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,

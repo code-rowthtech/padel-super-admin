@@ -816,7 +816,7 @@ const Booking = ({ className = "" }) => {
                 )}
               </div>
               <div
-                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-2 mt-2 mt-md-0"
+                className="d-flex calendar-day-btn-mobile calendar-day-btn  justify-content-center align-items-center rounded-1  mb-md-3 mb-2 mt-2 mt-md-0"
                 style={{
                   backgroundColor: "#f3f3f5",
                   height: "58px",
@@ -934,7 +934,7 @@ const Booking = ({ className = "" }) => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              top: "-8px",
+                              top: "-2px",
                               right: "-4px",
                               zIndex: 22,
                               backgroundColor: "#22c55e",

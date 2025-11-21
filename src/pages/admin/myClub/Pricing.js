@@ -345,6 +345,7 @@ const Pricing = ({
                   background: "transparent",
                   height: "30px",
                   fontSize: "14px",
+                  boxShadow: "none",
                 }}
               />
             </InputGroup>
@@ -532,6 +533,7 @@ const Pricing = ({
                 border: "1px solid #E5E7EB",
                 fontSize: "14px",
                 backgroundColor: "#fff",
+                boxShadow: "none",
               }}
             />
           </InputGroup>
