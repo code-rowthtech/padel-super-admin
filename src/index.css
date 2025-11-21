@@ -2157,6 +2157,9 @@ h1.display-5 {
   .mobile-total-section p {
     font-size: 12px !important;
   }
+  .font_add_btn_text{
+    font-size: 12px!important;
+  }
 
   .mobile-total-section p:last-child {
     font-size: 18px !important;

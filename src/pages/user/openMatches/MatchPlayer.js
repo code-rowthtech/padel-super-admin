@@ -153,10 +153,13 @@ const MatchPlayer = ({
 
     return (
         <>
-            <div className="py-3 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
+            <div className="py-md-3 pt-0 pb-3 rounded-3 px-md-4 px-2 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 {/* Header */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>Details</h5>
+                <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
+                    {/* <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>Details</h5> */}
+                    <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
+                        Details
+                    </h5>
                     <div className="d-flex align-items-center gap-2 position-relative">
                         <button
                             className="btn btn-light rounded-circle p-2 border shadow-sm"
@@ -207,47 +210,48 @@ const MatchPlayer = ({
                 </div>
 
                 {/* Game Info */}
-                <div className="rounded-4 border px-3 py-2 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <div className="d-flex justify-content-between align-items-start py-2">
-                        <div className="d-flex align-items-center gap-2">
+                <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    <div className="d-md-flex d-block justify-content-between align-items-start py-2">
+                        <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
-                            <span className="ms-2" style={{ fontSize: "18px", fontWeight: 600 }}>PADEL</span>
+                            <span className="ms-2 all-matches" style={{ color: "#374151" }}>
+                                PADEL</span>
                         </div>
                         <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
                             {matchDate.day}, {matchDate.formattedDate} | {matchTime.slice(0, 20)}{matchTime.length > 20 ? "..." : ""} (60m)
                         </small>
-                        <small className="text-muted d-lg-none" style={{ fontWeight: 500 }}>
-                            {matchDate.day}, {matchDate.formattedDate} <br /> {matchTime.slice(0, 20)}{matchTime.length > 20 ? "..." : ""} (60m)
+                        <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
+                            {matchDate.day}, {matchDate.formattedDate} {matchTime.slice(0, 20)}{matchTime.length > 20 ? "..." : ""} (60m)
                         </small>
                     </div>
 
                     <div className="row text-center border-top">
                         <div className="col py-2">
-                            <p className="mb-1" style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Gender</p>
-                            <p className="mb-0 " style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>Mixed</p>
+                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Gender</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>Mixed</p>
                         </div>
                         <div className="col border-start border-end py-2">
-                            <p className="mb-1 " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Level</p>
-                            <p className="mb-0"style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}} >{finalSkillDetails[0] || "Open Match"}</p>
+                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{finalSkillDetails[0] || "Open Match"}</p>
                         </div>
                         <div className="col py-2">
-                            <p className="mb-1" style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Price</p>
-                            <p className="mb-0 " style={{fontSize:'18px',fontWeight:"500",color:'#1F41BB'}}>₹ {totalAmount}</p>
+                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Price</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>₹ {totalAmount}</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <p className="text-muted mb-1" style={{ fontSize: "15px", fontWeight: 500 }}>Open Match</p>
+                    <p className="text-muted mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: 500 }}>Open Match</p>
                 </div>
 
                 {/* Players Section */}
-                <div className="p-3 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
+                <div className="p-md-3 p-2 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
                     <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: 600 }}>Players</h6>
 
                     <div className="row mx-auto">
                         {/* TEAM A: User (fixed) + 1 added */}
-                        <div className="col-6 d-flex flex-column flex-lg-row ps-0">
+                        <div className="col-6 d-flex flex-lg-row ps-0">
                             {/* USER - Always First */}
                             {User && (
                                 <div className="d-flex flex-column align-items-center me-auto mb-3">
@@ -270,7 +274,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2 fw-semibold text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={User.name}
                                     >
@@ -305,7 +309,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2 text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot2.name}
                                     >
@@ -324,13 +328,13 @@ const MatchPlayer = ({
                                     >
                                         <span className="fs-3" style={{ color: "#3DBE64" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 " style={{ color: "#3DBE64",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#3DBE64", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
                             )}
                         </div>
 
                         {/* TEAM B: 2 Players */}
-                        <div className="col-6 d-flex flex-column flex-lg-row pe-0 border-start">
+                        <div className="col-6 d-flex flex-lg-row pe-0 border-start">
                             {/* SLOT 3 */}
                             {localPlayers.slot3 ? (
                                 <div className="d-flex flex-column align-items-center ms-auto mb-3">
@@ -353,7 +357,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2  text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot3.name}
                                     >
@@ -372,7 +376,7 @@ const MatchPlayer = ({
                                     >
                                         <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
                             )}
 
@@ -398,7 +402,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2  text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot4.name}
                                     >
@@ -417,22 +421,22 @@ const MatchPlayer = ({
                                     >
                                         <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="d-flex justify-content-between mt-2">
-                        <p className="mb-1" style={{ fontSize:"11px",fontWeight:"500",fontFamily:"Poppins", color: "#3DBE64" }}>Team A</p>
-                        <p className="mb-0" style={{ fontSize:"11px",fontWeight:"500",fontFamily:"Poppins", color: "#1F41BB" }}>Team B</p>
+                    <div className="d-flex justify-content-between mt-md-2 mt-0">
+                        <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
+                        <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                     </div>
                 </div>
 
                 {/* Information */}
-                <h6 className="mb-3 mt-4" style={{ fontSize: "18px", fontWeight: 600 }}>Information</h6>
+                <h6 className="mb-md-3 mb-2 mt-4 all-matches" style={{ fontSize: "18px", fontWeight: 600 }}>Information</h6>
                 <div className="d-lg-flex justify-content-evenly">
-                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
+                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
                         <div>
                             <p className="mb-0" style={{ fontSize: "10px" }}>Type of Court</p>
@@ -440,7 +444,7 @@ const MatchPlayer = ({
                         </div>
                     </div>
 
-                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
+                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-calendar-check fs-2 text-dark"></i>
                         <div>
                             <p className="mb-0" style={{ fontSize: "10px" }}>End registration</p>
@@ -450,13 +454,14 @@ const MatchPlayer = ({
 
                     {/* BOOK NOW */}
                     <button
-                        className="btn text-nowrap mt-lg-1 align-items-center rounded-pill py-0 text-white"
+                        className="btn text-nowrap mt-lg-1 align-items-center rounded-pill py-0 text-white mt-2 font_add_btn_text"
                         style={{
                             background: canBook ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#ccc",
                             border: "none",
                             cursor: canBook ? "pointer" : "not-allowed",
                             opacity: canBook ? 1 : 0.6,
                             height: "31px",
+                            fontSize:"16px"
                         }}
                         onClick={handleBookNow}
                         disabled={!canBook || totalAmount === 0}
