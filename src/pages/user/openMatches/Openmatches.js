@@ -45,6 +45,7 @@ import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
 import { IoIosArrowForward } from "react-icons/io";
+import { registerClub } from "../../../redux/thunks";
 
 const normalizeTime = (time) => {
   if (!time) return null;
@@ -82,7 +83,7 @@ const Openmatches = () => {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
-  const [activeTab, setActiveTab] = useState(0); // Default to morning tab
+  const [activeTab, setActiveTab] = useState(0); 
   const scrollRef = useRef(null);
   const dateRefs = useRef({});
   const wrapperRef = useRef(null);
@@ -135,12 +136,12 @@ const Openmatches = () => {
       });
     }
   }, [selectedDate?.fullDate]);
-
   useEffect(() => {
     const payload = {
       matchDate: selectedDate?.fullDate,
       ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
       ...(selectedLevel && { skillLevel: selectedLevel }),
+      clubId: localStorage.getItem("register_club_id")
     };
     debouncedFetchMatches(payload);
   }, [selectedDate, selectedTime, selectedLevel, debouncedFetchMatches]);
@@ -706,7 +707,7 @@ const Openmatches = () => {
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
-                          dispatch(getMatchesUser({ matchDate: d.fullDate }));
+                          dispatch(getMatchesUser({ matchDate: d.fullDate,clubId:localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) =>
                           !isSelected &&
@@ -1407,12 +1408,12 @@ const Openmatches = () => {
                     Great for competitive vibes.
                   </p>
                   <button
-                    className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
+                    className="btn shadow border-0 create-match-btn mt-lg-3 text-white rounded-pill mb-md-2 mb-0 py-3 ps-3 pe-3 font_size_data"
                     onClick={createMatchesHandle}
                     style={{
                       background:
                         "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                      fontSize: "14px",
+                      fontSize: "15px",
                       fontFamily: "Poppins",
                       fontWeight: "500",
                     }}

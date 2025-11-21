@@ -204,8 +204,8 @@ const CreateMatches = () => {
           .filter((c) => c.time.length > 0)
       );
     } else {
-      if (totalSlots >= 15) {
-        setErrorMessage("Maximum 15 slots can be selected.");
+      if (totalSlots >= 2) {
+        setErrorMessage("Maximum 2 slots can be selected.");
         setErrorShow(true);
         return;
       }
@@ -852,11 +852,13 @@ const CreateMatches = () => {
                                       (t) => t._id === slot._id
                                     );
 
+                                    const totalSelectedSlots = Object.values(selectedTimes).flat().length;
                                     const isDisabled =
                                       slot.status === "booked" ||
                                       slot.availabilityStatus !== "available" ||
                                       isPastTime(slot.time) ||
-                                      slot.amount <= 0;
+                                      slot.amount <= 0 ||
+                                      (totalSelectedSlots >= 2 && !isSelected);
 
                                     return (
                                       <div
