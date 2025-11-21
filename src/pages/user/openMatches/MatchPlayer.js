@@ -10,153 +10,166 @@ import NewPlayers from "../VeiwMatch/NewPlayers";
 import { FaArrowRight } from "react-icons/fa";
 
 const dayShortMap = {
-    Monday: "Mon",
-    Tuesday: "Tue",
-    Wednesday: "Wed",
-    Thursday: "Thu",
-    Friday: "Fri",
-    Saturday: "Sat",
-    Sunday: "Sun",
+  Monday: "Mon",
+  Tuesday: "Tue",
+  Wednesday: "Wed",
+  Thursday: "Thu",
+  Friday: "Fri",
+  Saturday: "Sat",
+  Sunday: "Sun",
 };
 
 const MatchPlayer = ({
-    addedPlayers: parentAddedPlayers,
-    setAddedPlayers: setParentAddedPlayers,
-    selectedCourts,
-    selectedDate,
-    finalSkillDetails,
-    totalAmount,
+  addedPlayers: parentAddedPlayers,
+  setAddedPlayers: setParentAddedPlayers,
+  selectedCourts,
+  selectedDate,
+  finalSkillDetails,
+  totalAmount,
 }) => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const User = getUserFromSession();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const User = getUserFromSession();
 
-    // ── LIVE STATE: Sync with parent + localStorage ─────────────────────
-    const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
+  // ── LIVE STATE: Sync with parent + localStorage ─────────────────────
+  const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
 
-    // Sync parent changes
-    useEffect(() => {
-        setLocalPlayers(parentAddedPlayers || {});
-    }, [parentAddedPlayers]);
+  // Sync parent changes
+  useEffect(() => {
+    setLocalPlayers(parentAddedPlayers || {});
+  }, [parentAddedPlayers]);
 
-    // Sync with localStorage (refresh-safe)
-    useEffect(() => {
-        const syncFromStorage = () => {
-            const saved = localStorage.getItem("addedPlayers");
-            const parsed = saved ? JSON.parse(saved) : {};
-            setLocalPlayers(parsed);
-            setParentAddedPlayers(parsed);
-        };
-
-        syncFromStorage();
-        window.addEventListener("storage", syncFromStorage);
-
-        // Custom event for same-tab updates
-        const handleCustomUpdate = () => syncFromStorage();
-        window.addEventListener("playersUpdated", handleCustomUpdate);
-
-        return () => {
-            window.removeEventListener("storage", syncFromStorage);
-            window.removeEventListener("playersUpdated", handleCustomUpdate);
-        };
-    }, [setParentAddedPlayers]);
-
-    // Force refresh every 500ms to catch localStorage changes
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const saved = localStorage.getItem("addedPlayers");
-            const parsed = saved ? JSON.parse(saved) : {};
-            if (JSON.stringify(parsed) !== JSON.stringify(localPlayers)) {
-                setLocalPlayers(parsed);
-                setParentAddedPlayers(parsed);
-            }
-        }, 500);
-
-        return () => clearInterval(interval);
-    }, [localPlayers, setParentAddedPlayers]);
-
-    // ── Modal Controls ─────────────────────────────────────────────────
-    const [showAddMeForm, setShowAddMeForm] = useState(false);
-    const [activeSlot, setActiveSlot] = useState(null);
-    const [showShareDropdown, setShowShareDropdown] = useState(false);
-
-    useEffect(() => {
-        dispatch(getUserClub({ search: "" }));
-    }, [dispatch]);
-
-    const handleAddMeClick = (slot) => {
-        setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
-        setActiveSlot((prev) => (prev === slot ? null : slot));
+  // Sync with localStorage (refresh-safe)
+  useEffect(() => {
+    const syncFromStorage = () => {
+      const saved = localStorage.getItem("addedPlayers");
+      const parsed = saved ? JSON.parse(saved) : {};
+      setLocalPlayers(parsed);
+      setParentAddedPlayers(parsed);
     };
 
-    // ── Helpers ───────────────────────────────────────────────────────
-    const formatDate = (dateString) => {
-        if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
-        const d = new Date(dateString);
-        const day = dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
-        const formattedDate = `${d.toLocaleDateString("en-US", { day: "2-digit" })}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
-        return { day, formattedDate };
+    syncFromStorage();
+    window.addEventListener("storage", syncFromStorage);
+
+    // Custom event for same-tab updates
+    const handleCustomUpdate = () => syncFromStorage();
+    window.addEventListener("playersUpdated", handleCustomUpdate);
+
+    return () => {
+      window.removeEventListener("storage", syncFromStorage);
+      window.removeEventListener("playersUpdated", handleCustomUpdate);
     };
+  }, [setParentAddedPlayers]);
 
-    const calculateEndRegistrationTime = () => {
-        if (!selectedCourts?.length) return "Today at 10:00 PM";
-        const allTimes = selectedCourts.flatMap((c) => c.time.map((s) => s.time));
-        const latestHour = allTimes.reduce((max, t) => {
-            const [h, p] = t.split(" ");
-            let hour = parseInt(h);
-            if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
-            if (p.toLowerCase() === "am" && hour === 12) hour = 0;
-            return Math.max(max, hour);
-        }, 0);
-        const endHour = latestHour + 1;
-        const period = endHour >= 12 ? "PM" : "AM";
-        const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
-        return `Today at ${displayHour}:00 ${period}`;
-    };
+  // Force refresh every 500ms to catch localStorage changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const saved = localStorage.getItem("addedPlayers");
+      const parsed = saved ? JSON.parse(saved) : {};
+      if (JSON.stringify(parsed) !== JSON.stringify(localPlayers)) {
+        setLocalPlayers(parsed);
+        setParentAddedPlayers(parsed);
+      }
+    }, 500);
 
-    const matchDate = selectedDate?.fullDate ? formatDate(selectedDate.fullDate) : { day: "Fri", formattedDate: "29 Aug" };
-    const matchTime = selectedCourts.length
-        ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
-        : "";
+    return () => clearInterval(interval);
+  }, [localPlayers, setParentAddedPlayers]);
 
-    const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
-    const canBook = playerCount >= 2 && matchTime.length > 0;
+  // ── Modal Controls ─────────────────────────────────────────────────
+  const [showAddMeForm, setShowAddMeForm] = useState(false);
+  const [activeSlot, setActiveSlot] = useState(null);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
 
-    const userSkillLevel = finalSkillDetails.length > 0 ? finalSkillDetails[finalSkillDetails.length - 1] : "A";
+  useEffect(() => {
+    dispatch(getUserClub({ search: "" }));
+  }, [dispatch]);
 
-    const handleBookNow = () => {
-        const courtIds = selectedCourts.map((c) => c._id).join(",");
+  const handleAddMeClick = (slot) => {
+    setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
+    setActiveSlot((prev) => (prev === slot ? null : slot));
+  };
 
-        const latestPlayers = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+  // ── Helpers ───────────────────────────────────────────────────────
+  const formatDate = (dateString) => {
+    if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
+    const d = new Date(dateString);
+    const day =
+      dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
+    const formattedDate = `${d.toLocaleDateString("en-US", {
+      day: "2-digit",
+    })}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
+    return { day, formattedDate };
+  };
 
-        console.log('Players being passed to payment:', latestPlayers);
+  const calculateEndRegistrationTime = () => {
+    if (!selectedCourts?.length) return "Today at 10:00 PM";
+    const allTimes = selectedCourts.flatMap((c) => c.time.map((s) => s.time));
+    const latestHour = allTimes.reduce((max, t) => {
+      const [h, p] = t.split(" ");
+      let hour = parseInt(h);
+      if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
+      if (p.toLowerCase() === "am" && hour === 12) hour = 0;
+      return Math.max(max, hour);
+    }, 0);
+    const endHour = latestHour + 1;
+    const period = endHour >= 12 ? "PM" : "AM";
+    const displayHour =
+      endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+    return `Today at ${displayHour}:00 ${period}`;
+  };
 
-        navigate("/match-payment", {
-            state: {
-                courtData: {
-                    day: selectedDate.day,
-                    date: selectedDate.fullDate,
-                    time: selectedCourts.flatMap((c) => c.time),
-                    courtId: courtIds,
-                    court: selectedCourts,
-                },
-                selectedCourts,
-                selectedDate,
-                grandTotal: totalAmount,
-                totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-                finalSkillDetails,
-                addedPlayers: latestPlayers, // Use latest from localStorage
-            },
-        });
-    };
+  const matchDate = selectedDate?.fullDate
+    ? formatDate(selectedDate.fullDate)
+    : { day: "Fri", formattedDate: "29 Aug" };
+  const matchTime = selectedCourts.length
+    ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
+    : "";
 
+  const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
+  const canBook = playerCount >= 2 && matchTime.length > 0;
+
+  const userSkillLevel =
+    finalSkillDetails.length > 0
+      ? finalSkillDetails[finalSkillDetails.length - 1]
+      : "A";
+
+  const handleBookNow = () => {
+    const courtIds = selectedCourts.map((c) => c._id).join(",");
+
+    const latestPlayers = JSON.parse(
+      localStorage.getItem("addedPlayers") || "{}"
+    );
+
+    console.log("Players being passed to payment:", latestPlayers);
+
+    navigate("/match-payment", {
+      state: {
+        courtData: {
+          day: selectedDate.day,
+          date: selectedDate.fullDate,
+          time: selectedCourts.flatMap((c) => c.time),
+          courtId: courtIds,
+          court: selectedCourts,
+        },
+        selectedCourts,
+        selectedDate,
+        grandTotal: totalAmount,
+        totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
+        finalSkillDetails,
+        addedPlayers: latestPlayers, // Use latest from localStorage
+      },
+    });
+  };
 
     return (
         <>
-            <div className="py-3 rounded-3 px-4" style={{ backgroundColor: "#F5F5F566" }}>
+            <div className="py-md-3 pt-0 pb-3 rounded-3 px-md-4 px-2 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 {/* Header */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>Details</h5>
+                <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
+                    {/* <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>Details</h5> */}
+                    <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
+                        Details
+                    </h5>
                     <div className="d-flex align-items-center gap-2 position-relative">
                         <button
                             className="btn btn-light rounded-circle p-2 border shadow-sm"
@@ -207,47 +220,48 @@ const MatchPlayer = ({
                 </div>
 
                 {/* Game Info */}
-                <div className="rounded-4 border px-3 py-2 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <div className="d-flex justify-content-between align-items-start py-2">
-                        <div className="d-flex align-items-center gap-2">
+                <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+                    <div className="d-md-flex d-block justify-content-between align-items-start py-2">
+                        <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
-                            <span className="ms-2" style={{ fontSize: "18px", fontWeight: 600 }}>PADEL</span>
+                            <span className="ms-2 all-matches" style={{ color: "#374151" }}>
+                                PADEL</span>
                         </div>
                         <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
                             {matchDate.day}, {matchDate.formattedDate} | {matchTime.slice(0, 20)}{matchTime.length > 20 ? "..." : ""} (60m)
                         </small>
-                        <small className="text-muted d-lg-none" style={{ fontWeight: 500 }}>
-                            {matchDate.day}, {matchDate.formattedDate} <br /> {matchTime.slice(0, 20)}{matchTime.length > 20 ? "..." : ""} (60m)
+                        <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
+                            {matchDate.day}, {matchDate.formattedDate} {matchTime.slice(0, 20)}{matchTime.length > 20 ? "..." : ""} (60m)
                         </small>
                     </div>
 
                     <div className="row text-center border-top">
                         <div className="col py-2">
-                            <p className="mb-1" style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Gender</p>
-                            <p className="mb-0 " style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>Mixed</p>
+                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Gender</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>Mixed</p>
                         </div>
                         <div className="col border-start border-end py-2">
-                            <p className="mb-1 " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Level</p>
-                            <p className="mb-0"style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}} >{finalSkillDetails[0] || "Open Match"}</p>
+                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{finalSkillDetails[0] || "Open Match"}</p>
                         </div>
                         <div className="col py-2">
-                            <p className="mb-1" style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Price</p>
-                            <p className="mb-0 " style={{fontSize:'18px',fontWeight:"500",color:'#1F41BB'}}>₹ {totalAmount}</p>
+                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Price</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>₹ {totalAmount}</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <p className="text-muted mb-1" style={{ fontSize: "15px", fontWeight: 500 }}>Open Match</p>
+                    <p className="text-muted mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: 500 }}>Open Match</p>
                 </div>
 
                 {/* Players Section */}
-                <div className="p-3 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
+                <div className="p-md-3 p-2 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
                     <h6 className="mb-3" style={{ fontSize: "18px", fontWeight: 600 }}>Players</h6>
 
                     <div className="row mx-auto">
                         {/* TEAM A: User (fixed) + 1 added */}
-                        <div className="col-6 d-flex flex-column flex-lg-row ps-0">
+                        <div className="col-6 d-flex flex-lg-row ps-0">
                             {/* USER - Always First */}
                             {User && (
                                 <div className="d-flex flex-column align-items-center me-auto mb-3">
@@ -270,7 +284,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2 fw-semibold text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={User.name}
                                     >
@@ -285,7 +299,7 @@ const MatchPlayer = ({
 
                             {/* SLOT 2 - Team A Partner */}
                             {localPlayers.slot2 ? (
-                                <div className="d-flex flex-column align-items-center me-auto mb-3">
+                                <div className="d-flex flex-sm-column align-items-center me-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -305,7 +319,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2 text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot2.name}
                                     >
@@ -324,13 +338,13 @@ const MatchPlayer = ({
                                     >
                                         <span className="fs-3" style={{ color: "#3DBE64" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 " style={{ color: "#3DBE64",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#3DBE64", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
                             )}
                         </div>
 
                         {/* TEAM B: 2 Players */}
-                        <div className="col-6 d-flex flex-column flex-lg-row pe-0 border-start">
+                        <div className="col-6 d-flex flex-lg-row pe-0 border-start">
                             {/* SLOT 3 */}
                             {localPlayers.slot3 ? (
                                 <div className="d-flex flex-column align-items-center ms-auto mb-3">
@@ -353,7 +367,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2  text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot3.name}
                                     >
@@ -372,7 +386,7 @@ const MatchPlayer = ({
                                     >
                                         <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB",fontSize:"10px",fontWeight:"500",fontFamily:"Poppins" }}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
                             )}
 
@@ -398,7 +412,7 @@ const MatchPlayer = ({
                                     </div>
                                     <p
                                         className="mb-0 mt-2  text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
                                         data-tooltip-content={localPlayers.slot4.name}
                                     >
@@ -417,22 +431,22 @@ const MatchPlayer = ({
                                     >
                                         <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
-                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB" ,fontSize:"10px",fontWeight:"500",fontFamily:"Poppins"}}>Add Me</p>
+                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="d-flex justify-content-between mt-2">
-                        <p className="mb-1" style={{ fontSize:"11px",fontWeight:"500",fontFamily:"Poppins", color: "#3DBE64" }}>Team A</p>
-                        <p className="mb-0" style={{ fontSize:"11px",fontWeight:"500",fontFamily:"Poppins", color: "#1F41BB" }}>Team B</p>
+                    <div className="d-flex justify-content-between mt-md-2 mt-0">
+                        <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
+                        <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                     </div>
                 </div>
 
                 {/* Information */}
-                <h6 className="mb-3 mt-4" style={{ fontSize: "18px", fontWeight: 600 }}>Information</h6>
+                <h6 className="mb-md-3 mb-2 mt-4 all-matches" style={{ fontSize: "18px", fontWeight: 600 }}>Information</h6>
                 <div className="d-lg-flex justify-content-evenly">
-                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
+                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
                         <div>
                             <p className="mb-0" style={{ fontSize: "10px" }}>Type of Court</p>
@@ -440,7 +454,7 @@ const MatchPlayer = ({
                         </div>
                     </div>
 
-                    <div className="d-flex mb-4 align-items-center gap-3 px-2">
+                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-calendar-check fs-2 text-dark"></i>
                         <div>
                             <p className="mb-0" style={{ fontSize: "10px" }}>End registration</p>
@@ -450,13 +464,14 @@ const MatchPlayer = ({
 
                     {/* BOOK NOW */}
                     <button
-                        className="btn text-nowrap mt-lg-1 align-items-center rounded-pill py-0 text-white"
+                        className="btn text-nowrap mt-lg-1 align-items-center rounded-pill py-0 text-white mt-2 font_add_btn_text"
                         style={{
                             background: canBook ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#ccc",
                             border: "none",
                             cursor: canBook ? "pointer" : "not-allowed",
                             opacity: canBook ? 1 : 0.6,
                             height: "31px",
+                            fontSize:"16px"
                         }}
                         onClick={handleBookNow}
                         disabled={!canBook || totalAmount === 0}
@@ -466,16 +481,16 @@ const MatchPlayer = ({
                 </div>
             </div>
 
-            {/* Modal */}
-            <NewPlayers
-                showAddMeForm={showAddMeForm}
-                activeSlot={activeSlot}
-                setShowAddMeForm={setShowAddMeForm}
-                setActiveSlot={setActiveSlot}
-                setAddedPlayers={setParentAddedPlayers}
-            />
-        </>
-    );
+      {/* Modal */}
+      <NewPlayers
+        showAddMeForm={showAddMeForm}
+        activeSlot={activeSlot}
+        setShowAddMeForm={setShowAddMeForm}
+        setActiveSlot={setActiveSlot}
+        setAddedPlayers={setParentAddedPlayers}
+      />
+    </>
+  );
 };
 
 export default MatchPlayer;
