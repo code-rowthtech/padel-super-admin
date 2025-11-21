@@ -235,7 +235,7 @@ const Navbar = () => {
                     {/* Logo */}
                     <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand">
                         {logo ? (
-                            <div
+                            <div className='add_logo_font'
                                 style={{
                                     width: "50px",
                                     height: "50px",
@@ -274,7 +274,7 @@ const Navbar = () => {
                             </Avatar>
                         )}
 
-                        <h4 className='text-dark m-0 ps-2' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
+                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo'  style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
                     </Link>
 
                     {/* Navigation links - Hidden on mobile */}
@@ -333,11 +333,11 @@ const Navbar = () => {
 
                     {/* Mobile Menu Toggle */}
                     <button
-                        className="btn d-lg-none p-0 border-0 bg-transparent"
+                        className="btn d-lg-none p-0 border-0 bg-transparent mb-1"
                         onClick={() => setShowOffcanvas(true)}
                     >
                         {/* <FaBars size={24} className="text-dark" /> */}
-                        <img src={clearall} alt='' style={{ width: "25px", height: "15px" }} />
+                        <img src={clearall} alt='' style={{ width: "20px", height: "10px" }} />
                     </button>
 
                     {/* Profile Section - Desktop only */}

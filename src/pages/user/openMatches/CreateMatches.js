@@ -480,13 +480,13 @@ const CreateMatches = () => {
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
-    <Container className="p-4 mb-5">
+    <Container className="p-md-4 py-0 px-2 mb-5">
       <Row className="g-3">
         {/* ────── LEFT PANEL ────── */}
-        <Col md={7} className="p-3 mobile-create-matches-content" style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
+        <Col md={7} className="p-3 mobile-create-matches-content mt-0" style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-md-4 mb-2">
               <div className="custom-heading-use text-nowrap">
                 Select Date
                 <div className="position-relative d-inline-block" ref={wrapperRef}>
@@ -495,7 +495,7 @@ const CreateMatches = () => {
                     style={{ cursor: "pointer", width: "26px !important", height: "26px !important" }}
                     onClick={() => setIsOpen(!isOpen)}
                   >
-                    <MdOutlineDateRange size={20} style={{ color: "#374151" }} />
+                    <MdOutlineDateRange size={17} style={{ color: "#374151" }} />
                   </span>
                   {isOpen && (
                     <div
@@ -553,10 +553,10 @@ const CreateMatches = () => {
             </div>
 
             {/* Date Strip */}
-            <div className="d-flex align-items-center gap-2 border-bottom mb-3">
+            <div className="d-flex align-items-center gap-2 border-bottom mb-md-3 mb-2">
               <div className="position-relative">
                 <div
-                  className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-3"
+                  className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
                   style={{
                     backgroundColor: "transparent",
                     width: "52px",
@@ -573,6 +573,7 @@ const CreateMatches = () => {
                         transform: showDropdown ? "rotate(180deg)" : "rotate(0deg)",
                         transition: "transform 0.3s",
                       }}
+                      className="d-md-block d-none"
                     />
                   </div>
                 </div>
@@ -610,14 +611,16 @@ const CreateMatches = () => {
               </div>
 
               <div
-                className="d-flex calendar-day-btn   justify-content-center align-items-center rounded-3  mb-3"
+                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-2 mt-0 mt-md-0"
                 style={{
                   backgroundColor: "#f3f3f5",
                   height: "58px",
-                  padding: "2px 10px"
+                  padding: "2px 10px",
                 }}
               >
                 <span
+                  className="add_font_small_span"
+
                   style={{
                     fontSize: window.innerWidth <= 768 ? "12px" : "14px",
                     fontWeight: "500",
@@ -650,7 +653,7 @@ const CreateMatches = () => {
                       <button
                         key={i}
                         ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                        className={`calendar-day-btn mb-3 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
+                        className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
                         style={{
                           background: isSelected
                             ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
@@ -708,12 +711,14 @@ const CreateMatches = () => {
                 ) : (
                   <>
                     <div className="p-0">
-                      <div className="row mb-2">
-                        <div className="col-4 col-md-3">
+                      <div className="row mb-md-2 mb-0">
+                        <div className="col-3 d-md-block d-none">
                           <h6 className="all-matches text-start">Courts</h6>
                         </div>
-                        <div className="col-8 col-md-9">
-                          <h6 className="all-matches text-center">Available Slots</h6>
+                        <div className="col-md-9 col-12">
+                          <h6 className="all-matches text-center mb-0 me-2 me-md-0">
+                            Available Slots
+                          </h6>
                         </div>
                       </div>
                       <div
@@ -749,12 +754,25 @@ const CreateMatches = () => {
                           if (filteredSlots?.length === 0) return null;
 
                           return (
-                            <div key={court._id} className="row mb-3 align-items-start">
-                              <div className="col-12 col-lg-3 border-end mb-2 mb-md-0">
-                                <div className="court-item p-1 ps-0 ps-md-1 text-start h-100" style={{ minHeight: "50px" }}>
-                                  <div className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>{court?.courtName}</div>
+                            <div key={court._id} className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0">
+                              <div className="col-md-3 col-12 border-end mb-0 d-flex d-md-block align-items-center justify-content-start">
+                                <div
+                                  className="court-item p-1 ps-0 ps-md-1 text-center text-md-center h-100 d-flex d-md-block align-items-center justify-content-center"
+                                  style={{ minHeight: "50px" }}
+                                >
+                                  <div
+                                    className="mb-md-1 mb-0"
+                                    style={{
+                                      fontSize: "14px",
+                                      fontWeight: "500",
+                                      fontFamily: "Poppins",
+                                    }}
+                                  >
+                                    {court?.courtName}
+                                  </div>
+
                                   <p
-                                    className="text-muted mb-lg-0 mb-2"
+                                    className="text-muted mb-0 ms-1 ms-md-0"
                                     style={{
                                       fontFamily: "Poppins",
                                       fontWeight: "400",
@@ -765,12 +783,14 @@ const CreateMatches = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="col-12 col-lg-9">
+
+                              <div className="col-md-9 col-12">
                                 <div className="row g-1">
                                   {filteredSlots.map((slot, i) => {
                                     const isSelected = selectedTimes[court._id]?.some(
                                       (t) => t._id === slot._id
                                     );
+
                                     const isDisabled =
                                       slot.status === "booked" ||
                                       slot.availabilityStatus !== "available" ||
@@ -778,23 +798,23 @@ const CreateMatches = () => {
                                       slot.amount <= 0;
 
                                     return (
-                                      <div key={i} className="col-3 col-sm-4 col-md-3 col-lg-2 mb-1">
+                                      <div
+                                        key={i}
+                                        className="col-3 col-sm-3 col-md-3 col-lg-2 mb-md-1 mb-0 mt-md-0 mt-1"
+                                      >
                                         <button
-                                          className={`btn rounded-3 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
+                                          className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
                                           onClick={() => toggleTime(slot, court._id)}
                                           disabled={isDisabled}
                                           style={{
                                             background:
-                                              isDisabled ||
-                                                slot.status === "booked" ||
-                                                isPastTime(slot.time) ||
-                                                slot.amount <= 0
+                                              isDisabled
                                                 ? "#c9cfcfff"
                                                 : isSelected
                                                   ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
                                                   : "#FFFFFF",
                                             color:
-                                              isDisabled || slot.status === "booked" || isPastTime(slot.time)
+                                              isDisabled
                                                 ? "#000000"
                                                 : isSelected
                                                   ? "white"
@@ -804,7 +824,7 @@ const CreateMatches = () => {
                                             border: isSelected ? "" : "1px solid #4949491A",
                                             fontSize: "11px",
                                             padding: "4px 2px",
-                                            height: "32px"
+                                            height: "32px",
                                           }}
                                           onMouseEnter={(e) =>
                                             !isDisabled &&
@@ -825,6 +845,7 @@ const CreateMatches = () => {
                                 </div>
                               </div>
                             </div>
+
                           );
                         })}
                       </div>
@@ -871,7 +892,7 @@ const CreateMatches = () => {
               zIndex: 1000,
               background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
               borderRadius: "10px 10px 0 0",
-              padding: "10px 15px",
+              padding: "0px 15px",
             }}
           >
             {selectedCourts.length > 0 && (
@@ -1006,7 +1027,7 @@ const CreateMatches = () => {
                 </div>
 
                 {/* Total line (toggle) */}
-               
+
               </>
             )}
           </div>
