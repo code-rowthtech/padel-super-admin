@@ -1403,6 +1403,9 @@ h1.display-5 {
   height: 100%;
   transition: all 0.3s ease;
 }
+ .d-flex.gap-1[style*="position: relative"] {
+    max-width: 86% !important;
+  }
 
 .tab-item.active {
   background-color: #e0e0e0;
@@ -2340,7 +2343,9 @@ h1.display-5 {
     height: 60px !important;
     width: 100px !important;
   }
-
+ .d-flex.gap-1[style*="position: relative"] {
+    max-width: 78% !important;
+  }
   /* Club logo responsive */
   .position-absolute[style*="top: 11px"] {
     top: 3px !important;
@@ -2396,9 +2401,7 @@ h1.display-5 {
 
 /* Date scroll styling - only on mobile */
 @media (max-width: 768px) {
-  .d-flex.gap-1[style*="position: relative"] {
-    max-width: 100% !important;
-  }
+ 
 
   .d-flex.gap-1>div {
     overflow-x: auto !important;

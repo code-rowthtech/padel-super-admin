@@ -502,10 +502,10 @@ const CreateMatches = () => {
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
-    <Container className="p-md-4 py-0 px-2 mb-5">
+    <Container className="p-md-4 py-0 px-2 mb-md-5 mb-0">
       <Row className="g-3">
         {/* ────── LEFT PANEL ────── */}
-        <Col md={7} className={`p-3 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
+        <Col md={7} className={`p-md-3 px-3 pt-3 pb-0 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
           {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-md-4 mb-2">
@@ -639,7 +639,7 @@ const CreateMatches = () => {
               </div>
 
               <div
-                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-2 mt-0 mt-md-0"
+                className="d-flex calendar-day-btn-mobile   justify-content-center align-items-center rounded-1  mb-md-3 mb-0 mt-0 mt-md-0"
                 style={{
                   backgroundColor: "#f3f3f5",
                   height: "58px",
@@ -666,7 +666,7 @@ const CreateMatches = () => {
               </div>
               <div
                 className="d-flex gap-1 "
-                style={{ position: "relative", maxWidth: "86%" }}
+                style={{ position: "relative"}}
               >
                 <button
                   className="btn p-2 border-0 d-none d-md-block"
