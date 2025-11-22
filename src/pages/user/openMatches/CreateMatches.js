@@ -108,6 +108,7 @@ const CreateMatches = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
   const [existsOpenMatchData, setExistsOpenMatchData] = useState(false);
+  const [userGender, setUserGender] = useState("");
 
   // Sync with localStorage
   useEffect(() => {
@@ -128,14 +129,13 @@ const CreateMatches = () => {
 
   useEffect(() => {
     dispatch(getUserProfile()).then((result) => {
-      console.log(result.payload?.existsOpenMatchData, 'result.payload?.existsOpenMatchData');
+      console.log(result.payload?.response?.gender, 'result.payload?.response?.gender');
+      setUserGender(result.payload?.response?.gender || "");
       if (result.payload?.existsOpenMatchData) {
         setExistsOpenMatchData(true);
-        // Show MatchPlayer directly ONLY on desktop when existsOpenMatchData is true
         if (window.innerWidth > 768) {
           setMatchPlayer(true);
         }
-        // On mobile, don't set matchPlayer automatically - wait for Next button click
       }
     });
     dispatch(getUserClub({ search: "" }));
@@ -1646,6 +1646,7 @@ const CreateMatches = () => {
               totalAmount={grandTotal}
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
+              userGender={userGender}
             />
           )}
         </Col>

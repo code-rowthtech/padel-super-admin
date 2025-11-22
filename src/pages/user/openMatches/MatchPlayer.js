@@ -10,19 +10,19 @@ import NewPlayers from "../VeiwMatch/NewPlayers";
 import { FaArrowRight } from "react-icons/fa";
 
 // Button styling variables
- const width = 400;
-  const height = 75;
-  const circleRadius = height * 0.3;
-  const curvedSectionStart = width * 0.76;
-  const curvedSectionEnd = width * 0.996;
-  const circleX =
+const width = 400;
+const height = 75;
+const circleRadius = height * 0.3;
+const curvedSectionStart = width * 0.76;
+const curvedSectionEnd = width * 0.996;
+const circleX =
     curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
-  const circleY = height * 0.5;
-  const arrowSize = circleRadius * 0.6;
-  const arrowX = circleX;
-  const arrowY = circleY;
+const circleY = height * 0.5;
+const arrowSize = circleRadius * 0.6;
+const arrowX = circleX;
+const arrowY = circleY;
 
-  const buttonStyle = {
+const buttonStyle = {
     position: "relative",
     width: `${width}px`,
     height: `${height}px`,
@@ -31,18 +31,18 @@ import { FaArrowRight } from "react-icons/fa";
     cursor: "pointer",
     padding: 0,
     overflow: "visible",
-  };
+};
 
-  const svgStyle = {
+const svgStyle = {
     width: "100%",
     height: "100%",
     position: "absolute",
     top: 0,
     left: 0,
     zIndex: 1,
-  };
+};
 
-  const contentStyle = {
+const contentStyle = {
     position: "relative",
     zIndex: 2,
     color: "white",
@@ -55,7 +55,7 @@ import { FaArrowRight } from "react-icons/fa";
     height: "100%",
     paddingRight: `${circleRadius * 2}px`,
     fontFamily: "Poppins",
-  };
+};
 
 const dayShortMap = {
     Monday: "Mon",
@@ -73,7 +73,8 @@ const MatchPlayer = ({
     selectedCourts,
     selectedDate,
     finalSkillDetails,
-    totalAmount, slotError
+    totalAmount, slotError,
+    userGender
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -140,14 +141,14 @@ const MatchPlayer = ({
     // ── Helpers ───────────────────────────────────────────────────────
     const formatDate = (dateString) => {
         if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
-        
+
         // Parse date string as local date to avoid timezone issues
         const [year, month, dayNum] = dateString.split('-').map(Number);
         const d = new Date(year, month - 1, dayNum);
-        
+
         const day = dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
         const formattedDate = `${dayNum.toString().padStart(2, '0')}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
-        
+
         return { day, formattedDate };
     };
 
@@ -190,7 +191,6 @@ const MatchPlayer = ({
             localStorage.getItem("addedPlayers") || "{}"
         );
 
-        console.log("Players being passed to payment:", latestPlayers);
 
         navigate("/match-payment", {
             state: {
@@ -226,43 +226,83 @@ const MatchPlayer = ({
                             style={{ width: 36, height: 36 }}
                             onClick={() => setShowShareDropdown((p) => !p)}
                         >
-                            <i className="bi bi-share"></i>
+                            <i className="bi bi-share d-flex justify-content-center align-items-center"></i>
                         </button>
                         <button
                             className="btn rounded-circle p-2 text-white"
                             style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
                         >
-                            <i className="bi bi-chat-left-text"></i>
+                            <i className="bi bi-chat-left-text d-flex justify-content-center align-items-center"></i>
                         </button>
 
                         {showShareDropdown && (
                             <div
-                                className="position-absolute top-100 end-0 mt-1 bg-white border rounded shadow-sm"
-                                style={{ zIndex: 1000, minWidth: "120px" }}
+                                className="position-absolute bg-white border rounded shadow-sm"
+                                style={{ top: "40px", right: 0, zIndex: 1000, minWidth: "120px" }}
                             >
                                 <button
                                     className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
                                     onClick={() => {
+                                        const url = window.location.href;
+                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         window.open(
-                                            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
+                                            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                                                url
+                                            )}&quote=${encodeURIComponent(text)}`,
                                             "_blank"
                                         );
                                         setShowShareDropdown(false);
                                     }}
                                 >
-                                    <i className="bi bi-facebook" style={{ color: "#1877F2" }}></i> Facebook
+                                    <i className="bi bi-facebook" style={{ color: "#1877F2" }} />
+                                    Facebook
                                 </button>
                                 <button
                                     className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
                                     onClick={() => {
+                                        const url = window.location.href;
+                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         window.open(
-                                            `https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`,
+                                            `https://x.com/intent/tweet?url=${encodeURIComponent(
+                                                url
+                                            )}&text=${encodeURIComponent(text)}`,
                                             "_blank"
                                         );
                                         setShowShareDropdown(false);
                                     }}
                                 >
-                                    <i className="bi bi-twitter" style={{ color: "#1DA1F2" }}></i> Twitter
+                                    <i className="bi bi-twitter-x" style={{ color: "#000000" }} />
+                                    X
+                                </button>
+                                <button
+                                    className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
+                                    onClick={() => {
+                                        const url = window.location.href;
+                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
+                                        navigator.share ? navigator.share({ url, text }) : window.open(
+                                            `https://www.instagram.com/`,
+                                            "_blank"
+                                        );
+                                        setShowShareDropdown(false);
+                                    }}
+                                >
+                                    <i className="bi bi-instagram" style={{ color: "#E4405F" }} />
+                                    Instagram
+                                </button>
+                                <button
+                                    className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
+                                    onClick={() => {
+                                        const url = window.location.href;
+                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
+                                        window.open(
+                                            `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
+                                            "_blank"
+                                        );
+                                        setShowShareDropdown(false);
+                                    }}
+                                >
+                                    <i className="bi bi-whatsapp" style={{ color: "#25D366" }} />
+                                    WhatsApp
                                 </button>
                             </div>
                         )}
@@ -288,7 +328,7 @@ const MatchPlayer = ({
                     <div className="row text-center border-top">
                         <div className="col py-2">
                             <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Gender</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>Mixed</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{userGender || "Mixed"}</p>
                         </div>
                         <div className="col border-start border-end py-2">
                             <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
@@ -497,11 +537,11 @@ const MatchPlayer = ({
                     <button
                         style={{
                             ...buttonStyle,
-                            opacity: !canBook || totalAmount === 0 ? 0.5 : 1,
-                            cursor: !canBook || totalAmount === 0 ? "not-allowed" : "pointer",
-                            pointerEvents: !canBook || totalAmount === 0 ? "none" : "auto",
+                            opacity: totalAmount === 0 ? 0.5 : 1,
+                            cursor: totalAmount === 0 ? "not-allowed" : "pointer",
+                            pointerEvents: totalAmount === 0 ? "none" : "auto",
                         }}
-                        disabled={!canBook || totalAmount === 0}
+                        disabled={totalAmount === 0}
                         onClick={handleBookNow}
                     >
                         <svg

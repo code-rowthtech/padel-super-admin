@@ -1025,18 +1025,20 @@ const Home = () => {
       </div>
       {/* Reviews Section */}
       <div className="container my-md-5 mt-4 mb-0">
-        <h4
-          className="reviews-heading"
-          style={{
-            fontWeight: "500",
-            fontFamily: "Poppins",
-            fontSize: "34px",
-            marginBottom: "25px",
-            color: "#000000",
-          }}
-        >
+        {getReviewData?.reviews?.length > 0 && (
+          <h4
+            className="reviews-heading"
+            style={{
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              fontSize: "34px",
+              marginBottom: "25px",
+              color: "#000000",
+            }}
+          >
           Here’s what our previous players <br /> have to say!
         </h4>
+        )}
         <div className="position-relative  ">
           <div className="overflow-hidden ">
             <div
