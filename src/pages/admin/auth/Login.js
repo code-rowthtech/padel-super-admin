@@ -84,6 +84,11 @@ const LoginPage = () => {
   console.log("Current pathname:", pathname);
 
   useEffect(() => {
+    const savedEmail = localStorage.getItem("userEmail");
+    if (savedEmail) {
+      setFormData((prev) => ({ ...prev, email: savedEmail }));
+      localStorage.removeItem("userEmail");
+    }
 
     if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
       localStorage.removeItem("clubFormData");
@@ -226,12 +231,23 @@ const LoginPage = () => {
                 checked={formData.remember}
                 onChange={handleChange}
                 disabled={authLoading}
-                style={{ fontSize: "12px", fontWeight: "600", color: "000000", fontFamily: "Poppins", boxShadow: "none" }}
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  color: "000000",
+                  fontFamily: "Poppins",
+                  boxShadow: "none",
+                }}
               />
               <Link
                 to="/admin/forgot-password"
                 className="text-decoration-none"
-                style={{ fontSize: "12px", fontWeight: "600", color: "1F41BB", fontFamily: "Poppins" }}
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  color: "1F41BB",
+                  fontFamily: "Poppins",
+                }}
               >
                 Forgot password?
               </Link>

@@ -26,7 +26,10 @@ const SignUpPage = () => {
   const { authLoading } = useSelector((state) => state.ownerAuth);
 
   const capitalizeFirst = (str) =>
-    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
 
   const validate = () => {
     const newErrors = {};
@@ -126,6 +129,7 @@ const SignUpPage = () => {
           password: form.password,
         };
         await dispatch(signupOwner(payload)).unwrap();
+        localStorage.setItem("userEmail", form.email);
         navigate("/admin/login");
       } catch (err) {
         setErrors({ api: err || "Signup failed. Try again." });
