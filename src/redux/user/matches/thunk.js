@@ -51,7 +51,7 @@ export const getMatchesView = createAsyncThunk(
       const res = await userApi.get(`${Url.VIEW_OPENMATCH}?_id=${data}`);
       return res?.data;
     } catch (error) {
-      showError(error);
+      // showError(error);
       return rejectWithValue(error);
     }
   }

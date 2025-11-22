@@ -10,6 +10,8 @@ import {
     InputGroup,
     OverlayTrigger,
     Tooltip,
+    Modal,
+    Offcanvas,
 } from "react-bootstrap";
 import { Tab, Tabs } from "@mui/material";
 import DatePicker from "react-datepicker";
@@ -37,6 +39,7 @@ import ReactDOM from "react-dom";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import StarIcon from "@mui/icons-material/Star";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
+import ViewMatch from "../VeiwMatch/VeiwMatch";
 
 const BookingHistory = () => {
     const dispatch = useDispatch();
@@ -58,6 +61,8 @@ const BookingHistory = () => {
     const [tableData, setCourtData] = useState(null);
     const [statusData, setStatusData] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [showViewMatchModal, setShowViewMatchModal] = useState(false);
+    const [selectedMatchId, setSelectedMatchId] = useState(null);
     const getBookingData = useSelector((state) => state?.userBooking);
     const User = getUserFromSession();
     const headerRef = useRef(null);
@@ -630,12 +635,22 @@ const BookingHistory = () => {
                                                                 </span>
                                                             )
                                                         )}
+                                                        {
+                                                            console.log(booking, 'bookingbookingbooking')
 
+}
                                                         <span style={{ minWidth: "24px", display: "flex", justifyContent: "center" }}>
                                                             <FiEye
                                                                 size={20}
                                                                 className="text-muted"
                                                                 onClick={() => {
+
+                                                                    // Check if booking type is open match
+                                                                    if (booking?.bookingType === "open Match" && booking?.bookingStatus === 'upcoming') {
+                                                                        setSelectedMatchId(booking?.matchId || booking?._id);
+                                                                        setShowViewMatchModal(true);
+                                                                        return;
+                                                                    }
                                                                     if (activeTab === "cancelled") {
                                                                         if (booking?.bookingStatus === "in-progress") {
                                                                             setModalCancel(true);
@@ -776,6 +791,26 @@ const BookingHistory = () => {
             />
 
             <TokenExpire isTokenExpired={expireModal} />
+
+            {/* ViewMatch Modal */}
+            <Offcanvas
+                show={showViewMatchModal}
+                onHide={() => setShowViewMatchModal(false)}
+                placement="end"
+                className="view-match-offcanvas"
+            >
+                <Offcanvas.Header closeButton className="border-0">
+                    <Offcanvas.Title>Match Details</Offcanvas.Title>
+                </Offcanvas.Header>
+                <Offcanvas.Body className="p-0">
+                    {selectedMatchId && (
+                        <ViewMatch
+                            match={{ _id: selectedMatchId }}
+                            onBack={() => setShowViewMatchModal(false)}
+                        />
+                    )}
+                </Offcanvas.Body>
+            </Offcanvas>
         </Container>
     );
 };

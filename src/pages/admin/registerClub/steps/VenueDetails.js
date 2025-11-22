@@ -53,8 +53,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
       } else {
         newErrors.courtCount = false;
       }
-    }
-    else if (field === "description") {
+    } else if (field === "description") {
       const len = value.length;
       newErrors.description = len > MAX_DESC || len === 0;
     }
@@ -131,7 +130,6 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
       //   }
       // }
 
-
       if (type === "text-area" && value.length > MAX_DESC) {
         return;
       }
@@ -152,12 +150,14 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
               style={{
                 height: "100px",
                 borderRadius: "12px",
-                border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
+                border: `1px solid ${
+                  errors[fieldName] ? "#EF4444" : "#E5E7EB"
+                }`,
                 fontSize: "14px",
                 resize: "vertical",
                 paddingBottom: "20px",
-                boxShadow:"none",
-                fontFamily:"Poppins"
+                boxShadow: "none",
+                fontFamily: "Poppins",
               }}
             />
             <div
@@ -166,9 +166,11 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
                 bottom: "8px",
                 right: "12px",
                 fontSize: "12px",
-                color: formData.description.length > MAX_DESC ? "#EF4444" : "#6B7280",
+                color:
+                  formData.description.length > MAX_DESC
+                    ? "#EF4444"
+                    : "#6B7280",
                 pointerEvents: "none",
-                
               }}
             >
               {formData.description.length}/{MAX_DESC}
@@ -187,7 +189,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
               border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
               fontSize: "14px",
               backgroundColor: "#fff",
-              boxShadow:"none"
+              boxShadow: "none",
             }}
           />
         )}
@@ -196,13 +198,12 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
             {typeof errors[fieldName] === "string"
               ? errors[fieldName] // show custom message
               : fieldName === "description"
-                ? "Description is required and max 500 characters"
-                : fieldName === "courtTypes"
-                  ? "Please select at least one court type"
-                  : "This field is required"}
+              ? "Description is required and max 500 characters"
+              : fieldName === "courtTypes"
+              ? "Please select at least one court type"
+              : "This field is required"}
           </Form.Control.Feedback>
         )}
-
       </div>
     );
   };
@@ -215,12 +216,20 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
         checked={formData[section][key]}
         onChange={() => toggleCheckbox(section, key)}
         label={
-          <span className="ps-3" style={{ fontSize: "14px", color: "#374151", fontWeight: '500',fontFamily:"Poppins" }}>
+          <span
+            className="ps-3"
+            style={{
+              fontSize: "14px",
+              color: "#374151",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+            }}
+          >
             {label}
           </span>
         }
-        style={{ 
-          accentColor: "#22C55E"
+        style={{
+          accentColor: "#22C55E",
         }}
       />
       <style jsx>{`
@@ -237,7 +246,10 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
   return (
     <div className="border-top">
       <Form onSubmit={handleSubmit} noValidate>
-        <h5 style={{ fontWeight: 600, color: "#374151",fontFamily:"Poppins" }} className="my-3">
+        <h5
+          style={{ fontWeight: 600, color: "#374151", fontFamily: "Poppins" }}
+          className="my-3"
+        >
           Club Details
         </h5>
 
@@ -250,16 +262,34 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
 
         <Row className="mb-3">
           <Col md={3}>{renderInput("Zip Code", "zip", "number")}</Col>
-          <Col md={3}>{renderInput("Number of court", "courtCount", "number")}</Col>
-          <Col md={6}>{renderInput("Description", "description", "text-area")}</Col>
+          <Col md={3}>
+            {renderInput("Number of court", "courtCount", "number")}
+          </Col>
+          <Col md={6}>
+            {renderInput("Description", "description", "text-area")}
+          </Col>
         </Row>
 
         <Row className="mt-4">
           <Col md={4}>
-            <h6 style={{ fontWeight: 600, marginBottom: "10px",fontSize:'16px', color: "#374151" ,fontFamily:"Poppins"}}>
+            <h6
+              style={{
+                fontWeight: 600,
+                marginBottom: "10px",
+                fontSize: "16px",
+                color: "#374151",
+                fontFamily: "Poppins",
+              }}
+            >
               Court Type{" "}
               {errors.courtTypes && (
-                <span style={{ color: "#EF4444", fontSize: "12px", fontWeight: "normal" }}>
+                <span
+                  style={{
+                    color: "#EF4444",
+                    fontSize: "12px",
+                    fontWeight: "normal",
+                  }}
+                >
                   (Select at least one)
                 </span>
               )}
@@ -269,20 +299,46 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
           </Col>
 
           <Col md={8}>
-            <h6 style={{ fontWeight: 600, marginBottom: "10px",fontSize:'16px', color: "#374151" ,fontFamily:"Poppins"}}>
+            <h6
+              style={{
+                fontWeight: 600,
+                marginBottom: "10px",
+                fontSize: "16px",
+                color: "#374151",
+                fontFamily: "Poppins",
+              }}
+            >
               Features{" "}
               {errors.features && (
-                <span style={{ color: "#EF4444", fontSize: "12px", fontWeight: "normal" }}>
+                <span
+                  style={{
+                    color: "#EF4444",
+                    fontSize: "12px",
+                    fontWeight: "normal",
+                  }}
+                >
                   (Select at least one)
                 </span>
               )}
             </h6>
             <Row>
-              <Col md={4}>{renderCheckbox("Changing Rooms", "features", "changingRooms")}</Col>
-              <Col md={4}>{renderCheckbox("Parking", "features", "parking")}</Col>
+              <Col md={4}>
+                {renderCheckbox("Changing Rooms", "features", "changingRooms")}
+              </Col>
+              <Col md={4}>
+                {renderCheckbox("Parking", "features", "parking")}
+              </Col>
               <Col md={4}>{renderCheckbox("Shower", "features", "shower")}</Col>
-              <Col md={4}>{renderCheckbox("Chill Pad", "features", "chillPad")}</Col>
-              <Col md={4}>{renderCheckbox("Coaching Available", "features", "coachingAvailable")}</Col>
+              <Col md={4}>
+                {renderCheckbox("Chill Pad", "features", "chillPad")}
+              </Col>
+              <Col md={4}>
+                {renderCheckbox(
+                  "Coaching Available",
+                  "features",
+                  "coachingAvailable"
+                )}
+              </Col>
               <Col md={4}>{renderCheckbox("Shed", "features", "shed")}</Col>
             </Row>
           </Col>
@@ -298,7 +354,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
               padding: "8px 34px",
               fontWeight: 600,
               fontSize: "16px",
-              fontFamily:"Poppins",
+              fontFamily: "Poppins",
               cursor: isFormValid ? "pointer" : "not-allowed",
             }}
             disabled={!isFormValid}
