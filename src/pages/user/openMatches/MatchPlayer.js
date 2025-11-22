@@ -58,13 +58,13 @@ const contentStyle = {
 };
 
 const dayShortMap = {
-  Monday: "Mon",
-  Tuesday: "Tue",
-  Wednesday: "Wed",
-  Thursday: "Thu",
-  Friday: "Fri",
-  Saturday: "Sat",
-  Sunday: "Sun",
+    Monday: "Mon",
+    Tuesday: "Tue",
+    Wednesday: "Wed",
+    Thursday: "Thu",
+    Friday: "Fri",
+    Saturday: "Sat",
+    Sunday: "Sun",
 };
 
 const MatchPlayer = ({
@@ -76,67 +76,68 @@ const MatchPlayer = ({
     totalAmount, slotError,
     userGender
 }) => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const User = getUserFromSession();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const User = getUserFromSession();
 
-  // ── LIVE STATE: Sync with parent + localStorage ─────────────────────
-  const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
+    // ── LIVE STATE: Sync with parent + localStorage ─────────────────────
+    const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
+    const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
-  // Sync parent changes
-  useEffect(() => {
-    setLocalPlayers(parentAddedPlayers || {});
-  }, [parentAddedPlayers]);
+    // Sync parent changes
+    useEffect(() => {
+        setLocalPlayers(parentAddedPlayers || {});
+    }, [parentAddedPlayers]);
 
-  // Sync with localStorage (refresh-safe)
-  useEffect(() => {
-    const syncFromStorage = () => {
-      const saved = localStorage.getItem("addedPlayers");
-      const parsed = saved ? JSON.parse(saved) : {};
-      setLocalPlayers(parsed);
-      setParentAddedPlayers(parsed);
+    // Sync with localStorage (refresh-safe)
+    useEffect(() => {
+        const syncFromStorage = () => {
+            const saved = localStorage.getItem("addedPlayers");
+            const parsed = saved ? JSON.parse(saved) : {};
+            setLocalPlayers(parsed);
+            setParentAddedPlayers(parsed);
+        };
+
+        syncFromStorage();
+        window.addEventListener("storage", syncFromStorage);
+
+        // Custom event for same-tab updates
+        const handleCustomUpdate = () => syncFromStorage();
+        window.addEventListener("playersUpdated", handleCustomUpdate);
+
+        return () => {
+            window.removeEventListener("storage", syncFromStorage);
+            window.removeEventListener("playersUpdated", handleCustomUpdate);
+        };
+    }, [setParentAddedPlayers]);
+
+    // Force refresh every 500ms to catch localStorage changes
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const saved = localStorage.getItem("addedPlayers");
+            const parsed = saved ? JSON.parse(saved) : {};
+            if (JSON.stringify(parsed) !== JSON.stringify(localPlayers)) {
+                setLocalPlayers(parsed);
+                setParentAddedPlayers(parsed);
+            }
+        }, 500);
+
+        return () => clearInterval(interval);
+    }, [localPlayers, setParentAddedPlayers]);
+
+    // ── Modal Controls ─────────────────────────────────────────────────
+    const [showAddMeForm, setShowAddMeForm] = useState(false);
+    const [activeSlot, setActiveSlot] = useState(null);
+    const [showShareDropdown, setShowShareDropdown] = useState(false);
+
+    useEffect(() => {
+        dispatch(getUserClub({ search: "" }));
+    }, [dispatch]);
+
+    const handleAddMeClick = (slot) => {
+        setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
+        setActiveSlot((prev) => (prev === slot ? null : slot));
     };
-
-    syncFromStorage();
-    window.addEventListener("storage", syncFromStorage);
-
-    // Custom event for same-tab updates
-    const handleCustomUpdate = () => syncFromStorage();
-    window.addEventListener("playersUpdated", handleCustomUpdate);
-
-    return () => {
-      window.removeEventListener("storage", syncFromStorage);
-      window.removeEventListener("playersUpdated", handleCustomUpdate);
-    };
-  }, [setParentAddedPlayers]);
-
-  // Force refresh every 500ms to catch localStorage changes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const saved = localStorage.getItem("addedPlayers");
-      const parsed = saved ? JSON.parse(saved) : {};
-      if (JSON.stringify(parsed) !== JSON.stringify(localPlayers)) {
-        setLocalPlayers(parsed);
-        setParentAddedPlayers(parsed);
-      }
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, [localPlayers, setParentAddedPlayers]);
-
-  // ── Modal Controls ─────────────────────────────────────────────────
-  const [showAddMeForm, setShowAddMeForm] = useState(false);
-  const [activeSlot, setActiveSlot] = useState(null);
-  const [showShareDropdown, setShowShareDropdown] = useState(false);
-
-  useEffect(() => {
-    dispatch(getUserClub({ search: "" }));
-  }, [dispatch]);
-
-  const handleAddMeClick = (slot) => {
-    setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
-    setActiveSlot((prev) => (prev === slot ? null : slot));
-  };
 
     // ── Helpers ───────────────────────────────────────────────────────
     const formatDate = (dateString) => {
@@ -176,16 +177,16 @@ const MatchPlayer = ({
         ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
         : "";
 
-  const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
-  const canBook = playerCount >= 2 && matchTime.length > 0;
+    const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
+    const canBook = playerCount >= 2 && matchTime.length > 0;
 
     const userSkillLevel =
         finalSkillDetails.length > 0
             ? finalSkillDetails[finalSkillDetails.length - 1]
             : "A";
 
-  const handleBookNow = () => {
-    const courtIds = selectedCourts.map((c) => c._id).join(",");
+    const handleBookNow = () => {
+        const courtIds = selectedCourts.map((c) => c._id).join(",");
 
         const latestPlayers = JSON.parse(
             localStorage.getItem("addedPlayers") || "{}"
@@ -309,40 +310,40 @@ const MatchPlayer = ({
                     </div>
                 </div>
 
-        {/* Game Info */}
-        <div
-          className="rounded-4 border px-3 pt-2 pb-0 mb-2"
-          style={{ backgroundColor: "#CBD6FF1A" }}
-        >
-          <div className="d-md-flex d-block justify-content-between align-items-start py-2">
-            <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
-              <img src={padal} alt="padel" width={24} />
-              <span className="ms-2 all-matches" style={{ color: "#374151" }}>
-                PADEL
-              </span>
-            </div>
-            <small
-              className="text-muted d-none d-lg-block"
-              style={{ fontWeight: 500 }}
-            >
-              {matchDate.day}, {matchDate.formattedDate} |{" "}
-              {matchTime.slice(0, 20)}
-              {matchTime.length > 20 ? "..." : ""} (60m)
-            </small>
-            <small
-              className="text-muted d-lg-none add_font_mobile"
-              style={{ fontWeight: 500 }}
-            >
-              {matchDate.day}, {matchDate.formattedDate}{" "}
-              {matchTime.slice(0, 20)}
-              {matchTime.length > 20 ? "..." : ""} (60m)
-            </small>
-          </div>
+                {/* Game Info */}
+                <div
+                    className="rounded-4 border px-3 pt-2 pb-0 mb-2"
+                    style={{ backgroundColor: "#CBD6FF1A" }}
+                >
+                    <div className="d-md-flex d-block justify-content-between align-items-start py-2">
+                        <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
+                            <img src={padal} alt="padel" width={24} />
+                            <span className="ms-2 all-matches" style={{ color: "#374151" }}>
+                                PADEL
+                            </span>
+                        </div>
+                        <small
+                            className="text-muted d-none d-lg-block"
+                            style={{ fontWeight: 500 }}
+                        >
+                            {matchDate.day}, {matchDate.formattedDate} |{" "}
+                            {matchTime.slice(0, 20)}
+                            {matchTime.length > 20 ? "..." : ""} (60m)
+                        </small>
+                        <small
+                            className="text-muted d-lg-none add_font_mobile"
+                            style={{ fontWeight: 500 }}
+                        >
+                            {matchDate.day}, {matchDate.formattedDate}{" "}
+                            {matchTime.slice(0, 20)}
+                            {matchTime.length > 20 ? "..." : ""} (60m)
+                        </small>
+                    </div>
 
                     <div className="row text-center border-top">
                         <div className="col py-2">
                             <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Gender</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{userGender || "Mixed"}</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{userGender || updateName?.gender || "Mixed"}</p>
                         </div>
                         <div className="col border-start border-end py-2">
                             <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
@@ -355,17 +356,17 @@ const MatchPlayer = ({
                     </div>
                 </div>
 
-        <div
-          className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border"
-          style={{ backgroundColor: "#CBD6FF1A" }}
-        >
-          <p
-            className="text-muted mb-0 add_font_mobile_bottom"
-            style={{ fontSize: "15px", fontWeight: 500 }}
-          >
-            Open Match
-          </p>
-        </div>
+                <div
+                    className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border"
+                    style={{ backgroundColor: "#CBD6FF1A" }}
+                >
+                    <p
+                        className="text-muted mb-0 add_font_mobile_bottom"
+                        style={{ fontSize: "15px", fontWeight: 500 }}
+                    >
+                        Open Match
+                    </p>
+                </div>
 
                 {/* Players Section */}
                 <div className="p-md-3 p-2 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
@@ -386,11 +387,11 @@ const MatchPlayer = ({
                                             overflow: "hidden",
                                         }}
                                     >
-                                        {User.profilePic ? (
-                                            <img src={User.profilePic} alt="you" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        {User.profilePic || updateName?.profile ? (
+                                            <img src={User.profilePic || updateName?.profile} alt="you" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {User.name?.[0]?.toUpperCase() || "U"}
+                                                {updateName?.fullName ? updateName?.fullName?.[0]?.toUpperCase() : User.name?.[0]?.toUpperCase() || "U"}
                                             </span>
                                         )}
                                     </div>
@@ -400,7 +401,7 @@ const MatchPlayer = ({
                                         data-tooltip-id="you"
                                         data-tooltip-content={User.name}
                                     >
-                                        {User.name?.length > 12 ? `${User.name.substring(0, 12)}...` : User.name}
+                                        {updateName?.fullName ? updateName?.fullName?.length > 12 ? `${updateName?.fullName.substring(0, 12)}...` : updateName?.fullName : User.name?.length > 12 ? `${User.name.substring(0, 12)}...` : User.name}
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
@@ -641,43 +642,43 @@ const MatchPlayer = ({
                     </button>
                 </div>
 
-        {/* Information */}
-        <h6
-          className="mb-md-3 mb-2 mt-4 all-matches"
-          style={{ fontSize: "18px", fontWeight: 600 }}
-        >
-          Information
-        </h6>
-        <div className="d-lg-flex justify-content-evenly">
-          <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
-            <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
-            <div>
-              <p className="mb-0" style={{ fontSize: "10px" }}>
-                Type of Court
-              </p>
-              <p
-                className="mb-0"
-                style={{ fontSize: "13px", color: "#374151" }}
-              >
-                Doubles, Outdoor, Crystal
-              </p>
-            </div>
-          </div>
+                {/* Information */}
+                <h6
+                    className="mb-md-3 mb-2 mt-4 all-matches"
+                    style={{ fontSize: "18px", fontWeight: 600 }}
+                >
+                    Information
+                </h6>
+                <div className="d-lg-flex justify-content-evenly">
+                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
+                        <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
+                        <div>
+                            <p className="mb-0" style={{ fontSize: "10px" }}>
+                                Type of Court
+                            </p>
+                            <p
+                                className="mb-0"
+                                style={{ fontSize: "13px", color: "#374151" }}
+                            >
+                                Doubles, Outdoor, Crystal
+                            </p>
+                        </div>
+                    </div>
 
-          <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
-            <i className="bi bi-calendar-check fs-2 text-dark"></i>
-            <div>
-              <p className="mb-0" style={{ fontSize: "10px" }}>
-                End registration
-              </p>
-              <p
-                className="mb-0"
-                style={{ fontSize: "13px", color: "#374151" }}
-              >
-                {calculateEndRegistrationTime()}
-              </p>
-            </div>
-          </div>
+                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
+                        <i className="bi bi-calendar-check fs-2 text-dark"></i>
+                        <div>
+                            <p className="mb-0" style={{ fontSize: "10px" }}>
+                                End registration
+                            </p>
+                            <p
+                                className="mb-0"
+                                style={{ fontSize: "13px", color: "#374151" }}
+                            >
+                                {calculateEndRegistrationTime()}
+                            </p>
+                        </div>
+                    </div>
 
                     {/* BOOK NOW */}
 
@@ -698,16 +699,16 @@ const MatchPlayer = ({
                 )}
             </div>
 
-      {/* Modal */}
-      <NewPlayers
-        showAddMeForm={showAddMeForm}
-        activeSlot={activeSlot}
-        setShowAddMeForm={setShowAddMeForm}
-        setActiveSlot={setActiveSlot}
-        setAddedPlayers={setParentAddedPlayers}
-      />
-    </>
-  );
+            {/* Modal */}
+            <NewPlayers
+                showAddMeForm={showAddMeForm}
+                activeSlot={activeSlot}
+                setShowAddMeForm={setShowAddMeForm}
+                setActiveSlot={setActiveSlot}
+                setAddedPlayers={setParentAddedPlayers}
+            />
+        </>
+    );
 };
 
 export default MatchPlayer;
