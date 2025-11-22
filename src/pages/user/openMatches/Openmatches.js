@@ -101,6 +101,7 @@ const Openmatches = () => {
   const [teamName, setTeamName] = useState("");
   const [showViewMatch, setShowViewMatch] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
+  const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
@@ -862,7 +863,7 @@ const Openmatches = () => {
                               border: "0.45px solid #0000001A",
                               boxShadow: "none",
                               height: "10rem",
-                              cursor:"pointer"
+                              cursor: "pointer"
                             }}
                             onClick={() => {
                               setSelectedMatch(match);
@@ -882,7 +883,7 @@ const Openmatches = () => {
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A"} Male
+                                    : "N/A"} {updateName?.gender}
                                 </span>
                                 <p className="all-match-time   mb-0 d-md-none d-lg-none">
                                   {match?.skillLevel
@@ -1600,6 +1601,7 @@ const Openmatches = () => {
             <ViewMatch
               match={selectedMatch}
               onBack={() => setShowViewMatch(false)}
+              updateName={updateName}
             />
           )}
         </div>
