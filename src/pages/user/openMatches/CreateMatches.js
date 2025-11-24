@@ -528,7 +528,7 @@ const CreateMatches = () => {
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
-    <Container className="p-md-4 py-0 px-2 mb-md-5 mb-0">
+    <Container className="py-md-4 px-md-0 py-0 px-2 mb-md-5 mb-0">
       <Row className="g-3">
         {/* ────── LEFT PANEL ────── */}
         <Col md={7} className={`p-md-3 px-3 pt-3 pb-0 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
