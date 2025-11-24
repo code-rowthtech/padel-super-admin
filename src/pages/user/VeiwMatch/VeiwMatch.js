@@ -143,7 +143,7 @@ const PlayerSlot = memo(function PlayerSlot({
     );
 });
 
-const ViewMatch = ({ match, onBack ,updateName}) => {
+const ViewMatch = ({ match, onBack, updateName }) => {
     const dispatch = useDispatch();
     const { id } = useParams(); // Get match ID from URL
     const { state } = useLocation();

@@ -84,40 +84,98 @@ const UpdatePlayers = ({
     setErrors({});
     setShowErrors({});
 
+    // dispatch(Usersignup(formData))
+    //   .unwrap()
+    //   .then((res) => {
+    //     if (res?.status === "200") {
+    //       dispatch(
+    //         addPlayers({
+    //           matchId,
+    //           playerId: res?.response?._id,
+    //           team: teamName,
+    //         })
+    //       ).then(() => {
+    //         setShowModal(false);
+    //         dispatch(getMatchesView(matchId));
+    //         const payload = {
+    //           matchDate: selectedDate?.fullDate,
+    //           ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
+    //           ...(selectedLevel && { skillLevel: selectedLevel }),
+    //         };
+    //         dispatch(getMatchesUser(payload));
+    //       });
+    //       showSuccess("Player added successfully");
+    //     }
+    //     setFormData({
+    //       name: "",
+    //       email: "",
+    //       phoneNumber: "",
+    //       gender: "",
+    //       level: "",
+    //     });
+    //   })
+    //   .catch(() => {
+    //     setErrors({ email: "Enter valid email address" });
+    //     setShowErrors({ email: true });
+    //   });
     dispatch(Usersignup(formData))
       .unwrap()
       .then((res) => {
         if (res?.status === "200") {
+
           dispatch(
             addPlayers({
               matchId,
               playerId: res?.response?._id,
               team: teamName,
             })
-          ).then(() => {
-            setShowModal(false);
-            dispatch(getMatchesView(matchId));
-            const payload = {
-              matchDate: selectedDate?.fullDate,
-              ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
-              ...(selectedLevel && { skillLevel: selectedLevel }),
-            };
-            dispatch(getMatchesUser(payload));
+          )
+            .unwrap()
+            .then(() => {
+              setShowModal(false);
+
+              // WAIT for match data
+              dispatch(getMatchesView(matchId))
+                .unwrap()
+                .then((matchRes) => {
+                  // EXTRACT CLUB ID PROPERLY
+                  const clubId = matchRes?.data?.clubId?._id;
+
+                  if (!clubId) {
+                    console.error("Club ID not found in match response");
+                    return;
+                  }
+
+                  // NOW BUILD CORRECT PAYLOAD
+                  const payload = {
+                    clubId, // <-- REQUIRED
+                    matchDate: selectedDate?.fullDate,
+                    ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
+                    ...(selectedLevel && { skillLevel: selectedLevel }),
+                  };
+
+                  // NOW CALL MATCH USER API
+                  dispatch(getMatchesUser(payload));
+                });
+
+              showSuccess("Player added successfully");
+            });
+
+          // Reset form
+          setFormData({
+            name: "",
+            email: "",
+            phoneNumber: "",
+            gender: "",
+            level: "",
           });
-          showSuccess("Player added successfully");
         }
-        setFormData({
-          name: "",
-          email: "",
-          phoneNumber: "",
-          gender: "",
-          level: "",
-        });
       })
       .catch(() => {
         setErrors({ email: "Enter valid email address" });
         setShowErrors({ email: true });
       });
+
   };
 
   // Auto-hide errors after 2 sec
