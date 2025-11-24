@@ -34,7 +34,9 @@ const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
 );
 
-const HelpSupport = React.lazy(() => import("../pages/user/helpAndSupport/PadelSupportPage"));
+const HelpSupport = React.lazy(() =>
+  import("../pages/user/helpAndSupport/PadelSupportPage")
+);
 const Login = React.lazy(() => import("../pages/user/auth/LoginPage"));
 
 const VerifyOtpUser = React.lazy(() => import("../pages/user/auth/VerifyOtp"));
@@ -93,7 +95,9 @@ const CreateMatch = React.lazy(() =>
   import("../pages/admin/open-matches/create/CreateMatch")
 );
 const Privacy = React.lazy(() => import("../pages/admin/privacy/Privacy"));
-const Sameprivacy = React.lazy(() => import("../pages/admin/privacy/Sameprivacy"));
+const Sameprivacy = React.lazy(() =>
+  import("../pages/admin/privacy/Sameprivacy")
+);
 
 const Support = React.lazy(() =>
   import("../pages/admin/helpAndSupport/Support")
@@ -189,6 +193,10 @@ const AllRoutes = () => {
         {
           path: "*",
           element: <Navigate to="/not-found" replace />,
+        },
+        {
+          path: "sameprivacy",
+          element: LoadComponent(Sameprivacy),
         },
         {
           path: "not-found",

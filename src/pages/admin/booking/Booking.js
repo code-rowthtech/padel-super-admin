@@ -285,7 +285,7 @@ const Booking = () => {
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
                                 {console.log(item, 'muskan')}
-                                {tab !== 2 && item?.bookingStatus !== "rejected" && item?.bookingStatus !== "completed" && (
+                                {tab !== 2 && item?.bookingStatus !== "rejected" && item?.bookingStatus !== "completed" && item?.bookingStatus !== "in-progress" && (
                                   <OverlayTrigger placement="left" overlay={<Tooltip>Cancel</Tooltip>}>
                                     <MdOutlineCancel
                                       onClick={() => handleBookingDetails(item?._id, "cancel")}
@@ -352,7 +352,7 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex gap-2">
-                                {tab !== 2 && item?.bookingStatus !== "rejected" && (
+                                {tab !== 2 && item?.bookingStatus !== "rejected" && item?.bookingStatus !== "completed" && item?.bookingStatus !== "in-progress" && (
                                   <MdOutlineCancel
                                     onClick={() => handleBookingDetails(item?._id, "cancel")}
                                     className="text-danger"

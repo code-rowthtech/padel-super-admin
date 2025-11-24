@@ -98,6 +98,11 @@ const Profile = () => {
       store?.userSignUp?.response?.profilePic ||
       User?.profilePic ||
       "",
+    gender:
+      user?.response?.gender ||
+      store?.userSignUp?.response?.gender ||
+      User?.gender ||
+      "",
   };
 
   localStorage.setItem("updateprofile", JSON.stringify(updateProfileData));

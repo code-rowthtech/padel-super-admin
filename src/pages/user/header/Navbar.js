@@ -496,7 +496,7 @@ const Navbar = () => {
                                         {/* Profile for all screens */}
                                         <div className="d-flex align-items-center gap-2">
                                             <img
-                                                src={User?.user?.response?.profilePic || userData?.profilePic || initialFormData?.profileImage || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                                src={User?.user?.response?.profilePic || updateName?.profile  || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                                 alt="user"
                                                 className="rounded-circle"
                                                 width="40"
@@ -715,7 +715,7 @@ const Navbar = () => {
                                     <div className="px-4 py-3 border-bottom">
                                         <div className="d-flex align-items-center gap-3">
                                             <img
-                                                src={User?.user?.response?.profilePic || userData?.profilePic || initialFormData?.profileImage || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                                src={User?.user?.response?.profilePic || updateName?.profile ||  "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                                 alt="user"
                                                 className="rounded-circle"
                                                 width="50"

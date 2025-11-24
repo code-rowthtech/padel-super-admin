@@ -34,7 +34,8 @@ export const getMatchesUser = createAsyncThunk(
   "matches/getMatchesUser",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await userApi.get(`${Url.GET_OPENMATCH_USER}`, data);
+      const { clubId, ...params } = data;
+      const res = await userApi.get(`${Url.GET_OPENMATCH_USER}?clubId=${clubId}`, params);
       return res?.data;
     } catch (error) {
       showError(error);
@@ -50,7 +51,7 @@ export const getMatchesView = createAsyncThunk(
       const res = await userApi.get(`${Url.VIEW_OPENMATCH}?_id=${data}`);
       return res?.data;
     } catch (error) {
-      showError(error);
+      // showError(error);
       return rejectWithValue(error);
     }
   }

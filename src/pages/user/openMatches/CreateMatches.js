@@ -85,6 +85,7 @@ const CreateMatches = () => {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
+  console.log({selectedDate});
 
   const [errorShow, setErrorShow] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -107,6 +108,7 @@ const CreateMatches = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
   const [existsOpenMatchData, setExistsOpenMatchData] = useState(false);
+  const [userGender, setUserGender] = useState("");
 
   // Sync with localStorage
   useEffect(() => {
@@ -127,14 +129,13 @@ const CreateMatches = () => {
 
   useEffect(() => {
     dispatch(getUserProfile()).then((result) => {
-      console.log(result.payload?.existsOpenMatchData, 'result.payload?.existsOpenMatchData');
+      console.log(result.payload?.response?.gender, 'result.payload?.response?.gender');
+      setUserGender(result.payload?.response?.gender || "");
       if (result.payload?.existsOpenMatchData) {
         setExistsOpenMatchData(true);
-        // Show MatchPlayer directly ONLY on desktop when existsOpenMatchData is true
         if (window.innerWidth > 768) {
           setMatchPlayer(true);
         }
-        // On mobile, don't set matchPlayer automatically - wait for Next button click
       }
     });
     dispatch(getUserClub({ search: "" }));
@@ -204,8 +205,8 @@ const CreateMatches = () => {
           .filter((c) => c.time.length > 0)
       );
     } else {
-      if (totalSlots >= 15) {
-        setErrorMessage("Maximum 15 slots can be selected.");
+      if (totalSlots >= 2) {
+        setErrorMessage("Maximum 2 slots can be selected.");
         setErrorShow(true);
         return;
       }
@@ -328,6 +329,31 @@ const CreateMatches = () => {
     }
     setKey(defaultTab);
   }, [slotData, showUnavailable]);
+
+  const getFilteredLastStepOptions = () => {
+    const firstStepAnswer = skillDetails[0];
+    const allOptions = [
+      { code: "A", title: "Top Player" },
+      { code: "B1", title: "Experienced Player" },
+      { code: "B2", title: "Advanced Player" },
+      { code: "C1", title: "Confident Player" },
+      { code: "C2", title: "Intermediate Player" },
+      { code: "D1", title: "Amateur Player" },
+      { code: "D2", title: "Novice Player" },
+      { code: "E", title: "Entry Level" },
+    ];
+
+    if (firstStepAnswer === "Beginner") {
+      return allOptions.filter(opt => ["B1", "B2", "C1"].includes(opt.code));
+    } else if (firstStepAnswer === "Intermediate") {
+      return allOptions.filter(opt => ["C1", "C2", "D1"].includes(opt.code));
+    } else if (firstStepAnswer === "Advanced") {
+      return allOptions.filter(opt => ["A", "B1", "B2"].includes(opt.code));
+    } else if (firstStepAnswer === "Professional") {
+      return allOptions.filter(opt => ["A"].includes(opt.code));
+    }
+    return allOptions;
+  };
 
   const steps = [
     {
@@ -712,7 +738,8 @@ const CreateMatches = () => {
                         }}
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
-                          setStartDate(new Date(d.fullDate));
+                          const [year, month, dayNum] = d.fullDate.split('-').map(Number);
+                          setStartDate(new Date(year, month - 1, dayNum));
                           dispatch(getUserSlotBooking({ day: d.day, date: d.fullDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
@@ -853,11 +880,13 @@ const CreateMatches = () => {
                                       (t) => t._id === slot._id
                                     );
 
+                                    const totalSelectedSlots = Object.values(selectedTimes).flat().length;
                                     const isDisabled =
                                       slot.status === "booked" ||
                                       slot.availabilityStatus !== "available" ||
                                       isPastTime(slot.time) ||
-                                      slot.amount <= 0;
+                                      slot.amount <= 0 ||
+                                      (totalSelectedSlots >= 2 && !isSelected);
 
                                     return (
                                       <div
@@ -1247,7 +1276,7 @@ const CreateMatches = () => {
                       </div>
                     ))
                     : currentStep === steps.length - 1
-                      ? steps[currentStep].options.map((opt, i) => (
+                      ? getFilteredLastStepOptions().map((opt, i) => (
                         <div
                           key={i}
                           onClick={() => setSelectedLevel(opt.code)}
@@ -1400,13 +1429,13 @@ const CreateMatches = () => {
           {!matchPlayer && !existsOpenMatchData ? (
             <div className="d-none d-lg-block">
               <div style={{ backgroundColor: "#F1F4FF" }}>
-                <div className="d-flex gap-2 ps-4 pt-4">
+                <div className="d-flex justify-content-center gap-2 ps-4 pt-4">
                   {steps.map((_, i) => (
                     <div
                       key={i}
                       style={{
-                        width: 40,
-                        height: 40,
+                        width: 30,
+                        height: 30,
                         borderRadius: "50%",
                         backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
                         color: "#fff",
@@ -1468,13 +1497,13 @@ const CreateMatches = () => {
                               onChange={() => { }}
                               style={{ flexShrink: 0, marginTop: 0 }}
                             />
-                            <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                            <span style={{ fontSize: "15px", fontWeight: 600,fontFamily:"Poppins", color: "#1f2937" }}>
                               {opt}
                             </span>
                           </div>
                         ))
                         : currentStep === steps.length - 1
-                          ? steps[currentStep].options.map((opt, i) => (
+                          ? getFilteredLastStepOptions().map((opt, i) => (
                             <div
                               key={i}
                               onClick={() => setSelectedLevel(opt.code)}
@@ -1498,7 +1527,7 @@ const CreateMatches = () => {
                               <div className="d-flex align-items-center flex-grow-1" style={{ gap: "8px" }}>
                                 <span
                                   style={{
-                                    fontSize: "24px",
+                                    fontSize: "16px",
                                     fontWeight: 700,
                                     color: "#1d4ed8",
                                     minWidth: "38px",
@@ -1507,7 +1536,7 @@ const CreateMatches = () => {
                                 >
                                   {opt.code}
                                 </span>
-                                <strong style={{ fontSize: "16px", color: "#1f2937" }}>{opt.title}</strong>
+                                <strong style={{ fontSize: "15px",fontWeight: 600, color: "#1f2937" }}>{opt.title}</strong>
                               </div>
                             </div>
                           ))
@@ -1532,7 +1561,7 @@ const CreateMatches = () => {
                                 onChange={() => { }}
                                 style={{ flexShrink: 0, marginTop: 0 }}
                               />
-                              <span style={{ fontSize: "16px", fontWeight: 500, color: "#1f2937" }}>
+                            <span style={{ fontSize: "15px", fontWeight: 600,fontFamily:"Poppins", color: "#1f2937" }}>
                                 {opt}
                               </span>
                             </div>
@@ -1617,6 +1646,7 @@ const CreateMatches = () => {
               totalAmount={grandTotal}
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
+              userGender={userGender}
             />
           )}
         </Col>

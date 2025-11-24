@@ -34,8 +34,8 @@ const PlayerSlot = memo(function PlayerSlot({
                     <button
                         className="bg-white rounded-circle d-flex align-items-center justify-content-center"
                         style={{
-                            width: 64,
-                            height: 64,
+                            width: 62,
+                            height: 62,
                             border: team === "A" ? "1px solid #3DBE64" : "1px solid #1F41BB",
                         }}
                         onClick={onAdd}
@@ -69,8 +69,8 @@ const PlayerSlot = memo(function PlayerSlot({
             <div
                 className="rounded-circle border d-flex align-items-center justify-content-center"
                 style={{
-                    width: 68,
-                    height: 68,
+                    width: 64,
+                    height: 64,
                     backgroundColor: user.profilePic
                         ? "transparent"
                         : team === "A"
@@ -113,11 +113,8 @@ const PlayerSlot = memo(function PlayerSlot({
                     <Tooltip id={tooltipId} place="top" effect="solid" />
                 </>
             ) : (
-                <p className="mb-0 mt-2" style={{
-                    fontSize: "10px",
-                    fontWeight: "500",
-                    fontFamily: "Poppins"
-                }}>
+                <p className="mb-0 mt-2 fw-semibold text-center"
+                    style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     {user.name
                         ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
                         : "Unknown"}
@@ -146,7 +143,7 @@ const PlayerSlot = memo(function PlayerSlot({
     );
 });
 
-const ViewMatch = ({ match, onBack }) => {
+const ViewMatch = ({ match, onBack ,updateName}) => {
     const dispatch = useDispatch();
     const { id } = useParams(); // Get match ID from URL
     const { state } = useLocation();
@@ -251,7 +248,7 @@ const ViewMatch = ({ match, onBack }) => {
                         <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
                             Details
                         </h5>
-                        
+
                     </div>
                     <div className="d-flex align-items-center gap-2 position-relative">
                         <button
@@ -296,7 +293,7 @@ const ViewMatch = ({ match, onBack }) => {
                                         const url = window.location.href;
                                         const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         window.open(
-                                            `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+                                            `https://x.com/intent/tweet?url=${encodeURIComponent(
                                                 url
                                             )}&text=${encodeURIComponent(text)}`,
                                             "_blank"
@@ -304,8 +301,38 @@ const ViewMatch = ({ match, onBack }) => {
                                         setShowShareDropdown(false);
                                     }}
                                 >
-                                    <i className="bi bi-twitter" style={{ color: "#1DA1F2" }} />
-                                    Twitter
+                                    <i className="bi bi-twitter-x" style={{ color: "#000000" }} />
+                                    X
+                                </button>
+                                <button
+                                    className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
+                                    onClick={() => {
+                                        const url = window.location.href;
+                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
+                                        navigator.share ? navigator.share({ url, text }) : window.open(
+                                            `https://www.instagram.com/`,
+                                            "_blank"
+                                        );
+                                        setShowShareDropdown(false);
+                                    }}
+                                >
+                                    <i className="bi bi-instagram" style={{ color: "#E4405F" }} />
+                                    Instagram
+                                </button>
+                                <button
+                                    className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
+                                    onClick={() => {
+                                        const url = window.location.href;
+                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
+                                        window.open(
+                                            `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
+                                            "_blank"
+                                        );
+                                        setShowShareDropdown(false);
+                                    }}
+                                >
+                                    <i className="bi bi-whatsapp" style={{ color: "#25D366" }} />
+                                    WhatsApp
                                 </button>
                             </div>
                         )}
@@ -330,16 +357,16 @@ const ViewMatch = ({ match, onBack }) => {
                     </div>
                     <div className="row text-center border-top">
                         <div className="col py-2">
-                            <p className="mb-md-1 mb-0 add_font_mobile " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Gender</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>{matchesData?.data?.gender || "Any"}</p>
+                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Gender</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.gender || "Any"}</p>
                         </div>
                         <div className="col border-start border-end py-2">
-                            <p className="mb-1 add_font_mobile  " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Level</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{fontSize:"15px",fontWeight:'500', fontFamily:"Poppins",color:"#000000"}}>{matchesData?.data?.skillLevel || "Intermediate"}</p>
+                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.skillLevel || "Intermediate"}</p>
                         </div>
                         <div className="col py-2">
-                            <p className="mb-1 add_font_mobile  " style={{fontSize:"13px",fontWeight:'500', fontFamily:"Poppins",color:"#374151"}}>Price</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{fontSize:'18px',fontWeight:"500",color:'#1F41BB'}}>
+                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
                                 ₹{" "}
                                 {matchesData?.data?.slot
                                     ?.reduce((total, court) => {
@@ -404,7 +431,7 @@ const ViewMatch = ({ match, onBack }) => {
                             </div>
 
                         </div>
-                        
+
                     )}
 
                     <div className="d-flex justify-content-between mt-2">
@@ -418,7 +445,7 @@ const ViewMatch = ({ match, onBack }) => {
                     <h6 className="mb-md-3 mb-2 mt-4 all-matches" style={{ color: "#374151" }}>
                         Information
                     </h6>
-                    
+
                 </div>
                 <div className="d-lg-flex gap-2">
                     <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
