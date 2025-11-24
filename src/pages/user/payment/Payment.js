@@ -332,7 +332,7 @@ const Payment = ({ className = "" }) => {
   };
 
   return (
-    <div className="container mt-lg-4 mb-3 mb-md-0 px-3 px-md-4">
+    <div className="container mt-lg-4 mb-3 mb-md-0 px-3 px-md-0">
       <div className="row g-4">
         <div className="col-12 col-lg-7 mobile-payment-content">
           <div className="bg-white rounded">

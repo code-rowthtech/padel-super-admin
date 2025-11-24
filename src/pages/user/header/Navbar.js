@@ -31,6 +31,8 @@ const Navbar = () => {
     const [openNoteId, setOpenNoteId] = useState(null);
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
+    console.log(store?.user?.response?.name, 'storestore');
+
     const User = useSelector((state) => state?.userAuth)
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
     const notificationData = useSelector((state) => state.notificationData?.getNotificationData);
@@ -496,7 +498,7 @@ const Navbar = () => {
                                         {/* Profile for all screens */}
                                         <div className="d-flex align-items-center gap-2">
                                             <img
-                                                src={User?.user?.response?.profilePic || updateName?.profile  || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                                src={User?.user?.response?.profilePic || updateName?.profile || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                                 alt="user"
                                                 className="rounded-circle"
                                                 width="40"
@@ -504,9 +506,9 @@ const Navbar = () => {
                                                 loading="lazy"
                                             />
                                             <div className="text-start d-none d-lg-block">
-                                                <div className="fw-semibold">
-                                                    {userData?.name
-                                                        ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
+                                                <div className="fw-semibold" style={{ textTransform: "capitalize" }}>
+                                                    {store?.user?.response?.name
+                                                        ? store?.user?.response?.name.charAt(0).toUpperCase() + store?.user?.response?.name.slice(1)
                                                         : initialFormData?.fullName || 'User'}
 
                                                 </div>
@@ -715,7 +717,7 @@ const Navbar = () => {
                                     <div className="px-4 py-3 border-bottom">
                                         <div className="d-flex align-items-center gap-3">
                                             <img
-                                                src={User?.user?.response?.profilePic || updateName?.profile ||  "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                                src={User?.user?.response?.profilePic || updateName?.profile || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                                                 alt="user"
                                                 className="rounded-circle"
                                                 width="50"

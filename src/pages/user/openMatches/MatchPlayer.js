@@ -153,22 +153,62 @@ const MatchPlayer = ({
         return { day, formattedDate };
     };
 
+    // const calculateEndRegistrationTime = () => {
+    //     if (!selectedCourts?.length) return "Today at 10:00 PM";
+    //     const allTimes = selectedCourts.flatMap((c) => c.time.map((s) => s.time));
+    //     const latestHour = allTimes.reduce((max, t) => {
+    //         const [h, p] = t.split(" ");
+    //         let hour = parseInt(h);
+    //         if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
+    //         if (p.toLowerCase() === "am" && hour === 12) hour = 0;
+    //         return Math.max(max, hour);
+    //     }, 0);
+    //     const endHour = latestHour + 1;
+    //     const period = endHour >= 12 ? "PM" : "AM";
+    //     const displayHour =
+    //         endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+    //     return `Today at ${displayHour}:00 ${period}`;
+    // };
+
     const calculateEndRegistrationTime = () => {
         if (!selectedCourts?.length) return "Today at 10:00 PM";
-        const allTimes = selectedCourts.flatMap((c) => c.time.map((s) => s.time));
-        const latestHour = allTimes.reduce((max, t) => {
+
+        // Collect all times
+        const allTimes = selectedCourts.flatMap((c) =>
+            c.time.map((s) => s.time)
+        );
+
+        // Convert to minutes since midnight
+        const timesInMinutes = allTimes.map((t) => {
             const [h, p] = t.split(" ");
+
             let hour = parseInt(h);
             if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
             if (p.toLowerCase() === "am" && hour === 12) hour = 0;
-            return Math.max(max, hour);
-        }, 0);
-        const endHour = latestHour + 1;
-        const period = endHour >= 12 ? "PM" : "AM";
+
+            return hour * 60; // minute precision
+        });
+
+        // Latest time
+        const latestMinutes = Math.max(...timesInMinutes);
+
+        // Subtract 15 minutes
+        let endMinutes = latestMinutes - 15;
+        if (endMinutes < 0) endMinutes += 24 * 60;
+
+        // Convert back to 12-hour format
+        const endHour24 = Math.floor(endMinutes / 60);
+        const endMin = endMinutes % 60;
+
+        const period = endHour24 >= 12 ? "PM" : "AM";
         const displayHour =
-            endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
-        return `Today at ${displayHour}:00 ${period}`;
+            endHour24 % 12 === 0 ? 12 : endHour24 % 12;
+
+        const displayMinutes = String(endMin).padStart(2, "0");
+
+        return `Today at ${displayHour}:${displayMinutes} ${period}`;
     };
+
 
     const matchDate = selectedDate?.fullDate
         ? formatDate(selectedDate.fullDate)

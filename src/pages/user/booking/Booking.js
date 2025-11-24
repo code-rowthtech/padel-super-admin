@@ -531,7 +531,7 @@ const Booking = ({ className = "" }) => {
 
   return (
     <>
-      <div className="container px-0 mb-lg-3 mb-0 mobile-banner-container">
+      <div className="container px-0 mb-lg-3 mb-0 mobile-banner-container mt-md-4 mt-0">
         <div className="ps-0 d-none d-lg-block" style={{ height: "340px" }}>
           <div
             className="image-zoom-container position-relative overflow-hidden rounded-3"

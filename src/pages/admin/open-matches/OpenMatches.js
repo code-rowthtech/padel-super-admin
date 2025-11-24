@@ -27,8 +27,9 @@ const OpenMatches = () => {
   };
 
   useEffect(() => {
-    dispatch(getAllOpenMatches());
+    dispatch(getAllOpenMatches(localStorage.getItem("register_club_id")));
   }, []);
+
   const TagWrapper = ({ children }) => (
     <div
       className="d-flex align-items-center rounded-pill pe-3 me-0"

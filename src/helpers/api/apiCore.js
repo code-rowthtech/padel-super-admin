@@ -105,7 +105,7 @@ const handleExpiredSession = (userType) => {
     }
   }, 2000);
 
-  alert("Your session has expired. Please log in again.");
+  alert("Please Login");
 
 };
 

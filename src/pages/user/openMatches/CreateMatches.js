@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Container,
   Row,
@@ -69,7 +70,22 @@ const filterSlotsByTab = (slot, eventKey) => {
 
 /* ──────────────────────── Main Component ──────────────────────── */
 const CreateMatches = () => {
-  const [startDate, setStartDate] = useState(new Date());
+  const location = useLocation();
+
+  // If navigated from Openmatches, `location.state.selectedDate` may be provided
+  const initialSelectedDate =
+    location?.state?.selectedDate ||
+    ({ fullDate: new Date().toISOString().split("T")[0], day: new Date().toLocaleDateString("en-US", { weekday: "long" }) });
+
+  const [startDate, setStartDate] = useState(() => {
+    try {
+      return location?.state?.selectedDate
+        ? new Date(location.state.selectedDate.fullDate)
+        : new Date();
+    } catch (e) {
+      return new Date();
+    }
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const wrapperRef = useRef(null);
@@ -81,11 +97,8 @@ const CreateMatches = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedCourts, setSelectedCourts] = useState([]);
   const [selectedTimes, setSelectedTimes] = useState({});
-  const [selectedDate, setSelectedDate] = useState({
-    fullDate: new Date().toISOString().split("T")[0],
-    day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
-  });
-  console.log({selectedDate});
+  const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
+  console.log({ selectedDate });
 
   const [errorShow, setErrorShow] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -343,15 +356,17 @@ const CreateMatches = () => {
       { code: "E", title: "Entry Level" },
     ];
 
+    // Map first-step skill selection to the final set of recommended player codes
     if (firstStepAnswer === "Beginner") {
-      return allOptions.filter(opt => ["B1", "B2", "C1"].includes(opt.code));
+      return allOptions.filter((opt) => ["D1", "D2"].includes(opt.code));
     } else if (firstStepAnswer === "Intermediate") {
-      return allOptions.filter(opt => ["C1", "C2", "D1"].includes(opt.code));
+      return allOptions.filter((opt) => ["C1", "C2"].includes(opt.code));
     } else if (firstStepAnswer === "Advanced") {
-      return allOptions.filter(opt => ["A", "B1", "B2"].includes(opt.code));
+      return allOptions.filter((opt) => ["B1", "B2"].includes(opt.code));
     } else if (firstStepAnswer === "Professional") {
-      return allOptions.filter(opt => ["A"].includes(opt.code));
+      return allOptions.filter((opt) => ["A"].includes(opt.code));
     }
+
     return allOptions;
   };
 
@@ -528,7 +543,7 @@ const CreateMatches = () => {
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
-    <Container className="p-md-4 py-0 px-2 mb-md-5 mb-0">
+    <Container className="py-md-4 px-md-0 py-0 px-2 mb-md-5 mb-0">
       <Row className="g-3">
         {/* ────── LEFT PANEL ────── */}
         <Col md={7} className={`p-md-3 px-3 pt-3 pb-0 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
@@ -670,7 +685,7 @@ const CreateMatches = () => {
                   backgroundColor: "#f3f3f5",
                   height: "58px",
                   padding: "2px 10px",
-                  width:"20px",
+                  width: "20px",
                 }}
               >
                 <span
@@ -693,7 +708,7 @@ const CreateMatches = () => {
               </div>
               <div
                 className="d-flex gap-1 "
-                style={{ position: "relative"}}
+                style={{ position: "relative" }}
               >
                 <button
                   className="btn p-2 border-0 d-none d-md-block"
@@ -749,7 +764,7 @@ const CreateMatches = () => {
                           <div className="date-center-date">{d.date}</div>
                           <div className="date-center-day">{dayShortMap[d.day]}</div>
                         </div>
-                        {console.log(slotCount,'slotCount')}
+                        {console.log(slotCount, 'slotCount')}
                         {slotCount > 0 && (
                           <span
                             className="position-absolute badge rounded-pill"
@@ -1497,7 +1512,7 @@ const CreateMatches = () => {
                               onChange={() => { }}
                               style={{ flexShrink: 0, marginTop: 0 }}
                             />
-                            <span style={{ fontSize: "15px", fontWeight: 600,fontFamily:"Poppins", color: "#1f2937" }}>
+                            <span style={{ fontSize: "15px", fontWeight: 600, fontFamily: "Poppins", color: "#1f2937" }}>
                               {opt}
                             </span>
                           </div>
@@ -1536,7 +1551,7 @@ const CreateMatches = () => {
                                 >
                                   {opt.code}
                                 </span>
-                                <strong style={{ fontSize: "15px",fontWeight: 600, color: "#1f2937" }}>{opt.title}</strong>
+                                <strong style={{ fontSize: "15px", fontWeight: 600, color: "#1f2937" }}>{opt.title}</strong>
                               </div>
                             </div>
                           ))
@@ -1561,7 +1576,7 @@ const CreateMatches = () => {
                                 onChange={() => { }}
                                 style={{ flexShrink: 0, marginTop: 0 }}
                               />
-                            <span style={{ fontSize: "15px", fontWeight: 600,fontFamily:"Poppins", color: "#1f2937" }}>
+                              <span style={{ fontSize: "15px", fontWeight: 600, fontFamily: "Poppins", color: "#1f2937" }}>
                                 {opt}
                               </span>
                             </div>
