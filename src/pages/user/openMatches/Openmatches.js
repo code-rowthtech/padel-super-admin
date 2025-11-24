@@ -224,11 +224,12 @@ const Openmatches = () => {
 
   const createMatchesHandle = () => {
     if (user?.id || user?._id) {
-      navigate("/create-matches");
+      navigate("/create-matches", { state: { selectedDate } });
     } else {
       navigate("/login", {
         state: {
           redirectTo: "/create-matches",
+          selectedDate,
         },
       });
     }
