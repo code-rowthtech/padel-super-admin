@@ -175,29 +175,74 @@ const ViewMatch = ({ match, onBack, updateName }) => {
         return { day, formattedDate };
     };
 
-    const calculateEndRegistrationTime = () => {
-        if (!matchesData?.data?.slot || matchesData.data.slot.length === 0) {
-            return "Today at 10:00 PM";
-        }
+    // const calculateEndRegistrationTime = () => {
+    //     if (!matchesData?.data?.slot || matchesData.data.slot.length === 0) {
+    //         return "Today at 10:00 PM";
+    //     }
 
-        const allTimes = matchesData.data.slot.flatMap((court) =>
+    //     const allTimes = matchesData.data.slot.flatMap((court) =>
+    //         court.slotTimes.map((slot) => slot.time)
+    //     );
+
+    //     const latestTime = allTimes.reduce((latest, timeStr) => {
+    //         const [hour, period] = timeStr.split(" ");
+    //         let hourNum = parseInt(hour);
+    //         if (period.toLowerCase() === "pm" && hourNum !== 12) hourNum += 12;
+    //         if (period.toLowerCase() === "am" && hourNum === 12) hourNum = 0;
+    //         return Math.max(latest, hourNum);
+    //     }, 0);
+
+    //     let endHour = latestTime + (allTimes.length > 1 ? 1 : 1);
+    //     const period = endHour >= 12 ? "PM" : "AM";
+    //     const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+
+    //     return `Today at ${displayHour}:00 ${period}`;
+    // };
+
+    const calculateEndRegistrationTime = () => {
+        const slots = matchesData?.data?.slot;
+        if (!slots || slots.length === 0) return "Today at 10:00 PM";
+
+        // Collect all slot times
+        const allTimes = slots.flatMap((court) =>
             court.slotTimes.map((slot) => slot.time)
         );
 
-        const latestTime = allTimes.reduce((latest, timeStr) => {
-            const [hour, period] = timeStr.split(" ");
-            let hourNum = parseInt(hour);
-            if (period.toLowerCase() === "pm" && hourNum !== 12) hourNum += 12;
-            if (period.toLowerCase() === "am" && hourNum === 12) hourNum = 0;
-            return Math.max(latest, hourNum);
+        // Find latest time in 24h format (in minutes)
+        const latestMinutes = allTimes.reduce((latest, timeStr) => {
+            const [hourStr, period] = timeStr.split(" ");
+            let hour = parseInt(hourStr);
+
+            // convert to 24h
+            if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
+            if (period.toLowerCase() === "am" && hour === 12) hour = 0;
+
+            const minutes = hour * 60;
+            return Math.max(latest, minutes);
         }, 0);
 
-        let endHour = latestTime + (allTimes.length > 1 ? 1 : 1);
-        const period = endHour >= 12 ? "PM" : "AM";
-        const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+        // Add 1 hour AFTER last slot
+        let endMinutes = latestMinutes + 60;
 
-        return `Today at ${displayHour}:00 ${period}`;
+        // SUBTRACT 15 min for registration cutoff
+        endMinutes -= 15;
+
+        // Convert minutes → hour + minute + AM/PM
+        let finalHour24 = Math.floor(endMinutes / 60);
+        let finalMin = endMinutes % 60;
+
+        const period = finalHour24 >= 12 ? "PM" : "AM";
+
+        let displayHour =
+            finalHour24 > 12 ? finalHour24 - 12 :
+                finalHour24 === 0 ? 12 :
+                    finalHour24;
+
+        const minuteStr = finalMin.toString().padStart(2, "0");
+
+        return `Today at ${displayHour}:${minuteStr} ${period}`;
     };
+
 
     const matchDate = matchesData?.data?.matchDate
         ? formatDate(matchesData.data.matchDate)

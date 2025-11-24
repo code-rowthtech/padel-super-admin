@@ -3,36 +3,57 @@ import * as Url from "../../../helpers/api/apiEndpoint";
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
+// export const getAllOpenMatches = createAsyncThunk(
+//   "openMatches/getAllOpenMatches",
+//   async (params, { rejectWithValue }) => {
+//     try {
+//       const buildQuery = (params) => {
+//         const query = new URLSearchParams();
+
+//         if (params?.status) query.append("bookingStatus", params?.status);
+
+//         return query.toString();
+//       };
+//       const res = await ownerApi.get(
+//         `${Url.GET_OPEN_MATCHES}?${buildQuery(params)}`
+//       );
+//       // Destructure response data
+//       const { status, message } = res.data || {};
+//       if (status === 200 || "200") {
+//         return res.data;
+//       }
+
+//       const errorMessage = message || "Failed to get Open Matches";
+//       // showError(errorMessage);
+//       return rejectWithValue(errorMessage);
+//     } catch (error) {
+//       const errorMessage = error?.response?.data?.message || "Network error";
+//       // showError(error);
+//       // return rejectWithValue(errorMessage);
+//     }
+//   }
+// );
 export const getAllOpenMatches = createAsyncThunk(
   "openMatches/getAllOpenMatches",
-  async (params, { rejectWithValue }) => {
+  async (clubId, { rejectWithValue }) => {
     try {
-      const buildQuery = (params) => {
-        const query = new URLSearchParams();
+      const query = new URLSearchParams({ clubId }).toString();
 
-        if (params?.status) query.append("bookingStatus", params?.status);
+      const res = await ownerApi.get(`${Url.GET_OPEN_MATCHES}?${query}`);
 
-        return query.toString();
-      };
-      const res = await ownerApi.get(
-        `${Url.GET_OPEN_MATCHES}?${buildQuery(params)}`
-      );
-      // Destructure response data
       const { status, message } = res.data || {};
-      if (status === 200 || "200") {
+
+      if (status === 200) {
         return res.data;
       }
 
-      const errorMessage = message || "Failed to get Open Matches";
-      // showError(errorMessage);
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(message || "Failed to get open matches");
     } catch (error) {
-      const errorMessage = error?.response?.data?.message || "Network error";
-      // showError(error);
-      // return rejectWithValue(errorMessage);
+      return rejectWithValue(error?.response?.data?.message || "Network error");
     }
   }
 );
+
 export const getMatchById = createAsyncThunk(
   "openMatches/getMatchById",
   async (params, { rejectWithValue }) => {
