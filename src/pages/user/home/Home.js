@@ -906,15 +906,15 @@ const Home = () => {
         )}
         <style jsx global>{`
           .full-screen-lightbox .ril-image-current {
-            max-width: 80vw !important;
-            max-height: 80vh !important;
+            max-width: 30vw !important;
+            max-height: 30vh !important;
             object-fit: contain !important;
             margin: 0 auto !important;
             display: block !important;
             position: relative !important;
           }
           .full-screen-lightbox .ril-inner {
-            background-color: #d9e0f8 !important;
+            // background-color: #d9e0f8 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -956,7 +956,7 @@ const Home = () => {
               onClick={() => navigate("/open-matches")}
               style={{
                 border: "3px solid #FFFFFF",
-                fontSize: "10px",
+                fontSize: "14px",
                 fontFamily: "Poppins",
                 fontWeight: "500",
               }}
