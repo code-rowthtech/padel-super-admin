@@ -504,7 +504,7 @@ const Navbar = () => {
                                                 loading="lazy"
                                             />
                                             <div className="text-start d-none d-lg-block">
-                                                <div className="fw-semibold">
+                                                <div className="fw-semibold" style={{textTransform:"capitalize"}}>
                                                     {userData?.name
                                                         ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
                                                         : initialFormData?.fullName || 'User'}

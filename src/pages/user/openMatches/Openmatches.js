@@ -452,7 +452,7 @@ const Openmatches = () => {
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
   return (
-    <div className="container mt-lg-4 px-3 px-md-4 mb-md-4 mb-0">
+    <div className="container mt-lg-4 px-3 px-md-0 mb-md-4 mb-0">
       <div className="row g-md-4 mx-auto">
         {/* Left Section */}
         <div
@@ -1350,7 +1350,7 @@ const Openmatches = () => {
         </div>
 
         <div
-          className={`col-12 col-lg-5 px-md-3 px-0 ${!showViewMatch ? "ps-md-4 pt-md-3 pt-4" : ""
+          className={`col-12 col-lg-5 ps-md-3 pe-md-0 px-0 ${!showViewMatch ? "ps-md-4 pt-md-3 pt-4" : ""
             } order-1 order-md-2 ${showViewMatch ? "d-block" : ""}`}
         >
           {!showViewMatch ? (

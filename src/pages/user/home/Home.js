@@ -196,7 +196,7 @@ const Home = () => {
 
   return (
     <>
-      <div className="container px-0">
+      <div className="container px-0 mt-md-4 mt-0">
         <div className="row g-4 px-3 px-md-0">
           {/* Hero Section */}
           <div className="col-12 ps-md-0 pt-0 mt-3 mt-md-4">
