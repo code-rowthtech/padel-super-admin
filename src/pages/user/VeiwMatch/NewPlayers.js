@@ -342,7 +342,7 @@ const NewPlayers = ({
             </label>
             <div className="d-flex flex-wrap gap-3">
               {["Male", "Female", "Other"].map((g) => (
-                <div key={g} className="form-check">
+                <div key={g} className="form-check d-flex align-items-center gap-2">
                   <input
                     className="form-check-input"
                     type="radio"
@@ -354,7 +354,7 @@ const NewPlayers = ({
                       handleInputChange("gender", e.target.value)
                     }
                   />
-                  <label className="form-check-label" htmlFor={g}>
+                  <label className="form-check-label pt-1" htmlFor={g}>
                     {g}
                   </label>
                 </div>
@@ -417,13 +417,17 @@ const NewPlayers = ({
                 setErrors({});
                 setShowErrors({});
               }}
+                            sx={{ width: { xs: "100%", sm: "50%",border:"1px solid #001b76",color:"#001B76" } }}
+
             >
               Cancel
             </Button>
             <Button
               type="submit"
               fullWidth
-              style={{ backgroundColor: "#3DBE64", color: "white" }}
+                sx={{ width: { xs: "100%", sm: "50%" } }}
+              style={{   background:
+                        "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white" }}
               disabled={userLoading}
             >
               {userLoading ? <ButtonLoading color="white" /> : "Submit"}

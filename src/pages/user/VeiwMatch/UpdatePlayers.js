@@ -354,7 +354,7 @@ const UpdatePlayers = ({
             <label className="form-label">Gender</label>
             <div className="d-flex flex-wrap gap-3">
               {["Male", "Female", "Other"].map((gender) => (
-                <div key={gender} className="form-check">
+                <div key={gender} className="form-check d-flex align-items-center gap-2">
                   <input
                     className="form-check-input"
                     type="radio"
@@ -369,7 +369,7 @@ const UpdatePlayers = ({
                       }))
                     }
                   />
-                  <label className="form-check-label" htmlFor={gender}>
+                  <label className="form-check-label pt-1" htmlFor={gender}>
                     {gender}
                   </label>
                 </div>
@@ -409,12 +409,12 @@ const UpdatePlayers = ({
               variant="outlined"
               color="secondary"
               onClick={() => setShowModal(false)}
-              sx={{ width: { xs: "100%", sm: "45%", } }}
+              sx={{ width: { xs: "100%", sm: "50%",border:"1px solid #001b76",color:"#001B76" } }}
             >
               Cancel
             </Button>
             <Button
-              sx={{ width: { xs: "100%", sm: "45%" } }}
+              sx={{ width: { xs: "100%", sm: "50%" } }}
               style={{   background:
                         "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white" }}
               onClick={handleAddPlayer}
