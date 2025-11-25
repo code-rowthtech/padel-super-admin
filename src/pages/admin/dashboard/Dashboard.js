@@ -8,7 +8,19 @@ import {
   OverlayTrigger,
   Tooltip as BootstrapTooltip,
 } from "react-bootstrap";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, defs, Bar, BarChart } from "recharts";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  defs,
+  Bar,
+  BarChart,
+} from "recharts";
 import { FaArrowUp, FaArrowDown, FaEye } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -38,8 +50,6 @@ import {
   CancelRequestModal,
 } from "../booking/cancellation/ModalCancellation";
 
-
-
 const AdminDashboard = () => {
   const dispatch = useDispatch();
 
@@ -66,40 +76,100 @@ const AdminDashboard = () => {
     totalBookingHours: 45,
     upcomingBookingHours: 2,
     totalRevenue: 95000,
-    cancellationRequestCount: 3
+    cancellationRequestCount: 3,
   };
 
   const summaryCards = [
     {
-      title: "Total Booking",
+      title: "Completed Booking",
       value: `${dashboardCounts?.totalBookingHours || 0} Hrs`,
-      percent: calculatePercentage(dashboardCounts?.totalBookingHours || 0, previousPeriod.totalBookingHours),
-      icon: calculatePercentage(dashboardCounts?.totalBookingHours || 0, previousPeriod.totalBookingHours).startsWith('+') ? <FaArrowUp /> : <FaArrowDown />,
-      color: calculatePercentage(dashboardCounts?.totalBookingHours || 0, previousPeriod.totalBookingHours).startsWith('+') ? "success" : "danger",
+      percent: calculatePercentage(
+        dashboardCounts?.totalBookingHours || 0,
+        previousPeriod.totalBookingHours
+      ),
+      icon: calculatePercentage(
+        dashboardCounts?.totalBookingHours || 0,
+        previousPeriod.totalBookingHours
+      ).startsWith("+") ? (
+        <FaArrowUp />
+      ) : (
+        <FaArrowDown />
+      ),
+      color: calculatePercentage(
+        dashboardCounts?.totalBookingHours || 0,
+        previousPeriod.totalBookingHours
+      ).startsWith("+")
+        ? "success"
+        : "danger",
       bigicon: <MdOutlineDateRange size={35} />,
     },
     {
       title: "Upcoming Booking",
       value: `${dashboardCounts?.upcomingBookingHours || 0} Hrs`,
-      percent: calculatePercentage(dashboardCounts?.upcomingBookingHours || 0, previousPeriod.upcomingBookingHours),
-      icon: calculatePercentage(dashboardCounts?.upcomingBookingHours || 0, previousPeriod.upcomingBookingHours).startsWith('+') ? <FaArrowUp /> : <FaArrowDown />,
-      color: calculatePercentage(dashboardCounts?.upcomingBookingHours || 0, previousPeriod.upcomingBookingHours).startsWith('+') ? "success" : "danger",
+      percent: calculatePercentage(
+        dashboardCounts?.upcomingBookingHours || 0,
+        previousPeriod.upcomingBookingHours
+      ),
+      icon: calculatePercentage(
+        dashboardCounts?.upcomingBookingHours || 0,
+        previousPeriod.upcomingBookingHours
+      ).startsWith("+") ? (
+        <FaArrowUp />
+      ) : (
+        <FaArrowDown />
+      ),
+      color: calculatePercentage(
+        dashboardCounts?.upcomingBookingHours || 0,
+        previousPeriod.upcomingBookingHours
+      ).startsWith("+")
+        ? "success"
+        : "danger",
       bigicon: <MdOutlineInsertDriveFile size={35} />,
     },
     {
       title: "Total Revenue",
       value: `₹ ${formatNumber(dashboardCounts?.totalRevenue) || 0}`,
-      percent: calculatePercentage(dashboardCounts?.totalRevenue || 0, previousPeriod.totalRevenue),
-      icon: calculatePercentage(dashboardCounts?.totalRevenue || 0, previousPeriod.totalRevenue).startsWith('+') ? <FaArrowUp /> : <FaArrowDown />,
-      color: calculatePercentage(dashboardCounts?.totalRevenue || 0, previousPeriod.totalRevenue).startsWith('+') ? "success" : "danger",
+      percent: calculatePercentage(
+        dashboardCounts?.totalRevenue || 0,
+        previousPeriod.totalRevenue
+      ),
+      icon: calculatePercentage(
+        dashboardCounts?.totalRevenue || 0,
+        previousPeriod.totalRevenue
+      ).startsWith("+") ? (
+        <FaArrowUp />
+      ) : (
+        <FaArrowDown />
+      ),
+      color: calculatePercentage(
+        dashboardCounts?.totalRevenue || 0,
+        previousPeriod.totalRevenue
+      ).startsWith("+")
+        ? "success"
+        : "danger",
       bigicon: <MdOutlineTrendingUp size={35} />,
     },
     {
       title: "Cancellation Request",
       value: `${dashboardCounts?.cancellationRequestCount || 0}`,
-      percent: calculatePercentage(dashboardCounts?.cancellationRequestCount || 0, previousPeriod.cancellationRequestCount),
-      icon: calculatePercentage(dashboardCounts?.cancellationRequestCount || 0, previousPeriod.cancellationRequestCount).startsWith('+') ? <FaArrowDown /> : <FaArrowUp />,
-      color: calculatePercentage(dashboardCounts?.cancellationRequestCount || 0, previousPeriod.cancellationRequestCount).startsWith('+') ? "danger" : "success",
+      percent: calculatePercentage(
+        dashboardCounts?.cancellationRequestCount || 0,
+        previousPeriod.cancellationRequestCount
+      ),
+      icon: calculatePercentage(
+        dashboardCounts?.cancellationRequestCount || 0,
+        previousPeriod.cancellationRequestCount
+      ).startsWith("+") ? (
+        <FaArrowDown />
+      ) : (
+        <FaArrowUp />
+      ),
+      color: calculatePercentage(
+        dashboardCounts?.cancellationRequestCount || 0,
+        previousPeriod.cancellationRequestCount
+      ).startsWith("+")
+        ? "danger"
+        : "success",
       bigicon: <MdOutlineGroup size={35} />,
     },
   ];
@@ -113,7 +183,7 @@ const AdminDashboard = () => {
     dispatch(getCountDataForDashboard());
     dispatch(getCancelledBookingsForDashboard());
     dispatch(getRecentBookingsForDashboard());
-    dispatch(getRevenueForDashboard())
+    dispatch(getRevenueForDashboard());
   }, [dispatch]);
 
   const renderSlotTimes = (slotTimes) =>
@@ -126,8 +196,8 @@ const AdminDashboard = () => {
       type === "details"
         ? setShowBookingDetails(true)
         : type === "cancel"
-          ? setShowBookingCancel(true)
-          : setShowCancellation(true);
+        ? setShowBookingCancel(true)
+        : setShowCancellation(true);
     } catch (error) {
       console.error("Failed to fetch booking details:", error);
     } finally {
@@ -154,10 +224,14 @@ const AdminDashboard = () => {
     const getOrdinal = (n) => {
       if (n > 3 && n < 21) return "th";
       switch (n % 10) {
-        case 1: return "st";
-        case 2: return "nd";
-        case 3: return "rd";
-        default: return "th";
+        case 1:
+          return "st";
+        case 2:
+          return "nd";
+        case 3:
+          return "rd";
+        default:
+          return "th";
       }
     };
 
@@ -165,8 +239,18 @@ const AdminDashboard = () => {
   };
 
   const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   const monthMap = {
@@ -197,8 +281,10 @@ const AdminDashboard = () => {
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      chartData[monthIndex].Booking = (chartData[monthIndex].Booking || 0) + (item.totalBookings || 0);
-      chartData[monthIndex].totalAmount = (chartData[monthIndex].totalAmount || 0) + (item.totalAmount || 0);
+      chartData[monthIndex].Booking =
+        (chartData[monthIndex].Booking || 0) + (item.totalBookings || 0);
+      chartData[monthIndex].totalAmount =
+        (chartData[monthIndex].totalAmount || 0) + (item.totalAmount || 0);
       chartData[monthIndex].year = item.year || 2025;
     }
   });
@@ -208,7 +294,8 @@ const AdminDashboard = () => {
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
     if (monthIndex !== -1) {
-      chartData[monthIndex].Cancelation = (chartData[monthIndex].Cancelation || 0) + (item.cancelBookings || 0);
+      chartData[monthIndex].Cancelation =
+        (chartData[monthIndex].Cancelation || 0) + (item.cancelBookings || 0);
       chartData[monthIndex].year = item.year || 2025;
     }
   });
@@ -217,7 +304,6 @@ const AdminDashboard = () => {
   console.log("Current pathname:", pathname);
 
   useEffect(() => {
-
     if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
       localStorage.removeItem("clubFormData");
       sessionStorage.removeItem("registerId");
@@ -299,25 +385,38 @@ const AdminDashboard = () => {
                     <div>
                       <h6
                         className="mb-1"
-                        style={{ fontSize: "18px", fontWeight: "700", color: "#1f2937" }}
+                        style={{
+                          fontSize: "18px",
+                          fontWeight: "700",
+                          color: "#1f2937",
+                        }}
                       >
                         Monthly Booking Analytics
                       </h6>
-                      <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+                      <p
+                        className="text-muted mb-0"
+                        style={{ fontSize: "12px" }}
+                      >
                         Track your booking performance over time
                       </p>
                     </div>
-
                   </div>
 
                   <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                    <BarChart
+                      data={chartData}
+                      margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                       <XAxis
                         dataKey="month"
                         tickLine={false}
                         axisLine={{ stroke: "#e5e7eb" }}
-                        tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
+                        tick={{
+                          fill: "#6b7280",
+                          fontSize: 12,
+                          fontWeight: "500",
+                        }}
                         interval={0}
                         height={50}
                         padding={{ right: 10 }}
@@ -325,22 +424,36 @@ const AdminDashboard = () => {
                       <YAxis
                         type="number"
                         domain={[0, 50]}
-                        ticks={[0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200]}
+                        ticks={[
+                          0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200,
+                        ]}
                         allowDecimals={false}
                         tickLine={false}
                         axisLine={{ stroke: "#e5e7eb" }}
                         width={60}
-                        tick={{ fill: "#6b7280", fontSize: 12, fontWeight: "500" }}
+                        tick={{
+                          fill: "#6b7280",
+                          fontSize: 12,
+                          fontWeight: "500",
+                        }}
                         label={{
-                          value: 'Booking Count',
+                          value: "Booking Count",
                           angle: -90,
-                          position: 'insideLeft',
-                          style: { textAnchor: 'middle', fill: '#6b7280', fontSize: '12px', fontWeight: '600' }
+                          position: "insideLeft",
+                          style: {
+                            textAnchor: "middle",
+                            fill: "#6b7280",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                          },
                         }}
                       />
                       <Tooltip
                         cursor={{ fill: "transparent" }}
-                        contentStyle={{ backgroundColor: "white", border: "none" }}
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "none",
+                        }}
                         content={({ label, payload }) => {
                           if (payload && payload.length > 0) {
                             const dataPoint = payload[0].payload;
@@ -353,22 +466,66 @@ const AdminDashboard = () => {
                                   padding: "12px",
                                   boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                                   fontSize: "13px",
-                                  minWidth: "180px"
+                                  minWidth: "180px",
                                 }}
                               >
-                                <p style={{ margin: "0 0 8px 0", fontWeight: "600", color: "#1f2937" }}>{label} 2024</p>
+                                <p
+                                  style={{
+                                    margin: "0 0 8px 0",
+                                    fontWeight: "600",
+                                    color: "#1f2937",
+                                  }}
+                                >
+                                  {label} 2024
+                                </p>
                                 <div className="d-flex justify-content-between align-items-center mb-1">
-                                  <span style={{ color: "#6b7280" }}>📊 Bookings:</span>
-                                  <span style={{ fontWeight: "600", color: "#3b82f6" }}>{dataPoint.Booking}</span>
+                                  <span style={{ color: "#6b7280" }}>
+                                    📊 Bookings:
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontWeight: "600",
+                                      color: "#3b82f6",
+                                    }}
+                                  >
+                                    {dataPoint.Booking}
+                                  </span>
                                 </div>
                                 <div className="d-flex justify-content-between align-items-center mb-1">
-                                  <span style={{ color: "#6b7280" }}>❌ Cancellations:</span>
-                                  <span style={{ fontWeight: "600", color: "#ef4444" }}>{dataPoint.Cancelation}</span>
+                                  <span style={{ color: "#6b7280" }}>
+                                    ❌ Cancellations:
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontWeight: "600",
+                                      color: "#ef4444",
+                                    }}
+                                  >
+                                    {dataPoint.Cancelation}
+                                  </span>
                                 </div>
-                                <hr style={{ margin: "8px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
+                                <hr
+                                  style={{
+                                    margin: "8px 0",
+                                    border: "none",
+                                    borderTop: "1px solid #f3f4f6",
+                                  }}
+                                />
                                 <div className="d-flex justify-content-between align-items-center">
-                                  <span style={{ color: "#6b7280" }}>💰 Revenue:</span>
-                                  <span style={{ fontWeight: "700", color: "#059669" }}>₹{(dataPoint.totalAmount || 0).toLocaleString()}</span>
+                                  <span style={{ color: "#6b7280" }}>
+                                    💰 Revenue:
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontWeight: "700",
+                                      color: "#059669",
+                                    }}
+                                  >
+                                    ₹
+                                    {(
+                                      dataPoint.totalAmount || 0
+                                    ).toLocaleString()}
+                                  </span>
                                 </div>
                               </div>
                             );
@@ -386,12 +543,17 @@ const AdminDashboard = () => {
                       />
                     </BarChart>
                   </ResponsiveContainer>
-
                 </Card.Body>
               </Card>
             </Col>
             <Col xs={12} lg={5}>
-              <Card className="shadow border-0" style={{ height: dashboardCancelledBookings?.length > 0 ? "450px" : "450px" }}>
+              <Card
+                className="shadow border-0"
+                style={{
+                  height:
+                    dashboardCancelledBookings?.length > 0 ? "450px" : "450px",
+                }}
+              >
                 <Card.Body>
                   <div className="d-flex justify-content-between">
                     <h6
@@ -411,7 +573,10 @@ const AdminDashboard = () => {
                     className=" p-0"
                     style={{
                       height: "45vh",
-                      overflowY: dashboardCancelledBookings?.length > 9 ? "auto" : "hidden",
+                      overflowY:
+                        dashboardCancelledBookings?.length > 9
+                          ? "auto"
+                          : "hidden",
                     }}
                   >
                     {dashboardCancelledBookings?.length > 0 ? (
@@ -473,7 +638,10 @@ const AdminDashboard = () => {
                                 >
                                   {item?.slot[0]?.courtName || "-"}
                                 </td>
-                                <td className='py-2' style={{ cursor: "pointer" }}>
+                                <td
+                                  className="py-2"
+                                  style={{ cursor: "pointer" }}
+                                >
                                   {loadingById === item?._id ? (
                                     <ButtonLoading color="blue" size={7} />
                                   ) : (
