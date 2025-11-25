@@ -1275,13 +1275,16 @@ h1.display-5 {
   }
 
   .booking-table th {
-    padding: 12px 4px !important;
+    padding: 12px 20px !important;
     font-size: 14px !important;
+    white-space: nowrap;
   }
 
   .booking-table td {
-    padding: 8px 4px !important;
+    padding: 8px 20px !important;
     font-size: 12px !important;
+        white-space: nowrap;
+
   }
 
   .table-data {
@@ -1299,7 +1302,12 @@ h1.display-5 {
   height: 4px;
   margin: 10px 0px;
 }
-
+/* .ratio>*{
+  height: 75%!important;
+} */
+.ratio-16x9 {
+    --bs-aspect-ratio: 47.25%!important;
+}
 .overflow-auto::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 2px;

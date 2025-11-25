@@ -298,7 +298,7 @@ const BookingHistory = () => {
             </Box>
             <Row className="mb-3">
                 <Col xs={12} md={9} className="mb-3 mb-md-0">
-                    <h2 className="step-heading mt-2">
+                    <h2 className="step-heading mt-md-2 mt-0">
                         {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking
                     </h2>
                 </Col>
@@ -309,32 +309,37 @@ const BookingHistory = () => {
                     className="d-flex flex-row gap-2 justify-content-md-end align-items-center"
                 >
                     <InputGroup
-                        className="rounded d-flex p-1 align-items-center"
+                        className="rounded d-flex p-1 align-items-center justify-content-between"
                         style={{ backgroundColor: "#FAFBFF" }}
                     >
-                        <InputGroup.Text className="bg-light border-0 px-2">
-                            <MdOutlineDateRange size={16} className="text-muted" />
-                        </InputGroup.Text>
-
-                        <DatePicker
-                            selectsRange
-                            startDate={startDate}
-                            endDate={endDate}
-                            onChange={(update) => setDateRange(update)}
-                            dateFormat="dd/MM/yy"
-                            placeholderText="dd/mm/yy – dd/mm/yy"
-                            className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
-                        />
-
-                        {(startDate || endDate) && (
-                            <InputGroup.Text
-                                className="bg-light border-0 px-3"
-                                onClick={() => setDateRange([null, null])}
-                                style={{ cursor: "pointer" }}
-                            >
-                                <FaTimes className="text-danger" />
+                        <div className="col-10 d-flex align-items-center ">
+                            <InputGroup.Text className="bg-light border-0 px-2">
+                                <MdOutlineDateRange size={16} className="text-muted" />
                             </InputGroup.Text>
-                        )}
+
+                            <DatePicker
+                                selectsRange
+                                startDate={startDate}
+                                endDate={endDate}
+                                onChange={(update) => setDateRange(update)}
+                                dateFormat="dd/MM/yy"
+                                placeholderText="dd/mm/yy – dd/mm/yy"
+                                className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                            />
+
+                        </div>
+                        <div className="col-2">
+
+                            {(startDate || endDate) && (
+                                <InputGroup.Text
+                                    className=" border-0 px-1 d-flex align-items-center justify-content-end"
+                                    onClick={() => setDateRange([null, null])}
+                                    style={{ cursor: "pointer",background:"transparent" }}
+                                >
+                                    <FaTimes className="text-danger" />
+                                </InputGroup.Text>
+                            )}
+                        </div>
                     </InputGroup>
                 </Col>
 
@@ -362,7 +367,7 @@ const BookingHistory = () => {
                                     {activeTab === "completed" && <th style={{ minHeight: "48px", padding: "8px 0" }}>Message</th>}
                                     <th style={{ minHeight: "48px", padding: "8px 0" }}>Amount</th>
                                     {activeTab === "cancelled" && (
-                                        <th className="position-relative" style={{ padding: "2px 0" }}>
+                                        <th className="position-relative" style={{ padding: "8px 0" }}>
                                             <div className="dropdown-wrapper">
                                                 {/* Header */}
                                                 <div
@@ -370,8 +375,8 @@ const BookingHistory = () => {
                                                     className="dropdown-header table-data"
                                                     onClick={() => setIsOpen(!isOpen)}
                                                     style={{
-                                                        minHeight: "32px",
-                                                        padding: "4px 8px",
+                                                        // minHeight: "48px",
+                                                        padding: "0px 8px",
                                                         cursor: "pointer",
                                                         background: "transparent",
                                                         borderRadius: "4px",
@@ -442,7 +447,7 @@ const BookingHistory = () => {
                                     {filterStatus?.map((booking, i) =>
                                         booking?.slot?.map((slotItem, index) => (
                                             <tr key={`${i}-${index}`} className="border-bottom">
-                                                <td className="table-data py-1 pt-2 ps-5 text-start" style={{ fontWeight: "570", fontSize: "16px", color: "#000000",width:"20%"}}>
+                                                <td className="table-data py-1 pt-2 ps-5 text-start" style={{ fontWeight: "570", fontSize: "16px", color: "#000000", width: "20%" }}>
                                                     {formatDate(booking?.bookingDate)} | {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
@@ -638,7 +643,7 @@ const BookingHistory = () => {
                                                         {
                                                             console.log(booking, 'bookingbookingbooking')
 
-}
+                                                        }
                                                         <span style={{ minWidth: "24px", display: "flex", justifyContent: "center" }}>
                                                             <FiEye
                                                                 size={20}

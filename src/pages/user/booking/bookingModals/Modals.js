@@ -285,7 +285,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
             ) : (
               tableData?.booking?.cancellationReason || tableData?.booking?.customerReview?._id ? '' :
                 <Button
-                  style={{ backgroundColor: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", fontWeight: '500', fontSize: '17px', border: '0' }}
+                  style={{ backgroundColor: '#1A237E', fontWeight: '500', fontSize: '17px', border: '0' }}
                   onClick={() => setChangeContent(true)}
                   className="rounded-pill py-lg-2 py-1 w-100 px-4"
                 >

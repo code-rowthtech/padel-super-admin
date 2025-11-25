@@ -249,7 +249,7 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
 
                 {/* Button */}
                 {!hasReview && (
-                    <div className="justify-content-center mt-2 d-flex align-items-center">
+                    <div className="justify-content-center mt-2 d-flex align-items-center mb-3">
                         <Button
                             style={{ backgroundColor: "#1A237E", fontWeight: "500", fontSize: "17px", border: "0" }}
                             onClick={handleSubmit}
