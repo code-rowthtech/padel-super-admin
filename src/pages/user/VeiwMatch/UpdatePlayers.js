@@ -409,13 +409,14 @@ const UpdatePlayers = ({
               variant="outlined"
               color="secondary"
               onClick={() => setShowModal(false)}
-              sx={{ width: { xs: "100%", sm: "45%" } }}
+              sx={{ width: { xs: "100%", sm: "45%", } }}
             >
               Cancel
             </Button>
             <Button
               sx={{ width: { xs: "100%", sm: "45%" } }}
-              style={{ backgroundColor: "#3DBE64", color: "white" }}
+              style={{   background:
+                        "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white" }}
               onClick={handleAddPlayer}
             >
               {addLoading?.userSignUpLoading ? (
