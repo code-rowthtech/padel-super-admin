@@ -31,7 +31,6 @@ const Navbar = () => {
     const [openNoteId, setOpenNoteId] = useState(null);
     const [userData, setUserData] = useState(null);
     const store = useSelector((state) => state?.userAuth);
-    console.log(store?.user?.response?.name, 'storestore');
 
     const User = useSelector((state) => state?.userAuth)
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
