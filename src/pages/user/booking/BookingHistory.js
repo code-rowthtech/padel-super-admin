@@ -233,7 +233,7 @@ const BookingHistory = () => {
 
     return (
         <Container>
-            <Row className=" mb-2  mt-3">
+            <Row className=" mb-2  mt-md-4 mt-0">
                 <Col md={6}>
                     <h3 className="booking-history-heading">Booking History</h3>
                 </Col>
@@ -442,7 +442,7 @@ const BookingHistory = () => {
                                     {filterStatus?.map((booking, i) =>
                                         booking?.slot?.map((slotItem, index) => (
                                             <tr key={`${i}-${index}`} className="border-bottom">
-                                                <td className="table-data py-1 pt-2 ps-5 text-start" style={{ fontWeight: "570", fontSize: "16px", color: "#000000" }}>
+                                                <td className="table-data py-1 pt-2 ps-5 text-start" style={{ fontWeight: "570", fontSize: "16px", color: "#000000",width:"20%"}}>
                                                     {formatDate(booking?.bookingDate)} | {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
@@ -452,7 +452,7 @@ const BookingHistory = () => {
                                                         return times?.length > 5 ? `${displayed} ...` : displayed;
                                                     })()}
                                                 </td>
-                                                <td className="table-data pt-2 py-1">
+                                                <td className="table-data pt-2 py-1" >
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
                                                 <td className="table-data pt-2 py-1">
