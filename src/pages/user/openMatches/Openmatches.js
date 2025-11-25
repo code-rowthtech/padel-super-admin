@@ -145,7 +145,7 @@ const Openmatches = () => {
       clubId: localStorage.getItem("register_club_id")
     };
     debouncedFetchMatches(payload);
-  }, [selectedDate, selectedTime, selectedLevel, debouncedFetchMatches]);
+  }, [selectedTime, selectedLevel, debouncedFetchMatches]);
 
   useEffect(() => {
     if (matchesData?.data && matchesData.data.length > 0) {

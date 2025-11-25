@@ -246,22 +246,33 @@ const CreateMatches = () => {
     // If deselecting a slot
     if (isAlreadySelected) {
       const filtered = currentSelectedTimes.filter((t) => t._id !== time._id);
-      setSelectedTimes((prev) => ({ ...prev, [courtId]: filtered }));
-
-      // Update selectedCourts and selectedBuisness accordingly
-      setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
-      setSelectedCourts((prev) =>
-        prev
-          .map((c) =>
-            c._id === courtId
-              ? {
-                ...c,
-                time: c.time.filter((t) => t._id !== time._id),
-              }
-              : c
-          )
-          .filter((c) => c.time.length > 0)
-      );
+      
+      // If removing the slot leaves us with 0 slots, clear everything
+      if (filtered.length === 0) {
+        setSelectedTimes((prev) => {
+          const updated = { ...prev };
+          delete updated[courtId];
+          return updated;
+        });
+        setSelectedBuisness([]);
+        setSelectedCourts([]);
+      } else {
+        // Update with remaining slot
+        setSelectedTimes((prev) => ({ ...prev, [courtId]: filtered }));
+        setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
+        setSelectedCourts((prev) =>
+          prev
+            .map((c) =>
+              c._id === courtId
+                ? {
+                  ...c,
+                  time: c.time.filter((t) => t._id !== time._id),
+                }
+                : c
+            )
+            .filter((c) => c.time.length > 0)
+        );
+      }
       setSlotError("");
       return;
     }
@@ -321,14 +332,7 @@ const CreateMatches = () => {
       return;
     }
 
-    // Optional: Prevent selecting backward if you want strict order (5→6 only, not 6→5)
-    // Remove this block if user can select 6:00 first, then 5:00
-    if (newMinutes < firstMinutes) {
-      setSlotError("Please select the next hour after the first slot.");
-      return;
-    }
-
-    // All checks passed → allow selection
+    // All checks passed → allow selection (removed backward restriction)
     const newTimeEntry = {
       _id: time._id,
       time: time.time,
@@ -670,13 +674,16 @@ const CreateMatches = () => {
 
     let isDisabled = slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
 
+    // If one slot is selected and this slot is not selected, check if it can be the second consecutive slot
     if (totalSelected === 1 && !isSelected) {
       const selectedCourtId = Object.keys(selectedTimes)[0];
       const firstSlot = selectedTimes[selectedCourtId][0];
       const diff = Math.abs(timeToMinutes(firstSlot?.time) - timeToMinutes(slot?.time));
+      // Allow selection only if same court and exactly 1 hour apart
       isDisabled = isDisabled || courtId !== selectedCourtId || diff !== 60;
     }
 
+    // If 2 slots already selected, disable all other slots
     if (totalSelected >= 2 && !isSelected) isDisabled = true;
 
     return (

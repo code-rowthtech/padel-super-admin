@@ -317,7 +317,7 @@ const Navbar = () => {
                                     Open Matches
                                 </NavLink>
                             </li>
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                                 <NavLink
                                     to="/americano"
                                     className='nav-link'
@@ -328,7 +328,7 @@ const Navbar = () => {
                                 >
                                     Americanos
                                 </NavLink>
-                            </li>
+                            </li> */}
                         </ul>
                     </div>
 
