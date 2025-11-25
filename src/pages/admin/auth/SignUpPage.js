@@ -153,6 +153,14 @@ const SignUpPage = () => {
 
   return (
     <Layout>
+      <style>
+        {`
+          .btn-outline-secondary:hover:not(:disabled) {
+            background-color: transparent !important;
+            color: inherit !important;
+          }
+        `}
+      </style>
       <div className="w-100">
         <div className="mx-auto" style={{ maxWidth: "500px", width: "100%" }}>
           <h2
@@ -301,7 +309,11 @@ const SignUpPage = () => {
                 <Button
                   variant="outline-secondary border"
                   type="button"
-                  style={{ borderRadius: "0px 8px 8px 0px", boxShadow: "none" }}
+                  style={{
+                    borderRadius: "0px 8px 8px 0px",
+                    boxShadow: "none",
+                    backgroundColor: "transparent",
+                  }}
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={form.password.length === 0}
                 >
@@ -335,7 +347,11 @@ const SignUpPage = () => {
                 <Button
                   variant="outline-secondary border"
                   type="button"
-                  style={{ borderRadius: "0px 8px 8px 0px", boxShadow: "none" }}
+                  style={{
+                    borderRadius: "0px 8px 8px 0px",
+                    boxShadow: "none",
+                    backgroundColor: "transparent",
+                  }}
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   disabled={form.confirmPassword.length === 0}
                 >

@@ -47,8 +47,6 @@ const Payments = () => {
     setCurrentPage(1);
   };
 
-
-
   const payments = getBookingData?.bookings || [];
   const paymentDetails = getBookingDetailsData?.booking || {};
 
@@ -58,8 +56,14 @@ const Payments = () => {
   useEffect(() => {
     const payload = { status, ownerId, page: currentPage };
     if (sendDate) {
-      payload.startDate = formatDate(startDate);
-      payload.endDate = formatDate(endDate);
+      const formatToYYYYMMDD = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      payload.startDate = formatToYYYYMMDD(startDate);
+      payload.endDate = formatToYYYYMMDD(endDate);
     }
 
     dispatch(getBookingByStatus(payload));
@@ -191,7 +195,7 @@ const Payments = () => {
                     width: "40px",
                     height: "38px",
                     border: "1px solid #dee2e6",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                   onClick={() => setShowDatePicker(true)}
                 >
@@ -205,7 +209,7 @@ const Payments = () => {
                     maxWidth: "280px",
                     height: "38px",
                     border: "1px solid #dee2e6",
-                    gap: "8px"
+                    gap: "8px",
                   }}
                 >
                   <div className="px-2">
@@ -272,7 +276,7 @@ const Payments = () => {
                           <tr>
                             <th>User Name</th>
                             <th>Contact</th>
-                            <th>Date</th>
+                            <th>Date & Time</th>
                             <th>Payment Method</th>
                             <th>Amount</th>
                             <th>Action</th>
@@ -287,7 +291,7 @@ const Payments = () => {
                               <td>
                                 {item?.userId?.name
                                   ? item.userId.name.charAt(0).toUpperCase() +
-                                  item.userId.name.slice(1)
+                                    item.userId.name.slice(1)
                                   : "N/A"}
                               </td>
                               <td>
@@ -318,7 +322,8 @@ const Payments = () => {
                                 {item?.paymentMethod
                                   ?.slice(0, 1)
                                   ?.toUpperCase()
-                                  ?.concat(item?.paymentMethod?.slice(1)) || "-"}
+                                  ?.concat(item?.paymentMethod?.slice(1)) ||
+                                  "-"}
                               </td>
                               <td>₹{item?.totalAmount}</td>
                               <td
@@ -347,7 +352,7 @@ const Payments = () => {
                               <span className="mobile-card-value">
                                 {item?.userId?.name
                                   ? item.userId.name.charAt(0).toUpperCase() +
-                                  item.userId.name.slice(1)
+                                    item.userId.name.slice(1)
                                   : "N/A"}
                               </span>
                             </div>

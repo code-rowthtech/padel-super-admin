@@ -1,6 +1,14 @@
 // BookingModals.js
 import { useState } from "react";
-import { Modal, Button, Form, OverlayTrigger, Tooltip, Col, Row } from "react-bootstrap";
+import {
+  Modal,
+  Button,
+  Form,
+  OverlayTrigger,
+  Tooltip,
+  Col,
+  Row,
+} from "react-bootstrap";
 import { modalDetails, modalSuccess } from "../../../../assets/files";
 import { formatDate } from "../../../../helpers/Formatting";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
@@ -26,7 +34,7 @@ export const BookingSuccessModal = ({ show, handleClose, openDetails }) => (
         />
       </h3>
       <i
-        className="bi bi-x fs-2 text-danger fw-bold pe-2"
+        className="bi bi-x fs-2 text-black fw-bold pe-2"
         onClick={handleClose}
         style={{ cursor: "pointer" }}
       ></i>
@@ -255,11 +263,18 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
           color: "#1F2937",
         }}
       >
-        {console.log(bookingDetails?.bookingStatus,'bookingDetails?.bookingStatus')}
-        {bookingDetails?.bookingStatus === 'upcoming' ? "Booking Details" : bookingDetails?.bookingStatus === 'refunded' ? "Cancellation Details" : ""}
+        {console.log(
+          bookingDetails?.bookingStatus,
+          "bookingDetails?.bookingStatus"
+        )}
+        {bookingDetails?.bookingStatus === "upcoming"
+          ? "Booking Details"
+          : bookingDetails?.bookingStatus === "refunded"
+          ? "Cancellation Details"
+          : ""}
       </h4>
       <i
-        className="bi bi-x fs-2 text-danger fw-bold"
+        className="bi bi-x fs-2 text-black fw-bold"
         onClick={handleClose}
         style={{ cursor: "pointer" }}
       ></i>
@@ -275,77 +290,181 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
       <Col xs={12} className="px-0">
         {/* Full Width Container */}
         <div style={{ backgroundColor: "#CBD6FF1A" }} className="p-3">
-
           {/* Name */}
           <div className="d-flex justify-content-between align-items-center">
-            <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <p
+              className="text-muted mb-0"
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               Name
             </p>
-            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <p
+              className="mb-0"
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               {bookingDetails?.userId?.name
-                ? bookingDetails.userId.name.charAt(0).toUpperCase() + bookingDetails.userId.name.slice(1)
+                ? bookingDetails.userId.name.charAt(0).toUpperCase() +
+                  bookingDetails.userId.name.slice(1)
                 : "N/A"}
             </p>
           </div>
-          <hr className="my-2 mx-0" style={{ borderTop: "1px solid #E5E7EB" }} />
+          <hr
+            className="my-2 mx-0"
+            style={{ borderTop: "1px solid #E5E7EB" }}
+          />
 
           {/* Court */}
           <div className="d-flex justify-content-between align-items-center">
-            <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <p
+              className="text-muted mb-0"
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               Court
             </p>
-            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <p
+              className="mb-0"
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               {bookingDetails?.slot?.[0]?.courtName || "-"}
             </p>
           </div>
-          <hr className="my-2 mx-0" style={{ borderTop: "1px solid #E5E7EB" }} />
+          <hr
+            className="my-2 mx-0"
+            style={{ borderTop: "1px solid #E5E7EB" }}
+          />
 
           {/* Slot Time */}
           <div className="d-flex justify-content-between align-items-center">
-            <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <p
+              className="text-muted mb-0"
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               Slot Time
             </p>
-            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <p
+              className="mb-0"
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
               {formatSlotTime(bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
             </p>
           </div>
-          <hr className="my-2 mx-0" style={{ borderTop: "1px solid #E5E7EB" }} />
+          <hr
+            className="my-2 mx-0"
+            style={{ borderTop: "1px solid #E5E7EB" }}
+          />
 
           {/* Booking Date */}
           <div className="d-flex justify-content-between align-items-center">
-            <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <p
+              className="text-muted mb-0"
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               Booking Date
             </p>
-            <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <p
+              className="mb-0"
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               {formatDate(bookingDetails?.bookingDate)}
             </p>
           </div>
-          <hr className="my-2 mx-0" style={{ borderTop: "1px solid #E5E7EB" }} />
+          <hr
+            className="my-2 mx-0"
+            style={{ borderTop: "1px solid #E5E7EB" }}
+          />
 
           {/* Conditional Fields */}
           {bookingDetails?.cancellationDate && (
             <>
               <div className="d-flex justify-content-between align-items-center">
-                <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                <p
+                  className="text-muted mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
                   Cancellation Date
                 </p>
-                <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                <p
+                  className="mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
                   {formatDate(bookingDetails.cancellationDate)}
                 </p>
               </div>
-              <hr className="my-2 mx-0" style={{ borderTop: "1px solid #E5E7EB" }} />
+              <hr
+                className="my-2 mx-0"
+                style={{ borderTop: "1px solid #E5E7EB" }}
+              />
             </>
           )}
 
           {bookingDetails?.cancellationReason && (
             <>
               <div className="d-flex justify-content-between align-items-center">
-                <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                <p
+                  className="text-muted mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
                   Cancellation Reason
                 </p>
-                <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
-                  <OverlayTrigger placement="top" overlay={<Tooltip>{bookingDetails.cancellationReason}</Tooltip>}>
+                <p
+                  className="mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip>{bookingDetails.cancellationReason}</Tooltip>
+                    }
+                  >
                     <span>
                       {bookingDetails.cancellationReason.length > 35
                         ? bookingDetails.cancellationReason.slice(0, 35) + "..."
@@ -354,38 +473,87 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                   </OverlayTrigger>
                 </p>
               </div>
-              <hr className="my-2 mx-0" style={{ borderTop: "1px solid #E5E7EB" }} />
+              <hr
+                className="my-2 mx-0"
+                style={{ borderTop: "1px solid #E5E7EB" }}
+              />
             </>
           )}
 
           {bookingDetails?.cancellationReasonForOwner && (
             <>
               <div className="d-flex justify-content-between align-items-center">
-                <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                <p
+                  className="text-muted mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
                   Cancellation Owner Reason
                 </p>
-                <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
-                  <OverlayTrigger placement="top" overlay={<Tooltip>{bookingDetails.cancellationReasonForOwner}</Tooltip>}>
+                <p
+                  className="mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip>
+                        {bookingDetails.cancellationReasonForOwner}
+                      </Tooltip>
+                    }
+                  >
                     <span>
                       {bookingDetails.cancellationReasonForOwner.length > 35
-                        ? bookingDetails.cancellationReasonForOwner.slice(0, 35) + "..."
+                        ? bookingDetails.cancellationReasonForOwner.slice(
+                            0,
+                            35
+                          ) + "..."
                         : bookingDetails.cancellationReasonForOwner}
                     </span>
                   </OverlayTrigger>
                 </p>
               </div>
-              <hr className="my-2 mx-0" style={{ borderTop: "1px solid #E5E7EB" }} />
+              <hr
+                className="my-2 mx-0"
+                style={{ borderTop: "1px solid #E5E7EB" }}
+              />
             </>
           )}
 
           {bookingDetails?.refundDescription && (
             <>
               <div className="d-flex justify-content-between align-items-center">
-                <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                <p
+                  className="text-muted mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
                   Refund Note
                 </p>
-                <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
-                  <OverlayTrigger placement="top" overlay={<Tooltip>{bookingDetails.refundDescription}</Tooltip>}>
+                <p
+                  className="mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip>{bookingDetails.refundDescription}</Tooltip>
+                    }
+                  >
                     <span>
                       {bookingDetails.refundDescription.length > 35
                         ? bookingDetails.refundDescription.slice(0, 35) + "..."
@@ -394,23 +562,39 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                   </OverlayTrigger>
                 </p>
               </div>
-              <hr className="my-2 mx-0" style={{ borderTop: "1px solid #E5E7EB" }} />
+              <hr
+                className="my-2 mx-0"
+                style={{ borderTop: "1px solid #E5E7EB" }}
+              />
             </>
           )}
 
           {bookingDetails?.refundDate && (
             <>
               <div className="d-flex justify-content-between align-items-center">
-                <p className="text-muted mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                <p
+                  className="text-muted mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
                   Refund Date
                 </p>
-                <p className="mb-0" style={{ fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+                <p
+                  className="mb-0"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                  }}
+                >
                   {formatDate(bookingDetails.refundDate)}
                 </p>
               </div>
             </>
           )}
-
         </div>
       </Col>
       <h2
@@ -448,8 +632,8 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             ? `₹ ${bookingDetails?.totalAmount}`
             : "N/A"}
         </h2>
-        {console.log({bookingDetails})}
-        {bookingDetails?.bookingStatus === 'refunded' && (
+        {console.log({ bookingDetails })}
+        {bookingDetails?.bookingStatus === "refunded" && (
           <>
             |
             <h2
@@ -542,7 +726,7 @@ export const BookingCancelModal = ({
             Cancel Booking
           </h3>
           <i
-            className="bi bi-x fs-2 text-danger fw-bold"
+            className="bi bi-x fs-2 text-black fw-bold"
             onClick={closeModal}
             style={{ cursor: "pointer" }}
           ></i>
