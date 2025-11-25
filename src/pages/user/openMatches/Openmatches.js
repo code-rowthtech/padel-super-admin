@@ -250,12 +250,12 @@ const Openmatches = () => {
 
   const createMatchesHandle = () => {
     if (user?.id || user?._id) {
-      navigate("/create-matches", { state: { selectedDate } });
+      navigate("/create-matches", { state: { selectedDate, filteredMatches } });
     } else {
       navigate("/login", {
         state: {
           redirectTo: "/create-matches",
-          selectedDate,
+          selectedDate, filteredMatches
         },
       });
     }
@@ -916,7 +916,7 @@ const Openmatches = () => {
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A"}
+                                    : "N/A"} {updateName?.gender}
                                 </p>
                                 <div
                                   className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"

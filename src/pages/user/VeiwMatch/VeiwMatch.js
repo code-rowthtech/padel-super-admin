@@ -144,11 +144,11 @@ const PlayerSlot = memo(function PlayerSlot({
     );
 });
 
-const ViewMatch = ({ match, onBack, updateName, selectedDate }) => {
+const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
-    console.log({ match })
+
     const { id } = useParams(); // Get match ID from URL
     const { state } = useLocation();
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
@@ -563,6 +563,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate }) => {
                 matchId={matchId}
                 teamName={teamName}
                 setShowModal={setShowModal}
+                match={match}
             />
         </>
     );

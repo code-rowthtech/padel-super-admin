@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { showSuccess } from "../../../helpers/Toast";
 import { Box, Button, Modal } from "@mui/material";
-import { Usersignup } from "../../../redux/user/auth/authThunk";
-import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import { getUserProfile, Usersignup } from "../../../redux/user/auth/authThunk";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import Select from "react-select";
+import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
 
 const modalStyle = {
   position: "absolute",
@@ -26,8 +27,11 @@ const NewPlayers = ({
   showAddMeForm,
   activeSlot,
   setShowAddMeForm,
-  setActiveSlot,
+  setActiveSlot, skillDetails,
+  userSkillLevel
 }) => {
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [userSkills, setUserSkills] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -44,19 +48,15 @@ const NewPlayers = ({
   const { finalSkillDetails = [] } = useSelector(
     (state) => state.location?.state || {}
   );
+  const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
 
-  const lavel = [
-    { code: "A", title: "Top Player" },
-    { code: "B1", title: "Experienced Player" },
-    { code: "B2", title: "Advanced Player" },
-    { code: "C1", title: "Confident Player" },
-    { code: "C2", title: "Intermediate Player" },
-    { code: "D1", title: "Amateur Player" },
-    { code: "D2", title: "Novice Player" },
-    { code: "E", title: "Entry Level" },
-  ];
 
-  const userSkillLevel = finalSkillDetails[finalSkillDetails.length - 1];
+  const lavel = getPlayerLevels.map(level => ({
+    code: level.code,
+    title: level.question
+  }));
+
+  const fallbackUserSkillLevel = finalSkillDetails[finalSkillDetails.length - 1];
 
   const getAddedPlayers = () =>
     JSON.parse(localStorage.getItem("addedPlayers") || "{}");
@@ -172,6 +172,47 @@ const NewPlayers = ({
       });
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setProfileLoading(true);
+
+      try {
+        const result = await dispatch(getUserProfile()).unwrap();
+
+        const firstAnswer = result?.response?.surveyData?.[0]?.playerLevel?.skillLevel;
+        console.log({ firstAnswer })
+        if (firstAnswer) {
+          const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
+
+          const apiData = response?.data || [];
+
+          if (!Array.isArray(apiData) || apiData.length === 0) {
+            throw new Error("Empty API response");
+          }
+
+          const newLastStep = {
+            _id: apiData[0]?._id || "dynamic-final-step",
+            question: apiData[0]?.question || "Which Padel Player Are You?",
+            options: apiData.map(opt => ({
+              _id: opt.code,
+              value: `${opt.code} - ${opt.question}`,
+            })),
+          };
+
+          console.log("Generated Step:", newLastStep);
+        }
+      } catch (err) {
+        console.error("Error:", err);
+      }
+
+      setProfileLoading(false);
+    };
+
+    fetchData();
+
+  }, [dispatch]);
+
+
   const handleInputChange = (field, value, formatFn = null) => {
     const formatted = formatFn ? formatFn(value) : value;
     setFormData((prev) => ({ ...prev, [field]: formatted }));
@@ -223,7 +264,7 @@ const NewPlayers = ({
         setShowErrors({});
       }}
     >
-      <Box sx={modalStyle} style={{overflowY:"visible"}}>
+      <Box sx={modalStyle} style={{ overflowY: "visible" }}>
         <h6
           className="mb-4 text-center"
           style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}
@@ -368,20 +409,22 @@ const NewPlayers = ({
               Select Level <span className="text-danger">*</span>
             </label>
             <div style={inputStyle("level")}>
-              <Select
-                options={levelOptions}
-                value={levelOptions.find((o) => o.value === formData.level)}
-                onChange={(opt) => handleInputChange("level", opt.value)}
-                classNamePrefix="select"
-                isOptionDisabled={(opt) => opt.isDisabled}
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    border: "none",
-                    boxShadow: "none",
-                  }),
-                }}
-              />
+              {profileLoading ? <DataLoading /> :
+                <Select
+                  options={levelOptions}
+                  value={levelOptions.find((o) => o.value === formData.level)}
+                  onChange={(opt) => handleInputChange("level", opt.value)}
+                  classNamePrefix="select"
+                  isOptionDisabled={(opt) => opt.isDisabled}
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                    }),
+                  }}
+                />
+              }
             </div>
             {showErrors.level && errors.level && (
               <small
@@ -417,7 +460,7 @@ const NewPlayers = ({
                 setErrors({});
                 setShowErrors({});
               }}
-                            sx={{ width: { xs: "100%", sm: "50%",border:"1px solid #001b76",color:"#001B76" } }}
+              sx={{ width: { xs: "100%", sm: "50%", border: "1px solid #001b76", color: "#001B76" } }}
 
             >
               Cancel
@@ -425,9 +468,11 @@ const NewPlayers = ({
             <Button
               type="submit"
               fullWidth
-                sx={{ width: { xs: "100%", sm: "50%" } }}
-              style={{   background:
-                        "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white" }}
+              sx={{ width: { xs: "100%", sm: "50%" } }}
+              style={{
+                background:
+                  "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white"
+              }}
               disabled={userLoading}
             >
               {userLoading ? <ButtonLoading color="white" /> : "Submit"}

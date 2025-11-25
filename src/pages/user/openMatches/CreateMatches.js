@@ -246,7 +246,7 @@ const CreateMatches = () => {
     // If deselecting a slot
     if (isAlreadySelected) {
       const filtered = currentSelectedTimes.filter((t) => t._id !== time._id);
-      
+
       // If removing the slot leaves us with 0 slots, clear everything
       if (filtered.length === 0) {
         setSelectedTimes((prev) => {
@@ -764,6 +764,10 @@ const CreateMatches = () => {
       </Form>
     );
   };
+
+  const onBack = () => {
+    navigate('/open-matches')
+  }
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
@@ -1603,26 +1607,42 @@ const CreateMatches = () => {
           ) : !matchPlayer && !existsOpenMatchData && dynamicSteps.length > 0 && (
             <div className="d-none d-lg-block">
               <div style={{ backgroundColor: "#F1F4FF", borderRadius: "12px" }}>
-                <div className="d-flex justify-content-center gap-2 ps-4 pt-4">
-                  {dynamicSteps.map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: "50%",
-                        backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
-                        color: i <= currentStep ? "#3DBE64" : "#D9D9D9",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 14,
-                        fontWeight: 600,
-                      }}
+                <div className="d-flex pt-4 align-items-center" style={{ position: "relative" }}>
+
+                  {/* LEFT: Back Button */}
+                  <div style={{ position: "absolute", left: 0 }}>
+                    <button
+                      className="btn btn-light rounded-circle ms-2 p-2 d-flex align-items-center justify-content-center"
+                      style={{ width: 36, height: 36 }}
+                      onClick={onBack}
                     >
-                      {i + 1}
-                    </div>
-                  ))}
+                      <i className="bi bi-arrow-left" />
+                    </button>
+                  </div>
+
+                  {/* CENTER: Step Circles */}
+                  <div className="d-flex justify-content-center w-100 gap-2">
+                    {dynamicSteps.map((_, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: "50%",
+                          backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
+                          color: i <= currentStep ? "#3DBE64" : "#D9D9D9",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 14,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                    ))}
+                  </div>
+
                 </div>
 
                 <div className="p-4 mt-3">

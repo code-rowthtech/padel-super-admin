@@ -75,6 +75,7 @@ const MatchPlayer = ({
     finalSkillDetails,
     totalAmount, slotError,
     userGender,
+    userSkillLevel,
 }) => {
     console.log({ selectedDate })
     const dispatch = useDispatch();
@@ -223,10 +224,10 @@ const MatchPlayer = ({
     const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
     const canBook = playerCount >= 2 && matchTime.length > 0;
 
-    const userSkillLevel =
-        finalSkillDetails.length > 0
+    const displayUserSkillLevel = userSkillLevel || 
+        (finalSkillDetails.length > 0
             ? finalSkillDetails[finalSkillDetails.length - 1]
-            : "A";
+            : "A");
 
     const handleBookNow = () => {
         const courtIds = selectedCourts.map((c) => c._id).join(",");
@@ -461,7 +462,7 @@ const MatchPlayer = ({
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
-                                        {userSkillLevel}
+                                        {displayUserSkillLevel}
                                     </span>
                                 </div>
                             )}
@@ -762,6 +763,8 @@ const MatchPlayer = ({
                 setShowAddMeForm={setShowAddMeForm}
                 setActiveSlot={setActiveSlot}
                 setAddedPlayers={setParentAddedPlayers}
+                skillDetails={finalSkillDetails}
+                userSkillLevel={userSkillLevel}
             />
         </>
     );
