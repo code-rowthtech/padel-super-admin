@@ -232,7 +232,7 @@ const UpdatePlayers = ({
         title: level.question
       })));
     }
-  }, [getPlayerLevels]);
+  }, []);
 
   const levelOptions = playerLevels.map((item) => ({
     value: item.code,

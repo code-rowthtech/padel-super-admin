@@ -409,7 +409,7 @@ const NewPlayers = ({
               Select Level <span className="text-danger">*</span>
             </label>
             <div style={inputStyle("level")}>
-              {profileLoading ? <DataLoading /> :
+              {profileLoading ? 'Loading...' :
                 <Select
                   options={levelOptions}
                   value={levelOptions.find((o) => o.value === formData.level)}

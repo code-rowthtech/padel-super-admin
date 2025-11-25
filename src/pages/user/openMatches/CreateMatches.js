@@ -1670,7 +1670,7 @@ const CreateMatches = () => {
 
                 <div className="d-flex justify-content-end align-items-center p-3">
                   {currentStep > 0 && (
-                    <Button variant="secondary" className="me-3 rounded-pill" onClick={handleBack}>
+                    <Button variant="secondary" className="me-3 pt-1 rounded-pill" onClick={handleBack}>
                       Back
                     </Button>
                   )}
@@ -1679,12 +1679,12 @@ const CreateMatches = () => {
                       background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                       border: "none",
                     }}
-                    className="rounded-pill px-4"
+                    className="rounded-pill px-4 py-2 pt-1 d-flex align-items-center justify-content-center"
                     disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
-                      <span className="flex items-center gap-2">
+                      <span className="d-flex align-items-center gap-2">
                         {/* <Loader /> */}
                         Loading...
                       </span>

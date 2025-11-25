@@ -102,6 +102,9 @@ const OpenmatchPayment = () => {
     const clubData = useSelector(
         (state) => state?.userClub?.clubData?.data?.courts?.[0] || {}
     );
+    const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
+    );
+    console.log({ createId })
     const logo = localStorage.getItem("logo")
         ? JSON.parse(localStorage.getItem("logo"))
         : null;
@@ -232,6 +235,7 @@ const OpenmatchPayment = () => {
                 paymentMethod: selectedPayment,
                 bookingType: "open Match",
                 bookingStatus: "upcoming",
+                openMatchId: createId,
                 slot: selectedCourts.flatMap((court) =>
                     court.time.map((timeSlot) => ({
                         slotId: timeSlot._id,
@@ -245,6 +249,7 @@ const OpenmatchPayment = () => {
                         ],
                         courtName: court.courtName || "Court",
                         courtId: court._id,
+
                         bookingDate: new Date(
                             court.date || selectedDate.fullDate
                         ).toISOString(),
