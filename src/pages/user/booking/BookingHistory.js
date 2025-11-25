@@ -298,7 +298,7 @@ const BookingHistory = () => {
             </Box>
             <Row className="mb-3">
                 <Col xs={12} md={9} className="mb-3 mb-md-0">
-                    <h2 className="step-heading mt-2">
+                    <h2 className="step-heading mt-md-2 mt-0">
                         {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking
                     </h2>
                 </Col>
@@ -371,7 +371,7 @@ const BookingHistory = () => {
                                                     onClick={() => setIsOpen(!isOpen)}
                                                     style={{
                                                         minHeight: "32px",
-                                                        padding: "4px 8px",
+                                                        padding: "0px 8px",
                                                         cursor: "pointer",
                                                         background: "transparent",
                                                         borderRadius: "4px",

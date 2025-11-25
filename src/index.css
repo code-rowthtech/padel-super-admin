@@ -1299,7 +1299,12 @@ h1.display-5 {
   height: 4px;
   margin: 10px 0px;
 }
-
+/* .ratio>*{
+  height: 75%!important;
+} */
+.ratio-16x9 {
+    --bs-aspect-ratio: 47.25%!important;
+}
 .overflow-auto::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 2px;
