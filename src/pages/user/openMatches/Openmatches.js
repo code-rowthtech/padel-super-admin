@@ -147,6 +147,32 @@ const Openmatches = () => {
     debouncedFetchMatches(payload);
   }, [selectedDate, selectedTime, selectedLevel, debouncedFetchMatches]);
 
+  useEffect(() => {
+    if (matchesData?.data && matchesData.data.length > 0) {
+      const matchDates = matchesData.data.map(match => match.matchDate);
+      const latestDateStr = matchDates.sort().reverse()[0]; 
+      const latestDate = {
+        fullDate: latestDateStr,
+        day: new Date(latestDateStr).toLocaleDateString("en-US", { weekday: "long" }),
+      };
+
+      if (selectedDate.fullDate !== latestDate.fullDate) {
+        setSelectedDate(latestDate);
+        setStartDate(new Date(latestDate.fullDate));
+
+        setTimeout(() => {
+          if (dateRefs.current[latestDate.fullDate]) {
+            dateRefs.current[latestDate.fullDate].scrollIntoView({
+              behavior: "smooth",
+              inline: "center",
+              block: "nearest",
+            });
+          }
+        }, 100);
+      }
+    }
+  }, [matchesData?.data]);
+
   const today = new Date();
   const dates = Array.from({ length: 41 }).map((_, i) => {
     const date = new Date();
