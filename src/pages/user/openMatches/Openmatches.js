@@ -145,12 +145,12 @@ const Openmatches = () => {
       clubId: localStorage.getItem("register_club_id")
     };
     debouncedFetchMatches(payload);
-  }, [selectedDate, selectedTime, selectedLevel, debouncedFetchMatches]);
+  }, [selectedTime, selectedLevel, debouncedFetchMatches]);
 
   useEffect(() => {
     if (matchesData?.data && matchesData.data.length > 0) {
       const matchDates = matchesData.data.map(match => match.matchDate);
-      const latestDateStr = matchDates.sort().reverse()[0]; 
+      const latestDateStr = matchDates.sort().reverse()[0];
       const latestDate = {
         fullDate: latestDateStr,
         day: new Date(latestDateStr).toLocaleDateString("en-US", { weekday: "long" }),
@@ -250,12 +250,12 @@ const Openmatches = () => {
 
   const createMatchesHandle = () => {
     if (user?.id || user?._id) {
-      navigate("/create-matches", { state: { selectedDate } });
+      navigate("/create-matches", { state: { selectedDate, filteredMatches } });
     } else {
       navigate("/login", {
         state: {
           redirectTo: "/create-matches",
-          selectedDate,
+          selectedDate, filteredMatches
         },
       });
     }
@@ -916,7 +916,7 @@ const Openmatches = () => {
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A"}
+                                    : "N/A"} {updateName?.gender}
                                 </p>
                                 <div
                                   className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"
@@ -1629,6 +1629,7 @@ const Openmatches = () => {
               match={selectedMatch}
               onBack={() => setShowViewMatch(false)}
               updateName={updateName}
+              selectedDate={selectedDate}
             />
           )}
         </div>

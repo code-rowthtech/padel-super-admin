@@ -12,7 +12,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
-import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading, DataLoading, Loader } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
 import {
   MdOutlineArrowForwardIos,
@@ -110,7 +110,10 @@ const CreateMatches = () => {
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const questionList = useSelector((state) => state?.userNotificationData?.getQuestionData?.data) || [];
+  const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
+  const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
   const [dynamicSteps, setDynamicSteps] = useState([]);
+  console.log({ getPlayerLevelsLoading })
   const [selectedAnswers, setSelectedAnswers] = useState({}); const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
   console.log({ questionList }, '0976456789');
   const [slotError, setSlotError] = useState("");
@@ -127,6 +130,7 @@ const CreateMatches = () => {
   const [showMobileModal, setShowMobileModal] = useState(false);
   const [existsOpenMatchData, setExistsOpenMatchData] = useState(false);
   const [userGender, setUserGender] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
 
   // Sync with localStorage
   useEffect(() => {
@@ -148,7 +152,7 @@ const CreateMatches = () => {
   useEffect(() => {
     if (questionList && questionList.length > 0) {
       // make a shallow copy before sorting to avoid mutating read-only Redux state
-      const copy = Array.isArray(questionList) ? [...questionList] : [];
+      const copy = Array.isArray(questionList || getPlayerLevels) ? [...questionList] : [];
       const transformed = copy
         .sort((a, b) => (a.step || 0) - (b.step || 0))
         .map((q) => ({
@@ -170,6 +174,7 @@ const CreateMatches = () => {
   }, [questionList]);
 
   useEffect(() => {
+    setProfileLoading(true);
     dispatch(getUserProfile()).then((result) => {
       console.log(result.payload?.response?.gender, 'result.payload?.response?.gender');
       setUserGender(result.payload?.response?.gender || "");
@@ -179,6 +184,9 @@ const CreateMatches = () => {
           setMatchPlayer(true);
         }
       }
+      setProfileLoading(false);
+    }).catch(() => {
+      setProfileLoading(false);
     });
     dispatch(getUserClub({ search: "" }));
     document.addEventListener("mousedown", handleClickOutside);
@@ -238,22 +246,33 @@ const CreateMatches = () => {
     // If deselecting a slot
     if (isAlreadySelected) {
       const filtered = currentSelectedTimes.filter((t) => t._id !== time._id);
-      setSelectedTimes((prev) => ({ ...prev, [courtId]: filtered }));
 
-      // Update selectedCourts and selectedBuisness accordingly
-      setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
-      setSelectedCourts((prev) =>
-        prev
-          .map((c) =>
-            c._id === courtId
-              ? {
-                ...c,
-                time: c.time.filter((t) => t._id !== time._id),
-              }
-              : c
-          )
-          .filter((c) => c.time.length > 0)
-      );
+      // If removing the slot leaves us with 0 slots, clear everything
+      if (filtered.length === 0) {
+        setSelectedTimes((prev) => {
+          const updated = { ...prev };
+          delete updated[courtId];
+          return updated;
+        });
+        setSelectedBuisness([]);
+        setSelectedCourts([]);
+      } else {
+        // Update with remaining slot
+        setSelectedTimes((prev) => ({ ...prev, [courtId]: filtered }));
+        setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
+        setSelectedCourts((prev) =>
+          prev
+            .map((c) =>
+              c._id === courtId
+                ? {
+                  ...c,
+                  time: c.time.filter((t) => t._id !== time._id),
+                }
+                : c
+            )
+            .filter((c) => c.time.length > 0)
+        );
+      }
       setSlotError("");
       return;
     }
@@ -313,14 +332,7 @@ const CreateMatches = () => {
       return;
     }
 
-    // Optional: Prevent selecting backward if you want strict order (5→6 only, not 6→5)
-    // Remove this block if user can select 6:00 first, then 5:00
-    if (newMinutes < firstMinutes) {
-      setSlotError("Please select the next hour after the first slot.");
-      return;
-    }
-
-    // All checks passed → allow selection
+    // All checks passed → allow selection (removed backward restriction)
     const newTimeEntry = {
       _id: time._id,
       time: time.time,
@@ -542,35 +554,42 @@ const CreateMatches = () => {
 
     // If we are on the second last step (before final level), call API
     if (currentStep === dynamicSteps.length - 1 && !isFinalLevelStepLoaded) {
-      const firstAnswer = selectedAnswers[0]; // Beginner, Intermediate, etc.
-console.log({firstAnswer});
-      try {
-        // Replace with your actual API call
-        const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
+      const firstAnswer = selectedAnswers[0];
 
-        // Assuming response has structure: { question: "...", options: [{code: "A", title: "..."}, ...] }
+      try {
+        const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
+        // response.data is an ARRAY → [{ code, question, _id }, ...]
+
+        const apiData = response?.data || [];
+
+        if (!Array.isArray(apiData) || apiData.length === 0) {
+          throw new Error("Empty API response");
+        }
+
         const newLastStep = {
-          _id: "dynamic-final-step",
-          question: response.question || "Which Padel Player Are You?",
-          options: response.options.map(opt => ({
+          _id: apiData[0]?._id || "dynamic-final-step",
+          question: apiData[0]?.question || "Which Padel Player Are You?",
+          options: apiData.map(opt => ({
             _id: opt.code,
-            value: `${opt.code} - ${opt.title}`
+            value: `${opt.code} - ${opt.question}`
           })),
-          isMultiSelect: false,
+          isMultiSelect: false
         };
 
         setFinalLevelStep(newLastStep);
-        setDynamicSteps(prev => [...prev, newLastStep]); // append new step
+        setDynamicSteps(prev => [...prev, newLastStep]);
         setIsFinalLevelStepLoaded(true);
-
-        // Move to the new last step
         setCurrentStep(prev => prev + 1);
         setSlotError("");
+
       } catch (err) {
+        console.error(err);
         setSlotError("Failed to load player levels. Please try again.");
       }
+
       return;
     }
+
 
     // Normal flow: go to next step
     if (currentStep < dynamicSteps.length - 1) {
@@ -655,13 +674,16 @@ console.log({firstAnswer});
 
     let isDisabled = slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
 
+    // If one slot is selected and this slot is not selected, check if it can be the second consecutive slot
     if (totalSelected === 1 && !isSelected) {
       const selectedCourtId = Object.keys(selectedTimes)[0];
       const firstSlot = selectedTimes[selectedCourtId][0];
-      const diff = Math.abs(timeToMinutes(firstSlot.time) - timeToMinutes(slot.time));
+      const diff = Math.abs(timeToMinutes(firstSlot?.time) - timeToMinutes(slot?.time));
+      // Allow selection only if same court and exactly 1 hour apart
       isDisabled = isDisabled || courtId !== selectedCourtId || diff !== 60;
     }
 
+    // If 2 slots already selected, disable all other slots
     if (totalSelected >= 2 && !isSelected) isDisabled = true;
 
     return (
@@ -742,6 +764,10 @@ console.log({firstAnswer});
       </Form>
     );
   };
+
+  const onBack = () => {
+    navigate('/open-matches')
+  }
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
@@ -1576,29 +1602,47 @@ console.log({firstAnswer});
           </Modal>
 
           {/* ────── QUESTIONNAIRE / MATCH PLAYER (Desktop Only) ────── */}
-          {!matchPlayer && !existsOpenMatchData && dynamicSteps.length > 0 && (
+          {profileLoading ? (
+            <></>
+          ) : !matchPlayer && !existsOpenMatchData && dynamicSteps.length > 0 && (
             <div className="d-none d-lg-block">
               <div style={{ backgroundColor: "#F1F4FF", borderRadius: "12px" }}>
-                <div className="d-flex justify-content-center gap-2 ps-4 pt-4">
-                  {dynamicSteps.map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: "50%",
-                        backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
-                        color: i <= currentStep ? "#3DBE64" : "#D9D9D9",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 14,
-                        fontWeight: 600,
-                      }}
+                <div className="d-flex pt-4 align-items-center" style={{ position: "relative" }}>
+
+                  {/* LEFT: Back Button */}
+                  <div style={{ position: "absolute", left: 0 }}>
+                    <button
+                      className="btn btn-light rounded-circle ms-2 p-2 d-flex align-items-center justify-content-center"
+                      style={{ width: 36, height: 36 }}
+                      onClick={onBack}
                     >
-                      {i + 1}
-                    </div>
-                  ))}
+                      <i className="bi bi-arrow-left" />
+                    </button>
+                  </div>
+
+                  {/* CENTER: Step Circles */}
+                  <div className="d-flex justify-content-center w-100 gap-2">
+                    {dynamicSteps.map((_, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: "50%",
+                          backgroundColor: i <= currentStep ? "#3DBE64" : "#D9D9D9",
+                          color: i <= currentStep ? "#3DBE64" : "#D9D9D9",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 14,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                    ))}
+                  </div>
+
                 </div>
 
                 <div className="p-4 mt-3">
@@ -1626,7 +1670,7 @@ console.log({firstAnswer});
 
                 <div className="d-flex justify-content-end align-items-center p-3">
                   {currentStep > 0 && (
-                    <Button variant="secondary" className="me-3 rounded-pill" onClick={handleBack}>
+                    <Button variant="secondary" className="me-3 pt-1 rounded-pill" onClick={handleBack}>
                       Back
                     </Button>
                   )}
@@ -1635,13 +1679,20 @@ console.log({firstAnswer});
                       background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                       border: "none",
                     }}
-                    className="rounded-pill px-4"
+                    className="rounded-pill px-4 py-2 pt-1 d-flex align-items-center justify-content-center"
                     disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
-                    {currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded
-                      ? "Submit"
-                      : "Next"}
+                    {getPlayerLevelsLoading === true ? (
+                      <span className="d-flex align-items-center gap-2">
+                        {/* <Loader /> */}
+                        Loading...
+                      </span>
+                    ) : currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded ? (
+                      "Submit"
+                    ) : (
+                      "Next"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -1649,7 +1700,7 @@ console.log({firstAnswer});
           )}
 
           {/* Show MatchPlayer when matchPlayer is true */}
-          {matchPlayer && (
+          {!profileLoading && matchPlayer && (
             <MatchPlayer
               addedPlayers={addedPlayers}
               setAddedPlayers={setAddedPlayers}

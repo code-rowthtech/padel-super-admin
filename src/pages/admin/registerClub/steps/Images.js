@@ -33,8 +33,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   /* -------------------  IMAGES  ------------------- */
   const [previewImages, setPreviewImages] = useState([]);
   const [duplicateError, setDuplicateError] = useState("");
-  const navigate = useNavigate()
-  
+  const navigate = useNavigate();
+
   // Initialize preview images from formData
   useEffect(() => {
     const newImages = formData.images || [];
@@ -44,33 +44,34 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     }));
     setPreviewImages(previews);
   }, [formData.images]);
-  
+
   // Save images to localStorage when they change
   useEffect(() => {
     if (formData.images && formData.images.length > 0) {
       // Convert File objects to base64 for storage
       const saveImages = async () => {
-        const imagePromises = formData.images.map(file => {
+        const imagePromises = formData.images.map((file) => {
           return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onload = (e) => resolve({
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              data: e.target.result
-            });
+            reader.onload = (e) =>
+              resolve({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                data: e.target.result,
+              });
             reader.readAsDataURL(file);
           });
         });
-        
+
         const imageData = await Promise.all(imagePromises);
-        localStorage.setItem('clubImages', JSON.stringify(imageData));
+        localStorage.setItem("clubImages", JSON.stringify(imageData));
       };
-      
+
       saveImages();
     }
   }, [formData.images]);
-  
+
   // Save logo to localStorage when it changes
   useEffect(() => {
     if (formData.logo && formData.logo instanceof File) {
@@ -80,23 +81,23 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           name: formData.logo.name,
           size: formData.logo.size,
           type: formData.logo.type,
-          data: e.target.result
+          data: e.target.result,
         };
-        localStorage.setItem('clubLogo', JSON.stringify(logoData));
+        localStorage.setItem("clubLogo", JSON.stringify(logoData));
       };
       reader.readAsDataURL(formData.logo);
     }
   }, [formData.logo]);
-  
+
   // Restore images from localStorage on component mount
   useEffect(() => {
-    const savedImages = localStorage.getItem('clubImages');
+    const savedImages = localStorage.getItem("clubImages");
     if (savedImages && (!formData.images || formData.images.length === 0)) {
       try {
         const imageData = JSON.parse(savedImages);
-        const restoredFiles = imageData.map(img => {
+        const restoredFiles = imageData.map((img) => {
           // Convert base64 back to File
-          const byteCharacters = atob(img.data.split(',')[1]);
+          const byteCharacters = atob(img.data.split(",")[1]);
           const byteNumbers = new Array(byteCharacters.length);
           for (let i = 0; i < byteCharacters.length; i++) {
             byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -104,32 +105,34 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           const byteArray = new Uint8Array(byteNumbers);
           return new File([byteArray], img.name, { type: img.type });
         });
-        
+
         updateFormData({ images: restoredFiles });
       } catch (error) {
-        console.error('Error restoring images:', error);
+        console.error("Error restoring images:", error);
       }
     }
-    
+
     // Restore logo from localStorage
-    const savedLogo = localStorage.getItem('clubLogo');
+    const savedLogo = localStorage.getItem("clubLogo");
     if (savedLogo && !logoPreview) {
       try {
         const logoData = JSON.parse(savedLogo);
         // Convert base64 back to File
-        const byteCharacters = atob(logoData.data.split(',')[1]);
+        const byteCharacters = atob(logoData.data.split(",")[1]);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
           byteNumbers[i] = byteCharacters.charCodeAt(i);
         }
         const byteArray = new Uint8Array(byteNumbers);
-        const restoredLogo = new File([byteArray], logoData.name, { type: logoData.type });
-        
+        const restoredLogo = new File([byteArray], logoData.name, {
+          type: logoData.type,
+        });
+
         const preview = URL.createObjectURL(restoredLogo);
         setLogoPreview({ file: restoredLogo, preview });
         updateFormData({ logo: restoredLogo });
       } catch (error) {
-        console.error('Error restoring logo:', error);
+        console.error("Error restoring logo:", error);
       }
     }
   }, []);
@@ -161,7 +164,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     // Get all currently uploaded images from both sources
     const allExistingImages = [
       ...(formData.images || []),
-      ...previewImages.filter(img => img.file).map(img => img.file)
+      ...previewImages.filter((img) => img.file).map((img) => img.file),
     ];
 
     const duplicateFiles = [];
@@ -169,16 +172,17 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
 
     files.forEach((file, index) => {
       // Check against ALL existing images
-      const isDuplicateInExisting = allExistingImages.some(existingFile =>
-        existingFile.name === file.name &&
-        existingFile.size === file.size
+      const isDuplicateInExisting = allExistingImages.some(
+        (existingFile) =>
+          existingFile.name === file.name && existingFile.size === file.size
       );
 
       // Check against other files in current selection
-      const isDuplicateInCurrentSelection = files.some((otherFile, otherIndex) =>
-        otherIndex < index &&
-        otherFile.name === file.name &&
-        otherFile.size === file.size
+      const isDuplicateInCurrentSelection = files.some(
+        (otherFile, otherIndex) =>
+          otherIndex < index &&
+          otherFile.name === file.name &&
+          otherFile.size === file.size
       );
 
       if (isDuplicateInExisting || isDuplicateInCurrentSelection) {
@@ -186,12 +190,19 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       } else {
         newFiles.push(file);
       }
-      console.log(isDuplicateInExisting, isDuplicateInCurrentSelection, 'pankaj');
-
+      console.log(
+        isDuplicateInExisting,
+        isDuplicateInCurrentSelection,
+        "pankaj"
+      );
     });
     if (duplicateFiles.length > 0) {
-      showInfo(`Duplicate image detected: ${duplicateFiles.join(', ')}. This image is already uploaded.`);
-      e.target.value = '';
+      showInfo(
+        `Duplicate image detected: ${duplicateFiles.join(
+          ", "
+        )}. This image is already uploaded.`
+      );
+      e.target.value = "";
       return;
     }
 
@@ -263,7 +274,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     setLogoPreview(null);
     updateFormData({ logo: null });
     // Remove from localStorage
-    localStorage.removeItem('clubLogo');
+    localStorage.removeItem("clubLogo");
   };
 
   /* -------------------  BUSINESS HOURS  ------------------- */
@@ -295,7 +306,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       [day]: { ...formData.businessHours[day], [type]: value },
     };
     updateFormData({ businessHours: updatedHours });
-    setReferenceHours({ start: updatedHours[day].start, end: updatedHours[day].end });
+    setReferenceHours({
+      start: updatedHours[day].start,
+      end: updatedHours[day].end,
+    });
     setHasChanged(true);
   };
 
@@ -303,7 +317,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     if (!referenceHours.start || !referenceHours.end) return;
     const updatedHours = {};
     Object.keys(formData.businessHours).forEach((day) => {
-      updatedHours[day] = { start: referenceHours.start, end: referenceHours.end };
+      updatedHours[day] = {
+        start: referenceHours.start,
+        end: referenceHours.end,
+      };
     });
     updateFormData({ businessHours: updatedHours });
     setHasChanged(false);
@@ -337,7 +354,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
         {days.map((day) => {
           const dayHours = formData.businessHours[day] || {
             start: "06:00 AM",
-            end: "11:00 PM"
+            end: "11:00 PM",
           };
           const startTime24 = convertAmPmTo24Hour(dayHours.start);
           const endTime24 = convertAmPmTo24Hour(dayHours.end);
@@ -348,11 +365,19 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
             allowedEndTimes.push(`${h.toString().padStart(2, "0")}:00`);
           }
 
-
           return (
             <Row key={day} className="align-items-center mb-1 ms-3">
               <Col md={3}>
-                <span style={{ fontSize: "12px", fontFamily: "Poppins", fontWeight: "500", color: "#374151" }}>{day}</span>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontFamily: "Poppins",
+                    fontWeight: "500",
+                    color: "#374151",
+                  }}
+                >
+                  {day}
+                </span>
               </Col>
 
               {/* START */}
@@ -373,7 +398,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                       textAlign: "center",
                       boxShadow: "none",
                       fontWeight: "500",
-                      fontFamily: "Poppins"
+                      fontFamily: "Poppins",
                     }}
                     className="py-0 "
                   >
@@ -402,7 +427,16 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 </InputGroup>
               </Col>
 
-              <Col md={1} style={{ textAlign: "center", fontSize: '12px', fontFamily: "Poppins", color: '#374151', fontWeight: "500" }}>
+              <Col
+                md={1}
+                style={{
+                  textAlign: "center",
+                  fontSize: "12px",
+                  fontFamily: "Poppins",
+                  color: "#374151",
+                  fontWeight: "500",
+                }}
+              >
                 To
               </Col>
 
@@ -424,7 +458,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                       textAlign: "center",
                       boxShadow: "none",
                       fontWeight: "500",
-                      fontFamily: "Poppins"
+                      fontFamily: "Poppins",
                     }}
                     className="py-0 "
                   >
@@ -478,11 +512,9 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
 
       try {
         if (updateImage) {
-          dispatch(updateLogo(logoForm))
-
+          dispatch(updateLogo(logoForm));
         } else {
           await dispatch(createLogo(logoForm)).unwrap();
-
         }
       } catch (err) {
         showInfo("Failed to upload logo. Continuing with club registration...");
@@ -507,7 +539,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     apiFormData.append("clubName", formData.courtName || "");
     apiFormData.append(
       "courtType",
-      `${formData.courtTypes.indoor ? "Indoor" : ""}${formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
+      `${formData.courtTypes.indoor ? "Indoor" : ""}${
+        formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
       }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
     );
     apiFormData.append("courtCount", formData.courtCount || "");
@@ -565,13 +598,21 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={6}>
-            <h5 style={{ fontWeight: 600, color: "#374151", fontFamily: "Poppins", fontSize: "20px" }} className="my-3">
+            <h5
+              style={{
+                fontWeight: 600,
+                color: "#374151",
+                fontFamily: "Poppins",
+                fontSize: "20px",
+              }}
+              className="my-3"
+            >
               Upload Club Images
             </h5>
             <div className="mb-0">
               <div className="d-flex align-items-start gap-2">
                 <div className="d-flex flex-wrap gap-2 mb-3">
-                  {previewImages.length > 0 && (
+                  {previewImages.length > 0 &&
                     previewImages.map((image, index) => (
                       <div key={index} style={{ position: "relative" }}>
                         <img
@@ -614,15 +655,17 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                           </button>
                         )}
                       </div>
-                    ))
-                  )}
+                    ))}
                   {previewImages.filter((i) => i.file).length < MAX_IMAGES && (
-                    <div className="border"
-                      onClick={() => document.getElementById("clubImagesInput").click()}
+                    <div
+                      className="border"
+                      onClick={() =>
+                        document.getElementById("clubImagesInput").click()
+                      }
                       style={{
                         borderRadius: "12px",
-                        width: '80px',
-                        height: '80px',
+                        width: "80px",
+                        height: "80px",
                         padding: "10px 0px",
                         textAlign: "center",
                         cursor: "pointer",
@@ -631,7 +674,15 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     >
                       <div className={` gap-3`}>
                         <SlCloudUpload size={25} color="#6B7280" />
-                        <p className="mb-0 m-0" style={{ fontSize: "16px", color: "#374151", fontFamily: "Poppins", fontWeight: 500 }}>
+                        <p
+                          className="mb-0 m-0"
+                          style={{
+                            fontSize: "16px",
+                            color: "#374151",
+                            fontFamily: "Poppins",
+                            fontWeight: 500,
+                          }}
+                        >
                           Upload
                         </p>
                       </div>
@@ -647,19 +698,24 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                   )}
                 </div>
                 {duplicateError && (
-                  <div style={{
-                    backgroundColor: "#FEF2F2",
-                    border: "1px solid #FECACA",
-                    borderRadius: "8px",
-                    padding: "8px 12px",
-                    marginLeft: "10px",
-                    maxWidth: "200px"
-                  }}>
-                    <p className="mb-0" style={{
-                      fontSize: "12px",
-                      color: "#DC2626",
-                      fontWeight: 500
-                    }}>
+                  <div
+                    style={{
+                      backgroundColor: "#FEF2F2",
+                      border: "1px solid #FECACA",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                      marginLeft: "10px",
+                      maxWidth: "200px",
+                    }}
+                  >
+                    <p
+                      className="mb-0"
+                      style={{
+                        fontSize: "12px",
+                        color: "#DC2626",
+                        fontWeight: 500,
+                      }}
+                    >
                       {duplicateError}
                     </p>
                   </div>
@@ -668,13 +724,23 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
             </div>
 
             <div>
-              <h5 style={{ fontWeight: 600, color: "#374151", fontFamily: "Poppins", fontSize: "20px" }} className="mb-2">
+              <h5
+                style={{
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontFamily: "Poppins",
+                  fontSize: "20px",
+                }}
+                className="mb-2"
+              >
                 Upload Club Logo
               </h5>
 
               {logoPreview ? (
                 <div className="mb-3">
-                  <div style={{ position: "relative", display: "inline-block" }}>
+                  <div
+                    style={{ position: "relative", display: "inline-block" }}
+                  >
                     <img
                       src={logoPreview.preview}
                       alt="Club Logo"
@@ -716,12 +782,13 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               ) : null}
 
               {!logoPreview && (
-                <div className="border"
+                <div
+                  className="border"
                   onClick={() => document.getElementById("logoInput").click()}
                   style={{
                     borderRadius: "12px",
-                    width: '80px',
-                    height: '80px',
+                    width: "80px",
+                    height: "80px",
                     padding: "10px 0px",
                     textAlign: "center",
                     cursor: "pointer",
@@ -730,7 +797,15 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 >
                   <div className=" gap-3 py-1">
                     <SlCloudUpload size={25} color="#6B7280" />
-                    <p className="mb-0 m-0" style={{ fontSize: "16px", color: "#374151", fontFamily: "Poppins", fontWeight: 500 }}>
+                    <p
+                      className="mb-0 m-0"
+                      style={{
+                        fontSize: "16px",
+                        color: "#374151",
+                        fontFamily: "Poppins",
+                        fontWeight: 500,
+                      }}
+                    >
                       Upload
                     </p>
                   </div>
@@ -749,7 +824,15 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
 
           <Col md={6}>
             <div className="d-flex justify-content-between">
-              <h5 style={{ fontWeight: 600, color: "#374151", fontFamily: "Poppins", fontSize: "20px" }} className="my-3 ms-3">
+              <h5
+                style={{
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontFamily: "Poppins",
+                  fontSize: "20px",
+                }}
+                className="my-3 ms-3"
+              >
                 Business Hours
               </h5>
               <Link
@@ -769,9 +852,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
             </div>
             {renderBusinessHours()}
           </Col>
-
         </Row>
-
 
         {/* TERMS */}
         <Row className="mt-4">
@@ -781,9 +862,19 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               id="termsCheckbox"
               checked={formData.termsAccepted}
               style={{ boxShadow: "none" }}
-              onChange={(e) => updateFormData({ termsAccepted: e.target.checked })}
+              onChange={(e) =>
+                updateFormData({ termsAccepted: e.target.checked })
+              }
               label={
-                <span className="" style={{ fontSize: "13px", color: "#374151", fontFamily: "Poppins", fontWeight: 500 }}>
+                <span
+                  className=""
+                  style={{
+                    fontSize: "13px",
+                    color: "#374151",
+                    fontFamily: "Poppins",
+                    fontWeight: 500,
+                  }}
+                >
                   I agree to the{" "}
                   <b
                     className="text-primary"
@@ -810,14 +901,14 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               }
             />
             <style jsx>{`
-        input[type="checkbox"] {
-          width: 13px !important;
-          height: 13px !important;
-          transform: scale(1.2);
-          box-shadow: none !important;
-          border : 1px solid #636161ff !important;
-        }
-      `}</style>
+              input[type="checkbox"] {
+                width: 13px !important;
+                height: 13px !important;
+                transform: scale(1.2);
+                box-shadow: none !important;
+                border: 1px solid #636161ff !important;
+              }
+            `}</style>
           </Col>
         </Row>
 
@@ -835,7 +926,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               fontSize: "16px",
               color: "#fff",
               marginRight: "10px",
-              fontFamily: "Poppins"
+              fontFamily: "Poppins",
             }}
           >
             Back
@@ -850,7 +941,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
               fontWeight: 600,
               fontSize: "16px",
               color: "#fff",
-              fontFamily: "Poppins"
+              fontFamily: "Poppins",
             }}
             disabled={previewImages.length === 0}
           >
