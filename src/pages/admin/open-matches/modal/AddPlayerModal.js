@@ -315,7 +315,7 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
               <label className="form-label fw-medium">Gender</label>
               <div className="d-flex flex-wrap gap-3">
                 {["Male", "Female", "Other"].map((gender) => (
-                  <div key={gender} className="form-check">
+                <div key={gender} className="form-check d-flex align-items-center gap-2">
                     <input
                       className="form-check-input"
                       type="radio"
@@ -331,7 +331,7 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
                         }))
                       }
                     />
-                    <label className="form-check-label" htmlFor={gender}>
+                    <label className="form-check-label pt-1" htmlFor={gender}>
                       {gender}
                     </label>
                   </div>
@@ -359,23 +359,47 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
       </Modal.Body>
       <Modal.Footer className="border-0 pt-0">
         <div className="d-flex flex-column flex-sm-row gap-2 w-100">
-          <Button
+          {/* <Button
             variant="outline-secondary"
             onClick={onHide}
             disabled={userSignUpLoading}
             className="flex-fill order-2 order-sm-1"
             style={{ minHeight: "45px" }}
+                          sx={{ width: { xs: "100%", sm: "45%",border:"1px solid #001b76",color:"#001B76" } }}
+
+          >
+            Cancel
+          </Button> */}
+          <Button
+            variant="outline-secondary"
+            onClick={onHide}
+            disabled={userSignUpLoading}
+            className="flex-fill order-2 order-sm-1"
+            style={{
+              minHeight: "45px",
+              width: window.innerWidth < 576 ? "100%" : "50%",
+              border: "1px solid #001b76",
+              color: "#001B76",
+            }}
           >
             Cancel
           </Button>
+
           <Button
             onClick={handleAddPlayer}
             disabled={userSignUpLoading}
             className="flex-fill order-1 order-sm-2 text-white"
+            // style={{
+            //   backgroundColor: "#22c55e",
+            //   border: "none",
+            //   minHeight: "45px",
+            // }}
             style={{
-              backgroundColor: "#22c55e",
-              border: "none",
+              background:
+                "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white", border: "none",
               minHeight: "45px",
+                            width: window.innerWidth < 576 ? "100%" : "50%",
+
             }}
           >
             {userSignUpLoading ? (

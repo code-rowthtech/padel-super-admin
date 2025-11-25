@@ -31,6 +31,9 @@ export const GET_NOTIFICATION_USER_COUNT = "/api/userNotification/ureadCount";
 export const READ_ALL_NOTIFICATION_USER =
   "/api/userNotification/markAsAllAsRead";
 
+// question creatematche step 
+export const GET_QUESTION_LIST = "/api/questions/getSurveySteps";
+
 //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 //-----------------------------------------------A_U_T_H----------------------------------------------//
 export const OWNER_SIGNUP = "/api/owners/ownerSignup";

@@ -15,17 +15,12 @@ import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
 import {
-  MdKeyboardArrowDown,
   MdOutlineArrowForwardIos,
   MdOutlineDateRange,
 } from "react-icons/md";
 import {
   MdOutlineArrowBackIosNew,
   MdOutlineDeleteOutline,
-} from "react-icons/md";
-import {
-  MdKeyboardDoubleArrowUp,
-  MdKeyboardDoubleArrowDown,
 } from "react-icons/md";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -35,12 +30,12 @@ import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
 import {
-  booking_dropdown_img,
   booking_dropdown_img2,
   booking_dropdown_img3,
   booking_dropdown_img4,
 } from "../../../assets/files";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
+import { getQuestionData } from "../../../redux/user/notifiction/thunk";
 
 /* ──────────────────────── Helper Functions ──────────────────────── */
 const parseTimeToHour = (timeStr) => {
@@ -51,6 +46,11 @@ const parseTimeToHour = (timeStr) => {
   if (period === "pm" && hour !== 12) hour += 12;
   if (period === "am" && hour === 12) hour = 0;
   return hour;
+};
+
+const timeToMinutes = (timeStr) => {
+  const hour = parseTimeToHour(timeStr);
+  return hour !== null ? hour * 60 : null;
 };
 
 const filterSlotsByTab = (slot, eventKey) => {
@@ -109,6 +109,9 @@ const CreateMatches = () => {
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+  const getQuestionList = useSelector((state) => state?.userNotificationData?.getQuestionData?.data);
+  const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
+  console.log({getQuestionList},'0976456789');
   const [slotError, setSlotError] = useState("");
   const [key, setKey] = useState("morning");
   const [matchPlayer, setMatchPlayer] = useState(false);
@@ -185,6 +188,7 @@ const CreateMatches = () => {
   };
 
   const toggleTime = (time, courtId) => {
+    // Prevent selecting slots from different dates
     if (
       selectedCourts.length > 0 &&
       selectedCourts[0].date !== selectedDate.fullDate
@@ -195,35 +199,48 @@ const CreateMatches = () => {
       return;
     }
 
-    const isAlreadySelected = selectedTimes[courtId]?.some(
-      (t) => t._id === time._id
-    );
+    const currentSelectedTimes = selectedTimes[courtId] || [];
     const totalSlots = Object.values(selectedTimes).flat().length;
+    const isAlreadySelected = currentSelectedTimes.some((t) => t._id === time._id);
 
+    // Helper: Convert time string (e.g., "5:00 PM") to minutes since midnight
+    const timeToMinutes = (timeStr) => {
+      const slotHour = parseTimeToHour(timeStr);
+      return slotHour * 60; // assuming all slots are hourly
+    };
+
+    // If deselecting a slot
     if (isAlreadySelected) {
-      const filtered = selectedTimes[courtId].filter(
-        (t) => t._id !== time._id
-      );
+      const filtered = currentSelectedTimes.filter((t) => t._id !== time._id);
       setSelectedTimes((prev) => ({ ...prev, [courtId]: filtered }));
-      setSelectedBuisness((prev) =>
-        prev.filter((t) => t._id !== time._id)
-      );
+
+      // Update selectedCourts and selectedBuisness accordingly
+      setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
       setSelectedCourts((prev) =>
         prev
           .map((c) =>
             c._id === courtId
-              ? { ...c, time: c.time.filter((t) => t._id !== time._id) }
+              ? {
+                ...c,
+                time: c.time.filter((t) => t._id !== time._id),
+              }
               : c
           )
           .filter((c) => c.time.length > 0)
       );
-    } else {
-      if (totalSlots >= 2) {
-        setErrorMessage("Maximum 2 slots can be selected.");
-        setErrorShow(true);
-        return;
-      }
+      setSlotError("");
+      return;
+    }
 
+    // Trying to select a new slot
+    if (totalSlots >= 2) {
+      setErrorMessage("Maximum 2 consecutive slots allowed.");
+      setErrorShow(true);
+      return;
+    }
+
+    // Case 1: No slots selected yet → allow any slot
+    if (totalSlots === 0) {
       const newTimeEntry = {
         _id: time._id,
         time: time.time,
@@ -232,39 +249,73 @@ const CreateMatches = () => {
 
       setSelectedTimes((prev) => ({
         ...prev,
-        [courtId]: [...(prev[courtId] || []), time],
+        [courtId]: [time],
       }));
       setSelectedBuisness((prev) => [...prev, time]);
 
-      setSelectedCourts((prev) => {
-        const existingCourt = prev.find((c) => c._id === courtId);
-        let updatedCourts;
-        if (existingCourt) {
-          updatedCourts = prev.map((c) =>
-            c._id === courtId
-              ? { ...c, time: [...c.time, newTimeEntry] }
-              : c
-          );
-        } else {
-          const currentCourt = slotData?.data?.find((c) => c._id === courtId);
-          updatedCourts = [
-            ...prev,
-            {
-              _id: currentCourt._id,
-              courtName: currentCourt.courtName,
-              type: currentCourt.type,
-              date: selectedDate.fullDate,
-              day: selectedDate.day,
-              time: [newTimeEntry],
-            },
-          ];
-        }
-
-
-
-        return updatedCourts;
-      });
+      const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+      setSelectedCourts([
+        {
+          _id: currentCourt._id,
+          courtName: currentCourt.courtName,
+          type: currentCourt.type,
+          date: selectedDate.fullDate,
+          day: selectedDate.day,
+          time: [newTimeEntry],
+        },
+      ]);
+      return;
     }
+
+    // Case 2: One slot already selected → must be same court + consecutive time
+    const firstSelectedCourtId = Object.keys(selectedTimes)[0];
+    const firstSelectedSlot = selectedTimes[firstSelectedCourtId][0];
+
+    // Must be same court
+    if (courtId !== firstSelectedCourtId) {
+      setSlotError("You can only select consecutive slots from the same court.");
+      return;
+    }
+
+    // Must be exactly 1 hour apart
+    const firstMinutes = timeToMinutes(firstSelectedSlot.time);
+    const newMinutes = timeToMinutes(time.time);
+    const diff = Math.abs(firstMinutes - newMinutes);
+
+    if (diff !== 60) {
+      setSlotError("You can only select consecutive hourly slots (e.g., 5:00 → 6:00).");
+      return;
+    }
+
+    // Optional: Prevent selecting backward if you want strict order (5→6 only, not 6→5)
+    // Remove this block if user can select 6:00 first, then 5:00
+    if (newMinutes < firstMinutes) {
+      setSlotError("Please select the next hour after the first slot.");
+      return;
+    }
+
+    // All checks passed → allow selection
+    const newTimeEntry = {
+      _id: time._id,
+      time: time.time,
+      amount: time.amount || 1000,
+    };
+
+    setSelectedTimes((prev) => ({
+      ...prev,
+      [courtId]: [...prev[courtId], time],
+    }));
+    setSelectedBuisness((prev) => [...prev, time]);
+
+    setSelectedCourts((prev) =>
+      prev.map((c) =>
+        c._id === courtId
+          ? { ...c, time: [...c.time, newTimeEntry] }
+          : c
+      )
+    );
+
+    setSlotError("");
   };
 
   const maxSelectableDate = new Date();
@@ -356,7 +407,6 @@ const CreateMatches = () => {
       { code: "E", title: "Entry Level" },
     ];
 
-    // Map first-step skill selection to the final set of recommended player codes
     if (firstStepAnswer === "Beginner") {
       return allOptions.filter((opt) => ["D1", "D2"].includes(opt.code));
     } else if (firstStepAnswer === "Intermediate") {
@@ -369,6 +419,12 @@ const CreateMatches = () => {
 
     return allOptions;
   };
+
+  useEffect(() => {
+    if (!matchPlayer && !existsOpenMatchData) {
+      dispatch(getQuestionData())
+    }
+  }, [dispatch, matchPlayer, existsOpenMatchData]);
 
   const steps = [
     {
@@ -539,7 +595,45 @@ const CreateMatches = () => {
   const scrollRight = () =>
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
+  const renderSlotButton = (slot, index, courtId) => {
+    const isSelected = selectedTimes[courtId]?.some((s) => s._id === slot._id) || false;
+    const totalSelected = Object.values(selectedTimes).flat().length;
 
+    let isDisabled = slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
+
+    if (totalSelected === 1 && !isSelected) {
+      const selectedCourtId = Object.keys(selectedTimes)[0];
+      const firstSlot = selectedTimes[selectedCourtId][0];
+      const diff = Math.abs(timeToMinutes(firstSlot.time) - timeToMinutes(slot.time));
+      isDisabled = isDisabled || courtId !== selectedCourtId || diff !== 60;
+    }
+
+    if (totalSelected >= 2 && !isSelected) isDisabled = true;
+
+    return (
+      <div key={index} className="col-3 col-sm-3 col-md-3 col-lg-2 mb-1 mt-1">
+        <button
+          className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
+          onClick={() => toggleTime(slot, courtId)}
+          disabled={isDisabled}
+          style={{
+            background: isDisabled ? "#c9cfcfff" : isSelected ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF",
+            color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
+            cursor: isDisabled ? "not-allowed" : "pointer",
+            opacity: isDisabled ? 0.6 : 1,
+            border: isSelected ? "none" : "1px solid #4949491A",
+            fontSize: "11px",
+            padding: "4px 2px",
+            height: "32px",
+          }}
+          onMouseEnter={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #3DBE64")}
+          onMouseLeave={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #4949491A")}
+        >
+          {formatTimeForDisplay(slot.time)}
+        </button>
+      </div>
+    );
+  };
 
   /* ──────────────────────── JSX ──────────────────────── */
   return (
@@ -890,64 +984,7 @@ const CreateMatches = () => {
 
                               <div className="col-md-9 col-12">
                                 <div className="row g-1">
-                                  {filteredSlots.map((slot, i) => {
-                                    const isSelected = selectedTimes[court._id]?.some(
-                                      (t) => t._id === slot._id
-                                    );
-
-                                    const totalSelectedSlots = Object.values(selectedTimes).flat().length;
-                                    const isDisabled =
-                                      slot.status === "booked" ||
-                                      slot.availabilityStatus !== "available" ||
-                                      isPastTime(slot.time) ||
-                                      slot.amount <= 0 ||
-                                      (totalSelectedSlots >= 2 && !isSelected);
-
-                                    return (
-                                      <div
-                                        key={i}
-                                        className="col-3 col-sm-3 col-md-3 col-lg-2 mb-md-1 mb-0 mt-md-0 mt-1"
-                                      >
-                                        <button
-                                          className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
-                                          onClick={() => toggleTime(slot, court._id)}
-                                          disabled={isDisabled}
-                                          style={{
-                                            background:
-                                              isDisabled
-                                                ? "#c9cfcfff"
-                                                : isSelected
-                                                  ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                                  : "#FFFFFF",
-                                            color:
-                                              isDisabled
-                                                ? "#000000"
-                                                : isSelected
-                                                  ? "white"
-                                                  : "#000000",
-                                            cursor: isDisabled ? "not-allowed" : "pointer",
-                                            opacity: isDisabled ? 0.6 : 1,
-                                            border: isSelected ? "" : "1px solid #4949491A",
-                                            fontSize: "11px",
-                                            padding: "4px 2px",
-                                            height: "32px",
-                                          }}
-                                          onMouseEnter={(e) =>
-                                            !isDisabled &&
-                                            slot.availabilityStatus === "available" &&
-                                            (e.currentTarget.style.border = "1px solid #3DBE64")
-                                          }
-                                          onMouseLeave={(e) =>
-                                            !isDisabled &&
-                                            slot.availabilityStatus === "available" &&
-                                            (e.currentTarget.style.border = "1px solid #4949491A")
-                                          }
-                                        >
-                                          {formatTimeForDisplay(slot?.time)}
-                                        </button>
-                                      </div>
-                                    );
-                                  })}
+                                  {filteredSlots.map((slot, i) => renderSlotButton(slot, i, court._id))}
                                 </div>
                               </div>
                             </div>
