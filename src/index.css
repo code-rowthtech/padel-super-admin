@@ -431,7 +431,7 @@ h1.display-5 {
   /* position: sticky; */
   top: 0;
   z-index: 1;
-  font-size: 14px;
+  font-size: 16px;
   font-family: "Poppins";
 }
 
@@ -446,7 +446,7 @@ h1.display-5 {
   /* Default padding for other columns */
   text-align: center;
   font-weight: 500 !important;
-  font-size: 16px !important;
+  font-size: 14px !important;
   border-bottom: 0.5px solid #0000001a;
   background-color: #fafbff !important;
   font-family: "Poppins" !important;
@@ -454,7 +454,7 @@ h1.display-5 {
 }
 
 .booking-table .table-data {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .custom-table thead th {
@@ -1275,17 +1275,17 @@ h1.display-5 {
   }
 
   .booking-table th {
-    padding: 8px 4px !important;
-    font-size: 10px !important;
+    padding: 12px 4px !important;
+    font-size: 14px !important;
   }
 
   .booking-table td {
     padding: 8px 4px !important;
-    font-size: 10px !important;
+    font-size: 12px !important;
   }
 
   .table-data {
-    font-size: 10px !important;
+    font-size: 14px !important;
   }
 
   /* Search inputs responsive */
