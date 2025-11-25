@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData, getNotificationView, readAllNotification, getQuestionData } from "./thunk";
+import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData, getNotificationView, readAllNotification, getQuestionData, getPlayerLevel } from "./thunk";
 
 const initialState = {
   getCount: null,
@@ -8,7 +8,10 @@ const initialState = {
   getCountError: null,
   getQuestionData: null,
   getQuestionLoading: false,
-  getQuestionError: null
+  getQuestionError: null,
+  getPlayerLevel: null,
+  getPlayerLevelLoading: false,
+  getPlayerLevelError: null
 };
 
 const UserNotificationSlice = createSlice({
@@ -23,6 +26,9 @@ const UserNotificationSlice = createSlice({
       state.getQuestionData = null;
       state.getQuestionLoading = false;
       state.getQuestionError = null;
+      state.getPlayerLevel = null;
+      state.getPlayerLevelLoading = false;
+      state.getPlayerLevelError = null;
     },
   },
   extraReducers: (builder) => {
@@ -97,6 +103,19 @@ const UserNotificationSlice = createSlice({
       .addCase(getQuestionData.rejected, (state, action) => {
         state.getListLoading = false;
         state.getListError = action.payload;
+      })
+
+      .addCase(getPlayerLevel.pending, (state) => {
+        state.getPlayerLevelLoading = true;
+        state.getPlayerLevelError = null;
+      })
+      .addCase(getPlayerLevel.fulfilled, (state, action) => {
+        state.getPlayerLevelLoading = false;
+        state.getPlayerLevel = action.payload;
+      })
+      .addCase(getPlayerLevel.rejected, (state, action) => {
+        state.getPlayerLevelLoading = false;
+        state.getPlayerLevelError = action.payload;
       })
 
   },
