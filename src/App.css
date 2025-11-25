@@ -133,7 +133,7 @@ h1.display-5 {
 .no-scrollbar {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;
-  max-width: 700px !important; /* IE and Edge */
+  /* max-width: 700px !important;  */
 }
 
 .no-scrollbar::-webkit-scrollbar {

@@ -107,10 +107,26 @@ const Profile = () => {
 
   localStorage.setItem("updateprofile", JSON.stringify(updateProfileData));
 
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  // };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Capitalize first letter only
+    const formatted =
+      value.length > 0
+        ? value.charAt(0).toUpperCase() + value.slice(1)
+        : "";
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: formatted,
+    }));
   };
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -337,20 +353,28 @@ const Profile = () => {
             <label className="label d-block">
               Gender <span className="text-danger">*</span>
             </label>
-            {["Female", "Male", "Other"].map((g) => (
-              <div key={g} className="form-check form-check-inline">
-                <input
-                  className="form-check-input"
-                  type="radio"
-                  name="gender"
-                  value={g}
-                  checked={formData.gender === g}
-                  onChange={handleChange}
-                  style={{ boxShadow: "none" }}
-                />
-                <label className="form-check-label">{g}</label>
-              </div>
-            ))}
+            {["Female", "Male", "Other"].map((g) => {
+              const id = `gender-${g}`;
+
+              return (
+                <div key={g} className="form-check form-check-inline">
+                  <input
+                    id={id}
+                    className="form-check-input"
+                    type="radio"
+                    name="gender"
+                    value={g}
+                    checked={formData.gender === g}
+                    onChange={handleChange}
+                    style={{ boxShadow: "none", cursor: "pointer" }}
+                  />
+                  <label htmlFor={id} className="form-check-label">
+                    {g}
+                  </label>
+                </div>
+              );
+            })}
+
           </div>
         </div>
 

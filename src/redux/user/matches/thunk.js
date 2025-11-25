@@ -8,10 +8,12 @@ export const createMatches = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.post(`${Url.CREATE_MATCHES}`, data);
-      // showSuccess(res?.data?.message);
+      showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
-      // showError(error?.message);
+      console.log(error, 'error33');
+
+      showError(error?.message || error);
       return rejectWithValue(error);
     }
   }
@@ -74,7 +76,7 @@ export const removePlayers = createAsyncThunk(
   "matches/removePlayers",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await userApi.put(`${Url.REMOVE_PLAYERS}`,data)
+      const res = await userApi.put(`${Url.REMOVE_PLAYERS}`, data)
       return res?.data;
     } catch (error) {
       showError(error);
