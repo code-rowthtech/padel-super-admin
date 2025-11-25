@@ -652,7 +652,7 @@ const BookingHistory = () => {
 
                                                                     // Check if booking type is open match
                                                                     if (booking?.bookingType === "open Match" && booking?.bookingStatus === 'upcoming') {
-                                                                        setSelectedMatchId(booking?.matchId || booking?._id);
+                                                                        setSelectedMatchId(booking?.openMatchId || booking?._id);
                                                                         setShowViewMatchModal(true);
                                                                         return;
                                                                     }
