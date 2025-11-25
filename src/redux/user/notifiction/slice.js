@@ -1,11 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from "./thunk";
+import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData, getNotificationView, readAllNotification, getQuestionData } from "./thunk";
 
 const initialState = {
   getCount: null,
   getNotificationData: null,
   getCountLoading: false,
   getCountError: null,
+  getQuestionData: null,
+  getQuestionLoading: false,
+  getQuestionError: null
 };
 
 const UserNotificationSlice = createSlice({
@@ -17,6 +20,9 @@ const UserNotificationSlice = createSlice({
       state.getCountLoading = false;
       state.getNotificationData = null;
       state.getCountError = null;
+      state.getQuestionData = null;
+      state.getQuestionLoading = false;
+      state.getQuestionError = null;
     },
   },
   extraReducers: (builder) => {
@@ -34,7 +40,7 @@ const UserNotificationSlice = createSlice({
         state.getCountLoading = false;
         state.getCountError = action.payload;
       })
-// -------------------------G-E-T--NOTIFICATION--D-A-T-A----------------------//
+      // -------------------------G-E-T--NOTIFICATION--D-A-T-A----------------------//
       .addCase(getNotificationData.pending, (state) => {
         state.getCountLoading = true;
         state.getCountError = null;
@@ -76,6 +82,21 @@ const UserNotificationSlice = createSlice({
       .addCase(readAllNotification.rejected, (state, action) => {
         state.getCountLoading = false;
         state.getCountError = action.payload;
+      })
+
+      // -----------------------QUESTION LIST SLICE--------------------------//
+
+      .addCase(getQuestionData.pending, (state) => {
+        state.getListLoading = true;
+        state.getListError = null;
+      })
+      .addCase(getQuestionData.fulfilled, (state, action) => {
+        state.getListLoading = false;
+        state.getQuestionData = action.payload;
+      })
+      .addCase(getQuestionData.rejected, (state, action) => {
+        state.getListLoading = false;
+        state.getListError = action.payload;
       })
 
   },
