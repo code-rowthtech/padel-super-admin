@@ -338,12 +338,12 @@ const Payment = ({ className = "" }) => {
           <div className="bg-white rounded">
             {/* Info Section */}
             <div
-              className="rounded-4 py-4 px-3 px-md-5 mb-4"
+              className="rounded-4 py-md-4 py-3 px-3 px-md-5 mb-md-4 mb-3"
               style={{ backgroundColor: "#F5F5F566", border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none" }}
             >
-              <h6 className="mb-3 custom-heading-use">Information</h6>
+              <h6 className="mb-md-3 mb-0 custom-heading-use fw-semibold text-center text-md-start">Information</h6>
               <div className="row">
-                <div className="col-12 col-md-4 mb-3 p-1">
+                <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
@@ -377,7 +377,7 @@ const Payment = ({ className = "" }) => {
                   )}
                 </div>
 
-                <div className="col-12 col-md-4 mb-3 p-1">
+                <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
                   <label className="form-label mb-0 ps-lg-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
@@ -409,7 +409,7 @@ const Payment = ({ className = "" }) => {
                   )}
                 </div>
 
-                <div className="col-12 col-md-4 mb-3 p-1">
+                <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
@@ -446,13 +446,13 @@ const Payment = ({ className = "" }) => {
 
             {/* Payment Method Section */}
             <div
-              className="rounded-4 py-4 px-3 px-md-5"
+              className="rounded-4 py-md-4 py-3 px-3 px-md-5"
               style={{
                 backgroundColor: "#F5F5F566",
                 border: errors.paymentMethod ? "2px solid red" : "none",
               }}
             >
-              <h6 className="mb-4 custom-heading-use">
+              <h6 className="mb-md-4 mb-3 fw-semibold custom-heading-use text-center text-md-start">
                 Payment Method
               </h6>
               <div className="d-flex flex-column gap-3">
@@ -463,7 +463,7 @@ const Payment = ({ className = "" }) => {
                 ].map((method) => (
                   <label
                     key={method.id}
-                    className="d-flex justify-content-between align-items-center py-3 p-3 bg-white rounded-4"
+                    className="d-flex justify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
                     style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5", }}
                   >
                     <div className="d-flex align-items-center gap-3">
@@ -665,7 +665,7 @@ const Payment = ({ className = "" }) => {
                 <div
                   className={`mobile-expanded-slots ${isExpanded ? "expanded border-bottom" : ""}`}
                   style={{
-                    maxHeight: isExpanded ? (localTotalSlots > 2 ? "140px" : "200px") : "0",
+                    maxHeight: isExpanded ? (localTotalSlots > 2 ? "155px" : "200px") : "0",
                     overflowY: isExpanded && localTotalSlots > 2 ? "auto" : "hidden",
                     transition: "max-height 0.3s ease",
                   }}
