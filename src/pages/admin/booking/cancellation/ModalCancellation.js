@@ -22,11 +22,13 @@ export const BookingCancellationModal = ({
           color: "#1F2937",
         }}
       >
-        {bookingDetails?.bookingStatus === 'in-progress' ? 'Cancellation Request' : ''}
+        {bookingDetails?.bookingStatus === "in-progress"
+          ? "Cancellation Request"
+          : ""}
       </h4>
-      {console.log(bookingDetails, 'bookingDetails')}
+      {console.log(bookingDetails, "bookingDetails")}
       <i
-        className="bi bi-x fs-2 text-danger fw-bold"
+        className="bi bi-x fs-2 text-black fw-bold"
         onClick={handleClose}
         style={{ cursor: "pointer" }}
       ></i>
@@ -158,9 +160,9 @@ export const BookingCancellationModal = ({
         >
           {bookingDetails?.paymentMethod
             ? bookingDetails?.paymentMethod
-              ?.charAt(0)
-              .toUpperCase()
-              .concat(bookingDetails?.paymentMethod?.slice(1))
+                ?.charAt(0)
+                .toUpperCase()
+                .concat(bookingDetails?.paymentMethod?.slice(1))
             : "N/A"}{" "}
         </h2>
       </div>
@@ -224,7 +226,6 @@ export const BookingCancellationModal = ({
         </p>
       </div>
 
-
       <div className="d-flex justify-content-evenly gap-3 p-3 align-items-center">
         <Button
           className=" border-0 rounded-pill py-2 w-100"
@@ -265,9 +266,11 @@ export const BookingRefundModal = ({
   const maxLength = 250;
   const [hasChangedAmount, setHasChangedAmount] = useState(false);
   const [refundAmount, setRefundAmount] = useState("");
-  const [refundDate, setRefundDate] = useState(new Date().toISOString().split("T")[0]);
+  const [refundDate, setRefundDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   // Validate reason
-  console.log(bookingDetails?.totalAmount, 'bookingDetails?.totalAmount')
+  console.log(bookingDetails?.totalAmount, "bookingDetails?.totalAmount");
   const validateReason = (text) => {
     if (!text.trim()) return "Reason is required";
     if (text.trim().length < 10) return "Reason must be at least 10 characters";
@@ -304,7 +307,10 @@ export const BookingRefundModal = ({
     const value = e.target.value;
     const maxAmount = Number(bookingDetails?.totalAmount) || 0;
 
-    if (value === "" || (!isNaN(value) && Number(value) >= 0 && Number(value) <= maxAmount)) {
+    if (
+      value === "" ||
+      (!isNaN(value) && Number(value) >= 0 && Number(value) <= maxAmount)
+    ) {
       setRefundAmount(value);
     }
   };
@@ -317,9 +323,10 @@ export const BookingRefundModal = ({
     }
 
     // Final amount to send
-    const finalAmount = hasChangedAmount && refundAmount !== ""
-      ? Number(refundAmount)
-      : Number(bookingDetails?.totalAmount);
+    const finalAmount =
+      hasChangedAmount && refundAmount !== ""
+        ? Number(refundAmount)
+        : Number(bookingDetails?.totalAmount);
 
     onRefundSuccess(reason, setReason, finalAmount, refundDate);
   };
@@ -346,7 +353,7 @@ export const BookingRefundModal = ({
           Confirm Cancellation
         </h4>
         <i
-          className="bi bi-x fs-2 text-danger fw-bold"
+          className="bi bi-x fs-2 text-black fw-bold"
           onClick={handleClose}
           style={{ cursor: "pointer" }}
         ></i>
@@ -486,9 +493,9 @@ export const BookingRefundModal = ({
               >
                 {bookingDetails?.paymentMethod
                   ? bookingDetails?.paymentMethod
-                    ?.charAt(0)
-                    ?.toUpperCase()
-                    ?.concat(bookingDetails?.paymentMethod?.slice(1))
+                      ?.charAt(0)
+                      ?.toUpperCase()
+                      ?.concat(bookingDetails?.paymentMethod?.slice(1))
                   : "N/A"}
               </h2>
             </div>
@@ -521,9 +528,7 @@ export const BookingRefundModal = ({
                   boxShadow: "none",
                 }}
               />
-
             </div>
-
           </div>
           <div className=" col-md-6 border-start col-12">
             {/* Refund Amount Input */}
@@ -567,7 +572,7 @@ export const BookingRefundModal = ({
                 type="date"
                 value={refundDate}
                 onChange={(e) => setRefundDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}  // 👈 disables past dates
+                min={new Date().toISOString().split("T")[0]} // 👈 disables past dates
                 className="form-control w-100"
                 style={{
                   fontFamily: "Poppins",
@@ -579,15 +584,16 @@ export const BookingRefundModal = ({
                   boxShadow: "none",
                 }}
               />
-
             </div>
           </div>
-
         </div>
 
         {/* Refund Amount Field */}
         <div className="mt-3 text-start position-relative">
-          <label className="form-label ps-1" style={{ fontSize: "14px", fontWeight: "600", color: "#374151" }}>
+          <label
+            className="form-label ps-1"
+            style={{ fontSize: "14px", fontWeight: "600", color: "#374151" }}
+          >
             Refund Note
           </label>
           <Form.Control
@@ -596,7 +602,9 @@ export const BookingRefundModal = ({
             placeholder="Enter details about how the payment will be processed refund (e.g., UPI, Bank Transfer, Cash, etc.)"
             value={reason}
             onChange={handleReasonChange}
-            className={`rounded-3 textarea-palceholder ${error ? "is-invalid" : ""}`}
+            className={`rounded-3 textarea-palceholder ${
+              error ? "is-invalid" : ""
+            }`}
             style={{
               boxShadow: "none",
               resize: "none",
@@ -604,13 +612,19 @@ export const BookingRefundModal = ({
           />
           {/* Character Counter */}
           <small
-            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining <= 0 ? "text-danger" : "text-muted"}`}
+            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${
+              remaining <= 0 ? "text-danger" : "text-muted"
+            }`}
             style={{ fontSize: "0.75rem" }}
           >
             {remaining}/250
           </small>
           {/* Error Message */}
-          {error && <div className="invalid-feedback d-block text-start ps-1">{error}</div>}
+          {error && (
+            <div className="invalid-feedback d-block text-start ps-1">
+              {error}
+            </div>
+          )}
         </div>
 
         {/* Submit Button */}
@@ -618,10 +632,14 @@ export const BookingRefundModal = ({
           <Button
             className="py-2 border-0 rounded-pill w-100"
             onClick={handleRefundClick}
-            style={{ backgroundColor: "#3DBE64", fontSize: "17px", fontWeight: "600" }}
+            style={{
+              backgroundColor: "#3DBE64",
+              fontSize: "17px",
+              fontWeight: "600",
+            }}
             disabled={loading || !!error || !reason.trim()}
           >
-            {loading ? <ButtonLoading color={'white'} /> : "Submit"}
+            {loading ? <ButtonLoading color={"white"} /> : "Submit"}
           </Button>
         </div>
       </Modal.Body>
@@ -723,9 +741,11 @@ export const CancelRequestModal = ({
 
   const remaining = maxLength - rejectionReason.length;
 
-  const isReasonMatched = ['not-available', 'timing-issue', 'double-booked'].includes(
-    (bookingDetails?.cancellationReason || '').toLowerCase().trim()
-  );
+  const isReasonMatched = [
+    "not-available",
+    "timing-issue",
+    "double-booked",
+  ].includes((bookingDetails?.cancellationReason || "").toLowerCase().trim());
 
   const showCheckbox = !isReasonMatched;
 
@@ -750,7 +770,7 @@ export const CancelRequestModal = ({
           Cancellation Request
         </h4>
         <i
-          className="bi bi-x fs-2 text-danger fw-bold"
+          className="bi bi-x fs-2 text-black fw-bold"
           onClick={handleClose}
           style={{ cursor: "pointer" }}
         ></i>
@@ -764,13 +784,56 @@ export const CancelRequestModal = ({
             style={{ backgroundColor: "#CBD6FF1A" }}
           >
             <div className="text-start">
-              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">Name:</p>
-              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">Court Number:</p>
-              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">Date:</p>
-              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">Time:</p>
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                }}
+                className="mb-1"
+              >
+                Name:
+              </p>
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                }}
+                className="mb-1"
+              >
+                Court Number:
+              </p>
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                }}
+                className="mb-1"
+              >
+                Date:
+              </p>
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                }}
+                className="mb-1"
+              >
+                Time:
+              </p>
             </div>
             <div className="text-end">
-              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                }}
+                className="mb-1"
+              >
                 <strong>
                   {bookingDetails?.userId?.name
                     ?.slice(0, 1)
@@ -778,13 +841,34 @@ export const CancelRequestModal = ({
                     ?.concat(bookingDetails?.userId?.name?.slice(1)) || "N/A"}
                 </strong>
               </p>
-              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                }}
+                className="mb-1"
+              >
                 <strong>{bookingDetails?.slot?.[0]?.courtName || "N/A"}</strong>
               </p>
-              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                }}
+                className="mb-1"
+              >
                 <strong>{formatDate(bookingDetails?.bookingDate)}</strong>
               </p>
-              <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="mb-1">
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                }}
+                className="mb-1"
+              >
                 <strong>
                   {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
                   {formatSlotTime(
@@ -802,18 +886,36 @@ export const CancelRequestModal = ({
                 <strong>Payment Details</strong>
               </h6>
               <div className="d-flex justify-content-between">
-                <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="">Payment Method:</p>
+                <p
+                  style={{
+                    fontSize: "14px",
+                    fontFamily: "Poppins",
+                    fontWeight: "500",
+                  }}
+                  className=""
+                >
+                  Payment Method:
+                </p>
                 <p className="mb-0">
                   {bookingDetails?.paymentMethod
                     ? bookingDetails?.paymentMethod
-                      ?.charAt(0)
-                      .toUpperCase()
-                      .concat(bookingDetails?.paymentMethod?.slice(1))
+                        ?.charAt(0)
+                        .toUpperCase()
+                        .concat(bookingDetails?.paymentMethod?.slice(1))
                     : "N/A"}
                 </p>
               </div>
               <div className="d-flex justify-content-between">
-                <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }} className="">Total Payment:</p>
+                <p
+                  style={{
+                    fontSize: "14px",
+                    fontFamily: "Poppins",
+                    fontWeight: "500",
+                  }}
+                  className=""
+                >
+                  Total Payment:
+                </p>
                 <p className="text-primary fs-4 mb-0">
                   <strong>₹ {bookingDetails?.totalAmount}</strong>
                 </p>
@@ -831,7 +933,7 @@ export const CancelRequestModal = ({
             value={
               bookingDetails?.cancellationReason
                 ? bookingDetails.cancellationReason.charAt(0).toUpperCase() +
-                bookingDetails.cancellationReason.slice(1)
+                  bookingDetails.cancellationReason.slice(1)
                 : ""
             }
             disabled
@@ -853,8 +955,9 @@ export const CancelRequestModal = ({
             maxLength={maxLength}
           />
           <small
-            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining < 0 ? "text-danger" : "text-muted"
-              }`}
+            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${
+              remaining < 0 ? "text-danger" : "text-muted"
+            }`}
             style={{ fontSize: "0.75rem" }}
           >
             {remaining}/250
@@ -878,8 +981,6 @@ export const CancelRequestModal = ({
           />
         )}
 
-
-
         {/* Continue Button */}
         <div className="d-flex justify-content-end">
           <Button
@@ -891,7 +992,7 @@ export const CancelRequestModal = ({
               (!showCheckbox && rejectionReason.trim() === "")
             }
           >
-            {loading ? <ButtonLoading color={'white'} /> : "Continue"}
+            {loading ? <ButtonLoading color={"white"} /> : "Continue"}
           </Button>
         </div>
       </Modal.Body>
@@ -918,10 +1019,12 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
             color: "#1F2937",
           }}
         >
-          {bookingDetails?.bookingStatus === 'rejected' ? "Rejected Details" : ''}
+          {bookingDetails?.bookingStatus === "rejected"
+            ? "Rejected Details"
+            : ""}
         </h4>
         <i
-          className="bi bi-x fs-2 text-danger fw-bold"
+          className="bi bi-x fs-2 text-black fw-bold"
           onClick={handleClose}
           style={{ cursor: "pointer" }}
         ></i>
@@ -974,9 +1077,9 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
               <p className="  mb-0">
                 {bookingDetails?.paymentMethod
                   ? bookingDetails?.paymentMethod
-                    ?.charAt(0)
-                    .toUpperCase()
-                    .concat(bookingDetails?.paymentMethod?.slice(1))
+                      ?.charAt(0)
+                      .toUpperCase()
+                      .concat(bookingDetails?.paymentMethod?.slice(1))
                   : "N/A"}
               </p>
             </div>

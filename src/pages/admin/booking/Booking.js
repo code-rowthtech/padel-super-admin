@@ -7,6 +7,10 @@ import {
   OverlayTrigger,
   Tooltip,
 } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { MdOutlineDateRange } from "react-icons/md";
+import { FaTimes } from "react-icons/fa";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +44,9 @@ const Booking = () => {
   const [showBookingCancel, setShowBookingCancel] = useState(false);
   const [tab, setTab] = useState(0);
   const [loadingBookingId, setLoadingBookingId] = useState(null);
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const {
     getBookingData,
@@ -48,13 +55,16 @@ const Booking = () => {
     updateBookingLoading,
   } = useSelector((state) => state.booking);
 
-  const tabCount = useSelector((state) => state.booking.bookingCount)
+  const tabCount = useSelector((state) => state.booking.bookingCount);
   console.log({ tabCount });
   const bookings = getBookingData?.bookings || [];
   const totalItems = getBookingData?.totalItems || 0;
-  const allCount = tabCount?.allCount || 0;
-  const upcomingCount = tabCount?.upcomingCount || 0;
-  const completedCount = tabCount?.completedCount || 0;
+  const sendDate = startDate && endDate;
+  const allCount = sendDate && tab === 0 ? totalItems : tabCount?.allCount || 0;
+  const upcomingCount =
+    sendDate && tab === 1 ? totalItems : tabCount?.upcomingCount || 0;
+  const completedCount =
+    sendDate && tab === 2 ? totalItems : tabCount?.completedCount || 0;
 
   const defaultLimit = 20;
 
@@ -74,9 +84,20 @@ const Booking = () => {
       payload.status = status;
     }
 
+    if (sendDate) {
+      const formatToYYYYMMDD = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      payload.startDate = formatToYYYYMMDD(startDate);
+      payload.endDate = formatToYYYYMMDD(endDate);
+    }
+
     dispatch(getBookingByStatus(payload));
-    dispatch(bookingCount({ ownerId: ownerId }))
-  }, [tab, currentPage, dispatch, ownerId]);
+    dispatch(bookingCount({ ownerId: ownerId }));
+  }, [tab, currentPage, dispatch, ownerId, sendDate]);
 
   const handleBookingDetails = async (id, type) => {
     setLoadingBookingId(id);
@@ -107,12 +128,18 @@ const Booking = () => {
         <Col xs={12}>
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
             <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto" } }}>
-              <AppBar position="static" color="default" className="bg-white border-bottom border-light" elevation={0}>
+              <AppBar
+                position="static"
+                color="default"
+                className="bg-white border-bottom border-light"
+                elevation={0}
+              >
                 <Tabs
                   value={tab}
                   onChange={(_, v) => {
                     setTab(v);
                     setCurrentPage(1);
+                    setDateRange([null, null]);
                   }}
                   indicatorColor="primary"
                   textColor="primary"
@@ -128,7 +155,9 @@ const Booking = () => {
                   <Tab
                     label={
                       <>
-                        <span >All <b style={{ color: "#16a34a" }} >({allCount}) </b> </span>
+                        <span>
+                          All <b style={{ color: "#16a34a" }}>({allCount}) </b>{" "}
+                        </span>
                       </>
                     }
                     className="fw-medium table-data d-flex text-nowrap"
@@ -137,7 +166,11 @@ const Booking = () => {
                   <Tab
                     label={
                       <>
-                        <span > Upcoming  <b style={{ color: "#16a34a" }}>({upcomingCount})</b></span>
+                        <span>
+                          {" "}
+                          Upcoming{" "}
+                          <b style={{ color: "#16a34a" }}>({upcomingCount})</b>
+                        </span>
                       </>
                     }
                     className="fw-medium text-nowrap table-data"
@@ -146,65 +179,134 @@ const Booking = () => {
                   <Tab
                     label={
                       <>
-                        <span >Completed <b style={{ color: "#16a34a" }}>({completedCount})</b> </span>
+                        <span>
+                          Completed{" "}
+                          <b style={{ color: "#16a34a" }}>({completedCount})</b>{" "}
+                        </span>
                       </>
                     }
                     className="fw-medium text-nowrap table-data"
                   />
-
                 </Tabs>
               </AppBar>
             </Box>
-            <button
-              className="d-flex align-items-center position-relative p-0 border-0"
-              style={{
-                borderRadius: "20px 10px 10px 20px",
-                background: "none",
-                overflow: "hidden",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                flexShrink: 0,
-              }}
-              onClick={() => {
-                navigate("/admin/manualbooking");
-                dispatch(resetOwnerClub());
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "0.9";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "1";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              <div className="p-1 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
+
+            <div className="d-flex align-items-center gap-2">
+              {!showDatePicker && !startDate && !endDate ? (
                 <div
-                  className="d-flex justify-content-center align-items-center text-white fw-bold"
+                  className="d-flex align-items-center justify-content-center rounded p-2"
                   style={{
-                    backgroundColor: "#1F41BB",
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "50%",
-                    fontSize: "20px",
+                    backgroundColor: "#FAFBFF",
+                    width: "40px",
+                    height: "38px",
+                    border: "1px solid #dee2e6",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setShowDatePicker(true)}
+                >
+                  <MdOutlineDateRange size={16} className="text-muted" />
+                </div>
+              ) : (
+                <div
+                  className="d-flex align-items-center justify-content-center rounded p-1"
+                  style={{
+                    backgroundColor: "#FAFBFF",
+                    maxWidth: "280px",
+                    height: "38px",
+                    border: "1px solid #dee2e6",
+                    gap: "8px",
                   }}
                 >
-                  <span className="mb-1">+</span>
+                  <div className="px-2">
+                    <MdOutlineDateRange size={16} className="text-muted" />
+                  </div>
+                  <DatePicker
+                    selectsRange
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={(update) => {
+                      setDateRange(update);
+                      const [start, end] = update;
+                      if (start && end) {
+                        setShowDatePicker(false);
+                      }
+                    }}
+                    dateFormat="dd/MM/yy"
+                    placeholderText="DD/MM/YY – DD/MM/YY"
+                    className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                    open={showDatePicker}
+                    onClickOutside={() => setShowDatePicker(false)}
+                  />
+                  {(startDate || endDate) && (
+                    <div
+                      className="px-2"
+                      onClick={() => {
+                        setDateRange([null, null]);
+                        setShowDatePicker(false);
+                        setCurrentPage(1);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <FaTimes size={14} className="text-danger" />
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div
-                className="d-flex align-items-center text-white fw-medium rounded-end-3"
+              )}
+
+              <button
+                className="d-flex align-items-center position-relative p-0 border-0"
                 style={{
-                  backgroundColor: "#1F41BB",
-                  padding: "0 16px",
-                  height: "36px",
-                  fontSize: "14px",
-                  fontFamily: "Nunito, sans-serif",
+                  borderRadius: "20px 10px 10px 20px",
+                  background: "none",
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  flexShrink: 0,
+                }}
+                onClick={() => {
+                  navigate("/admin/manualbooking");
+                  dispatch(resetOwnerClub());
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = "0.9";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
-                Manual Booking
-              </div>
-            </button>
+                <div
+                  className="p-1 rounded-circle bg-light"
+                  style={{ position: "relative", left: "10px" }}
+                >
+                  <div
+                    className="d-flex justify-content-center align-items-center text-white fw-bold"
+                    style={{
+                      backgroundColor: "#1F41BB",
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "50%",
+                      fontSize: "20px",
+                    }}
+                  >
+                    <span className="mb-1">+</span>
+                  </div>
+                </div>
+                <div
+                  className="d-flex align-items-center text-white fw-medium rounded-end-3"
+                  style={{
+                    backgroundColor: "#1F41BB",
+                    padding: "0 16px",
+                    height: "36px",
+                    fontSize: "14px",
+                    fontFamily: "Nunito, sans-serif",
+                  }}
+                >
+                  Manual Booking
+                </div>
+              </button>
+            </div>
           </div>
         </Col>
       </Row>
@@ -216,7 +318,11 @@ const Booking = () => {
             style={{ minHeight: "75vh" }}
           >
             <h6 className="mb-3 tabel-title fs-6">
-              {tab === 0 ? "All Bookings" : tab === 1 ? "Upcoming Bookings" : "Completed Bookings"}
+              {tab === 0
+                ? "All Bookings"
+                : tab === 1
+                ? "Upcoming Bookings"
+                : "Completed Bookings"}
             </h6>
 
             {getBookingLoading ? (
@@ -233,7 +339,12 @@ const Booking = () => {
                     maxHeight: "calc(100vh - 300px)",
                   }}
                 >
-                  <Table responsive borderless size="sm" className="custom-table">
+                  <Table
+                    responsive
+                    borderless
+                    size="sm"
+                    className="custom-table"
+                  >
                     <thead>
                       <tr className="text-center">
                         <th className="d-lg-table-cell">Sr No.</th>
@@ -249,57 +360,98 @@ const Booking = () => {
                     </thead>
                     <tbody>
                       {bookings.map((item, idx) => (
-                        <tr key={item?._id} className="table-data border-bottom align-middle text-center">
-                          <td className="text-truncate" style={{ maxWidth: "120px" }}>
+                        <tr
+                          key={item?._id}
+                          className="table-data border-bottom align-middle text-center"
+                        >
+                          <td
+                            className="text-truncate"
+                            style={{ maxWidth: "120px" }}
+                          >
                             {idx + 1 + (currentPage - 1) * defaultLimit}
                           </td>
-                          <td className="text-truncate" style={{ maxWidth: "120px" }}>
+                          <td
+                            className="text-truncate"
+                            style={{ maxWidth: "120px" }}
+                          >
                             {item?.userId?.name
-                              ? item.userId.name.charAt(0).toUpperCase() + item.userId.name.slice(1)
+                              ? item.userId.name.charAt(0).toUpperCase() +
+                                item.userId.name.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
-                            {item?.userId?.countryCode || ""} {item?.userId?.phoneNumber || "N/A"}
+                            {item?.userId?.countryCode || ""}{" "}
+                            {item?.userId?.phoneNumber || "N/A"}
                           </td>
                           <td>
                             <div className="d-flex justify-content-center">
-                              <span className="fw-medium small">{formatDate(item?.bookingDate)}</span>
+                              <span className="fw-medium small">
+                                {formatDate(item?.bookingDate)}
+                              </span>
                               <span className="text-muted small ms-2">
-                                {formatTime(renderSlotTimes(item?.slot[0]?.slotTimes))}
+                                {formatTime(
+                                  renderSlotTimes(item?.slot[0]?.slotTimes)
+                                )}
                               </span>
                             </div>
                           </td>
-                          <td className="text-truncate" style={{ maxWidth: "80px" }}>
+                          <td
+                            className="text-truncate"
+                            style={{ maxWidth: "80px" }}
+                          >
                             {item?.slot?.[0]?.courtName || "-"}
                           </td>
-                          <td className="text-truncate" >
-                            {item?.bookingStatus === 'in-progress'
-                              ? 'Request'
-                              : item?.bookingStatus === 'refunded' ? 'Cancelled' : item?.bookingStatus
-                                ? item.bookingStatus.charAt(0).toUpperCase() + item.bookingStatus.slice(1)
-                                : ""}
+                          <td className="text-truncate">
+                            {item?.bookingStatus === "in-progress" ? (
+                              "Request"
+                            ) : item?.bookingStatus === "refunded" ? (
+                              "Cancelled"
+                            ) : item?.bookingStatus === "rejected" ? (
+                              <span style={{ color: "red" }}>Rejected</span>
+                            ) : item?.bookingStatus ? (
+                              item.bookingStatus.charAt(0).toUpperCase() +
+                              item.bookingStatus.slice(1)
+                            ) : (
+                              ""
+                            )}
                           </td>
                           <td style={{ cursor: "pointer" }}>
                             {loadingBookingId === item?._id ? (
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
-                                {console.log(item, 'muskan')}
-                                {tab !== 2 && item?.bookingStatus !== "rejected" && item?.bookingStatus !== "completed" && item?.bookingStatus !== "in-progress" && (
-                                  <OverlayTrigger placement="left" overlay={<Tooltip>Cancel</Tooltip>}>
-                                    <MdOutlineCancel
-                                      onClick={() => handleBookingDetails(item?._id, "cancel")}
-                                      className="text-danger"
-                                      style={{ cursor: "pointer" }}
-                                      size={16}
-                                    />
-                                  </OverlayTrigger>
-                                )}
+                                {console.log(item, "muskan")}
+                                {tab !== 2 &&
+                                  item?.bookingStatus !== "rejected" &&
+                                  item?.bookingStatus !== "completed" &&
+                                  item?.bookingStatus !== "in-progress" && (
+                                    <OverlayTrigger
+                                      placement="left"
+                                      overlay={<Tooltip>Cancel</Tooltip>}
+                                    >
+                                      <MdOutlineCancel
+                                        onClick={() =>
+                                          handleBookingDetails(
+                                            item?._id,
+                                            "cancel"
+                                          )
+                                        }
+                                        className="text-danger"
+                                        style={{ cursor: "pointer" }}
+                                        size={16}
+                                      />
+                                    </OverlayTrigger>
+                                  )}
 
-                                <OverlayTrigger placement="bottom" overlay={<Tooltip>View Details</Tooltip>}>
+                                <OverlayTrigger
+                                  placement="bottom"
+                                  overlay={<Tooltip>View Details</Tooltip>}
+                                >
                                   <FaEye
                                     className="text-primary"
-                                    onClick={() => handleBookingDetails(item?._id, "details")}
+                                    onClick={() =>
+                                      handleBookingDetails(item?._id, "details")
+                                    }
                                     size={16}
                                   />
                                 </OverlayTrigger>
@@ -321,29 +473,37 @@ const Booking = () => {
                           <span className="mobile-card-label">User:</span>
                           <span className="mobile-card-value">
                             {item?.userId?.name
-                              ? item.userId.name.charAt(0).toUpperCase() + item.userId.name.slice(1)
+                              ? item.userId.name.charAt(0).toUpperCase() +
+                                item.userId.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Contact:</span>
                           <span className="mobile-card-value">
-                            {item?.userId?.countryCode || ""} {item?.userId?.phoneNumber || "N/A"}
+                            {item?.userId?.countryCode || ""}{" "}
+                            {item?.userId?.phoneNumber || "N/A"}
                           </span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Date:</span>
-                          <span className="mobile-card-value">{formatDate(item?.bookingDate)}</span>
+                          <span className="mobile-card-value">
+                            {formatDate(item?.bookingDate)}
+                          </span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Time:</span>
                           <span className="mobile-card-value">
-                            {formatTime(renderSlotTimes(item?.slot[0]?.slotTimes))}
+                            {formatTime(
+                              renderSlotTimes(item?.slot[0]?.slotTimes)
+                            )}
                           </span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Court:</span>
-                          <span className="mobile-card-value">{item?.slot?.[0]?.courtName || "-"}</span>
+                          <span className="mobile-card-value">
+                            {item?.slot?.[0]?.courtName || "-"}
+                          </span>
                         </div>
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Actions:</span>
@@ -352,16 +512,26 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex gap-2">
-                                {tab !== 2 && item?.bookingStatus !== "rejected" && item?.bookingStatus !== "completed" && item?.bookingStatus !== "in-progress" && (
-                                  <MdOutlineCancel
-                                    onClick={() => handleBookingDetails(item?._id, "cancel")}
-                                    className="text-danger"
-                                    size={18}
-                                  />
-                                )}
+                                {tab !== 2 &&
+                                  item?.bookingStatus !== "rejected" &&
+                                  item?.bookingStatus !== "completed" &&
+                                  item?.bookingStatus !== "in-progress" && (
+                                    <MdOutlineCancel
+                                      onClick={() =>
+                                        handleBookingDetails(
+                                          item?._id,
+                                          "cancel"
+                                        )
+                                      }
+                                      className="text-danger"
+                                      size={18}
+                                    />
+                                  )}
                                 <FaEye
                                   className="text-primary"
-                                  onClick={() => handleBookingDetails(item?._id, "details")}
+                                  onClick={() =>
+                                    handleBookingDetails(item?._id, "details")
+                                  }
                                   size={18}
                                 />
                               </div>
@@ -374,8 +544,17 @@ const Booking = () => {
                 </div>
               </>
             ) : (
-              <div className="d-flex text-danger justify-content-center align-items-center" style={{ height: "60vh" }}>
-                No {tab === 0 ? "bookings" : tab === 1 ? "upcoming bookings" : "completed bookings"} found!
+              <div
+                className="d-flex text-danger justify-content-center align-items-center"
+                style={{ height: "60vh" }}
+              >
+                No{" "}
+                {tab === 0
+                  ? "bookings"
+                  : tab === 1
+                  ? "upcoming bookings"
+                  : "completed bookings"}{" "}
+                found!
               </div>
             )}
 
@@ -400,8 +579,6 @@ const Booking = () => {
         </Col>
       </Row>
 
-
-
       {/* Modals */}
       <BookingDetailsModal
         show={showBookingDetails}
@@ -423,12 +600,18 @@ const Booking = () => {
           )
             .unwrap()
             .then(() => {
-              dispatch(getBookingByStatus({ ownerId, page: currentPage, limit: defaultLimit }));
+              dispatch(
+                getBookingByStatus({
+                  ownerId,
+                  page: currentPage,
+                  limit: defaultLimit,
+                })
+              );
               setShowBookingCancel(false);
             });
         }}
       />
-    </Container >
+    </Container>
   );
 };
 

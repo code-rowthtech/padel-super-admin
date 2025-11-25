@@ -74,8 +74,10 @@ const MatchPlayer = ({
     selectedDate,
     finalSkillDetails,
     totalAmount, slotError,
-    userGender
+    userGender,
+    userSkillLevel,
 }) => {
+    console.log({ selectedDate })
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const User = getUserFromSession();
@@ -143,12 +145,13 @@ const MatchPlayer = ({
     const formatDate = (dateString) => {
         if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
 
-        // Parse date string as local date to avoid timezone issues
-        const [year, month, dayNum] = dateString.split('-').map(Number);
+        // Handle both ISO strings and simple date strings
+        const dateOnly = dateString.split('T')[0]; // Extract date part from ISO string
+        const [year, month, dayNum] = dateOnly.split('-').map(Number);
         const d = new Date(year, month - 1, dayNum);
 
         const day = dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
-        const formattedDate = `${dayNum.toString().padStart(2, '0')}, ${d.toLocaleDateString("en-US", { month: "short" })}`;
+        const formattedDate = `${dayNum.toString().padStart(2, '0')} ${d.toLocaleDateString("en-US", { month: "short" })}`;
 
         return { day, formattedDate };
     };
@@ -216,14 +219,15 @@ const MatchPlayer = ({
     const matchTime = selectedCourts.length
         ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
         : "";
+    console.log({ selectedDate })
 
     const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
     const canBook = playerCount >= 2 && matchTime.length > 0;
 
-    const userSkillLevel =
-        finalSkillDetails.length > 0
+    const displayUserSkillLevel = userSkillLevel || 
+        (finalSkillDetails.length > 0
             ? finalSkillDetails[finalSkillDetails.length - 1]
-            : "A";
+            : "A");
 
     const handleBookNow = () => {
         const courtIds = selectedCourts.map((c) => c._id).join(",");
@@ -252,15 +256,28 @@ const MatchPlayer = ({
         });
     };
 
+    const onBack = () => {
+        navigate('/open-matches')
+    }
+
     return (
         <>
             <div className="py-md-3 pt-0 pb-3 rounded-3 px-md-4 px-2 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 {/* Header */}
                 <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
                     {/* <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>Details</h5> */}
-                    <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
-                        Details
-                    </h5>
+                    <div className="d-flex align-items-center ">
+                        <button
+                            className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
+                            style={{ width: 36, height: 36 }}
+                            onClick={onBack}
+                        >
+                            <i className="bi bi-arrow-left" />
+                        </button>
+                        <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
+                            Details
+                        </h5>
+                    </div>
                     <div className="d-flex align-items-center gap-2 position-relative">
                         <button
                             className="btn btn-light rounded-circle p-2 border shadow-sm"
@@ -445,7 +462,7 @@ const MatchPlayer = ({
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
-                                        {userSkillLevel}
+                                        {displayUserSkillLevel}
                                     </span>
                                 </div>
                             )}
@@ -746,6 +763,8 @@ const MatchPlayer = ({
                 setShowAddMeForm={setShowAddMeForm}
                 setActiveSlot={setActiveSlot}
                 setAddedPlayers={setParentAddedPlayers}
+                skillDetails={finalSkillDetails}
+                userSkillLevel={userSkillLevel}
             />
         </>
     );

@@ -88,3 +88,47 @@ export const readAllNotification = createAsyncThunk(
   }
 );
 
+export const getQuestionData = createAsyncThunk(
+  "notification/getQuestionData",
+  async (params, { rejectWithValue }) => {
+    try {
+
+      const res = await userApi.get(`${Url.GET_QUESTION_LIST}`);
+      // Destructure response data
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+
+      const errorMessage = message;
+      // showError(errorMessage);
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      // showError(error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const getPlayerLevel = createAsyncThunk(
+  "notification/getPlayerLevel",
+  async (params, { rejectWithValue }) => {
+    try {
+
+      const res = await userApi.get(`${Url.PLAYER_LEVEL}?skillLevel=${params}`);
+      // Destructure response data
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+
+      const errorMessage = message;
+      // showError(errorMessage);
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      // showError(error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+

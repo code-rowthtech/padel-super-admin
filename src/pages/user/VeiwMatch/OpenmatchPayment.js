@@ -102,6 +102,9 @@ const OpenmatchPayment = () => {
     const clubData = useSelector(
         (state) => state?.userClub?.clubData?.data?.courts?.[0] || {}
     );
+    const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
+    );
+    console.log({ createId })
     const logo = localStorage.getItem("logo")
         ? JSON.parse(localStorage.getItem("logo"))
         : null;
@@ -232,6 +235,7 @@ const OpenmatchPayment = () => {
                 paymentMethod: selectedPayment,
                 bookingType: "open Match",
                 bookingStatus: "upcoming",
+                openMatchId: createId,
                 slot: selectedCourts.flatMap((court) =>
                     court.time.map((timeSlot) => ({
                         slotId: timeSlot._id,
@@ -245,6 +249,7 @@ const OpenmatchPayment = () => {
                         ],
                         courtName: court.courtName || "Court",
                         courtId: court._id,
+
                         bookingDate: new Date(
                             court.date || selectedDate.fullDate
                         ).toISOString(),
@@ -325,7 +330,7 @@ const OpenmatchPayment = () => {
                 >
                     {/* Contact Info */}
                     <div
-                        className="rounded-4 py-md-4 py-3 px-3 mb-4"
+                        className="rounded-4 py-md-4 py-3 px-3 mb-md-4 mb-3"
                         style={{
                             backgroundColor: "#F5F5F566",
                             border:
@@ -335,7 +340,7 @@ const OpenmatchPayment = () => {
                         }}
                     >
                         <h6
-                            className="mb-md-3 mb-1 small_font_mobile"
+                            className="mb-md-3 mb-1 small_font_mobile text-center text-md-start"
                             style={{ fontSize: 20, fontWeight: 600 }}
                         >
                             Contact Info
@@ -453,7 +458,7 @@ const OpenmatchPayment = () => {
                         }}
                     >
                         <h6
-                            className="mb-md-4 mb-3 small_font_mobile"
+                            className="mb-md-4 mb-3 small_font_mobile text-center text-md-start"
                             style={{ fontSize: 20, fontWeight: 600 }}
                         >
                             Payment Method
@@ -709,7 +714,7 @@ const OpenmatchPayment = () => {
                                         style={{
                                             maxHeight: isExpanded
                                                 ? localTotalSlots > 2
-                                                    ? "120px"
+                                                    ? "175px"
                                                     : "200px"
                                                 : "0px",
                                             overflowY:

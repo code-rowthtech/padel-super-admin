@@ -34,7 +34,12 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const [clubLogo, setClubLogo] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const bookingPaths = ["/admin/booking", "/admin/cancellation", "/admin/manualbooking", "/admin/court-availability"];
+  const bookingPaths = [
+    "/admin/booking",
+    "/admin/cancellation",
+    "/admin/manualbooking",
+    "/admin/court-availability",
+  ];
 
   useEffect(() => {
     if (bookingPaths.includes(location.pathname)) {
@@ -46,13 +51,12 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
   // Utility function for active link styling
   const linkClasses = ({ isActive }) =>
-    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${isActive ? "active-parent-link" : "bg-transparent"
+    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${
+      isActive ? "active-parent-link" : "bg-transparent"
     }`;
 
   const isDropdownActive = bookingPaths.includes(location.pathname);
   const isActiveLink = bookingPaths.includes(location.pathname);
-
-
 
   useEffect(() => {
     dispatch(getLogo({ ownerId: ownerId }));
@@ -78,8 +82,9 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
   return (
     <aside
-      className={`admin-sidebar text-white vh-100 d-flex flex-column ${isOpen ? "mobile-open" : ""} ${isCollapsed ? "collapsed" : ""
-        }`}
+      className={`admin-sidebar text-white vh-100 d-flex flex-column ${
+        isOpen ? "mobile-open" : ""
+      } ${isCollapsed ? "collapsed" : ""}`}
       style={{
         width: isCollapsed ? "70px" : "250px",
         backgroundColor: "#1C2434",
@@ -98,7 +103,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           ) : (
             <>
               {clubLogo ? (
-
                 <div
                   style={{
                     width: "100px",
@@ -121,18 +125,17 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                       width: isCollapsed
                         ? "60px"
                         : window.innerWidth <= 768
-                          ? "90px"
-                          : "110px",
+                        ? "90px"
+                        : "110px",
                       height: isCollapsed
                         ? "60px"
                         : window.innerWidth <= 768
-                          ? "90px"
-                          : "110px",
+                        ? "90px"
+                        : "110px",
                       cursor: "pointer",
                       marginTop: "13px",
                     }}
                     onClick={() => handleNavigation("/admin/dashboard")}
-
                   />
                 </div>
               ) : (
@@ -146,14 +149,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               )}
             </>
           )}
-
         </div>
-
       </div>
 
       <nav className="flex-grow-1 mt-2">
-
-
         {!isCollapsed && (
           <p className="px-4 py-0 mb-1" style={{ color: "#8A99AF" }}>
             MENU
@@ -162,7 +161,9 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         <div
           className="position-relative"
           onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("myprofile")
+            isCollapsed &&
+            window.innerWidth > 768 &&
+            setHoveredItem("myprofile")
           }
           onMouseLeave={() => setHoveredItem(null)}
         >
@@ -180,7 +181,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontWeight: "500",
               fontFamily: "Poppins",
               boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -191,30 +193,34 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "My Profile"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "myprofile" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              My Profile
-            </div>
-          )}
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "myprofile" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                My Profile
+              </div>
+            )}
         </div>
 
         <div
           className="position-relative"
           onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("dashboard")
+            isCollapsed &&
+            window.innerWidth > 768 &&
+            setHoveredItem("dashboard")
           }
           onMouseLeave={() => setHoveredItem(null)}
         >
@@ -232,7 +238,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontWeight: "500",
               fontFamily: "Poppins",
               boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -243,24 +250,26 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Dashboard"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "dashboard" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Dashboard
-            </div>
-          )}
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "dashboard" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Dashboard
+              </div>
+            )}
         </div>
 
         <div
@@ -282,24 +291,29 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 setBookingOpen((prev) => !prev);
               }
             }}
-            className={`btn ${isCollapsed && window.innerWidth > 768
-              ? "w-auto d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-              : " d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-              } ${isDropdownActive ? "active-parent-link" : "bg-transparent"}`}
+            className={`btn ${
+              isCollapsed && window.innerWidth > 768
+                ? "w-auto d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                : " d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+            } ${isDropdownActive ? "active-parent-link" : "bg-transparent"}`}
             style={{
               backgroundColor: isDropdownActive ? "#333B48" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isDropdownActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              boxShadow: isDropdownActive
+                ? "-28px 22px 45px 0px #1B1D4224"
+                : "none",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "225px",
             }}
           >
             <div
-              className={`d-flex align-items-center fs-6 ${isCollapsed && window.innerWidth > 768 ? "" : "w-100"
-                }`}
+              className={`d-flex align-items-center fs-6 ${
+                isCollapsed && window.innerWidth > 768 ? "" : "w-100"
+              }`}
             >
               <FaCalendarAlt
                 className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
@@ -337,13 +351,21 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   fontSize: "15px",
                   fontWeight: "500",
                   fontFamily: "Poppins",
-                  boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+                  boxShadow: isActive
+                    ? "-28px 22px 45px 0px #1B1D4224"
+                    : "none",
                   transition: "background-color 0.2s",
                   whiteSpace: "nowrap",
                 })}
-                onMouseEnter={(e) => (e.target.style.backgroundColor = "#4A5568")}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#4A5568")
+                }
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = location.pathname === "/admin/booking" || location.pathname === "/admin/manualbooking" ? "#333B48" : "transparent")
+                  (e.target.style.backgroundColor =
+                    location.pathname === "/admin/booking" ||
+                    location.pathname === "/admin/manualbooking"
+                      ? "#333B48"
+                      : "transparent")
                 }
                 onClick={() => {
                   setShowDropdown(false);
@@ -361,13 +383,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   fontSize: "15px",
                   fontWeight: "500",
                   fontFamily: "Poppins",
-                  boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+                  boxShadow: isActive
+                    ? "-28px 22px 45px 0px #1B1D4224"
+                    : "none",
                   transition: "background-color 0.2s",
                   whiteSpace: "nowrap",
                 })}
-                onMouseEnter={(e) => (e.target.style.backgroundColor = "#4A5568")}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#4A5568")
+                }
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = location.pathname === "/admin/cancellation" ? "#333B48" : "transparent")
+                  (e.target.style.backgroundColor =
+                    location.pathname === "/admin/cancellation"
+                      ? "#333B48"
+                      : "transparent")
                 }
                 onClick={() => {
                   setShowDropdown(false);
@@ -385,13 +414,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   fontSize: "15px",
                   fontWeight: "500",
                   fontFamily: "Poppins",
-                  boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+                  boxShadow: isActive
+                    ? "-28px 22px 45px 0px #1B1D4224"
+                    : "none",
                   transition: "background-color 0.2s",
                   whiteSpace: "nowrap",
                 })}
-                onMouseEnter={(e) => (e.target.style.backgroundColor = "#4A5568")}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#4A5568")
+                }
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = location.pathname === "/admin/court-availability" ? "#333B48" : "transparent")
+                  (e.target.style.backgroundColor =
+                    location.pathname === "/admin/court-availability"
+                      ? "#333B48"
+                      : "transparent")
                 }
                 onClick={() => {
                   setShowDropdown(false);
@@ -409,7 +445,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/booking"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
+                  isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -429,7 +466,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/cancellation"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
+                  isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -449,7 +487,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/court-availability"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
+                  isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -490,7 +529,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontWeight: "500",
               fontFamily: "Poppins",
               boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -501,24 +541,26 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "My Club"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "myclub" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              My Club
-            </div>
-          )}
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "myclub" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                My Club
+              </div>
+            )}
         </div>
 
         <div
@@ -531,18 +573,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/open-matches"
             className={({ isActive }) =>
-              `d-flex align-items-center ${isCollapsed && window.innerWidth > 768
-                ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-              } cursor-pointer ${isActive || location.pathname === "/admin/create-match"
-                ? "active-parent-link"
-                : ""
+              `d-flex align-items-center ${
+                isCollapsed && window.innerWidth > 768
+                  ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                  : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+              } cursor-pointer ${
+                isActive || location.pathname === "/admin/create-match"
+                  ? "active-parent-link"
+                  : ""
               }`
             }
             style={() => ({
               backgroundColor:
                 location.pathname === "/admin/open-matches" ||
-                  location.pathname === "/admin/create-match"
+                location.pathname === "/admin/create-match"
                   ? "#333B48"
                   : "transparent",
               color: "#CCD2DD",
@@ -551,10 +595,11 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontFamily: "Poppins",
               boxShadow:
                 location.pathname === "/admin/open-matches" ||
-                  location.pathname === "/admin/create-match"
+                location.pathname === "/admin/create-match"
                   ? "-28px 22px 45px 0px #1B1D4224"
                   : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -565,30 +610,34 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Open Matches"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "matches" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Open Matches
-            </div>
-          )}
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "matches" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Open Matches
+              </div>
+            )}
         </div>
 
         <div
           className="position-relative"
           onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("americano")
+            isCollapsed &&
+            window.innerWidth > 768 &&
+            setHoveredItem("americano")
           }
           onMouseLeave={() => setHoveredItem(null)}
         >
@@ -606,7 +655,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontWeight: "500",
               fontFamily: "Poppins",
               boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -617,24 +667,26 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Americano"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "americano" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Americano
-            </div>
-          )}
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "americano" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Americano
+              </div>
+            )}
         </div>
 
         <div
@@ -647,18 +699,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/packages"
             className={({ isActive }) =>
-              `d-flex align-items-center ${isCollapsed && window.innerWidth > 768
-                ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-              } cursor-pointer ${isActive || location.pathname === "/admin/package-details"
-                ? "active-parent-link"
-                : ""
+              `d-flex align-items-center ${
+                isCollapsed && window.innerWidth > 768
+                  ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                  : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+              } cursor-pointer ${
+                isActive || location.pathname === "/admin/package-details"
+                  ? "active-parent-link"
+                  : ""
               }`
             }
             style={() => ({
               backgroundColor:
                 location.pathname === "/admin/packages" ||
-                  location.pathname === "/admin/package-details"
+                location.pathname === "/admin/package-details"
                   ? "#333B48"
                   : "transparent",
               color: "#CCD2DD",
@@ -667,10 +721,11 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontFamily: "Poppins",
               boxShadow:
                 location.pathname === "/admin/packages" ||
-                  location.pathname === "/admin/package-details"
+                location.pathname === "/admin/package-details"
                   ? "-28px 22px 45px 0px #1B1D4224"
                   : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -681,24 +736,26 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Packages"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "packages" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Packages
-            </div>
-          )}
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "packages" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Packages
+              </div>
+            )}
         </div>
 
         <div
@@ -722,7 +779,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontWeight: "500",
               fontFamily: "Poppins",
               boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -733,24 +791,26 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Users"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "users" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Users
-            </div>
-          )}
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "users" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Users
+              </div>
+            )}
         </div>
 
         <div
@@ -774,7 +834,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontWeight: "500",
               fontFamily: "Poppins",
               boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              minHeight:
+                isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
             onClick={() => window.innerWidth <= 768 && onClose()}
@@ -785,27 +846,29 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
             {(!isCollapsed || window.innerWidth <= 768) && "Payment"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "payments" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Payment
-            </div>
-          )}
+          {isCollapsed &&
+            window.innerWidth > 768 &&
+            hoveredItem === "payments" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Payment
+              </div>
+            )}
         </div>
 
-        <div
+        {/* <div
           className="position-relative"
           onMouseEnter={() =>
             isCollapsed && window.innerWidth > 768 && setHoveredItem("logout")
@@ -858,7 +921,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               Log out
             </div>
           )}
-        </div>
+        </div> */}
       </nav>
     </aside>
   );

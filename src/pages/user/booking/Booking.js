@@ -1835,7 +1835,7 @@ const Booking = ({ className = "" }) => {
                     style={{
                       maxHeight: isExpanded
                         ? totalSlots > 2
-                          ? "140px"
+                          ? "175px"
                           : "200px"
                         : "0",
                       overflowY:

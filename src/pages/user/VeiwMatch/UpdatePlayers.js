@@ -10,6 +10,7 @@ import {
 } from "../../../redux/user/matches/thunk";
 import { showSuccess } from "../../../helpers/Toast";
 import Select from "react-select";
+import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
 
 const modalStyle = {
   position: "absolute",
@@ -33,9 +34,10 @@ const UpdatePlayers = ({
   setShowModal,
   selectedDate,
   selectedTime,
-  selectedLevel,
+  selectedLevel, match
 }) => {
   const dispatch = useDispatch();
+  console.log({ match })
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -46,7 +48,8 @@ const UpdatePlayers = ({
   const addLoading = useSelector((state) => state?.userAuth);
   const [errors, setErrors] = useState({}); // Per-field errors
   const [showErrors, setShowErrors] = useState({}); // Visibility
-
+  const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
+  console.log({ getPlayerLevels })
   const normalizeTime = (time) => {
     if (!time) return null;
     const match = time.match(/^(\d{1,2}):00\s*(AM|PM)$/i);
@@ -67,6 +70,32 @@ const UpdatePlayers = ({
     else if (name === "level" && !value) error = "Select Level is required";
     return error;
   };
+
+
+  useEffect(() => {
+    if (match?.skillLevel) {
+      dispatch(getPlayerLevel(match?.skillLevel)).unwrap().then((response) => {
+        console.log({ response })
+        const apiData = response?.data || [];
+
+        if (!Array.isArray(apiData) || apiData.length === 0) {
+          throw new Error("Empty API response");
+        }
+
+        const newLastStep = {
+          _id: apiData[0]?._id || "dynamic-final-step",
+          question: apiData[0]?.question || "Which Padel Player Are You?",
+          options: apiData.map(opt => ({
+            _id: opt.code,
+            value: `${opt.code} - ${opt.question}`,
+          })),
+        };
+      });
+
+
+
+    }
+  }, [match?.skillLevel])
 
   const handleAddPlayer = () => {
     const newErrors = {};
@@ -194,18 +223,18 @@ const UpdatePlayers = ({
     return () => timers.forEach(clearTimeout);
   }, [showErrors]);
 
-  const lavel = [
-    { code: "A", title: "Top Player" },
-    { code: "B1", title: "Experienced Player" },
-    { code: "B2", title: "Advanced Player" },
-    { code: "C1", title: "Confident Player" },
-    { code: "C2", title: "Intermediate Player" },
-    { code: "D1", title: "Amateur Player" },
-    { code: "D2", title: "Novice Player" },
-    { code: "E", title: "Entry Level" },
-  ];
+  const [playerLevels, setPlayerLevels] = useState([]);
 
-  const levelOptions = lavel.map((item) => ({
+  useEffect(() => {
+    if (getPlayerLevels && Array.isArray(getPlayerLevels)) {
+      setPlayerLevels(getPlayerLevels.map(level => ({
+        code: level.code,
+        title: level.question
+      })));
+    }
+  }, []);
+
+  const levelOptions = playerLevels.map((item) => ({
     value: item.code,
     label: (
       <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -354,7 +383,7 @@ const UpdatePlayers = ({
             <label className="form-label">Gender</label>
             <div className="d-flex flex-wrap gap-3">
               {["Male", "Female", "Other"].map((gender) => (
-                <div key={gender} className="form-check">
+                <div key={gender} className="form-check d-flex align-items-center gap-2">
                   <input
                     className="form-check-input"
                     type="radio"
@@ -369,7 +398,7 @@ const UpdatePlayers = ({
                       }))
                     }
                   />
-                  <label className="form-check-label" htmlFor={gender}>
+                  <label className="form-check-label pt-1" htmlFor={gender}>
                     {gender}
                   </label>
                 </div>
@@ -409,13 +438,16 @@ const UpdatePlayers = ({
               variant="outlined"
               color="secondary"
               onClick={() => setShowModal(false)}
-              sx={{ width: { xs: "100%", sm: "45%" } }}
+              sx={{ width: { xs: "100%", sm: "50%", border: "1px solid #001b76", color: "#001B76" } }}
             >
               Cancel
             </Button>
             <Button
-              sx={{ width: { xs: "100%", sm: "45%" } }}
-              style={{ backgroundColor: "#3DBE64", color: "white" }}
+              sx={{ width: { xs: "100%", sm: "50%" } }}
+              style={{
+                background:
+                  "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white"
+              }}
               onClick={handleAddPlayer}
             >
               {addLoading?.userSignUpLoading ? (
