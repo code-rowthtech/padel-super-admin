@@ -1275,13 +1275,16 @@ h1.display-5 {
   }
 
   .booking-table th {
-    padding: 12px 4px !important;
+    padding: 12px 20px !important;
     font-size: 14px !important;
+    white-space: nowrap;
   }
 
   .booking-table td {
-    padding: 8px 4px !important;
+    padding: 8px 20px !important;
     font-size: 12px !important;
+        white-space: nowrap;
+
   }
 
   .table-data {

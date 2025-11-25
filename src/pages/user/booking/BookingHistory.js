@@ -362,7 +362,7 @@ const BookingHistory = () => {
                                     {activeTab === "completed" && <th style={{ minHeight: "48px", padding: "8px 0" }}>Message</th>}
                                     <th style={{ minHeight: "48px", padding: "8px 0" }}>Amount</th>
                                     {activeTab === "cancelled" && (
-                                        <th className="position-relative" style={{ padding: "2px 0" }}>
+                                        <th className="position-relative" style={{ padding: "8px 0" }}>
                                             <div className="dropdown-wrapper">
                                                 {/* Header */}
                                                 <div
@@ -370,7 +370,7 @@ const BookingHistory = () => {
                                                     className="dropdown-header table-data"
                                                     onClick={() => setIsOpen(!isOpen)}
                                                     style={{
-                                                        minHeight: "32px",
+                                                        // minHeight: "48px",
                                                         padding: "0px 8px",
                                                         cursor: "pointer",
                                                         background: "transparent",
