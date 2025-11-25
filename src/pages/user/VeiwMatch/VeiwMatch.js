@@ -1,7 +1,7 @@
 // src/pages/user/VeiwMatch/ViewMatch.js
 import React, { useState, useEffect, useCallback, memo } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { padal, club, player } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
@@ -10,6 +10,7 @@ import { Avatar } from "@mui/material";
 import { FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
 import { Tooltip } from "react-tooltip"; // Only import Tooltip
+import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 // Memoized Player Slot Component
 const PlayerSlot = memo(function PlayerSlot({
@@ -22,7 +23,7 @@ const PlayerSlot = memo(function PlayerSlot({
 }) {
     const user = player?.userId || player;
     const tooltipId = `player-${team}-${index}`;
-
+    console.log(user, tooltipId, 'ppppppp')
     if (!player) {
         // Show "Add Me" only for specific empty slots
         if (
@@ -143,8 +144,11 @@ const PlayerSlot = memo(function PlayerSlot({
     );
 });
 
-const ViewMatch = ({ match, onBack, updateName }) => {
+const ViewMatch = ({ match, onBack, updateName, selectedDate }) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const user = getUserFromSession();
+    console.log({ match })
     const { id } = useParams(); // Get match ID from URL
     const { state } = useLocation();
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
@@ -274,6 +278,19 @@ const ViewMatch = ({ match, onBack, updateName }) => {
         { player: teamBData[0], index: 2, removable: true, team: "B" },
         { player: teamBData[1], index: 3, removable: true, team: "B" },
     ];
+
+    const createMatchesHandle = () => {
+        if (user?.id || user?._id) {
+            navigate("/create-matches", { state: { selectedDate } });
+        } else {
+            navigate("/login", {
+                state: {
+                    redirectTo: "/create-matches",
+                    selectedDate,
+                },
+            });
+        }
+    };
 
     return (
         <>
@@ -520,6 +537,24 @@ const ViewMatch = ({ match, onBack, updateName }) => {
                         </div>
                     </div>
                 </div>
+                {match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
+                    <div className="d-flex justify-content-center align-items-center">
+                        <button
+                            className="btn shadow w-100 border-0 create-match-btn mt-lg-2 py-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
+                            onClick={createMatchesHandle}
+                            style={{
+                                background:
+                                    "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                                fontSize: "14px",
+                                fontFamily: "Poppins",
+                                fontWeight: "500",
+                            }}
+                            aria-label="Create open matches"
+                        >
+                            Create Open Matches
+                        </button>
+                    </div>) : null}
+
             </div>
 
             {/* Modal */}

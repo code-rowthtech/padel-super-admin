@@ -150,7 +150,7 @@ const Openmatches = () => {
   useEffect(() => {
     if (matchesData?.data && matchesData.data.length > 0) {
       const matchDates = matchesData.data.map(match => match.matchDate);
-      const latestDateStr = matchDates.sort().reverse()[0]; 
+      const latestDateStr = matchDates.sort().reverse()[0];
       const latestDate = {
         fullDate: latestDateStr,
         day: new Date(latestDateStr).toLocaleDateString("en-US", { weekday: "long" }),
@@ -1629,6 +1629,7 @@ const Openmatches = () => {
               match={selectedMatch}
               onBack={() => setShowViewMatch(false)}
               updateName={updateName}
+              selectedDate={selectedDate}
             />
           )}
         </div>
