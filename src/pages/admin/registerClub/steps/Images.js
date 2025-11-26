@@ -89,53 +89,52 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     }
   }, [formData.logo]);
 
-  // Restore images from localStorage on component mount
+  // Restore images from localStorage on component mount (only when NOT in update mode)
   useEffect(() => {
-    const savedImages = localStorage.getItem("clubImages");
-    if (savedImages && (!formData.images || formData.images.length === 0)) {
-      try {
-        const imageData = JSON.parse(savedImages);
-        const restoredFiles = imageData.map((img) => {
-          // Convert base64 back to File
-          const byteCharacters = atob(img.data.split(",")[1]);
+    if (!updateImage) {
+      const savedImages = localStorage.getItem("clubImages");
+      if (savedImages && (!formData.images || formData.images.length === 0)) {
+        try {
+          const imageData = JSON.parse(savedImages);
+          const restoredFiles = imageData.map((img) => {
+            const byteCharacters = atob(img.data.split(",")[1]);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new File([byteArray], img.name, { type: img.type });
+          });
+
+          updateFormData({ images: restoredFiles });
+        } catch (error) {
+          console.error("Error restoring images:", error);
+        }
+      }
+
+      const savedLogo = localStorage.getItem("clubLogo");
+      if (savedLogo && !logoPreview) {
+        try {
+          const logoData = JSON.parse(savedLogo);
+          const byteCharacters = atob(logoData.data.split(",")[1]);
           const byteNumbers = new Array(byteCharacters.length);
           for (let i = 0; i < byteCharacters.length; i++) {
             byteNumbers[i] = byteCharacters.charCodeAt(i);
           }
           const byteArray = new Uint8Array(byteNumbers);
-          return new File([byteArray], img.name, { type: img.type });
-        });
+          const restoredLogo = new File([byteArray], logoData.name, {
+            type: logoData.type,
+          });
 
-        updateFormData({ images: restoredFiles });
-      } catch (error) {
-        console.error("Error restoring images:", error);
-      }
-    }
-
-    // Restore logo from localStorage
-    const savedLogo = localStorage.getItem("clubLogo");
-    if (savedLogo && !logoPreview) {
-      try {
-        const logoData = JSON.parse(savedLogo);
-        // Convert base64 back to File
-        const byteCharacters = atob(logoData.data.split(",")[1]);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
+          const preview = URL.createObjectURL(restoredLogo);
+          setLogoPreview({ file: restoredLogo, preview });
+          updateFormData({ logo: restoredLogo });
+        } catch (error) {
+          console.error("Error restoring logo:", error);
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        const restoredLogo = new File([byteArray], logoData.name, {
-          type: logoData.type,
-        });
-
-        const preview = URL.createObjectURL(restoredLogo);
-        setLogoPreview({ file: restoredLogo, preview });
-        updateFormData({ logo: restoredLogo });
-      } catch (error) {
-        console.error("Error restoring logo:", error);
       }
     }
-  }, []);
+  }, [updateImage]);
 
   useEffect(() => {
     if (updateImage) {
@@ -549,6 +548,13 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     apiFormData.append("zipCode", formData.zip || "");
     apiFormData.append("address", formData.address || "");
     apiFormData.append("description", formData.description || "");
+    if (formData.facebookLink)
+      apiFormData.append("facebookLink", formData.facebookLink);
+    if (formData.instagramLink)
+      apiFormData.append("instagramLink", formData.instagramLink);
+    if (formData.linkedinLink)
+      apiFormData.append("linkedinLink", formData.linkedinLink);
+    if (formData.xlink) apiFormData.append("xlink", formData.xlink);
     apiFormData.append("location[coordinates][0]", "50.90");
     apiFormData.append("location[coordinates][1]", "80.09");
 
