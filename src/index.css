@@ -884,9 +884,11 @@ h1.display-5 {
     border-top-right-radius: 20px;
 
   }
-.bgchangemobile{
-  background-color: white!important;
-}
+
+  .bgchangemobile {
+    background-color: white !important;
+  }
+
   .login-btn {
     font-size: 15px;
     font-weight: 500;
@@ -902,11 +904,13 @@ h1.display-5 {
     width: 20px !important;
     height: 20px !important;
   }
-  .add_font_mobile{
-    font-size: 11px!important;
+
+  .add_font_mobile {
+    font-size: 11px !important;
   }
-  .add_font_mobile_bottom{
-    font-size: 12px!important;
+
+  .add_font_mobile_bottom {
+    font-size: 12px !important;
   }
 
 
@@ -978,7 +982,8 @@ h1.display-5 {
   .booking-history-heading {
     font-size: 20px;
   }
-  .font_small_size{
+
+  .font_small_size {
     font-size: 10px;
   }
 
@@ -1099,6 +1104,10 @@ h1.display-5 {
 
   .booking-summary-row>div:last-child {
     align-self: flex-end !important;
+  }
+
+  footer {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* Court list responsive */
@@ -1283,7 +1292,7 @@ h1.display-5 {
   .booking-table td {
     padding: 8px 20px !important;
     font-size: 12px !important;
-        white-space: nowrap;
+    white-space: nowrap;
 
   }
 
@@ -1302,12 +1311,14 @@ h1.display-5 {
   height: 4px;
   margin: 10px 0px;
 }
+
 /* .ratio>*{
   height: 75%!important;
 } */
 .ratio-16x9 {
-    --bs-aspect-ratio: 47.25%!important;
+  --bs-aspect-ratio: 47.25% !important;
 }
+
 .overflow-auto::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 2px;
@@ -1411,9 +1422,10 @@ h1.display-5 {
   height: 100%;
   transition: all 0.3s ease;
 }
- .d-flex.gap-1[style*="position: relative"] {
-    max-width: 96% !important;
-  }
+
+.d-flex.gap-1[style*="position: relative"] {
+  max-width: 96% !important;
+}
 
 .tab-item.active {
   background-color: #e0e0e0;
@@ -1809,16 +1821,18 @@ h1.display-5 {
     width: 50px !important;
     height: 50px !important;
   }
-.all-matches {
-    font-size: 15px!important;
 
-}
-/* .border_bottom_line{
+  .all-matches {
+    font-size: 15px !important;
+
+  }
+
+  /* .border_bottom_line{
   border-bottom: 1px solid #e3dede;
 } */
-.border_bottom_line:not(:last-child) {
-  border-bottom: 1px solid #e3dede;
-}
+  .border_bottom_line:not(:last-child) {
+    border-bottom: 1px solid #e3dede;
+  }
 
 
   /* Player images fill circle completely */
@@ -2186,8 +2200,9 @@ h1.display-5 {
   .mobile-total-section p {
     font-size: 12px !important;
   }
-  .font_add_btn_text{
-    font-size: 12px!important;
+
+  .font_add_btn_text {
+    font-size: 12px !important;
   }
 
   .mobile-total-section p:last-child {
@@ -2204,18 +2219,23 @@ h1.display-5 {
     margin-bottom: 0 !important;
     padding-top: 0 !important;
   }
-.small_font_mobile{
-  font-size: 16px!important;
-}
+
+  .small_font_mobile {
+    font-size: 16px !important;
+  }
+
   .add_height_mobile_banner {
-    height: 179px!important;
+    height: 179px !important;
   }
-  .font_size_data{
-    font-size: 10px!important;
+
+  .font_size_data {
+    font-size: 10px !important;
   }
-.bg-white-color{
-  background-color: white!important;
-}
+
+  .bg-white-color {
+    background-color: white !important;
+  }
+
   /* .mobile-banner {
       margin-bottom: 30px !important;
       margin-top: 0 !important;
@@ -2351,9 +2371,11 @@ h1.display-5 {
     height: 60px !important;
     width: 100px !important;
   }
- .d-flex.gap-1[style*="position: relative"] {
+
+  .d-flex.gap-1[style*="position: relative"] {
     max-width: 89% !important;
   }
+
   /* Club logo responsive */
   .position-absolute[style*="top: 11px"] {
     top: 3px !important;
@@ -2409,7 +2431,7 @@ h1.display-5 {
 
 /* Date scroll styling - only on mobile */
 @media (max-width: 768px) {
- 
+
 
   .d-flex.gap-1>div {
     overflow-x: auto !important;
@@ -2547,6 +2569,7 @@ h1.display-5 {
     max-height: 300px !important;
     padding: 10px 0 5px 0 !important;
   }
+
   /* Hide scrollbars but keep scroll functionality */
   .mobile-expanded-slots::-webkit-scrollbar {
     display: none;
@@ -2587,73 +2610,73 @@ h1.display-5 {
 
 
 .match-card {
-    background: #CBD6FF1A;
-    border: 1px solid #0000001A;
-    padding: 18px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    min-height: 190px;
-    transition: 0.2s ease;
+  background: #CBD6FF1A;
+  border: 1px solid #0000001A;
+  padding: 18px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  min-height: 190px;
+  transition: 0.2s ease;
 }
 
 .match-card:hover {
-    transform: translateY(-2px);
+  transform: translateY(-2px);
 }
 
 .match-header p {
-    margin: 0;
+  margin: 0;
 }
 
 .match-date {
-    font-weight: 600;
-    font-size: 15px;
+  font-weight: 600;
+  font-size: 15px;
 }
 
 .match-level {
-    font-size: 14px;
-    color: #555;
+  font-size: 14px;
+  color: #555;
 }
 
 .club-name {
-    font-size: 15px;
-    font-weight: 500;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .club-location {
-    font-size: 10px;
-    font-weight: 400;
-    color: gray;
+  font-size: 10px;
+  font-weight: 400;
+  color: gray;
 }
 
 .players-row {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .price-box .price-text {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1F41BB;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F41BB;
 }
 
 .price-number {
-    font-size: 26px;
-    font-weight: 700;
-    font-family: "Poppins";
+  font-size: 26px;
+  font-weight: 700;
+  font-family: "Poppins";
 }
 
 .view-match-btn {
-    background: transparent;
-    border: 1px solid #1F41BB;
-    color: #1F41BB;
-    padding: 5px 18px;
-    font-size: 13px;
-    border-radius: 25px;
-    transition: 0.2s;
+  background: transparent;
+  border: 1px solid #1F41BB;
+  color: #1F41BB;
+  padding: 5px 18px;
+  font-size: 13px;
+  border-radius: 25px;
+  transition: 0.2s;
 }
 
 .view-match-btn:hover {
-    background: #1F41BB;
-    color: white;
+  background: #1F41BB;
+  color: white;
 }
