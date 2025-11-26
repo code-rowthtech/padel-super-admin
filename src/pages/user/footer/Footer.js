@@ -17,15 +17,28 @@ const Footer = () => {
   const store = useSelector((state) => state);
   const dispatch = useDispatch();
   const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
-  console.log("clubData", clubData);
-
+  const clubIds = store?.userClub?.clubData?.data;
   const ownerId = store?.userClub?.clubData?.data?.courts?.[0]?.ownerId;
-  console.log("OWNER DATA", ownerId);
+
+  // Ensure we pick the first court if it's an array
+  const club = Array.isArray(clubIds?.courts)
+    ? clubIds.courts[0]
+    : clubIds;
+
+  // Build social links safely
+  const social = {
+    facebook: club?.facebookLink || "",
+    instagram: club?.instagramLink || "",
+    linkedin: club?.linkedinLink || "",
+    twitter: club?.xlink || "",
+  };
+
 
   useEffect(() => {
     dispatch(getUserClub({ limit: "" }));
     window.scrollTo(0, 0);
   }, []);
+
   return (
     <footer
       className="bg-light py-md-5 py-4"
@@ -109,61 +122,70 @@ const Footer = () => {
 
           {/* Right Section: Social + Links */}
           <Col md={4} className="text-lg-end text-start">
+            {/* Social Icons */}
             <div className="d-flex justify-content-md-end justify-content-center gap-3 mb-3">
-              {/* Social Icons */}
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-              >
-                <BsFacebook size={24} className="text-primary" />
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-              >
-                <BsInstagram size={24} className="text-primary" />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
-              >
-                <BsLinkedin size={24} className="text-primary" />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Twitter"
-              >
-                <FaXTwitter size={24} className="text-primary" />
-              </a>
+
+              {social.facebook && (
+                <a
+                  href={social.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                >
+                  <BsFacebook size={24} className="text-primary" />
+                </a>
+              )}
+
+              {social.instagram && (
+                <a
+                  href={social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                >
+                  <BsInstagram size={24} className="text-primary" />
+                </a>
+              )}
+
+              {social.linkedin && (
+                <a
+                  href={social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                >
+                  <BsLinkedin size={24} className="text-primary" />
+                </a>
+              )}
+
+              {social.twitter && (
+                <a
+                  href={social.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Twitter"
+                >
+                  <FaXTwitter size={24} className="text-primary" />
+                </a>
+              )}
+
             </div>
-            <div className="d-flex  flex-sm-row justify-content-md-end justify-content-center gap-3 small text-muted">
-              {/* Bottom Links */}
-              <Link
-                to="/privacy-policy"
-                className="text-decoration-none address_data"
-              >
+
+            {/* Bottom Footer Links */}
+            <div className="d-flex flex-sm-row justify-content-md-end justify-content-center gap-3 small text-muted">
+              <Link to="/privacy-policy" className="text-decoration-none address_data">
                 Privacy Policy
               </Link>
-              <Link
-                to="/manage-cookies"
-                className="text-decoration-none address_data"
-              >
+
+              <Link to="/manage-cookies" className="text-decoration-none address_data">
                 Manage Cookies
               </Link>
-              <Link to="#" className="text-decoration-none address_data">
-                Sitemap
-              </Link>
-              {/* <a href="/sitemap" className="text-decoration-none address_data">Blog</a> */}
+
+              {/* Uncomment if needed */}
+              {/* <Link to="/sitemap" className="text-decoration-none address_data">Sitemap</Link> */}
             </div>
           </Col>
+
         </Row>
 
         {/* Copyright */}
