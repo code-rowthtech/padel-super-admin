@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
-import { loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { getUserProfile, loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
@@ -23,15 +23,18 @@ const Payment = ({ className = "" }) => {
   const navigate = useNavigate();
   const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
   const user = getUserFromSession();
+  const store = useSelector((state) => state?.userAuth);
+  console.log(store, 'users');
+
   const bookingStatus = useSelector((state) => state?.userBooking);
   const userLoading = useSelector((state) => state?.userAuth);
   const logo = JSON.parse(localStorage.getItem("logo"));
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
-  const [name, setName] = useState(user?.name || updateName?.fullName || "");
+  const [name, setName] = useState(user?.name || updateName?.fullName || store?.user?.response?.name || "");
   const [phoneNumber, setPhoneNumber] = useState(
     updateName?.phone || user?.phoneNumber || updateName?.phone ? `+91 ${user.phoneNumber}` : ""
   );
-  const [email, setEmail] = useState(updateName?.email || user?.email || "");
+  const [email, setEmail] = useState(updateName?.email || user?.email || store?.user?.response?.email || "");
   const [selectedPayment, setSelectedPayment] = useState("");
   const [errors, setErrors] = useState({
     name: "",
@@ -257,7 +260,8 @@ const Payment = ({ className = "" }) => {
 
             if (bookingResponse?.success || bookingResponse?.message?.includes("created")) {
               setLocalSelectedCourts([]);
-              setModal(true); // Success modal dikhao
+              setModal(true); // Success modal 
+              dispatch(getUserProfile());
             } else {
               throw new Error(bookingResponse?.message || "Booking failed");
             }

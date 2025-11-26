@@ -195,7 +195,7 @@ const Booking = ({ className = "" }) => {
     } else {
       if (totalSlots >= MAX_SLOTS) {
         setErrorMessage(
-          `Slot Limit Reached\nYou can select up to ${MAX_SLOTS} slots only.`
+          `You can select up to ${MAX_SLOTS} slots only`
         );
         setErrorShow(true);
         return;
@@ -488,6 +488,67 @@ const Booking = ({ className = "" }) => {
       return () => clearTimeout(timer);
     }
   }, [errorShow, errorMessage]);
+
+  // Show tooltip for 15 slot limit when hovering over any slot after reaching the limit
+  useEffect(() => {
+    const tooltip = document.getElementById('slot-limit-tooltip') || (() => {
+      const newTooltip = document.createElement('div');
+      newTooltip.id = 'slot-limit-tooltip';
+      newTooltip.style.cssText = `
+        position: fixed;
+        background: #333;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 9999;
+        pointer-events: none;
+        white-space: nowrap;
+        display: none;
+      `;
+      document.body.appendChild(newTooltip);
+      return newTooltip;
+    })();
+
+    const handleMouseEnter = (e) => {
+      if (totalSlots >= MAX_SLOTS) {
+        const button = e.currentTarget;
+        const isSelected = button.style.background.includes('linear-gradient');
+        if (!isSelected) {
+          tooltip.textContent = `You can select up to ${MAX_SLOTS} slots only`;
+          tooltip.style.display = 'block';
+          tooltip.style.left = e.clientX + 10 + 'px';
+          tooltip.style.top = e.clientY - 30 + 'px';
+        }
+      }
+    };
+
+    const handleMouseMove = (e) => {
+      if (totalSlots >= MAX_SLOTS && tooltip.style.display === 'block') {
+        tooltip.style.left = e.clientX + 10 + 'px';
+        tooltip.style.top = e.clientY - 30 + 'px';
+      }
+    };
+
+    const handleMouseLeave = () => {
+      tooltip.style.display = 'none';
+    };
+
+    const buttons = document.querySelectorAll('.slot-time-btn');
+    buttons.forEach(button => {
+      button.addEventListener('mouseenter', handleMouseEnter);
+      button.addEventListener('mousemove', handleMouseMove);
+      button.addEventListener('mouseleave', handleMouseLeave);
+    });
+
+    return () => {
+      buttons.forEach(button => {
+        button.removeEventListener('mouseenter', handleMouseEnter);
+        button.removeEventListener('mousemove', handleMouseMove);
+        button.removeEventListener('mouseleave', handleMouseLeave);
+      });
+    };
+  }, [totalSlots, MAX_SLOTS]);
 
   const tabData = [
     { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
@@ -1023,8 +1084,8 @@ const Booking = ({ className = "" }) => {
                 });
                 return filteredSlots?.length > 0;
               })
-                  ? "border"
-                  : "border-0"
+                ? "border"
+                : "border-0"
                 }`}
             >
               {slotData?.data?.length > 0 ? (
@@ -1078,8 +1139,8 @@ const Booking = ({ className = "" }) => {
                                 <p
                                   key={index}
                                   className={`tab-label ${activeTab === index
-                                      ? "active text-primary mb-0"
-                                      : "text-muted mb-0"
+                                    ? "active text-primary mb-0"
+                                    : "text-muted mb-0"
                                     }`}
                                 >
                                   {tab.label}
@@ -1192,6 +1253,8 @@ const Booking = ({ className = "" }) => {
                                             toggleTime(slot, court._id)
                                           }
                                           disabled={isDisabled}
+                                          // title={totalSlots >= MAX_SLOTS && !isSelected ? `You can select up to ${MAX_SLOTS} slots only` : ''}
+
                                           style={{
                                             background:
                                               isDisabled ||
@@ -1221,20 +1284,16 @@ const Booking = ({ className = "" }) => {
                                             padding: "4px 2px",
                                             height: "32px",
                                           }}
-                                          onMouseEnter={(e) =>
-                                            !isDisabled &&
-                                            slot.availabilityStatus ===
-                                            "available" &&
-                                            (e.currentTarget.style.border =
-                                              "1px solid #3DBE64")
-                                          }
-                                          onMouseLeave={(e) =>
-                                            !isDisabled &&
-                                            slot.availabilityStatus ===
-                                            "available" &&
-                                            (e.currentTarget.style.border =
-                                              "1px solid #4949491A")
-                                          }
+                                          onMouseEnter={(e) => {
+                                            if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
+                                              e.currentTarget.style.border = "1px solid #3DBE64";
+                                            }
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            if (!isDisabled && slot.availabilityStatus === "available") {
+                                              e.currentTarget.style.border = "1px solid #4949491A";
+                                            }
+                                          }}
                                         >
                                           {formatTimeForDisplay(slot?.time)}
                                         </button>
@@ -1683,7 +1742,7 @@ const Booking = ({ className = "" }) => {
 
               <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
-                  Booking Summary
+                  Booking Summary{totalSlots > 0 ? ` (${totalSlots} selected)` : ''}
                 </h6>
                 {totalSlots >= 10 && (
                   <Button

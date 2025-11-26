@@ -167,7 +167,7 @@ const Navbar = () => {
 
     useEffect(() => {
         if (User?.token) {
-            dispatch(getUserProfile())
+            dispatch(getUserProfile());
         }
     }, [User?.token])
 
