@@ -300,7 +300,6 @@ export const BookingRefundModal = ({
       setHasChangedAmount(false); // Reset on new booking
     }
   }, [bookingDetails?.totalAmount]);
-  console.log({ refundAmount });
 
   const handleAmountChange = (e) => {
     setHasChangedAmount(true); // Mark as user-modified
