@@ -7,6 +7,7 @@ import Pricing from "./steps/Pricing";
 
 const defaultFormData = {
   courtName: "", address: "", city: "", state: "", zip: "", courtCount: "", description: "",
+  linkedinLink: "", xlink: "", facebookLink: "", instagramLink: "",
   courtTypes: { indoor: false, outdoor: false },
   features: { changingRooms: false, parking: false, shower: false, chillPad: false, coachingAvailable: false },
   images: [],                     // <-- **File[]** (only while wizard is open)
