@@ -594,8 +594,9 @@ const Booking = () => {
           dispatch(
             updateBookingStatus({
               id: getBookingDetailsData?.booking?._id,
-              status: "in-progress",
+              status: "cancelled",
               cancellationReason: reason,
+              
             })
           )
             .unwrap()
