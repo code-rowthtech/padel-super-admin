@@ -130,6 +130,7 @@ const OpenmatchPayment = () => {
         finalSkillDetails = [],
         selectedDate = {},
         selectedCourts = [],
+        selectedGender = [],
         addedPlayers: stateAddedPlayers = {},
     } = state || {};
 
@@ -141,7 +142,6 @@ const OpenmatchPayment = () => {
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
 
-    // Build teams
     const teamA = [User?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
     const teamB = [
         finalAddedPlayers.slot3?._id,
@@ -186,6 +186,7 @@ const OpenmatchPayment = () => {
                     bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
                 }))),
                 clubId: savedClubId,
+                gender: selectedGender || "Mixed Double",
                 matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
                 ...(finalSkillDetails.length > 0 && {
                     skillLevel: finalSkillDetails[0] || "Open Match",
@@ -244,6 +245,7 @@ const OpenmatchPayment = () => {
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));
                         navigate("/open-matches", { replace: true });
+                        dispatch(getUserProfile());
 
                     } catch (err) {
                         console.error("Post-payment error:", err);

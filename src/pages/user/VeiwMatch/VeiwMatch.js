@@ -171,6 +171,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         }
     }, [matchId, dispatch]);
 
+    
+
     const formatDate = (dateString) => {
         if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
         const date = new Date(dateString);
@@ -537,7 +539,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                         </div>
                     </div>
                 </div>
-                {match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
+                {/* {match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
                     <div className="d-flex justify-content-center align-items-center">
                         <button
                             className="btn shadow w-100 border-0 create-match-btn mt-lg-2 py-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
@@ -553,7 +555,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                         >
                             Create Open Matches
                         </button>
-                    </div>) : null}
+                    </div>) : null} */}
 
             </div>
 

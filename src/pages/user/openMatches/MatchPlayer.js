@@ -7,7 +7,6 @@ import { getUserClub } from "../../../redux/user/club/thunk";
 import { padal } from "../../../assets/files";
 import { Tooltip } from "react-tooltip";
 import NewPlayers from "../VeiwMatch/NewPlayers";
-import { FaArrowRight } from "react-icons/fa";
 
 // Button styling variables
 const width = 400;
@@ -81,17 +80,20 @@ const MatchPlayer = ({
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const User = getUserFromSession();
-
-    // ── LIVE STATE: Sync with parent + localStorage ─────────────────────
+    const [selectedGender, setSelectedGender] = useState("Mixed Doubles");
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
-    // Sync parent changes
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
 
-    // Sync with localStorage (refresh-safe)
+    useEffect(() => {
+        if (userGender || updateName?.gender) {
+            setSelectedGender(userGender || updateName?.gender);
+        }
+    }, [userGender, updateName?.gender]);
+
     useEffect(() => {
         const syncFromStorage = () => {
             const saved = localStorage.getItem("addedPlayers");
@@ -224,7 +226,7 @@ const MatchPlayer = ({
     const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
     const canBook = playerCount >= 2 && matchTime.length > 0;
 
-    const displayUserSkillLevel = userSkillLevel || 
+    const displayUserSkillLevel = userSkillLevel ||
         (finalSkillDetails.length > 0
             ? finalSkillDetails[finalSkillDetails.length - 1]
             : "A");
@@ -250,7 +252,7 @@ const MatchPlayer = ({
                 selectedDate,
                 grandTotal: totalAmount,
                 totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-                finalSkillDetails,
+                finalSkillDetails,selectedGender,
                 addedPlayers: latestPlayers, // Use latest from localStorage
             },
         });
@@ -398,17 +400,58 @@ const MatchPlayer = ({
                     </div>
 
                     <div className="row text-center border-top">
+                        {/* Gender Dropdown */}
                         <div className="col py-2">
-                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Gender</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{userGender || updateName?.gender || "Mixed"}</p>
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Gender
+                            </p>
+                            <div className="d-flex justify-content-center">
+                                <select
+                                    className="form-select form-select-sm border-0 shadow-none text-center px-3 pe-5 py-1"
+                                    style={{
+                                        fontSize: "15px",
+                                        fontWeight: "500",
+                                        fontFamily: "Poppins",
+                                        color: "#000000",
+                                        backgroundColor: "transparent",
+                                        width: "auto",
+                                        minWidth: "80px",
+                                        appearance: "none",                    // ← Yeh important hai
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23000' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E")`,
+                                        backgroundRepeat: "no-repeat",
+                                        backgroundPosition: "right 15px center",
+                                        backgroundSize: "15px",
+                                        paddingRight: "0px",                  // ← Arrow ke liye jagah
+                                        cursor: "pointer",
+                                    }}
+                                    value={selectedGender || "Mixed Double"}
+                                    onChange={(e) => setSelectedGender(e.target.value)}
+                                >
+                                    <option value="Male Only">Male Only</option>
+                                    <option value="Female Only">Female Only</option>
+                                    <option value="Mixed Double">Mixed Double</option>
+                                </select>
+                            </div>
                         </div>
+
+                        {/* Level */}
                         <div className="col border-start border-end py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{finalSkillDetails[0] || "Open Match"}</p>
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Level
+                            </p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
+                                {finalSkillDetails[0] || "Open Match"}
+                            </p>
                         </div>
+
+                        {/* Your Share */}
                         <div className="col py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your share </p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>₹ {totalAmount}</p>
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Your share
+                            </p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
+                                ₹ {totalAmount}
+                            </p>
                         </div>
                     </div>
                 </div>
