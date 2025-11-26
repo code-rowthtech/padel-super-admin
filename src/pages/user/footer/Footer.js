@@ -11,6 +11,7 @@ import {
 import { FaXTwitter } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserClub } from "../../../redux/user/club/thunk";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const store = useSelector((state) => state);
@@ -145,22 +146,22 @@ const Footer = () => {
             </div>
             <div className="d-flex  flex-sm-row justify-content-md-end justify-content-center gap-3 small text-muted">
               {/* Bottom Links */}
-              <a
-                href="/sameprivacy"
+              <Link
+                to="/privacy-policy"
                 className="text-decoration-none address_data"
               >
                 Privacy Policy
-              </a>
-              <a
-                href="/manage-cookies"
+              </Link>
+              <Link
+                to="/manage-cookies"
                 className="text-decoration-none address_data"
               >
                 Manage Cookies
-              </a>
-              <a href="/sitemap" className="text-decoration-none address_data">
+              </Link>
+              <Link to="#" className="text-decoration-none address_data">
                 Sitemap
-              </a>
-              {/* <a href="/blog" className="text-decoration-none address_data">Blog</a> */}
+              </Link>
+              {/* <a href="/sitemap" className="text-decoration-none address_data">Blog</a> */}
             </div>
           </Col>
         </Row>
