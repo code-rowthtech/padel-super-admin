@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Form, Row, Col, Button } from "react-bootstrap";
+import MarkdownEditor from "react-markdown-editor-lite";
+import "react-markdown-editor-lite/lib/index.css";
+import MarkdownIt from "markdown-it";
+import markdownItIns from "markdown-it-ins";
+import { showWarning } from "../../../../helpers/Toast";
+
+const mdParser = new MarkdownIt();
+mdParser.use(markdownItIns);
 
 const VenueDetails = ({ formData, onNext, updateFormData }) => {
   const [errors, setErrors] = useState({
@@ -15,6 +23,8 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
   });
   const [isFormValid, setIsFormValid] = useState(false);
   const MAX_DESC = 500;
+  const [wordCount, setWordCount] = useState(0);
+  const editorRef = useRef(null);
 
   // Validate form
   useEffect(() => {
@@ -43,7 +53,8 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     } else if (field === "state") {
       newErrors.state = value.trim() === "";
     } else if (field === "zip") {
-      newErrors.zip = !/^\d+$/.test(value.trim());
+      const zipValue = value.trim();
+      newErrors.zip = !/^\d{4,6}$/.test(zipValue);
     } else if (field === "courtCount") {
       const num = Number(value);
       if (!/^\d+$/.test(value.trim()) || num <= 0) {
@@ -54,8 +65,8 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
         newErrors.courtCount = false;
       }
     } else if (field === "description") {
-      const len = value.length;
-      newErrors.description = len > MAX_DESC || len === 0;
+      const count = value.trim().split(/\s+/).filter(Boolean).length;
+      newErrors.description = count === 0;
     }
 
     setErrors(newErrors);
@@ -108,7 +119,13 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
         const selectionStart = e.target.selectionStart;
         const selectionEnd = e.target.selectionEnd;
 
-        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+        const capitalized =
+          fieldName === "courtName"
+            ? value
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+            : value.charAt(0).toUpperCase() + value.slice(1);
 
         setTimeout(() => {
           e.target.setSelectionRange(selectionStart, selectionEnd);
@@ -116,22 +133,12 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
 
         value = capitalized;
       }
-      // if (isNumberField) {
-      //   const numericValue = Number(value);
 
-      //   if (fieldName === "courtCount") {
-      //     if (numericValue > 10) {
-      //       return;
-      //     }
-      //   }
-
-      //   if (numericValue < 0 || isNaN(numericValue)) {
-      //     return;
-      //   }
-      // }
-
-      if (type === "text-area" && value.length > MAX_DESC) {
-        return;
+      if (fieldName === "zip") {
+        value = value.replace(/\D/g, "");
+        if (value.startsWith("0") || value.length > 6) {
+          return;
+        }
       }
 
       handleChange(fieldName, value);
@@ -140,41 +147,59 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     return (
       <div>
         {type === "text-area" ? (
-          <div style={{ position: "relative" }}>
-            <Form.Control
-              as="textarea"
-              placeholder={placeholder}
+          <div>
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <span style={{ fontSize: "14px", color: "#6B7280" }}>
+                {placeholder}
+              </span>
+              <span style={{ fontSize: "12px", color: "#6B7280" }}>
+                {wordCount}/{MAX_DESC} words
+              </span>
+            </div>
+            <MarkdownEditor
+              ref={editorRef}
               value={formData[fieldName]}
-              onChange={handleTextChange}
-              isInvalid={!!errors[fieldName]}
+              onChange={({ text }) => {
+                const count = text.trim().split(/\s+/).filter(Boolean).length;
+                if (count <= MAX_DESC) {
+                  handleChange(fieldName, text);
+                  setWordCount(count);
+                } else {
+                  showWarning(`Description cannot exceed ${MAX_DESC} words.`);
+                }
+              }}
               style={{
-                height: "100px",
-                borderRadius: "12px",
+                height: "130px",
                 border: `1px solid ${
                   errors[fieldName] ? "#EF4444" : "#E5E7EB"
                 }`,
-                fontSize: "14px",
-                resize: "vertical",
-                paddingBottom: "20px",
-                boxShadow: "none",
-                fontFamily: "Poppins",
+                borderRadius: "4px",
+                backgroundColor: "#fff",
+              }}
+              renderHTML={(text) => mdParser.render(text)}
+              config={{
+                view: { menu: true, md: true, html: false },
+                placeholder: "Short description (max 500 words)",
+                toolbar: [
+                  "bold",
+                  "italic",
+                  "heading",
+                  "|",
+                  "quote",
+                  "unordered-list",
+                  "ordered-list",
+                  "|",
+                  "link",
+                ],
+                canView: {
+                  menu: true,
+                  md: true,
+                  html: false,
+                  fullScreen: false,
+                  hideMenu: false,
+                },
               }}
             />
-            <div
-              style={{
-                position: "absolute",
-                bottom: "8px",
-                right: "12px",
-                fontSize: "12px",
-                color:
-                  formData.description.length > MAX_DESC
-                    ? "#EF4444"
-                    : "#6B7280",
-                pointerEvents: "none",
-              }}
-            >
-              {formData.description.length}/{MAX_DESC}
-            </div>
           </div>
         ) : (
           <Form.Control
@@ -198,7 +223,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
             {typeof errors[fieldName] === "string"
               ? errors[fieldName] // show custom message
               : fieldName === "description"
-              ? "Description is required and max 500 characters"
+              ? "Description is required and max 500 words"
               : fieldName === "courtTypes"
               ? "Please select at least one court type"
               : "This field is required"}
@@ -261,9 +286,22 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
         </Row>
 
         <Row className="mb-3">
-          <Col md={3}>{renderInput("Zip Code", "zip", "number")}</Col>
-          <Col md={3}>
-            {renderInput("Number of court", "courtCount", "number")}
+          <Col md={6}>
+            <Row className="mb-3">
+              {" "}
+              <Col md={6}>{renderInput("Zip Code", "zip")}</Col>
+              <Col md={6}>
+                {renderInput("Number of court", "courtCount", "number")}
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={6}>{renderInput("LinkedIn Link", "linkedinLink")}</Col>
+              <Col md={6}>{renderInput("X Link", "xlink")}</Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={6}>{renderInput("Facebook Link", "facebookLink")}</Col>
+              <Col md={6}>{renderInput("Instagram Link", "instagramLink")}</Col>
+            </Row>
           </Col>
           <Col md={6}>
             {renderInput("Description", "description", "text-area")}
