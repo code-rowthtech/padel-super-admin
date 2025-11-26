@@ -54,7 +54,7 @@ const getInitialFormState = (club = {}) => ({
   instagramLink: club?.instagramLink || "",
   linkedinLink: club?.linkedinLink || "",
   facebookLink: club?.facebookLink || "",
-  xLink: club?.xLink || "",
+  xlink: club?.xlink || "",
   courtTypes: {
     indoor: ["indoor", "indoor/outdoor"].includes(
       club?.courtType?.trim?.().toLowerCase?.() || ""
@@ -512,7 +512,7 @@ const ClubUpdateForm = () => {
       "instagramLink",
       "linkedinLink",
       "facebookLink",
-      "xLink",
+      "xlink",
     ];
     for (const field of simpleFields) {
       if (formData[field] !== initialFormData[field]) return true;
@@ -607,7 +607,7 @@ const ClubUpdateForm = () => {
       fd.append("instagramLink", formData.instagramLink);
     if (formData.linkedinLink) fd.append("linkedinLink", formData.linkedinLink);
     if (formData.facebookLink) fd.append("facebookLink", formData.facebookLink);
-    if (formData.xLink) fd.append("xLink", formData.xLink);
+    if (formData.xlink) fd.append("xlink", formData.xlink);
     // NOTE: placeholder coordinates; replace with real coordinates if available
     fd.append("location[coordinates][0]", "50.90");
     fd.append("location[coordinates][1]", "80.09");
@@ -978,7 +978,7 @@ const ClubUpdateForm = () => {
                 <Col md={3}>
                   <Input
                     label="X Link"
-                    field="xLink"
+                    field="xlink"
                     placeholder="https://x.com/..."
                   />
                 </Col>
