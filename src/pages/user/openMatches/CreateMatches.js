@@ -115,8 +115,8 @@ const CreateMatches = () => {
   const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
   const [dynamicSteps, setDynamicSteps] = useState([]);
   console.log({ getPlayerLevelsLoading })
-  const [selectedAnswers, setSelectedAnswers] = useState({}); const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
-  console.log({ questionList }, '0976456789');
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
   const [slotError, setSlotError] = useState("");
   const [key, setKey] = useState("morning");
   const [matchPlayer, setMatchPlayer] = useState(false);
@@ -553,14 +553,12 @@ const CreateMatches = () => {
       return;
     }
 
-    // If we are on the second last step (before final level), call API
+    // Case 1: Dynamic last step load karna hai (second-last step se last step)
     if (currentStep === dynamicSteps.length - 1 && !isFinalLevelStepLoaded) {
       const firstAnswer = selectedAnswers[0];
 
       try {
         const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
-        // response.data is an ARRAY → [{ code, question, _id }, ...]
-
         const apiData = response?.data || [];
 
         if (!Array.isArray(apiData) || apiData.length === 0) {
@@ -568,7 +566,7 @@ const CreateMatches = () => {
         }
 
         const newLastStep = {
-          _id: apiData[0]?._id || "dynamic-final-step",
+          _id: apiData[0]._id || "dynamic-final-step",
           question: apiData[0]?.question || "Which Padel Player Are You?",
           options: apiData.map(opt => ({
             _id: opt.code,
@@ -582,24 +580,25 @@ const CreateMatches = () => {
         setIsFinalLevelStepLoaded(true);
         setCurrentStep(prev => prev + 1);
         setSlotError("");
+        // Modal abhi band nahi karna — user ko final level choose karna hai
+        return;
 
       } catch (err) {
         console.error(err);
         setSlotError("Failed to load player levels. Please try again.");
+        return;
       }
-
-      return;
     }
 
-
-    // Normal flow: go to next step
     if (currentStep < dynamicSteps.length - 1) {
       setCurrentStep(currentStep + 1);
       setSlotError("");
-    } else {
-      // Final submit — go to MatchPlayer
-      setMatchPlayer(true);
+      return;
     }
+
+    setMatchPlayer(true);
+    setShowMobileModal(false);       
+    setSlotError("");                
   };
 
   const handleBack = () => {
@@ -1350,8 +1349,7 @@ const CreateMatches = () => {
             className="d-lg-none"
           >
             <Modal.Body className="p-0" style={{ position: "relative" }}>
-
-              {/* ❌ Close Button inside Modal Body */}
+              {/* Close Button */}
               <button
                 onClick={() => setShowMobileModal(false)}
                 style={{
@@ -1385,7 +1383,7 @@ const CreateMatches = () => {
               >
                 {/* Step Indicator */}
                 <div className="d-flex gap-2 mb-4 justify-content-start align-items-center">
-                  {steps.map((_, i) => (
+                  {dynamicSteps?.map((_, i) => (
                     <div
                       key={i}
                       style={{
@@ -1404,150 +1402,72 @@ const CreateMatches = () => {
                   ))}
                 </div>
 
-                {/* Question */}
-                <h6
-                  className="mb-3 text-start"
-                  style={{
-                    fontSize: "18px",
-                    fontFamily: "Poppins",
-                    fontWeight: 600,
-                    color: "#1f2937",
-                  }}
-                >
-                  {steps[currentStep].question}
-                </h6>
+                {/* Dynamic Question */}
+                {dynamicSteps?.length > 0 && (
+                  <>
+                    <h6
+                      className="mb-4 text-start"
+                      style={{
+                        fontSize: "18px",
+                        fontFamily: "Poppins",
+                        fontWeight: 600,
+                        color: "#1f2937",
+                      }}
+                    >
+                      {dynamicSteps[currentStep]?.question}
+                    </h6>
 
-                {/* OPTIONS LIST */}
-                <Form
-                // style={{ maxHeight: "300px", overflowY: "auto" }}
-                >
-                  {currentStep === 1
-                    ? steps[currentStep].options.map((opt, i) => (
-                      <div
-                        key={i}
-                        onClick={() => {
-                          setSelectedLevel((prev) =>
-                            prev.includes(opt)
-                              ? prev.filter((x) => x !== opt)
-                              : [...prev, opt]
+                    <Form>
+                      {(() => {
+                        const step = dynamicSteps[currentStep];
+                        const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
+                        const isLastStep = currentStep === dynamicSteps.length - 1;
+                        const optionsToShow = isLastStep ? getFilteredLastStepOptions() : step.options;
+
+                        return optionsToShow.map((opt, i) => {
+                          const optValue = opt.value || opt.code || opt;
+                          const isSelected = step.isMultiSelect
+                            ? Array.isArray(currentAnswer) && currentAnswer.includes(optValue)
+                            : currentAnswer === optValue;
+
+                          return (
+                            <div
+                              key={opt._id || i}
+                              onClick={() => handleAnswerSelect(currentStep, optValue)}
+                              className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                              style={{
+                                backgroundColor: isSelected ? "#eef2ff" : "#fff",
+                                borderColor: isSelected ? "#4f46e5" : "#e5e7eb",
+                                cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                                gap: "12px",
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <Form.Check
+                                type={step.isMultiSelect ? "checkbox" : "radio"}
+                                checked={isSelected}
+                                onChange={() => { }}
+                                style={{ flexShrink: 0 }}
+                              />
+                              <span
+                                style={{
+                                  fontSize: "15px",
+                                  fontWeight: 600,
+                                  fontFamily: "Poppins",
+                                  color: "#1f2937",
+                                }}
+                              >
+                                {opt.value || `${opt.code} - ${opt.title || opt.question}`}
+                              </span>
+                            </div>
                           );
-                        }}
-                        className="d-flex align-items-center mb-2 p-2 rounded shadow-sm border step-option"
-                        style={{
-                          backgroundColor: selectedLevel.includes(opt)
-                            ? "#eef2ff"
-                            : "#fff",
-                          borderColor: selectedLevel.includes(opt)
-                            ? "#4f46e5"
-                            : "#e5e7eb",
-                          cursor: "pointer",
-                          gap: "8px",
-                          // height: "40px",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        <Form.Check
-                          type="checkbox"
-                          checked={selectedLevel.includes(opt)}
-                          onChange={() => { }}
-                          style={{ flexShrink: 0, marginTop: 0 }}
-                        />
-                        <span
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: 500,
-                            color: "#1f2937",
-                          }}
-                        >
-                          {opt}
-                        </span>
-                      </div>
-                    ))
-                    : currentStep === steps.length - 1
-                      ? getFilteredLastStepOptions().map((opt, i) => (
-                        <div
-                          key={i}
-                          onClick={() => setSelectedLevel(opt.code)}
-                          className="d-flex align-items-center mb-2 p-2 rounded shadow-sm border step-option"
-                          style={{
-                            backgroundColor:
-                              selectedLevel === opt.code ? "#eef2ff" : "#fff",
-                            borderColor:
-                              selectedLevel === opt.code ? "#4f46e5" : "#e5e7eb",
-                            cursor: "pointer",
-                            gap: "8px",
-                            // height: "40px",
-                            transition: "all 0.2s ease",
-                          }}
-                        >
-                          <Form.Check
-                            type="radio"
-                            name="modalLast"
-                            checked={selectedLevel === opt.code}
-                            onChange={() => { }}
-                            style={{ flexShrink: 0, marginTop: 0 }}
-                          />
-                          <div
-                            className="d-flex align-items-center flex-grow-1"
-                            style={{ gap: "6px" }}
-                          >
-                            <span
-                              style={{
-                                fontSize: "18px",
-                                fontWeight: 700,
-                                color: "#1d4ed8",
-                                minWidth: "28px",
-                                textAlign: "center",
-                              }}
-                            >
-                              {opt.code}
-                            </span>
-                            <strong
-                              style={{
-                                fontSize: "14px",
-                                color: "#1f2937",
-                              }}
-                            >
-                              {opt.title}
-                            </strong>
-                          </div>
-                        </div>
-                      ))
-                      : steps[currentStep].options.map((opt, i) => (
-                        <div
-                          key={i}
-                          onClick={() => setSelectedLevel(opt)}
-                          className="d-flex align-items-center mb-2 p-2 rounded shadow-sm border step-option"
-                          style={{
-                            backgroundColor: selectedLevel === opt ? "#eef2ff" : "#fff",
-                            borderColor: selectedLevel === opt ? "#4f46e5" : "#e5e7eb",
-                            cursor: "pointer",
-                            gap: "8px",
-                            // height: "40px",
-                            transition: "all 0.2s ease",
-                          }}
-                        >
-                          <Form.Check
-                            type="radio"
-                            name={`modalStep${currentStep}`}
-                            checked={selectedLevel === opt}
-                            onChange={() => { }}
-                            style={{ flexShrink: 0, marginTop: 0 }}
-                          />
-                          <span
-                            style={{
-                              fontSize: "14px",
-                              fontWeight: 500,
-                              color: "#1f2937",
-                            }}
-                          >
-                            {opt}
-                          </span>
-                        </div>
-                      ))}
-                </Form>
+                        });
+                      })()}
+                    </Form>
+                  </>
+                )}
 
-                {/* ERROR BOX */}
+                {/* Error Message */}
                 {slotError && (
                   <div
                     className="text-center mb-3 p-2 rounded"
@@ -1563,17 +1483,12 @@ const CreateMatches = () => {
                   </div>
                 )}
 
-                {/* BUTTONS */}
-                <div className="d-flex justify-content-between align-items-center mt-5">
+                {/* Buttons */}
+                <div className="d-flex justify-content-between align-items-center mt-4">
                   {currentStep > 0 && (
                     <Button
-                      className="rounded-pill px-3 py-1"
-                      style={{
-                        backgroundColor: "#6c757d",
-                        border: "none",
-                        color: "#fff",
-                        fontSize: "13px",
-                      }}
+                      variant="secondary"
+                      className="rounded-pill px-4 py-2"
                       onClick={handleBack}
                     >
                       Back
@@ -1581,13 +1496,11 @@ const CreateMatches = () => {
                   )}
 
                   <Button
-                    className="rounded-pill px-3 ms-auto py-1"
                     style={{
                       background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                       border: "none",
-                      color: "#fff",
-                      fontSize: "13px",
                     }}
+                    className="rounded-pill px-4 py-2 ms-auto"
                     disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >

@@ -219,21 +219,34 @@ const Payment = ({ className = "" }) => {
         throw new Error("Club information missing. Please try again.");
       }
 
-      const slotArray = localSelectedCourts.map((court) => ({
-        slotId: court.time[0]._id, // First slot ID only
-        businessHours:
-          courtData?.slot?.[0]?.businessHours?.map((t) => ({
+      // const slotArray = localSelectedCourts.map((court) => ({
+      //   slotId: court.time[0]._id, // First slot ID only
+      //   businessHours:
+      //     courtData?.slot?.[0]?.businessHours?.map((t) => ({
+      //       time: t?.time,
+      //       day: t?.day,
+      //     })) || [{ time: "6:00 AM - 11:00 PM", day: "Monday" }],
+      //   slotTimes: court.time.map((timeSlot) => ({
+      //     time: timeSlot.time,
+      //     amount: timeSlot.amount ?? 2000,
+      //   })),
+      //   courtName: court.courtName,
+      //   courtId: court._id,
+      //   bookingDate: court.date,
+      // }));
+          const slotArray = localSelectedCourts.flatMap((court) =>
+        court.time.map((timeSlot) => ({
+          slotId: timeSlot._id,
+          businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
             time: t?.time,
             day: t?.day,
-          })) || [{ time: "6:00 AM - 11:00 PM", day: "Monday" }],
-        slotTimes: court.time.map((timeSlot) => ({
-          time: timeSlot.time,
-          amount: timeSlot.amount ?? 2000,
-        })),
-        courtName: court.courtName,
-        courtId: court._id,
-        bookingDate: court.date,
-      }));
+          })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
+          slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount ?? 2000 }],
+          courtName: court.courtName,
+          courtId: court._id,
+          bookingDate: court.date,
+        }))
+      );
 
       const payload = {
         name: name.trim(),
