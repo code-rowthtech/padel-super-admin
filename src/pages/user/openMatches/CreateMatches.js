@@ -109,7 +109,7 @@ const CreateMatches = () => {
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
-  console.log({slotLoading});
+  console.log({ slotLoading });
   const questionList = useSelector((state) => state?.userNotificationData?.getQuestionData?.data) || [];
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
   const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
@@ -616,6 +616,7 @@ const CreateMatches = () => {
     return true;
   };
 
+  console.log(selectedCourts, isCurrentStepValid, 'p7p');
 
 
   useEffect(() => {
@@ -1587,15 +1588,19 @@ const CreateMatches = () => {
                       color: "#fff",
                       fontSize: "13px",
                     }}
-                    disabled={
-                      !isCurrentStepValid() ||
-                      selectedCourts.length === 0
-                    }
+                    disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
-                    {currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded
-                      ? "Submit"
-                      : "Next"}
+                    {getPlayerLevelsLoading === true ? (
+                      <span className="d-flex align-items-center gap-2">
+                        {/* <Loader /> */}
+                        Loading...
+                      </span>
+                    ) : currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded ? (
+                      "Submit"
+                    ) : (
+                      "Next"
+                    )}
                   </Button>
                 </div>
               </div>
