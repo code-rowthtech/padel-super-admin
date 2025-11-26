@@ -11,12 +11,10 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "react-icons/md";
 import { MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown } from "react-icons/md";
 
-// Load PayPal SDK (kept if needed later)
 const loadPayPal = (callback) => {
   const script = document.createElement("script");
   script.src = "https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID";
   script.onload = () => callback(window.paypal);
-  // script.onerror = () => alert("Failed to load PayPal SDK. Please try again.");
   document.body.appendChild(script);
 };
 
@@ -26,7 +24,6 @@ const Payment = ({ className = "" }) => {
   const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
   const user = getUserFromSession();
   const bookingStatus = useSelector((state) => state?.userBooking);
-  console.log({ user });
   const userLoading = useSelector((state) => state?.userAuth);
   const logo = JSON.parse(localStorage.getItem("logo"));
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
@@ -53,9 +50,6 @@ const Payment = ({ className = "" }) => {
   const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
   const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
   const [isExpanded, setIsExpanded] = useState(false);
-
-
-
 
   useEffect(() => {
     const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);
@@ -96,7 +90,7 @@ const Payment = ({ className = "" }) => {
     return () => clearTimeout(timer);
   }, [errors]);
 
-  // PayPal integration (optional, kept but not triggered unless selected)
+  // paypal integration
   useEffect(() => {
     if (selectedPayment === "Paypal" && !paypalLoaded) {
       loadPayPal((paypal) => {
@@ -140,7 +134,7 @@ const Payment = ({ className = "" }) => {
                   if (loginResponse?.status !== "200") throw new Error("Login failed");
                 }
                 const bookingResponse = await dispatch(createBooking(payload)).unwrap();
-                if (bookingResponse?.success) {
+                if (bookingResponse?.success || bookingResponse?.message === 'Booking created') {
                   setPaymentConfirmed(true);
                   setModal(true);
                   setLocalSelectedCourts([]);
@@ -176,24 +170,42 @@ const Payment = ({ className = "" }) => {
     });
   };
 
-  // MAIN PAYMENT HANDLER - ONLY API CALL, NO RAZORPAY
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  // payent handle function
   const handlePayment = async () => {
-    const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "") || "";
+    const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "").trim();
+
     const newErrors = {
-      name: !name ? "Name is required" : "",
+      name: !name.trim() ? "Name is required" : "",
       phoneNumber: !rawPhoneNumber
         ? "Phone number is required"
         : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
-          ? "Phone number must be 10 digits starting with 6, 7, 8, or 9"
+          ? "Invalid phone number"
           : "",
-      email: !email ? "Email is required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-        ? "Invalid email format"
-        : "",
-      paymentMethod: !selectedPayment ? "Payment method is required" : "",
+      email: !email.trim()
+        ? "Email is required"
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+          ? "Invalid email"
+          : "",
+      paymentMethod: !selectedPayment ? "Please select a payment method" : "",
     };
 
     setErrors(newErrors);
-    if (Object.values(newErrors).some((error) => error)) {
+    if (Object.values(newErrors).some((e) => e)) return;
+
+    if (localTotalSlots === 0) {
+      setErrors((prev) => ({ ...prev, general: "Please select at least one slot" }));
       return;
     }
 
@@ -202,80 +214,118 @@ const Payment = ({ className = "" }) => {
     try {
       const register_club_id = localStorage.getItem("register_club_id");
       const owner_id = localStorage.getItem("owner_id");
+
       if (!register_club_id || !owner_id) {
-        throw new Error("Club information is missing. Please select a club first.");
+        throw new Error("Club information missing. Please try again.");
       }
 
-      const slotArray = localSelectedCourts.flatMap((court) => {
-        return court?.time?.map((timeSlot) => ({
+      // const slotArray = localSelectedCourts.map((court) => ({
+      //   slotId: court.time[0]._id, // First slot ID only
+      //   businessHours:
+      //     courtData?.slot?.[0]?.businessHours?.map((t) => ({
+      //       time: t?.time,
+      //       day: t?.day,
+      //     })) || [{ time: "6:00 AM - 11:00 PM", day: "Monday" }],
+      //   slotTimes: court.time.map((timeSlot) => ({
+      //     time: timeSlot.time,
+      //     amount: timeSlot.amount ?? 2000,
+      //   })),
+      //   courtName: court.courtName,
+      //   courtId: court._id,
+      //   bookingDate: court.date,
+      // }));
+          const slotArray = localSelectedCourts.flatMap((court) =>
+        court.time.map((timeSlot) => ({
           slotId: timeSlot._id,
           businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
             time: t?.time,
             day: t?.day,
-          })) || [
-              {
-                time: "6:00 AM To 11:00 PM",
-                day: "Monday",
-              },
-            ],
-          slotTimes: [
-            {
-              time: timeSlot?.time,
-              amount: timeSlot?.amount ?? 2000,
-            },
-          ],
-          courtName: court?.courtName,
-          courtId: court?._id,
-          bookingDate: court?.date,
-        }));
-      });
+          })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
+          slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount ?? 2000 }],
+          courtName: court.courtName,
+          courtId: court._id,
+          bookingDate: court.date,
+        }))
+      );
 
       const payload = {
-        name,
+        name: name.trim(),
         phoneNumber: rawPhoneNumber,
-        email,
+        email: email.trim(),
         register_club_id,
         bookingStatus: "upcoming",
-        bookingType: 'regular',
+        bookingType: "regular",
         ownerId: owner_id,
         slot: slotArray,
         paymentMethod: selectedPayment,
       };
 
-      try {
-        if (!user?.name) {
-          // 🔹 Step 1: Login by phone number
-          const loginRes = await dispatch(
-            loginUserNumber({
-              phoneNumber: rawPhoneNumber.toString(),
-              name,
-              email,
-            })
-          ).unwrap();
-
-          if (loginRes?.status === "200") {
-            // 🔹 Step 2: Create booking after successful login
-            const bookingRes = await dispatch(createBooking(payload)).unwrap();
-            if (bookingRes?.success) {
-              setModal(true);
-            }
-          }
-        } else {
-          // 🔹 Already logged in → Directly create booking
-          const bookingRes = await dispatch(createBooking(payload)).unwrap();
-          if (bookingRes?.success) {
-            setModal(true);
-          }
-        }
-      } catch (error) {
-        console.error("Booking or login failed:", error);
+      if (!user?.name && !user?.phoneNumber) {
+        await dispatch(
+          loginUserNumber({
+            phoneNumber: rawPhoneNumber,
+            name: name.trim(),
+            email: email.trim(),
+          })
+        ).unwrap();
       }
+
+      const bookingResponse = await dispatch(createBooking(payload)).unwrap();
+      const successMessages = ["Booking created", "Bookings created"];
+      if (
+        !bookingResponse?.success ||
+        !successMessages.includes(bookingResponse?.message)
+      ) {
+        throw new Error(bookingResponse?.message || "Booking failed on server");
+      }
+
+      const options = {
+        key: "rzp_test_1DP5mmOlF5G5ag", 
+        amount: localGrandTotal * 100, 
+        currency: "INR",
+        name: clubData?.clubName || "Court Booking",
+        description: localTotalSlots > 1
+          ? `${localTotalSlots} Slots Booking`
+          : "1 Slot Booking",
+        image: logo || undefined,
+        handler: function (response) {
+          setModal(true);
+          setLocalSelectedCourts([]); 
+          setSelectedPayment(""); 
+        },
+        prefill: {
+          name: name.trim(),
+          email: email.trim(),
+          contact: rawPhoneNumber,
+        },
+        theme: {
+          color: "#001B76",
+        },
+        modal: {
+          ondismiss: function () {
+            setIsLoading(false);
+            setErrors((prev) => ({ ...prev, general: "Payment cancelled by user" }));
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+
+      razorpay.on("payment.failed", function (response) {
+        setErrors((prev) => ({
+          ...prev,
+          general: response.error?.description || "Payment failed. Please try again.",
+        }));
+        setIsLoading(false);
+      });
+
+      razorpay.open();
 
     } catch (err) {
       console.error("Payment Error:", err);
       setErrors((prev) => ({
         ...prev,
-        general: err.message || "An error occurred during payment processing.",
+        general: err.message || "Something went wrong. Please try again.",
       }));
     } finally {
       setIsLoading(false);
@@ -640,7 +690,7 @@ const Payment = ({ className = "" }) => {
 
                           <div>
                             ₹
-                            <span className="ps-1" style={{ fontWeight: "600",  fontSize: "14px"}}>
+                            <span className="ps-1" style={{ fontWeight: "600", fontSize: "14px" }}>
                               {slot.amount}
                             </span>
                             <MdOutlineDeleteOutline
@@ -723,7 +773,7 @@ const Payment = ({ className = "" }) => {
             {localTotalSlots > 0 && (
               <>
                 <div className="d-lg-none py-0 pt-1">
-                  <div 
+                  <div
                     className="d-flex justify-content-between align-items-center px-3"
                     onClick={(e) => {
                       e.stopPropagation();

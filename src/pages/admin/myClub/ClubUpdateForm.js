@@ -51,6 +51,10 @@ const getInitialFormState = (club = {}) => ({
   zip: club?.zipCode || "",
   courtCount: club?.courtCount ? String(club.courtCount) : "",
   description: club?.description || "",
+  instagramLink: club?.instagramLink || "",
+  linkedinLink: club?.linkedinLink || "",
+  facebookLink: club?.facebookLink || "",
+  xLink: club?.xLink || "",
   courtTypes: {
     indoor: ["indoor", "indoor/outdoor"].includes(
       club?.courtType?.trim?.().toLowerCase?.() || ""
@@ -103,12 +107,13 @@ const getInitialPreviews = (imagesOrSingle) => {
 };
 
 const validateForm = (data) => {
+  const zipStr = String(data.zip).trim();
   const errors = {
     courtName: !data.courtName.trim(),
     address: !data.address.trim(),
     city: !data.city.trim(),
     state: !data.state.trim(),
-    zip: !/^\d+$/.test(String(data.zip).trim()),
+    zip: !/^[1-9]\d{3,5}$/.test(zipStr),
     courtCount:
       !/^\d+$/.test(String(data.courtCount).trim()) ||
       Number(data.courtCount) <= 0,
@@ -371,12 +376,10 @@ const ClubUpdateForm = () => {
           showWarning(`Description cannot exceed ${MAX_WORDS} words.`);
         }
       } else if (field === "courtCount") {
-        // Allow blank temporarily (so user can edit freely)
         if (value.trim() === "") {
           setFormData((prev) => ({ ...prev, [field]: value }));
           return;
         }
-
         const num = Number(value);
         if (!/^\d+$/.test(value.trim())) {
           showWarning("Please enter a valid number of courts.");
@@ -386,7 +389,24 @@ const ClubUpdateForm = () => {
           showWarning("You can only add up to 10 courts.");
           return;
         }
-
+        setFormData((prev) => ({ ...prev, [field]: value }));
+      } else if (field === "zip") {
+        if (value.trim() === "") {
+          setFormData((prev) => ({ ...prev, [field]: value }));
+          return;
+        }
+        if (!/^\d+$/.test(value.trim())) {
+          showWarning("Zip code must contain only digits.");
+          return;
+        }
+        if (value.trim().startsWith("0")) {
+          showWarning("Zip code cannot start with 0.");
+          return;
+        }
+        if (value.trim().length > 6) {
+          showWarning("Zip code must be 4-6 digits.");
+          return;
+        }
         setFormData((prev) => ({ ...prev, [field]: value }));
       } else {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -489,6 +509,10 @@ const ClubUpdateForm = () => {
       "zip",
       "courtCount",
       "description",
+      "instagramLink",
+      "linkedinLink",
+      "facebookLink",
+      "xLink",
     ];
     for (const field of simpleFields) {
       if (formData[field] !== initialFormData[field]) return true;
@@ -579,6 +603,11 @@ const ClubUpdateForm = () => {
     fd.append("zipCode", formData.zip);
     fd.append("address", formData.address);
     fd.append("description", formData.description);
+    if (formData.instagramLink)
+      fd.append("instagramLink", formData.instagramLink);
+    if (formData.linkedinLink) fd.append("linkedinLink", formData.linkedinLink);
+    if (formData.facebookLink) fd.append("facebookLink", formData.facebookLink);
+    if (formData.xLink) fd.append("xLink", formData.xLink);
     // NOTE: placeholder coordinates; replace with real coordinates if available
     fd.append("location[coordinates][0]", "50.90");
     fd.append("location[coordinates][1]", "80.09");
@@ -625,7 +654,7 @@ const ClubUpdateForm = () => {
       </Form.Label>
       <Form.Control
         type={type}
-        placeholder={placeholder}
+        placeholder={!formData[field] ? placeholder : ""}
         value={formData[field]}
         onChange={(e) => handleChange(field, e.target.value)}
         onBlur={() => setTouched((p) => ({ ...p, [field]: true }))}
@@ -640,7 +669,9 @@ const ClubUpdateForm = () => {
       />
       {visibleErrors[field] && (
         <Form.Control.Feedback type="invalid" className="d-block small">
-          {field === "zip" || field === "courtCount"
+          {field === "zip"
+            ? "Zip code must be 4-6 digits and cannot start with 0"
+            : field === "courtCount"
             ? "Please enter a valid number"
             : "This field is required"}
         </Form.Control.Feedback>
@@ -920,6 +951,36 @@ const ClubUpdateForm = () => {
                       </Col>
                     ))}
                   </Row>
+                </Col>
+              </Row>
+              <Row className="mb-3">
+                <Col md={3}>
+                  <Input
+                    label="Instagram Link"
+                    field="instagramLink"
+                    placeholder="https://instagram.com/..."
+                  />
+                </Col>
+                <Col md={3}>
+                  <Input
+                    label="LinkedIn Link"
+                    field="linkedinLink"
+                    placeholder="https://linkedin.com/..."
+                  />
+                </Col>
+                <Col md={3}>
+                  <Input
+                    label="Facebook Link"
+                    field="facebookLink"
+                    placeholder="https://facebook.com/..."
+                  />
+                </Col>
+                <Col md={3}>
+                  <Input
+                    label="X Link"
+                    field="xLink"
+                    placeholder="https://x.com/..."
+                  />
                 </Col>
               </Row>
             </Col>

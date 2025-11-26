@@ -567,7 +567,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
 
         <div className="mt-3 mb-3">
           <h5 className="mb-3 text-start" style={{ fontWeight: '600', color: '#374151' }}>
-            What’s your reason to cancel this slot
+          {booking?.booking?.bookingStatus === "cancelled" ? "Your booking cancelled reason" : "What’s your reason to cancel this slot"}  
           </h5>
           <Form.Group>
             <Form.Control
