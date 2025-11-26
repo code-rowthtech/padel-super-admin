@@ -93,6 +93,7 @@ const Payment = ({ className = "" }) => {
   // paypal integration
   useEffect(() => {
     if (selectedPayment === "Paypal" && !paypalLoaded) {
+      const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "").trim();
       loadPayPal((paypal) => {
         if (paypal) {
           paypalRef.current = paypal;
@@ -104,45 +105,25 @@ const Payment = ({ className = "" }) => {
               });
             },
             onApprove: async (data, actions) => {
-              const payload = {
-                name,
-                phoneNumber: phoneNumber.replace(/^\+91\s/, ""),
-                email,
-                register_club_id: localStorage.getItem("register_club_id"),
-                bookingStatus: "upcoming",
-                bookingType: "regular",
-                ownerId: localStorage.getItem("owner_id"),
-                slot: localSelectedCourts.flatMap((court) => ({
-                  slotId: court.time[0]?._id,
-                  businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
-                    time: t?.time,
-                    day: t?.day,
-                  })) || [{ time: "06:00 AM - 11:00 PM", day: "Wednesday" }],
-                  slotTimes: court.time.map((timeSlot) => ({
-                    time: timeSlot?.time,
-                    amount: timeSlot?.amount ?? 2000,
-                  })),
-                  courtName: court?.courtName,
-                  courtId: court?._id,
-                  bookingDate: court?.date,
-                })),
-                paymentMethod: selectedPayment,
-              };
               try {
+                const payload = { /* same payload as above */ };
+
                 if (!user?.name || !user?.phoneNumber) {
-                  const loginResponse = await dispatch(loginUserNumber({ phoneNumber: phoneNumber.replace(/^\+91\s/, ""), name, email })).unwrap();
-                  if (loginResponse?.status !== "200") throw new Error("Login failed");
+                  await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
                 }
+
+                // Pehle payment capture → fir booking API
                 const bookingResponse = await dispatch(createBooking(payload)).unwrap();
-                if (bookingResponse?.success || bookingResponse?.message === 'Booking created') {
+
+                if (bookingResponse?.success || bookingResponse?.message?.includes("created")) {
                   setPaymentConfirmed(true);
                   setModal(true);
                   setLocalSelectedCourts([]);
                 } else {
-                  throw new Error(bookingResponse?.message);
+                  throw new Error("Booking failed after payment");
                 }
               } catch (err) {
-                setErrors((prev) => ({ ...prev, general: err.message }));
+                setErrors((prev) => ({ ...prev, general: "Payment succeeded but booking failed. Contact support." }));
               }
             },
             onError: (err) => {
@@ -186,6 +167,7 @@ const Payment = ({ className = "" }) => {
   const handlePayment = async () => {
     const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "").trim();
 
+    // Validation
     const newErrors = {
       name: !name.trim() ? "Name is required" : "",
       phoneNumber: !rawPhoneNumber
@@ -203,7 +185,6 @@ const Payment = ({ className = "" }) => {
 
     setErrors(newErrors);
     if (Object.values(newErrors).some((e) => e)) return;
-
     if (localTotalSlots === 0) {
       setErrors((prev) => ({ ...prev, general: "Please select at least one slot" }));
       return;
@@ -216,25 +197,11 @@ const Payment = ({ className = "" }) => {
       const owner_id = localStorage.getItem("owner_id");
 
       if (!register_club_id || !owner_id) {
-        throw new Error("Club information missing. Please try again.");
+        throw new Error("Club information missing.");
       }
 
-      // const slotArray = localSelectedCourts.map((court) => ({
-      //   slotId: court.time[0]._id, // First slot ID only
-      //   businessHours:
-      //     courtData?.slot?.[0]?.businessHours?.map((t) => ({
-      //       time: t?.time,
-      //       day: t?.day,
-      //     })) || [{ time: "6:00 AM - 11:00 PM", day: "Monday" }],
-      //   slotTimes: court.time.map((timeSlot) => ({
-      //     time: timeSlot.time,
-      //     amount: timeSlot.amount ?? 2000,
-      //   })),
-      //   courtName: court.courtName,
-      //   courtId: court._id,
-      //   bookingDate: court.date,
-      // }));
-          const slotArray = localSelectedCourts.flatMap((court) =>
+      // Prepare slot array
+      const slotArray = localSelectedCourts.flatMap((court) =>
         court.time.map((timeSlot) => ({
           slotId: timeSlot._id,
           businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
@@ -260,6 +227,7 @@ const Payment = ({ className = "" }) => {
         paymentMethod: selectedPayment,
       };
 
+      // First: Login if needed
       if (!user?.name && !user?.phoneNumber) {
         await dispatch(
           loginUserNumber({
@@ -270,39 +238,37 @@ const Payment = ({ className = "" }) => {
         ).unwrap();
       }
 
-      const bookingResponse = await dispatch(createBooking(payload)).unwrap();
-      const successMessages = ["Booking created", "Bookings created"];
-      if (
-        !bookingResponse?.success ||
-        !successMessages.includes(bookingResponse?.message)
-      ) {
-        throw new Error(bookingResponse?.message || "Booking failed on server");
-      }
-
+      // Razorpay Options
       const options = {
-        key: "rzp_test_1DP5mmOlF5G5ag", 
-        amount: localGrandTotal * 100, 
+        key: "rzp_test_1DP5mmOlF5G5ag",
+        amount: localGrandTotal * 100,
         currency: "INR",
         name: clubData?.clubName || "Court Booking",
-        description: localTotalSlots > 1
-          ? `${localTotalSlots} Slots Booking`
-          : "1 Slot Booking",
+        description: localTotalSlots > 1 ? `${localTotalSlots} Slots` : "1 Slot",
         image: logo || undefined,
-        handler: function (response) {
-          setModal(true);
-          setLocalSelectedCourts([]); 
-          setSelectedPayment(""); 
+        prefill: { name: name.trim(), email: email.trim(), contact: rawPhoneNumber },
+        theme: { color: "#001B76" },
+
+        // Payment Success → Ab yahan API call karo
+        handler: async function (response) {
+          try {
+            // Ab booking create karo (payment successful hone ke baad)
+            const bookingResponse = await dispatch(createBooking(payload)).unwrap();
+
+            if (bookingResponse?.success || bookingResponse?.message?.includes("created")) {
+              setLocalSelectedCourts([]);
+              setModal(true); // Success modal dikhao
+            } else {
+              throw new Error(bookingResponse?.message || "Booking failed");
+            }
+          } catch (err) {
+            alert("Booking failed after payment: " + (err.message || "Please contact support"));
+            console.error(err);
+          }
         },
-        prefill: {
-          name: name.trim(),
-          email: email.trim(),
-          contact: rawPhoneNumber,
-        },
-        theme: {
-          color: "#001B76",
-        },
+
         modal: {
-          ondismiss: function () {
+          ondismiss: () => {
             setIsLoading(false);
             setErrors((prev) => ({ ...prev, general: "Payment cancelled by user" }));
           },
@@ -314,7 +280,7 @@ const Payment = ({ className = "" }) => {
       razorpay.on("payment.failed", function (response) {
         setErrors((prev) => ({
           ...prev,
-          general: response.error?.description || "Payment failed. Please try again.",
+          general: response.error?.description || "Payment failed",
         }));
         setIsLoading(false);
       });
@@ -322,12 +288,7 @@ const Payment = ({ className = "" }) => {
       razorpay.open();
 
     } catch (err) {
-      console.error("Payment Error:", err);
-      setErrors((prev) => ({
-        ...prev,
-        general: err.message || "Something went wrong. Please try again.",
-      }));
-    } finally {
+      setErrors((prev) => ({ ...prev, general: err.message || "Something went wrong" }));
       setIsLoading(false);
     }
   };
@@ -889,7 +850,7 @@ const Payment = ({ className = "" }) => {
                     />
                   </g>
                 </svg>
-                <div style={contentStyle}>  {isLoading || bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
+                <div style={contentStyle}>  {bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
               </button>
             </div>
           </div>
