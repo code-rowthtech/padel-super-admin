@@ -155,6 +155,8 @@ const OpenmatchPayment = () => {
 
     const handleBooking = async () => {
         setError({});
+
+        // Validation
         if (!selectedPayment) return setError({ paymentMethod: "Select payment method" });
         if (!name?.trim()) return setError({ name: "Name required" });
         if (!email?.trim() || !/^\S+@\S+\.\S+$/.test(email)) return setError({ email: "Valid email required" });
@@ -168,10 +170,12 @@ const OpenmatchPayment = () => {
         setIsLoading(true);
 
         try {
+            // Step 1: Login if user not logged in
             if (!User?.name || !User?.phoneNumber || !User?.email) {
                 await dispatch(loginUserNumber({ phoneNumber: cleanPhone, name, email })).unwrap();
             }
 
+            // Step 2: Prepare match payload (but don't call API yet)
             const formattedMatch = {
                 slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
                     slotId: timeSlot._id,
@@ -193,33 +197,7 @@ const OpenmatchPayment = () => {
                 teamB,
             };
 
-            const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
-            const matchId = matchResponse?.match?._id;
-            if (!matchId) throw new Error("Match creation failed");
-
-            const bookingPayload = {
-                name: name,
-                phoneNumber: cleanPhone,
-                email: email,
-                register_club_id: savedClubId,
-                ownerId: owner_id,
-                paymentMethod: selectedPayment,
-                bookingType: "open Match",
-                bookingStatus: "upcoming",
-                openMatchId: matchId,
-                slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
-                    slotId: timeSlot._id,
-                    businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
-                    slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
-                    courtName: court.courtName || "Court",
-                    courtId: court._id,
-                    bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
-                }))),
-            };
-
-            const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
-            if (!bookingResponse?.success) throw new Error("Booking creation failed");
-            console.log({ bookingResponse });
+            // Step 3: Open Razorpay — Payment First
             const options = {
                 key: "rzp_test_1DP5mmOlF5G5ag",
                 amount: localGrandTotal * 100,
@@ -227,27 +205,68 @@ const OpenmatchPayment = () => {
                 name: clubData?.clubName || "Open Match",
                 description: "Open Match Booking",
                 image: logo || undefined,
-                handler: function () {
-                    // Payment Success
-                    localStorage.removeItem("addedPlayers");
-                    window.dispatchEvent(new Event("playersUpdated"));
-                    navigate("/open-matches", { replace: true });
-                },
                 prefill: { name, email, contact: cleanPhone },
                 theme: { color: "#001B76" },
+
+                // Payment Success → Ab APIs call karo
+                handler: async function (response) {
+                    try {
+                        // Step 4: Create Match
+                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                        const matchId = matchResponse?.match?._id;
+                        if (!matchId) throw new Error("Failed to create match");
+
+                        // Step 5: Create Booking with openMatchId
+                        const bookingPayload = {
+                            name,
+                            phoneNumber: cleanPhone,
+                            email,
+                            register_club_id: savedClubId,
+                            ownerId: owner_id,
+                            paymentMethod: selectedPayment,
+                            bookingType: "open Match",
+                            bookingStatus: "upcoming",
+                            openMatchId: matchId,
+                            slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
+                                slotId: timeSlot._id,
+                                businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
+                                slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
+                                courtName: court.courtName || "Court",
+                                courtId: court._id,
+                                bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
+                            }))),
+                        };
+
+                        const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
+                        if (!bookingResponse?.success) throw new Error("Booking failed after payment");
+
+                        // Step 6: Success — Cleanup & Navigate
+                        localStorage.removeItem("addedPlayers");
+                        window.dispatchEvent(new Event("playersUpdated"));
+                        navigate("/open-matches", { replace: true });
+
+                    } catch (err) {
+                        console.error("Post-payment error:", err);
+                        alert(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
+                        // Optional: redirect to support page or show ticket form
+                    }
+                },
+
                 modal: {
                     ondismiss: () => {
                         setIsLoading(false);
-                        setError({ general: "Payment cancelled" });
+                        setError({ general: "Payment cancelled by user" });
                     }
                 }
             };
 
             const razorpay = new window.Razorpay(options);
-            razorpay.on("payment.failed", () => {
-                setError({ general: "Payment failed. Please try again." });
+
+            razorpay.on("payment.failed", (response) => {
+                setError({ general: response.error?.description || "Payment failed. Try again." });
                 setIsLoading(false);
             });
+
             razorpay.open();
 
         } catch (err) {
