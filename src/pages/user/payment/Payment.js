@@ -134,7 +134,7 @@ const Payment = ({ className = "" }) => {
                   if (loginResponse?.status !== "200") throw new Error("Login failed");
                 }
                 const bookingResponse = await dispatch(createBooking(payload)).unwrap();
-                if (bookingResponse?.success) {
+                if (bookingResponse?.success || bookingResponse?.message === 'Booking created') {
                   setPaymentConfirmed(true);
                   setModal(true);
                   setLocalSelectedCourts([]);
@@ -184,17 +184,21 @@ const Payment = ({ className = "" }) => {
 
   // payent handle function
   const handlePayment = async () => {
-    const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "") || "";
+    const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "").trim();
 
     const newErrors = {
-      name: !name ? "Name is required" : "",
+      name: !name.trim() ? "Name is required" : "",
       phoneNumber: !rawPhoneNumber
         ? "Phone number is required"
         : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
           ? "Invalid phone number"
           : "",
-      email: !email ? "Email is required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "Invalid email" : "",
-      paymentMethod: !selectedPayment ? "Select payment method" : "",
+      email: !email.trim()
+        ? "Email is required"
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+          ? "Invalid email"
+          : "",
+      paymentMethod: !selectedPayment ? "Please select a payment method" : "",
     };
 
     setErrors(newErrors);
@@ -212,10 +216,25 @@ const Payment = ({ className = "" }) => {
       const owner_id = localStorage.getItem("owner_id");
 
       if (!register_club_id || !owner_id) {
-        throw new Error("Club information missing");
+        throw new Error("Club information missing. Please try again.");
       }
 
-      const slotArray = localSelectedCourts.flatMap((court) =>
+      // const slotArray = localSelectedCourts.map((court) => ({
+      //   slotId: court.time[0]._id, // First slot ID only
+      //   businessHours:
+      //     courtData?.slot?.[0]?.businessHours?.map((t) => ({
+      //       time: t?.time,
+      //       day: t?.day,
+      //     })) || [{ time: "6:00 AM - 11:00 PM", day: "Monday" }],
+      //   slotTimes: court.time.map((timeSlot) => ({
+      //     time: timeSlot.time,
+      //     amount: timeSlot.amount ?? 2000,
+      //   })),
+      //   courtName: court.courtName,
+      //   courtId: court._id,
+      //   bookingDate: court.date,
+      // }));
+          const slotArray = localSelectedCourts.flatMap((court) =>
         court.time.map((timeSlot) => ({
           slotId: timeSlot._id,
           businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
@@ -230,9 +249,9 @@ const Payment = ({ className = "" }) => {
       );
 
       const payload = {
-        name,
+        name: name.trim(),
         phoneNumber: rawPhoneNumber,
-        email,
+        email: email.trim(),
         register_club_id,
         bookingStatus: "upcoming",
         bookingType: "regular",
@@ -241,14 +260,23 @@ const Payment = ({ className = "" }) => {
         paymentMethod: selectedPayment,
       };
 
-      if (!user?.name) {
-        await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
+      if (!user?.name && !user?.phoneNumber) {
+        await dispatch(
+          loginUserNumber({
+            phoneNumber: rawPhoneNumber,
+            name: name.trim(),
+            email: email.trim(),
+          })
+        ).unwrap();
       }
 
       const bookingResponse = await dispatch(createBooking(payload)).unwrap();
-
-      if (!bookingResponse?.success || bookingResponse?.message !== "Booking created") {
-        throw new Error(bookingResponse?.message || "Booking failed");
+      const successMessages = ["Booking created", "Bookings created"];
+      if (
+        !bookingResponse?.success ||
+        !successMessages.includes(bookingResponse?.message)
+      ) {
+        throw new Error(bookingResponse?.message || "Booking failed on server");
       }
 
       const options = {
@@ -256,39 +284,49 @@ const Payment = ({ className = "" }) => {
         amount: localGrandTotal * 100, 
         currency: "INR",
         name: clubData?.clubName || "Court Booking",
-        description: "Slot Booking",
+        description: localTotalSlots > 1
+          ? `${localTotalSlots} Slots Booking`
+          : "1 Slot Booking",
         image: logo || undefined,
         handler: function (response) {
           setModal(true);
           setLocalSelectedCourts([]); 
+          setSelectedPayment(""); 
         },
         prefill: {
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
           contact: rawPhoneNumber,
         },
         theme: {
           color: "#001B76",
         },
         modal: {
-          ondismiss: () => {
+          ondismiss: function () {
             setIsLoading(false);
-            setErrors((prev) => ({ ...prev, general: "Payment was cancelled" }));
+            setErrors((prev) => ({ ...prev, general: "Payment cancelled by user" }));
           },
         },
       };
 
       const razorpay = new window.Razorpay(options);
-      razorpay.on("payment.failed", (response) => {
-        setErrors((prev) => ({ ...prev, general: response.error.description || "Payment failed" }));
+
+      razorpay.on("payment.failed", function (response) {
+        setErrors((prev) => ({
+          ...prev,
+          general: response.error?.description || "Payment failed. Please try again.",
+        }));
         setIsLoading(false);
       });
 
       razorpay.open();
 
     } catch (err) {
-      console.error("Error:", err);
-      setErrors((prev) => ({ ...prev, general: err.message || "Something went wrong" }));
+      console.error("Payment Error:", err);
+      setErrors((prev) => ({
+        ...prev,
+        general: err.message || "Something went wrong. Please try again.",
+      }));
     } finally {
       setIsLoading(false);
     }
