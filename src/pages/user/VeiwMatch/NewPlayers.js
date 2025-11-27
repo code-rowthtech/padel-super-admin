@@ -28,7 +28,7 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel
+  userSkillLevel, selectedGender
 }) => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -238,6 +238,16 @@ const NewPlayers = ({
     boxShadow: "none",
   });
 
+  const isGenderDisabled = (optionGender) => {
+    const matchGender = selectedGender?.toLowerCase();
+    return matchGender && matchGender !== optionGender.toLowerCase();
+  };
+
+  useEffect(() => {
+    if (!selectedGender) return;
+    setFormData((prev) => ({ ...prev, gender: selectedGender }));
+  }, [selectedGender]);
+
   return (
     <Modal
       open={showAddMeForm}
@@ -362,25 +372,31 @@ const NewPlayers = ({
 
           {/* Gender */}
           <div className="mb-3">
-            <label className="form-label">
-              Gender <span className="text-danger">*</span>
-            </label>
-            <div className="d-flex flex-wrap gap-3">
-              {["Male", "Female", "Other"].map((g) => (
-                <div key={g} className="form-check d-flex align-items-center gap-2">
+            <label className="form-label">Gender</label>
+            <div className="d-flex gap-4">
+              {[
+                { value: "Male Only", label: "Male Only" },
+                { value: "Female Only", label: "Female Only" },
+                { value: "Mixed Double", label: "Mixed Double" },
+              ].map((g) => (
+                <div key={g.value} className="form-check">
                   <input
                     className="form-check-input"
                     type="radio"
                     name="gender"
-                    id={g}
-                    value={g}
-                    checked={formData.gender === g}
+                    id={g.value}
+                    value={g.value}
+                    disabled={isGenderDisabled(g.value)}
+                    checked={formData.gender === g.value}
                     onChange={(e) =>
-                      handleInputChange("gender", e.target.value)
+                      setFormData((prev) => ({ ...prev, gender: e.target.value }))
                     }
                   />
-                  <label className="form-check-label pt-1" htmlFor={g}>
-                    {g}
+                  <label
+                    className={`form-check-label ${isGenderDisabled(g.value) ? "text-muted" : ""}`}
+                    htmlFor={g.value}
+                  >
+                    {g.label} {isGenderDisabled(g.value)}
                   </label>
                 </div>
               ))}
