@@ -484,7 +484,7 @@ const MatchPlayer = ({
                                         data-tooltip-id="you"
                                         data-tooltip-content={User.name}
                                     >
-                                        {updateName?.fullName ? updateName?.fullName?.length > 12 ? `${updateName?.fullName.substring(0, 12)}...` : updateName?.fullName : User.name?.length > 12 ? `${User.name.substring(0, 12)}...` : User.name}
+                                        {updateName?.fullName ? updateName?.fullName?.length > 12 ? `${updateName?.fullName.substring(0, 12)}...` : updateName?.fullName : User.name?.length > 12 ? `${User.name.substring(0, 12)}...` : User.name || 'User'}
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>

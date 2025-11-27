@@ -349,7 +349,7 @@ const UpdatePlayers = ({
                 <Select
                   options={levelOptions}
                   value={levelOptions.find((o) => o.value === formData.level)}
-                  onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt.value }))}
+                  onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt?.value }))}
                   placeholder="Choose level"
                   classNamePrefix="select"
                   styles={{ control: (base) => ({ ...base, border: "none", boxShadow: "none" }) }}
