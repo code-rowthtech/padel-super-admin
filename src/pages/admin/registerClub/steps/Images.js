@@ -102,7 +102,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     const files = Array.from(e.target.files);
     const currentCount = formData.images?.length || 0;
     const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
-    
+
     if (currentCount + files.length > MAX_IMAGES) {
       showInfo(`You can upload a maximum of ${MAX_IMAGES} images.`);
       return;
@@ -147,7 +147,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
         newFiles.push(file);
       }
     });
-    
+
     if (duplicateFiles.length > 0) {
       showInfo(
         `Duplicate image detected: ${duplicateFiles.join(
@@ -498,8 +498,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     apiFormData.append("clubName", formData.courtName || "");
     apiFormData.append(
       "courtType",
-      `${formData.courtTypes.indoor ? "Indoor" : ""}${
-        formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
+      `${formData.courtTypes.indoor ? "Indoor" : ""}${formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
       }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
     );
     apiFormData.append("courtCount", formData.courtCount || "");
@@ -542,14 +541,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       } else {
         result = await dispatch(registerClub(apiFormData)).unwrap();
       }
-      console.log({ result });
-      console.log({ result });
       // Check status 200
       if (result?.status === 200 || result?.success === true) {
-        console.log("Success:", result);
         onNext(); // Only call if status is 200
       } else {
-        console.log("Non-200 response:", result);
         // showInfo(result?.message || "Something went wrong.");
       }
     } catch (error) {

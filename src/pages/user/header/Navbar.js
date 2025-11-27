@@ -44,9 +44,6 @@ const Navbar = () => {
     const [notifications, setNotifications] = useState([]);
     const userId = getUserFromSession()?._id;
     const [notificationCount, setNotificationCount] = useState();
-    console.log({ userId });
-    console.log({ notificationCount });
-    console.log({ notifications });
     dayjs.extend(relativeTime);
     dayjs.extend(updateLocale);
 
@@ -79,35 +76,29 @@ const Navbar = () => {
                 }
             });
             dispatch(getNotificationCount()).unwrap().then((res) => {
-                console.log(res, 'resresres');
                 if (res?.notifications) {
                     setNotificationCount(res);
                 }
             });
             socket.on("connect", () => {
-                console.log("Connected:", socket.id);
                 socket.emit("registerUser", userId);
             });
 
 
 
             socket.on("user_request", (data) => {
-                console.log("user_request", data);
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
-                console.log("userNotificationCountUpdate", data);
                 setNotificationCount(data);
             });
 
             socket.on("approved_request", (data) => {
-                console.log("approved_request", data);
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
-                console.log("userNotificationCountUpdate", data);
                 setNotificationCount(data);
             });
 
@@ -195,7 +186,6 @@ const Navbar = () => {
             .then(() => {
                 navigate(note?.notificationUrl)
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log('userNotificationCountUpdate', data);
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -203,12 +193,6 @@ const Navbar = () => {
                         setNotifications(res.notifications);
                     }
                 });
-                // dispatch(getNotificationCount()).unwrap().then((res) => {
-                //   console.log(res?.unreadCount, 'resres');
-                //   if (res?.unreadCount) {
-                //     setNotificationCount(res);
-                //   }
-                // });
             });
     };
 
@@ -218,7 +202,6 @@ const Navbar = () => {
         dispatch(readAllNotification()).unwrap()
             .then(() => {
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log('userNotificationCountUpdate', data);
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {

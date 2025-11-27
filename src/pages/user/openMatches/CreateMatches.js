@@ -36,6 +36,7 @@ import {
 } from "../../../assets/files";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { getPlayerLevel, getQuestionData } from "../../../redux/user/notifiction/thunk";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 /* ──────────────────────── Helper Functions ──────────────────────── */
 const parseTimeToHour = (timeStr) => {
@@ -93,13 +94,11 @@ const CreateMatches = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const store = useSelector((state) => state);
-
+  const getToken = getUserFromSession();
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedCourts, setSelectedCourts] = useState([]);
   const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
-  console.log({ selectedDate });
-
   const [errorShow, setErrorShow] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedBuisness, setSelectedBuisness] = useState([]);
@@ -109,7 +108,6 @@ const CreateMatches = () => {
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
-  console.log({ slotLoading });
   const questionList = useSelector((state) => state?.userNotificationData?.getQuestionData?.data) || [];
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
   const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
@@ -174,24 +172,26 @@ const CreateMatches = () => {
   }, [questionList]);
 
   useEffect(() => {
-    setProfileLoading(true);
-    dispatch(getUserProfile()).then((result) => {
-      console.log(result.payload?.response?.gender, 'result.payload?.response?.gender');
-      setUserGender(result.payload?.response?.gender || "");
-      if (result.payload?.existsOpenMatchData) {
-        setExistsOpenMatchData(true);
-        if (window.innerWidth > 768) {
-          setMatchPlayer(true);
+    if (getToken?.token) {
+      setProfileLoading(true);
+      dispatch(getUserProfile()).then((result) => {
+        setUserGender(result.payload?.response?.gender || "");
+        if (result.payload?.existsOpenMatchData) {
+          setExistsOpenMatchData(true);
+          if (window.innerWidth > 768) {
+            setMatchPlayer(true);
+          }
         }
-      }
-      setProfileLoading(false);
-    }).catch(() => {
-      setProfileLoading(false);
-    });
+        setProfileLoading(false);
+      }).catch(() => {
+        setProfileLoading(false);
+      });
+    }
+
     dispatch(getUserClub({ search: "" }));
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dispatch]);
+  }, [dispatch, getToken?.token]);
 
   const today = new Date();
   const dates = Array.from({ length: 41 }).map((_, i) => {
@@ -618,9 +618,6 @@ const CreateMatches = () => {
     return true;
   };
 
-  console.log(selectedCourts, isCurrentStepValid, 'p7p');
-
-
   useEffect(() => {
     if (slotError) {
       const timer = setTimeout(() => setSlotError(""), 5000);
@@ -1043,7 +1040,6 @@ const CreateMatches = () => {
                           <div className="date-center-date">{d.date}</div>
                           <div className="date-center-day">{dayShortMap[d.day]}</div>
                         </div>
-                        {console.log(slotCount, 'slotCount')}
                         {slotCount > 0 && (
                           <span
                             className="position-absolute badge rounded-pill"

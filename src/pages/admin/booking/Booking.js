@@ -56,7 +56,6 @@ const Booking = () => {
   } = useSelector((state) => state.booking);
 
   const tabCount = useSelector((state) => state.booking.bookingCount);
-  console.log({ tabCount });
   const bookings = getBookingData?.bookings || [];
   const totalItems = getBookingData?.totalItems || 0;
   const sendDate = startDate && endDate;
@@ -321,8 +320,8 @@ const Booking = () => {
               {tab === 0
                 ? "All Bookings"
                 : tab === 1
-                ? "Upcoming Bookings"
-                : "Completed Bookings"}
+                  ? "Upcoming Bookings"
+                  : "Completed Bookings"}
             </h6>
 
             {getBookingLoading ? (
@@ -376,7 +375,7 @@ const Booking = () => {
                           >
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
@@ -420,7 +419,6 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
-                                {console.log(item, "muskan")}
                                 {tab !== 2 &&
                                   item?.bookingStatus !== "rejected" &&
                                   item?.bookingStatus !== "completed" &&
@@ -475,7 +473,7 @@ const Booking = () => {
                           <span className="mobile-card-value">
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>
@@ -554,8 +552,8 @@ const Booking = () => {
                 {tab === 0
                   ? "bookings"
                   : tab === 1
-                  ? "upcoming bookings"
-                  : "completed bookings"}{" "}
+                    ? "upcoming bookings"
+                    : "completed bookings"}{" "}
                 found!
               </div>
             )}
