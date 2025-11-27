@@ -347,9 +347,7 @@ const UpdatePlayers = ({
             <div style={inputStyle("level")}>
               {getPlayerLevelsLoading === true ? (
                 <div className="text-center">
-                  <div className="spinner-grow" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
+                 <ButtonLoading />
                 </div>
               ) : (
                 <Select

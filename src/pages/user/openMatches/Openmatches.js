@@ -90,6 +90,7 @@ const Openmatches = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = getUserFromSession();
+  console.log({user});
   const matchesData = useSelector((state) => state.userMatches?.usersData);
   const matchLoading = useSelector((state) => state.userMatches?.usersLoading);
   const reviewData = useSelector(
