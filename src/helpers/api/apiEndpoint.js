@@ -31,6 +31,7 @@ export const GET_NOTIFICATION_USER_COUNT = "/api/userNotification/ureadCount";
 export const READ_ALL_NOTIFICATION_USER =
   "/api/userNotification/markAsAllAsRead";
 export const PLAYER_LEVEL = "/api/questions/getQuestionsBySkillLevel"
+export const PLAYER_LEVEL_BY_SKILL_LEVEL = "/api/playerLevel/getPlayerLevelBySKillLevel";
 
 // question creatematche step 
 export const GET_QUESTION_LIST = "/api/questions/getSurveySteps";

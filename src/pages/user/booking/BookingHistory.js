@@ -150,7 +150,7 @@ const BookingHistory = () => {
             } else if (selectedOption === "Requested") {
                 statusMatch = status === "in-progress";
             } else {
-                statusMatch = ["in-progress", "refunded", "rejected"].includes(status);
+                statusMatch = ["in-progress", "refunded", "rejected","cancelled"].includes(status);
             }
         } else if (activeTab === "upcoming") {
             statusMatch = ["upcoming", "in-progress", "rejected"].includes(status);
@@ -576,12 +576,12 @@ const BookingHistory = () => {
                                                                             fontFamily: "Poppins",
                                                                         }}
                                                                     >
-                                                                        Request For Cancellation
+                                                                        Request  Cancellation
                                                                     </span>
-                                                                ) : booking?.bookingStatus === "refunded" ? (
+                                                                ) : booking?.bookingStatus === "refunded" || booking?.bookingStatus === "cancelled" ? (
                                                                     <span
                                                                         style={{
-                                                                            color: "darkcyan",
+                                                                            color:booking?.bookingStatus === "cancelled" ? "red" : "darkcyan",
                                                                             fontSize: "12px",
                                                                             fontWeight: "600",
                                                                             fontFamily: "Poppins",
@@ -600,18 +600,7 @@ const BookingHistory = () => {
                                                                     >
                                                                         Rejected
                                                                     </span>
-                                                                ) : booking?.bookingStatus === "cancelled" ? (
-                                                                    <span
-                                                                        style={{
-                                                                            color: "red",
-                                                                            fontSize: "12px",
-                                                                            fontWeight: "600",
-                                                                            fontFamily: "Poppins",
-                                                                        }}
-                                                                    >
-                                                                        Cancelled
-                                                                    </span>
-                                                                )
+                                                                ) 
                                                                     : booking?.bookingStatus === "upcoming" &&
                                                                         activeTab !== "upcoming" ? (
                                                                         <span
