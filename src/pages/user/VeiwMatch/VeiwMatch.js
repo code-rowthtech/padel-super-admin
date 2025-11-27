@@ -22,6 +22,7 @@ const PlayerSlot = memo(function PlayerSlot({
     onAdd, openMatches
 }) {
     const user = player?.userId || player;
+    console.log({user});
     const tooltipId = `player-${team}-${index}`;
     if (!player) {
         // Show "Add Me" only for specific empty slots
@@ -128,7 +129,7 @@ const PlayerSlot = memo(function PlayerSlot({
             >
                 {
                     openMatches?.skillDetails?.[openMatches.skillDetails.length - 1]
-                        ?.split(" - ")[0]   // extracts: A, B1, B2, C1 etc.
+                        ?.split(" - ")[0] || user?.level   // extracts: A, B1, B2, C1 etc.
                 }
             </span>
 
