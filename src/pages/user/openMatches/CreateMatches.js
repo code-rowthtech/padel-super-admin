@@ -172,26 +172,30 @@ const CreateMatches = () => {
       setDynamicSteps([]);
     }
   }, [questionList]);
+  const User = useSelector((state) => state?.userAuth)
 
   useEffect(() => {
     setProfileLoading(true);
-    dispatch(getUserProfile()).then((result) => {
-      console.log(result.payload?.response?.gender, 'result.payload?.response?.gender');
-      setUserGender(result.payload?.response?.gender || "");
-      if (result.payload?.existsOpenMatchData) {
-        setExistsOpenMatchData(true);
-        if (window.innerWidth > 768) {
-          setMatchPlayer(true);
+    if (User?.token) {
+      dispatch(getUserProfile()).then((result) => {
+        console.log(result.payload?.response?.gender, 'result.payload?.response?.gender');
+        setUserGender(result.payload?.response?.gender || "");
+        if (result.payload?.existsOpenMatchData) {
+          setExistsOpenMatchData(true);
+          if (window.innerWidth > 768) {
+            setMatchPlayer(true);
+          }
         }
-      }
-      setProfileLoading(false);
-    }).catch(() => {
-      setProfileLoading(false);
-    });
+        setProfileLoading(false);
+      }).catch(() => {
+        setProfileLoading(false);
+      });
+    }
+
     dispatch(getUserClub({ search: "" }));
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dispatch]);
+  }, [dispatch, User?.token]);
 
   const today = new Date();
   const dates = Array.from({ length: 41 }).map((_, i) => {
