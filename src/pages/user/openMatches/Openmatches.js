@@ -46,6 +46,7 @@ import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
 import { IoIosArrowForward } from "react-icons/io";
 import { registerClub } from "../../../redux/thunks";
+import { getUserProfile } from "../../../redux/user/auth/authThunk";
 
 const normalizeTime = (time) => {
   if (!time) return null;
@@ -90,7 +91,7 @@ const Openmatches = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = getUserFromSession();
-  console.log({user});
+  console.log({ user });
   const matchesData = useSelector((state) => state.userMatches?.usersData);
   const matchLoading = useSelector((state) => state.userMatches?.usersLoading);
   const reviewData = useSelector(
@@ -113,6 +114,12 @@ const Openmatches = () => {
     }, 300),
     [dispatch, User?.user?.token]
   );
+
+  useEffect(() => {
+    if (user?.token) {
+      dispatch(getUserProfile())
+    }
+  }, [user?.token])
 
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -914,13 +921,13 @@ const Openmatches = () => {
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A" } | {match?.gender}
+                                    : "N/A"} | {match?.gender}
                                 </span>
                                 <p className="all-match-time   mb-0 d-md-none d-lg-none">
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A" } | {match?.gender}
+                                    : "N/A"} | {match?.gender}
                                 </p>
                                 <div
                                   className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"
