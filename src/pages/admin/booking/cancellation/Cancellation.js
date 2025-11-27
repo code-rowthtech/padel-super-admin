@@ -150,7 +150,7 @@ const Cancellation = () => {
                   sx={{
                     "& .MuiTab-root": {
                       fontSize: { xs: "13px", sm: "14px", lg: "15px" },
-                      minWidth: { xs: "80px", sm: "100px" },
+                      minWidth: { xs: "90px", sm: "130px" },
                       textTransform: "none",
                     },
                   }}
