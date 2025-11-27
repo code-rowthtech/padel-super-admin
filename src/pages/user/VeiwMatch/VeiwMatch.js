@@ -491,9 +491,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                 Type of Court
                             </p>
                             <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                                {matchesData?.data?.matchType
-                                    ? matchesData.data.matchType.charAt(0).toUpperCase() +
-                                    matchesData.data.matchType.slice(1)
+                                {matchesData?.data?.courtType
+                                    ? matchesData.data.courtType.charAt(0).toUpperCase() +
+                                    matchesData.data.courtType.slice(1)
                                     : "Unknown"}
                             </p>
                         </div>
