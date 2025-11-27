@@ -154,7 +154,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
-
+    console.log({ matchesData });
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
     const clubData = matchesData?.data?.clubId || {};
@@ -516,13 +516,15 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
             {/* Modal */}
             <UpdatePlayers
                 showModal={showModal}
-                matchId={match}
+                matchId={matchesData?.data}
                 teamName={teamName}
                 setShowModal={setShowModal}
-                matchData={matchesData?.data}
-                skillLevel={match?.skillLevel}
+                matchData={matchesData?.data || match}
+                skillLevel={matchesData?.data?.skillLevel}
 
             />
+
+          
         </>
     );
 };

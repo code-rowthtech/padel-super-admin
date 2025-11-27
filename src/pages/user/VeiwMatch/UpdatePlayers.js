@@ -46,7 +46,7 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
-  console.log({teamName});
+  console.log(skillLevel, matchId, teamName, 'pankajsinghhh');
 
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
@@ -71,7 +71,7 @@ const UpdatePlayers = ({
           code: l.code,
           title: l.question,
         }));
-        console.log(levels,'sonaaa');
+        console.log(levels, 'sonaaa');
 
         setPlayerLevels(levels);
       })
@@ -346,7 +346,11 @@ const UpdatePlayers = ({
             </label>
             <div style={inputStyle("level")}>
               {getPlayerLevelsLoading === true ? (
-                <DataLoading height={50}/>
+                <div className="text-center">
+                  <div className="spinner-grow" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
               ) : (
                 <Select
                   options={levelOptions}
