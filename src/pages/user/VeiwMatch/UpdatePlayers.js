@@ -36,10 +36,9 @@ const UpdatePlayers = ({
   selectedDate,
   selectedTime,
   selectedLevel,
-  match,
+  match, skillLevel
 }) => {
   const dispatch = useDispatch();
-  console.log({ teamName });
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -56,22 +55,23 @@ const UpdatePlayers = ({
   const getPlayerLevelsData = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevel?.data || []
   );
-
-  // Load player levels based on match.skillLevel
   useEffect(() => {
-    if (match?.skillLevel) {
-      dispatch(getPlayerLevel(match.skillLevel))
-        .unwrap()
-        .then((res) => {
-          const levels = (res?.data || []).map((l) => ({
-            code: l.code,
-            title: l.question,
-          }));
-          setPlayerLevels(levels);
-        })
-        .catch(() => setPlayerLevels([]));
-    }
-  }, [match?.skillLevel, dispatch]);
+    if (!showModal) return;
+    if (!skillLevel) return;
+
+    dispatch(getPlayerLevel(skillLevel))
+      .unwrap()
+      .then((res) => {
+        const levels = (res?.data || []).map((l) => ({
+          code: l.code,
+          title: l.question,
+        }));
+        setPlayerLevels(levels);
+      })
+      .catch(() => setPlayerLevels([]));
+  }, [showModal, skillLevel]);
+
+
 
   // Backup: Redux state se bhi sync rakho
   useEffect(() => {
@@ -85,18 +85,20 @@ const UpdatePlayers = ({
     }
   }, [getPlayerLevelsData]);
 
-  const levelOptions = playerLevels.map((item) => ({
-    value: item.code,
-    label: (
-      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-        <span style={{ color: "#1d4ed8", fontWeight: 600, fontSize: "15px", fontFamily: "Poppins" }}>
-          {item.code}
-        </span>
-        <span style={{ color: "#374151", fontSize: "13px" }}>{item.title}</span>
-      </div>
-    ),
-  }));
-
+  const levelOptions = React.useMemo(() => {
+    return playerLevels.map((item) => ({
+      value: item.code,
+      label: (
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <span style={{ color: "#1d4ed8", fontWeight: 600, fontSize: "15px", fontFamily: "Poppins" }}>
+            {item.code}
+          </span>
+          <span style={{ color: "#374151", fontSize: "13px" }}>{item.title}</span>
+        </div>
+      ),
+    }));
+  }, [playerLevels]);
+  console.log({ levelOptions });
   const validateField = (name, value) => {
     if (name === "name" && !value.trim()) return "Name is required";
     if (name === "email" && !value.trim()) return "Email is required";
@@ -135,7 +137,7 @@ const UpdatePlayers = ({
 
           dispatch(
             addPlayers({
-              matchId,
+              matchId: matchId?._id,
               playerId: res?.response?._id,
               team: teamName,
             })
@@ -145,7 +147,7 @@ const UpdatePlayers = ({
               setShowModal(false);
 
               // WAIT for match data
-              dispatch(getMatchesView(matchId))
+              dispatch(getMatchesView(matchId?._d))
                 .unwrap()
                 .then((matchRes) => {
                   // EXTRACT CLUB ID PROPERLY
@@ -207,7 +209,7 @@ const UpdatePlayers = ({
     <Modal open={showModal} onClose={() => setShowModal(false)}>
       <Box sx={modalStyle}>
         <h6 className="text-center mb-4" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
-          Add Player to {teamName === "teamA" ? "Team A" : "Team B"}
+          Add Player
         </h6>
 
         <form onSubmit={(e) => e.preventDefault()}>
