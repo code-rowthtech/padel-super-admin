@@ -28,10 +28,9 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel
+  userSkillLevel, selectedGender
 }) => {
   const [profileLoading, setProfileLoading] = useState(true);
-  const [userSkills, setUserSkills] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,9 +44,7 @@ const NewPlayers = ({
   const userLoading = useSelector(
     (state) => state?.userAuth?.userSignUpLoading
   );
-  const { finalSkillDetails = [] } = useSelector(
-    (state) => state.location?.state || {}
-  );
+
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
 
 
@@ -56,7 +53,6 @@ const NewPlayers = ({
     title: level.question
   }));
 
-  const fallbackUserSkillLevel = finalSkillDetails[finalSkillDetails.length - 1];
 
   const getAddedPlayers = () =>
     JSON.parse(localStorage.getItem("addedPlayers") || "{}");
@@ -180,7 +176,6 @@ const NewPlayers = ({
         const result = await dispatch(getUserProfile()).unwrap();
 
         const firstAnswer = result?.response?.surveyData?.[0]?.playerLevel?.skillLevel;
-        console.log({ firstAnswer })
         if (firstAnswer) {
           const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
 
@@ -189,17 +184,6 @@ const NewPlayers = ({
           if (!Array.isArray(apiData) || apiData.length === 0) {
             throw new Error("Empty API response");
           }
-
-          const newLastStep = {
-            _id: apiData[0]?._id || "dynamic-final-step",
-            question: apiData[0]?.question || "Which Padel Player Are You?",
-            options: apiData.map(opt => ({
-              _id: opt.code,
-              value: `${opt.code} - ${opt.question}`,
-            })),
-          };
-
-          console.log("Generated Step:", newLastStep);
         }
       } catch (err) {
         console.error("Error:", err);
@@ -253,6 +237,16 @@ const NewPlayers = ({
     transition: "border 0.2s ease",
     boxShadow: "none",
   });
+
+  const isGenderDisabled = (optionGender) => {
+    const matchGender = selectedGender?.toLowerCase();
+    return matchGender && matchGender !== optionGender.toLowerCase();
+  };
+
+  useEffect(() => {
+    if (!selectedGender) return;
+    setFormData((prev) => ({ ...prev, gender: selectedGender }));
+  }, [selectedGender]);
 
   return (
     <Modal
@@ -378,25 +372,31 @@ const NewPlayers = ({
 
           {/* Gender */}
           <div className="mb-3">
-            <label className="form-label">
-              Gender <span className="text-danger">*</span>
-            </label>
-            <div className="d-flex flex-wrap gap-3">
-              {["Male", "Female", "Other"].map((g) => (
-                <div key={g} className="form-check d-flex align-items-center gap-2">
+            <label className="form-label">Gender</label>
+            <div className="d-flex gap-4">
+              {[
+                { value: "Male Only", label: "Male Only" },
+                { value: "Female Only", label: "Female Only" },
+                { value: "Mixed Double", label: "Mixed Double" },
+              ].map((g) => (
+                <div key={g.value} className="form-check">
                   <input
                     className="form-check-input"
                     type="radio"
                     name="gender"
-                    id={g}
-                    value={g}
-                    checked={formData.gender === g}
+                    id={g.value}
+                    value={g.value}
+                    disabled={isGenderDisabled(g.value)}
+                    checked={formData.gender === g.value}
                     onChange={(e) =>
-                      handleInputChange("gender", e.target.value)
+                      setFormData((prev) => ({ ...prev, gender: e.target.value }))
                     }
                   />
-                  <label className="form-check-label pt-1" htmlFor={g}>
-                    {g}
+                  <label
+                    className={`form-check-label ${isGenderDisabled(g.value) ? "text-muted" : ""}`}
+                    htmlFor={g.value}
+                  >
+                    {g.label} {isGenderDisabled(g.value)}
                   </label>
                 </div>
               ))}

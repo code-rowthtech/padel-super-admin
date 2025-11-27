@@ -7,7 +7,6 @@ import { getUserClub } from "../../../redux/user/club/thunk";
 import { padal } from "../../../assets/files";
 import { Tooltip } from "react-tooltip";
 import NewPlayers from "../VeiwMatch/NewPlayers";
-import { FaArrowRight } from "react-icons/fa";
 
 // Button styling variables
 const width = 400;
@@ -75,23 +74,28 @@ const MatchPlayer = ({
     finalSkillDetails,
     totalAmount, slotError,
     userGender,
-    userSkillLevel,
+    userSkillLevel,selectedAnswers,      
+  dynamicSteps,          
+  finalLevelStep,
 }) => {
-    console.log({ selectedDate })
+    console.log(selectedAnswers,dynamicSteps,finalLevelStep,'musannegi');
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const User = getUserFromSession();
-
-    // ── LIVE STATE: Sync with parent + localStorage ─────────────────────
+    const [selectedGender, setSelectedGender] = useState("Mixed Double");
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
-    // Sync parent changes
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
 
-    // Sync with localStorage (refresh-safe)
+    useEffect(() => {
+        if (userGender || updateName?.gender) {
+            setSelectedGender(userGender || updateName?.gender);
+        }
+    }, [userGender, updateName?.gender]);
+
     useEffect(() => {
         const syncFromStorage = () => {
             const saved = localStorage.getItem("addedPlayers");
@@ -156,61 +160,44 @@ const MatchPlayer = ({
         return { day, formattedDate };
     };
 
-    // const calculateEndRegistrationTime = () => {
-    //     if (!selectedCourts?.length) return "Today at 10:00 PM";
-    //     const allTimes = selectedCourts.flatMap((c) => c.time.map((s) => s.time));
-    //     const latestHour = allTimes.reduce((max, t) => {
-    //         const [h, p] = t.split(" ");
-    //         let hour = parseInt(h);
-    //         if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
-    //         if (p.toLowerCase() === "am" && hour === 12) hour = 0;
-    //         return Math.max(max, hour);
-    //     }, 0);
-    //     const endHour = latestHour + 1;
-    //     const period = endHour >= 12 ? "PM" : "AM";
-    //     const displayHour =
-    //         endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
-    //     return `Today at ${displayHour}:00 ${period}`;
-    // };
-
     const calculateEndRegistrationTime = () => {
-        if (!selectedCourts?.length) return "Today at 10:00 PM";
+  if (!selectedCourts?.length) return "Today at 10:00 PM";
 
-        // Collect all times
-        const allTimes = selectedCourts.flatMap((c) =>
-            c.time.map((s) => s.time)
-        );
+  // Get all start times
+  const allTimes = selectedCourts.flatMap(c =>
+    c.time.map(s => s.time)
+  );
 
-        // Convert to minutes since midnight
-        const timesInMinutes = allTimes.map((t) => {
-            const [h, p] = t.split(" ");
+  // Convert to minutes since midnight
+  const timesInMinutes = allTimes.map(t => {
+    const [timePart, period] = t.split(" ");
+    const [h, m = "0"] = timePart.split(":");
 
-            let hour = parseInt(h);
-            if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
-            if (p.toLowerCase() === "am" && hour === 12) hour = 0;
+    let hour = parseInt(h);
+    let minute = parseInt(m);
 
-            return hour * 60; // minute precision
-        });
+    if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
+    if (period.toLowerCase() === "am" && hour === 12) hour = 0;
 
-        // Latest time
-        const latestMinutes = Math.max(...timesInMinutes);
+    return hour * 60 + minute;
+  });
 
-        // Subtract 15 minutes
-        let endMinutes = latestMinutes - 15;
-        if (endMinutes < 0) endMinutes += 24 * 60;
+  // Find latest match start time
+  const latestMinutes = Math.max(...timesInMinutes);
 
-        // Convert back to 12-hour format
-        const endHour24 = Math.floor(endMinutes / 60);
-        const endMin = endMinutes % 60;
+  // Subtract 10 minutes for registration cut-off
+  let endMinutes = latestMinutes - 10;
+  if (endMinutes < 0) endMinutes += 24 * 60;
 
-        const period = endHour24 >= 12 ? "PM" : "AM";
-        const displayHour =
-            endHour24 % 12 === 0 ? 12 : endHour24 % 12;
+  const endHour24 = Math.floor(endMinutes / 60);
+  const endMin = endMinutes % 60;
 
-        const displayMinutes = String(endMin).padStart(2, "0");
+  const period = endHour24 >= 12 ? "PM" : "AM";
+  const displayHour = endHour24 % 12 === 0 ? 12 : endHour24 % 12;
+  const displayMinutes = String(endMin).padStart(2, "0");
 
-        return `Today at ${displayHour}:${displayMinutes} ${period}`;
-    };
+  return `Registration closes at ${displayHour}:${displayMinutes} ${period}`;
+};
 
 
     const matchDate = selectedDate?.fullDate
@@ -224,9 +211,9 @@ const MatchPlayer = ({
     const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
     const canBook = playerCount >= 2 && matchTime.length > 0;
 
-    const displayUserSkillLevel = userSkillLevel || 
-        (finalSkillDetails.length > 0
-            ? finalSkillDetails[finalSkillDetails.length - 1]
+    const displayUserSkillLevel = userSkillLevel ||
+        (selectedAnswers.length > 0
+            ? selectedAnswers[selectedAnswers.length - 1]
             : "A");
 
     const handleBookNow = () => {
@@ -250,7 +237,7 @@ const MatchPlayer = ({
                 selectedDate,
                 grandTotal: totalAmount,
                 totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-                finalSkillDetails,
+                selectedAnswers,selectedGender,dynamicSteps,finalLevelStep,
                 addedPlayers: latestPlayers, // Use latest from localStorage
             },
         });
@@ -398,17 +385,58 @@ const MatchPlayer = ({
                     </div>
 
                     <div className="row text-center border-top">
+                        {/* Gender Dropdown */}
                         <div className="col py-2">
-                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Gender</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{userGender || updateName?.gender || "Mixed"}</p>
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Gender
+                            </p>
+                            <div className="d-flex justify-content-center">
+                                <select
+                                    className="form-select form-select-sm border-0 shadow-none text-center px-3 pe-5 py-1"
+                                    style={{
+                                        fontSize: "15px",
+                                        fontWeight: "500",
+                                        fontFamily: "Poppins",
+                                        color: "#000000",
+                                        backgroundColor: "transparent",
+                                        width: "auto",
+                                        minWidth: "80px",
+                                        appearance: "none",                    // ← Yeh important hai
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23000' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E")`,
+                                        backgroundRepeat: "no-repeat",
+                                        backgroundPosition: "right 15px center",
+                                        backgroundSize: "15px",
+                                        paddingRight: "0px",                  // ← Arrow ke liye jagah
+                                        cursor: "pointer",
+                                    }}
+                                    value={selectedGender || "Mixed Double"}
+                                    onChange={(e) => setSelectedGender(e.target.value)}
+                                >
+                                    <option value="Male Only">Male Only</option>
+                                    <option value="Female Only">Female Only</option>
+                                    <option value="Mixed Double">Mixed Double</option>
+                                </select>
+                            </div>
                         </div>
+
+                        {/* Level */}
                         <div className="col border-start border-end py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{finalSkillDetails[0] || "Open Match"}</p>
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Level
+                            </p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
+                                {selectedAnswers[0] || "Open Match"}
+                            </p>
                         </div>
+
+                        {/* Your Share */}
                         <div className="col py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your share </p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>₹ {totalAmount}</p>
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Your share
+                            </p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
+                               ₹ {totalAmount.toLocaleString('en-IN')}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -763,8 +791,9 @@ const MatchPlayer = ({
                 setShowAddMeForm={setShowAddMeForm}
                 setActiveSlot={setActiveSlot}
                 setAddedPlayers={setParentAddedPlayers}
-                skillDetails={finalSkillDetails}
+                skillDetails={selectedAnswers}
                 userSkillLevel={userSkillLevel}
+                selectedGender={selectedGender}
             />
         </>
     );

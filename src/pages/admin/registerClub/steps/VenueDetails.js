@@ -25,6 +25,10 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
   const MAX_DESC = 500;
   const [wordCount, setWordCount] = useState(0);
   const editorRef = useRef(null);
+  const [editorHeight, setEditorHeight] = useState(230);
+  const [isDragging, setIsDragging] = useState(false);
+  const startYRef = useRef(0);
+  const startHeightRef = useRef(230);
 
   // Validate form
   useEffect(() => {
@@ -74,6 +78,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
   };
 
   const toggleCheckbox = (section, key) => {
+    setEditorHeight(230);
     const newValue = !formData[section][key];
     const newData = {
       [section]: {
@@ -108,6 +113,26 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     if (isFormValid) onNext();
   };
 
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDragging) {
+        const delta = e.clientY - startYRef.current;
+        setEditorHeight(
+          Math.max(150, Math.min(800, startHeightRef.current + delta))
+        );
+      }
+    };
+    const handleMouseUp = () => setIsDragging(false);
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
+
   const renderInput = (placeholder, fieldName, type = "text") => {
     const isTextField = type === "text" || type === "text-area";
     const isNumberField = type === "number";
@@ -115,7 +140,10 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     const handleTextChange = (e) => {
       let value = e.target.value;
 
-      if (isTextField && value.length > 0) {
+      const socialMediaFields = ['linkedinLink', 'xlink', 'facebookLink', 'instagramLink'];
+      const shouldCapitalize = isTextField && value.length > 0 && !socialMediaFields.includes(fieldName);
+
+      if (shouldCapitalize) {
         const selectionStart = e.target.selectionStart;
         const selectionEnd = e.target.selectionEnd;
 
@@ -156,50 +184,83 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
                 {wordCount}/{MAX_DESC} words
               </span>
             </div>
-            <MarkdownEditor
-              ref={editorRef}
-              value={formData[fieldName]}
-              onChange={({ text }) => {
-                const count = text.trim().split(/\s+/).filter(Boolean).length;
-                if (count <= MAX_DESC) {
-                  handleChange(fieldName, text);
-                  setWordCount(count);
-                } else {
-                  showWarning(`Description cannot exceed ${MAX_DESC} words.`);
-                }
-              }}
-              style={{
-                height: "130px",
-                border: `1px solid ${
-                  errors[fieldName] ? "#EF4444" : "#E5E7EB"
-                }`,
-                borderRadius: "4px",
-                backgroundColor: "#fff",
-              }}
-              renderHTML={(text) => mdParser.render(text)}
-              config={{
-                view: { menu: true, md: true, html: false },
-                placeholder: "Short description (max 500 words)",
-                toolbar: [
-                  "bold",
-                  "italic",
-                  "heading",
-                  "|",
-                  "quote",
-                  "unordered-list",
-                  "ordered-list",
-                  "|",
-                  "link",
-                ],
-                canView: {
-                  menu: true,
-                  md: true,
-                  html: false,
-                  fullScreen: false,
-                  hideMenu: false,
-                },
-              }}
-            />
+            <div style={{ position: "relative" }}>
+              <MarkdownEditor
+                ref={editorRef}
+                value={formData[fieldName]}
+                onChange={({ text }) => {
+                  const count = text.trim().split(/\s+/).filter(Boolean).length;
+                  if (count <= MAX_DESC) {
+                    handleChange(fieldName, text);
+                    setWordCount(count);
+                  } else {
+                    showWarning(`Description cannot exceed ${MAX_DESC} words.`);
+                  }
+                }}
+                style={{
+                  height: `${editorHeight}px`,
+                  border: `1px solid ${
+                    errors[fieldName] ? "#EF4444" : "#E5E7EB"
+                  }`,
+                  borderRadius: "4px",
+                  backgroundColor: "#fff",
+                }}
+                renderHTML={(text) => mdParser.render(text)}
+                config={{
+                  view: { menu: true, md: true, html: true },
+                  placeholder: "Short description (max 500 words)",
+                  toolbar: [
+                    "bold",
+                    "italic",
+                    "heading",
+                    "|",
+                    "quote",
+                    "unordered-list",
+                    "ordered-list",
+                    "|",
+                    "link",
+                  ],
+                  canView: {
+                    menu: true,
+                    md: true,
+                    html: false,
+                    fullScreen: false,
+                    hideMenu: false,
+                  },
+                }}
+              />
+              <div
+                onMouseDown={(e) => {
+                  setIsDragging(true);
+                  startYRef.current = e.clientY;
+                  startHeightRef.current = editorHeight;
+                  e.preventDefault();
+                }}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "40px",
+                  height: "20px",
+                  cursor: "ns-resize",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#F3F4F6",
+                  borderRadius: "4px 4px 0 0",
+                }}
+              >
+                <div
+                  style={{
+                    width: "20px",
+                    height: "3px",
+                    backgroundColor: "#9CA3AF",
+                    borderRadius: "2px",
+                  }}
+                />
+              </div>
+            </div>
           </div>
         ) : (
           <Form.Control
@@ -207,6 +268,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
             placeholder={placeholder}
             value={formData[fieldName]}
             onChange={handleTextChange}
+            onFocus={() => setEditorHeight(230)}
             isInvalid={errors[fieldName]}
             style={{
               height: "38px",
@@ -279,14 +341,15 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
         </h5>
 
         <Row className="mb-3">
-          <Col md={3}>{renderInput("Club/Facility name", "courtName")}</Col>
-          <Col md={3}>{renderInput("Full Address", "address")}</Col>
-          <Col md={3}>{renderInput("City", "city")}</Col>
-          <Col md={3}>{renderInput("State", "state")}</Col>
-        </Row>
-
-        <Row className="mb-3">
           <Col md={6}>
+            <Row className="mb-3">
+              <Col md={6}>{renderInput("Club/Facility name", "courtName")}</Col>
+              <Col md={6}>{renderInput("Full Address", "address")}</Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={6}>{renderInput("City", "city")}</Col>
+              <Col md={6}>{renderInput("State", "state")}</Col>
+            </Row>
             <Row className="mb-3">
               {" "}
               <Col md={6}>{renderInput("Zip Code", "zip")}</Col>
@@ -294,6 +357,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
                 {renderInput("Number of court", "courtCount", "number")}
               </Col>
             </Row>
+
             <Row className="mb-3">
               <Col md={6}>{renderInput("LinkedIn Link", "linkedinLink")}</Col>
               <Col md={6}>{renderInput("X Link", "xlink")}</Col>

@@ -59,15 +59,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const isActiveLink = bookingPaths.includes(location.pathname);
 
   useEffect(() => {
-    dispatch(getLogo({ ownerId: ownerId }));
-  }, [dispatch, ownerId]);
-
-  // Refetch logo when navigating away from profile page
-  useEffect(() => {
-    if (location.pathname !== "/admin/profile") {
+    if (ownerId) {
       dispatch(getLogo({ ownerId: ownerId }));
     }
-  }, [location.pathname, dispatch, ownerId]);
+  }, []);
 
   useEffect(() => {
     setClubLogo(getLogoData?.logo?.logo?.[0] || null);

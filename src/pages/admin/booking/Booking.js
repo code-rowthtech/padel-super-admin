@@ -424,7 +424,8 @@ const Booking = () => {
                                 {tab !== 2 &&
                                   item?.bookingStatus !== "rejected" &&
                                   item?.bookingStatus !== "completed" &&
-                                  item?.bookingStatus !== "in-progress" && item?.bookingStatus !== "cancelled" && (
+                                  item?.bookingStatus !== "in-progress" &&
+                                  item?.bookingStatus !== "cancelled" && (
                                     <OverlayTrigger
                                       placement="left"
                                       overlay={<Tooltip>Cancel</Tooltip>}
@@ -515,7 +516,8 @@ const Booking = () => {
                                 {tab !== 2 &&
                                   item?.bookingStatus !== "rejected" &&
                                   item?.bookingStatus !== "completed" &&
-                                  item?.bookingStatus !== "in-progress"  && item?.bookingStatus !== "cancelled" && (
+                                  item?.bookingStatus !== "in-progress" &&
+                                  item?.bookingStatus !== "cancelled" && (
                                     <MdOutlineCancel
                                       onClick={() =>
                                         handleBookingDetails(
@@ -596,7 +598,6 @@ const Booking = () => {
               id: getBookingDetailsData?.booking?._id,
               status: "cancelled",
               cancellationReason: reason,
-              
             })
           )
             .unwrap()

@@ -339,7 +339,7 @@ const Openmatches = () => {
         }}
         onClick={() => {
           setShowModal(true);
-          setMatchId(match?._id);
+          setMatchId(match);
           setTeamName(name);
         }}
       >
@@ -1011,7 +1011,7 @@ const Openmatches = () => {
                                           color: "#1F41BB",
                                         }}
                                       >
-                                        {calculateMatchPrice(match?.slot) || 0}
+                                        {Number(calculateMatchPrice(match?.slot) || 0).toLocaleString('en-IN')}
                                       </span>
                                       <button
                                         className="btn rounded-pill d-flex justify-content-center align-items-center text-dark p-0 border-0"
@@ -1642,6 +1642,7 @@ const Openmatches = () => {
         selectedDate={selectedDate}
         selectedLevel={selectedLevel}
         selectedTime={selectedTime}
+        skillLevel={matchId?.skillLevel}
       />
     </div>
   );
