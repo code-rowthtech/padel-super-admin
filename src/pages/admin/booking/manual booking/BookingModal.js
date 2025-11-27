@@ -263,15 +263,12 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
           color: "#1F2937",
         }}
       >
-        {console.log(
-          bookingDetails?.bookingStatus,
-          "bookingDetails?.bookingStatus"
-        )}
+
         {bookingDetails?.bookingStatus === "upcoming"
           ? "Booking Details"
           : bookingDetails?.bookingStatus === "refunded"
-          ? "Cancellation Details"
-          : ""}
+            ? "Cancellation Details"
+            : ""}
       </h4>
       <i
         className="bi bi-x fs-2 text-black fw-bold"
@@ -312,7 +309,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             >
               {bookingDetails?.userId?.name
                 ? bookingDetails.userId.name.charAt(0).toUpperCase() +
-                  bookingDetails.userId.name.slice(1)
+                bookingDetails.userId.name.slice(1)
                 : "N/A"}
             </p>
           </div>
@@ -512,9 +509,9 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                     <span>
                       {bookingDetails.cancellationReasonForOwner.length > 35
                         ? bookingDetails.cancellationReasonForOwner.slice(
-                            0,
-                            35
-                          ) + "..."
+                          0,
+                          35
+                        ) + "..."
                         : bookingDetails.cancellationReasonForOwner}
                     </span>
                   </OverlayTrigger>
@@ -632,7 +629,6 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             ? `₹ ${bookingDetails?.totalAmount}`
             : "N/A"}
         </h2>
-        {console.log({ bookingDetails })}
         {bookingDetails?.bookingStatus === "refunded" && (
           <>
             |

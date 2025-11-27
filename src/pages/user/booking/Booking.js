@@ -88,7 +88,6 @@ const Booking = ({ className = "" }) => {
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const user = getUserFromSession();
-  console.log({ user });
   const [showUnavailable, setShowUnavailable] = useState(false);
   const wrapperRef = useRef(null);
   const navigate = useNavigate();

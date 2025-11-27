@@ -8,7 +8,6 @@ const AdminLayout = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     const { pathname } = useLocation();
-        console.log("Current pathname:", pathname);
 
     // Page name mapping
     const getPageName = (path) => {
@@ -31,7 +30,7 @@ const AdminLayout = () => {
             '/admin/help-support': 'Help & Support',
             '/admin/privacy': 'Privacy'
         };
-        
+
         // Handle dynamic routes
         if (path.startsWith('/admin/match-details/')) {
             return 'View Match';
@@ -47,10 +46,8 @@ const AdminLayout = () => {
         if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
             localStorage.removeItem("clubFormData");
             sessionStorage.removeItem("registerId");
-            console.log("Removed for login/signup");
         } else if (pathname === "/admin/dashboard") {
             localStorage.removeItem("clubFormData");
-            console.log("Removed for dashboard");
         }
 
         // Clear manual booking slots when navigating away from manual booking page
