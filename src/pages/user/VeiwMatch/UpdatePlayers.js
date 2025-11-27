@@ -1,6 +1,6 @@
 import { Box, Button, Modal } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { useDispatch, useSelector } from "react-redux";
 import { Usersignup } from "../../../redux/user/auth/authThunk";
 import {
@@ -10,7 +10,7 @@ import {
 } from "../../../redux/user/matches/thunk";
 import { showSuccess } from "../../../helpers/Toast";
 import Select from "react-select";
-import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
+import { getPlayerLevel, getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 
 const modalStyle = {
   position: "absolute",
@@ -46,6 +46,7 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
+  console.log({teamName});
 
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
@@ -53,24 +54,30 @@ const UpdatePlayers = ({
 
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
   const getPlayerLevelsData = useSelector(
-    (state) => state?.userNotificationData?.getPlayerLevel?.data || []
+    (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
   );
-  console.log({ matchId });
+  const getPlayerLevelsLoading = useSelector(
+    (state) => state?.userNotificationData?.getPlayerLevelLoading || []
+  );
+  console.log({ playerLevels });
   useEffect(() => {
     if (!showModal) return;
     if (!skillLevel) return;
 
-    dispatch(getPlayerLevel(skillLevel))
+    dispatch(getPlayerLevelBySkillLevel(skillLevel))
       .unwrap()
       .then((res) => {
-        const levels = (res?.data || []).map((l) => ({
+        const levels = (res?.data[0]?.levelIds || []).map((l) => ({
           code: l.code,
           title: l.question,
         }));
+        console.log(levels,'sonaaa');
+
         setPlayerLevels(levels);
       })
       .catch(() => setPlayerLevels([]));
   }, [showModal, skillLevel]);
+
 
   const isGenderDisabled = (optionGender) => {
     const matchGender = matchId?.gender?.toLowerCase();
@@ -304,7 +311,7 @@ const UpdatePlayers = ({
               {[
                 { value: "Male Only", label: "Male Only" },
                 { value: "Female Only", label: "Female Only" },
-                { value: "Mixed Only", label: "Mixed Only" },
+                { value: "Mixed Double", label: "Mixed Double" },
               ].map((g) => (
                 <div key={g.value} className="form-check">
                   <input
@@ -338,8 +345,8 @@ const UpdatePlayers = ({
               Select Level <span className="text-danger">*</span>
             </label>
             <div style={inputStyle("level")}>
-              {playerLevels.length === 0 ? (
-                <div className="p-3 text-center text-muted">Loading levels...</div>
+              {getPlayerLevelsLoading === true ? (
+                <DataLoading height={50}/>
               ) : (
                 <Select
                   options={levelOptions}

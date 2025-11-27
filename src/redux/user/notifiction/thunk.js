@@ -132,3 +132,25 @@ export const getPlayerLevel = createAsyncThunk(
   }
 );
 
+export const getPlayerLevelBySkillLevel = createAsyncThunk(
+  "notification/getPlayerLevelBySkillLevel",
+  async (params, { rejectWithValue }) => {
+    try {
+
+      const res = await userApi.get(`${Url.PLAYER_LEVEL_BY_SKILL_LEVEL}?type=${params}`);
+      // Destructure response data
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+
+      const errorMessage = message;
+      // showError(errorMessage);
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      // showError(error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
