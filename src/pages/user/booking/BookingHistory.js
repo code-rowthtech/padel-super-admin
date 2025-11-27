@@ -803,7 +803,7 @@ const BookingHistory = () => {
                 placement="end"
                 className="view-match-offcanvas"
             >
-                <Offcanvas.Header closeButton className="border-0">
+                <Offcanvas.Header  className="border-0">
                     <Offcanvas.Title>Match Details</Offcanvas.Title>
                 </Offcanvas.Header>
                 <Offcanvas.Body className="p-0">
