@@ -149,11 +149,11 @@ const Navbar = () => {
         };
     }, [store?.user?.status, store?.user?.response?.user,]);
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
-
+console.log({updateName});
     const initialFormData = {
         fullName: user?.response?.name || updateName?.fullName || User?.name || "",
         phone: user?.response?.phoneNumber || updateName?.phone || User?.phoneNumber || "",
-        profileImage: user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic || updateName?.profile,
+        profileImage:updateName?.profile || user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic,
     };
 
     useEffect(() => {
