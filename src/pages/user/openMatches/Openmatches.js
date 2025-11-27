@@ -90,6 +90,7 @@ const Openmatches = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = getUserFromSession();
+  console.log({user});
   const matchesData = useSelector((state) => state.userMatches?.usersData);
   const matchLoading = useSelector((state) => state.userMatches?.usersLoading);
   const reviewData = useSelector(
@@ -913,13 +914,13 @@ const Openmatches = () => {
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A"} {updateName?.gender}
+                                    : "N/A" } | {match?.gender}
                                 </span>
                                 <p className="all-match-time   mb-0 d-md-none d-lg-none">
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A"} {updateName?.gender}
+                                    : "N/A" } | {match?.gender}
                                 </p>
                                 <div
                                   className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"

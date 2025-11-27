@@ -19,7 +19,7 @@ const PlayerSlot = memo(function PlayerSlot({
     isRemovable,
     team,
     onRemove,
-    onAdd,
+    onAdd, openMatches
 }) {
     const user = player?.userId || player;
     const tooltipId = `player-${team}-${index}`;
@@ -126,8 +126,13 @@ const PlayerSlot = memo(function PlayerSlot({
                 className="badge text-white"
                 style={{ backgroundColor: team === "A" ? "#3DBE64" : "#1F41BB" }}
             >
-                {user?.level || "A|B"}
+                {
+                    openMatches?.skillDetails?.[openMatches.skillDetails.length - 1]
+                        ?.split(" - ")[0]   // extracts: A, B1, B2, C1 etc.
+                }
             </span>
+
+
 
             {/* Remove Button */}
             {/* {isRemovable && (
@@ -176,7 +181,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}, ${date.toLocaleDateString("en-US", { month: "short" })}`;
         return { day, formattedDate };
     };
-
+    console.log(matchesData?.data, 'matchesData?.data');
     const calculateEndRegistrationTime = () => {
         const slots = matchesData?.data?.slot;
         if (!slots || slots.length === 0) return "Today at 10:00 PM";
@@ -442,6 +447,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                         team={s.team}
                                         onRemove={handleRemove}
                                         onAdd={handleAdd}
+                                        openMatches={matchesData?.data}
                                     />
                                 ))}
                             </div>
