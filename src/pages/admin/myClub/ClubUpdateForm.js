@@ -54,7 +54,7 @@ const getInitialFormState = (club = {}) => ({
   instagramLink: club?.instagramLink || "",
   linkedinLink: club?.linkedinLink || "",
   facebookLink: club?.facebookLink || "",
-  xLink: club?.xLink || "",
+  xlink: club?.xlink || "",
   courtTypes: {
     indoor: ["indoor", "indoor/outdoor"].includes(
       club?.courtType?.trim?.().toLowerCase?.() || ""
@@ -285,6 +285,10 @@ const ClubUpdateForm = () => {
   const [hitUpdateApi, setHitUpdateApi] = useState(false);
   const [selectAllDays, setSelectAllDays] = useState(true);
   const editorRef = useRef(null);
+  const [editorHeight, setEditorHeight] = useState(130);
+  const [isDragging, setIsDragging] = useState(false);
+  const startYRef = useRef(0);
+  const startHeightRef = useRef(130);
 
   // Track initial form data to detect changes
   const [initialFormData, setInitialFormData] = useState(() =>
@@ -360,6 +364,26 @@ const ClubUpdateForm = () => {
     },
     []
   ); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDragging) {
+        const delta = e.clientY - startYRef.current;
+        setEditorHeight(
+          Math.max(130, Math.min(600, startHeightRef.current + delta))
+        );
+      }
+    };
+    const handleMouseUp = () => setIsDragging(false);
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
 
   const countWords = useCallback((text) => {
     return text.trim().split(/\s+/).filter(Boolean).length;
@@ -512,7 +536,7 @@ const ClubUpdateForm = () => {
       "instagramLink",
       "linkedinLink",
       "facebookLink",
-      "xLink",
+      "xlink",
     ];
     for (const field of simpleFields) {
       if (formData[field] !== initialFormData[field]) return true;
@@ -607,7 +631,7 @@ const ClubUpdateForm = () => {
       fd.append("instagramLink", formData.instagramLink);
     if (formData.linkedinLink) fd.append("linkedinLink", formData.linkedinLink);
     if (formData.facebookLink) fd.append("facebookLink", formData.facebookLink);
-    if (formData.xLink) fd.append("xLink", formData.xLink);
+    if (formData.xlink) fd.append("xlink", formData.xlink);
     // NOTE: placeholder coordinates; replace with real coordinates if available
     fd.append("location[coordinates][0]", "50.90");
     fd.append("location[coordinates][1]", "80.09");
@@ -657,6 +681,7 @@ const ClubUpdateForm = () => {
         placeholder={!formData[field] ? placeholder : ""}
         value={formData[field]}
         onChange={(e) => handleChange(field, e.target.value)}
+        onFocus={() => setEditorHeight(130)}
         onBlur={() => setTouched((p) => ({ ...p, [field]: true }))}
         isInvalid={!!visibleErrors[field]}
         style={{
@@ -735,64 +760,97 @@ const ClubUpdateForm = () => {
                         {wordCount}/{MAX_WORDS} words
                       </span>
                     </div>
-                    <MarkdownEditor
-                      ref={editorRef}
-                      key="description-editor"
-                      value={formData.description}
-                      onChange={({ text }) => {
-                        const wordCount = countWords(text);
-                        if (wordCount <= MAX_WORDS) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            description: text,
-                          }));
-                          setWordCount(wordCount);
-                          setTouched((prev) => ({
-                            ...prev,
-                            description: true,
-                          }));
-                        } else {
-                          showWarning(
-                            `Description cannot exceed ${MAX_WORDS} words.`
-                          );
-                        }
-                      }}
-                      style={{
-                        height: "130px",
-                        border: `1px solid ${
-                          visibleErrors.description ? "#dc3545" : "#ced4da"
-                        }`,
-                        borderRadius: "4px",
-                        backgroundColor: "#fff",
-                      }}
-                      renderHTML={(text) => mdParser.render(text)}
-                      config={{
-                        view: {
-                          menu: true,
-                          md: true,
-                          html: false,
-                        },
-                        placeholder: "Short description (max 500 words)",
-                        toolbar: [
-                          "bold",
-                          "italic",
-                          "heading",
-                          "|",
-                          "quote",
-                          "unordered-list",
-                          "ordered-list",
-                          "|",
-                          "link",
-                        ],
-                        canView: {
-                          menu: true,
-                          md: true,
-                          html: false,
-                          fullScreen: false,
-                          hideMenu: false,
-                        },
-                      }}
-                    />
+                    <div style={{ position: "relative" }}>
+                      <MarkdownEditor
+                        ref={editorRef}
+                        key="description-editor"
+                        value={formData.description}
+                        onChange={({ text }) => {
+                          const wordCount = countWords(text);
+                          if (wordCount <= MAX_WORDS) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              description: text,
+                            }));
+                            setWordCount(wordCount);
+                            setTouched((prev) => ({
+                              ...prev,
+                              description: true,
+                            }));
+                          } else {
+                            showWarning(
+                              `Description cannot exceed ${MAX_WORDS} words.`
+                            );
+                          }
+                        }}
+                        style={{
+                          height: `${editorHeight}px`,
+                          border: `1px solid ${
+                            visibleErrors.description ? "#dc3545" : "#ced4da"
+                          }`,
+                          borderRadius: "4px",
+                          backgroundColor: "#fff",
+                        }}
+                        renderHTML={(text) => mdParser.render(text)}
+                        config={{
+                          view: {
+                            menu: true,
+                            md: true,
+                            html: false,
+                          },
+                          placeholder: "Short description (max 500 words)",
+                          toolbar: [
+                            "bold",
+                            "italic",
+                            "heading",
+                            "|",
+                            "quote",
+                            "unordered-list",
+                            "ordered-list",
+                            "|",
+                            "link",
+                          ],
+                          canView: {
+                            menu: true,
+                            md: true,
+                            html: true,
+                            fullScreen: false,
+                            hideMenu: false,
+                          },
+                        }}
+                      />
+                      <div
+                        onMouseDown={(e) => {
+                          setIsDragging(true);
+                          startYRef.current = e.clientY;
+                          startHeightRef.current = editorHeight;
+                          e.preventDefault();
+                        }}
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          width: "40px",
+                          height: "20px",
+                          cursor: "ns-resize",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: "#F3F4F6",
+                          borderRadius: "4px 4px 0 0",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "20px",
+                            height: "3px",
+                            backgroundColor: "#9CA3AF",
+                            borderRadius: "2px",
+                          }}
+                        />
+                      </div>
+                    </div>
                     {visibleErrors.description && (
                       <Form.Control.Feedback
                         type="invalid"
@@ -978,7 +1036,7 @@ const ClubUpdateForm = () => {
                 <Col md={3}>
                   <Input
                     label="X Link"
-                    field="xLink"
+                    field="xlink"
                     placeholder="https://x.com/..."
                   />
                 </Col>

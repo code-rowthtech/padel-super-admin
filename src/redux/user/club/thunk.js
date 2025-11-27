@@ -50,3 +50,18 @@ export const getReviewClub = createAsyncThunk(
     }
   }
 );
+
+export const getMapData = createAsyncThunk(
+  "club/getMapData",
+  async (address, { rejectWithValue }) => {
+    try {
+      console.log("MAP_API Request - Address:", address);
+      const res = await userApi.get(`${Url.MAP_API}?address=${encodeURIComponent(address)}`);
+      console.log("MAP_API Response:", res?.data);
+      return res?.data;
+    } catch (error) {
+      console.log("MAP_API Error:", error);
+      return rejectWithValue(error);
+    }
+  }
+);

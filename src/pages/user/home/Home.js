@@ -20,7 +20,7 @@ import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getReviewClub, getUserClub } from "../../../redux/user/club/thunk";
+import { getReviewClub, getUserClub, getMapData } from "../../../redux/user/club/thunk";
 import { Avatar } from "@mui/material";
 import { getLogo } from "../../../redux/user/auth/authThunk";
 import { ReviewCard } from "./ReviewCard";
@@ -35,18 +35,25 @@ const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const store = useSelector((state) => state);
-
   const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
-  console.log("clubData", clubData);
   const getReviewData = store?.userClub?.getReviewData?.data;
+  const mapApiData = store?.userClub?.mapData?.data;
   const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
 
   const handleImageLoad = (index) => {
     setLoadedImages((prev) => ({ ...prev, [index]: true }));
   };
 
-  const mapSrc =
+  const defaultMapSrc =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937950147!2d-73.98731968482413!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes+Square!5e0!3m2!1sen!2sus!4v1510579767645";
+
+  // Convert address to embeddable Google Maps URL
+  const createEmbedUrl = (address) => {
+    const encodedAddress = encodeURIComponent(address);
+    return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  };
+
+  const mapSrc = mapApiData?.address ? createEmbedUrl(mapApiData.address) : defaultMapSrc;
 
   const todayIndex = new Date().getDay();
   const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
@@ -117,6 +124,14 @@ const Home = () => {
       dispatch(getReviewClub(id));
     }
   }, [clubData?._id]);
+
+  // Fetch map data when club address is available
+  useEffect(() => {
+    if (clubData?.address && clubData?.city) {
+      const fullAddress = `${clubData.address}, ${clubData.city}`;
+      dispatch(getMapData(fullAddress));
+    }
+  }, [clubData?.address, clubData?.city]);
 
   // Auto-play carousel
   useEffect(() => {
@@ -319,7 +334,7 @@ const Home = () => {
                         fontFamily: "Poppins",
                       }}
                     >
-                      {clubData?.clubName || "The Good Club"}
+                      {clubData?.clubName || "The Court Line Club"}
                     </h5>
                     <div className="d-flex align-items-center justify-content-start text-nowrap">
                       <p className="text-success mb-0">
@@ -426,7 +441,7 @@ const Home = () => {
                       fontWeight: "400",
                     }}
                   >
-                    {clubData?.clubName || "The Good Club"}{" "}
+                    {clubData?.clubName || "The Court Line Club"}{" "}
                     {clubData?.description
                       ?.replace(/\\r\\n/g, "\n")
                       ?.replace(/\r\n/g, "\n")
@@ -1105,7 +1120,7 @@ const Home = () => {
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="The Good Club Map"
+                  title="The Court Line Club Map"
                 ></iframe>
               </div>
             </div>

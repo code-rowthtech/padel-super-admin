@@ -3,11 +3,11 @@ import React, { useEffect } from "react";
 const PrivacyPolicy = () => {
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo(0, 0);
   }, []);
 
   return (
-    <div className="container py-5" style={{ marginTop: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+    <div className="container py-5" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', marginTop: '40px' }}>
       <div className="row justify-content-center">
         <div className="col-lg-10">
           <div className="bg-white rounded-4 shadow-sm p-5">
@@ -21,8 +21,8 @@ const PrivacyPolicy = () => {
                 <div className="mb-4">
                   <h3 className="text-success mb-3">1. Introduction</h3>
                   <p className="lead">
-                    At Padel, we are committed to protecting your privacy and ensuring the security of your personal information.
-                    This Privacy Policy explains how we collect, use, and safeguard your data when you use our padel court booking platform.
+                    At Courtline, we are committed to protecting your privacy and ensuring the security of your personal information.
+                    This Privacy Policy explains how we collect, use, and safeguard your data when you use our court booking platform.
                   </p>
                 </div>
 
@@ -64,7 +64,7 @@ const PrivacyPolicy = () => {
                     <div className="row">
                       <div className="col-md-6">
                         <ul>
-                          <li>Process and manage your padel court bookings</li>
+                          <li>Process and manage your court bookings</li>
                           <li>Handle secure payment transactions</li>
                           <li>Send booking confirmations and reminders</li>
                           <li>Provide customer support and assistance</li>
@@ -160,7 +160,7 @@ const PrivacyPolicy = () => {
                       </div>
                     </div>
                     <p className="text-muted mb-0 mt-3">
-                      <em>To exercise these rights, contact us at privacy@padelpro.com with your request and identity verification.</em>
+                      <em>To exercise these rights, contact us at hello@swootapp.com with your request and identity verification.</em>
                     </p>
                   </div>
                 </div>
