@@ -26,7 +26,9 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const Owner = getOwnerFromSession();
-  const { getLogoData, getLogoLoading } = useSelector((state) => state?.logo);
+  const { getLogoData, getLogoLoading, logoData } = useSelector(
+    (state) => state?.logo
+  );
   const ownerId = Owner?._id || Owner?.generatedBy;
 
   // Tracks active status of dropdown based on location
@@ -65,8 +67,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   }, []);
 
   useEffect(() => {
-    setClubLogo(getLogoData?.logo?.logo?.[0] || null);
-  }, [getLogoData?.logo?._id, getLogoData?.logo?.logo]);
+    const updatedLogo =
+      logoData?.logo?.logo?.[0] || getLogoData?.logo?.logo?.[0] || null;
+    setClubLogo(updatedLogo);
+  }, [getLogoData?.logo?.logo, logoData?.logo?.logo]);
 
   const handleNavigation = (path) => {
     navigate(path);

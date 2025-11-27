@@ -699,7 +699,8 @@ const CourtAvailability = () => {
                                   : isPast
                                   ? "#c9cfcfff"
                                   : showUnavailable
-                                  ? statusColorMap[status] || "#FFFFFF"
+                                  ? // ? statusColorMap[status] || "#FFFFFF"
+                                    "#FFFFFF"
                                   : "#FFFFFF",
                                 color:
                                   isSelected || isBooked ? "white" : "#000000",
@@ -725,9 +726,9 @@ const CourtAvailability = () => {
                                         top: "50%",
                                         left: "-20%",
                                         width: "140%",
-                                        height: "4px",
+                                        height: "2px",
                                         backgroundColor: "#dc3545",
-                                        transform: "rotate(45deg)",
+                                        transform: "rotate(20deg)",
                                         pointerEvents: "none",
                                       }}
                                     ></span>
@@ -738,9 +739,9 @@ const CourtAvailability = () => {
                                         top: "50%",
                                         left: "-20%",
                                         width: "140%",
-                                        height: "4px",
+                                        height: "2px",
                                         backgroundColor: "#dc3545",
-                                        transform: "rotate(-45deg)",
+                                        transform: "rotate(-20deg)",
                                         pointerEvents: "none",
                                       }}
                                     ></span>
