@@ -140,8 +140,16 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     const handleTextChange = (e) => {
       let value = e.target.value;
 
-      const socialMediaFields = ['linkedinLink', 'xlink', 'facebookLink', 'instagramLink'];
-      const shouldCapitalize = isTextField && value.length > 0 && !socialMediaFields.includes(fieldName);
+      const socialMediaFields = [
+        "linkedinLink",
+        "xlink",
+        "facebookLink",
+        "instagramLink",
+      ];
+      const shouldCapitalize =
+        isTextField &&
+        value.length > 0 &&
+        !socialMediaFields.includes(fieldName);
 
       if (shouldCapitalize) {
         const selectionStart = e.target.selectionStart;
