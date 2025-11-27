@@ -31,7 +31,6 @@ const NewPlayers = ({
   userSkillLevel
 }) => {
   const [profileLoading, setProfileLoading] = useState(true);
-  const [userSkills, setUserSkills] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,9 +44,7 @@ const NewPlayers = ({
   const userLoading = useSelector(
     (state) => state?.userAuth?.userSignUpLoading
   );
-  const { finalSkillDetails = [] } = useSelector(
-    (state) => state.location?.state || {}
-  );
+
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
 
 
@@ -56,7 +53,6 @@ const NewPlayers = ({
     title: level.question
   }));
 
-  const fallbackUserSkillLevel = finalSkillDetails[finalSkillDetails.length - 1];
 
   const getAddedPlayers = () =>
     JSON.parse(localStorage.getItem("addedPlayers") || "{}");
@@ -180,7 +176,6 @@ const NewPlayers = ({
         const result = await dispatch(getUserProfile()).unwrap();
 
         const firstAnswer = result?.response?.surveyData?.[0]?.playerLevel?.skillLevel;
-        console.log({ firstAnswer })
         if (firstAnswer) {
           const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
 
@@ -189,17 +184,6 @@ const NewPlayers = ({
           if (!Array.isArray(apiData) || apiData.length === 0) {
             throw new Error("Empty API response");
           }
-
-          const newLastStep = {
-            _id: apiData[0]?._id || "dynamic-final-step",
-            question: apiData[0]?.question || "Which Padel Player Are You?",
-            options: apiData.map(opt => ({
-              _id: opt.code,
-              value: `${opt.code} - ${opt.question}`,
-            })),
-          };
-
-          console.log("Generated Step:", newLastStep);
         }
       } catch (err) {
         console.error("Error:", err);

@@ -114,7 +114,6 @@ const CreateMatches = () => {
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
   const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
   const [dynamicSteps, setDynamicSteps] = useState([]);
-  console.log({ getPlayerLevelsLoading })
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
   const [slotError, setSlotError] = useState("");
@@ -280,8 +279,7 @@ const CreateMatches = () => {
 
     // Trying to select a new slot
     if (totalSlots >= 2) {
-      setErrorMessage("Maximum 2 consecutive slots allowed.");
-      setErrorShow(true);
+      setSlotError("Maximum 2 consecutive slots allowed.");
       return;
     }
 
@@ -465,7 +463,7 @@ const CreateMatches = () => {
     if (!matchPlayer && !existsOpenMatchData) {
       dispatch(getQuestionData())
     }
-  }, [dispatch]);
+  }, [dispatch, matchPlayer, existsOpenMatchData]);
 
   const steps = [
     {
@@ -597,12 +595,17 @@ const CreateMatches = () => {
     }
 
     setMatchPlayer(true);
-    setShowMobileModal(false);       
-    setSlotError("");                
+    setShowMobileModal(false);
+    setSlotError("");
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
+      // If going back from the final dynamic step, reset the loaded state
+      if (currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded) {
+        setIsFinalLevelStepLoaded(false);
+        setDynamicSteps(prev => prev.slice(0, -1)); // Remove the last dynamic step
+      }
       setCurrentStep(currentStep - 1);
       setSlotError("");
     }
@@ -624,6 +627,52 @@ const CreateMatches = () => {
       return () => clearTimeout(timer);
     }
   }, [slotError]);
+
+  // Show tooltip for 2 slot limit in CreateMatches only when limit is reached
+  useEffect(() => {
+    const totalSelected = Object.values(selectedTimes).flat().length;
+    const buttons = document.querySelectorAll('.slot-time-btn');
+    buttons.forEach(button => {
+      if (button.title && button.title.includes('Maximum 2 consecutive') && totalSelected >= 2) {
+        button.addEventListener('mouseenter', () => {
+          let tooltip = document.getElementById('slot-limit-tooltip-create');
+          if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'slot-limit-tooltip-create';
+            tooltip.style.cssText = `
+              position: fixed;
+              background: #333;
+              color: white;
+              padding: 8px 12px;
+              border-radius: 4px;
+              font-size: 12px;
+              z-index: 9999;
+              pointer-events: none;
+              white-space: nowrap;
+            `;
+            document.body.appendChild(tooltip);
+          }
+          tooltip.textContent = button.title;
+          tooltip.style.display = 'block';
+        });
+
+        button.addEventListener('mousemove', (e) => {
+          const tooltip = document.getElementById('slot-limit-tooltip-create');
+          if (tooltip) {
+            tooltip.style.left = e.clientX + 10 + 'px';
+            tooltip.style.top = e.clientY - 30 + 'px';
+          }
+        });
+
+        button.addEventListener('mouseleave', () => {
+          const tooltip = document.getElementById('slot-limit-tooltip-create');
+          if (tooltip) {
+            tooltip.style.display = 'none';
+          }
+        });
+      }
+    });
+  }, [selectedTimes]);
 
   const getCurrentMonth = (selectedDate) => {
     if (!selectedDate || !selectedDate.fullDate) return "MONTH";
@@ -693,6 +742,7 @@ const CreateMatches = () => {
           className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
           onClick={() => toggleTime(slot, courtId)}
           disabled={isDisabled}
+          title={totalSelected >= 2 && !isSelected ? 'Maximum 2 consecutive slots allowed' : ''}
           style={{
             background: isDisabled ? "#c9cfcfff" : isSelected ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF",
             color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
@@ -1505,8 +1555,8 @@ const CreateMatches = () => {
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
-                      <span className="d-flex align-items-center gap-2">
-                        {/* <Loader /> */}
+                      <span className="d-flex align-items-center gap-1">
+                        <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
                         Loading...
                       </span>
                     ) : currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded ? (
@@ -1603,8 +1653,8 @@ const CreateMatches = () => {
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
-                      <span className="d-flex align-items-center gap-2">
-                        {/* <Loader /> */}
+                      <span className="d-flex align-items-center gap-1">
+                        <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
                         Loading...
                       </span>
                     ) : currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded ? (
@@ -1630,6 +1680,11 @@ const CreateMatches = () => {
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
               userGender={userGender}
+
+              // Yeh NAYA PROP ADD KARO
+              selectedAnswers={selectedAnswers}           // ← Yeh bhejo
+              dynamicSteps={dynamicSteps}                 // ← Yeh bhi bhejo (questions ke saath)
+              finalLevelStep={finalLevelStep}             // ← Agar dynamic last step hai toh yeh bhi
             />
           )}
         </Col>

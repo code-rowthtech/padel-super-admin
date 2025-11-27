@@ -127,11 +127,14 @@ const OpenmatchPayment = () => {
 
     const {
         slotData = {},
-        finalSkillDetails = [],
+        selectedAnswers = [],
         selectedDate = {},
         selectedCourts = [],
-        addedPlayers: stateAddedPlayers = {},
+        selectedGender = [],
+        addedPlayers: stateAddedPlayers = {}, dynamicSteps, finalLevelStep
     } = state || {};
+    console.log(clubData, 'plplp');
+    console.log(selectedAnswers, dynamicSteps, finalLevelStep, slotData, 'musannegi');
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -141,7 +144,6 @@ const OpenmatchPayment = () => {
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
 
-    // Build teams
     const teamA = [User?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
     const teamB = [
         finalAddedPlayers.slot3?._id,
@@ -170,32 +172,40 @@ const OpenmatchPayment = () => {
         setIsLoading(true);
 
         try {
-            // Step 1: Login if user not logged in
             if (!User?.name || !User?.phoneNumber || !User?.email) {
                 await dispatch(loginUserNumber({ phoneNumber: cleanPhone, name, email })).unwrap();
             }
+            const answersArray = selectedAnswers
+                ? Object.keys(selectedAnswers)
+                    .sort((a, b) => a - b)
+                    .map(key => selectedAnswers[key])
+                : [];
 
-            // Step 2: Prepare match payload (but don't call API yet)
             const formattedMatch = {
                 slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
                     slotId: timeSlot._id,
-                    businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
+                    businessHours: clubData?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
                     slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
                     courtName: court.courtName,
                     courtId: court._id,
                     bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
                 }))),
                 clubId: savedClubId,
+                gender: selectedGender || "Mixed Double",
                 matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
-                ...(finalSkillDetails.length > 0 && {
-                    skillLevel: finalSkillDetails[0] || "Open Match",
-                    skillDetails: finalSkillDetails.slice(1).map((d, i) => (i === 0 && Array.isArray(d) ? d.join(", ") : d)) || [],
+                ...(answersArray?.length > 0 && {
+                    skillLevel: answersArray[0] || "Open Match",
+                    skillDetails: answersArray?.slice(1)?.map((answer, i) => {
+                        if (i === 0 && Array.isArray(answer)) return answer.join(", ");
+                        return answer;
+                    })
                 }),
                 matchStatus: "open",
                 matchTime: selectedCourts.flatMap(c => c.time.map(t => t.time)).join(","),
                 teamA,
                 teamB,
             };
+            console.log({ formattedMatch });
 
             // Step 3: Open Razorpay — Payment First
             const options = {
@@ -208,15 +218,12 @@ const OpenmatchPayment = () => {
                 prefill: { name, email, contact: cleanPhone },
                 theme: { color: "#001B76" },
 
-                // Payment Success → Ab APIs call karo
                 handler: async function (response) {
                     try {
-                        // Step 4: Create Match
                         const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
                         const matchId = matchResponse?.match?._id;
                         if (!matchId) throw new Error("Failed to create match");
 
-                        // Step 5: Create Booking with openMatchId
                         const bookingPayload = {
                             name,
                             phoneNumber: cleanPhone,
@@ -240,15 +247,14 @@ const OpenmatchPayment = () => {
                         const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
                         if (!bookingResponse?.success) throw new Error("Booking failed after payment");
 
-                        // Step 6: Success — Cleanup & Navigate
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));
                         navigate("/open-matches", { replace: true });
+                        dispatch(getUserProfile());
 
                     } catch (err) {
                         console.error("Post-payment error:", err);
                         alert(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
-                        // Optional: redirect to support page or show ticket form
                     }
                 },
 
@@ -586,7 +592,7 @@ const OpenmatchPayment = () => {
                         {/* Desktop Booking Summary */}
                         <div className="d-none d-lg-block">
                             <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
-                                <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary</h6>
+                                <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary {localTotalSlots > 0 ? ` (${localTotalSlots} Slot selected)` : ''}</h6>
                             </div>
                             <div className="px-3">
                                 <style jsx>{`
@@ -630,7 +636,7 @@ const OpenmatchPayment = () => {
                                                             <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
                                                         </div>
                                                         <div className="text-white">
-                                                            ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot.amount || "N/A"}</span>
+                                                            ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}</span>
                                                             <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, timeSlot._id)} />
                                                         </div>
                                                     </div>
@@ -814,7 +820,7 @@ const OpenmatchPayment = () => {
                                                                         fontSize: "11px",
                                                                     }}
                                                                 >
-                                                                    ₹ {timeSlot.amount || "N/A"}
+                                                                    ₹ {timeSlot.amount ? Number(timeSlot.amount).toLocaleString("en-IN") : "N/A"}
                                                                 </span>
                                                                 <MdOutlineDeleteOutline
                                                                     className="ms-1 text-white"
@@ -849,7 +855,7 @@ const OpenmatchPayment = () => {
                                                 className="text-white"
                                                 style={{ fontSize: "20px", fontWeight: "600" }}
                                             >
-                                                ₹{localGrandTotal}
+                                                ₹{Number(localGrandTotal || 0).toLocaleString("en-IN")}
                                             </span>
                                         </div>
                                     </div>
@@ -962,15 +968,15 @@ const OpenmatchPayment = () => {
                                     style={{ fontSize: "16px", fontWeight: "600" }}
                                 >
                                     Total to Pay{" "}
-                                    <span style={{ fontSize: "13px", fontWeight: "500" }}>
+                                    {/* <span style={{ fontSize: "13px", fontWeight: "500" }}>
                                         Total slots {localTotalSlots}
-                                    </span>
+                                    </span> */}
                                 </p>
                                 <p
                                     className="mb-0"
                                     style={{ fontSize: "25px", fontWeight: "600" }}
                                 >
-                                    ₹ {localGrandTotal}
+                                    ₹ {Number(localGrandTotal || 0).toLocaleString("en-IN")}
                                 </p>
                             </div>
                         )}

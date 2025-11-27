@@ -25,6 +25,7 @@ const modalStyle = {
   border: "none",
   maxHeight: "90vh",
   overflowY: "auto",
+  boxShadow: 24,
 };
 
 const UpdatePlayers = ({
@@ -34,10 +35,10 @@ const UpdatePlayers = ({
   setShowModal,
   selectedDate,
   selectedTime,
-  selectedLevel, match
+  selectedLevel,
+  match, skillLevel
 }) => {
   const dispatch = useDispatch();
-  console.log({ match })
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,11 +46,69 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
-  const addLoading = useSelector((state) => state?.userAuth);
-  const [errors, setErrors] = useState({}); // Per-field errors
-  const [showErrors, setShowErrors] = useState({}); // Visibility
-  const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
-  console.log({ getPlayerLevels })
+
+  const [errors, setErrors] = useState({});
+  const [showErrors, setShowErrors] = useState({});
+  const [playerLevels, setPlayerLevels] = useState([]);
+
+  const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
+  const getPlayerLevelsData = useSelector(
+    (state) => state?.userNotificationData?.getPlayerLevel?.data || []
+  );
+  useEffect(() => {
+    if (!showModal) return;
+    if (!skillLevel) return;
+
+    dispatch(getPlayerLevel(skillLevel))
+      .unwrap()
+      .then((res) => {
+        const levels = (res?.data || []).map((l) => ({
+          code: l.code,
+          title: l.question,
+        }));
+        setPlayerLevels(levels);
+      })
+      .catch(() => setPlayerLevels([]));
+  }, [showModal, skillLevel]);
+
+
+
+  // Backup: Redux state se bhi sync rakho
+  useEffect(() => {
+    if (Array.isArray(getPlayerLevelsData) && getPlayerLevelsData.length > 0) {
+      setPlayerLevels(
+        getPlayerLevelsData.map((l) => ({
+          code: l.code,
+          title: l.question,
+        }))
+      );
+    }
+  }, [getPlayerLevelsData]);
+
+  const levelOptions = React.useMemo(() => {
+    return playerLevels.map((item) => ({
+      value: item.code,
+      label: (
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <span style={{ color: "#1d4ed8", fontWeight: 600, fontSize: "15px", fontFamily: "Poppins" }}>
+            {item.code}
+          </span>
+          <span style={{ color: "#374151", fontSize: "13px" }}>{item.title}</span>
+        </div>
+      ),
+    }));
+  }, [playerLevels]);
+  console.log({ levelOptions });
+  const validateField = (name, value) => {
+    if (name === "name" && !value.trim()) return "Name is required";
+    if (name === "email" && !value.trim()) return "Email is required";
+    if (name === "phoneNumber") {
+      if (!value) return "Phone number is required";
+      if (!/^[6-9]\d{9}$/.test(value)) return "Invalid phone number";
+    }
+    if (name === "level" && !value) return "Please select a level";
+    return "";
+  };
   const normalizeTime = (time) => {
     if (!time) return null;
     const match = time.match(/^(\d{1,2}):00\s*(AM|PM)$/i);
@@ -59,94 +118,18 @@ const UpdatePlayers = ({
     return time;
   };
 
-  const validateField = (name, value) => {
-    let error = "";
-    if (name === "name" && !value) error = "Name is required";
-    else if (name === "phoneNumber") {
-      if (!value) error = "Phone number is required";
-      else if (value.length !== 10 || !/^[6-9][0-9]{9}$/.test(value))
-        error = "Phone number must be 10 digits starting with 6-9";
-    } else if (name === "email" && !value) error = "Email is required";
-    else if (name === "level" && !value) error = "Select Level is required";
-    return error;
-  };
-
-
-  useEffect(() => {
-    if (match?.skillLevel) {
-      dispatch(getPlayerLevel(match?.skillLevel)).unwrap().then((response) => {
-        console.log({ response })
-        const apiData = response?.data || [];
-
-        if (!Array.isArray(apiData) || apiData.length === 0) {
-          throw new Error("Empty API response");
-        }
-
-        const newLastStep = {
-          _id: apiData[0]?._id || "dynamic-final-step",
-          question: apiData[0]?.question || "Which Padel Player Are You?",
-          options: apiData.map(opt => ({
-            _id: opt.code,
-            value: `${opt.code} - ${opt.question}`,
-          })),
-        };
-      });
-
-
-
-    }
-  }, [match?.skillLevel])
-
   const handleAddPlayer = () => {
     const newErrors = {};
-    const fields = ["name", "email", "phoneNumber", "level"];
-    fields.forEach((field) => {
+    ["name", "email", "phoneNumber", "level"].forEach((field) => {
       newErrors[field] = validateField(field, formData[field]);
     });
 
-    if (Object.values(newErrors).some((err) => err)) {
+    if (Object.values(newErrors).some(Boolean)) {
       setErrors(newErrors);
-      setShowErrors(Object.fromEntries(fields.map((f) => [f, true])));
+      setShowErrors(Object.fromEntries(Object.keys(newErrors).map((k) => [k, true])));
       return;
     }
 
-    setErrors({});
-    setShowErrors({});
-
-    // dispatch(Usersignup(formData))
-    //   .unwrap()
-    //   .then((res) => {
-    //     if (res?.status === "200") {
-    //       dispatch(
-    //         addPlayers({
-    //           matchId,
-    //           playerId: res?.response?._id,
-    //           team: teamName,
-    //         })
-    //       ).then(() => {
-    //         setShowModal(false);
-    //         dispatch(getMatchesView(matchId));
-    //         const payload = {
-    //           matchDate: selectedDate?.fullDate,
-    //           ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
-    //           ...(selectedLevel && { skillLevel: selectedLevel }),
-    //         };
-    //         dispatch(getMatchesUser(payload));
-    //       });
-    //       showSuccess("Player added successfully");
-    //     }
-    //     setFormData({
-    //       name: "",
-    //       email: "",
-    //       phoneNumber: "",
-    //       gender: "",
-    //       level: "",
-    //     });
-    //   })
-    //   .catch(() => {
-    //     setErrors({ email: "Enter valid email address" });
-    //     setShowErrors({ email: true });
-    //   });
     dispatch(Usersignup(formData))
       .unwrap()
       .then((res) => {
@@ -154,7 +137,7 @@ const UpdatePlayers = ({
 
           dispatch(
             addPlayers({
-              matchId,
+              matchId: matchId?._id,
               playerId: res?.response?._id,
               team: teamName,
             })
@@ -164,7 +147,7 @@ const UpdatePlayers = ({
               setShowModal(false);
 
               // WAIT for match data
-              dispatch(getMatchesView(matchId))
+              dispatch(getMatchesView(matchId?._d))
                 .unwrap()
                 .then((matchRes) => {
                   // EXTRACT CLUB ID PROPERLY
@@ -204,79 +187,32 @@ const UpdatePlayers = ({
         setErrors({ email: "Enter valid email address" });
         setShowErrors({ email: true });
       });
-
   };
 
-  // Auto-hide errors after 2 sec
+  // Auto hide errors
   useEffect(() => {
     const timers = Object.keys(showErrors)
-      .map((field) => {
-        if (showErrors[field]) {
-          return setTimeout(() => {
-            setShowErrors((prev) => ({ ...prev, [field]: false }));
-          }, 2000);
-        }
-        return null;
-      })
-      .filter(Boolean);
-
+      .filter((key) => showErrors[key])
+      .map((key) =>
+        setTimeout(() => setShowErrors((prev) => ({ ...prev, [key]: false })), 3000)
+      );
     return () => timers.forEach(clearTimeout);
   }, [showErrors]);
 
-  const [playerLevels, setPlayerLevels] = useState([]);
-
-  useEffect(() => {
-    if (getPlayerLevels && Array.isArray(getPlayerLevels)) {
-      setPlayerLevels(getPlayerLevels.map(level => ({
-        code: level.code,
-        title: level.question
-      })));
-    }
-  }, []);
-
-  const levelOptions = playerLevels.map((item) => ({
-    value: item.code,
-    label: (
-      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-        <span
-          style={{
-            color: "#1d4ed8",
-            fontWeight: "600",
-            fontSize: "15px",
-            fontFamily: "Poppins",
-          }}
-        >
-          {item.code}
-        </span>
-        <span style={{ color: "#374151", fontSize: "13px" }}>{item.title}</span>
-      </div>
-    ),
-  }));
-
   const inputStyle = (field) => ({
+    border: showErrors[field] && errors[field] ? "1px solid #dc3545" : "1px solid #ced4da",
+    borderRadius: "6px",
     boxShadow: "none",
-    border:
-      showErrors[field] && errors[field]
-        ? "1px solid #dc3545"
-        : "1px solid #ced4da",
-    transition: "border 0.2s ease",
   });
 
   return (
-    <Modal
-      open={showModal}
-      onClose={() => setShowModal(false)}
-      aria-labelledby="parent-modal-title"
-    >
+    <Modal open={showModal} onClose={() => setShowModal(false)}>
       <Box sx={modalStyle}>
-        <h6
-          className="mb-3 text-center"
-          style={{ fontSize: "16px", fontWeight: "600", fontFamily: "Poppins" }}
-        >
-          Player Information
+        <h6 className="text-center mb-4" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
+          Add Player
         </h6>
 
-        <form>
+        <form onSubmit={(e) => e.preventDefault()}>
           {/* Name */}
           <div className="mb-3">
             <label className="form-label">
@@ -284,29 +220,21 @@ const UpdatePlayers = ({
             </label>
             <input
               type="text"
+              className="form-control p-2"
+              placeholder="Enter name"
               value={formData.name}
               onChange={(e) => {
-                const value = e.target.value;
-                if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
-                  const formatted = value
-                    .trimStart()
-                    .replace(/\s+/g, " ")
-                    .toLowerCase()
-                    .replace(/(^|\s)\w/g, (l) => l.toUpperCase());
+                let v = e.target.value;
+                if (!v || /^[A-Za-z\s]*$/.test(v)) {
+                  v = v.trimStart().replace(/\s+/g, " ");
+                  const formatted = v.replace(/\b\w/g, (l) => l.toUpperCase());
                   setFormData((prev) => ({ ...prev, name: formatted }));
                 }
               }}
-              className="form-control p-2"
-              placeholder="Enter your name"
               style={inputStyle("name")}
             />
             {showErrors.name && errors.name && (
-              <small
-                className="text-danger"
-                style={{ fontSize: "12px", fontFamily: "Poppins" }}
-              >
-                {errors.name}
-              </small>
+              <small className="text-danger d-block mt-1">{errors.name}</small>
             )}
           </div>
 
@@ -317,30 +245,14 @@ const UpdatePlayers = ({
             </label>
             <input
               type="email"
-              value={formData.email}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
-                  const formatted = value
-                    .replace(/\s+/g, "")
-                    .replace(
-                      /^(.)(.*)(@.*)?$/,
-                      (m, f, r, d = "") => f.toUpperCase() + r.toLowerCase() + d
-                    );
-                  setFormData((prev) => ({ ...prev, email: formatted }));
-                }
-              }}
               className="form-control p-2"
-              placeholder="Enter your email"
+              placeholder="Enter email"
+              value={formData.email}
+              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
               style={inputStyle("email")}
             />
             {showErrors.email && errors.email && (
-              <small
-                className="text-danger"
-                style={{ fontSize: "12px", fontFamily: "Poppins" }}
-              >
-                {errors.email}
-              </small>
+              <small className="text-danger d-block mt-1">{errors.email}</small>
             )}
           </div>
 
@@ -350,56 +262,46 @@ const UpdatePlayers = ({
               Phone No <span className="text-danger">*</span>
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
-              <span className="input-group-text border-0 p-2">
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
-                <span>+91</span>
+              <span className="input-group-text border-0 bg-white">
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
               </span>
               <input
                 type="text"
                 maxLength={10}
+                className="form-control border-0 p-2"
+                placeholder="Enter phone"
                 value={formData.phoneNumber}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9]/g, "");
-                  if (value === "" || /^[6-9][0-9]{0,9}$/.test(value)) {
-                    setFormData((prev) => ({ ...prev, phoneNumber: value }));
+                  const v = e.target.value.replace(/[^0-9]/g, "");
+                  if (v.length <= 10) {
+                    setFormData((prev) => ({ ...prev, phoneNumber: v }));
                   }
                 }}
-                className="form-control border-0 p-2"
-                placeholder="Enter phone number"
+                style={{ boxShadow: "none" }}
               />
             </div>
             {showErrors.phoneNumber && errors.phoneNumber && (
-              <small
-                className="text-danger"
-                style={{ fontSize: "12px", fontFamily: "Poppins" }}
-              >
-                {errors.phoneNumber}
-              </small>
+              <small className="text-danger d-block mt-1">{errors.phoneNumber}</small>
             )}
           </div>
 
-          {/* Gender */}
+          {/* Gender (optional) */}
           <div className="mb-3">
             <label className="form-label">Gender</label>
-            <div className="d-flex flex-wrap gap-3">
-              {["Male", "Female", "Other"].map((gender) => (
-                <div key={gender} className="form-check d-flex align-items-center gap-2">
+            <div className="d-flex gap-4">
+              {["Male", "Female", "Other"].map((g) => (
+                <div key={g} className="form-check">
                   <input
                     className="form-check-input"
                     type="radio"
                     name="gender"
-                    id={gender}
-                    value={gender}
-                    checked={formData.gender === gender}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        gender: e.target.value,
-                      }))
-                    }
+                    id={g}
+                    value={g}
+                    checked={formData.gender === g}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
                   />
-                  <label className="form-check-label pt-1" htmlFor={gender}>
-                    {gender}
+                  <label className="form-check-label" htmlFor={g}>
+                    {g}
                   </label>
                 </div>
               ))}
@@ -407,54 +309,48 @@ const UpdatePlayers = ({
           </div>
 
           {/* Level */}
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="form-label">
               Select Level <span className="text-danger">*</span>
             </label>
             <div style={inputStyle("level")}>
-              <Select
-                options={levelOptions}
-                value={levelOptions.find((opt) => opt.value === formData.level)}
-                onChange={(opt) =>
-                  setFormData((prev) => ({ ...prev, level: opt.value }))
-                }
-                className="basic-single"
-                classNamePrefix="select"
-              />
+              {playerLevels.length === 0 ? (
+                <div className="p-3 text-center text-muted">Loading levels...</div>
+              ) : (
+                <Select
+                  options={levelOptions}
+                  value={levelOptions.find((o) => o.value === formData.level)}
+                  onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt.value }))}
+                  placeholder="Choose level"
+                  classNamePrefix="select"
+                  styles={{ control: (base) => ({ ...base, border: "none", boxShadow: "none" }) }}
+                />
+              )}
             </div>
             {showErrors.level && errors.level && (
-              <small
-                className="text-danger"
-                style={{ fontSize: "12px", fontFamily: "Poppins" }}
-              >
-                {errors.level}
-              </small>
+              <small className="text-danger d-block mt-1">{errors.level}</small>
             )}
           </div>
 
           {/* Buttons */}
-          <div className="d-flex flex-column flex-sm-row justify-content-between gap-2">
+          <div className="d-flex gap-3 justify-content-end">
             <Button
               variant="outlined"
-              color="secondary"
               onClick={() => setShowModal(false)}
-              sx={{ width: { xs: "100%", sm: "50%", border: "1px solid #001b76", color: "#001B76" } }}
+              sx={{ borderColor: "#001B76", color: "#001B76" }}
             >
               Cancel
             </Button>
             <Button
-              sx={{ width: { xs: "100%", sm: "50%" } }}
-              style={{
-                background:
-                  "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white"
-              }}
               onClick={handleAddPlayer}
+              disabled={loading}
+              sx={{
+                background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                color: "white",
+                "&:hover": { background: "#001B76" },
+              }}
             >
-              {addLoading?.userSignUpLoading ? (
-                <ButtonLoading color="white" />
-              ) : (
-                "Submit"
-              )}
+              {loading ? <ButtonLoading color="white" /> : "Add "}
             </Button>
           </div>
         </form>
