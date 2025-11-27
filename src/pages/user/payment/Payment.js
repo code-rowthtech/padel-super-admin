@@ -22,10 +22,8 @@ const Payment = ({ className = "" }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
-  console.log(totalSlots, 'totalSlots')
   const user = getUserFromSession();
   const store = useSelector((state) => state?.userAuth);
-  console.log(store, 'users');
 
   const bookingStatus = useSelector((state) => state?.userBooking);
   const userLoading = useSelector((state) => state?.userAuth);

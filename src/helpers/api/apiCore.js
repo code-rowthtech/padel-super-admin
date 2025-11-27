@@ -222,5 +222,3 @@ export const updateSessionData = (updatedData, type = "user") => {
     }
   }
 };
-
-

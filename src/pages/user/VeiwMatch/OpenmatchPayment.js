@@ -84,6 +84,8 @@ const OpenmatchPayment = () => {
     );
     const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
     );
+    const store = useSelector((state) => state?.userAuth);
+
     const logo = localStorage.getItem("logo")
         ? JSON.parse(localStorage.getItem("logo"))
         : null;
@@ -114,7 +116,7 @@ const OpenmatchPayment = () => {
         return () => document.body.contains(script) && document.body.removeChild(script);
     }, []);
 
-    const [name, setName] = useState(User?.name || updateProfile?.fullName || "");
+    const [name, setName] = useState(User?.name || updateProfile?.fullName || store?.user?.response?.name || "");
     const [phoneNumber, setPhoneNumber] = useState(
         User?.phoneNumber
             ? `+91 ${User.phoneNumber}`
@@ -122,7 +124,7 @@ const OpenmatchPayment = () => {
                 ? `+91 ${updateProfile.phone}`
                 : ""
     );
-    const [email, setEmail] = useState(User?.email || updateProfile?.email || "");
+    const [email, setEmail] = useState(User?.email || updateProfile?.email || store?.user?.response?.email || "");
     const [isExpanded, setIsExpanded] = useState(false);
 
     const {
@@ -133,8 +135,6 @@ const OpenmatchPayment = () => {
         selectedGender = [],
         addedPlayers: stateAddedPlayers = {}, dynamicSteps, finalLevelStep
     } = state || {};
-    console.log(clubData, 'plplp');
-    console.log(selectedAnswers, dynamicSteps, finalLevelStep, slotData, 'musannegi');
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -205,7 +205,6 @@ const OpenmatchPayment = () => {
                 teamA,
                 teamB,
             };
-            console.log({ formattedMatch });
 
             // Step 3: Open Razorpay — Payment First
             const options = {
@@ -651,7 +650,6 @@ const OpenmatchPayment = () => {
                                 </div>
                             </div>
                         </div>
-                        {console.log(localTotalSlots, isExpanded, 'pankajsingh')}
                         {/* Mobile Booking Summary - Fixed Bottom */}
                         <div className="d-lg-none mobile-openmatch-payment-summary" style={{
                             position: "fixed",

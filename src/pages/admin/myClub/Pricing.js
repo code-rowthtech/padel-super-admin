@@ -472,7 +472,6 @@ const Pricing = ({
           }}
         >
           {allTimesRaw.map((timeRaw) => {
-            console.log({ timeRaw });
             const display = formatTo12HourDisplay(timeRaw);
             const isSelected = formData.prices.All?.[display] !== undefined;
             const price = formData.prices.All?.[display];
@@ -510,9 +509,8 @@ const Pricing = ({
             }}
           >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${
-                  selectedTimes.length > 1 ? "s" : ""
-                }`
+              ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""
+              }`
               : "Set Price (select slots first)"}
           </h5>
           <InputGroup>
@@ -579,8 +577,8 @@ const Pricing = ({
     const selectedDisplayTimes = Object.keys(slotPrices);
     const targetedSlotTimes = selectAllChecked
       ? slotTimes.filter((slot) =>
-          selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
-        )
+        selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
+      )
       : slotTimes;
     if (targetedSlotTimes.length === 0) {
       showWarning("No targeted slots to update.");

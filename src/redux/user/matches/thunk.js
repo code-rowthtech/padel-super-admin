@@ -11,8 +11,6 @@ export const createMatches = createAsyncThunk(
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
-      console.log(error, 'error33');
-
       showError(error?.message || error);
       return rejectWithValue(error);
     }
