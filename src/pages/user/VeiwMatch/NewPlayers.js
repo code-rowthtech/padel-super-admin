@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { showSuccess } from "../../../helpers/Toast";
 import { Box, Button, Modal } from "@mui/material";
@@ -57,13 +57,8 @@ const NewPlayers = ({
   const getAddedPlayers = () =>
     JSON.parse(localStorage.getItem("addedPlayers") || "{}");
 
-  const levelOptions = lavel.map((item) => {
-    const added = getAddedPlayers();
-    const existing = Object.values(added).map((p) => p?.level);
-    const disabled =
-      item.code === userSkillLevel || existing.includes(item.code);
-
-    return {
+  const levelOptions = useMemo(() => {
+    return lavel.map((item) => ({
       value: item.code,
       label: (
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -82,9 +77,8 @@ const NewPlayers = ({
           </span>
         </div>
       ),
-      isDisabled: disabled,
-    };
-  });
+    }));
+  }, [lavel]);
 
   const validate = () => {
     const newErrors = {};
@@ -110,9 +104,12 @@ const NewPlayers = ({
     if (!formData.level) newErrors.level = "Please select a level";
 
     const added = getAddedPlayers();
-    if (Object.values(added).some((p) => p?.level === formData.level)) {
-      newErrors.level = "This level is already taken";
-    }
+    const existingLevels = Object.values(added)
+      .filter((p) => p?.slotId !== activeSlot) // Exclude current slot
+      .map((p) => p?.level);
+    // if (existingLevels.includes(formData.level)) {
+    //   newErrors.level = "This level is already taken";
+    // }
 
     setErrors(newErrors);
     setShowErrors(
@@ -136,6 +133,7 @@ const NewPlayers = ({
         const playerData = {
           ...res.response,
           level: formData.level,
+          slotId: activeSlot, // Add slot ID for tracking
           _id: res.response._id || res.response.id, // Ensure ID is included
         };
 
@@ -408,22 +406,32 @@ const NewPlayers = ({
               Select Level <span className="text-danger">*</span>
             </label>
             <div style={inputStyle("level")}>
-              {profileLoading ? 'Loading...' :
+              {profileLoading ? (
+                <div className="text-center p-2">
+                  <ButtonLoading />
+                </div>
+              ) : (
                 <Select
                   options={levelOptions}
-                  value={levelOptions.find((o) => o.value === formData.level)}
-                  onChange={(opt) => handleInputChange("level", opt.value)}
+                  value={levelOptions.find((o) => o.value === formData.level) || null}
+                  onChange={(opt) => handleInputChange("level", opt?.value || "")}
+                  placeholder="Choose level"
                   classNamePrefix="select"
-                  isOptionDisabled={(opt) => opt.isDisabled}
+                  isSearchable={false}
                   styles={{
                     control: (base) => ({
                       ...base,
                       border: "none",
                       boxShadow: "none",
+                      minHeight: "38px",
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: "#6c757d",
                     }),
                   }}
                 />
-              }
+              )}
             </div>
             {showErrors.level && errors.level && (
               <small
