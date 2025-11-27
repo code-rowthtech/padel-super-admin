@@ -319,7 +319,7 @@ const Home = () => {
                         fontFamily: "Poppins",
                       }}
                     >
-                      {clubData?.clubName || "The Good Club"}
+                      {clubData?.clubName || "The Court Line Club"}
                     </h5>
                     <div className="d-flex align-items-center justify-content-start text-nowrap">
                       <p className="text-success mb-0">
@@ -426,7 +426,7 @@ const Home = () => {
                       fontWeight: "400",
                     }}
                   >
-                    {clubData?.clubName || "The Good Club"}{" "}
+                    {clubData?.clubName || "The Court Line Club"}{" "}
                     {clubData?.description
                       ?.replace(/\\r\\n/g, "\n")
                       ?.replace(/\r\n/g, "\n")
@@ -562,26 +562,45 @@ const Home = () => {
                     </linearGradient>
                   </defs>
                   <path
-                    d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15
-                      } ${width * 0.81} ${height * 0.2} ${width * 0.83} ${height * 0.3
-                      } C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34
-                      } ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34
-                      } ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.3
-                      } C ${width * 0.88} ${height * 0.2} ${width * 0.9} ${height * 0.15
-                      } ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15
-                      } ${width * 0.996} ${height * 0.3} ${width * 0.996} ${height * 0.5
-                      } C ${width * 0.996} ${height * 0.7} ${width * 0.97} ${height * 0.85
-                      } ${width * 0.92} ${height * 0.85} C ${width * 0.9} ${height * 0.85
-                      } ${width * 0.88} ${height * 0.8} ${width * 0.86} ${height * 0.7
-                      } C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66
-                      } ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66
-                      } ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.7
-                      } C ${width * 0.81} ${height * 0.8} ${width * 0.79} ${height * 0.85
-                      } ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85
-                      } C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.7
-                      } ${width * 0.004} ${height * 0.5} C ${width * 0.004} ${height * 0.3
-                      } ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15
-                      } L ${width * 0.76} ${height * 0.15} Z`}
+                    d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${
+                      height * 0.15
+                    } ${width * 0.81} ${height * 0.2} ${width * 0.83} ${
+                      height * 0.3
+                    } C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${
+                      height * 0.34
+                    } ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${
+                      height * 0.34
+                    } ${width * 0.86} ${height * 0.32} ${width * 0.86} ${
+                      height * 0.3
+                    } C ${width * 0.88} ${height * 0.2} ${width * 0.9} ${
+                      height * 0.15
+                    } ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${
+                      height * 0.15
+                    } ${width * 0.996} ${height * 0.3} ${width * 0.996} ${
+                      height * 0.5
+                    } C ${width * 0.996} ${height * 0.7} ${width * 0.97} ${
+                      height * 0.85
+                    } ${width * 0.92} ${height * 0.85} C ${width * 0.9} ${
+                      height * 0.85
+                    } ${width * 0.88} ${height * 0.8} ${width * 0.86} ${
+                      height * 0.7
+                    } C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${
+                      height * 0.66
+                    } ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${
+                      height * 0.66
+                    } ${width * 0.83} ${height * 0.68} ${width * 0.83} ${
+                      height * 0.7
+                    } C ${width * 0.81} ${height * 0.8} ${width * 0.79} ${
+                      height * 0.85
+                    } ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${
+                      height * 0.85
+                    } C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${
+                      height * 0.7
+                    } ${width * 0.004} ${height * 0.5} C ${width * 0.004} ${
+                      height * 0.3
+                    } ${width * 0.04} ${height * 0.15} ${width * 0.08} ${
+                      height * 0.15
+                    } L ${width * 0.76} ${height * 0.15} Z`}
                     fill={`url(#buttonGradient-${width}-${height})`}
                   />
                   <circle
@@ -598,19 +617,25 @@ const Home = () => {
                     strokeLinejoin="round"
                   >
                     <path
-                      d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
-                        } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
-                        }`}
+                      d={`M ${arrowX - arrowSize * 0.3} ${
+                        arrowY + arrowSize * 0.4
+                      } L ${arrowX + arrowSize * 0.4} ${
+                        arrowY - arrowSize * 0.4
+                      }`}
                     />
                     <path
-                      d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
-                        } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
-                        }`}
+                      d={`M ${arrowX + arrowSize * 0.4} ${
+                        arrowY - arrowSize * 0.4
+                      } L ${arrowX - arrowSize * 0.1} ${
+                        arrowY - arrowSize * 0.4
+                      }`}
                     />
                     <path
-                      d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
-                        } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
-                        }`}
+                      d={`M ${arrowX + arrowSize * 0.4} ${
+                        arrowY - arrowSize * 0.4
+                      } L ${arrowX + arrowSize * 0.4} ${
+                        arrowY + arrowSize * 0.1
+                      }`}
                     />
                   </g>
                 </svg>
@@ -684,12 +709,13 @@ const Home = () => {
         <div className="position-relative">
           <div className="overflow-hidden rounded-3">
             <div
-              className={`d-flex ${clubData?.courtImage?.length > 4
-                ? window.innerWidth >= 992
-                  ? "justify-content-start"
-                  : "justify-content-start"
-                : "justify-content-center"
-                } align-items-center`}
+              className={`d-flex ${
+                clubData?.courtImage?.length > 4
+                  ? window.innerWidth >= 992
+                    ? "justify-content-start"
+                    : "justify-content-start"
+                  : "justify-content-center"
+              } align-items-center`}
               style={{
                 transform:
                   clubData?.courtImage?.length > 4
@@ -707,8 +733,8 @@ const Home = () => {
               {/* Desktop: Show only first 4 + duplicates for infinite if >4 */}
               {(clubData?.courtImage?.length > 4
                 ? clubData?.courtImage?.concat(
-                  clubData?.courtImage?.slice(0, 4)
-                )
+                    clubData?.courtImage?.slice(0, 4)
+                  )
                 : clubData?.courtImage
               )?.map((image, index) => (
                 <div
@@ -738,8 +764,9 @@ const Home = () => {
                     )}
                     <img
                       src={image}
-                      alt={`Gallery ${(index % clubData?.courtImage?.length) + 1
-                        }`}
+                      alt={`Gallery ${
+                        (index % clubData?.courtImage?.length) + 1
+                      }`}
                       className="w-100 h-100 object-fit-cover"
                       onLoad={() => handleImageLoad(index)}
                       onError={() => handleImageLoad(index)}
@@ -764,8 +791,8 @@ const Home = () => {
               {/* Mobile: Show one at a time, or center if <=4 */}
               {(clubData?.courtImage?.length > 4
                 ? clubData?.courtImage?.concat(
-                  clubData?.courtImage?.slice(0, 1)
-                )
+                    clubData?.courtImage?.slice(0, 1)
+                  )
                 : clubData?.courtImage
               )?.map((image, index) => (
                 <div
@@ -792,8 +819,9 @@ const Home = () => {
                     )}
                     <img
                       src={image}
-                      alt={`Gallery ${(index % clubData?.courtImage?.length) + 1
-                        }`}
+                      alt={`Gallery ${
+                        (index % clubData?.courtImage?.length) + 1
+                      }`}
                       className="w-100 h-100 object-fit-cover"
                       onLoad={() => handleImageLoad(index)}
                       onError={() => handleImageLoad(index)}
@@ -868,7 +896,7 @@ const Home = () => {
               nextSrc={galleryImages[(photoIndex + 1) % galleryImages.length]}
               prevSrc={
                 galleryImages[
-                (photoIndex + galleryImages.length - 1) % galleryImages.length
+                  (photoIndex + galleryImages.length - 1) % galleryImages.length
                 ]
               }
               onCloseRequest={() => setIsOpen(false)}
@@ -1023,7 +1051,7 @@ const Home = () => {
                     : `translateX(-${reviewSlide * 100}%)`,
                 transition:
                   reviewSlide === 0 &&
-                    reviewSlide !== getReviewData?.reviews?.length
+                  reviewSlide !== getReviewData?.reviews?.length
                     ? "none"
                     : "transform 0.5s ease",
               }}
@@ -1083,9 +1111,9 @@ const Home = () => {
               >
                 {clubData?.clubName}
                 {clubData?.address ||
-                  clubData?.city ||
-                  clubData?.state ||
-                  clubData?.zipCode
+                clubData?.city ||
+                clubData?.state ||
+                clubData?.zipCode
                   ? ", "
                   : ""}
                 {[
@@ -1105,7 +1133,7 @@ const Home = () => {
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="The Good Club Map"
+                  title="The Court Line Club Map"
                 ></iframe>
               </div>
             </div>

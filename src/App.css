@@ -1,7 +1,6 @@
 body {
-  font-family: 'Poppins', sans-serif !important;
+  font-family: "Poppins", sans-serif !important;
 }
-
 
 .App {
   text-align: center;
@@ -16,7 +15,6 @@ body {
   border-radius: 50rem; /* same as rounded-pill */
 }
 
-
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -24,7 +22,7 @@ body {
 }
 
 .active-link {
-  background-color: #333B48 !important;
+  background-color: #333b48 !important;
 }
 
 .App-header {
@@ -68,7 +66,7 @@ h1.display-5 {
 /* custom-datepicker.css */
 
 .custom-calendar {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -85,7 +83,7 @@ h1.display-5 {
   color: white !important;
   font-weight: 500;
 }
-.react-datepicker__current-month{
+.react-datepicker__current-month {
   margin-bottom: 15px !important;
 }
 
@@ -116,7 +114,6 @@ h1.display-5 {
   top: 10px;
 }
 
-
 .calendar-day-btn {
   border: none;
   background: transparent;
@@ -139,8 +136,6 @@ h1.display-5 {
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
-
-
 
 .icon-circle {
   width: 50px;
@@ -185,7 +180,7 @@ h1.display-5 {
   transform: scale(1.1);
 }
 
-.calendar-day-btn{
+.calendar-day-btn {
   width: 90px !important;
   height: 92px !important;
 }
@@ -199,8 +194,8 @@ h1.display-5 {
   visibility: visible;
   opacity: 1;
 }
-.create-match-btn{
-  background-color: #3DBE64 !important;
+.create-match-btn {
+  background-color: #3dbe64 !important;
 }
 
 /* Mobile Offcanvas Navbar Styles */
@@ -257,7 +252,7 @@ h1.display-5 {
   .navbar {
     padding: 0.75rem 0;
   }
-  
+
   .navbar .container {
     padding: 0 1rem;
   }

@@ -17,14 +17,21 @@ import {
   updateCourt,
 } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
-import { ButtonLoading, DataLoading, Loading } from "../../../helpers/loading/Loaders";
+import {
+  ButtonLoading,
+  DataLoading,
+  Loading,
+} from "../../../helpers/loading/Loaders";
 import { showError, showInfo, showSuccess } from "../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { format } from "date-fns";
 import { formatSlotTime } from "../../../helpers/Formatting";
-import { MdOutlineArrowBackIosNew, MdOutlineArrowForwardIos } from "react-icons/md";
+import {
+  MdOutlineArrowBackIosNew,
+  MdOutlineArrowForwardIos,
+} from "react-icons/md";
 
 const CourtAvailability = () => {
   const dispatch = useDispatch();
@@ -112,7 +119,6 @@ const CourtAvailability = () => {
   const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
   const businessHours = activeCourtsData?.[0]?.slot?.[0]?.businessHours || [];
 
-
   // कोर्ट सिलेक्ट (सिर्फ एक)
   const handleCourtSelect = (courtId) => {
     setSelectedCourt(courtId);
@@ -143,9 +149,15 @@ const CourtAvailability = () => {
 
     let newCourtSlots = exists
       ? courtSlots.filter((s) => s.slot._id !== slot._id)
-      : [...courtSlots, { slot, status: slot?.availabilityStatus || "available" }];
+      : [
+          ...courtSlots,
+          { slot, status: slot?.availabilityStatus || "available" },
+        ];
 
-    const newDateSlots = { ...selectedSlots[dateKey], [selectedCourt]: newCourtSlots };
+    const newDateSlots = {
+      ...selectedSlots[dateKey],
+      [selectedCourt]: newCourtSlots,
+    };
 
     let newSelectedSlots;
     if (newCourtSlots.length === 0) {
@@ -273,11 +285,11 @@ const CourtAvailability = () => {
 
       await dispatch(updateCourt(payload)).unwrap();
       // Remove only the current date's slots after successful update
-      setSelectedSlots(prev => {
+      setSelectedSlots((prev) => {
         const { [selectedDate]: _, ...rest } = prev;
         return rest;
       });
-      setSelectedCourt('');
+      setSelectedCourt("");
       setCommonStatus("");
     } catch (error) {
       showError("Failed to update slot status.");
@@ -285,8 +297,10 @@ const CourtAvailability = () => {
   };
 
   // स्क्रॉल हैंडल
-  const scrollLeft = () => scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
-  const scrollRight = () => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+  const scrollLeft = () =>
+    scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+  const scrollRight = () =>
+    scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
   // सभी सिलेक्टेड स्लॉट्स की लिस्ट (फ्लैट)
   const allSelectedSlots = Object.entries(selectedSlots).flatMap(
@@ -300,10 +314,10 @@ const CourtAvailability = () => {
   const getCurrentMonth = (date) =>
     date
       ? new Date(date)
-        .toLocaleDateString("en-US", { month: "short" })
-        .toUpperCase()
-        .split("")
-        .join("\n")
+          .toLocaleDateString("en-US", { month: "short" })
+          .toUpperCase()
+          .split("")
+          .join("\n")
       : "MONTH";
 
   return (
@@ -312,7 +326,10 @@ const CourtAvailability = () => {
         <Loading />
       ) : (
         <Container className="p-0" fluid>
-          <Row className="mx-auto bg-white shadow-sm rounded-3" style={{ height: "88vh" }}>
+          <Row
+            className="mx-auto bg-white shadow-sm rounded-3"
+            style={{ height: "88vh" }}
+          >
             {/* Left Side */}
             <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
@@ -329,10 +346,14 @@ const CourtAvailability = () => {
                       style={{
                         borderRadius: "12px",
                         minWidth: "90px",
-                        backgroundColor: selectedCourt === court._id ? "#374151" : "#F3F4F6",
+                        backgroundColor:
+                          selectedCourt === court._id ? "#374151" : "#F3F4F6",
                         color: selectedCourt === court._id ? "#FFF" : "#000",
                         fontWeight: selectedCourt === court._id ? "600" : "400",
-                        border: selectedCourt === court._id ? "2px solid #374151" : "1px solid #ccd2d9",
+                        border:
+                          selectedCourt === court._id
+                            ? "2px solid #374151"
+                            : "1px solid #ccd2d9",
                         fontSize: "12px",
                         fontFamily: "Poppins",
                       }}
@@ -385,9 +406,12 @@ const CourtAvailability = () => {
                                 setStartDate(date);
                                 const iso = date.toISOString().split("T")[0];
                                 setSelectedDate(iso);
-                                const dayName = date.toLocaleDateString("en-US", {
-                                  weekday: "short",
-                                });
+                                const dayName = date.toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    weekday: "short",
+                                  }
+                                );
                                 setSelectedDay(dayFullNames[dayName]);
                                 setIsOpen(false);
                               }}
@@ -404,7 +428,14 @@ const CourtAvailability = () => {
                   </div>
                   {/* Replace the date selector section with this code */}
                   <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
-                    <div className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill" style={{ backgroundColor: "#f3f3f5", width: "30px", height: "58px" }}>
+                    <div
+                      className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill"
+                      style={{
+                        backgroundColor: "#f3f3f5",
+                        width: "30px",
+                        height: "58px",
+                      }}
+                    >
                       <span
                         style={{
                           fontSize: "14px",
@@ -415,22 +446,49 @@ const CourtAvailability = () => {
                           letterSpacing: "0px",
                           margin: 0,
                           padding: 0,
-                          display: "block"
+                          display: "block",
                         }}
                       >
                         {getCurrentMonth(selectedDate)}
-                      </span>                    </div>
-                    <div className="d-flex gap-1" style={{ position: "relative", maxWidth: "95%" }}>
-                      <button className="btn p-2 border-0" style={{ position: "absolute", left: -65, zIndex: 10, boxShadow: "none" }} onClick={scrollLeft}><MdOutlineArrowBackIosNew className="mt-2" size={20} /></button>
-                      <div ref={scrollRef} className="d-flex gap-1" style={{ scrollBehavior: "smooth", whiteSpace: "nowrap", maxWidth: "100%", overflow: "hidden" }}>
+                      </span>{" "}
+                    </div>
+                    <div
+                      className="d-flex gap-1"
+                      style={{ position: "relative", maxWidth: "95%" }}
+                    >
+                      <button
+                        className="btn p-2 border-0"
+                        style={{
+                          position: "absolute",
+                          left: -65,
+                          zIndex: 10,
+                          boxShadow: "none",
+                        }}
+                        onClick={scrollLeft}
+                      >
+                        <MdOutlineArrowBackIosNew className="mt-2" size={20} />
+                      </button>
+                      <div
+                        ref={scrollRef}
+                        className="d-flex gap-1"
+                        style={{
+                          scrollBehavior: "smooth",
+                          whiteSpace: "nowrap",
+                          maxWidth: "100%",
+                          overflow: "hidden",
+                        }}
+                      >
                         {dates.map((d, i) => {
-                          const formatDate = (date) => date.toISOString().split("T")[0];
-                          const isSelected = formatDate(new Date(selectedDate)) === d.fullDate;
+                          const formatDate = (date) =>
+                            date.toISOString().split("T")[0];
+                          const isSelected =
+                            formatDate(new Date(selectedDate)) === d.fullDate;
 
                           // Calculate slot count for this specific date
                           const dateSlots = selectedSlots[d.fullDate] || {};
                           const slotCount = Object.values(dateSlots).reduce(
-                            (acc, courtSlots) => acc + (courtSlots?.length || 0),
+                            (acc, courtSlots) =>
+                              acc + (courtSlots?.length || 0),
                             0
                           );
 
@@ -438,18 +496,30 @@ const CourtAvailability = () => {
                             <button
                               key={i}
                               ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                              className={`calendar-day-btn mb-3 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"}`}
+                              className={`calendar-day-btn mb-3 me-1 position-relative ${
+                                isSelected ? "text-white border-0" : "bg-white"
+                              }`}
                               style={{
-                                background: isSelected
-                                  ? "#374151"
-                                  : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151"
+                                background: isSelected ? "#374151" : "#FFFFFF",
+                                boxShadow: isSelected
+                                  ? "0px 4px 4px 0px #00000040"
+                                  : "",
+                                borderRadius: "12px",
+                                color: isSelected ? "#FFFFFF" : "#374151",
                               }}
                               onClick={() => {
                                 setSelectedDate(d.fullDate);
                                 setSelectedDay(dayFullNames[d.day]);
                               }}
-                              onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
-                              onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
+                              onMouseEnter={(e) =>
+                                !isSelected &&
+                                (e.currentTarget.style.border =
+                                  "1px solid #3DBE64")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.border =
+                                  "1px solid #4949491A")
+                              }
                             >
                               <div className="text-center">
                                 <div className="date-center-date">{d.date}</div>
@@ -468,7 +538,7 @@ const CourtAvailability = () => {
                                     top: "-1px",
                                     right: "-4px",
                                     zIndex: 2,
-                                    backgroundColor: "#22c55e"
+                                    backgroundColor: "#22c55e",
                                   }}
                                 >
                                   {slotCount}
@@ -478,7 +548,18 @@ const CourtAvailability = () => {
                           );
                         })}
                       </div>
-                      <button className="btn border-0 p-2" style={{ position: "absolute", right: -26, zIndex: 10, boxShadow: "none" }} onClick={scrollRight}><MdOutlineArrowForwardIos className="mt-2" size={20} /></button>
+                      <button
+                        className="btn border-0 p-2"
+                        style={{
+                          position: "absolute",
+                          right: -26,
+                          zIndex: 10,
+                          boxShadow: "none",
+                        }}
+                        onClick={scrollRight}
+                      >
+                        <MdOutlineArrowForwardIos className="mt-2" size={20} />
+                      </button>
                     </div>
                   </div>
                   <style>
@@ -521,7 +602,11 @@ const CourtAvailability = () => {
                   <label
                     className="form-check-label"
                     htmlFor="flexSwitchCheckDefault"
-                    style={{ whiteSpace: "nowrap", fontFamily: "Poppins", color: "#626262" }}
+                    style={{
+                      whiteSpace: "nowrap",
+                      fontFamily: "Poppins",
+                      color: "#626262",
+                    }}
                   >
                     Show Unavailable Slots
                   </label>
@@ -579,7 +664,8 @@ const CourtAvailability = () => {
                         const isPast =
                           isSameDay && slotDate.getTime() < now.getTime();
                         const dateSlots = selectedSlots[selectedDate] || {};
-                        const courtSelectedSlots = dateSlots[selectedCourt] || [];
+                        const courtSelectedSlots =
+                          dateSlots[selectedCourt] || [];
                         const isSelected = courtSelectedSlots.some(
                           (t) => t?.slot?._id === slot?._id
                         );
@@ -590,34 +676,77 @@ const CourtAvailability = () => {
                         const tooltipText = isPast
                           ? "Past Time - Cannot Book"
                           : isBooked
-                            ? "Booked"
-                            : status.charAt(0).toUpperCase() + status.slice(1);
+                          ? "Booked"
+                          : status.charAt(0).toUpperCase() + status.slice(1);
 
                         const buttonEl = (
-                          <button
+                          <div
                             key={slot._id}
-                            className={`border rounded-3 slot-time-btn text-nowrap py-1 ${isBooked
-                              ? "bg-danger text-white" : ''
-
-                              }`} onClick={() => toggleTime(slot)}
-                            disabled={isDisabled}
-                            style={{
-                              backgroundColor: isSelected
-                                ? "#374151"
-                                : isBooked
+                            className="position-relative"
+                            style={{ display: "inline-block" }}
+                          >
+                            <button
+                              className={`border rounded-3 slot-time-btn text-nowrap py-1 ${
+                                isBooked ? "bg-danger text-white" : ""
+                              }`}
+                              onClick={() => toggleTime(slot)}
+                              disabled={isDisabled}
+                              style={{
+                                backgroundColor: isSelected
+                                  ? "#374151"
+                                  : isBooked
                                   ? "#dc3545"
                                   : isPast
-                                    ? "#c9cfcfff"
-                                    : showUnavailable
-                                      ? statusColorMap[status] || "#FFFFFF"
-                                      : "#FFFFFF",
-                              color: isSelected || isBooked ? "white" : "#000000",
-                              fontSize: "12px",
-                              fontFamily: "Poppins",
-                            }}
-                          >
-                            {isBooked ? "Booked" : formatSlotTime(slot.time)}
-                          </button>
+                                  ? "#c9cfcfff"
+                                  : showUnavailable
+                                  ? statusColorMap[status] || "#FFFFFF"
+                                  : "#FFFFFF",
+                                color:
+                                  isSelected || isBooked ? "white" : "#000000",
+                                fontSize: "12px",
+                                fontFamily: "Poppins",
+                                position: "relative",
+                                minWidth: "70px",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {isBooked ? "Booked" : formatSlotTime(slot.time)}
+
+                              {/* 🔥 Full diagonal X overlay */}
+                              {(status === "maintenance" ||
+                                status === "weather conditions" ||
+                                status === "staff unavailability") && (
+                                <>
+                                  {/* Line 1 — top-left to bottom-right */}
+                                  <span
+                                    style={{
+                                      position: "absolute",
+                                      top: "50%",
+                                      left: "-20%",
+                                      width: "140%",
+                                      height: "4px",
+                                      backgroundColor: "#dc3545",
+                                      transform: "rotate(45deg)",
+                                      pointerEvents: "none",
+                                    }}
+                                  ></span>
+                                  {/* Line 2 — bottom-left to top-right */}
+                                  <span
+                                    style={{
+                                      position: "absolute",
+                                      top: "50%",
+                                      left: "-20%",
+                                      width: "140%",
+                                      height: "4px",
+                                      backgroundColor: "#dc3545",
+                                      transform: "rotate(-45deg)",
+                                      pointerEvents: "none",
+                                    }}
+                                  ></span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         );
 
                         return (
@@ -638,7 +767,10 @@ const CourtAvailability = () => {
 
             {/* Right Side - Selected Slots */}
             <Col xs={12} lg={4} className="py-2 py-md-4 px-2 px-md-3">
-              <div className="bg-white rounded-3 p-3" style={{ minHeight: "40vh" }}>
+              <div
+                className="bg-white rounded-3 p-3"
+                style={{ minHeight: "40vh" }}
+              >
                 <h6 className="all-matches" style={{ color: "#374151" }}>
                   Selected Slots
                 </h6>
@@ -649,7 +781,11 @@ const CourtAvailability = () => {
                     <Form.Select
                       value={commonStatus}
                       onChange={(e) => setCommonStatus(e.target.value)}
-                      style={{ fontSize: "12px", fontFamily: "Poppins", boxShadow: "none" }}
+                      style={{
+                        fontSize: "12px",
+                        fontFamily: "Poppins",
+                        boxShadow: "none",
+                      }}
                     >
                       <option value="">Select Status</option>
                       {statusOptions.map((opt) => (
@@ -662,14 +798,21 @@ const CourtAvailability = () => {
                 )}
 
                 {/* सिलेक्टेड स्लॉट्स लिस्ट */}
-                <div className="custom-scrollbar" style={{ maxHeight: "35vh", overflowY: "auto", paddingRight: "8px" }}>
+                <div
+                  className="custom-scrollbar"
+                  style={{
+                    maxHeight: "35vh",
+                    overflowY: "auto",
+                    paddingRight: "8px",
+                  }}
+                >
                   <style jsx>{`
                     .custom-scrollbar::-webkit-scrollbar {
                       width: 8px;
                       border-radius: 3px;
                     }
                     .custom-scrollbar::-webkit-scrollbar-track {
-                      background: #F5F5F5;
+                      background: #f5f5f5;
                       border-radius: 3px;
                     }
                     .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -680,47 +823,62 @@ const CourtAvailability = () => {
                     }
                   `}</style>
                   {allSelectedSlots.length === 0 ? (
-                    <div className="text-center text-danger py-5" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                    <div
+                      className="text-center text-danger py-5"
+                      style={{ fontSize: "12px", fontFamily: "Poppins" }}
+                    >
                       No slots selected
                     </div>
                   ) : (
-                    allSelectedSlots.map(({ slot, status, date, courtId }, idx) => {
-                      const court = courts.find((c) => c._id === courtId);
-                      const dayName = new Date(date).toLocaleDateString("en-US", { weekday: "short" });
-                      const dateObj = new Date(date);
-                      const day = dateObj.getDate();
-                      const month = dateObj.toLocaleDateString("en-US", { month: "short" });
+                    allSelectedSlots.map(
+                      ({ slot, status, date, courtId }, idx) => {
+                        const court = courts.find((c) => c._id === courtId);
+                        const dayName = new Date(date).toLocaleDateString(
+                          "en-US",
+                          { weekday: "short" }
+                        );
+                        const dateObj = new Date(date);
+                        const day = dateObj.getDate();
+                        const month = dateObj.toLocaleDateString("en-US", {
+                          month: "short",
+                        });
 
-                      return (
-                        <div
-                          key={`${date}-${courtId}-${slot._id}`}
-                          className="d-flex align-items-center justify-content-between p-2 "
-                          style={{
-                            backgroundColor: "#f8f9fa",
-                            borderBottom: "1px solid #e9ecef",
-                            fontFamily: "Poppins",
-                          }}
-                        >
-                          <div className="d-flex flex-column flex-grow-1 me-2">
-                            <p className="mb-0" style={{ fontSize: "13px", fontWeight: "500", fontFamily: "Poppins" }}>
-                              {dayName} ,
-                              {day} {month} ,
-                              {slot.time?.toUpperCase()} ,
-                              {court?.courtName}
-                            </p>
-                          </div>
-                          <div className="d-flex align-items-center gap-2">
-                            <span
-                              className="py-1 ps-2 pe-2 rounded-pill"
-                              style={{
-                                fontSize: "11px",
-                                backgroundColor: statusColorMap[status] || "#6c757d",
-                                textTransform: "capitalize"
-                              }}
-                            >
-                              {status}
-                            </span>
-                            {/* <Badge
+                        return (
+                          <div
+                            key={`${date}-${courtId}-${slot._id}`}
+                            className="d-flex align-items-center justify-content-between p-2 "
+                            style={{
+                              backgroundColor: "#f8f9fa",
+                              borderBottom: "1px solid #e9ecef",
+                              fontFamily: "Poppins",
+                            }}
+                          >
+                            <div className="d-flex flex-column flex-grow-1 me-2">
+                              <p
+                                className="mb-0"
+                                style={{
+                                  fontSize: "13px",
+                                  fontWeight: "500",
+                                  fontFamily: "Poppins",
+                                }}
+                              >
+                                {dayName} ,{day} {month} ,
+                                {slot.time?.toUpperCase()} ,{court?.courtName}
+                              </p>
+                            </div>
+                            <div className="d-flex align-items-center gap-2">
+                              <span
+                                className="py-1 ps-2 pe-2 rounded-pill"
+                                style={{
+                                  fontSize: "11px",
+                                  backgroundColor:
+                                    statusColorMap[status] || "#6c757d",
+                                  textTransform: "capitalize",
+                                }}
+                              >
+                                {status}
+                              </span>
+                              {/* <Badge
                               pill
                               className="border-0 text-white"
                               style={{
@@ -732,21 +890,23 @@ const CourtAvailability = () => {
                               {status}
                             </Badge> */}
 
-                            <Button
-                              size="sm"
-                              className="p-1 border-0 bg-transparent"
-                              style={{ boxShadow: "none" }}
-                              onClick={() => handleRemoveSlot(date, courtId, slot._id)}
-                            >
-                              <FaTrash className="text-danger" size={10} />
-                            </Button>
+                              <Button
+                                size="sm"
+                                className="p-1 border-0 bg-transparent"
+                                style={{ boxShadow: "none" }}
+                                onClick={() =>
+                                  handleRemoveSlot(date, courtId, slot._id)
+                                }
+                              >
+                                <FaTrash className="text-danger" size={10} />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })
+                        );
+                      }
+                    )
                   )}
                 </div>
-
 
                 {/* कन्फर्म / कैंसिल */}
                 {allSelectedSlots.length > 0 && (
@@ -792,7 +952,7 @@ const CourtAvailability = () => {
               </div>
             </Col>
           </Row>
-        </Container >
+        </Container>
       )}
     </>
   );
