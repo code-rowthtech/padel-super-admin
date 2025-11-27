@@ -82,7 +82,7 @@ const MatchPlayer = ({
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const User = getUserFromSession();
-    const [selectedGender, setSelectedGender] = useState("Mixed Doubles");
+    const [selectedGender, setSelectedGender] = useState("Mixed Double");
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 

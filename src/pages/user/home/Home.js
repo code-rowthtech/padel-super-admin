@@ -22,7 +22,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getReviewClub, getUserClub, getMapData } from "../../../redux/user/club/thunk";
 import { Avatar } from "@mui/material";
-import { getLogo } from "../../../redux/user/auth/authThunk";
+import { getLogo, getUserProfile } from "../../../redux/user/auth/authThunk";
 import { ReviewCard } from "./ReviewCard";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -64,6 +64,7 @@ const Home = () => {
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
+    dispatch(getUserProfile());
     window.scrollTo(0, 0);
   }, []);
 

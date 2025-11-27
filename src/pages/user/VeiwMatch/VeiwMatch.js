@@ -159,7 +159,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
     const teamBData = matchesData?.data?.teamB || [];
     const clubData = matchesData?.data?.clubId || {};
     const [showModal, setShowModal] = useState(false);
-    const [teamName, setTeamName] = useState("");
+    const [teamName, setTeamName] = useState('teamA');
     const [showShareDropdown, setShowShareDropdown] = useState(false);
 
     const matchId = id || state?.match?._id || match?._id;
@@ -236,10 +236,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         [dispatch, matchId]
     );
 
-    const handleAdd = useCallback(() => {
-        setTeamName(teamAData.length < 2 ? "teamA" : "teamB");
+    const handleAdd = useCallback((team) => {
+        setTeamName(team === "A" ? "teamA" : "teamB");
         setShowModal(true);
-    }, [teamAData.length]);
+    }, []);
+
 
     const formatTime = (timeStr) => {
         return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");

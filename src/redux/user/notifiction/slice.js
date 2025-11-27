@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData, getNotificationView, readAllNotification, getQuestionData, getPlayerLevel } from "./thunk";
+import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData, getNotificationView, readAllNotification, getQuestionData, getPlayerLevel, getPlayerLevelBySkillLevel } from "./thunk";
 
 const initialState = {
   getCount: null,
@@ -114,6 +114,19 @@ const UserNotificationSlice = createSlice({
         state.getPlayerLevel = action.payload;
       })
       .addCase(getPlayerLevel.rejected, (state, action) => {
+        state.getPlayerLevelLoading = false;
+        state.getPlayerLevelError = action.payload;
+      })
+
+      .addCase(getPlayerLevelBySkillLevel.pending, (state) => {
+        state.getPlayerLevelLoading = true;
+        state.getPlayerLevelError = null;
+      })
+      .addCase(getPlayerLevelBySkillLevel.fulfilled, (state, action) => {
+        state.getPlayerLevelLoading = false;
+        state.getPlayerLevel = action.payload;
+      })
+      .addCase(getPlayerLevelBySkillLevel.rejected, (state, action) => {
         state.getPlayerLevelLoading = false;
         state.getPlayerLevelError = action.payload;
       })
