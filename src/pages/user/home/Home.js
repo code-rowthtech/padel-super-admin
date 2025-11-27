@@ -24,6 +24,8 @@ import { getReviewClub, getUserClub, getMapData } from "../../../redux/user/club
 import { Avatar } from "@mui/material";
 import { getLogo } from "../../../redux/user/auth/authThunk";
 import { ReviewCard } from "./ReviewCard";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const Home = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,6 +38,8 @@ const Home = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
+  console.log(clubData, 'clubData');
+
   const getReviewData = store?.userClub?.getReviewData?.data;
   const mapApiData = store?.userClub?.mapData?.data;
   const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
@@ -442,44 +446,24 @@ const Home = () => {
                     }}
                   >
                     {clubData?.clubName || "The Court Line Club"}{" "}
-                    {clubData?.description
-                      ?.replace(/\\r\\n/g, "\n")
-                      ?.replace(/\r\n/g, "\n")
-                      ?.replace(/\\n/g, "\n")
-                      ?.split("\n")
-                      ?.map((line, index) => {
-                        if (line.startsWith("#")) {
-                          return (
-                            <div
-                              key={index}
-                              style={{
-                                fontSize: "15px",
-                                fontFamily: "Poppins",
-                                fontWeight: "600",
-                                marginTop: index > 0 ? "8px" : "0",
-                                marginBottom: "4px",
-                              }}
-                            >
-                              {line.replace(/^#+\s*/, "")}
-                            </div>
-                          );
-                        }
-                        return line ? (
-                          <div
-                            key={index}
-                            style={{
-                              fontSize: "13px",
-                              fontFamily: "Poppins",
-                              fontWeight: "400",
-                              marginBottom: "2px",
-                            }}
-                          >
-                            {line}
-                          </div>
-                        ) : (
-                          <br key={index} />
-                        );
-                      })}
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        h1: ({ ...props }) => <h1 style={{ fontSize: 20, fontWeight: 700 }} {...props} />,
+                        h2: ({ ...props }) => <h2 style={{ fontSize: 18, fontWeight: 600 }} {...props} />,
+                        h3: ({ ...props }) => <h3 style={{ fontSize: 16, fontWeight: 600 }} {...props} />,
+                        p: ({ ...props }) => <p style={{ fontSize: 14, marginBottom: 6 }} {...props} />,
+                        li: ({ ...props }) => <li style={{ marginLeft: 18, fontSize: 14 }} {...props} />,
+                        strong: ({ ...props }) => <strong style={{ fontWeight: 700 }} {...props} />,
+                        em: ({ ...props }) => <em style={{ fontStyle: "italic" }} {...props} />,
+                      }}
+                    >
+                      {clubData?.description
+                        ?.replace(/\\r\\n/g, "\n")
+                        ?.replace(/\r\n/g, "\n")
+                        ?.replace(/\\n/g, "\n")}
+                    </ReactMarkdown>
+
                   </p>
                   {/* <p
                     className="add_font_small_mobile"
