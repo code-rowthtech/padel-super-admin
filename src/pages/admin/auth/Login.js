@@ -81,7 +81,6 @@ const LoginPage = () => {
   };
 
   const { pathname } = useLocation();
-  console.log("Current pathname:", pathname);
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("userEmail");
@@ -89,14 +88,11 @@ const LoginPage = () => {
       setFormData((prev) => ({ ...prev, email: savedEmail }));
       localStorage.removeItem("userEmail");
     }
-
     if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
       localStorage.removeItem("clubFormData");
       sessionStorage.removeItem("registerId");
-      console.log("Removed for login/signup");
     } else if (pathname === "/admin/dashboard") {
       localStorage.removeItem("clubFormData");
-      console.log("Removed for dashboard");
     }
   }, [pathname]);
 

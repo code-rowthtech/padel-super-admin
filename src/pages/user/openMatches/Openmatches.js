@@ -106,11 +106,11 @@ const Openmatches = () => {
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
-      if (User?.token) {
+      if (User?.user?.token) {
         dispatch(getMatchesUser(payload));
       }
     }, 300),
-    [dispatch, User?.token]
+    [dispatch, User?.user?.token]
   );
 
   const handleClickOutside = (e) => {

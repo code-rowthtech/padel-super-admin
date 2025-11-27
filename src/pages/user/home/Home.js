@@ -38,7 +38,6 @@ const Home = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
-  console.log(store?.userAuth?.user, 'clubData');
   const User = useSelector((state) => state?.userAuth)
 
   const getReviewData = store?.userClub?.getReviewData?.data;
@@ -65,11 +64,11 @@ const Home = () => {
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
-    if (User?.token) {
+    if (User?.user?.token) {
       dispatch(getUserProfile());
     }
     window.scrollTo(0, 0);
-  }, [User?.token]);
+  }, [User?.user?.token]);
 
   useEffect(() => {
     if (clubData && clubData._id) {

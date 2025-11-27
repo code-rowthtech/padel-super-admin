@@ -46,7 +46,6 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
-  console.log({teamName});
 
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
@@ -59,7 +58,6 @@ const UpdatePlayers = ({
   const getPlayerLevelsLoading = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
-  console.log({ playerLevels });
   useEffect(() => {
     if (!showModal) return;
     if (!skillLevel) return;
@@ -71,7 +69,6 @@ const UpdatePlayers = ({
           code: l.code,
           title: l.question,
         }));
-        console.log(levels,'sonaaa');
 
         setPlayerLevels(levels);
       })
@@ -111,7 +108,6 @@ const UpdatePlayers = ({
       ),
     }));
   }, [playerLevels]);
-  console.log({ levelOptions });
   const validateField = (name, value) => {
     if (name === "name" && !value.trim()) return "Name is required";
     if (name === "email" && !value.trim()) return "Email is required";
@@ -346,7 +342,11 @@ const UpdatePlayers = ({
             </label>
             <div style={inputStyle("level")}>
               {getPlayerLevelsLoading === true ? (
-                <DataLoading height={50}/>
+                <div className="text-center">
+                  <div className="spinner-grow" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
               ) : (
                 <Select
                   options={levelOptions}
