@@ -255,18 +255,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         { player: teamBData[1], index: 3, removable: true, team: "B" },
     ];
 
-    const createMatchesHandle = () => {
-        if (user?.id || user?._id) {
-            navigate("/create-matches", { state: { selectedDate } });
-        } else {
-            navigate("/login", {
-                state: {
-                    redirectTo: "/create-matches",
-                    selectedDate,
-                },
-            });
-        }
-    };
+
 
     return (
         <>
@@ -523,6 +512,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                 setShowModal={setShowModal}
                 matchData={matchesData?.data || match}
                 skillLevel={matchesData?.data?.skillLevel}
+                selectedDate={selectedDate}
 
             />
 
