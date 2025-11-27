@@ -10,8 +10,6 @@ import { createBooking } from "../../../redux/user/booking/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import {
     MdOutlineDeleteOutline,
-    MdKeyboardDoubleArrowUp,
-    MdKeyboardDoubleArrowDown,
     MdKeyboardArrowDown,
     MdKeyboardArrowUp,
 } from "react-icons/md";
@@ -76,24 +74,6 @@ const OpenmatchPayment = () => {
     const [selectedPayment, setSelectedPayment] = useState("");
     const [error, setError] = useState({});
     const [isLoading, setIsLoading] = useState(false);
-
-    // LIVE addedPlayers from localStorage (in case of refresh)
-    const [addedPlayers, setAddedPlayers] = useState(() => {
-        const saved = localStorage.getItem("addedPlayers");
-        return saved ? JSON.parse(saved) : {};
-    });
-
-    // Sync with localStorage changes
-    useEffect(() => {
-        const sync = () => {
-            const saved = localStorage.getItem("addedPlayers");
-            setAddedPlayers(saved ? JSON.parse(saved) : {});
-        };
-        sync();
-        window.addEventListener("storage", sync);
-        return () => window.removeEventListener("storage", sync);
-    }, []);
-
     const dispatch = useDispatch();
     const { state } = useLocation();
     const navigate = useNavigate();
@@ -104,7 +84,6 @@ const OpenmatchPayment = () => {
     );
     const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
     );
-    console.log({ createId })
     const logo = localStorage.getItem("logo")
         ? JSON.parse(localStorage.getItem("logo"))
         : null;
@@ -112,6 +91,28 @@ const OpenmatchPayment = () => {
     const updateProfile = JSON.parse(
         localStorage.getItem("updateprofile") || "{}"
     );
+    const [addedPlayers, setAddedPlayers] = useState(() => {
+        const saved = localStorage.getItem("addedPlayers");
+        return saved ? JSON.parse(saved) : {};
+    });
+
+    useEffect(() => {
+        const sync = () => {
+            const saved = localStorage.getItem("addedPlayers");
+            setAddedPlayers(saved ? JSON.parse(saved) : {});
+        };
+        sync();
+        window.addEventListener("storage", sync);
+        return () => window.removeEventListener("storage", sync);
+    }, []);
+
+    useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
+        return () => document.body.contains(script) && document.body.removeChild(script);
+    }, []);
 
     const [name, setName] = useState(User?.name || updateProfile?.fullName || "");
     const [phoneNumber, setPhoneNumber] = useState(
@@ -129,10 +130,9 @@ const OpenmatchPayment = () => {
         finalSkillDetails = [],
         selectedDate = {},
         selectedCourts = [],
-        addedPlayers: stateAddedPlayers = {}, // fallback from navigation
+        addedPlayers: stateAddedPlayers = {},
     } = state || {};
 
-    // Prefer state.addedPlayers (from navigation), fallback to localStorage
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
             ? stateAddedPlayers
@@ -156,116 +156,121 @@ const OpenmatchPayment = () => {
     const handleBooking = async () => {
         setError({});
 
-        if (!selectedPayment)
-            return setError({ paymentMethod: "Select a payment method." });
-        if (!name?.trim()) return setError({ name: "Name is required." });
-        if (!email?.trim()) return setError({ email: "Email is required." });
-        if (!/^\S+@\S+\.\S+$/.test(email))
-            return setError({ email: "Invalid email." });
+        // Validation
+        if (!selectedPayment) return setError({ paymentMethod: "Select payment method" });
+        if (!name?.trim()) return setError({ name: "Name required" });
+        if (!email?.trim() || !/^\S+@\S+\.\S+$/.test(email)) return setError({ email: "Valid email required" });
 
         const cleanPhone = phoneNumber?.replace(/^\+91\s*/, "").trim();
-        if (
-            !cleanPhone ||
-            cleanPhone.length !== 10 ||
-            !/^[6-9]\d{9}$/.test(cleanPhone)
-        )
-            return setError({ phoneNumber: "Valid 10-digit phone required." });
+        if (!cleanPhone || cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone))
+            return setError({ phoneNumber: "Valid 10-digit phone required" });
 
-        if (!selectedCourts?.length || selectedCourts.some((c) => !c.time?.length))
-            return setError({ general: "Select at least one slot." });
+        if (localTotalSlots === 0) return setError({ general: "Select at least one slot" });
 
         setIsLoading(true);
 
-        const formattedMatch = {
-            slot: selectedCourts.flatMap((court) =>
-                court.time.map((timeSlot) => ({
+        try {
+            // Step 1: Login if user not logged in
+            if (!User?.name || !User?.phoneNumber || !User?.email) {
+                await dispatch(loginUserNumber({ phoneNumber: cleanPhone, name, email })).unwrap();
+            }
+
+            // Step 2: Prepare match payload (but don't call API yet)
+            const formattedMatch = {
+                slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
                     slotId: timeSlot._id,
-                    businessHours:
-                        slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
-                            time: t.time,
-                            day: t.day,
-                        })) || [],
+                    businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
                     slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
                     courtName: court.courtName,
                     courtId: court._id,
-                    bookingDate: new Date(
-                        court.date || selectedDate.fullDate
-                    ).toISOString(),
-                }))
-            ),
-            clubId: savedClubId,
-            matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
-            ...(finalSkillDetails.length > 0 && {
-                skillLevel: finalSkillDetails[0] || "Open Match",
-                skillDetails:
-                    finalSkillDetails
-                        .slice(1)
-                        .map((d, i) => (i === 0 && Array.isArray(d) ? d.join(", ") : d)) ||
-                    [],
-            }),
-            matchStatus: "open",
-            matchTime: selectedCourts
-                .flatMap((c) => c.time.map((t) => t.time))
-                .join(","),
-            teamA,
-            teamB,
-        };
-
-        console.log("Formatted Match Data:", formattedMatch);
-
-        try {
-            if (!User?.name || !User?.phoneNumber || !User?.email) {
-                const loginRes = await dispatch(
-                    loginUserNumber({ phoneNumber: cleanPhone, name, email })
-                ).unwrap();
-                if (loginRes?.status !== "200") throw new Error("Login failed.");
-                sessionStorage.setItem("user", JSON.stringify(loginRes.response));
-            }
-
-            const matchRes = await dispatch(createMatches(formattedMatch)).unwrap();
-            dispatch(getUserProfile());
-            if (!matchRes?.match?.clubId) throw new Error("Match creation failed.");
-
-            const bookingPayload = {
-                name: userData?.name || User?.name,
-                phoneNumber: userData?.phoneNumber || User?.phoneNumber,
-                email: userData?.email || User?.email,
-                register_club_id: savedClubId,
-                ownerId: owner_id,
-                paymentMethod: selectedPayment,
-                bookingType: "open Match",
-                bookingStatus: "upcoming",
-                openMatchId: createId,
-                slot: selectedCourts.flatMap((court) =>
-                    court.time.map((timeSlot) => ({
-                        slotId: timeSlot._id,
-                        businessHours:
-                            slotData?.data?.[0]?.slot?.[0]?.businessHours?.map((t) => ({
-                                time: t.time,
-                                day: t.day,
-                            })) || [],
-                        slotTimes: [
-                            { time: timeSlot.time, amount: timeSlot.amount || 1000 },
-                        ],
-                        courtName: court.courtName || "Court",
-                        courtId: court._id,
-
-                        bookingDate: new Date(
-                            court.date || selectedDate.fullDate
-                        ).toISOString(),
-                    }))
-                ),
+                    bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
+                }))),
+                clubId: savedClubId,
+                matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
+                ...(finalSkillDetails.length > 0 && {
+                    skillLevel: finalSkillDetails[0] || "Open Match",
+                    skillDetails: finalSkillDetails.slice(1).map((d, i) => (i === 0 && Array.isArray(d) ? d.join(", ") : d)) || [],
+                }),
+                matchStatus: "open",
+                matchTime: selectedCourts.flatMap(c => c.time.map(t => t.time)).join(","),
+                teamA,
+                teamB,
             };
 
-            await dispatch(createBooking(bookingPayload)).unwrap();
-            dispatch(getUserProfile());
+            // Step 3: Open Razorpay — Payment First
+            const options = {
+                key: "rzp_test_1DP5mmOlF5G5ag",
+                amount: localGrandTotal * 100,
+                currency: "INR",
+                name: clubData?.clubName || "Open Match",
+                description: "Open Match Booking",
+                image: logo || undefined,
+                prefill: { name, email, contact: cleanPhone },
+                theme: { color: "#001B76" },
 
-            // Only clear localStorage after both APIs succeed
-            localStorage.removeItem("addedPlayers");
-            window.dispatchEvent(new Event("playersUpdated")); // Notify other components
-            navigate("/open-matches");
+                // Payment Success → Ab APIs call karo
+                handler: async function (response) {
+                    try {
+                        // Step 4: Create Match
+                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                        const matchId = matchResponse?.match?._id;
+                        if (!matchId) throw new Error("Failed to create match");
+
+                        // Step 5: Create Booking with openMatchId
+                        const bookingPayload = {
+                            name,
+                            phoneNumber: cleanPhone,
+                            email,
+                            register_club_id: savedClubId,
+                            ownerId: owner_id,
+                            paymentMethod: selectedPayment,
+                            bookingType: "open Match",
+                            bookingStatus: "upcoming",
+                            openMatchId: matchId,
+                            slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
+                                slotId: timeSlot._id,
+                                businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
+                                slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
+                                courtName: court.courtName || "Court",
+                                courtId: court._id,
+                                bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
+                            }))),
+                        };
+
+                        const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
+                        if (!bookingResponse?.success) throw new Error("Booking failed after payment");
+
+                        // Step 6: Success — Cleanup & Navigate
+                        localStorage.removeItem("addedPlayers");
+                        window.dispatchEvent(new Event("playersUpdated"));
+                        navigate("/open-matches", { replace: true });
+
+                    } catch (err) {
+                        console.error("Post-payment error:", err);
+                        alert(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
+                        // Optional: redirect to support page or show ticket form
+                    }
+                },
+
+                modal: {
+                    ondismiss: () => {
+                        setIsLoading(false);
+                        setError({ general: "Payment cancelled by user" });
+                    }
+                }
+            };
+
+            const razorpay = new window.Razorpay(options);
+
+            razorpay.on("payment.failed", (response) => {
+                setError({ general: response.error?.description || "Payment failed. Try again." });
+                setIsLoading(false);
+            });
+
+            razorpay.open();
+
         } catch (err) {
-            setError({ booking: err.message || "Booking failed." });
+            setError({ general: err.message || "Something went wrong" });
             setIsLoading(false);
         }
     };

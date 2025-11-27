@@ -334,7 +334,7 @@ const BookingHistory = () => {
                                 <InputGroup.Text
                                     className=" border-0 px-1 d-flex align-items-center justify-content-end"
                                     onClick={() => setDateRange([null, null])}
-                                    style={{ cursor: "pointer",background:"transparent" }}
+                                    style={{ cursor: "pointer", background: "transparent" }}
                                 >
                                     <FaTimes className="text-danger" />
                                 </InputGroup.Text>
@@ -600,31 +600,43 @@ const BookingHistory = () => {
                                                                     >
                                                                         Rejected
                                                                     </span>
-                                                                ) : booking?.bookingStatus === "upcoming" &&
-                                                                    activeTab !== "upcoming" ? (
+                                                                ) : booking?.bookingStatus === "cancelled" ? (
                                                                     <span
-                                                                        className="text-info"
                                                                         style={{
+                                                                            color: "red",
                                                                             fontSize: "12px",
                                                                             fontWeight: "600",
                                                                             fontFamily: "Poppins",
                                                                         }}
                                                                     >
-                                                                        Upcoming
+                                                                        Cancelled
                                                                     </span>
-                                                                ) : (
-                                                                    <MdOutlineCancel
-                                                                        size={20}
-                                                                        onClick={() => {
-                                                                            setSelectedBooking(booking);
-                                                                            setChangeCancelShow(true);
-                                                                            setCourtData({ slotItem, booking });
-                                                                            setModalCancel(true);
-                                                                        }}
-                                                                        className="text-danger"
-                                                                        style={{ cursor: "pointer" }}
-                                                                    />
-                                                                )}
+                                                                )
+                                                                    : booking?.bookingStatus === "upcoming" &&
+                                                                        activeTab !== "upcoming" ? (
+                                                                        <span
+                                                                            className="text-info"
+                                                                            style={{
+                                                                                fontSize: "12px",
+                                                                                fontWeight: "600",
+                                                                                fontFamily: "Poppins",
+                                                                            }}
+                                                                        >
+                                                                            Upcoming
+                                                                        </span>
+                                                                    ) : (
+                                                                        <MdOutlineCancel
+                                                                            size={20}
+                                                                            onClick={() => {
+                                                                                setSelectedBooking(booking);
+                                                                                setChangeCancelShow(true);
+                                                                                setCourtData({ slotItem, booking });
+                                                                                setModalCancel(true);
+                                                                            }}
+                                                                            className="text-danger"
+                                                                            style={{ cursor: "pointer" }}
+                                                                        />
+                                                                    )}
                                                             </>
                                                         ) : (
                                                             booking?.bookingStatus === "completed" && (
@@ -639,11 +651,9 @@ const BookingHistory = () => {
                                                                     Completed
                                                                 </span>
                                                             )
-                                                        )}
-                                                        {
-                                                            console.log(booking, 'bookingbookingbooking')
-
+                                                        )
                                                         }
+
                                                         <span style={{ minWidth: "24px", display: "flex", justifyContent: "center" }}>
                                                             <FiEye
                                                                 size={20}
@@ -696,11 +706,11 @@ const BookingHistory = () => {
                                                                             setStatusData({ booking, slotItem });
                                                                         } else if (
                                                                             booking?.bookingStatus === "refunded" ||
-                                                                            booking?.bookingStatus === "rejected"
+                                                                            booking?.bookingStatus === "rejected" || booking?.bookingStatus === "cancelled"
                                                                         ) {
                                                                             setAcceptedRejected(true);
                                                                             setStatusData({ booking, slotItem });
-                                                                        } else if (booking?.bookingStatus === "in-progress") {
+                                                                        } else if (booking?.bookingStatus === "in-progress" ) {
                                                                             setModalCancel(true);
                                                                             setCourtData({ slotItem, booking });
                                                                         } else {
