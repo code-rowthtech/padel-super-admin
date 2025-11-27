@@ -55,6 +55,7 @@ const UpdatePlayers = ({
   const getPlayerLevelsData = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevel?.data || []
   );
+  console.log({ matchId });
   useEffect(() => {
     if (!showModal) return;
     if (!skillLevel) return;
@@ -70,6 +71,11 @@ const UpdatePlayers = ({
       })
       .catch(() => setPlayerLevels([]));
   }, [showModal, skillLevel]);
+
+  const isGenderDisabled = (optionGender) => {
+    const matchGender = matchId?.gender?.toLowerCase();
+    return matchGender && matchGender !== optionGender.toLowerCase();
+  };
 
 
 
@@ -147,7 +153,7 @@ const UpdatePlayers = ({
               setShowModal(false);
 
               // WAIT for match data
-              dispatch(getMatchesView(matchId?._d))
+              dispatch(getMatchesView(matchId?._id))
                 .unwrap()
                 .then((matchRes) => {
                   // EXTRACT CLUB ID PROPERLY
@@ -204,6 +210,12 @@ const UpdatePlayers = ({
     borderRadius: "6px",
     boxShadow: "none",
   });
+
+  useEffect(() => {
+    if (!matchId?.gender) return;
+    setFormData((prev) => ({ ...prev, gender: matchId.gender }));
+  }, [matchId?.gender]);
+
 
   return (
     <Modal open={showModal} onClose={() => setShowModal(false)}>
@@ -289,24 +301,36 @@ const UpdatePlayers = ({
           <div className="mb-3">
             <label className="form-label">Gender</label>
             <div className="d-flex gap-4">
-              {["Male", "Female", "Other"].map((g) => (
-                <div key={g} className="form-check">
+              {[
+                { value: "Male Only", label: "Male Only" },
+                { value: "Female Only", label: "Female Only" },
+                { value: "Mixed Only", label: "Mixed Only" },
+              ].map((g) => (
+                <div key={g.value} className="form-check">
                   <input
                     className="form-check-input"
                     type="radio"
                     name="gender"
-                    id={g}
-                    value={g}
-                    checked={formData.gender === g}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
+                    id={g.value}
+                    value={g.value}
+                    disabled={isGenderDisabled(g.value)}
+                    checked={formData.gender === g.value}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, gender: e.target.value }))
+                    }
                   />
-                  <label className="form-check-label" htmlFor={g}>
-                    {g}
+                  <label
+                    className={`form-check-label ${isGenderDisabled(g.value) ? "text-muted" : ""}`}
+                    htmlFor={g.value}
+                  >
+                    {g.label} {isGenderDisabled(g.value)}
                   </label>
                 </div>
               ))}
             </div>
           </div>
+
+
 
           {/* Level */}
           <div className="mb-4">
