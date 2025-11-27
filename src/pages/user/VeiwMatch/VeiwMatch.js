@@ -38,7 +38,7 @@ const PlayerSlot = memo(function PlayerSlot({
                             height: 62,
                             border: team === "A" ? "1px solid #3DBE64" : "1px solid #1F41BB",
                         }}
-                        onClick={onAdd}
+                        onClick={() => onAdd(team)}
                     >
                         <i
                             className="bi bi-plus fs-1"
@@ -446,7 +446,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                         isRemovable={s.removable}
                                         team={s.team}
                                         onRemove={handleRemove}
-                                        onAdd={handleAdd}
+                                        onAdd={()=>handleAdd(s.team)}
                                         openMatches={matchesData?.data}
                                     />
                                 ))}
@@ -461,7 +461,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                         isRemovable={s.removable}
                                         team={s.team}
                                         onRemove={handleRemove}
-                                        onAdd={handleAdd}
+                                        onAdd={()=>handleAdd(s.team)}
                                     />
                                 ))}
                             </div>
