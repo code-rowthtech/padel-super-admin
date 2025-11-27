@@ -148,7 +148,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
-
+    console.log(match, 'payal');
     const { id } = useParams(); // Get match ID from URL
     const { state } = useLocation();
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
@@ -158,9 +158,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
     const clubData = matchesData?.data?.clubId || {};
-
     const [showModal, setShowModal] = useState(false);
-    const [teamName, setTeamName] = useState("");
+    const [teamName, setTeamName] = useState('teamA');
     const [showShareDropdown, setShowShareDropdown] = useState(false);
 
     const matchId = id || state?.match?._id || match?._id;
@@ -171,6 +170,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         }
     }, [matchId, dispatch]);
 
+
+
     const formatDate = (dateString) => {
         if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
         const date = new Date(dateString);
@@ -179,73 +180,45 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         return { day, formattedDate };
     };
 
-    // const calculateEndRegistrationTime = () => {
-    //     if (!matchesData?.data?.slot || matchesData.data.slot.length === 0) {
-    //         return "Today at 10:00 PM";
-    //     }
-
-    //     const allTimes = matchesData.data.slot.flatMap((court) =>
-    //         court.slotTimes.map((slot) => slot.time)
-    //     );
-
-    //     const latestTime = allTimes.reduce((latest, timeStr) => {
-    //         const [hour, period] = timeStr.split(" ");
-    //         let hourNum = parseInt(hour);
-    //         if (period.toLowerCase() === "pm" && hourNum !== 12) hourNum += 12;
-    //         if (period.toLowerCase() === "am" && hourNum === 12) hourNum = 0;
-    //         return Math.max(latest, hourNum);
-    //     }, 0);
-
-    //     let endHour = latestTime + (allTimes.length > 1 ? 1 : 1);
-    //     const period = endHour >= 12 ? "PM" : "AM";
-    //     const displayHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
-
-    //     return `Today at ${displayHour}:00 ${period}`;
-    // };
-
     const calculateEndRegistrationTime = () => {
-        const slots = matchesData?.data?.slot;
-        if (!slots || slots.length === 0) return "Today at 10:00 PM";
+  const slots = matchesData?.data?.slot;
+  if (!slots || slots.length === 0) return "Today at 10:00 PM";
 
-        // Collect all slot times
-        const allTimes = slots.flatMap((court) =>
-            court.slotTimes.map((slot) => slot.time)
-        );
+  // Collect all slot times
+  const allTimes = slots.flatMap((court) =>
+    court.slotTimes.map((slot) => slot.time)
+  );
 
-        // Find latest time in 24h format (in minutes)
-        const latestMinutes = allTimes.reduce((latest, timeStr) => {
-            const [hourStr, period] = timeStr.split(" ");
-            let hour = parseInt(hourStr);
+  // Convert to absolute minutes
+  const timesInMinutes = allTimes.map((t) => {
+    const [timePart, period] = t.split(" ");
+    const [hourStr, minuteStr = "0"] = timePart.split(":");
 
-            // convert to 24h
-            if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
-            if (period.toLowerCase() === "am" && hour === 12) hour = 0;
+    let hour = parseInt(hourStr);
+    let minute = parseInt(minuteStr);
 
-            const minutes = hour * 60;
-            return Math.max(latest, minutes);
-        }, 0);
+    if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
+    if (period.toLowerCase() === "am" && hour === 12) hour = 0;
 
-        // Add 1 hour AFTER last slot
-        let endMinutes = latestMinutes + 60;
+    return hour * 60 + minute;
+  });
 
-        // SUBTRACT 15 min for registration cutoff
-        endMinutes -= 15;
+  // Latest match start time
+  const latestMinutes = Math.max(...timesInMinutes);
 
-        // Convert minutes → hour + minute + AM/PM
-        let finalHour24 = Math.floor(endMinutes / 60);
-        let finalMin = endMinutes % 60;
+  // Subtract 10 minutes (change to 15 if needed)
+  let endMinutes = latestMinutes - 10;
+  if (endMinutes < 0) endMinutes += 24 * 60; // handle midnight wrap
 
-        const period = finalHour24 >= 12 ? "PM" : "AM";
+  const endHour24 = Math.floor(endMinutes / 60);
+  const endMin = endMinutes % 60;
 
-        let displayHour =
-            finalHour24 > 12 ? finalHour24 - 12 :
-                finalHour24 === 0 ? 12 :
-                    finalHour24;
+  const period = endHour24 >= 12 ? "PM" : "AM";
+  const displayHour = endHour24 % 12 === 0 ? 12 : endHour24 % 12;
+  const displayMinutes = String(endMin).padStart(2, "0");
 
-        const minuteStr = finalMin.toString().padStart(2, "0");
-
-        return `Today at ${displayHour}:${minuteStr} ${period}`;
-    };
+  return `Today at ${displayHour}:${displayMinutes} ${period}`;
+};
 
 
     const matchDate = matchesData?.data?.matchDate
@@ -263,10 +236,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         [dispatch, matchId]
     );
 
-    const handleAdd = useCallback(() => {
-        setTeamName(teamAData.length < 2 ? "teamA" : "teamB");
+    const handleAdd = useCallback((team) => {
+        setTeamName(team === "A" ? "teamA" : "teamB");
         setShowModal(true);
-    }, [teamAData.length]);
+    }, []);
+
 
     const formatTime = (timeStr) => {
         return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
@@ -430,14 +404,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                             <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
                                 ₹{" "}
-                                {matchesData?.data?.slot
-                                    ?.reduce((total, court) => {
-                                        return (
-                                            total +
-                                            court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0)
-                                        );
-                                    }, 0)
-                                    .toFixed(0) || 0}
+                                {Number(
+                                    matchesData?.data?.slot?.reduce((total, court) => {
+                                        return total + court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0);
+                                    }, 0) || 0
+                                ).toLocaleString("en-IN")}
                             </p>
                         </div>
                     </div>
@@ -537,33 +508,19 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                         </div>
                     </div>
                 </div>
-                {match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
-                    <div className="d-flex justify-content-center align-items-center">
-                        <button
-                            className="btn shadow w-100 border-0 create-match-btn mt-lg-2 py-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
-                            onClick={createMatchesHandle}
-                            style={{
-                                background:
-                                    "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                                fontSize: "14px",
-                                fontFamily: "Poppins",
-                                fontWeight: "500",
-                            }}
-                            aria-label="Create open matches"
-                        >
-                            Create Open Matches
-                        </button>
-                    </div>) : null}
+
 
             </div>
 
             {/* Modal */}
             <UpdatePlayers
                 showModal={showModal}
-                matchId={matchId}
+                matchId={match}
                 teamName={teamName}
                 setShowModal={setShowModal}
-                match={match}
+                matchData={matchesData?.data}
+                skillLevel={match?.skillLevel}
+
             />
         </>
     );

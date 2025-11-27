@@ -95,6 +95,7 @@ const Openmatches = () => {
   const reviewData = useSelector(
     (state) => state.userClub?.getReviewData?.data
   );
+  const User = useSelector((state) => state?.userAuth);
   const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
   const [showModal, setShowModal] = useState(false);
   const [matchId, setMatchId] = useState(null);
@@ -105,9 +106,11 @@ const Openmatches = () => {
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
-      dispatch(getMatchesUser(payload));
+      if (User?.token) {
+        dispatch(getMatchesUser(payload));
+      }
     }, 300),
-    [dispatch]
+    [dispatch, User?.token]
   );
 
   const handleClickOutside = (e) => {
@@ -339,7 +342,7 @@ const Openmatches = () => {
         }}
         onClick={() => {
           setShowModal(true);
-          setMatchId(match?._id);
+          setMatchId(match);
           setTeamName(name);
         }}
       >
@@ -1011,7 +1014,7 @@ const Openmatches = () => {
                                           color: "#1F41BB",
                                         }}
                                       >
-                                        {calculateMatchPrice(match?.slot) || 0}
+                                        {Number(calculateMatchPrice(match?.slot) || 0).toLocaleString('en-IN')}
                                       </span>
                                       <button
                                         className="btn rounded-pill d-flex justify-content-center align-items-center text-dark p-0 border-0"
@@ -1642,6 +1645,7 @@ const Openmatches = () => {
         selectedDate={selectedDate}
         selectedLevel={selectedLevel}
         selectedTime={selectedTime}
+        skillLevel={matchId?.skillLevel}
       />
     </div>
   );

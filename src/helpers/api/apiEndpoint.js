@@ -30,7 +30,8 @@ export const GET_NOTIFICATION_USER_DATA =
 export const GET_NOTIFICATION_USER_COUNT = "/api/userNotification/ureadCount";
 export const READ_ALL_NOTIFICATION_USER =
   "/api/userNotification/markAsAllAsRead";
-  export const PLAYER_LEVEL = "/api/questions/getQuestionsBySkillLevel"
+export const PLAYER_LEVEL = "/api/questions/getQuestionsBySkillLevel"
+export const PLAYER_LEVEL_BY_SKILL_LEVEL = "/api/playerLevel/getPlayerLevelBySKillLevel";
 
 // question creatematche step 
 export const GET_QUESTION_LIST = "/api/questions/getSurveySteps";
@@ -104,3 +105,5 @@ export const CREATE_OPEN_MATCH = "/api/openmatch/createOpenMatch ";
 
 export const SEARCH_USER_BY_PHONE_NUMBER =
   "/api/booking/getCustomerDataByPhoneNumber";
+// ----------------------------------------------Map API----------------------------------//
+export const MAP_API = "/api/googleMap/GetgoogleMap"; 

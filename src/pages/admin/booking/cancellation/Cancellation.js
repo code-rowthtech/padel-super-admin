@@ -29,6 +29,7 @@ import {
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 import { formatDate, formatTime } from "../../../../helpers/Formatting";
 import {
+  bookingCount,
   getBookingByStatus,
   getBookingDetailsById,
   updateBookingStatus,
@@ -67,22 +68,41 @@ const Cancellation = () => {
 
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
-  // Fetch bookings when tab changes or valid date range selected
+  const totalItems = getBookingData?.totalItems || 0;
   const sendDate = startDate && endDate;
+
+  // Store counts in state to persist across tab changes
+  const [counts, setCounts] = useState({
+    request: 0,
+    cancelled: 0,
+    rejected: 0,
+  });
+
+  const requestCount = sendDate && tab === 0 ? totalItems : counts.request;
+  const cancelledCount = sendDate && tab === 1 ? totalItems : counts.cancelled;
+  const rejectedCount = sendDate && tab === 2 ? totalItems : counts.rejected;
   useEffect(() => {
     dispatch(resetBookingData());
     const payload = { status, ownerId, page: currentPage };
     if (sendDate) {
       const formatToYYYYMMDD = (date) => {
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
       };
       payload.startDate = formatToYYYYMMDD(startDate);
       payload.endDate = formatToYYYYMMDD(endDate);
     }
-    dispatch(getBookingByStatus(payload));
+    dispatch(getBookingByStatus(payload)).then((res) => {
+      if (res.payload && !sendDate) {
+        setCounts({
+          request: res.payload.request || 0,
+          cancelled: res.payload.cancelled || 0,
+          rejected: res.payload.rejected || 0,
+        });
+      }
+    });
   }, [tab, sendDate, status, currentPage]);
   // Booking details handler
   const handleBookingDetails = async (id) => {
@@ -98,7 +118,6 @@ const Cancellation = () => {
       setLoadingBookingId(null);
     }
   };
-
 
   const totalRecords = getBookingData?.totalItems || 1;
   const handlePageChange = (pageNumber) => {
@@ -131,14 +150,38 @@ const Cancellation = () => {
                   sx={{
                     "& .MuiTab-root": {
                       fontSize: { xs: "13px", sm: "14px", lg: "15px" },
-                      minWidth: { xs: "80px", sm: "100px" },
+                      minWidth: { xs: "90px", sm: "130px" },
                       textTransform: "none",
                     },
                   }}
                 >
-                  <Tab className="fw-medium table-data" label="Request" />
-                  <Tab className="fw-medium table-data" label="Cancelled" />
-                  <Tab className="fw-medium table-data" label="Rejected" />
+                  <Tab
+                    label={
+                      <span>
+                        Request{" "}
+                        <b style={{ color: "#16a34a" }}>({requestCount})</b>
+                      </span>
+                    }
+                    className="fw-medium table-data"
+                  />
+                  <Tab
+                    label={
+                      <span>
+                        Cancelled{" "}
+                        <b style={{ color: "#16a34a" }}>({cancelledCount})</b>
+                      </span>
+                    }
+                    className="fw-medium table-data"
+                  />
+                  <Tab
+                    label={
+                      <span>
+                        Rejected{" "}
+                        <b style={{ color: "#16a34a" }}>({rejectedCount})</b>
+                      </span>
+                    }
+                    className="fw-medium table-data"
+                  />
                 </Tabs>
               </AppBar>
             </Box>
@@ -152,7 +195,7 @@ const Cancellation = () => {
                     width: "40px",
                     height: "38px",
                     border: "1px solid #dee2e6",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                   onClick={() => setShowDatePicker(true)}
                 >
@@ -166,7 +209,7 @@ const Cancellation = () => {
                     maxWidth: "280px",
                     height: "38px",
                     border: "1px solid #dee2e6",
-                    gap: "8px"
+                    gap: "8px",
                   }}
                 >
                   <div className="px-2">
@@ -255,7 +298,7 @@ const Cancellation = () => {
                           >
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                              item.userId.name.slice(1)
+                                item.userId.name.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
@@ -313,7 +356,7 @@ const Cancellation = () => {
                           <span className="mobile-card-value">
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                              item.userId.name.slice(1)
+                                item.userId.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>
@@ -426,7 +469,7 @@ const Cancellation = () => {
               id: bookingDetails._id,
               status: "rejected",
               cancellationReasonForOwner: reason,
-              requestType: 'admin'
+              requestType: "admin",
             })
           )
             .unwrap()
@@ -456,7 +499,7 @@ const Cancellation = () => {
               refundDescription,
               refundDate,
               refundAmount: amount,
-              requestType: 'admin'
+              requestType: "admin",
             })
           )
             .unwrap()

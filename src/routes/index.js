@@ -95,6 +95,9 @@ const CreateMatch = React.lazy(() =>
   import("../pages/admin/open-matches/create/CreateMatch")
 );
 const Privacy = React.lazy(() => import("../pages/admin/privacy/Privacy"));
+const PrivacyPolicy = React.lazy(() => import("../pages/user/legalpages/PrivacyPolicy"));
+const ManageCookies = React.lazy(() => import("../pages/user/legalpages/ManageCookies"));
+const Sitemap = React.lazy(() => import("../pages/user/legalpages/Sitemap"));
 const Sameprivacy = React.lazy(() =>
   import("../pages/admin/privacy/Sameprivacy")
 );
@@ -195,8 +198,16 @@ const AllRoutes = () => {
           element: <Navigate to="/not-found" replace />,
         },
         {
-          path: "sameprivacy",
-          element: LoadComponent(Sameprivacy),
+          path: "privacy-policy",
+          element: LoadComponent(PrivacyPolicy),
+        },
+        {
+          path: "sitemap",
+          element: LoadComponent(Sitemap),
+        },
+        {
+          path: "manage-cookies",
+          element: LoadComponent(ManageCookies),
         },
         {
           path: "not-found",

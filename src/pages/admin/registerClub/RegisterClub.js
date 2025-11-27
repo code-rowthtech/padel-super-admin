@@ -6,12 +6,27 @@ import Images from "./steps/Images";
 import Pricing from "./steps/Pricing";
 
 const defaultFormData = {
-  courtName: "", address: "", city: "", state: "", zip: "", courtCount: "", description: "",
-  linkedinLink: "", xlink: "", facebookLink: "", instagramLink: "",
+  courtName: "",
+  address: "",
+  city: "",
+  state: "",
+  zip: "",
+  courtCount: "",
+  description: "",
+  linkedinLink: "",
+  xlink: "",
+  facebookLink: "",
+  instagramLink: "",
   courtTypes: { indoor: false, outdoor: false },
-  features: { changingRooms: false, parking: false, shower: false, chillPad: false, coachingAvailable: false },
-  images: [],                     // <-- **File[]** (only while wizard is open)
-  previewUrls: [],                // <-- URLs that survive page reload / update
+  features: {
+    changingRooms: false,
+    parking: false,
+    shower: false,
+    chillPad: false,
+    coachingAvailable: false,
+  },
+  images: [], // <-- **File[]** (only while wizard is open)
+  previewUrls: [], // <-- URLs that survive page reload / update
   businessHours: {
     Monday: { start: "06:00 AM", end: "11:00 PM" },
     Tuesday: { start: "06:00 AM", end: "11:00 PM" },
@@ -27,7 +42,7 @@ const defaultFormData = {
 const RegisterClub = () => {
   const dispatch = useDispatch();
   const registerID = sessionStorage.getItem("registerId");
-  
+
   // Initialize step from localStorage or default logic
   const [step, setStep] = useState(() => {
     const savedStep = localStorage.getItem("clubRegistrationStep");
@@ -36,9 +51,9 @@ const RegisterClub = () => {
     }
     return registerID ? 3 : 1;
   });
-  
+
   const [updateImage, setUpdateImage] = useState(false);
-  
+
   // Save step to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("clubRegistrationStep", step.toString());
@@ -52,7 +67,7 @@ const RegisterClub = () => {
         return {
           ...defaultFormData,
           ...parsed,
-          images: [], 
+          images: [],
           previewUrls: parsed.previewUrls || [],
         };
       } catch (e) {
@@ -83,7 +98,13 @@ const RegisterClub = () => {
   const renderStep = () => {
     switch (step) {
       case 1:
-        return <VenueDetails formData={formData} onNext={goNext} updateFormData={updateFormData} />;
+        return (
+          <VenueDetails
+            formData={formData}
+            onNext={goNext}
+            updateFormData={updateFormData}
+          />
+        );
       case 2:
         return (
           <Images
@@ -115,7 +136,11 @@ const RegisterClub = () => {
     }
   };
 
-  return <ClubRegistrationLayout currentStep={step}>{renderStep()}</ClubRegistrationLayout>;
+  return (
+    <ClubRegistrationLayout currentStep={step}>
+      {renderStep()}
+    </ClubRegistrationLayout>
+  );
 };
 
 export default RegisterClub;

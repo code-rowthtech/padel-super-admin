@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
-import { loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { getUserProfile, loginUserNumber } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
@@ -22,16 +22,20 @@ const Payment = ({ className = "" }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
+  console.log(totalSlots, 'totalSlots')
   const user = getUserFromSession();
+  const store = useSelector((state) => state?.userAuth);
+  console.log(store, 'users');
+
   const bookingStatus = useSelector((state) => state?.userBooking);
   const userLoading = useSelector((state) => state?.userAuth);
   const logo = JSON.parse(localStorage.getItem("logo"));
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
-  const [name, setName] = useState(user?.name || updateName?.fullName || "");
+  const [name, setName] = useState(user?.name || updateName?.fullName || store?.user?.response?.name || "");
   const [phoneNumber, setPhoneNumber] = useState(
     updateName?.phone || user?.phoneNumber || updateName?.phone ? `+91 ${user.phoneNumber}` : ""
   );
-  const [email, setEmail] = useState(updateName?.email || user?.email || "");
+  const [email, setEmail] = useState(updateName?.email || user?.email || store?.user?.response?.email || "");
   const [selectedPayment, setSelectedPayment] = useState("");
   const [errors, setErrors] = useState({
     name: "",
@@ -257,7 +261,8 @@ const Payment = ({ className = "" }) => {
 
             if (bookingResponse?.success || bookingResponse?.message?.includes("created")) {
               setLocalSelectedCourts([]);
-              setModal(true); // Success modal dikhao
+              setModal(true); // Success modal 
+              dispatch(getUserProfile());
             } else {
               throw new Error(bookingResponse?.message || "Booking failed");
             }
@@ -612,7 +617,7 @@ const Payment = ({ className = "" }) => {
             {/* Desktop Booking Summary Title */}
             <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
               <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
-                Booking Summary
+                Booking Summary{totalSlots > 0 ? ` (${totalSlots} Slot selected)` : ''}
               </h6>
             </div>
 
@@ -652,7 +657,7 @@ const Payment = ({ className = "" }) => {
                           <div>
                             ₹
                             <span className="ps-1" style={{ fontWeight: "600", fontSize: "14px" }}>
-                              {slot.amount}
+                              {slot?.amount ? Number(slot?.amount).toLocaleString("en-IN") : 0}
                             </span>
                             <MdOutlineDeleteOutline
                               className="ms-2 text-white"
@@ -731,7 +736,7 @@ const Payment = ({ className = "" }) => {
             </div>
 
             {/* Total Section */}
-            {localTotalSlots > 0 && (
+            {/* {localTotalSlots > 0 && (
               <>
                 <div className="d-lg-none py-0 pt-1">
                   <div
@@ -755,6 +760,74 @@ const Payment = ({ className = "" }) => {
                       ₹{localGrandTotal}
                     </span>
                   </div>
+                </div>
+              </>
+            )} */}
+            {totalSlots > 0 && (
+              <>
+                <div className="d-lg-none py-0 pt-1">
+                  <div
+                    className="d-flex justify-content-between align-items-center px-3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsExpanded(!isExpanded);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div className="d-flex flex-column">
+                      <span
+                        className="text-white"
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          fontFamily: "Poppins",
+                        }}
+                      >
+                        Total to Pay
+                      </span>
+                      <span
+                        className="text-white"
+                        style={{
+                          fontSize: "12px",
+                          color: "#e5e7eb",
+                          fontFamily: "Poppins",
+                        }}
+                      >
+                        Total Slot: {totalSlots}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span
+                        className="text-white"
+                        style={{
+                          fontSize: "20px",
+                          fontWeight: "600",
+                          fontFamily: "Poppins",
+                        }}
+                      >
+                        ₹{Number(grandTotal).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-lg-flex">
+                  <p
+                    className="d-flex flex-column mb-0"
+                    style={{ fontSize: "16px", fontWeight: "600" }}
+                  >
+                    Total to Pay{" "}
+                    {/* <span style={{ fontSize: "13px", fontWeight: "500" }}>
+                        Total slots {totalSlots}
+                      </span> */}
+                  </p>
+                  <p
+                    className="mb-0"
+                    style={{ fontSize: "25px", fontWeight: "600" }}
+                  >
+                    ₹{Number(grandTotal).toLocaleString('en-IN')}
+                  </p>
                 </div>
               </>
             )}
