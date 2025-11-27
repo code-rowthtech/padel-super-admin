@@ -74,9 +74,11 @@ const MatchPlayer = ({
     finalSkillDetails,
     totalAmount, slotError,
     userGender,
-    userSkillLevel,
+    userSkillLevel,selectedAnswers,      
+  dynamicSteps,          
+  finalLevelStep,
 }) => {
-    console.log({ selectedDate })
+    console.log(selectedAnswers,dynamicSteps,finalLevelStep,'musannegi');
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const User = getUserFromSession();
@@ -227,8 +229,8 @@ const MatchPlayer = ({
     const canBook = playerCount >= 2 && matchTime.length > 0;
 
     const displayUserSkillLevel = userSkillLevel ||
-        (finalSkillDetails.length > 0
-            ? finalSkillDetails[finalSkillDetails.length - 1]
+        (selectedAnswers.length > 0
+            ? selectedAnswers[selectedAnswers.length - 1]
             : "A");
 
     const handleBookNow = () => {
@@ -252,7 +254,7 @@ const MatchPlayer = ({
                 selectedDate,
                 grandTotal: totalAmount,
                 totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-                finalSkillDetails,selectedGender,
+                selectedAnswers,selectedGender,dynamicSteps,finalLevelStep,
                 addedPlayers: latestPlayers, // Use latest from localStorage
             },
         });
@@ -440,7 +442,7 @@ const MatchPlayer = ({
                                 Level
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
-                                {finalSkillDetails[0] || "Open Match"}
+                                {selectedAnswers[0] || "Open Match"}
                             </p>
                         </div>
 
@@ -450,7 +452,7 @@ const MatchPlayer = ({
                                 Your share
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
-                                ₹ {totalAmount}
+                               ₹ {totalAmount.toLocaleString('en-IN')}
                             </p>
                         </div>
                     </div>
@@ -806,7 +808,7 @@ const MatchPlayer = ({
                 setShowAddMeForm={setShowAddMeForm}
                 setActiveSlot={setActiveSlot}
                 setAddedPlayers={setParentAddedPlayers}
-                skillDetails={finalSkillDetails}
+                skillDetails={selectedAnswers}
                 userSkillLevel={userSkillLevel}
             />
         </>

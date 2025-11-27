@@ -114,7 +114,6 @@ const CreateMatches = () => {
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
   const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
   const [dynamicSteps, setDynamicSteps] = useState([]);
-  console.log({ getPlayerLevelsLoading })
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
   const [slotError, setSlotError] = useState("");
@@ -1681,6 +1680,11 @@ const CreateMatches = () => {
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
               userGender={userGender}
+
+              // Yeh NAYA PROP ADD KARO
+              selectedAnswers={selectedAnswers}           // ← Yeh bhejo
+              dynamicSteps={dynamicSteps}                 // ← Yeh bhi bhejo (questions ke saath)
+              finalLevelStep={finalLevelStep}             // ← Agar dynamic last step hai toh yeh bhi
             />
           )}
         </Col>

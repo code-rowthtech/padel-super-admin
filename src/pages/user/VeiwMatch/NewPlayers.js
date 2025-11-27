@@ -31,7 +31,6 @@ const NewPlayers = ({
   userSkillLevel
 }) => {
   const [profileLoading, setProfileLoading] = useState(true);
-  const [userSkills, setUserSkills] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,9 +44,7 @@ const NewPlayers = ({
   const userLoading = useSelector(
     (state) => state?.userAuth?.userSignUpLoading
   );
-  const { finalSkillDetails = [] } = useSelector(
-    (state) => state.location?.state || {}
-  );
+
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
 
 
@@ -56,7 +53,6 @@ const NewPlayers = ({
     title: level.question
   }));
 
-  const fallbackUserSkillLevel = finalSkillDetails[finalSkillDetails.length - 1];
 
   const getAddedPlayers = () =>
     JSON.parse(localStorage.getItem("addedPlayers") || "{}");
