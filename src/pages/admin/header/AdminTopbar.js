@@ -40,13 +40,11 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   const [notifications, setNotifications] = useState([]);
   const [notificationCount, setNotificationCount] = useState();
   const [openNoteId, setOpenNoteId] = useState(null);
-  console.log({ notificationCount });
   const userId = getOwnerFromSession()?._id;
   const notificationData = useSelector((state) => state.notificationData?.getNotificationData);
   const notificationLoading = useSelector((state) => state.notificationData?.getCountLoading);
 
   const navigate = useNavigate();
-  console.log({ notificationCount });
   dayjs.extend(relativeTime);
   dayjs.extend(updateLocale);
 
@@ -83,12 +81,10 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     });
 
     socket.on("connect", () => {
-      console.log("Connected:", socket.id);
       socket.emit("registerAdmin", userId);
     });
 
     socket.on("adminNotification", (data) => {
-      console.log('adminNotification',data);
       setNotifications((prev) => {
         const exists = prev.some((n) => n._id === data._id);
         if (exists) return prev;
@@ -104,7 +100,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
       });
     });
     socket.on("notificationCountUpdate", (data) => {
-      console.log('notificationCountUpdate', data);
       setNotificationCount(data);
     });
 
@@ -133,7 +128,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
       .then(() => {
         navigate(note?.notificationUrl)
         socket.on("notificationCountUpdate", (data) => {
-          console.log('notificationCountUpdate', data);
           setNotificationCount(data);
         });
         dispatch(getNotificationData()).unwrap().then((res) => {
@@ -141,12 +135,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             setNotifications(res.notifications);
           }
         });
-        // dispatch(getNotificationCount()).unwrap().then((res) => {
-        //   console.log(res?.unreadCount, 'resres');
-        //   if (res?.unreadCount) {
-        //     setNotificationCount(res);
-        //   }
-        // });
       });
   };
 
@@ -156,7 +144,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     dispatch(readAllNotification()).unwrap()
       .then(() => {
         socket.on("notificationCountUpdate", (data) => {
-          console.log('notificationCountUpdate', data);
           setNotificationCount(data);
         });
         dispatch(getNotificationData()).unwrap().then((res) => {
@@ -378,7 +365,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                             </div>
                           )}
                         </div>
-                        {console.log({ note })}
                         {/* Right: Toggle Icon */}
                         <div
                           className="mt-2"
@@ -453,7 +439,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             className="table-data fw-medium"
             style={{ color: "#374151", minWidth: "200px" }}
           >
-           
+
             <Dropdown.Item as={NavLink} to="/admin/customer-reviews">
               Review & Rating
             </Dropdown.Item>

@@ -23,7 +23,6 @@ const PlayerSlot = memo(function PlayerSlot({
 }) {
     const user = player?.userId || player;
     const tooltipId = `player-${team}-${index}`;
-    console.log(user, tooltipId, 'ppppppp')
     if (!player) {
         // Show "Add Me" only for specific empty slots
         if (
@@ -148,13 +147,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
-    console.log(match, 'payal');
     const { id } = useParams(); // Get match ID from URL
     const { state } = useLocation();
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
-    console.log({ matchesData });
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
     const clubData = matchesData?.data?.clubId || {};
@@ -189,36 +186,35 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
             court.slotTimes.map((slot) => slot.time)
         );
 
-        // Find latest time in 24h format (in minutes)
-        const latestMinutes = allTimes.reduce((latest, timeStr) => {
-            const [hourStr, period] = timeStr.split(" ");
-            let hour = parseInt(hourStr);
+        // Convert to absolute minutes
+        const timesInMinutes = allTimes.map((t) => {
+            const [timePart, period] = t.split(" ");
+            const [hourStr, minuteStr = "0"] = timePart.split(":");
 
-            // convert to 24h
+            let hour = parseInt(hourStr);
+            let minute = parseInt(minuteStr);
+
             if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
             if (period.toLowerCase() === "am" && hour === 12) hour = 0;
 
-            const minutes = hour * 60;
-            return Math.max(latest, minutes);
-        }, 0);
+            return hour * 60 + minute;
+        });
 
-        let endMinutes = latestMinutes + 60;
+        // Latest match start time
+        const latestMinutes = Math.max(...timesInMinutes);
 
-        endMinutes -= 15;
+        // Subtract 10 minutes (change to 15 if needed)
+        let endMinutes = latestMinutes - 10;
+        if (endMinutes < 0) endMinutes += 24 * 60; // handle midnight wrap
 
-        let finalHour24 = Math.floor(endMinutes / 60);
-        let finalMin = endMinutes % 60;
+        const endHour24 = Math.floor(endMinutes / 60);
+        const endMin = endMinutes % 60;
 
-        const period = finalHour24 >= 12 ? "PM" : "AM";
+        const period = endHour24 >= 12 ? "PM" : "AM";
+        const displayHour = endHour24 % 12 === 0 ? 12 : endHour24 % 12;
+        const displayMinutes = String(endMin).padStart(2, "0");
 
-        let displayHour =
-            finalHour24 > 12 ? finalHour24 - 12 :
-                finalHour24 === 0 ? 12 :
-                    finalHour24;
-
-        const minuteStr = finalMin.toString().padStart(2, "0");
-
-        return `Today at ${displayHour}:${minuteStr} ${period}`;
+        return `Today at ${displayHour}:${displayMinutes} ${period}`;
     };
 
 
@@ -524,7 +520,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
 
             />
 
-          
+
         </>
     );
 };

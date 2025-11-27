@@ -45,96 +45,42 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     setPreviewImages(previews);
   }, [formData.images]);
 
-  // Save images to localStorage when they change
+  // Save images metadata to localStorage (not the actual image data)
   useEffect(() => {
     if (formData.images && formData.images.length > 0) {
-      // Convert File objects to base64 for storage
-      const saveImages = async () => {
-        const imagePromises = formData.images.map((file) => {
-          return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) =>
-              resolve({
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                data: e.target.result,
-              });
-            reader.readAsDataURL(file);
-          });
-        });
-
-        const imageData = await Promise.all(imagePromises);
-        localStorage.setItem("clubImages", JSON.stringify(imageData));
-      };
-
-      saveImages();
+      const imageMetadata = formData.images.map((file) => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      }));
+      try {
+        localStorage.setItem("clubImagesMetadata", JSON.stringify(imageMetadata));
+      } catch (error) {
+        console.warn("Failed to save image metadata to localStorage:", error);
+      }
     }
   }, [formData.images]);
 
-  // Save logo to localStorage when it changes
+  // Save logo metadata to localStorage (not the actual logo data)
   useEffect(() => {
     if (formData.logo && formData.logo instanceof File) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const logoData = {
-          name: formData.logo.name,
-          size: formData.logo.size,
-          type: formData.logo.type,
-          data: e.target.result,
-        };
-        localStorage.setItem("clubLogo", JSON.stringify(logoData));
+      const logoMetadata = {
+        name: formData.logo.name,
+        size: formData.logo.size,
+        type: formData.logo.type,
+        lastModified: formData.logo.lastModified
       };
-      reader.readAsDataURL(formData.logo);
+      try {
+        localStorage.setItem("clubLogoMetadata", JSON.stringify(logoMetadata));
+      } catch (error) {
+        console.warn("Failed to save logo metadata to localStorage:", error);
+      }
     }
   }, [formData.logo]);
 
-  // Restore images from localStorage on component mount (only when NOT in update mode)
-  useEffect(() => {
-    if (!updateImage) {
-      const savedImages = localStorage.getItem("clubImages");
-      if (savedImages && (!formData.images || formData.images.length === 0)) {
-        try {
-          const imageData = JSON.parse(savedImages);
-          const restoredFiles = imageData.map((img) => {
-            const byteCharacters = atob(img.data.split(",")[1]);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            return new File([byteArray], img.name, { type: img.type });
-          });
-
-          updateFormData({ images: restoredFiles });
-        } catch (error) {
-          console.error("Error restoring images:", error);
-        }
-      }
-
-      const savedLogo = localStorage.getItem("clubLogo");
-      if (savedLogo && !logoPreview) {
-        try {
-          const logoData = JSON.parse(savedLogo);
-          const byteCharacters = atob(logoData.data.split(",")[1]);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const restoredLogo = new File([byteArray], logoData.name, {
-            type: logoData.type,
-          });
-
-          const preview = URL.createObjectURL(restoredLogo);
-          setLogoPreview({ file: restoredLogo, preview });
-          updateFormData({ logo: restoredLogo });
-        } catch (error) {
-          console.error("Error restoring logo:", error);
-        }
-      }
-    }
-  }, [updateImage]);
+  // Note: Removed localStorage restoration of actual image files to prevent quota exceeded errors
+  // Images will need to be re-selected if user navigates away and comes back
 
   useEffect(() => {
     if (updateImage) {
@@ -155,8 +101,19 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const currentCount = formData.images?.length || 0;
+    const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
+
     if (currentCount + files.length > MAX_IMAGES) {
       showInfo(`You can upload a maximum of ${MAX_IMAGES} images.`);
+      return;
+    }
+
+    // Check file sizes
+    const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
+    if (oversizedFiles.length > 0) {
+      const fileDetails = oversizedFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)}MB)`).join(', ');
+      showInfo(`Each image size must be up to 1MB. Please compress: ${fileDetails}`);
+      e.target.value = "";
       return;
     }
 
@@ -189,12 +146,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       } else {
         newFiles.push(file);
       }
-      console.log(
-        isDuplicateInExisting,
-        isDuplicateInCurrentSelection,
-        "pankaj"
-      );
     });
+
     if (duplicateFiles.length > 0) {
       showInfo(
         `Duplicate image detected: ${duplicateFiles.join(
@@ -254,6 +207,13 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
+    if (file.size > MAX_FILE_SIZE) {
+      showInfo(`Logo size must be up to 1MB. Current size: ${(file.size / (1024 * 1024)).toFixed(2)}MB. Please compress the image.`);
+      e.target.value = "";
+      return;
+    }
+
     // Revoke old preview
     if (logoPreview?.preview && !logoPreview.isSaved) {
       URL.revokeObjectURL(logoPreview.preview);
@@ -273,7 +233,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     setLogoPreview(null);
     updateFormData({ logo: null });
     // Remove from localStorage
-    localStorage.removeItem("clubLogo");
+    localStorage.removeItem("clubLogoMetadata");
   };
 
   /* -------------------  BUSINESS HOURS  ------------------- */
@@ -538,8 +498,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     apiFormData.append("clubName", formData.courtName || "");
     apiFormData.append(
       "courtType",
-      `${formData.courtTypes.indoor ? "Indoor" : ""}${
-        formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
+      `${formData.courtTypes.indoor ? "Indoor" : ""}${formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
       }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
     );
     apiFormData.append("courtCount", formData.courtCount || "");
@@ -582,14 +541,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       } else {
         result = await dispatch(registerClub(apiFormData)).unwrap();
       }
-      console.log({ result });
-      console.log({ result });
       // Check status 200
       if (result?.status === 200 || result?.success === true) {
-        console.log("Success:", result);
         onNext(); // Only call if status is 200
       } else {
-        console.log("Non-200 response:", result);
         // showInfo(result?.message || "Something went wrong.");
       }
     } catch (error) {

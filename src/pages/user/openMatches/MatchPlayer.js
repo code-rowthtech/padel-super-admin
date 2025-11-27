@@ -74,11 +74,10 @@ const MatchPlayer = ({
     finalSkillDetails,
     totalAmount, slotError,
     userGender,
-    userSkillLevel,selectedAnswers,      
-  dynamicSteps,          
-  finalLevelStep,
+    userSkillLevel, selectedAnswers,
+    dynamicSteps,
+    finalLevelStep,
 }) => {
-    console.log(selectedAnswers,dynamicSteps,finalLevelStep,'musannegi');
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const User = getUserFromSession();
@@ -160,60 +159,43 @@ const MatchPlayer = ({
         return { day, formattedDate };
     };
 
-    // const calculateEndRegistrationTime = () => {
-    //     if (!selectedCourts?.length) return "Today at 10:00 PM";
-    //     const allTimes = selectedCourts.flatMap((c) => c.time.map((s) => s.time));
-    //     const latestHour = allTimes.reduce((max, t) => {
-    //         const [h, p] = t.split(" ");
-    //         let hour = parseInt(h);
-    //         if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
-    //         if (p.toLowerCase() === "am" && hour === 12) hour = 0;
-    //         return Math.max(max, hour);
-    //     }, 0);
-    //     const endHour = latestHour + 1;
-    //     const period = endHour >= 12 ? "PM" : "AM";
-    //     const displayHour =
-    //         endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
-    //     return `Today at ${displayHour}:00 ${period}`;
-    // };
-
     const calculateEndRegistrationTime = () => {
         if (!selectedCourts?.length) return "Today at 10:00 PM";
 
-        // Collect all times
-        const allTimes = selectedCourts.flatMap((c) =>
-            c.time.map((s) => s.time)
+        // Get all start times
+        const allTimes = selectedCourts.flatMap(c =>
+            c.time.map(s => s.time)
         );
 
         // Convert to minutes since midnight
-        const timesInMinutes = allTimes.map((t) => {
-            const [h, p] = t.split(" ");
+        const timesInMinutes = allTimes.map(t => {
+            const [timePart, period] = t.split(" ");
+            const [h, m = "0"] = timePart.split(":");
 
             let hour = parseInt(h);
-            if (p.toLowerCase() === "pm" && hour !== 12) hour += 12;
-            if (p.toLowerCase() === "am" && hour === 12) hour = 0;
+            let minute = parseInt(m);
 
-            return hour * 60; // minute precision
+            if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
+            if (period.toLowerCase() === "am" && hour === 12) hour = 0;
+
+            return hour * 60 + minute;
         });
 
-        // Latest time
+        // Find latest match start time
         const latestMinutes = Math.max(...timesInMinutes);
 
-        // Subtract 15 minutes
-        let endMinutes = latestMinutes - 15;
+        // Subtract 10 minutes for registration cut-off
+        let endMinutes = latestMinutes - 10;
         if (endMinutes < 0) endMinutes += 24 * 60;
 
-        // Convert back to 12-hour format
         const endHour24 = Math.floor(endMinutes / 60);
         const endMin = endMinutes % 60;
 
         const period = endHour24 >= 12 ? "PM" : "AM";
-        const displayHour =
-            endHour24 % 12 === 0 ? 12 : endHour24 % 12;
-
+        const displayHour = endHour24 % 12 === 0 ? 12 : endHour24 % 12;
         const displayMinutes = String(endMin).padStart(2, "0");
 
-        return `Today at ${displayHour}:${displayMinutes} ${period}`;
+        return `Registration closes at ${displayHour}:${displayMinutes} ${period}`;
     };
 
 
@@ -223,7 +205,6 @@ const MatchPlayer = ({
     const matchTime = selectedCourts.length
         ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
         : "";
-    console.log({ selectedDate })
 
     const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
     const canBook = playerCount >= 2 && matchTime.length > 0;
@@ -254,7 +235,7 @@ const MatchPlayer = ({
                 selectedDate,
                 grandTotal: totalAmount,
                 totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-                selectedAnswers,selectedGender,dynamicSteps,finalLevelStep,
+                selectedAnswers, selectedGender, dynamicSteps, finalLevelStep,
                 addedPlayers: latestPlayers, // Use latest from localStorage
             },
         });
@@ -452,7 +433,7 @@ const MatchPlayer = ({
                                 Your share
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
-                               ₹ {totalAmount.toLocaleString('en-IN')}
+                                ₹ {totalAmount.toLocaleString('en-IN')}
                             </p>
                         </div>
                     </div>

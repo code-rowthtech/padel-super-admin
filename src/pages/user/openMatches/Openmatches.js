@@ -96,6 +96,7 @@ const Openmatches = () => {
   const reviewData = useSelector(
     (state) => state.userClub?.getReviewData?.data
   );
+  const User = useSelector((state) => state?.userAuth);
   const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
   const [showModal, setShowModal] = useState(false);
   const [matchId, setMatchId] = useState(null);
@@ -106,9 +107,11 @@ const Openmatches = () => {
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
-      dispatch(getMatchesUser(payload));
+      if (User?.user?.token) {
+        dispatch(getMatchesUser(payload));
+      }
     }, 300),
-    [dispatch]
+    [dispatch, User?.user?.token]
   );
 
   const handleClickOutside = (e) => {

@@ -147,7 +147,6 @@ const NewPlayers = ({
         // Trigger custom event for real-time update
         window.dispatchEvent(new Event("playersUpdated"));
 
-        console.log("Player added with ID:", playerData._id); // Debug log
 
         // ---- UI cleanup ----
         setFormData({

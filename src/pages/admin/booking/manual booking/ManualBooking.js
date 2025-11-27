@@ -45,7 +45,6 @@ const ManualBooking = () => {
   } = useSelector((state) => state.manualBooking);
   const searchUserData = useSelector((state) => state.searchUserByNumber.getSearchData);
   const searchUserDataLoading = useSelector((state) => state.searchUserByNumber.getSearchLoading);
-  console.log({ searchUserData });
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -236,7 +235,6 @@ const ManualBooking = () => {
       sessionStorage.removeItem(KEY);
     }
   }, [selectedSlots]);
-  console.log({ selectedCourts });
 
   useEffect(() => {
     if (ownerClubData?.[0]?._id) {
@@ -332,7 +330,6 @@ const ManualBooking = () => {
       setSelectedSlots({});
       sessionStorage.removeItem(KEY);
     } catch (error) {
-      console.log("Booking failed:", error);
     }
   };
 
@@ -420,7 +417,7 @@ const ManualBooking = () => {
               <FaArrowLeft className="me-2" /> Back
             </Button>
           </div>
-          <Row className="mx-auto  bg-white shadow-sm rounded-3" style={{height:"83vh"}}>
+          <Row className="mx-auto  bg-white shadow-sm rounded-3" style={{ height: "83vh" }}>
             <Col xs={12} lg={8} className="p-2 p-md-4">
               {/* Court Selector */}
               <div className="mb-3 mb-md-4">
@@ -681,15 +678,6 @@ const ManualBooking = () => {
                               const isBooked = slot?.status === "booked";
                               const isAvailable = slot?.availabilityStatus === "available";
                               const hasAmount = slot?.amount && slot?.amount !== 0;
-
-                              console.log(`Slot ${slot.time}:`, {
-                                availabilityStatus: slot.availabilityStatus,
-                                isPast,
-                                isBooked,
-                                isAvailable,
-                                hasAmount,
-                              });
-
                               return {
                                 slot,
                                 isPast,
@@ -794,15 +782,15 @@ const ManualBooking = () => {
                       ),
                     0
                   ) >= 4 && (
-                    <Button
-                      size="sm"
-                      className="rounded-pill border-0 text-primary bg-white"
-                      onClick={clearSessionStorage}
-                      style={{ fontSize: "12px", padding: "4px 10px" }}
-                    >
-                      Clear All
-                    </Button>
-                  )}
+                      <Button
+                        size="sm"
+                        className="rounded-pill border-0 text-primary bg-white"
+                        onClick={clearSessionStorage}
+                        style={{ fontSize: "12px", padding: "4px 10px" }}
+                      >
+                        Clear All
+                      </Button>
+                    )}
                 </div>
                 <div className={`${Object.keys(selectedSlots)?.length === 0 ? '' : 'bg-light'}`}
                   style={{
