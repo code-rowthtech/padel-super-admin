@@ -1742,7 +1742,7 @@ const Booking = ({ className = "" }) => {
 
               <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
-                  Booking Summary{totalSlots > 0 ? ` (${totalSlots} selected)` : ''}
+                  Booking Summary{totalSlots > 0 ? ` (${totalSlots} Slot selected)` : ''}
                 </h6>
                 {totalSlots >= 10 && (
                   <Button
@@ -1851,7 +1851,7 @@ const Booking = ({ className = "" }) => {
 
                                 }}
                               >
-                                {timeSlot.amount || "N/A"}
+                                {timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}
                               </span>
                               <MdOutlineDeleteOutline
                                 className="ms-2 mb-2 text-white"
@@ -2072,15 +2072,15 @@ const Booking = ({ className = "" }) => {
                       style={{ fontSize: "16px", fontWeight: "600" }}
                     >
                       Total to Pay{" "}
-                      <span style={{ fontSize: "13px", fontWeight: "500" }}>
+                      {/* <span style={{ fontSize: "13px", fontWeight: "500" }}>
                         Total slots {totalSlots}
-                      </span>
+                      </span> */}
                     </p>
                     <p
                       className="mb-0"
                       style={{ fontSize: "25px", fontWeight: "600" }}
                     >
-                      ₹ {grandTotal}
+                      ₹{Number(grandTotal).toLocaleString('en-IN')}
                     </p>
                   </div>
                 </>

@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 const ManageCookies = () => {
 
     useEffect(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo(0, 0);
     }, []);
 
     return (
-        <div className="container py-5" style={{ marginTop: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+        <div className="container py-5" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', marginTop: '40px' }}>
 
             <div className="bg-white rounded-4 shadow-sm p-5">
                 <div className="text-center mb-5">
@@ -17,7 +17,7 @@ const ManageCookies = () => {
                 </div>
 
                 <p className="lead mb-4">
-                    We use cookies to improve your experience on our padel court booking platform.
+                    We use cookies to improve your experience on our court booking platform.
                     You can choose which categories you want to allow. Essential cookies cannot be disabled because the site
                     simply won't function without them.
                 </p>
@@ -64,7 +64,7 @@ const ManageCookies = () => {
                 <div className="mb-4 p-4 bg-light rounded-3">
                     <h4 className="text-success mb-2">Marketing Cookies</h4>
                     <p className="text-muted mb-3">
-                        These cookies help us deliver relevant padel offers, court discounts, and promotions — only if you choose
+                        These cookies help us deliver relevant court offers, discounts, and promotions — only if you choose
                         to receive them. No spam, no selling your data.
                     </p>
                     <div className="d-flex justify-content-between align-items-center">
