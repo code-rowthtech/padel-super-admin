@@ -20,7 +20,7 @@ import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getReviewClub, getUserClub } from "../../../redux/user/club/thunk";
+import { getReviewClub, getUserClub, getMapData } from "../../../redux/user/club/thunk";
 import { Avatar } from "@mui/material";
 import { getLogo } from "../../../redux/user/auth/authThunk";
 import { ReviewCard } from "./ReviewCard";
@@ -35,18 +35,25 @@ const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const store = useSelector((state) => state);
-
   const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
-  console.log("clubData", clubData);
   const getReviewData = store?.userClub?.getReviewData?.data;
+  const mapApiData = store?.userClub?.mapData?.data;
   const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
 
   const handleImageLoad = (index) => {
     setLoadedImages((prev) => ({ ...prev, [index]: true }));
   };
 
-  const mapSrc =
+  const defaultMapSrc =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937950147!2d-73.98731968482413!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes+Square!5e0!3m2!1sen!2sus!4v1510579767645";
+
+  // Convert address to embeddable Google Maps URL
+  const createEmbedUrl = (address) => {
+    const encodedAddress = encodeURIComponent(address);
+    return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  };
+
+  const mapSrc = mapApiData?.address ? createEmbedUrl(mapApiData.address) : defaultMapSrc;
 
   const todayIndex = new Date().getDay();
   const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
@@ -117,6 +124,14 @@ const Home = () => {
       dispatch(getReviewClub(id));
     }
   }, [clubData?._id]);
+
+  // Fetch map data when club address is available
+  useEffect(() => {
+    if (clubData?.address && clubData?.city) {
+      const fullAddress = `${clubData.address}, ${clubData.city}`;
+      dispatch(getMapData(fullAddress));
+    }
+  }, [clubData?.address, clubData?.city]);
 
   // Auto-play carousel
   useEffect(() => {
@@ -562,45 +577,26 @@ const Home = () => {
                     </linearGradient>
                   </defs>
                   <path
-                    d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${
-                      height * 0.15
-                    } ${width * 0.81} ${height * 0.2} ${width * 0.83} ${
-                      height * 0.3
-                    } C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${
-                      height * 0.34
-                    } ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${
-                      height * 0.34
-                    } ${width * 0.86} ${height * 0.32} ${width * 0.86} ${
-                      height * 0.3
-                    } C ${width * 0.88} ${height * 0.2} ${width * 0.9} ${
-                      height * 0.15
-                    } ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${
-                      height * 0.15
-                    } ${width * 0.996} ${height * 0.3} ${width * 0.996} ${
-                      height * 0.5
-                    } C ${width * 0.996} ${height * 0.7} ${width * 0.97} ${
-                      height * 0.85
-                    } ${width * 0.92} ${height * 0.85} C ${width * 0.9} ${
-                      height * 0.85
-                    } ${width * 0.88} ${height * 0.8} ${width * 0.86} ${
-                      height * 0.7
-                    } C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${
-                      height * 0.66
-                    } ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${
-                      height * 0.66
-                    } ${width * 0.83} ${height * 0.68} ${width * 0.83} ${
-                      height * 0.7
-                    } C ${width * 0.81} ${height * 0.8} ${width * 0.79} ${
-                      height * 0.85
-                    } ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${
-                      height * 0.85
-                    } C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${
-                      height * 0.7
-                    } ${width * 0.004} ${height * 0.5} C ${width * 0.004} ${
-                      height * 0.3
-                    } ${width * 0.04} ${height * 0.15} ${width * 0.08} ${
-                      height * 0.15
-                    } L ${width * 0.76} ${height * 0.15} Z`}
+                    d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15
+                      } ${width * 0.81} ${height * 0.2} ${width * 0.83} ${height * 0.3
+                      } C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34
+                      } ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34
+                      } ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.3
+                      } C ${width * 0.88} ${height * 0.2} ${width * 0.9} ${height * 0.15
+                      } ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15
+                      } ${width * 0.996} ${height * 0.3} ${width * 0.996} ${height * 0.5
+                      } C ${width * 0.996} ${height * 0.7} ${width * 0.97} ${height * 0.85
+                      } ${width * 0.92} ${height * 0.85} C ${width * 0.9} ${height * 0.85
+                      } ${width * 0.88} ${height * 0.8} ${width * 0.86} ${height * 0.7
+                      } C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66
+                      } ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66
+                      } ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.7
+                      } C ${width * 0.81} ${height * 0.8} ${width * 0.79} ${height * 0.85
+                      } ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85
+                      } C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.7
+                      } ${width * 0.004} ${height * 0.5} C ${width * 0.004} ${height * 0.3
+                      } ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15
+                      } L ${width * 0.76} ${height * 0.15} Z`}
                     fill={`url(#buttonGradient-${width}-${height})`}
                   />
                   <circle
@@ -617,25 +613,19 @@ const Home = () => {
                     strokeLinejoin="round"
                   >
                     <path
-                      d={`M ${arrowX - arrowSize * 0.3} ${
-                        arrowY + arrowSize * 0.4
-                      } L ${arrowX + arrowSize * 0.4} ${
-                        arrowY - arrowSize * 0.4
-                      }`}
+                      d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
+                        } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                        }`}
                     />
                     <path
-                      d={`M ${arrowX + arrowSize * 0.4} ${
-                        arrowY - arrowSize * 0.4
-                      } L ${arrowX - arrowSize * 0.1} ${
-                        arrowY - arrowSize * 0.4
-                      }`}
+                      d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                        } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
+                        }`}
                     />
                     <path
-                      d={`M ${arrowX + arrowSize * 0.4} ${
-                        arrowY - arrowSize * 0.4
-                      } L ${arrowX + arrowSize * 0.4} ${
-                        arrowY + arrowSize * 0.1
-                      }`}
+                      d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                        } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
+                        }`}
                     />
                   </g>
                 </svg>
@@ -709,13 +699,12 @@ const Home = () => {
         <div className="position-relative">
           <div className="overflow-hidden rounded-3">
             <div
-              className={`d-flex ${
-                clubData?.courtImage?.length > 4
-                  ? window.innerWidth >= 992
-                    ? "justify-content-start"
-                    : "justify-content-start"
-                  : "justify-content-center"
-              } align-items-center`}
+              className={`d-flex ${clubData?.courtImage?.length > 4
+                ? window.innerWidth >= 992
+                  ? "justify-content-start"
+                  : "justify-content-start"
+                : "justify-content-center"
+                } align-items-center`}
               style={{
                 transform:
                   clubData?.courtImage?.length > 4
@@ -733,8 +722,8 @@ const Home = () => {
               {/* Desktop: Show only first 4 + duplicates for infinite if >4 */}
               {(clubData?.courtImage?.length > 4
                 ? clubData?.courtImage?.concat(
-                    clubData?.courtImage?.slice(0, 4)
-                  )
+                  clubData?.courtImage?.slice(0, 4)
+                )
                 : clubData?.courtImage
               )?.map((image, index) => (
                 <div
@@ -764,9 +753,8 @@ const Home = () => {
                     )}
                     <img
                       src={image}
-                      alt={`Gallery ${
-                        (index % clubData?.courtImage?.length) + 1
-                      }`}
+                      alt={`Gallery ${(index % clubData?.courtImage?.length) + 1
+                        }`}
                       className="w-100 h-100 object-fit-cover"
                       onLoad={() => handleImageLoad(index)}
                       onError={() => handleImageLoad(index)}
@@ -791,8 +779,8 @@ const Home = () => {
               {/* Mobile: Show one at a time, or center if <=4 */}
               {(clubData?.courtImage?.length > 4
                 ? clubData?.courtImage?.concat(
-                    clubData?.courtImage?.slice(0, 1)
-                  )
+                  clubData?.courtImage?.slice(0, 1)
+                )
                 : clubData?.courtImage
               )?.map((image, index) => (
                 <div
@@ -819,9 +807,8 @@ const Home = () => {
                     )}
                     <img
                       src={image}
-                      alt={`Gallery ${
-                        (index % clubData?.courtImage?.length) + 1
-                      }`}
+                      alt={`Gallery ${(index % clubData?.courtImage?.length) + 1
+                        }`}
                       className="w-100 h-100 object-fit-cover"
                       onLoad={() => handleImageLoad(index)}
                       onError={() => handleImageLoad(index)}
@@ -896,7 +883,7 @@ const Home = () => {
               nextSrc={galleryImages[(photoIndex + 1) % galleryImages.length]}
               prevSrc={
                 galleryImages[
-                  (photoIndex + galleryImages.length - 1) % galleryImages.length
+                (photoIndex + galleryImages.length - 1) % galleryImages.length
                 ]
               }
               onCloseRequest={() => setIsOpen(false)}
@@ -1051,7 +1038,7 @@ const Home = () => {
                     : `translateX(-${reviewSlide * 100}%)`,
                 transition:
                   reviewSlide === 0 &&
-                  reviewSlide !== getReviewData?.reviews?.length
+                    reviewSlide !== getReviewData?.reviews?.length
                     ? "none"
                     : "transform 0.5s ease",
               }}
@@ -1111,9 +1098,9 @@ const Home = () => {
               >
                 {clubData?.clubName}
                 {clubData?.address ||
-                clubData?.city ||
-                clubData?.state ||
-                clubData?.zipCode
+                  clubData?.city ||
+                  clubData?.state ||
+                  clubData?.zipCode
                   ? ", "
                   : ""}
                 {[

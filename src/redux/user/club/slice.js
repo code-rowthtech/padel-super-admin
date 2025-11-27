@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { addReviewClub, getReviewClub, getUserClub } from "./thunk";
+import { addReviewClub, getReviewClub, getUserClub, getMapData } from "./thunk";
 
 const initialState = {
     clubLoading: false,
@@ -10,7 +10,10 @@ const initialState = {
     reviewError: null,
     getReviewLoading : false,
     getReviewData : null,
-    getReviewError:null
+    getReviewError:null,
+    mapLoading: false,
+    mapData: null,
+    mapError: null
 };
 
 const clubSlice = createSlice({
@@ -70,6 +73,20 @@ const clubSlice = createSlice({
             .addCase(getReviewClub.rejected, (state, action) => {
                 state.getReviewLoading = false
                 state.getReviewError = action.payload;
+            })
+
+            // -------------------------G-E-T---M-A-P----------------------//
+            .addCase(getMapData.pending, (state) => {
+                state.mapLoading = true;
+                state.mapError = null;
+            })
+            .addCase(getMapData.fulfilled, (state, action) => {
+                state.mapLoading = false;
+                state.mapData = action.payload;
+            })
+            .addCase(getMapData.rejected, (state, action) => {
+                state.mapLoading = false;
+                state.mapError = action.payload;
             })
     }
 });

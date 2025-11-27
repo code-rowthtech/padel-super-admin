@@ -148,7 +148,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
-
+    console.log(match, 'payal');
     const { id } = useParams(); // Get match ID from URL
     const { state } = useLocation();
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
@@ -515,10 +515,12 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
             {/* Modal */}
             <UpdatePlayers
                 showModal={showModal}
-                matchId={matchId}
+                matchId={match}
                 teamName={teamName}
                 setShowModal={setShowModal}
                 matchData={matchesData?.data}
+                skillLevel={match?.skillLevel}
+
             />
         </>
     );

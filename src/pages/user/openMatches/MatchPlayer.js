@@ -810,6 +810,7 @@ const MatchPlayer = ({
                 setAddedPlayers={setParentAddedPlayers}
                 skillDetails={selectedAnswers}
                 userSkillLevel={userSkillLevel}
+                selectedGender={selectedGender}
             />
         </>
     );
