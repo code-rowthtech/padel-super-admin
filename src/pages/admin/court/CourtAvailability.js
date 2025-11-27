@@ -699,7 +699,8 @@ const CourtAvailability = () => {
                                   : isPast
                                   ? "#c9cfcfff"
                                   : showUnavailable
-                                  ? statusColorMap[status] || "#FFFFFF"
+                                  ? // ? statusColorMap[status] || "#FFFFFF"
+                                    "#FFFFFF"
                                   : "#FFFFFF",
                                 color:
                                   isSelected || isBooked ? "white" : "#000000",
@@ -713,38 +714,39 @@ const CourtAvailability = () => {
                               {isBooked ? "Booked" : formatSlotTime(slot.time)}
 
                               {/* 🔥 Full diagonal X overlay */}
-                              {(status === "maintenance" ||
-                                status === "weather conditions" ||
-                                status === "staff unavailability") && (
-                                <>
-                                  {/* Line 1 — top-left to bottom-right */}
-                                  <span
-                                    style={{
-                                      position: "absolute",
-                                      top: "50%",
-                                      left: "-20%",
-                                      width: "140%",
-                                      height: "4px",
-                                      backgroundColor: "#dc3545",
-                                      transform: "rotate(45deg)",
-                                      pointerEvents: "none",
-                                    }}
-                                  ></span>
-                                  {/* Line 2 — bottom-left to top-right */}
-                                  <span
-                                    style={{
-                                      position: "absolute",
-                                      top: "50%",
-                                      left: "-20%",
-                                      width: "140%",
-                                      height: "4px",
-                                      backgroundColor: "#dc3545",
-                                      transform: "rotate(-45deg)",
-                                      pointerEvents: "none",
-                                    }}
-                                  ></span>
-                                </>
-                              )}
+                              {!isBooked &&
+                                (status === "maintenance" ||
+                                  status === "weather conditions" ||
+                                  status === "staff unavailability") && (
+                                  <>
+                                    {/* Line 1 — top-left to bottom-right */}
+                                    <span
+                                      style={{
+                                        position: "absolute",
+                                        top: "50%",
+                                        left: "-20%",
+                                        width: "140%",
+                                        height: "2px",
+                                        backgroundColor: "#dc3545",
+                                        transform: "rotate(20deg)",
+                                        pointerEvents: "none",
+                                      }}
+                                    ></span>
+                                    {/* Line 2 — bottom-left to top-right */}
+                                    <span
+                                      style={{
+                                        position: "absolute",
+                                        top: "50%",
+                                        left: "-20%",
+                                        width: "140%",
+                                        height: "2px",
+                                        backgroundColor: "#dc3545",
+                                        transform: "rotate(-20deg)",
+                                        pointerEvents: "none",
+                                      }}
+                                    ></span>
+                                  </>
+                                )}
                             </button>
                           </div>
                         );
