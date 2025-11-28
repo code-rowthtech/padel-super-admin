@@ -98,6 +98,7 @@ const Openmatches = () => {
     (state) => state.userClub?.getReviewData?.data
   );
   const User = useSelector((state) => state?.userAuth);
+
   const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
   const [showModal, setShowModal] = useState(false);
   const [matchId, setMatchId] = useState(null);
@@ -108,11 +109,11 @@ const Openmatches = () => {
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
-      if (User?.user?.token) {
+      if (user?.token) {
         dispatch(getMatchesUser(payload));
       }
     }, 300),
-    [dispatch, User?.user?.token]
+    [dispatch, user?.token]
   );
 
   useEffect(() => {
@@ -1052,6 +1053,10 @@ const Openmatches = () => {
                           border: "0.45px solid #0000001A",
                           boxShadow: "none",
                         }}
+                        onClick={() => {
+                          setSelectedMatch(match);
+                          setShowViewMatch(true);
+                        }}
                       >
                         <div className="row px-0 px-md-3 pt-0 pb-0 d-flex justify-content-between align-items- flex-wrap mx-auto">
                           <div className="col-12">
@@ -1141,7 +1146,7 @@ const Openmatches = () => {
                                       onClick={() => {
                                         if (isAvailable) {
                                           setShowModal(true);
-                                          setMatchId(match?._id);
+                                          setMatchId(match);
                                           setTeamName("teamA");
                                         }
                                       }}
@@ -1229,7 +1234,7 @@ const Openmatches = () => {
                                       onClick={() => {
                                         if (isAvailable) {
                                           setShowModal(true);
-                                          setMatchId(match?._id);
+                                          setMatchId(match);
                                           setTeamName("teamB");
                                         }
                                       }}
