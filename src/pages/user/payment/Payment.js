@@ -352,12 +352,12 @@ const Payment = ({ className = "" }) => {
           <div className="bg-white rounded">
             {/* Info Section */}
             <div
-              className="rounded-4 py-md-4 py-3 px-3 px-md-5 mb-md-4 mb-3"
+              className="rounded-4 py-md-4 py-2 px-3 px-md-5 mb-md-4 mb-3"
               style={{ backgroundColor: "#F5F5F566", border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none" }}
             >
               <h6 className="mb-md-3 mb-0 custom-heading-use fw-semibold text-center text-md-start">Information</h6>
               <div className="row">
-                <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
@@ -391,7 +391,7 @@ const Payment = ({ className = "" }) => {
                   )}
                 </div>
 
-                <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                   <label className="form-label mb-0 ps-lg-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
@@ -423,7 +423,7 @@ const Payment = ({ className = "" }) => {
                   )}
                 </div>
 
-                <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0 ">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
@@ -460,7 +460,7 @@ const Payment = ({ className = "" }) => {
 
             {/* Payment Method Section */}
             <div
-              className="rounded-4 py-md-4 py-3 px-3 px-md-5"
+              className="rounded-4 py-md-4 py-2 px-3 px-md-5"
               style={{
                 backgroundColor: "#F5F5F566",
                 border: errors.paymentMethod ? "2px solid red" : "none",

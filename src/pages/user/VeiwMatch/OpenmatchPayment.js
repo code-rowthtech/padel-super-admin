@@ -343,7 +343,7 @@ const OpenmatchPayment = () => {
                 >
                     {/* Contact Info */}
                     <div
-                        className="rounded-4 py-md-4 py-3 px-3 mb-md-4 mb-3"
+                        className="rounded-4 py-md-4 py-2 px-3 mb-md-4 mb-3"
                         style={{
                             backgroundColor: "#F5F5F566",
                             border:
@@ -353,13 +353,13 @@ const OpenmatchPayment = () => {
                         }}
                     >
                         <h6
-                            className="mb-md-3 mb-1 small_font_mobile text-center text-md-start"
+                            className="mb-md-3 mb-0 small_font_mobile text-center text-md-start"
                             style={{ fontSize: 20, fontWeight: 600 }}
                         >
                             Contact Info
                         </h6>
                         <div className="row mx-auto">
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-2"
                                     style={{ fontSize: 12, fontWeight: 500 }}
@@ -393,7 +393,7 @@ const OpenmatchPayment = () => {
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-1"
                                     style={{ fontSize: 12, fontWeight: 500 }}
@@ -436,7 +436,7 @@ const OpenmatchPayment = () => {
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-2"
                                     style={{ fontSize: 12, fontWeight: 500 }}
@@ -464,7 +464,7 @@ const OpenmatchPayment = () => {
 
                     {/* Payment Method */}
                     <div
-                        className="rounded-4 py-3 py-md-4 px-md-3 px-2"
+                        className="rounded-4 py-2 py-md-4 px-md-3 px-2"
                         style={{
                             backgroundColor: "#F5F5F566",
                             border: error.paymentMethod ? "1px solid red" : "",
@@ -496,7 +496,7 @@ const OpenmatchPayment = () => {
                             ].map((m) => (
                                 <label
                                     key={m.id}
-                                    className="d-flex justify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
+                                    className="d-flex just ify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
                                     style={{ boxShadow: "3px 4px 6.3px 0px #0000001F" }}
                                 >
                                     <div className="d-flex align-items-center gap-3">

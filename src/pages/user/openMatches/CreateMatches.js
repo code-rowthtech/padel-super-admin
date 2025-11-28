@@ -749,6 +749,8 @@ const CreateMatches = () => {
             fontSize: "11px",
             padding: "4px 2px",
             height: "32px",
+                                                        borderLeft:"2px solid #001b76",
+
           }}
           onMouseEnter={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #3DBE64")}
           onMouseLeave={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #4949491A")}
