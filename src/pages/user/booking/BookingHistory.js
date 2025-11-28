@@ -811,6 +811,7 @@ const BookingHistory = () => {
                         <ViewMatch
                             match={{ _id: selectedMatchId }}
                             onBack={() => setShowViewMatchModal(false)}
+                            isFromBookingHistory={true}
                         />
                     )}
                 </Offcanvas.Body>

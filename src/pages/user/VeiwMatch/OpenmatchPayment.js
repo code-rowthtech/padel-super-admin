@@ -248,7 +248,10 @@ const OpenmatchPayment = () => {
 
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));
-                        navigate("/open-matches", { replace: true });
+                        navigate("/open-matches", { 
+                            replace: true,
+                            state: { selectedDate }
+                        });
                         dispatch(getUserProfile());
 
                     } catch (err) {

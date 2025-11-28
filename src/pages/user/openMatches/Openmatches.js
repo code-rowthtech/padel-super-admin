@@ -11,7 +11,7 @@ import {
   FaChevronDown,
   FaMapMarkerAlt,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { useDispatch, useSelector } from "react-redux";
@@ -74,16 +74,22 @@ const getTimeCategory = (time) => {
 };
 
 const Openmatches = () => {
-  const [startDate, setStartDate] = useState(new Date());
+  const { state } = useLocation();
+  
+  const initialDate = state?.selectedDate || {
+    fullDate: new Date().toISOString().split("T")[0],
+    day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
+  };
+  
+  const [startDate, setStartDate] = useState(() => {
+    return state?.selectedDate ? new Date(state.selectedDate.fullDate) : new Date();
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [selectedDate, setSelectedDate] = useState({
-    fullDate: new Date().toISOString().split("T")[0],
-    day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
-  });
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [activeTab, setActiveTab] = useState(0);
   const scrollRef = useRef(null);
   const dateRefs = useRef({});
@@ -91,7 +97,6 @@ const Openmatches = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = getUserFromSession();
-  console.log({ user });
   const matchesData = useSelector((state) => state.userMatches?.usersData);
   const matchLoading = useSelector((state) => state.userMatches?.usersLoading);
   const reviewData = useSelector(
@@ -932,16 +937,28 @@ const Openmatches = () => {
                                 </p>
                                 <div
                                   className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"
-                                  style={{ width: "100%" }}
+                                  style={{ width: "100%", maxWidth: "100%" }}
                                 >
-                                  <p className="mb-1  all-match-name-level mt-2">
+                                  <p 
+                                    className="mb-1 all-match-name-level mt-2"
+                                    style={{
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      maxWidth: "100%"
+                                    }}
+                                  >
                                     {match?.clubId?.clubName || "Unknown Club"}
                                   </p>
                                   <p
-                                    className="mb-3 text-muted  all-match-name-level"
+                                    className="mb-3 text-muted all-match-name-level"
                                     style={{
                                       fontSize: "10px",
                                       fontWeight: "400",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      maxWidth: "100%"
                                     }}
                                   >
                                     <FaMapMarkerAlt
@@ -949,9 +966,9 @@ const Openmatches = () => {
                                       style={{ fontSize: "10px" }}
                                     />
                                     {match?.clubId?.city
-                                      .charAt(0)
+                                      ?.charAt(0)
                                       ?.toUpperCase() +
-                                      match?.clubId?.city.slice(1) || "N/A"}{" "}
+                                      match?.clubId?.city?.slice(1) || "N/A"}{" "}
                                     {match?.clubId?.zipCode || ""}
                                   </p>
                                 </div>

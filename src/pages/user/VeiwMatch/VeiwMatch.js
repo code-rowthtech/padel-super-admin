@@ -19,16 +19,19 @@ const PlayerSlot = memo(function PlayerSlot({
     isRemovable,
     team,
     onRemove,
-    onAdd, openMatches
+    onAdd, 
+    openMatches,
+    isFromBookingHistory = false
 }) {
     const user = player?.userId || player;
-    console.log({user});
+    console.log({openMatches});
     const tooltipId = `player-${team}-${index}`;
     if (!player) {
-        // Show "Add Me" only for specific empty slots
+        // Show "Add Me" only for specific empty slots and not from booking history
         if (
-            (team === "A" && index === 1) ||
-            (team === "B" && [2, 3].includes(index))
+            !isFromBookingHistory &&
+            ((team === "A" && index === 1) ||
+            (team === "B" && [2, 3].includes(index)))
         ) {
             return (
                 <div className="text-center d-flex align-items-center justify-content-center   flex-column  mb-md-4 mb-3 pb-2 col-6">
@@ -149,7 +152,7 @@ const PlayerSlot = memo(function PlayerSlot({
     );
 });
 
-const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }) => {
+const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, isFromBookingHistory = false }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
@@ -438,6 +441,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                         onRemove={handleRemove}
                                         onAdd={()=>handleAdd(s.team)}
                                         openMatches={matchesData?.data}
+                                        isFromBookingHistory={isFromBookingHistory}
                                     />
                                 ))}
                             </div>
@@ -452,6 +456,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                         team={s.team}
                                         onRemove={handleRemove}
                                         onAdd={()=>handleAdd(s.team)}
+                                        isFromBookingHistory={isFromBookingHistory}
                                     />
                                 ))}
                             </div>

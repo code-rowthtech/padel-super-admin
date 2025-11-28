@@ -456,7 +456,7 @@ const MatchPlayer = ({
                             </p>
                             <div className="d-flex justify-content-center">
                                 <select
-                                    className="form-select form-select-sm border-0 shadow-none text-center px-3 pe-5 py-1"
+                                    className="form-select add_font_mobile form-select-sm border-0 shadow-none text-center px-3 pe-5 py-1"
                                     style={{
                                         fontSize: "15px",
                                         fontWeight: "500",
@@ -480,7 +480,7 @@ const MatchPlayer = ({
                                     }}
                                     required
                                 >
-                                    <option value="">Select Gender</option>
+                                    <option className="add_font_mobile" value="">Select Gender</option>
                                     <option value="Male Only">Male Only</option>
                                     <option value="Female Only">Female Only</option>
                                     <option value="Mixed Double">Mixed Double</option>
