@@ -1437,7 +1437,7 @@ const Openmatches = () => {
             } order-1 order-md-2 ${showViewMatch ? "d-block" : ""}`}
         >
           {!showViewMatch ? (
-            <div className="ms-0 ms-lg-2">
+            <div className="ms-0 ms-lg-2 mt-md-3 mt-0">
               {showCreateButton && (
                 <div
                   className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner mx-auto d-flex d-md-none"
