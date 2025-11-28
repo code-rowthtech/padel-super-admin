@@ -324,7 +324,7 @@ const BookingHistory = () => {
                                 onChange={(update) => setDateRange(update)}
                                 dateFormat="dd/MM/yy"
                                 placeholderText="dd/mm/yy – dd/mm/yy"
-                                className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                                className="form-control border-0 bg-transparent shadow-none custom-datepicker-input w-100"
                             />
 
                         </div>

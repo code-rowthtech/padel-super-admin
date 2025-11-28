@@ -1304,6 +1304,9 @@ h1.display-5 {
   .form-control {
     font-size: 12px !important;
   }
+  .react-datepicker-wrapper{
+    width: 100%;
+  }
 }
 
 /* date scroll css */
@@ -2088,6 +2091,7 @@ h1.display-5 {
   display: none;
 }
 
+
 /* Liquid Button Animation */
 .liquid-btn22 {
   color: #fff;
@@ -2168,6 +2172,9 @@ h1.display-5 {
     overflow-y: visible !important;
     padding: 10px 0 5px 0 !important;
     transition: all 0.3s ease !important;
+  }
+  .height_low{
+    height: 60px!important  ;
   }
 
   /* Mobile slots container */

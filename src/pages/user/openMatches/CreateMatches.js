@@ -749,7 +749,7 @@ const CreateMatches = () => {
             fontSize: "11px",
             padding: "4px 2px",
             height: "32px",
-                                                        borderLeft:"2px solid #001b76",
+                                                        borderLeft:"3px solid #001b76",
 
           }}
           onMouseEnter={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #3DBE64")}
@@ -1482,7 +1482,7 @@ const CreateMatches = () => {
                             <div
                               key={opt._id || i}
                               onClick={() => handleAnswerSelect(currentStep, optValue)}
-                              className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
+                              className="d-flex align-items-center mb-1 px-3 py-2 rounded shadow-sm border step-option"
                               style={{
                                 backgroundColor: isSelected ? "#eef2ff" : "#fff",
                                 borderColor: isSelected ? "#4f46e5" : "#e5e7eb",
@@ -1536,7 +1536,7 @@ const CreateMatches = () => {
                   {currentStep > 0 && (
                     <Button
                       variant="secondary"
-                      className="rounded-pill px-4 py-2"
+                      className="rounded-pill px-4 py-1"
                       onClick={handleBack}
                     >
                       Back
@@ -1548,7 +1548,7 @@ const CreateMatches = () => {
                       background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                       border: "none",
                     }}
-                    className="rounded-pill px-4 py-2 ms-auto"
+                    className="rounded-pill px-4 py-1 ms-auto"
                     disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
