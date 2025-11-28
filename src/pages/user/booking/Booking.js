@@ -1287,7 +1287,7 @@ const Booking = ({ className = "" }) => {
                                             fontSize: "11px",
                                             padding: "4px 2px",
                                             height: "32px",
-                                            borderLeft:"2px solid #001b76"
+                                            borderLeft:"3px solid #001b76"
                                           }}
                                           onMouseEnter={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
