@@ -2411,7 +2411,8 @@ h1.display-5 {
   }
 
   .add_font_size_nav_logo {
-    font-size: 12px !important;
+    font-size: 15px !important;
+    font-weight: 600!important;
   }
 
   .add_top_margin {
