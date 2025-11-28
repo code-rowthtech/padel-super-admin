@@ -87,7 +87,10 @@ const MatchPlayer = ({
     console.log({ genderError });
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
-    const [defaultLevel, setDefaultLevel] = useState("Open Match");
+    const [defaultLevel, setDefaultLevel] = useState();
+    const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
+
+    console.log({defaultLevel});
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
@@ -104,7 +107,8 @@ const MatchPlayer = ({
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
                 const firstAnswer = result?.response?.level;
-                setDefaultLevel(firstAnswer || "Open Match");
+                setDefaultSkillLevel(result?.response?.skillLevel || "Open Match");
+                setDefaultLevel(firstAnswer);
             } catch (err) {
                 console.error("Error:", err);
             }
@@ -160,6 +164,12 @@ const MatchPlayer = ({
     }, [dispatch]);
 
     const handleAddMeClick = (slot) => {
+        if (!selectedGender || selectedGender === "") {
+            setGenderError("Please select  gender.");
+            return;
+        } else {
+            setGenderError("");
+        }
         setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
         setActiveSlot((prev) => (prev === slot ? null : slot));
     };
@@ -227,48 +237,19 @@ const MatchPlayer = ({
         : "";
 
     const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
-    const canBook = playerCount >= 2 && matchTime.length > 0;
+    const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
+    const hasValidSelection = selectedCourts.every(court => court.time.length === 2 || court.time.length === 0);
+    const canBook = totalSlots >= 2 && totalSlots % 2 === 0 && hasValidSelection && matchTime.length > 0;
 
-    const displayUserSkillLevel = userSkillLevel ||
-        (selectedAnswers.length > 0
-            ? selectedAnswers[selectedAnswers.length - 1]
-            : "A");
+    const displayUserSkillLevel = selectedAnswers && Object.keys(selectedAnswers).length > 0
+        ? selectedAnswers[5]?.split(' - ')[0] || selectedAnswers[5]  // Extract code part (B1) from "B1 - Experienced Player"
+        : (userSkillLevel);
 
-    // const handleBookNow = () => {
-
-    //     if (!selectedGender) {
-    //         setGenderError('Please select your gender.');
-    //     }
-    //     const courtIds = selectedCourts.map((c) => c._id).join(",");
-
-    //     const latestPlayers = JSON.parse(
-    //         localStorage.getItem("addedPlayers") || "{}"
-    //     );
-
-
-    //     navigate("/match-payment", {
-    //         state: {
-    //             courtData: {
-    //                 day: selectedDate.day,
-    //                 date: selectedDate.fullDate,
-    //                 time: selectedCourts.flatMap((c) => c.time),
-    //                 courtId: courtIds,
-    //                 court: selectedCourts,
-    //             },
-    //             selectedCourts,
-    //             selectedDate,
-    //             grandTotal: totalAmount,
-    //             totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-    //             selectedAnswers, selectedGender, dynamicSteps, finalLevelStep,
-    //             addedPlayers: latestPlayers, // Use latest from localStorage
-    //         },
-    //     });
-    // };
 
 
     const handleBookNow = () => {
         if (!selectedGender || selectedGender === "") {
-            setGenderError("Please select your gender.");
+            setGenderError("Please select  gender.");
             return;
         } else {
             setGenderError("");
@@ -289,7 +270,7 @@ const MatchPlayer = ({
                 },
                 selectedCourts,
                 selectedDate,
-                grandTotal: totalAmount,
+                grandTotal: totalAmount * 4, // Pass full amount for payment
                 totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
                 selectedAnswers,
                 selectedGender,
@@ -423,7 +404,7 @@ const MatchPlayer = ({
                     className="rounded-4 border px-3 pt-2 pb-0 mb-2"
                     style={{ backgroundColor: "#CBD6FF1A" }}
                 >
-                    <div className="d-md-flex d-block justify-content-between align-items-start py-2">
+                    <div className="d-flex d-block justify-content-between align-items-start py-2">
                         <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
                             <span className="ms-2 all-matches" style={{ color: "#374151" }}>
@@ -465,12 +446,12 @@ const MatchPlayer = ({
                                         backgroundColor: "transparent",
                                         width: "auto",
                                         minWidth: "80px",
-                                        appearance: "none",                  
+                                        appearance: "none",
                                         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23000' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E")`,
                                         backgroundRepeat: "no-repeat",
                                         backgroundPosition: "right 15px center",
                                         backgroundSize: "15px",
-                                        paddingRight: "0px",                 
+                                        paddingRight: "0px",
                                         cursor: "pointer",
                                     }}
                                     value={selectedGender}
@@ -488,7 +469,7 @@ const MatchPlayer = ({
                             </div>
                             {genderError && (
                                 <div
-                                    className="text-center rounded mt-1"
+                                    className="text-center d-none d-lg-block rounded mt-1"
                                     style={{
                                         backgroundColor: "#ffebee",
                                         color: "#c62828",
@@ -509,7 +490,7 @@ const MatchPlayer = ({
                                 Level
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
-                                {selectedAnswers[0] || defaultLevel || "Open Match"}
+                                {selectedAnswers[0] || defaultSkillLevel || "Open Match"}
                             </p>
                         </div>
 
@@ -522,8 +503,23 @@ const MatchPlayer = ({
                                 ₹ {totalAmount.toLocaleString('en-IN')}
                             </p>
                         </div>
+
                     </div>
                 </div>
+                {genderError && (
+                    <div
+                        className="text-center mb-2 w-100 d-lg-none rounded mt-1"
+                        style={{
+                            backgroundColor: "#ffebee",
+                            color: "#c62828",
+                            border: "1px solid #ffcdd2",
+                            fontWeight: 500,
+                            fontSize: "14px",
+                        }}
+                    >
+                        {genderError}
+                    </div>
+                )}
 
                 <div
                     className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border"
@@ -574,7 +570,7 @@ const MatchPlayer = ({
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
-                                        {displayUserSkillLevel}
+                                        {displayUserSkillLevel || defaultLevel?.split(" - ")[0] || "A"}
                                     </span>
                                 </div>
                             )}
@@ -730,11 +726,11 @@ const MatchPlayer = ({
                     <button
                         style={{
                             ...buttonStyle,
-                            opacity: totalAmount === 0 ? 0.5 : 1,
-                            cursor: totalAmount === 0 ? "not-allowed" : "pointer",
-                            pointerEvents: totalAmount === 0 ? "none" : "auto",
+                            opacity: !canBook ? 0.5 : 1,
+                            cursor: !canBook ? "not-allowed" : "pointer",
+                            pointerEvents: !canBook ? "none" : "auto",
                         }}
-                        disabled={totalAmount === 0}
+                        disabled={!canBook}
                         onClick={handleBookNow}
                     >
                         <svg

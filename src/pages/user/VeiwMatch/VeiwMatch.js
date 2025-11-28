@@ -399,10 +399,10 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
                                 ₹{" "}
-                                {Number(
-                                    matchesData?.data?.slot?.reduce((total, court) => {
+                                {Math.round(
+                                    (matchesData?.data?.slot?.reduce((total, court) => {
                                         return total + court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0);
-                                    }, 0) || 0
+                                    }, 0) || 0) / 4
                                 ).toLocaleString("en-IN")}
                             </p>
                         </div>

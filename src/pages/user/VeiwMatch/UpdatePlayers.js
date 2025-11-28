@@ -180,16 +180,16 @@ const UpdatePlayers = ({
                 });
 
               showSuccess("Player added successfully");
+              
+              // Reset form only on success
+              setFormData({
+                name: "",
+                email: "",
+                phoneNumber: "",
+                gender: "",
+                level: "",
+              });
             });
-
-          // Reset form
-          setFormData({
-            name: "",
-            email: "",
-            phoneNumber: "",
-            gender: "",
-            level: "",
-          });
         }
       })
       .catch(() => {

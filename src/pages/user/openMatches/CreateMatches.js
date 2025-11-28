@@ -234,57 +234,53 @@ const CreateMatches = () => {
     }
 
     const currentSelectedTimes = selectedTimes[courtId] || [];
-    const totalSlots = Object.values(selectedTimes).flat().length;
+    const allSelectedTimes = Object.values(selectedTimes).flat();
     const isAlreadySelected = currentSelectedTimes.some((t) => t._id === time._id);
 
-    // Helper: Convert time string (e.g., "5:00 PM") to minutes since midnight
+    // Helper: Convert time string to minutes
     const timeToMinutes = (timeStr) => {
       const slotHour = parseTimeToHour(timeStr);
-      return slotHour * 60; // assuming all slots are hourly
+      return slotHour * 60;
     };
 
     // If deselecting a slot
     if (isAlreadySelected) {
       const filtered = currentSelectedTimes.filter((t) => t._id !== time._id);
 
-      // If removing the slot leaves us with 0 slots, clear everything
-      if (filtered.length === 0) {
-        setSelectedTimes((prev) => {
-          const updated = { ...prev };
+      // Update selected times for this court
+      setSelectedTimes((prev) => {
+        const updated = { ...prev };
+        if (filtered.length === 0) {
           delete updated[courtId];
-          return updated;
-        });
-        setSelectedBuisness([]);
-        setSelectedCourts([]);
-      } else {
-        // Update with remaining slot
-        setSelectedTimes((prev) => ({ ...prev, [courtId]: filtered }));
-        setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
-        setSelectedCourts((prev) =>
-          prev
-            .map((c) =>
-              c._id === courtId
-                ? {
-                  ...c,
-                  time: c.time.filter((t) => t._id !== time._id),
-                }
-                : c
-            )
-            .filter((c) => c.time.length > 0)
-        );
-      }
+        } else {
+          updated[courtId] = filtered;
+        }
+        return updated;
+      });
+
+      // Update selected business
+      setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
+
+      // Update selected courts
+      setSelectedCourts((prev) =>
+        prev
+          .map((c) =>
+            c._id === courtId
+              ? {
+                ...c,
+                time: c.time.filter((t) => t._id !== time._id),
+              }
+              : c
+          )
+          .filter((c) => c.time.length > 0)
+      );
+
       setSlotError("");
       return;
     }
 
-    // Trying to select a new slot
-    if (totalSlots >= 2) {
-      setSlotError("Maximum 2 consecutive slots allowed.");
-      return;
-    }
-
-    // Case 1: No slots selected yet → allow any slot
-    if (totalSlots === 0) {
+    // If no slots selected yet, allow any slot
+    if (allSelectedTimes.length === 0) {
       const newTimeEntry = {
         _id: time._id,
         time: time.time,
@@ -311,46 +307,83 @@ const CreateMatches = () => {
       return;
     }
 
-    // Case 2: One slot already selected → must be same court + consecutive time
-    const firstSelectedCourtId = Object.keys(selectedTimes)[0];
-    const firstSelectedSlot = selectedTimes[firstSelectedCourtId][0];
+    // If this court has no slots, check if time matches existing selections
+    if (currentSelectedTimes.length === 0) {
+      const timeMatches = allSelectedTimes.some(selectedTime => selectedTime.time === time.time);
+      
+      if (!timeMatches) {
+        setSlotError("You can only select the same time slots across different courts.");
+        return;
+      }
 
-    // Must be same court
-    if (courtId !== firstSelectedCourtId) {
-      setSlotError("You can only select consecutive slots from the same court.");
+      // Add slot to this court
+      const newTimeEntry = {
+        _id: time._id,
+        time: time.time,
+        amount: time.amount || 1000,
+      };
+
+      setSelectedTimes((prev) => ({
+        ...prev,
+        [courtId]: [time],
+      }));
+      setSelectedBuisness((prev) => [...prev, time]);
+
+      const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+      setSelectedCourts((prev) => [
+        ...prev,
+        {
+          _id: currentCourt._id,
+          courtName: currentCourt.courtName,
+          type: currentCourt.type,
+          date: selectedDate.fullDate,
+          day: selectedDate.day,
+          time: [newTimeEntry],
+        },
+      ]);
       return;
     }
 
-    // Must be exactly 1 hour apart
-    const firstMinutes = timeToMinutes(firstSelectedSlot.time);
-    const newMinutes = timeToMinutes(time.time);
-    const diff = Math.abs(firstMinutes - newMinutes);
+    // If this court has 1 slot, allow consecutive slot
+    if (currentSelectedTimes.length === 1) {
+      const firstSlot = currentSelectedTimes[0];
+      const firstMinutes = timeToMinutes(firstSlot.time);
+      const newMinutes = timeToMinutes(time.time);
+      const diff = Math.abs(firstMinutes - newMinutes);
 
-    if (diff !== 60) {
-      setSlotError("You can only select consecutive hourly slots (e.g., 5:00 → 6:00).");
+      if (diff !== 60) {
+        setSlotError("You can only select consecutive hourly slots.");
+        return;
+      }
+
+      // Add consecutive slot
+      const newTimeEntry = {
+        _id: time._id,
+        time: time.time,
+        amount: time.amount || 1000,
+      };
+
+      setSelectedTimes((prev) => ({
+        ...prev,
+        [courtId]: [...prev[courtId], time],
+      }));
+      setSelectedBuisness((prev) => [...prev, time]);
+
+      setSelectedCourts((prev) =>
+        prev.map((c) =>
+          c._id === courtId
+            ? { ...c, time: [...c.time, newTimeEntry] }
+            : c
+        )
+      );
       return;
     }
 
-    // All checks passed → allow selection (removed backward restriction)
-    const newTimeEntry = {
-      _id: time._id,
-      time: time.time,
-      amount: time.amount || 1000,
-    };
-
-    setSelectedTimes((prev) => ({
-      ...prev,
-      [courtId]: [...prev[courtId], time],
-    }));
-    setSelectedBuisness((prev) => [...prev, time]);
-
-    setSelectedCourts((prev) =>
-      prev.map((c) =>
-        c._id === courtId
-          ? { ...c, time: [...c.time, newTimeEntry] }
-          : c
-      )
-    );
+    // If court already has 2 slots, don't allow more
+    if (currentSelectedTimes.length >= 2) {
+      setSlotError("Maximum 2 slots per court allowed.");
+      return;
+    }
 
     setSlotError("");
   };
@@ -539,6 +572,8 @@ const CreateMatches = () => {
       c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
     0
   );
+  
+  const userShare = Math.round(grandTotal / 4); // Individual player share
 
   const handleNext = async () => {
     if (selectedCourts.length === 0) {
@@ -717,21 +752,32 @@ const CreateMatches = () => {
 
   const renderSlotButton = (slot, index, courtId) => {
     const isSelected = selectedTimes[courtId]?.some((s) => s._id === slot._id) || false;
-    const totalSelected = Object.values(selectedTimes).flat().length;
+    const allSelectedTimes = Object.values(selectedTimes).flat();
+    const currentCourtTimes = selectedTimes[courtId] || [];
 
     let isDisabled = slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
 
-    // If one slot is selected and this slot is not selected, check if it can be the second consecutive slot
-    if (totalSelected === 1 && !isSelected) {
-      const selectedCourtId = Object.keys(selectedTimes)[0];
-      const firstSlot = selectedTimes[selectedCourtId][0];
-      const diff = Math.abs(timeToMinutes(firstSlot?.time) - timeToMinutes(slot?.time));
-      // Allow selection only if same court and exactly 1 hour apart
-      isDisabled = isDisabled || courtId !== selectedCourtId || diff !== 60;
+    // If slots are already selected globally
+    if (allSelectedTimes.length > 0 && !isSelected) {
+      const timeMatches = allSelectedTimes.some(selectedTime => selectedTime.time === slot.time);
+      
+      // If this court has no slots, only allow matching times
+      if (currentCourtTimes.length === 0) {
+        isDisabled = isDisabled || !timeMatches;
+      }
+      // If this court has 1 slot, allow consecutive slots
+      else if (currentCourtTimes.length === 1) {
+        const firstSlot = currentCourtTimes[0];
+        const firstMinutes = timeToMinutes(firstSlot.time);
+        const newMinutes = timeToMinutes(slot.time);
+        const diff = Math.abs(firstMinutes - newMinutes);
+        isDisabled = isDisabled || diff !== 60;
+      }
+      // If this court has 2 slots, disable all others
+      else if (currentCourtTimes.length >= 2) {
+        isDisabled = true;
+      }
     }
-
-    // If 2 slots already selected, disable all other slots
-    if (totalSelected >= 2 && !isSelected) isDisabled = true;
 
     return (
       <div key={index} className="col-3 col-sm-3 col-md-3 col-lg-2 mb-1 mt-1">
@@ -739,7 +785,15 @@ const CreateMatches = () => {
           className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
           onClick={() => toggleTime(slot, courtId)}
           disabled={isDisabled}
-          title={totalSelected >= 2 && !isSelected ? 'Maximum 2 consecutive slots allowed' : ''}
+          title={(() => {
+            if (isDisabled && !isSelected) {
+              if (currentCourtTimes.length >= 2) return 'Maximum 2 slots per court';
+              if (allSelectedTimes.length > 0 && !allSelectedTimes.some(s => s.time === slot.time)) {
+                return currentCourtTimes.length === 0 ? 'Only same time slots allowed across courts' : 'Only consecutive slots allowed';
+              }
+            }
+            return '';
+          })()}
           style={{
             background: isDisabled ? "#c9cfcfff" : isSelected ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF",
             color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
@@ -1113,7 +1167,7 @@ const CreateMatches = () => {
                         }}
                         className="hide-scrollbar"
                       >
-                        <style jsx>{`
+                        <style jsx={true}>{`
                           .hide-scrollbar::-webkit-scrollbar {
                             display: none;
                           }
@@ -1192,7 +1246,11 @@ const CreateMatches = () => {
                                 fontWeight: "600",
                                 fontSize: "13px",
                               }}
-                              disabled={selectedCourts.length === 0}
+                              disabled={(() => {
+                                const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
+                                const hasValidSelection = selectedCourts.every(court => court.time.length === 2 || court.time.length === 0);
+                                return !(totalSlots >= 2 && totalSlots % 2 === 0 && hasValidSelection);
+                              })()}
                               onClick={() => {
                                 if (existsOpenMatchData) {
                                   setMatchPlayer(true);
@@ -1273,7 +1331,7 @@ const CreateMatches = () => {
                   }}
                 >
                   {/* SAME SCROLLBAR STYLE AS DESKTOP */}
-                  <style jsx>{`
+                  <style jsx={true}>{`
                     .mobile-expanded-slots::-webkit-scrollbar {
                       width: 8px;
                       border-radius: 3px;
@@ -1674,7 +1732,7 @@ const CreateMatches = () => {
               selectedCourts={selectedCourts}
               selectedDate={selectedDate}
               finalSkillDetails={existsOpenMatchData ? [] : skillDetails}
-              totalAmount={grandTotal}
+              totalAmount={userShare}
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
               userGender={userGender}

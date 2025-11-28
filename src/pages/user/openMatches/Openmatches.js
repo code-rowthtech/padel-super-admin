@@ -110,6 +110,7 @@ const Openmatches = () => {
   const [teamName, setTeamName] = useState("");
   const [showViewMatch, setShowViewMatch] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
+  const [showCreateButton, setShowCreateButton] = useState(true);
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
   const debouncedFetchMatches = useCallback(
@@ -500,60 +501,81 @@ const Openmatches = () => {
       <div className="row g-md-4 mx-auto">
         {/* Left Section */}
         <div
-          className={`col-lg-7 col-12 py-md-4 py-2 rounded-3 px-md-4 px-0 order-2 order-md-1 bg-white-color ${showViewMatch ? "d-none d-md-block" : ""
+          className={`col-lg-7 col-12 py-md-4 py-2 rounded-3 px-md-4 px-0 order-2 order-md-1 bg-white-color ${showViewMatch ? "d-none d-md-block " : "pt-0"
             }`}
           style={{ backgroundColor: "#F5F5F566", height: "auto" }}
         >
           <div className="calendar-strip mb-3">
-            <div className="mb-md-2 mb-0 mt-1 mt-md-0 custom-heading-use">
-              Select Date
-              <div
-                className="position-relative d-inline-block"
-                ref={wrapperRef}
-              >
-                <span
-                  className="rounded p-1 pt-0 ms-1"
-                  style={{
-                    cursor: "pointer",
-                    width: "26px !important",
-                    height: "26px !important",
-                  }}
-                  onClick={() => setIsOpen(!isOpen)}
+            <div className="mb-md-2 mb-0 mt-1 mt-md-0 custom-heading-use d-flex justify-content-between align-items-center">
+              <div>
+                Select Date
+                <div
+                  className="position-relative d-inline-block"
+                  ref={wrapperRef}
                 >
-                  <MdOutlineDateRange size={16} style={{ color: "#374151" }} />
-                </span>
-                {isOpen && (
-                  <div
-                    className="position-absolute mt-2 z-3 bg-white border rounded shadow"
-                    style={{ top: "100%", left: "0", minWidth: "100%" }}
+                  <span
+                    className="rounded p-1 pt-0 ms-1"
+                    style={{
+                      cursor: "pointer",
+                      width: "26px !important",
+                      height: "26px !important",
+                    }}
+                    onClick={() => setIsOpen(!isOpen)}
                   >
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                      <StaticDatePicker
-                        displayStaticWrapperAs="desktop"
-                        value={startDate}
-                        onChange={(date) => {
-                          setStartDate(date);
-                          setIsOpen(false);
-                          const formattedDate = date
-                            .toISOString()
-                            .split("T")[0];
-                          const day = date.toLocaleDateString("en-US", {
-                            weekday: "long",
-                          });
-                          setSelectedDate({ fullDate: formattedDate, day });
-                          setSelectedTime(null);
-                        }}
-                        minDate={new Date()}
-                        maxDate={maxSelectableDate}
-                        slotProps={{
-                          actionBar: { actions: [] },
-                        }}
-                      />
-                    </LocalizationProvider>
-                  </div>
-                )}
+                    <MdOutlineDateRange size={16} style={{ color: "#374151" }} />
+                  </span>
+                  {isOpen && (
+                    <div
+                      className="position-absolute mt-2 z-3 bg-white border rounded shadow"
+                      style={{ top: "100%", left: "0", minWidth: "100%" }}
+                    >
+                      <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <StaticDatePicker
+                          displayStaticWrapperAs="desktop"
+                          value={startDate}
+                          onChange={(date) => {
+                            setStartDate(date);
+                            setIsOpen(false);
+                            const formattedDate = date
+                              .toISOString()
+                              .split("T")[0];
+                            const day = date.toLocaleDateString("en-US", {
+                              weekday: "long",
+                            });
+                            setSelectedDate({ fullDate: formattedDate, day });
+                            setSelectedTime(null);
+                            setShowCreateButton(false);
+                          }}
+                          minDate={new Date()}
+                          maxDate={maxSelectableDate}
+                          slotProps={{
+                            actionBar: { actions: [] },
+                          }}
+                        />
+                      </LocalizationProvider>
+                    </div>
+                  )}
+                </div>
               </div>
+              {!showCreateButton && (
+                <button
+                  className="btn shadow border-0 text-white rounded-pill d-block d-md-none"
+                  onClick={createMatchesHandle}
+                  style={{
+                    background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                    fontSize: "12px",
+                    fontFamily: "Poppins",
+                    fontWeight: "500",
+                    padding: "6px 12px",
+                    whiteSpace: "nowrap"
+                  }}
+                  aria-label="Create open matches"
+                >
+                  Create Open Matches
+                </button>
+              )}
             </div>
+            
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
               {/* Dropdown */}
               <div className="position-relative mt-md-0 mt-2">
@@ -586,7 +608,7 @@ const Openmatches = () => {
                   </div>
                 </div> */}
 
-                {showDropdown && (
+                {/* {showDropdown && (
                   <div
                     className="position-absolute bg-white rounded shadow"
                     style={{
@@ -663,7 +685,7 @@ const Openmatches = () => {
                       />
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
 
               {/* Month Box */}
@@ -696,7 +718,7 @@ const Openmatches = () => {
 
               {/* Scrollable Dates EXACT copy UI */}
               <div
-                className="d-flex gap-1"
+                className="d-flex gap-1 align-items-center"
                 style={{ position: "relative" }}
               >
                 {/* Left Arrow */}
@@ -750,6 +772,7 @@ const Openmatches = () => {
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
+                          setShowCreateButton(false);
                           dispatch(getMatchesUser({ matchDate: d.fullDate, clubId: localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) =>
@@ -1402,7 +1425,7 @@ const Openmatches = () => {
                     fontFamily: "Poppins",
                   }}
                 >
-                  <p>No matches available</p>
+                  <p>No Slots available</p>
                 </div>
               )}
             </div>
@@ -1410,48 +1433,50 @@ const Openmatches = () => {
         </div>
 
         <div
-          className={`col-12 col-lg-5 ps-md-3 pe-md-0 px-0 ${!showViewMatch ? "ps-md-4 pt-md-3 pt-4" : ""
+          className={`col-12 col-lg-5 ps-md-3 pe-md-0 px-0 ${!showViewMatch ? "ps-md-4 pt-md-1 pt-1" : ""
             } order-1 order-md-2 ${showViewMatch ? "d-block" : ""}`}
         >
           {!showViewMatch ? (
             <div className="ms-0 ms-lg-2">
-              <div
-                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner mx-auto d-flex d-md-none"
-                style={{
-                  backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
-                  position: "relative",
-                  backgroundSize: "cover",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right center",
-                  height: "312px",
-                  borderRadius: "20px",
-                  overflow: "hidden",
-                  marginTop: "-20px",
-                }}
-              >
-                <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
-                  <h4 className="open-match-img-heading text-nowrap">
-                    Got a score to <br /> settle?
-                  </h4>
-                  <p className="text-light font_small_size">
-                    Great for competitive vibes.
-                  </p>
-                  <button
-                    className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
-                    onClick={createMatchesHandle}
-                    style={{
-                      background:
-                        "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                      fontSize: "14px",
-                      fontFamily: "Poppins",
-                      fontWeight: "500",
-                    }}
-                    aria-label="Create open matches"
-                  >
-                    Create Open Matches
-                  </button>
+              {showCreateButton && (
+                <div
+                  className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner mx-auto d-flex d-md-none"
+                  style={{
+                    backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
+                    position: "relative",
+                    backgroundSize: "cover",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right center",
+                    height: "312px",
+                    borderRadius: "20px",
+                    overflow: "hidden",
+                    marginTop: "-20px",
+                  }}
+                >
+                  <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
+                    <h4 className="open-match-img-heading text-nowrap">
+                      Got a score to <br /> settle?
+                    </h4>
+                    <p className="text-light font_small_size">
+                      Great for competitive vibes.
+                    </p>
+                    <button
+                      className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
+                      onClick={createMatchesHandle}
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                        fontSize: "14px",
+                        fontFamily: "Poppins",
+                        fontWeight: "500",
+                      }}
+                      aria-label="Create open matches"
+                    >
+                      Create Open Matches
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
               <div
                 className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-flex"
                 style={{

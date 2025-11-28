@@ -115,6 +115,7 @@ const Booking = ({ className = "" }) => {
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
   const [activeTab, setActiveTab] = useState(0); // Default to morning tab
+  const [showBanner, setShowBanner] = useState(true);
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -638,58 +639,60 @@ const Booking = ({ className = "" }) => {
             </div>
           </div>
         </div>
-        <div className="px-3 d-lg-none mobile-banner">
-          <div
-            className="image-zoom-container position-relative overflow-hidden rounded-3"
-            style={{
-              height: "100%",
-              background:
-                "linear-gradient(269.34deg, rgba(80, 78, 78, 0.61) 0.57%, #111827 94.62%)",
-              backgroundBlendMode: "multiply",
-            }}
-          >
-            {/* <img
-                            src={twoball}
-                            alt="Paddle"
-                            className="img-fluid w-100 h-100 object-fit-cover sharp-image"
-                            style={{
-                                borderRadius: "13px",
-                                imageRendering: "auto",
-                                imageRendering: "-webkit-optimize-contrast",
-                                filter: "none"
-                            }}
-                        /> */}
-            <img
-              src={bannerimg}
-              alt="Paddle"
-              className="img-fluid w-100 object-fit-cover rounded-3 d-block d-md-none"
-              style={{ height: "173px" }}
-            />
-
+        {showBanner && (
+          <div className="px-3 d-lg-none mobile-banner">
             <div
-              className="position-absolute top-0 start-0 w-100 h-100 pt-lg-0 d-flex flex-column justify-content-center text-white p-5"
+              className="image-zoom-container position-relative overflow-hidden rounded-3"
               style={{
+                height: "100%",
                 background:
-                  "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)",
+                  "linear-gradient(269.34deg, rgba(80, 78, 78, 0.61) 0.57%, #111827 94.62%)",
                 backgroundBlendMode: "multiply",
               }}
             >
-              <p
-                className="mb-0 ps-md-4"
+              {/* <img
+                              src={twoball}
+                              alt="Paddle"
+                              className="img-fluid w-100 h-100 object-fit-cover sharp-image"
+                              style={{
+                                  borderRadius: "13px",
+                                  imageRendering: "auto",
+                                  imageRendering: "-webkit-optimize-contrast",
+                                  filter: "none"
+                              }}
+                          /> */}
+              <img
+                src={bannerimg}
+                alt="Paddle"
+                className="img-fluid w-100 object-fit-cover rounded-3 d-block d-md-none"
+                style={{ height: "173px" }}
+              />
+
+              <div
+                className="position-absolute top-0 start-0 w-100 h-100 pt-lg-0 d-flex flex-column justify-content-center text-white p-5"
                 style={{
-                  fontSize: "12px",
-                  fontFamily: "Poppins",
-                  fontWeight: "500",
+                  background:
+                    "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)",
+                  backgroundBlendMode: "multiply",
                 }}
               >
-                BOOK YOUR SLOT AT
-              </p>
-              <h1 className="booking-img-heading ps-md-4">
-                {clubData?.clubName || ""}
-              </h1>
+                <p
+                  className="mb-0 ps-md-4"
+                  style={{
+                    fontSize: "12px",
+                    fontFamily: "Poppins",
+                    fontWeight: "500",
+                  }}
+                >
+                  BOOK YOUR SLOT AT
+                </p>
+                <h1 className="booking-img-heading ps-md-4">
+                  {clubData?.clubName || ""}
+                </h1>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="container mb-md-0 mb-0 pt-1 pt-lg-0 px-lg-4">
         <div className="row g-4">
@@ -735,6 +738,7 @@ const Booking = ({ className = "" }) => {
                             });
                             setSelectedDate({ fullDate: formattedDate, day });
                             setSelectedTimes({});
+                            setShowBanner(false);
                             dispatch(
                               getUserSlotBooking({
                                 day,
@@ -968,6 +972,7 @@ const Booking = ({ className = "" }) => {
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
+                          setShowBanner(false);
                           dispatch(
                             getUserSlotBooking({
                               day: d.day,
