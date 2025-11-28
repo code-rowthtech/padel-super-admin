@@ -82,6 +82,10 @@ const Cancellation = () => {
   const cancelledCount = sendDate && tab === 1 ? totalItems : counts.cancelled;
   const rejectedCount = sendDate && tab === 2 ? totalItems : counts.rejected;
   useEffect(() => {
+    dispatch(getBookingByStatus());
+  }, [dispatch]);
+
+  useEffect(() => {
     dispatch(resetBookingData());
     const payload = { status, ownerId, page: currentPage };
     if (sendDate) {

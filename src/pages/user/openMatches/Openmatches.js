@@ -46,6 +46,7 @@ import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
 import { IoIosArrowForward } from "react-icons/io";
 import { registerClub } from "../../../redux/thunks";
+import { getUserProfile } from "../../../redux/user/auth/authThunk";
 
 const normalizeTime = (time) => {
   if (!time) return null;
@@ -90,12 +91,14 @@ const Openmatches = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = getUserFromSession();
+  console.log({ user });
   const matchesData = useSelector((state) => state.userMatches?.usersData);
   const matchLoading = useSelector((state) => state.userMatches?.usersLoading);
   const reviewData = useSelector(
     (state) => state.userClub?.getReviewData?.data
   );
   const User = useSelector((state) => state?.userAuth);
+
   const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
   const [showModal, setShowModal] = useState(false);
   const [matchId, setMatchId] = useState(null);
@@ -106,12 +109,18 @@ const Openmatches = () => {
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
-      if (User?.user?.token) {
+      if (user?.token) {
         dispatch(getMatchesUser(payload));
       }
     }, 300),
-    [dispatch, User?.user?.token]
+    [dispatch, user?.token]
   );
+
+  useEffect(() => {
+    if (user?.token) {
+      dispatch(getUserProfile())
+    }
+  }, [user?.token])
 
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -913,13 +922,13 @@ const Openmatches = () => {
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A"} {updateName?.gender}
+                                    : "N/A"} | {match?.gender}
                                 </span>
                                 <p className="all-match-time   mb-0 d-md-none d-lg-none">
                                   {match?.skillLevel
                                     ? match.skillLevel.charAt(0).toUpperCase() +
                                     match.skillLevel.slice(1)
-                                    : "N/A"} {updateName?.gender}
+                                    : "N/A"} | {match?.gender}
                                 </p>
                                 <div
                                   className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"
@@ -1044,6 +1053,10 @@ const Openmatches = () => {
                           border: "0.45px solid #0000001A",
                           boxShadow: "none",
                         }}
+                        onClick={() => {
+                          setSelectedMatch(match);
+                          setShowViewMatch(true);
+                        }}
                       >
                         <div className="row px-0 px-md-3 pt-0 pb-0 d-flex justify-content-between align-items- flex-wrap mx-auto">
                           <div className="col-12">
@@ -1133,7 +1146,7 @@ const Openmatches = () => {
                                       onClick={() => {
                                         if (isAvailable) {
                                           setShowModal(true);
-                                          setMatchId(match?._id);
+                                          setMatchId(match);
                                           setTeamName("teamA");
                                         }
                                       }}
@@ -1221,7 +1234,7 @@ const Openmatches = () => {
                                       onClick={() => {
                                         if (isAvailable) {
                                           setShowModal(true);
-                                          setMatchId(match?._id);
+                                          setMatchId(match);
                                           setTeamName("teamB");
                                         }
                                       }}

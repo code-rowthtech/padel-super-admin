@@ -343,15 +343,13 @@ const UpdatePlayers = ({
             <div style={inputStyle("level")}>
               {getPlayerLevelsLoading === true ? (
                 <div className="text-center">
-                  <div className="spinner-grow" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
+                 <ButtonLoading />
                 </div>
               ) : (
                 <Select
                   options={levelOptions}
                   value={levelOptions.find((o) => o.value === formData.level)}
-                  onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt.value }))}
+                  onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt?.value }))}
                   placeholder="Choose level"
                   classNamePrefix="select"
                   styles={{ control: (base) => ({ ...base, border: "none", boxShadow: "none" }) }}

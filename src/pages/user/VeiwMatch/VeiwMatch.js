@@ -19,9 +19,10 @@ const PlayerSlot = memo(function PlayerSlot({
     isRemovable,
     team,
     onRemove,
-    onAdd,
+    onAdd, openMatches
 }) {
     const user = player?.userId || player;
+    console.log({user});
     const tooltipId = `player-${team}-${index}`;
     if (!player) {
         // Show "Add Me" only for specific empty slots
@@ -38,7 +39,7 @@ const PlayerSlot = memo(function PlayerSlot({
                             height: 62,
                             border: team === "A" ? "1px solid #3DBE64" : "1px solid #1F41BB",
                         }}
-                        onClick={onAdd}
+                        onClick={() => onAdd(team)}
                     >
                         <i
                             className="bi bi-plus fs-1"
@@ -126,8 +127,13 @@ const PlayerSlot = memo(function PlayerSlot({
                 className="badge text-white"
                 style={{ backgroundColor: team === "A" ? "#3DBE64" : "#1F41BB" }}
             >
-                {user?.level || "A|B"}
+                {
+                    openMatches?.skillDetails?.[openMatches.skillDetails.length - 1]
+                        ?.split(" - ")[0] || user?.level   // extracts: A, B1, B2, C1 etc.
+                }
             </span>
+
+
 
             {/* Remove Button */}
             {/* {isRemovable && (
@@ -176,7 +182,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}, ${date.toLocaleDateString("en-US", { month: "short" })}`;
         return { day, formattedDate };
     };
-
+    console.log(matchesData?.data, 'matchesData?.data');
     const calculateEndRegistrationTime = () => {
         const slots = matchesData?.data?.slot;
         if (!slots || slots.length === 0) return "Today at 10:00 PM";
@@ -250,18 +256,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
         { player: teamBData[1], index: 3, removable: true, team: "B" },
     ];
 
-    const createMatchesHandle = () => {
-        if (user?.id || user?._id) {
-            navigate("/create-matches", { state: { selectedDate } });
-        } else {
-            navigate("/login", {
-                state: {
-                    redirectTo: "/create-matches",
-                    selectedDate,
-                },
-            });
-        }
-    };
+
 
     return (
         <>
@@ -441,7 +436,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                         isRemovable={s.removable}
                                         team={s.team}
                                         onRemove={handleRemove}
-                                        onAdd={handleAdd}
+                                        onAdd={()=>handleAdd(s.team)}
+                                        openMatches={matchesData?.data}
                                     />
                                 ))}
                             </div>
@@ -455,7 +451,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                         isRemovable={s.removable}
                                         team={s.team}
                                         onRemove={handleRemove}
-                                        onAdd={handleAdd}
+                                        onAdd={()=>handleAdd(s.team)}
                                     />
                                 ))}
                             </div>
@@ -485,9 +481,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                                 Type of Court
                             </p>
                             <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                                {matchesData?.data?.matchType
-                                    ? matchesData.data.matchType.charAt(0).toUpperCase() +
-                                    matchesData.data.matchType.slice(1)
+                                {matchesData?.data?.courtType
+                                    ? matchesData.data.courtType.charAt(0).toUpperCase() +
+                                    matchesData.data.courtType.slice(1)
                                     : "Unknown"}
                             </p>
                         </div>
@@ -517,6 +513,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, }
                 setShowModal={setShowModal}
                 matchData={matchesData?.data || match}
                 skillLevel={matchesData?.data?.skillLevel}
+                selectedDate={selectedDate}
 
             />
 
