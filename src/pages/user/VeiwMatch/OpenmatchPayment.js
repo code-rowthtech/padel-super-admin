@@ -248,7 +248,10 @@ const OpenmatchPayment = () => {
 
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));
-                        navigate("/open-matches", { replace: true });
+                        navigate("/open-matches", {
+                            replace: true,
+                            state: { selectedDate }
+                        });
                         dispatch(getUserProfile());
 
                     } catch (err) {
@@ -333,7 +336,7 @@ const OpenmatchPayment = () => {
             <div className="row  mx-auto">
                 {/* Left: Contact + Payment */}
                 <div
-                    className="col-lg-7 col-12 py-md-3 pt-0 pb-3 rounded-3 mobile-payment-content"
+                    className="col-lg-7 col-12 py-md-3 pt-0 pb-3  rounded-3 mobile-payment-content"
                     style={{
                         paddingBottom: localSelectedCourts.length > 0 ? "120px" : "20px",
                     }}
@@ -350,16 +353,22 @@ const OpenmatchPayment = () => {
                         }}
                     >
                         <h6
-                            className="mb-md-3 mb-0 small_font_mobile text-center text-md-start"
-                            style={{ fontSize: 20, fontWeight: 600 }}
+                            className="mb-md-3 mb-2 d-none  d-lg-block text-md-start"
+                            style={{ fontSize: "20px", fontWeight: 600, display: "block", visibility: "visible" }}
                         >
                             Contact Info
                         </h6>
-                        <div className="row mx-auto">
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
+                        <h6
+                            className="mb-3 mb-2 mt-2 ps-2 d-lg-none text-md-start"
+                            style={{ fontSize: "15px", fontWeight: 500, display: "block", visibility: "visible" }}
+                        >
+                            Contact Info
+                        </h6>
+                        <div className="row mx-auto ">
+                            <div className="col-12 col-md-4 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-0 ps-lg-2"
-                                    style={{ fontSize: 12, fontWeight: 500 }}
+                                    className="form-label mb-1 ps-lg-2"
+                                    style={{ fontSize: "12px", fontWeight: 500, display: "block", visibility: "visible" }}
                                 >
                                     Name <span className="text-danger">*</span>
                                 </label>
@@ -390,10 +399,10 @@ const OpenmatchPayment = () => {
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
+                            <div className="col-12 col-md-4 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-0 ps-lg-1"
-                                    style={{ fontSize: 12, fontWeight: 500 }}
+                                    className="form-label mb-1 ps-lg-1"
+                                    style={{ fontSize: "12px", fontWeight: 500, display: "block", visibility: "visible" }}
                                 >
                                     Phone Number <span className="text-danger">*</span>
                                 </label>
@@ -433,10 +442,10 @@ const OpenmatchPayment = () => {
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
+                            <div className="col-12 col-md-4 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-0 ps-lg-2"
-                                    style={{ fontSize: 12, fontWeight: 500 }}
+                                    className="form-label mb-1 ps-lg-2"
+                                    style={{ fontSize: "12px", fontWeight: 500, display: "block", visibility: "visible" }}
                                 >
                                     Email <span className="text-danger">*</span>
                                 </label>
@@ -468,8 +477,14 @@ const OpenmatchPayment = () => {
                         }}
                     >
                         <h6
-                            className="mb-md-4 mb-3 small_font_mobile text-center text-md-start"
+                            className="mb-md-4 mb-3 d-none d-lg-block small_font_mobile text-center text-md-start"
                             style={{ fontSize: 20, fontWeight: 600 }}
+                        >
+                            Payment Method
+                        </h6>
+                        <h6
+                            className="mb-md-4 mb-3 d-lg-none small_font_mobile text-start"
+                            style={{ fontSize: 15, fontWeight: 500 }}
                         >
                             Payment Method
                         </h6>
@@ -493,20 +508,23 @@ const OpenmatchPayment = () => {
                             ].map((m) => (
                                 <label
                                     key={m.id}
-                                    className="d-flex just ify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
-                                    style={{ boxShadow: "3px 4px 6.3px 0px #0000001F" }}
+                                    className="d-flex justify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
+                                    style={{ boxShadow: "3px 4px 6.3px 0px #0000001F", cursor: "pointer" }}
                                 >
                                     <div className="d-flex align-items-center gap-3">
                                         <img src={m.icon} alt={m.name} width={28} />
                                         <span className="fw-medium">{m.name}</span>
                                     </div>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        value={m.id}
-                                        checked={selectedPayment === m.id}
-                                        onChange={(e) => setSelectedPayment(e.target.value)}
-                                    />
+                                    <div className="d-flex align-items-center">
+                                        <input
+                                            type="radio"
+                                            name="payment"
+                                            value={m.id}
+                                            checked={selectedPayment === m.id}
+                                            onChange={(e) => setSelectedPayment(e.target.value)}
+                                            style={{ width: "20px", height: "20px", cursor: "pointer" }}
+                                        />
+                                    </div>
                                 </label>
                             ))}
                         </div>

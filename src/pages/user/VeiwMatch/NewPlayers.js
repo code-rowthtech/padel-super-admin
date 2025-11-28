@@ -146,7 +146,7 @@ const NewPlayers = ({
         window.dispatchEvent(new Event("playersUpdated"));
 
 
-        // ---- UI cleanup ----
+        // ---- UI cleanup - only on success ----
         setFormData({
           name: "",
           email: "",
@@ -201,16 +201,9 @@ const NewPlayers = ({
     setShowErrors((prev) => ({ ...prev, [field]: false }));
   };
 
-  // Reset form when modal opens
+  // Only clear errors when modal opens, keep form data
   useEffect(() => {
     if (showAddMeForm) {
-      setFormData({
-        name: "",
-        email: "",
-        phoneNumber: "",
-        gender: "",
-        level: "",
-      });
       setErrors({});
       setShowErrors({});
     }
@@ -241,9 +234,10 @@ const NewPlayers = ({
   };
 
   useEffect(() => {
-    if (!selectedGender) return;
-    setFormData((prev) => ({ ...prev, gender: selectedGender }));
-  }, [selectedGender]);
+    if (showAddMeForm && selectedGender) {
+      setFormData((prev) => ({ ...prev, gender: selectedGender }));
+    }
+  }, [showAddMeForm, selectedGender]);
 
   return (
     <Modal
@@ -429,6 +423,7 @@ const NewPlayers = ({
                       ...base,
                       color: "#6c757d",
                     }),
+                    overflow:"hidden"
                   }}
                 />
               )}
