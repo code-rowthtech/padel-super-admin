@@ -370,7 +370,7 @@ const NewPlayers = ({
           {/* Gender */}
           <div className="mb-3">
             <label className="form-label">Gender</label>
-            <div className="d-flex gap-4">
+            <div className="d-flex gap-3">
               {[
                 { value: "Male Only", label: "Male Only" },
                 { value: "Female Only", label: "Female Only" },

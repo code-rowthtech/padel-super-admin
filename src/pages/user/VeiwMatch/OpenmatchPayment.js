@@ -493,7 +493,7 @@ const OpenmatchPayment = () => {
                             ].map((m) => (
                                 <label
                                     key={m.id}
-                                    className="d-flex justify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
+                                    className="d-flex just ify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
                                     style={{ boxShadow: "3px 4px 6.3px 0px #0000001F" }}
                                 >
                                     <div className="d-flex align-items-center gap-3">

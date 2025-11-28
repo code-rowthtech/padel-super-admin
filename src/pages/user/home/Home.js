@@ -491,7 +491,7 @@ const Home = () => {
               </div>
 
               <div className=" col-lg-4 col-12 ps-md-3 ">
-                <div className="pt-md-4 pt-0 px-md-0">
+                <div className="pt-md-4 pt-2 px-md-0">
                   <div className="col-12 d-none d-flex align-items-center justify-content-center border_right_bottom">
                     <h6 className="mb-2 add_font_heading_mobile">
                       Open now   6 AM - 11 PM

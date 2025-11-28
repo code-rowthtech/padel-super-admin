@@ -546,7 +546,7 @@ console.log({updateName});
 
             {/* Mobile Offcanvas Menu */}
             <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end" className="border-0 w-75 ">
-                <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2 py-0">
+                <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2 py-2">
                     <Offcanvas.Title className="d-flex align-items-center gap-3">
 
                         {/* Logo / Avatar */}
