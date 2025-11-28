@@ -38,7 +38,6 @@ const OpenMatches = () => {
         borderRadius: "999px",
         zIndex: 999,
         position: "relative",
-        top: "0px", // lift tag above avatars
         left: "20px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
       }}
@@ -47,7 +46,6 @@ const OpenMatches = () => {
     </div>
   );
 
-  // Available Tag
   const AvailableTag = ({ team, id }) => (
     <TagWrapper>
       <div
@@ -79,7 +77,6 @@ const OpenMatches = () => {
     </TagWrapper>
   );
 
-  // First Player Tag
   const FirstPlayerTag = ({ player }) => (
     <TagWrapper>
       <div
@@ -134,14 +131,12 @@ const OpenMatches = () => {
     </TagWrapper>
   );
 
-  // Player Avatar (circle images)
   const PlayerAvatar = ({ player, idx, total }) => (
     <div
       className="rounded-circle border d-flex align-items-center justify-content-center position-relative"
       style={{
         width: "40px",
         height: "40px",
-        marginLeft: idx !== 0 ? "-15px" : "0", // Increased overlap
         zIndex: total - idx,
         backgroundColor: player?.userId?.profilePic ? "transparent" : "#374151",
         overflow: "hidden",
@@ -208,9 +203,7 @@ const OpenMatches = () => {
                       }}
                     >
                       <div className="card-body px-4 py-3">
-                        {/* Mobile Layout */}
                         <div className="d-block d-md-none">
-                          {/* Top Row: Date/Info (left) & Players (right) */}
                           <div className="d-flex justify-content-between align-items-start mb-3">
                             <div className="flex-grow-1 me-3">
                               <p
@@ -268,9 +261,7 @@ const OpenMatches = () => {
                               </p>
                             </div>
 
-                            {/* Right Column: Players, Price, Button */}
                             <div className="d-flex flex-column align-items-end">
-                              {/* Players Section */}
                               <div className="d-flex align-items-center mb-2">
                                 {match?.teamA?.length === 1 ||
                                   match?.teamA?.length === 0 ? (
@@ -316,7 +307,6 @@ const OpenMatches = () => {
                                 </div>
                               </div>
 
-                              {/* Price */}
                               <div
                                 className="fw-bold mb-2"
                                 style={{ color: "#1F41BB", fontSize: "16px" }}
@@ -324,7 +314,6 @@ const OpenMatches = () => {
                                 ₹ {calculateTotalAmount(match?.slot)}
                               </div>
 
-                              {/* View Button */}
                               <Link
                                 to={`/admin/match-details/${match?._id}`}
                                 className="btn rounded-pill px-3 py-1 text-white"
@@ -341,7 +330,6 @@ const OpenMatches = () => {
                           </div>
                         </div>
 
-                        {/* Desktop Layout - Original */}
                         <div className="d-none d-md-flex justify-content-between flex-wrap">
                           <div>
                             <p
@@ -463,7 +451,6 @@ const OpenMatches = () => {
                     </div>
                   ))}
                 </Col>
-                {/* <Col md={6}></Col> */}
               </Row>
               <Row className=" mb-5">
                 <Col className="d-flex mb-3 justify-content-center">

@@ -28,9 +28,7 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                         maxWidth: '1100px',
                     }}
                 >
-                    {/* Stepper */}
                     <div className="mb-4">
-                        {/* Desktop Stepper */}
                         <div className="d-none d-md-flex flex-column align-items-center">
                             <div className="d-flex justify-content-center align-items-center">
                                 {steps.map((_, index) => {
@@ -85,7 +83,6 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                                 })}
                             </div>
 
-                            {/* Desktop Labels */}
                             <div className="d-flex justify-content-center mt-2">
                                 {steps.map((label, index) => {
                                     const stepIndex = index + 1;
@@ -110,7 +107,6 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                             </div>
                         </div>
 
-                        {/* Mobile Stepper */}
                         <div className="d-block d-md-none">
                             {steps.map((label, index) => {
                                 const stepIndex = index + 1;
@@ -165,7 +161,6 @@ const RegistrationLayout = ({ children, currentStep = 1 }) => {
                         </div>
                     </div>
 
-                    {/* Form content */}
                     {children}
                 </div>
             </Container>

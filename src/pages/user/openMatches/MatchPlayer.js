@@ -1,4 +1,3 @@
-// src/pages/user/CreateMatches/MatchPlayer.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -9,7 +8,6 @@ import { Tooltip } from "react-tooltip";
 import NewPlayers from "../VeiwMatch/NewPlayers";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 
-// Button styling variables
 const width = 400
 const height = 75;
 const circleRadius = height * 0.3;
@@ -84,13 +82,11 @@ const MatchPlayer = ({
     const User = getUserFromSession();
     const [selectedGender, setSelectedGender] = useState('');
     const [genderError, setGenderError] = useState('');
-    console.log({ genderError });
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
     const [defaultLevel, setDefaultLevel] = useState();
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
 
-    console.log({defaultLevel});
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
@@ -110,7 +106,6 @@ const MatchPlayer = ({
                 setDefaultSkillLevel(result?.response?.skillLevel || "Open Match");
                 setDefaultLevel(firstAnswer);
             } catch (err) {
-                console.error("Error:", err);
             }
 
         };
@@ -130,7 +125,6 @@ const MatchPlayer = ({
         syncFromStorage();
         window.addEventListener("storage", syncFromStorage);
 
-        // Custom event for same-tab updates
         const handleCustomUpdate = () => syncFromStorage();
         window.addEventListener("playersUpdated", handleCustomUpdate);
 
@@ -140,7 +134,6 @@ const MatchPlayer = ({
         };
     }, [setParentAddedPlayers]);
 
-    // Force refresh every 500ms to catch localStorage changes
     useEffect(() => {
         const interval = setInterval(() => {
             const saved = localStorage.getItem("addedPlayers");
@@ -154,7 +147,6 @@ const MatchPlayer = ({
         return () => clearInterval(interval);
     }, [localPlayers, setParentAddedPlayers]);
 
-    // ── Modal Controls ─────────────────────────────────────────────────
     const [showAddMeForm, setShowAddMeForm] = useState(false);
     const [activeSlot, setActiveSlot] = useState(null);
     const [showShareDropdown, setShowShareDropdown] = useState(false);
@@ -174,30 +166,21 @@ const MatchPlayer = ({
         setActiveSlot((prev) => (prev === slot ? null : slot));
     };
 
-    // ── Helpers ───────────────────────────────────────────────────────
-    const formatDate = (dateString) => {
-        if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
-
-        // Handle both ISO strings and simple date strings
-        const dateOnly = dateString.split('T')[0]; // Extract date part from ISO string
-        const [year, month, dayNum] = dateOnly.split('-').map(Number);
-        const d = new Date(year, month - 1, dayNum);
-
-        const day = dayShortMap[d.toLocaleDateString("en-US", { weekday: "long" })] || "Sun";
-        const formattedDate = `${dayNum.toString().padStart(2, '0')} ${d.toLocaleDateString("en-US", { month: "short" })}`;
-
+    const formatMatchDate = (dateString) => {
+        if (!dateString) return { day: "Fri", formattedDate: "29 Aug" };
+        const date = new Date(dateString);
+        const day = date.toLocaleDateString("en-US", { weekday: "short" });
+        const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}, ${date.toLocaleDateString("en-US", { month: "short" })}`;
         return { day, formattedDate };
     };
 
     const calculateEndRegistrationTime = () => {
         if (!selectedCourts?.length) return "Today at 10:00 PM";
 
-        // Get all start times
         const allTimes = selectedCourts.flatMap(c =>
             c.time.map(s => s.time)
         );
 
-        // Convert to minutes since midnight
         const timesInMinutes = allTimes.map(t => {
             const [timePart, period] = t.split(" ");
             const [h, m = "0"] = timePart.split(":");
@@ -211,10 +194,8 @@ const MatchPlayer = ({
             return hour * 60 + minute;
         });
 
-        // Find latest match start time
         const latestMinutes = Math.max(...timesInMinutes);
 
-        // Subtract 10 minutes for registration cut-off
         let endMinutes = latestMinutes - 10;
         if (endMinutes < 0) endMinutes += 24 * 60;
 
@@ -228,22 +209,20 @@ const MatchPlayer = ({
         return `Registration closes at ${displayHour}:${displayMinutes} ${period}`;
     };
 
-
     const matchDate = selectedDate?.fullDate
-        ? formatDate(selectedDate.fullDate)
+        ? formatMatchDate(selectedDate.fullDate)
         : { day: "Fri", formattedDate: "29 Aug" };
     const matchTime = selectedCourts.length
         ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
         : "";
 
-    const playerCount = 1 + Object.keys(localPlayers).length; // User + added players
     const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
     const hasValidSelection = selectedCourts.every(court => court.time.length === 2 || court.time.length === 0);
     const canBook = totalSlots >= 2 && totalSlots % 2 === 0 && hasValidSelection && matchTime.length > 0;
 
     const displayUserSkillLevel = selectedAnswers && Object.keys(selectedAnswers).length > 0
-        ? selectedAnswers[5]?.split(' - ')[0] || selectedAnswers[5]  // Extract code part (B1) from "B1 - Experienced Player"
-        : (userSkillLevel);
+        ? selectedAnswers[Object.keys(selectedAnswers)[0]]
+        : "Intermediate";
 
 
 
@@ -270,7 +249,6 @@ const MatchPlayer = ({
                 },
                 selectedCourts,
                 selectedDate,
-                grandTotal: totalAmount * 4, // Pass full amount for payment
                 totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
                 selectedAnswers,
                 selectedGender,
@@ -295,9 +273,7 @@ const MatchPlayer = ({
     return (
         <>
             <div className="py-md-3 pt-0 pb-3 rounded-3 px-md-4 px-2 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
-                {/* Header */}
                 <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
-                    {/* <h5 className="mb-0" style={{ fontSize: "20px", fontWeight: 600 }}>Details</h5> */}
                     <div className="d-flex align-items-center ">
                         <button
                             className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
@@ -353,7 +329,7 @@ const MatchPlayer = ({
                                         const url = window.location.href;
                                         const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         window.open(
-                                            `https://x.com/intent/tweet?url=${encodeURIComponent(
+                                            `https://twitter.com/intent/tweet?url=${encodeURIComponent(
                                                 url
                                             )}&text=${encodeURIComponent(text)}`,
                                             "_blank"
@@ -370,7 +346,6 @@ const MatchPlayer = ({
                                         const url = window.location.href;
                                         const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         navigator.share ? navigator.share({ url, text }) : window.open(
-                                            `https://www.instagram.com/`,
                                             "_blank"
                                         );
                                         setShowShareDropdown(false);
@@ -385,7 +360,6 @@ const MatchPlayer = ({
                                         const url = window.location.href;
                                         const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         window.open(
-                                            `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
                                             "_blank"
                                         );
                                         setShowShareDropdown(false);
@@ -399,7 +373,6 @@ const MatchPlayer = ({
                     </div>
                 </div>
 
-                {/* Game Info */}
                 <div
                     className="rounded-4 border px-3 pt-2 pb-0 mb-2"
                     style={{ backgroundColor: "#CBD6FF1A" }}
@@ -430,7 +403,6 @@ const MatchPlayer = ({
                     </div>
 
                     <div className="row text-center border-top">
-                        {/* Gender Dropdown */}
                         <div className="col py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Gender
@@ -447,7 +419,6 @@ const MatchPlayer = ({
                                         width: "auto",
                                         minWidth: "80px",
                                         appearance: "none",
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23000' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E")`,
                                         backgroundRepeat: "no-repeat",
                                         backgroundPosition: "right 15px center",
                                         backgroundSize: "15px",
@@ -484,17 +455,15 @@ const MatchPlayer = ({
 
                         </div>
 
-                        {/* Level */}
                         <div className="col border-start border-end py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Level
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
-                                {selectedAnswers[0] || defaultSkillLevel || "Open Match"}
+                                {(selectedAnswers && selectedAnswers[0]) || defaultSkillLevel || "Open Match"}
                             </p>
                         </div>
 
-                        {/* Your Share */}
                         <div className="col py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Your share
@@ -533,14 +502,11 @@ const MatchPlayer = ({
                     </p>
                 </div>
 
-                {/* Players Section */}
                 <div className="p-md-3 p-2 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
                     <h6 className="mb-2" style={{ fontSize: "18px", fontWeight: 600 }}>Players</h6>
 
                     <div className="row mx-auto">
-                        {/* TEAM A: User (fixed) + 1 added */}
                         <div className="col-6 d-flex flex-lg-row ps-0">
-                            {/* USER - Always First */}
                             {User && (
                                 <div className="d-flex flex-column align-items-center me-auto mb-3">
                                     <div
@@ -575,7 +541,6 @@ const MatchPlayer = ({
                                 </div>
                             )}
 
-                            {/* SLOT 2 - Team A Partner */}
                             {localPlayers.slot2 ? (
                                 <div className="d-flex flex-column align-items-center me-auto mb-3">
                                     <div
@@ -621,9 +586,7 @@ const MatchPlayer = ({
                             )}
                         </div>
 
-                        {/* TEAM B: 2 Players */}
                         <div className="col-6 d-flex flex-lg-row pe-0 border-start">
-                            {/* SLOT 3 */}
                             {localPlayers.slot3 ? (
                                 <div className="d-flex flex-column align-items-center ms-auto mb-3">
                                     <div
@@ -668,7 +631,6 @@ const MatchPlayer = ({
                                 </div>
                             )}
 
-                            {/* SLOT 4 */}
                             {localPlayers.slot4 ? (
                                 <div className="d-flex flex-column align-items-center ms-auto mb-3">
                                     <div
@@ -808,7 +770,6 @@ const MatchPlayer = ({
                     </button>
                 </div>
 
-                {/* Information */}
                 <h6
                     className="mb-md-3 mb-2 mt-4 all-matches"
                     style={{ fontSize: "18px", fontWeight: 600 }}
@@ -846,7 +807,6 @@ const MatchPlayer = ({
                         </div>
                     </div>
 
-                    {/* BOOK NOW */}
 
                 </div>
                 {slotError && (
@@ -865,7 +825,6 @@ const MatchPlayer = ({
                 )}
             </div>
 
-            {/* Modal */}
             <NewPlayers
                 showAddMeForm={showAddMeForm}
                 activeSlot={activeSlot}
@@ -873,7 +832,7 @@ const MatchPlayer = ({
                 setActiveSlot={setActiveSlot}
                 setAddedPlayers={setParentAddedPlayers}
                 skillDetails={selectedAnswers}
-                userSkillLevel={userSkillLevel}
+                userSkillLevel={userSkillLevel || defaultSkillLevel}
                 selectedGender={selectedGender}
             />
         </>

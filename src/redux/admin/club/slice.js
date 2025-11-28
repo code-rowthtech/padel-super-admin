@@ -35,7 +35,6 @@ const clubSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // -----------------------------------------------------//---- Register Club
     builder.addCase(registerClub.pending, (state) => {
       state.clubLoading = true;
       state.clubError = null;
@@ -48,7 +47,6 @@ const clubSlice = createSlice({
       state.clubLoading = false;
       state.clubError = action.payload;
     });
-    // -----------------------------------------------------//---- Create Slot
     builder.addCase(createSlot.pending, (state) => {
       state.clubLoading = true;
       state.clubError = null;
@@ -62,7 +60,6 @@ const clubSlice = createSlice({
       state.clubError = action.payload;
     });
 
-    //  -----------------------------------------------------//---- Get Slots
     builder.addCase(getSlots.pending, (state) => {
       state.clubLoading = true;
       state.clubError = null;
@@ -75,7 +72,6 @@ const clubSlice = createSlice({
       state.clubLoading = false;
       state.clubError = action.payload;
     });
-    //  -----------------------------------------------------//---- update court price
     builder.addCase(updateCourt.pending, (state) => {
       state.updateClubLoading = true;
       state.updateClubError = null;
@@ -88,7 +84,6 @@ const clubSlice = createSlice({
       state.updateClubLoading = false;
       state.updateClubError = action.payload;
     });
-    //  -----------------------------------------------------//---- update registered club
     builder.addCase(updateRegisteredClub.pending, (state) => {
       state.updateClubLoading = true;
       state.updateClubError = null;
@@ -101,7 +96,6 @@ const clubSlice = createSlice({
       state.updateClubLoading = false;
       state.updateClubError = action.payload;
     });
-    //  -----------------------------------------------------//---- back show register images and slot
 
      builder.addCase(getClubRegister.pending, (state) => {
       state.updateClubLoading = true;

@@ -6,7 +6,6 @@ const Layout = ({ children }) => {
   return (
     <Container fluid style={{ height: '100vh', padding: 0 }} >
       <Row className="h-100 mx-auto">
-        {/* Left Section */}
         <Col
           md={6}
           style={{
@@ -20,7 +19,6 @@ const Layout = ({ children }) => {
           {children}
         </Col>
 
-        {/* Right Section */}
         <Col
           md={6}
           className="d-none d-md-block"
@@ -34,7 +32,6 @@ const Layout = ({ children }) => {
     </Container>
   );
 
-  // Add mobile-specific styles
   const mobileStyles = `
     @media (max-width: 767px) {
       .container-fluid .row .col {
@@ -48,7 +45,6 @@ const Layout = ({ children }) => {
       <style>{mobileStyles}</style>
       <Container fluid style={{ height: '100vh', padding: 0 }} >
         <Row className="h-100 mx-auto">
-          {/* Left Section */}
           <Col
             md={6}
             style={{
@@ -61,7 +57,6 @@ const Layout = ({ children }) => {
             {children}
           </Col>
 
-          {/* Right Section */}
           <Col
             md={6}
             className="d-none d-md-block"

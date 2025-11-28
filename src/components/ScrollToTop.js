@@ -5,7 +5,6 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Force scroll to top with multiple methods
     const scrollToTop = () => {
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
@@ -13,10 +12,8 @@ const ScrollToTop = () => {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     };
 
-    // Immediate scroll
     scrollToTop();
 
-    // Multiple delayed scrolls to handle all scenarios
     const timer1 = setTimeout(scrollToTop, 0);
     const timer2 = setTimeout(scrollToTop, 10);
     const timer3 = setTimeout(scrollToTop, 50);

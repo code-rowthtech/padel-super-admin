@@ -83,7 +83,6 @@ const UpdatePlayers = ({
 
 
 
-  // Backup: Redux state se bhi sync rakho
   useEffect(() => {
     if (Array.isArray(getPlayerLevelsData) && getPlayerLevelsData.length > 0) {
       setPlayerLevels(
@@ -155,33 +154,26 @@ const UpdatePlayers = ({
             .then(() => {
               setShowModal(false);
 
-              // WAIT for match data
               dispatch(getMatchesView(matchId?._id))
                 .unwrap()
                 .then((matchRes) => {
-                  // EXTRACT CLUB ID PROPERLY
                   const clubId = matchRes?.data?.clubId?._id;
 
                   if (!clubId) {
-                    console.error("Club ID not found in match response");
                     return;
                   }
 
-                  // NOW BUILD CORRECT PAYLOAD
                   const payload = {
-                    clubId, // <-- REQUIRED
                     matchDate: selectedDate?.fullDate,
                     ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
                     ...(selectedLevel && { skillLevel: selectedLevel }),
                   };
 
-                  // NOW CALL MATCH USER API
                   dispatch(getMatchesUser(payload));
                 });
 
               showSuccess("Player added successfully");
               
-              // Reset form only on success
               setFormData({
                 name: "",
                 email: "",
@@ -198,7 +190,6 @@ const UpdatePlayers = ({
       });
   };
 
-  // Auto hide errors
   useEffect(() => {
     const timers = Object.keys(showErrors)
       .filter((key) => showErrors[key])
@@ -228,7 +219,6 @@ const UpdatePlayers = ({
         </h6>
 
         <form onSubmit={(e) => e.preventDefault()}>
-          {/* Name */}
           <div className="mb-3">
             <label className="form-label">
               Name <span className="text-danger">*</span>
@@ -253,7 +243,6 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          {/* Email */}
           <div className="mb-3">
             <label className="form-label">
               Email <span className="text-danger">*</span>
@@ -271,14 +260,12 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          {/* Phone */}
           <div className="mb-3">
             <label className="form-label">
               Phone No <span className="text-danger">*</span>
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
               <span className="input-group-text border-0 bg-white">
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
               </span>
               <input
                 type="text"
@@ -300,7 +287,6 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          {/* Gender (optional) */}
           <div className="mb-3">
             <label className="form-label">Gender</label>
             <div className="d-flex gap-3">
@@ -335,7 +321,6 @@ const UpdatePlayers = ({
 
 
 
-          {/* Level */}
           <div className="mb-4">
             <label className="form-label">
               Select Level <span className="text-danger">*</span>
@@ -361,7 +346,6 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          {/* Buttons */}
           <div className="d-flex gap-3 justify-content-end">
             <Button
               variant="outlined"

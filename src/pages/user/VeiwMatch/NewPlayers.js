@@ -105,11 +105,7 @@ const NewPlayers = ({
 
     const added = getAddedPlayers();
     const existingLevels = Object.values(added)
-      .filter((p) => p?.slotId !== activeSlot) // Exclude current slot
       .map((p) => p?.level);
-    // if (existingLevels.includes(formData.level)) {
-    //   newErrors.level = "This level is already taken";
-    // }
 
     setErrors(newErrors);
     setShowErrors(
@@ -133,20 +129,15 @@ const NewPlayers = ({
         const playerData = {
           ...res.response,
           level: formData.level,
-          slotId: activeSlot, // Add slot ID for tracking
-          _id: res.response._id || res.response.id, // Ensure ID is included
         };
 
-        // ---- UPDATE localStorage ----
         const current = getAddedPlayers();
         const updated = { ...current, [activeSlot]: playerData };
         localStorage.setItem("addedPlayers", JSON.stringify(updated));
 
-        // Trigger custom event for real-time update
         window.dispatchEvent(new Event("playersUpdated"));
 
 
-        // ---- UI cleanup - only on success ----
         setFormData({
           name: "",
           email: "",
@@ -183,7 +174,6 @@ const NewPlayers = ({
           }
         }
       } catch (err) {
-        console.error("Error:", err);
       }
 
       setProfileLoading(false);
@@ -201,7 +191,6 @@ const NewPlayers = ({
     setShowErrors((prev) => ({ ...prev, [field]: false }));
   };
 
-  // Only clear errors when modal opens, keep form data
   useEffect(() => {
     if (showAddMeForm) {
       setErrors({});
@@ -209,7 +198,6 @@ const NewPlayers = ({
     }
   }, [showAddMeForm]);
 
-  // Auto-hide errors
   useEffect(() => {
     const timers = Object.keys(showErrors)
       .filter((f) => showErrors[f])
@@ -258,7 +246,6 @@ const NewPlayers = ({
         </h6>
 
         <form onSubmit={handleSubmit}>
-          {/* Name */}
           <div className="mb-3">
             <label className="form-label">
               Name <span className="text-danger">*</span>
@@ -292,7 +279,6 @@ const NewPlayers = ({
             )}
           </div>
 
-          {/* Email */}
           <div className="mb-3">
             <label className="form-label">
               Email <span className="text-danger">*</span>
@@ -326,7 +312,6 @@ const NewPlayers = ({
             )}
           </div>
 
-          {/* Phone */}
           <div className="mb-3">
             <label className="form-label">
               Phone No <span className="text-danger">*</span>
@@ -361,7 +346,6 @@ const NewPlayers = ({
             )}
           </div>
 
-          {/* Gender */}
           <div className="mb-3">
             <label className="form-label">Gender</label>
             <div className="d-flex gap-3">
@@ -394,7 +378,6 @@ const NewPlayers = ({
             </div>
           </div>
 
-          {/* Level */}
           <div className="mb-3">
             <label className="form-label">
               Select Level <span className="text-danger">*</span>
@@ -423,7 +406,7 @@ const NewPlayers = ({
                       ...base,
                       color: "#6c757d",
                     }),
-                    overflow:"hidden"
+                    overflow: "hidden"
                   }}
                 />
               )}
@@ -438,7 +421,6 @@ const NewPlayers = ({
             )}
           </div>
 
-          {/* Submit error */}
           {showErrors.submit && errors.submit && (
             <div className="text-center mb-3">
               <small
@@ -450,7 +432,6 @@ const NewPlayers = ({
             </div>
           )}
 
-          {/* Buttons */}
           <div className="d-flex flex-column flex-sm-row gap-2 mt-4">
             <Button
               variant="outlined"

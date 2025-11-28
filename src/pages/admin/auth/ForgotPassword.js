@@ -92,7 +92,6 @@ const ForgotPassword = () => {
               }}
             >
               Email
-              {/* <span className="text-danger fs-5">*</span> */}
             </Form.Label>
             <Form.Control
               type="email"

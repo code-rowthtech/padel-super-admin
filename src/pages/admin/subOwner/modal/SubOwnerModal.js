@@ -27,7 +27,6 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Prefill form when editing
   useEffect(() => {
     if (userData?._id) {
       setForm({
@@ -192,7 +191,6 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
             <div className="alert alert-danger py-2 small">{errors.api}</div>
           )}
 
-          {/* Name */}
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">Name</Form.Label>
             <Form.Control
@@ -209,7 +207,6 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
             </Form.Control.Feedback>
           </Form.Group>
 
-          {/* Phone */}
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">Phone Number</Form.Label>
             <Form.Control
@@ -226,7 +223,6 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
             </Form.Control.Feedback>
           </Form.Group>
 
-          {/* Email */}
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">Email</Form.Label>
             <Form.Control
@@ -244,7 +240,6 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
           </Form.Group>
           {!userData?._id && (
             <>
-              {/* Password */}
               <Form.Group className="mb-3">
                 <Form.Label className="fw-medium">Password</Form.Label>
                 <InputGroup>
@@ -272,7 +267,6 @@ const SubOwnerModal = ({ show, onHide, userData }) => {
                 </InputGroup>
               </Form.Group>
 
-              {/* Confirm Password */}
               <Form.Group className="mb-3">
                 <Form.Label className="fw-medium">Confirm Password</Form.Label>
                 <InputGroup>

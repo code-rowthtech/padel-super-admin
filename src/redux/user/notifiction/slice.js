@@ -33,7 +33,6 @@ const UserNotificationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // -------------------------G-E-T--NOTIFICATION----------------------//
       .addCase(getNotificationCount.pending, (state) => {
         state.getCountLoading = true;
         state.getCountError = null;
@@ -46,7 +45,6 @@ const UserNotificationSlice = createSlice({
         state.getCountLoading = false;
         state.getCountError = action.payload;
       })
-      // -------------------------G-E-T--NOTIFICATION--D-A-T-A----------------------//
       .addCase(getNotificationData.pending, (state) => {
         state.getCountLoading = true;
         state.getCountError = null;
@@ -60,7 +58,6 @@ const UserNotificationSlice = createSlice({
         state.getCountError = action.payload;
       })
 
-      // -------------------------V-I-E-W--NOTIFICATION----------------------//
 
       .addCase(getNotificationView.pending, (state) => {
         state.getCountLoading = true;
@@ -75,7 +72,6 @@ const UserNotificationSlice = createSlice({
         state.getCountError = action.payload;
       })
 
-      // -------------------------READ---ALL----NOTIFICATION----------------------//
 
       .addCase(readAllNotification.pending, (state) => {
         state.getCountLoading = true;
@@ -90,7 +86,6 @@ const UserNotificationSlice = createSlice({
         state.getCountError = action.payload;
       })
 
-      // -----------------------QUESTION LIST SLICE--------------------------//
 
       .addCase(getQuestionData.pending, (state) => {
         state.getListLoading = true;

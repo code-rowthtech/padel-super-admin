@@ -110,11 +110,11 @@ const Booking = ({ className = "" }) => {
   const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedBuisness, setSelectedBuisness] = useState([]);
   const [selectedCourts, setSelectedCourts] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
   const [selectedDate, setSelectedDate] = useState({
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
-  const [activeTab, setActiveTab] = useState(0); // Default to morning tab
   const [showBanner, setShowBanner] = useState(true);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -171,7 +171,6 @@ const Booking = ({ className = "" }) => {
     const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
 
     if (isAlreadySelected) {
-      // Deselect
       const filteredTimes = currentCourtTimes.filter((t) => t._id !== time._id);
       setSelectedTimes((prev) => ({
         ...prev,
@@ -384,7 +383,6 @@ const Booking = ({ className = "" }) => {
   );
   const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
-  // Close Order Summary when all slots are removed
   useEffect(() => {
     if (totalSlots === 0) {
       setIsExpanded(false);
@@ -489,7 +487,6 @@ const Booking = ({ className = "" }) => {
     }
   }, [errorShow, errorMessage]);
 
-  // Show tooltip for 15 slot limit when hovering over any slot after reaching the limit
   useEffect(() => {
     const tooltip = document.getElementById('slot-limit-tooltip') || (() => {
       const newTooltip = document.createElement('div');
@@ -944,7 +941,6 @@ const Booking = ({ className = "" }) => {
                       formatDate(new Date(selectedDate?.fullDate)) ===
                       d.fullDate;
 
-                    // Calculate slot count for this specific date
                     const slotCount = Object.values(selectedTimes).reduce(
                       (acc, courtDates) => {
                         const dateSlots = courtDates[d.fullDate] || [];
@@ -1034,7 +1030,6 @@ const Booking = ({ className = "" }) => {
               </div>
             </div>
 
-            {/* Global Tabs above courts - COMMENTED OUT */}
             {/* <div className="row mb-2 mx-xs-auto">
                             <div className="col-12 d-flex p-0 justify-content-center align-items-center">
                                 <div className="weather-tabs-wrapper w-100">
@@ -1078,7 +1073,6 @@ const Booking = ({ className = "" }) => {
                     !isPastTime(slot.time) &&
                     slot.amount > 0;
 
-                  // Apply mobile tab filter only on mobile screens
                   if (window.innerWidth <= 768) {
                     const tabKey = tabs[activeTab]?.key;
                     return basicFilter && filterSlotsByTab(slot, tabKey);
@@ -1132,7 +1126,7 @@ const Booking = ({ className = "" }) => {
                                         activeTab === index
                                           ? "text-primary"
                                           : "text-dark"
-                                      } // dark when inactive
+                                      }
                                     />
                                   </div>
                                 );
@@ -1160,21 +1154,14 @@ const Booking = ({ className = "" }) => {
                           overflowY: "auto",
                           overflowX: "hidden",
                           paddingRight: "8px",
-                          // WebKit: Hide scrollbar visually but keep functionality
-                          msOverflowStyle: "none", // IE and Edge
-                          scrollbarWidth: "none", // Firefox
                         }}
                         className="hide-scrollbar"
                       >
-                        {/* Your content here */}
 
                         <style jsx>{`
                           .hide-scrollbar::-webkit-scrollbar {
-                            display: none; /* Safari and Chrome */
                           }
                           .hide-scrollbar {
-                            -ms-overflow-style: none; /* IE and Edge */
-                            scrollbar-width: none; /* Firefox */
                           }
                         `}</style>
                         {slotData?.data.map((court, courtIndex) => {
@@ -1186,7 +1173,6 @@ const Booking = ({ className = "" }) => {
                               !isPastTime(slot.time) &&
                               slot.amount > 0;
 
-                            // Apply mobile tab filter only on mobile screens
                             if (window.innerWidth <= 768) {
                               const tabKey = tabs[activeTab]?.key;
                               return (
@@ -1257,7 +1243,6 @@ const Booking = ({ className = "" }) => {
                                             toggleTime(slot, court._id)
                                           }
                                           disabled={isDisabled}
-                                          // title={totalSlots >= MAX_SLOTS && !isSelected ? `You can select up to ${MAX_SLOTS} slots only` : ''}
 
                                           style={{
                                             background:
@@ -1287,7 +1272,7 @@ const Booking = ({ className = "" }) => {
                                             fontSize: "11px",
                                             padding: "4px 2px",
                                             height: "32px",
-                                            borderLeft:"3px solid #001b76"
+
                                           }}
                                           onMouseEnter={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
@@ -1321,7 +1306,6 @@ const Booking = ({ className = "" }) => {
                             slot.status !== "booked" &&
                             !isPastTime(slot.time));
 
-                        // Apply mobile tab filter only on mobile screens
                         if (window.innerWidth <= 768) {
                           const tabKey = tabs[activeTab]?.key;
                           return basicFilter && filterSlotsByTab(slot, tabKey);
@@ -1539,7 +1523,7 @@ const Booking = ({ className = "" }) => {
                                                         <MdKeyboardDoubleArrowUp
                                                             size={25}
                                                             style={{ color: "white" }}
-                                                            className="arrow-shake-infinite"
+                                                            className="-infinite"
                                                         />
                                                     </>
                                                 ) : (
@@ -1547,7 +1531,7 @@ const Booking = ({ className = "" }) => {
                                                         <MdKeyboardDoubleArrowDown
                                                             size={25}
                                                             style={{ color: "white" }}
-                                                            className="arrow-shake-infinite"
+                                                            className="-infinite"
                                                         />
                                                     </>
                                                 )}
@@ -1630,13 +1614,13 @@ const Booking = ({ className = "" }) => {
                     <MdKeyboardArrowUp
                       size={25}
                       color="white"
-                      className="arrow-shake-infinite"
+                      className="-infinite"
                     />
                   ) : (
                     <MdKeyboardArrowDown
                       size={25}
                       color="white"
-                      className="arrow-shake-infinite"
+                      className="-infinite"
                     />
                   )}
                 </div>
@@ -1792,7 +1776,6 @@ const Booking = ({ className = "" }) => {
                   }
                 `}</style>
 
-                {/* Desktop Slots */}
                 <div
                   className="div d-none d-lg-block"
                   style={{ height: "18vh" }}

@@ -18,22 +18,18 @@ const CustomerReviews = () => {
     (state) => state?.reviews
   );
   const { ownerClubLoading } = useSelector((s) => s.manualBooking);
-  // State for pagination
   const [visibleReviews, setVisibleReviews] = useState(10);
   const [allReviews, setAllReviews] = useState([]);
 
-  // Update allReviews when reviewsData changes
   useEffect(() => {
     if (reviewsData?.reviews) {
       setAllReviews(reviewsData.reviews);
     }
   }, [reviewsData]);
 
-  // Function to load more reviews
   const loadMoreReviews = () => {
     setVisibleReviews((prevVisibleReviews) => prevVisibleReviews + 10);
   };
-  // Example: reviewsData?.ratingCounts = { Excellent: 3, Good: 3, Average: 2, Below: 0, Poor: 1 }
 
   const totalReviews = Object.values(reviewsData?.ratingCounts || {}).reduce(
     (acc, count) => acc + count,
@@ -88,7 +84,6 @@ const CustomerReviews = () => {
     },
   ];
 
-  // Function to render star icons
   const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -121,7 +116,6 @@ const CustomerReviews = () => {
         <DataLoading height="70vh" size={90} />
       ) : (
         <>
-          {/* Overall Rating Section */}
           <div className="card mb-4 border-0 shadow-sm">
             <div className="card-body p-4">
               <div className="row align-items-center">
@@ -141,7 +135,6 @@ const CustomerReviews = () => {
                   </p>
                 </div>
 
-                {/* Rating Breakdown */}
                 <div className="col-md-7 ps-md-4 mt-3 mt-md-0">
                   <h5 className="fw-semibold mb-3">Rating Breakdown</h5>
                   {ratingDistribution?.map((item) => (
@@ -152,7 +145,6 @@ const CustomerReviews = () => {
                             {item.label}
                           </span>
                         </div>
-                        {/* <span className="text-muted">{item.count}</span> */}
                         <span className="text-muted">{item.percentage}%</span>
                       </div>
                       <div
@@ -176,7 +168,6 @@ const CustomerReviews = () => {
             </div>
           </div>
 
-          {/* Customer Reviews Section */}
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h4 className="fw-bold mb-0">Customer Reviews</h4>
           </div>
@@ -217,7 +208,6 @@ const CustomerReviews = () => {
             ))}
           </div>
 
-          {/* Load More Button - Only show if there are more reviews to load */}
           {allReviews.length > visibleReviews && (
             <div className="text-center mt-5">
               <button

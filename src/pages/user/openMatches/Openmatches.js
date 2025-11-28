@@ -68,9 +68,10 @@ const getTimeCategory = (time) => {
   if (period === "pm" && hour !== 12) hour += 12;
   if (period === "am" && hour === 12) hour = 0;
 
-  if (hour < 12) return "morning"; // 12 AM से 11:59 AM
-  if (hour >= 12 && hour < 16) return "noon"; // 12 PM से 3:59 PM
-  return "night"; // 4 PM onwards
+  if (hour >= 6 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "noon";
+  if (hour >= 17 || hour < 6) return "night";
+  return "morning";
 };
 
 const Openmatches = () => {
@@ -162,6 +163,7 @@ const Openmatches = () => {
       ...(selectedLevel && { skillLevel: selectedLevel }),
       clubId: localStorage.getItem("register_club_id")
     };
+    console.log('Fetching matches with payload:', payload);
     debouncedFetchMatches(payload);
   }, [selectedTime, selectedLevel, debouncedFetchMatches]);
 
@@ -203,7 +205,6 @@ const Openmatches = () => {
     };
   });
 
-  // Helper to check matches for a specific time category
   const getMatchesForTab = (tabLabel, matches) => {
     return matches.filter((match) => {
       return match.slot?.some((slot) => {
@@ -215,9 +216,10 @@ const Openmatches = () => {
     });
   };
 
-  // Filtered matches with tab logic
   const filteredMatches = useMemo(() => {
     let matches = matchesData?.data || [];
+    console.log('Raw matches data:', matches);
+    console.log('Active tab:', activeTab);
 
     if (showUnavailableOnly) {
       matches = matches.filter((match) => match?.players?.length >= 4);
@@ -225,11 +227,13 @@ const Openmatches = () => {
 
     const tabLabels = ["morning", "noon", "night"];
     const currentTab = tabLabels[activeTab];
+    console.log('Current tab:', currentTab);
 
-    return getMatchesForTab(currentTab, matches);
+    const filtered = getMatchesForTab(currentTab, matches);
+    console.log('Filtered matches:', filtered);
+    return filtered;
   }, [showUnavailableOnly, matchesData, activeTab]);
 
-  // Automatically switch tabs if the current tab has no matches
   useEffect(() => {
     if (
       !matchLoading &&
@@ -237,15 +241,12 @@ const Openmatches = () => {
       matchesData?.data?.length > 0
     ) {
       const tabLabels = ["morning", "noon", "night"];
-      // Try to find the next tab with matches
       for (let i = 0; i < tabLabels.length; i++) {
-        if (i === activeTab) continue; // Skip current tab
         const matchesForTab = getMatchesForTab(
           tabLabels[i],
           matchesData?.data || []
         );
         if (matchesForTab.length > 0) {
-          setActiveTab(i); // Switch to the first tab with matches
           break;
         }
       }
@@ -307,21 +308,42 @@ const Openmatches = () => {
 
   const formatTimes = (slots) => {
     if (!slots || slots.length === 0) return "N/A";
-    const formatted = slots
+    const times = slots
       .map((slot) => {
         const time = slot?.slotTimes?.[0]?.time;
         if (!time) return null;
+        
+        let hour, period;
         if (/am|pm/i.test(time)) {
-          return time.replace(/\s+/g, "").toUpperCase();
+          const match = time.match(/(\d+)\s*(am|pm)/i);
+          if (match) {
+            hour = parseInt(match[1], 10);
+            period = match[2].toUpperCase();
+          } else {
+            return null;
+          }
+        } else {
+          const [hours, minutes] = time.split(":");
+          const hourNum = parseInt(hours, 10);
+          period = hourNum >= 12 ? "PM" : "AM";
+          hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
         }
-        const [hours, minutes] = time.split(":");
-        const hour = parseInt(hours, 10);
-        const period = hour >= 12 ? "PM" : "AM";
-        const formattedHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-        return `${formattedHour}${period}`;
+        
+        return { hour, period };
       })
       .filter(Boolean);
-    return formatted.join(",") + (slots.length > 3 ? "...." : "");
+    
+    if (times.length === 0) return "N/A";
+    
+    const lastPeriod = times[times.length - 1].period;
+    const formatted = times.map((time, index) => {
+      if (index === times.length - 1) {
+        return `${time.hour}${time.period}`;
+      }
+      return time.hour;
+    });
+    
+    return formatted.join("-") + (slots.length > 3 ? "...." : "");
   };
 
   const TagWrapper = ({ children }) => (
@@ -499,7 +521,6 @@ const Openmatches = () => {
   return (
     <div className="container mt-lg-4 px-3 px-md-0 mb-md-4 mb-0">
       <div className="row g-md-4 mx-auto">
-        {/* Left Section */}
         <div
           className={`col-lg-7 col-12 py-md-4 py-2 rounded-3 px-md-4 px-0 order-2 order-md-1 bg-white-color ${showViewMatch ? "d-none d-md-block " : "pt-0"
             }`}
@@ -577,118 +598,10 @@ const Openmatches = () => {
             </div>
             
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
-              {/* Dropdown */}
               <div className="position-relative mt-md-0 mt-2">
-                {/* <div
-                  className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
-                  style={{
-                    backgroundColor: "transparent",
-                    width: "52px",
-                    height: "58px",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setShowDropdown(!showDropdown)}
-                >
-                  <div className="d-flex align-items-center gap-0 p-0">
-                    <img
-                      src={booking_dropdown_img}
-                      style={{ width: "34px", height: "34px" }}
-                      alt=""
-                    />
-                    <MdKeyboardArrowDown
-                      size={16}
-                      style={{
-                        transform: showDropdown
-                          ? "rotate(180deg)"
-                          : "rotate(0deg)",
-                        transition: "transform 0.3s",
-                      }}
-                      className="d-none d-md-block"
-                    />
-                  </div>
-                </div> */}
-
-                {/* {showDropdown && (
-                  <div
-                    className="position-absolute bg-white rounded shadow"
-                    style={{
-                      top: "100%",
-                      left: "-10px",
-                      width: "105px",
-                      zIndex: 1000,
-                      marginTop: "-15px",
-                    }}
-                  >
-                    <div
-                      className="d-flex align-items-center p-2 border-bottom"
-                      style={{ cursor: "pointer" }}
-                    >
-                      <div className="flex-grow-1">
-                        <div
-                          style={{
-                            fontSize: "11px",
-                            fontWeight: "400",
-                            fontFamily: "Poppins",
-                          }}
-                        >
-                          Paddle
-                        </div>
-                      </div>
-                      <img
-                        src={booking_dropdown_img2}
-                        style={{ width: "23px", height: "23px" }}
-                        alt=""
-                      />
-                    </div>
-
-                    <div
-                      className="d-flex align-items-center p-2 border-bottom"
-                      style={{ cursor: "pointer" }}
-                    >
-                      <div className="flex-grow-1">
-                        <div
-                          style={{
-                            fontSize: "11px",
-                            fontWeight: "400",
-                            fontFamily: "Poppins",
-                          }}
-                        >
-                          Tennis
-                        </div>
-                      </div>
-                      <img
-                        src={booking_dropdown_img3}
-                        style={{ width: "23px", height: "23px" }}
-                        alt=""
-                      />
-                    </div>
-
-                    <div
-                      className="d-flex align-items-center p-2"
-                      style={{ cursor: "pointer" }}
-                    >
-                      <div className="flex-grow-1">
-                        <div
-                          style={{
-                            fontSize: "11px",
-                            fontWeight: "400",
-                            fontFamily: "Poppins",
-                          }}
-                        >
-                          Pickle Ball
-                        </div>
-                      </div>
-                      <img
-                        src={booking_dropdown_img4}
-                        style={{ width: "23px", height: "23px" }}
-                        alt=""
-                      />
-                    </div>
-                  </div>
-                )} */}
+                
               </div>
 
-              {/* Month Box */}
               <div
                 className="d-flex calendar-day-btn-mobile justify-content-center align-items-center rounded-1 mb-md-3 mb-2 mt-2 mt-md-0"
                 style={{
@@ -716,12 +629,10 @@ const Openmatches = () => {
                 </span>
               </div>
 
-              {/* Scrollable Dates EXACT copy UI */}
               <div
                 className="d-flex gap-1 align-items-center"
                 style={{ position: "relative" }}
               >
-                {/* Left Arrow */}
                 <button
                   className="btn p-2 border-0 d-none d-md-block"
                   style={{
@@ -735,7 +646,6 @@ const Openmatches = () => {
                   <MdOutlineArrowBackIosNew className="mt-2" size={20} />
                 </button>
 
-                {/* Scrollable dates */}
                 <div
                   ref={scrollRef}
                   className="d-flex gap-1 date-scroll-container pt-md-0 pt-2"
@@ -794,7 +704,6 @@ const Openmatches = () => {
                   })}
                 </div>
 
-                {/* Right Arrow */}
                 <button
                   className="btn border-0 p-2 d-none d-md-block"
                   style={{
@@ -829,14 +738,13 @@ const Openmatches = () => {
                           size={20}
                           className={
                             activeTab === index ? "text-primary" : "text-dark"
-                          } // dark when inactive
+                          }
                         />
                       </div>
                     );
                   })}
                 </div>
 
-                {/* Labels below tabs */}
                 <div className="tab-labels d-flex justify-content-between">
                   {tabs.map((tab, index) => (
                     <p
@@ -854,7 +762,6 @@ const Openmatches = () => {
             </div>
           </div>
 
-          {/* Match List */}
           <div className="pb-0">
             <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-2 mb-2">
               <h5 className="mb-0 custom-heading-use">Available Matches</h5>
@@ -904,11 +811,12 @@ const Openmatches = () => {
 
             <div
               style={{
-                minHeight: "400px",
-                height: "400px",
-                maxHeight: filteredMatches.length > 4 ? "380px" : "auto",
-                overflowY: filteredMatches.length > 4 ? "auto" : "auto",
+                minHeight: window.innerWidth <= 768 ? (filteredMatches.length <= 2 ? "auto" : "500px") : "400px",
+                height: window.innerWidth <= 768 ? (filteredMatches.length <= 2 ? "auto" : "500px") : "400px",
+                maxHeight: window.innerWidth <= 768 ? (filteredMatches.length > 2 ? "500px" : "auto") : (filteredMatches.length > 4 ? "380px" : "auto"),
+                overflowY: window.innerWidth <= 768 ? (filteredMatches.length > 2 ? "auto" : "visible") : (filteredMatches.length > 4 ? "auto" : "auto"),
                 scrollBehavior: "smooth",
+                paddingBottom: window.innerWidth <= 768 ? "400px" : "0px",
               }}
               className="no-scrollbar"
             >
@@ -1160,7 +1068,6 @@ const Openmatches = () => {
                                                     </div> */}
 
                           <div className="row mx-auto">
-                            {/* Team A Players */}
                             <div className="col-6 px-0 d-flex justify-content-between align-items-center flex-wrap">
                               {[0, 1].map((playerIndex) => {
                                 const player = match?.teamA?.[playerIndex];
@@ -1248,7 +1155,6 @@ const Openmatches = () => {
                               })}
                             </div>
 
-                            {/* Team B Players */}
                             <div className="col-6 px-0 d-flex justify-content-between align-items-center flex-wrap border-start border-0 border-lg-start">
                               {[0, 1].map((playerIndex) => {
                                 const player = match?.teamB?.[playerIndex];
@@ -1374,7 +1280,6 @@ const Openmatches = () => {
                                                         </div> */}
                             <div
                               className="col-6 pe-0 d-flex align-items-center justify-content-end"
-                            // style={{ width: "100%" }}
                             >
                               <div
                                 className="d-flex align-items-center gap-1"
@@ -1522,7 +1427,6 @@ const Openmatches = () => {
                   <DataLoading />
                 ) : (
                   <>
-                    {/* Left: Overall Rating */}
                     <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0 ps-0">
                       <div className="w-100">
                         <p
@@ -1595,7 +1499,6 @@ const Openmatches = () => {
                       </div>
                     </div>
 
-                    {/* Right: Rating Bars */}
                     <div className="col-12 col-lg-8 ps-lg-4 pe-0">
                       <div className="w-100">
                         {[5, 4, 3, 2, 1].map((star, idx) => {
@@ -1618,7 +1521,6 @@ const Openmatches = () => {
                               className="d-flex align-items-center mb-3 gap-3"
                               style={{ width: "100%" }}
                             >
-                              {/* Fixed Width Label */}
                               <div
                                 className="text-nowrap"
                                 style={{
@@ -1641,7 +1543,6 @@ const Openmatches = () => {
                                         : "Poor"}
                               </div>
 
-                              {/* Progress Bar - Takes Remaining Space */}
                               <div
                                 className="progress flex-grow-1 border"
                                 style={{
@@ -1669,7 +1570,6 @@ const Openmatches = () => {
                                 />
                               </div>
 
-                              {/* Optional: Show Count */}
                               {/* <small className="text-muted ms-2" style={{ fontSize: "12px" }}>
                   {count}
                 </small> */}

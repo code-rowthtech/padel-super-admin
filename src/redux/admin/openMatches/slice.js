@@ -20,7 +20,6 @@ const openMatchesSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // -----------------------------------------------------//---- Get Open Matches
     builder.addCase(getAllOpenMatches.pending, (state) => {
       state.openMatchesLoading = true;
       state.openMatchesData = null;
@@ -36,7 +35,6 @@ const openMatchesSlice = createSlice({
       state.openMatchesData = null;
       state.openMatchesError = action.payload;
     });
-    // -----------------------------------------------------//---- Get Match By Id
     builder.addCase(getMatchById.pending, (state) => {
       state.openMatchesLoading = true;
       state.getMatchDetails = null;
@@ -52,7 +50,6 @@ const openMatchesSlice = createSlice({
       state.getMatchDetails = null;
       state.openMatchesError = action.payload;
     });
-    // -----------------------------------------------------//---- Create open Match
     builder.addCase(createOpenMatch.pending, (state) => {
       state.openMatchesLoading = true;
       state.openMatchesData = null;

@@ -38,7 +38,6 @@ const manualBookingSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // -----------------------------------------------------//---- Get Owner Registered Club
     builder.addCase(getOwnerRegisteredClub.pending, (state) => {
       state.ownerClubLoading = true;
       state.ownerClubError = null;
@@ -51,7 +50,6 @@ const manualBookingSlice = createSlice({
       state.ownerClubLoading = false;
       state.ownerClubError = action.payload;
     });
-    // -----------------------------------------------------//---- Manual Booking By Owner
     builder.addCase(manualBookingByOwner.pending, (state) => {
       state.manualBookingLoading = true;
       state.manualBookingError = null;
@@ -64,7 +62,6 @@ const manualBookingSlice = createSlice({
       state.manualBookingLoading = false;
       state.manualBookingError = action.payload;
     });
-    // -----------------------------------------------------//---- Get Active Courts
     builder.addCase(getActiveCourts.pending, (state) => {
       state.activeCourtsLoading = true;
       state.activeCourtsError = null;

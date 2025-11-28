@@ -97,7 +97,6 @@ const Profile = () => {
     e.preventDefault();
 
     const payload = new FormData();
-    // payload.append("_id", user._id);
     payload.append("name", formData.fullName);
     payload.append("email", formData.email);
     payload.append("phoneNumber", formData.phone);
@@ -105,41 +104,27 @@ const Profile = () => {
       payload.append("dob", formData.dob);
     }
 
-    // payload.append("location", formData.location);
     payload.append("location[coordinates][0]", "50.90");
     payload.append("location[coordinates][1]", "80.09");
     payload.append("gender", formData.gender);
-    // navigator.geolocation.getCurrentPosition((position) => {
-    //     const { latitude, longitude } = position.coords;
-    //     const cords = {
-    //         latitude, longitude
-    //     }
-    //     payload.append('location', cords);
-    // });
 
-    // Check if profileImage is base64 string or already file
     if (
       formData.profileImage &&
       formData.profileImage.startsWith("data:image")
     ) {
-      // Convert base64 to Blob if necessary (optional, but better)
       const blob = dataURLtoBlob(formData.profileImage);
       payload.append("profilePic", blob, "profile.jpg");
     }
 
     dispatch(updateOwner(payload))
       .then(() => {
-        // alert("Profile updated!");
-        // navigate('/admin/dashboard')
         window.location.reload();
       })
       .catch((err) => {
-        console.error("Update failed:", err);
       });
   };
 
   const handleCancel = () => {
-    // window.location.reload();
     navigate("/admin/dashboard");
   };
 
@@ -163,7 +148,6 @@ const Profile = () => {
           className="d-flex align-items-center"
           style={{ marginTop: "-80px" }}
         >
-          {/* Club Logo */}
           <div className="position-relative me-3">
             {getLogoLoading ? (
               <DataLoading height="100px" color="#ca60ad" />
@@ -176,7 +160,6 @@ const Profile = () => {
                       height: "100px",
                       borderRadius: "50%",
                       overflow: "hidden",
-                      border: "1px solid #ddd", // optional
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -218,7 +201,6 @@ const Profile = () => {
               </>
             )}
           </div>
-          {/* Logo File Input (Hidden) */}
           <input
             type="file"
             id="logoUpload"
@@ -226,7 +208,6 @@ const Profile = () => {
             onChange={handleLogoChange}
             hidden
           />
-          {/* Profile Image */}
           {/* <div className="position-relative me-3">
             {formData.profileImage ? (
               <img
@@ -261,7 +242,6 @@ const Profile = () => {
               <FaEdit style={{ color: "white", fontSize: "14px" }} />
             </label>
           </div> */}
-          {/* Profile File Input (Hidden) */}
           <input
             type="file"
             id="profileImageUpload"
@@ -301,7 +281,6 @@ const Profile = () => {
               onChange={(e) => {
                 const value = e.target.value;
                 if (/^\d{0,10}$/.test(value)) {
-                  // If not empty, check if first digit is between 6–9
                   if (value === "" || /^[6-9]/.test(value)) {
                     setFormData((prev) => ({ ...prev, phone: value }));
                   }

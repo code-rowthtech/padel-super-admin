@@ -10,7 +10,6 @@ const PackageDetails = () => {
   const dispatch = useDispatch();
   const { state } = useLocation();
 
-  // Memoized initial form state
   const initialFormState = useMemo(
     () => ({
       packageName: state?.packageName || "",
@@ -27,7 +26,6 @@ const PackageDetails = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -36,16 +34,12 @@ const PackageDetails = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Clear field-specific error on change
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
-  // Validate form fields
-  // Inside PackageDetails component
 
-  // Validate form fields
   const validateForm = () => {
     const newErrors = {};
 
@@ -75,26 +69,21 @@ const PackageDetails = () => {
     return newErrors;
   };
 
-  // Restrict input to numbers and enforce max length for price
   function numbersOnly(e) {
     const allowedKeys = [
       "Backspace",
       "Tab",
       "ArrowLeft",
       "ArrowRight",
-      "Delete", // control keys
     ];
 
-    // Block everything except digits and allowed control keys
     if (
-      !allowedKeys.includes(e.key) &&
-      !/^\d$/.test(e.key) // allow only 0–9 digits
+      !allowedKeys.includes(e.key) && !/[0-9]/.test(e.key)
     ) {
       e.preventDefault();
       return;
     }
 
-    // Prevent typing if the resulting value would exceed 10000
     const input = e.target;
     const currentValue = input.value;
     const newValue = currentValue + e.key;
@@ -104,13 +93,11 @@ const PackageDetails = () => {
     }
   }
 
-  // Reset form to initial state
   const resetForm = () => {
     setFormData(initialFormState);
     setErrors({});
   };
 
-  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -130,7 +117,6 @@ const PackageDetails = () => {
       resetForm();
       navigate(-1);
     } catch (err) {
-      console.error("Package save failed:", err);
       setErrors((prev) => ({
         ...prev,
         submit:
@@ -141,21 +127,7 @@ const PackageDetails = () => {
     }
   };
 
-  function numbersOnly(e) {
-    const allowedKeys = [
-      "Backspace",
-      "Tab",
-      "ArrowLeft",
-      "ArrowRight",
-      "Delete", // control keys
-    ];
-    if (
-      !allowedKeys.includes(e.key) &&
-      !/^\d$/.test(e.key) // allow only 0–9 digits
-    ) {
-      e.preventDefault();
-    }
-  }
+
   return (
     <Container
       fluid
@@ -166,7 +138,6 @@ const PackageDetails = () => {
         maxWidth: "1200px",
       }}
     >
-      {/* Header */}
       <Row className="mb-4 justify-content-between align-items-center">
         <Col xs="auto">
           <h3 className="fw-bold mb-0" style={{ color: "#0f172a" }}>
@@ -189,7 +160,6 @@ const PackageDetails = () => {
         </Col>
       </Row>
 
-      {/* Form */}
       <Form onSubmit={handleSubmit}>
         <Row className="g-3">
           <Col md={4}>
@@ -268,7 +238,6 @@ const PackageDetails = () => {
           </Col>
 
           <Col md={8} className="d-flex align-items-center">
-            {/* Status Toggle */}
             <div className="d-flex align-items-center">
               <span
                 className="me-3"

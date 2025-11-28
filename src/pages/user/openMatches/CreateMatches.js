@@ -38,7 +38,6 @@ import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { getPlayerLevel, getQuestionData } from "../../../redux/user/notifiction/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 
-/* ──────────────────────── Helper Functions ──────────────────────── */
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
   const [hourStr, period] = timeStr.toLowerCase().split(" ");
@@ -69,11 +68,9 @@ const filterSlotsByTab = (slot, eventKey) => {
   }
 };
 
-/* ──────────────────────── Main Component ──────────────────────── */
 const CreateMatches = () => {
   const location = useLocation();
 
-  // If navigated from Openmatches, `location.state.selectedDate` may be provided
   const initialSelectedDate =
     location?.state?.selectedDate ||
     ({ fullDate: new Date().toISOString().split("T")[0], day: new Date().toLocaleDateString("en-US", { weekday: "long" }) });
@@ -104,7 +101,6 @@ const CreateMatches = () => {
   const [selectedBuisness, setSelectedBuisness] = useState([]);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState([]);
-  const [skillDetails, setSkillDetails] = useState([]); // [step0, step1, ..., step5]
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
@@ -118,8 +114,7 @@ const CreateMatches = () => {
   const [key, setKey] = useState("morning");
   const [matchPlayer, setMatchPlayer] = useState(false);
   const [isFinalLevelStepLoaded, setIsFinalLevelStepLoaded] = useState(false);
-  const [finalLevelStep, setFinalLevelStep] = useState(null); // new dynamic last step
-  // Track added players
+  const [finalLevelStep, setFinalLevelStep] = useState(null);
   const [addedPlayers, setAddedPlayers] = useState(() => {
     const saved = localStorage.getItem("addedPlayers");
     return saved ? JSON.parse(saved) : {};
@@ -130,7 +125,6 @@ const CreateMatches = () => {
   const [userGender, setUserGender] = useState("");
   const [profileLoading, setProfileLoading] = useState(true);
 
-  // Sync with localStorage
   useEffect(() => {
     localStorage.setItem("addedPlayers", JSON.stringify(addedPlayers));
   }, [addedPlayers]);
@@ -149,7 +143,6 @@ const CreateMatches = () => {
 
   useEffect(() => {
     if (questionList && questionList.length > 0) {
-      // make a shallow copy before sorting to avoid mutating read-only Redux state
       const copy = Array.isArray(questionList || getPlayerLevels) ? [...questionList] : [];
       const transformed = copy
         .sort((a, b) => (a.step || 0) - (b.step || 0))
@@ -222,7 +215,6 @@ const CreateMatches = () => {
   };
 
   const toggleTime = (time, courtId) => {
-    // Prevent selecting slots from different dates
     if (
       selectedCourts.length > 0 &&
       selectedCourts[0].date !== selectedDate.fullDate
@@ -237,17 +229,14 @@ const CreateMatches = () => {
     const allSelectedTimes = Object.values(selectedTimes).flat();
     const isAlreadySelected = currentSelectedTimes.some((t) => t._id === time._id);
 
-    // Helper: Convert time string to minutes
     const timeToMinutes = (timeStr) => {
       const slotHour = parseTimeToHour(timeStr);
       return slotHour * 60;
     };
 
-    // If deselecting a slot
     if (isAlreadySelected) {
       const filtered = currentSelectedTimes.filter((t) => t._id !== time._id);
 
-      // Update selected times for this court
       setSelectedTimes((prev) => {
         const updated = { ...prev };
         if (filtered.length === 0) {
@@ -258,10 +247,8 @@ const CreateMatches = () => {
         return updated;
       });
 
-      // Update selected business
       setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
 
-      // Update selected courts
       setSelectedCourts((prev) =>
         prev
           .map((c) =>
@@ -279,7 +266,6 @@ const CreateMatches = () => {
       return;
     }
 
-    // If no slots selected yet, allow any slot
     if (allSelectedTimes.length === 0) {
       const newTimeEntry = {
         _id: time._id,
@@ -307,7 +293,6 @@ const CreateMatches = () => {
       return;
     }
 
-    // If this court has no slots, check if time matches existing selections
     if (currentSelectedTimes.length === 0) {
       const timeMatches = allSelectedTimes.some(selectedTime => selectedTime.time === time.time);
       
@@ -316,7 +301,6 @@ const CreateMatches = () => {
         return;
       }
 
-      // Add slot to this court
       const newTimeEntry = {
         _id: time._id,
         time: time.time,
@@ -344,7 +328,6 @@ const CreateMatches = () => {
       return;
     }
 
-    // If this court has 1 slot, allow consecutive slot
     if (currentSelectedTimes.length === 1) {
       const firstSlot = currentSelectedTimes[0];
       const firstMinutes = timeToMinutes(firstSlot.time);
@@ -356,7 +339,6 @@ const CreateMatches = () => {
         return;
       }
 
-      // Add consecutive slot
       const newTimeEntry = {
         _id: time._id,
         time: time.time,
@@ -379,7 +361,6 @@ const CreateMatches = () => {
       return;
     }
 
-    // If court already has 2 slots, don't allow more
     if (currentSelectedTimes.length >= 2) {
       setSlotError("Maximum 2 slots per court allowed.");
       return;
@@ -482,7 +463,6 @@ const CreateMatches = () => {
 
     const normalizedOptions = (lastStep.options || []).map((opt) => ({
       raw: opt,
-      val: opt && (opt.value ?? opt.code ?? opt.title ?? opt) // handle object or string
     }));
 
     const matched = normalizedOptions.filter(({ val }) =>
@@ -573,7 +553,6 @@ const CreateMatches = () => {
     0
   );
   
-  const userShare = Math.round(grandTotal / 4); // Individual player share
 
   const handleNext = async () => {
     if (selectedCourts.length === 0) {
@@ -586,7 +565,6 @@ const CreateMatches = () => {
       return;
     }
 
-    // Case 1: Dynamic last step load karna hai (second-last step se last step)
     if (currentStep === dynamicSteps.length - 1 && !isFinalLevelStepLoaded) {
       const firstAnswer = selectedAnswers[0];
 
@@ -613,11 +591,9 @@ const CreateMatches = () => {
         setIsFinalLevelStepLoaded(true);
         setCurrentStep(prev => prev + 1);
         setSlotError("");
-        // Modal abhi band nahi karna — user ko final level choose karna hai
         return;
 
       } catch (err) {
-        console.error(err);
         setSlotError("Failed to load player levels. Please try again.");
         return;
       }
@@ -636,10 +612,8 @@ const CreateMatches = () => {
 
   const handleBack = () => {
     if (currentStep > 0) {
-      // If going back from the final dynamic step, reset the loaded state
       if (currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded) {
         setIsFinalLevelStepLoaded(false);
-        setDynamicSteps(prev => prev.slice(0, -1)); // Remove the last dynamic step
       }
       setCurrentStep(currentStep - 1);
       setSlotError("");
@@ -660,7 +634,6 @@ const CreateMatches = () => {
     }
   }, [slotError]);
 
-  // Show tooltip for 2 slot limit in CreateMatches only when limit is reached
   useEffect(() => {
     const totalSelected = Object.values(selectedTimes).flat().length;
     const buttons = document.querySelectorAll('.slot-time-btn');
@@ -757,15 +730,12 @@ const CreateMatches = () => {
 
     let isDisabled = slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
 
-    // If slots are already selected globally
     if (allSelectedTimes.length > 0 && !isSelected) {
       const timeMatches = allSelectedTimes.some(selectedTime => selectedTime.time === slot.time);
       
-      // If this court has no slots, only allow matching times
       if (currentCourtTimes.length === 0) {
         isDisabled = isDisabled || !timeMatches;
       }
-      // If this court has 1 slot, allow consecutive slots
       else if (currentCourtTimes.length === 1) {
         const firstSlot = currentCourtTimes[0];
         const firstMinutes = timeToMinutes(firstSlot.time);
@@ -773,7 +743,6 @@ const CreateMatches = () => {
         const diff = Math.abs(firstMinutes - newMinutes);
         isDisabled = isDisabled || diff !== 60;
       }
-      // If this court has 2 slots, disable all others
       else if (currentCourtTimes.length >= 2) {
         isDisabled = true;
       }
@@ -803,7 +772,7 @@ const CreateMatches = () => {
             fontSize: "11px",
             padding: "4px 2px",
             height: "32px",
-                                                        borderLeft:"3px solid #001b76",
+
 
           }}
           onMouseEnter={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #3DBE64")}
@@ -873,13 +842,10 @@ const CreateMatches = () => {
     navigate('/open-matches')
   }
 
-  /* ──────────────────────── JSX ──────────────────────── */
   return (
     <Container className="py-md-4 px-md-0 py-0 px-2 mb-md-5 mb-0">
       <Row className="g-3">
-        {/* ────── LEFT PANEL ────── */}
         <Col md={7} className={`p-md-3 px-3 pt-3 pb-0 mobile-create-matches-content mt-0 ${matchPlayer ? 'd-none d-lg-block' : ''}`} style={{ paddingBottom: selectedCourts.length > 0 ? "120px" : "20px" }}>
-          {/* Date Selector */}
           <div className="calendar-strip">
             <div className="d-flex justify-content-between align-items-center mb-md-2 mb-1">
               <div className="custom-heading-use text-nowrap">
@@ -947,7 +913,6 @@ const CreateMatches = () => {
               </div>
             </div>
 
-            {/* Date Strip */}
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
               <div className="position-relative mt-md-0 mt-2">
                 {/* <div
@@ -1067,7 +1032,6 @@ const CreateMatches = () => {
                     const formatDate = (date) => date.toISOString().split("T")[0];
                     const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
 
-                    // Calculate slot count for this specific date
                     const slotCount = selectedCourts
                       .filter(court => court.date === d.fullDate)
                       .reduce((acc, court) => acc + court.time.length, 0);
@@ -1123,7 +1087,6 @@ const CreateMatches = () => {
               </div>
             </div>
 
-            {/* ────── SLOTS ────── */}
             <div
               className="mb-3 overflow-slot border-0 rounded-3"
               style={{
@@ -1167,7 +1130,7 @@ const CreateMatches = () => {
                         }}
                         className="hide-scrollbar"
                       >
-                        <style jsx={true}>{`
+                        <style jsx>{`
                           .hide-scrollbar::-webkit-scrollbar {
                             display: none;
                           }
@@ -1293,9 +1256,7 @@ const CreateMatches = () => {
           </div>
         </Col>
 
-        {/* ────── RIGHT PANEL ────── */}
         <Col md={5} className={`ps-2 ${matchPlayer ? 'col-12' : ''}`}>
-          {/* ────── MOBILE SUMMARY (fixed bottom) ────── */}
           <div
             className="d-lg-none mobile-create-matches-summary"
             style={{
@@ -1311,7 +1272,6 @@ const CreateMatches = () => {
           >
             {selectedCourts.length > 0 && (
               <>
-                {/* Expandable slots list */}
                 <div
                   className="mobile-expanded-slots"
                   style={{
@@ -1330,8 +1290,7 @@ const CreateMatches = () => {
                     marginBottom: isExpanded ? "10px" : "0",
                   }}
                 >
-                  {/* SAME SCROLLBAR STYLE AS DESKTOP */}
-                  <style jsx={true}>{`
+                  <style jsx>{`
                     .mobile-expanded-slots::-webkit-scrollbar {
                       width: 8px;
                       border-radius: 3px;
@@ -1440,13 +1399,11 @@ const CreateMatches = () => {
                   )}
                 </div>
 
-                {/* Mobile Next Button */}
 
               </>
             )}
           </div>
 
-          {/* Mobile Modal for Steps */}
           <Modal
             show={showMobileModal}
             onHide={() => setShowMobileModal(false)}
@@ -1455,7 +1412,6 @@ const CreateMatches = () => {
             className="d-lg-none"
           >
             <Modal.Body className="p-0" style={{ position: "relative" }}>
-              {/* Close Button */}
               <button
                 onClick={() => setShowMobileModal(false)}
                 style={{
@@ -1467,7 +1423,6 @@ const CreateMatches = () => {
                   width: "32px",
                   height: "32px",
                   borderRadius: "50%",
-                  // boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1487,7 +1442,6 @@ const CreateMatches = () => {
                   padding: "35px 10px",
                 }}
               >
-                {/* Step Indicator */}
                 <div className="d-flex gap-2 mb-4 justify-content-start align-items-center">
                   {dynamicSteps?.map((_, i) => (
                     <div
@@ -1508,7 +1462,6 @@ const CreateMatches = () => {
                   ))}
                 </div>
 
-                {/* Dynamic Question */}
                 {dynamicSteps?.length > 0 && (
                   <>
                     <h6
@@ -1573,7 +1526,6 @@ const CreateMatches = () => {
                   </>
                 )}
 
-                {/* Error Message */}
                 {slotError && (
                   <div
                     className="text-center mb-3 p-2 rounded"
@@ -1589,7 +1541,6 @@ const CreateMatches = () => {
                   </div>
                 )}
 
-                {/* Buttons */}
                 <div className="d-flex justify-content-between align-items-center mt-4">
                   {currentStep > 0 && (
                     <Button
@@ -1626,7 +1577,6 @@ const CreateMatches = () => {
             </Modal.Body>
           </Modal>
 
-          {/* ────── QUESTIONNAIRE / MATCH PLAYER (Desktop Only) ────── */}
           {profileLoading ? (
             <></>
           ) : !matchPlayer && !existsOpenMatchData && dynamicSteps.length > 0 && (
@@ -1634,7 +1584,6 @@ const CreateMatches = () => {
               <div style={{ backgroundColor: "#F1F4FF", borderRadius: "12px" }}>
                 <div className="d-flex pt-4 align-items-center" style={{ position: "relative" }}>
 
-                  {/* LEFT: Back Button */}
                   <div style={{ position: "absolute", left: 0 }}>
                     <button
                       className="btn btn-light rounded-circle ms-2 p-2 d-flex align-items-center justify-content-center"
@@ -1645,7 +1594,6 @@ const CreateMatches = () => {
                     </button>
                   </div>
 
-                  {/* CENTER: Step Circles */}
                   <div className="d-flex justify-content-center w-100 gap-2">
                     {dynamicSteps.map((_, i) => (
                       <div
@@ -1724,23 +1672,18 @@ const CreateMatches = () => {
             </div>
           )}
 
-          {/* Show MatchPlayer when matchPlayer is true */}
           {!profileLoading && matchPlayer && (
             <MatchPlayer
               addedPlayers={addedPlayers}
               setAddedPlayers={setAddedPlayers}
               selectedCourts={selectedCourts}
               selectedDate={selectedDate}
-              finalSkillDetails={existsOpenMatchData ? [] : skillDetails}
-              totalAmount={userShare}
+              finalSkillDetails={existsOpenMatchData ? [] : (selectedAnswers && Object.keys(selectedAnswers).length > 0 ? selectedAnswers : {})}
+              totalAmount={selectedCourts.reduce((sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0), 0)}
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
               userGender={userGender}
 
-              // Yeh NAYA PROP ADD KARO
-              selectedAnswers={selectedAnswers}           // ← Yeh bhejo
-              dynamicSteps={dynamicSteps}                 // ← Yeh bhi bhejo (questions ke saath)
-              finalLevelStep={finalLevelStep}             // ← Agar dynamic last step hai toh yeh bhi
             />
           )}
         </Col>

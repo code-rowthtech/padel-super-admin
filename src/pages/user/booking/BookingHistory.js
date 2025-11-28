@@ -369,13 +369,11 @@ const BookingHistory = () => {
                                     {activeTab === "cancelled" && (
                                         <th className="position-relative" style={{ padding: "8px 0" }}>
                                             <div className="dropdown-wrapper">
-                                                {/* Header */}
                                                 <div
                                                     ref={headerRef}
                                                     className="dropdown-header table-data"
                                                     onClick={() => setIsOpen(!isOpen)}
                                                     style={{
-                                                        // minHeight: "48px",
                                                         padding: "0px 8px",
                                                         cursor: "pointer",
                                                         background: "transparent",
@@ -389,7 +387,6 @@ const BookingHistory = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Dropdown menu rendered in body */}
                                             {isOpen &&
                                                 ReactDOM.createPortal(
                                                     <div
@@ -649,7 +646,6 @@ const BookingHistory = () => {
                                                                 className="text-muted"
                                                                 onClick={() => {
 
-                                                                    // Check if booking type is open match
                                                                     if (booking?.bookingType === "open Match" && booking?.bookingStatus === 'upcoming') {
                                                                         setSelectedMatchId(booking?.openMatchId || booking?._id);
                                                                         setShowViewMatchModal(true);
@@ -796,7 +792,6 @@ const BookingHistory = () => {
 
             <TokenExpire isTokenExpired={expireModal} />
 
-            {/* ViewMatch Modal */}
             <Offcanvas
                 show={showViewMatchModal}
                 onHide={() => setShowViewMatchModal(false)}

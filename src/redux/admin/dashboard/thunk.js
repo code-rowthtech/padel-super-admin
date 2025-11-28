@@ -17,7 +17,6 @@ export const getCountDataForDashboard = createAsyncThunk(
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }
@@ -36,7 +35,6 @@ export const getCancelledBookingsForDashboard = createAsyncThunk(
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }
@@ -55,7 +53,6 @@ export const getRecentBookingsForDashboard = createAsyncThunk(
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }
@@ -75,7 +72,6 @@ export const getRevenueForDashboard = createAsyncThunk(
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }
