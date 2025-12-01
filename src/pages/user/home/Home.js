@@ -260,7 +260,7 @@ const Home = () => {
                 >
                   Book Now <FaArrowRight className="ms-2" />
                 </Link>
-                <style jsx>{`
+                <style>{`
                   .book-now-btn {
                     background: #ffffff;
                     position: relative;
@@ -903,7 +903,7 @@ const Home = () => {
             </button>
           </>
         )}
-        <style jsx global>{`
+        <style>{`
           .full-screen-lightbox .ril-image-current {
             max-width: 30vw !important;
             max-height: 30vh !important;

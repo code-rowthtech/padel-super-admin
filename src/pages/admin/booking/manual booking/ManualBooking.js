@@ -954,7 +954,7 @@ const ManualBooking = () => {
                     marginRight: "8px",
                   }}
                 >
-                  <style jsx>{`
+                  <style>{`
                     div::-webkit-scrollbar {
                       width: 8px;
                       border-radius: 3px;

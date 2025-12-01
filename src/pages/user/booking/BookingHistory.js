@@ -801,7 +801,7 @@ const BookingHistory = () => {
                 <Offcanvas.Header className="border-0">
                     <Offcanvas.Title>Match Details</Offcanvas.Title>
                 </Offcanvas.Header>
-                <Offcanvas.Body className="p-0">
+                <Offcanvas.Body className="p-lg-0 p-3">
                     {selectedMatchId && (
                         <ViewMatch
                             match={{ _id: selectedMatchId }}
