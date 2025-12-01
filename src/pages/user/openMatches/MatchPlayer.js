@@ -263,9 +263,24 @@ const MatchPlayer = ({
         ? formatMatchTimes(selectedCourts)
         : "";
 
+    // Validate that all courts have the same time slots
+    const validateCourtTimeConsistency = () => {
+        if (selectedCourts.length <= 1) return true;
+        
+        const firstCourtTimes = selectedCourts[0].time.map(t => t.time).sort();
+        
+        for (let i = 1; i < selectedCourts.length; i++) {
+            const currentCourtTimes = selectedCourts[i].time.map(t => t.time).sort();
+            if (JSON.stringify(firstCourtTimes) !== JSON.stringify(currentCourtTimes)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
-    const hasValidSelection = selectedCourts.every(court => court.time.length === 2 || court.time.length === 0);
-    const canBook = totalSlots >= 2 && totalSlots % 2 === 0 && hasValidSelection && matchTime.length > 0;
+    const slotsPerCourt = selectedCourts.length > 0 ? selectedCourts[0].time.length : 0;
+    const canBook = totalSlots >= 1 && slotsPerCourt >= 1 && slotsPerCourt <= 3 && matchTime.length > 0 && validateCourtTimeConsistency();
 
     const displayUserSkillLevel = finalSkillDetails && Object.keys(finalSkillDetails).length > 0
         ? finalSkillDetails[Object.keys(finalSkillDetails)[0]]

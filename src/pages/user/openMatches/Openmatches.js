@@ -638,6 +638,7 @@ const Openmatches = () => {
                   style={{
                     position: "absolute",
                     left: "-9%",
+                    top:"0px",
                     zIndex: 10,
                     boxShadow: "none",
                   }}
@@ -720,6 +721,7 @@ const Openmatches = () => {
                   style={{
                     position: "absolute",
                     right: -18,
+                    top:'0px',
                     zIndex: 10,
                     boxShadow: "none",
                   }}
