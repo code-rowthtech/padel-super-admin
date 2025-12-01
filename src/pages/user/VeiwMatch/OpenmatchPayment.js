@@ -533,23 +533,17 @@ const OpenmatchPayment = () => {
                         {/* Desktop Logo/Address Section */}
                         <div className="d-flex mb-4 position-relative d-none d-lg-flex">
                             <img src={booking_logo_img} className="booking-logo-img" alt="" />
-                            <div className="text-center ps-2 pe-1 mt-3">
-                                <p
-                                    className="mt-2 mb-0 text-white"
-                                    style={{
-                                        fontSize: "25px",
-                                        fontWeight: "600",
-                                        fontFamily: "Poppins",
-                                    }}
-                                >
+                            <div className="text-center ps-2 pe-0 mt-3" style={{ maxWidth: "200px" }}>
+                                <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
                                     {clubData?.clubName}
                                 </p>
                                 <p
-                                    className=" mb-1 text-white"
+                                    className="mt-2 mb-1 text-white"
                                     style={{
                                         fontSize: "14px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
+                                        lineHeight: "1.3",
                                     }}
                                 >
                                     {clubData?.address} <br /> {clubData?.zipCode}
