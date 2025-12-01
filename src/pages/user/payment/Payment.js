@@ -385,7 +385,7 @@ const Payment = ({ className = "" }) => {
                     aria-label="Name"
                   />
                   {errors.name && (
-                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                    <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
                       {errors.name}
                     </div>
                   )}
@@ -417,7 +417,7 @@ const Payment = ({ className = "" }) => {
                     />
                   </div>
                   {errors.phoneNumber && (
-                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                    <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
                       {errors.phoneNumber}
                     </div>
                   )}
@@ -450,7 +450,7 @@ const Payment = ({ className = "" }) => {
                     placeholder="Enter your email"
                   />
                   {errors.email && (
-                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                    <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
                       {errors.email}
                     </div>
                   )}
@@ -482,7 +482,8 @@ const Payment = ({ className = "" }) => {
                   >
                     <div className="d-flex align-items-center gap-3">
                       <img src={method.icon} alt={method.name} width={28} />
-                      <span className="fw-medium">{method.name}</span>
+                      <span className="fw-medium d-none d-lg-block" style={{fontFamily:"Poppins"}}>{method.name}</span>
+                      <span className="d-lg-block" style={{fontSize:'14px',fontFamily:"Poppins",fontWeight:"500"}}>{method.name}</span>
                     </div>
                     <input
                       type="radio"
