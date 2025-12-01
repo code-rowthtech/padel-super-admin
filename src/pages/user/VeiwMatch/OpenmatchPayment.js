@@ -502,8 +502,8 @@ const OpenmatchPayment = () => {
                                 >
                                     <div className="d-flex align-items-center gap-3">
                                         <img src={method.icon} alt={method.name} width={28} />
-                                        <span className="fw-medium">{method.name}</span>
-                                    </div>
+                                        <span className="fw-medium d-none d-lg-block" style={{ fontFamily: "Poppins" }}>{method.name}</span>
+                                        <span className="d-lg-none" style={{ fontSize: '14px', fontFamily: "Poppins", fontWeight: "500" }}>{method.name}</span>                                    </div>
                                     <input
                                         type="radio"
                                         name="payment"
@@ -620,9 +620,9 @@ const OpenmatchPayment = () => {
                                         paddingRight: "8px",
                                     }}
                                 >
-                                    {localSelectedCourts.length > 0 ? (
-                                        localSelectedCourts.map((court, index) =>
-                                            court.time.map((timeSlot, timeIndex) => (
+                                    {localSelectedCourts?.length > 0 ? (
+                                        localSelectedCourts?.map((court, index) =>
+                                            court?.time?.map((timeSlot, timeIndex) => (
                                                 <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                     <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                         <div className="d-flex text-white">
@@ -661,7 +661,7 @@ const OpenmatchPayment = () => {
                             borderRadius: "10px 10px 0 0",
                             padding: "0px 15px",
                         }}>
-                            {localSelectedCourts.length > 0 && (
+                            {localSelectedCourts?.length > 0 && (
                                 <>
                                     {/* Arrow controls - First row */}
                                     {/* <div className="d-flex justify-content-center align-items-center py-2" style={{ borderBottom: isExpanded ? "1px solid rgba(255,255,255,0.2)" : "none" }}>
@@ -674,7 +674,7 @@ const OpenmatchPayment = () => {
                                         </div>
                                     </div> */}
 
-                                    {localSelectedCourts.length > 0 && (
+                                    {localSelectedCourts?.length > 0 && (
                                         <div
                                             className="small-curve-arrow d-lg-none"
                                             onClick={(e) => {
@@ -765,8 +765,8 @@ const OpenmatchPayment = () => {
                     `}</style>
 
                                         {isExpanded &&
-                                            localSelectedCourts.map((court, cIdx) =>
-                                                court.time.map((timeSlot, sIdx) => (
+                                            localSelectedCourts?.map((court, cIdx) =>
+                                                court?.time?.map((timeSlot, sIdx) => (
                                                     <div key={`${cIdx}-${sIdx}`} className="row mb-0">
                                                         <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
                                                             <div className="d-flex text-white">

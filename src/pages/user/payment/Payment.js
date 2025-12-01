@@ -483,7 +483,7 @@ const Payment = ({ className = "" }) => {
                     <div className="d-flex align-items-center gap-3">
                       <img src={method.icon} alt={method.name} width={28} />
                       <span className="fw-medium d-none d-lg-block" style={{fontFamily:"Poppins"}}>{method.name}</span>
-                      <span className="d-lg-block" style={{fontSize:'14px',fontFamily:"Poppins",fontWeight:"500"}}>{method.name}</span>
+                      <span className="d-lg-none" style={{fontSize:'14px',fontFamily:"Poppins",fontWeight:"500"}}>{method.name}</span>
                     </div>
                     <input
                       type="radio"
@@ -633,9 +633,9 @@ const Payment = ({ className = "" }) => {
     `}</style>
 
               <div className="d-none d-lg-block">
-                {selectedCourts.length > 0 ? (
-                  selectedCourts.map((court, idx) =>
-                    court.time.map((slot, i) => (
+                {selectedCourts?.length > 0 ? (
+                  selectedCourts?.map((court, idx) =>
+                    court?.time?.map((slot, i) => (
                       <div key={`${idx}-${i}`} className="row mb-2">
                         <div className="col-12 d-flex justify-content-between align-items-center text-white">
                           <div className="d-flex">
@@ -699,7 +699,7 @@ const Payment = ({ className = "" }) => {
                             }
                             `}</style>
 
-                  {isExpanded && localSelectedCourts.map((court, cIdx) =>
+                  {isExpanded && localSelectedCourts?.map((court, cIdx) =>
                     court.time.map((slot, sIdx) => (
                       <div key={`${cIdx}-${sIdx}`} className="row mb-1 text-white">
                         <div className="col-12 d-flex justify-content-between align-items-center">
