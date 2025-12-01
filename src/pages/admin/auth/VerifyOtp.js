@@ -141,6 +141,8 @@ const VerifyOTP = () => {
             <Form.Control
               key={index}
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               maxLength={1}
               disabled={authLoading}
               ref={(el) => (inputRefs.current[index] = el)}

@@ -232,7 +232,7 @@ const Navbar = () => {
                                     alt="User Profile"
                                     style={{
                                         width: "100%",
-                                        height: "auto!important",
+                                        height: "100%",
                                         backgroundSize: "cover",
                                     }}
                                 />

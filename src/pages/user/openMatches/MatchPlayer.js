@@ -86,7 +86,8 @@ const MatchPlayer = ({
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
     const [defaultLevel, setDefaultLevel] = useState();
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
-
+    const [profileFetched, setProfileFetched] = useState(false);
+console.log({finalSkillDetails});
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
@@ -95,20 +96,28 @@ const MatchPlayer = ({
 
     useEffect(() => {
         const fetchData = async () => {
-
+            if (profileFetched) return;
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
                 const firstAnswer = result?.response?.level;
                 setDefaultSkillLevel(result?.response?.skillLevel || "Open Match");
                 setDefaultLevel(firstAnswer);
+                setProfileFetched(true);
             } catch (err) {
+                setProfileFetched(true);
             }
-
         };
 
-        fetchData();
-
-    }, [dispatch]);
+        if (finalSkillDetails && Object.keys(finalSkillDetails).length > 0) {
+            const lastStepAnswer = finalSkillDetails[5] || finalSkillDetails[Object.keys(finalSkillDetails).length - 1];
+            if (lastStepAnswer && typeof lastStepAnswer === 'string') {
+                const skillCode = lastStepAnswer.split(' - ')[0];
+                setDefaultLevel(skillCode);
+            }
+        } else if (!profileFetched) {
+            fetchData();
+        }
+    }, [dispatch, finalSkillDetails, profileFetched]);
 
     useEffect(() => {
         const syncFromStorage = () => {
@@ -252,11 +261,11 @@ console.log({selectedGender});
     const hasValidSelection = selectedCourts.every(court => court.time.length === 2 || court.time.length === 0);
     const canBook = totalSlots >= 2 && totalSlots % 2 === 0 && hasValidSelection && matchTime.length > 0;
 
-    const displayUserSkillLevel = selectedAnswers && Object.keys(selectedAnswers).length > 0
-        ? selectedAnswers[Object.keys(selectedAnswers)[0]]
+    const displayUserSkillLevel = finalSkillDetails && Object.keys(finalSkillDetails).length > 0
+        ? finalSkillDetails[Object.keys(finalSkillDetails)[0]]
         : "Intermediate";
 
-
+console.log({displayUserSkillLevel});
 
     const handleBookNow = () => {
         if (!selectedGender || selectedGender === "") {
@@ -282,7 +291,7 @@ console.log({selectedGender});
                 selectedCourts,
                 selectedDate,
                 totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-                selectedAnswers,
+                finalSkillDetails,
                 selectedGender,
                 dynamicSteps,
                 finalLevelStep,
@@ -293,7 +302,11 @@ console.log({selectedGender});
 
 
     const onBack = () => {
-        navigate('/open-matches')
+        if (window.innerWidth <= 768) {
+            window.history.back();
+        } else {
+            navigate('/open-matches');
+        }
     }
 
     useEffect(() => {
@@ -492,7 +505,9 @@ console.log({selectedGender});
                                 Level
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
-                                {(selectedAnswers && selectedAnswers[0]) || defaultSkillLevel || "Open Match"}
+                                {finalSkillDetails && Object.keys(finalSkillDetails).length > 0 
+                                    ? finalSkillDetails[0]
+                                    : defaultSkillLevel || "Open Match"}
                             </p>
                         </div>
 
@@ -568,7 +583,9 @@ console.log({selectedGender});
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
-                                        {defaultLevel?.split(" - ")[0] || displayUserSkillLevel  || "A"}
+                                        {finalSkillDetails && Object.keys(finalSkillDetails).length > 0 
+                                            ? (finalSkillDetails[5] ? finalSkillDetails[5].split(' - ')[0] : finalSkillDetails[0])
+                                            : defaultLevel?.split(" - ")[0] || "A"}
                                     </span>
                                 </div>
                             )}
@@ -863,7 +880,7 @@ console.log({selectedGender});
                 setShowAddMeForm={setShowAddMeForm}
                 setActiveSlot={setActiveSlot}
                 setAddedPlayers={setParentAddedPlayers}
-                skillDetails={selectedAnswers}
+                skillDetails={finalSkillDetails}
                 userSkillLevel={userSkillLevel || defaultSkillLevel}
                 defaultSkillLevel={defaultSkillLevel}
                 selectedGender={selectedGender}
