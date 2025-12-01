@@ -677,13 +677,13 @@ const Home = () => {
                   ? "justify-content-start"
                   : "justify-content-start"
                 : "justify-content-center"
-                } align-items-center`}
+                } align-items-center gap-3`}
               style={{
                 transform:
                   clubData?.courtImage?.length > 4
                     ? window.innerWidth >= 992
                       ? `translateX(-${currentSlide * 25}%)`
-                      : `translateX(-${currentSlide * 100}%)`
+                      : `translateX(-${currentSlide * 50}%)`
                     : "translateX(0%)",
                 transition:
                   clubData?.courtImage?.length > 4 && currentSlide !== 0
@@ -749,19 +749,19 @@ const Home = () => {
 
               {(clubData?.courtImage?.length > 4
                 ? clubData?.courtImage?.concat(
-                  clubData?.courtImage?.slice(0, 1)
+                  clubData?.courtImage?.slice(0, 2)
                 )
                 : clubData?.courtImage
               )?.map((image, index) => (
                 <div
                   key={`mobile-${index}`}
                   className="flex-shrink-0 d-lg-none d-block"
-                  style={{ width: "100%", padding: 0 }}
+                  style={{ width: "calc(50% - 6px)" }}
                 >
                   <div
                     className="position-relative overflow-hidden rounded-3"
                     style={{
-                      height: "300px",
+                      height: "200px",
                       width: "100%",
                       cursor: "pointer",
                     }}
@@ -811,10 +811,18 @@ const Home = () => {
                   backgroundColor: "#011E84",
                 }}
                 onClick={() => {
-                  if (currentSlide === 0) {
-                    setCurrentSlide(clubData?.courtImage?.length - 1);
+                  if (window.innerWidth < 992) {
+                    if (currentSlide === 0) {
+                      setCurrentSlide(Math.ceil(clubData?.courtImage?.length / 2) - 1);
+                    } else {
+                      setCurrentSlide(currentSlide - 1);
+                    }
                   } else {
-                    setCurrentSlide(currentSlide - 1);
+                    if (currentSlide === 0) {
+                      setCurrentSlide(clubData?.courtImage?.length - 1);
+                    } else {
+                      setCurrentSlide(currentSlide - 1);
+                    }
                   }
                 }}
               >
@@ -831,10 +839,18 @@ const Home = () => {
                   backgroundColor: "#011E84",
                 }}
                 onClick={() => {
-                  if (currentSlide >= clubData?.courtImage?.length - 1) {
-                    setCurrentSlide(0);
+                  if (window.innerWidth < 992) {
+                    if (currentSlide >= Math.ceil(clubData?.courtImage?.length / 2) - 1) {
+                      setCurrentSlide(0);
+                    } else {
+                      setCurrentSlide(currentSlide + 1);
+                    }
                   } else {
-                    setCurrentSlide(currentSlide + 1);
+                    if (currentSlide >= clubData?.courtImage?.length - 1) {
+                      setCurrentSlide(0);
+                    } else {
+                      setCurrentSlide(currentSlide + 1);
+                    }
                   }
                 }}
               >

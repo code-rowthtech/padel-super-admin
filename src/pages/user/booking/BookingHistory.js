@@ -150,7 +150,7 @@ const BookingHistory = () => {
             } else if (selectedOption === "Requested") {
                 statusMatch = status === "in-progress";
             } else {
-                statusMatch = ["in-progress", "refunded", "rejected","cancelled"].includes(status);
+                statusMatch = ["in-progress", "refunded", "rejected", "cancelled"].includes(status);
             }
         } else if (activeTab === "upcoming") {
             statusMatch = ["upcoming", "in-progress", "rejected"].includes(status);
@@ -433,7 +433,7 @@ const BookingHistory = () => {
                                         <td
                                             colSpan={8}
                                             style={{ height: "60vh", verticalAlign: "middle" }}
-                                            className="text-center d-flex justify-content-center align-items-center"
+                                            className="text-center"
                                         >
                                             <DataLoading height={100} />
                                         </td>
@@ -578,7 +578,7 @@ const BookingHistory = () => {
                                                                 ) : booking?.bookingStatus === "refunded" || booking?.bookingStatus === "cancelled" ? (
                                                                     <span
                                                                         style={{
-                                                                            color:booking?.bookingStatus === "cancelled" ? "red" : "darkcyan",
+                                                                            color: booking?.bookingStatus === "cancelled" ? "red" : "darkcyan",
                                                                             fontSize: "12px",
                                                                             fontWeight: "600",
                                                                             fontFamily: "Poppins",
@@ -597,7 +597,7 @@ const BookingHistory = () => {
                                                                     >
                                                                         Rejected
                                                                     </span>
-                                                                ) 
+                                                                )
                                                                     : booking?.bookingStatus === "upcoming" &&
                                                                         activeTab !== "upcoming" ? (
                                                                         <span
@@ -695,7 +695,7 @@ const BookingHistory = () => {
                                                                         ) {
                                                                             setAcceptedRejected(true);
                                                                             setStatusData({ booking, slotItem });
-                                                                        } else if (booking?.bookingStatus === "in-progress" ) {
+                                                                        } else if (booking?.bookingStatus === "in-progress") {
                                                                             setModalCancel(true);
                                                                             setCourtData({ slotItem, booking });
                                                                         } else {
@@ -798,7 +798,7 @@ const BookingHistory = () => {
                 placement="end"
                 className="view-match-offcanvas"
             >
-                <Offcanvas.Header  className="border-0">
+                <Offcanvas.Header className="border-0">
                     <Offcanvas.Title>Match Details</Offcanvas.Title>
                 </Offcanvas.Header>
                 <Offcanvas.Body className="p-0">

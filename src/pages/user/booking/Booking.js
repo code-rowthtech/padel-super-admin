@@ -414,9 +414,9 @@ const Booking = ({ className = "" }) => {
     );
 
     const payload = {
-      name: 'pankk',
-      phoneNumber: 786564534,
-      email: 'panak@gmail.com',
+      name: 'testing',
+      phoneNumber: 9999999999,
+      email: 'testing@gmail.com',
       register_club_id,
       bookingStatus: "upcoming",
       bookingType: "regular",
@@ -1323,8 +1323,9 @@ const Booking = ({ className = "" }) => {
                                               : "pointer",
                                             opacity: isDisabled ? 0.6 : 1,
                                             border: isSelected
-                                              ? ""
+                                              ? "1px solid transparent"
                                               : "1px solid #4949491A",
+                                            borderLeft: "3px solid #0034E4",
                                             fontSize: "11px",
                                             padding: "4px 2px",
                                             height: "32px",
@@ -1333,11 +1334,13 @@ const Booking = ({ className = "" }) => {
                                           onMouseEnter={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
                                               e.currentTarget.style.border = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
                                           onMouseLeave={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available") {
-                                              e.currentTarget.style.border = "1px solid #4949491A";
+                                              e.currentTarget.style.border = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+                                              e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
                                         >
