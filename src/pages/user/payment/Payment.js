@@ -178,11 +178,7 @@ const Payment = ({ className = "" }) => {
         : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
           ? "Invalid phone number"
           : "",
-      email: !email.trim()
-        ? "Email is required"
-        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-          ? "Invalid email"
-          : "",
+    
       paymentMethod: !selectedPayment ? "Please select a payment method" : "",
     };
 
@@ -266,7 +262,7 @@ const Payment = ({ className = "" }) => {
               throw new Error(bookingResponse?.message || "Booking failed");
             }
           } catch (err) {
-            showError("Booking failed after payment: " + (err.message || "Please contact support"));
+            // showError("Booking failed after payment: " + (err.message || "Please contact support"));
             console.error(err);
           }
         },
