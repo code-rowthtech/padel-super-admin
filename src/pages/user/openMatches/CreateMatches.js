@@ -214,6 +214,22 @@ const CreateMatches = () => {
     setShowUnavailable(!showUnavailable);
   };
 
+  // Validate that all courts have the same time slots
+  const validateCourtTimeConsistency = () => {
+    const courtIds = Object.keys(selectedTimes);
+    if (courtIds.length <= 1) return true;
+
+    const firstCourtTimes = selectedTimes[courtIds[0]].map(t => t.time).sort();
+    
+    for (let i = 1; i < courtIds.length; i++) {
+      const currentCourtTimes = selectedTimes[courtIds[i]].map(t => t.time).sort();
+      if (JSON.stringify(firstCourtTimes) !== JSON.stringify(currentCourtTimes)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   const toggleTime = (time, courtId) => {
     if (
       selectedCourts.length > 0 &&
@@ -294,11 +310,19 @@ const CreateMatches = () => {
     }
 
     if (currentSelectedTimes.length === 0) {
-      const timeMatches = allSelectedTimes.some(selectedTime => selectedTime.time === time.time);
-      
-      if (!timeMatches) {
-        setSlotError("You can only select the same time slots across different courts.");
-        return;
+      // If other courts have selections, check if this time matches any of their times
+      if (allSelectedTimes.length > 0) {
+        const otherCourtTimes = [];
+        Object.entries(selectedTimes).forEach(([cId, times]) => {
+          if (cId !== courtId) {
+            otherCourtTimes.push(...times.map(t => t.time));
+          }
+        });
+        
+        if (otherCourtTimes.length > 0 && !otherCourtTimes.includes(time.time)) {
+          setSlotError("You can only select the same time slots across different courts.");
+          return;
+        }
       }
 
       const newTimeEntry = {
@@ -358,6 +382,9 @@ const CreateMatches = () => {
             : c
         )
       );
+      
+      // Clear any existing errors since we're adding a valid consecutive slot
+      setSlotError("");
       return;
     }
 
@@ -446,6 +473,8 @@ const CreateMatches = () => {
   }, [slotData, showUnavailable]);
 
   const getFilteredLastStepOptions = () => {
+    if (!dynamicSteps || dynamicSteps.length === 0) return [];
+    
     const firstAnswer = selectedAnswers[0];
     const lastStep = dynamicSteps[dynamicSteps.length - 1];
     if (!lastStep) return [];
@@ -557,6 +586,11 @@ const CreateMatches = () => {
   const handleNext = async () => {
     if (selectedCourts.length === 0) {
       setSlotError("Select a slot to enable booking");
+      return;
+    }
+
+    if (!validateCourtTimeConsistency()) {
+      setSlotError("All courts must have the same time slots selected.");
       return;
     }
 
@@ -730,18 +764,33 @@ const CreateMatches = () => {
 
     let isDisabled = slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
 
+    // Get all selected times from other courts
+    const otherCourtTimes = [];
+    Object.entries(selectedTimes).forEach(([cId, times]) => {
+      if (cId !== courtId) {
+        otherCourtTimes.push(...times.map(t => t.time));
+      }
+    });
+
     if (allSelectedTimes.length > 0 && !isSelected) {
-      const timeMatches = allSelectedTimes.some(selectedTime => selectedTime.time === slot.time);
-      
       if (currentCourtTimes.length === 0) {
-        isDisabled = isDisabled || !timeMatches;
+        // If this court has no selections but others do, only allow matching times
+        if (otherCourtTimes.length > 0) {
+          isDisabled = isDisabled || !otherCourtTimes.includes(slot.time);
+        }
       }
       else if (currentCourtTimes.length === 1) {
-        const firstSlot = currentCourtTimes[0];
-        const firstMinutes = timeToMinutes(firstSlot.time);
-        const newMinutes = timeToMinutes(slot.time);
-        const diff = Math.abs(firstMinutes - newMinutes);
-        isDisabled = isDisabled || diff !== 60;
+        // If other courts have selections, only allow slots that match other courts
+        if (otherCourtTimes.length > 0) {
+          isDisabled = isDisabled || !otherCourtTimes.includes(slot.time);
+        } else {
+          // If no other courts have selections, allow consecutive slots
+          const firstSlot = currentCourtTimes[0];
+          const firstMinutes = timeToMinutes(firstSlot.time);
+          const newMinutes = timeToMinutes(slot.time);
+          const diff = Math.abs(firstMinutes - newMinutes);
+          isDisabled = isDisabled || diff !== 60;
+        }
       }
       else if (currentCourtTimes.length >= 2) {
         isDisabled = true;
@@ -757,8 +806,24 @@ const CreateMatches = () => {
           title={(() => {
             if (isDisabled && !isSelected) {
               if (currentCourtTimes.length >= 2) return 'Maximum 2 slots per court';
-              if (allSelectedTimes.length > 0 && !allSelectedTimes.some(s => s.time === slot.time)) {
-                return currentCourtTimes.length === 0 ? 'Only same time slots allowed across courts' : 'Only consecutive slots allowed';
+              
+              const otherCourtTimes = [];
+              Object.entries(selectedTimes).forEach(([cId, times]) => {
+                if (cId !== courtId) {
+                  otherCourtTimes.push(...times.map(t => t.time));
+                }
+              });
+              
+              if (currentCourtTimes.length === 0 && otherCourtTimes.length > 0 && !otherCourtTimes.includes(slot.time)) {
+                return 'Only same time slots allowed across courts';
+              }
+              
+              if (currentCourtTimes.length === 1) {
+                const firstSlot = currentCourtTimes[0];
+                const firstMinutes = timeToMinutes(firstSlot.time);
+                const newMinutes = timeToMinutes(slot.time);
+                const diff = Math.abs(firstMinutes - newMinutes);
+                if (diff !== 60) return 'Only consecutive slots allowed';
               }
             }
             return '';
@@ -802,14 +867,18 @@ const CreateMatches = () => {
   };
 
   const renderCurrentQuestion = () => {
-    if (dynamicSteps.length === 0) {
+    if (!dynamicSteps || dynamicSteps.length === 0) {
       return <div>Loading questions...</div>;
     }
 
     const step = dynamicSteps[currentStep];
+    if (!step) {
+      return <div>Loading questions...</div>;
+    }
+    
     const isLastStep = currentStep === dynamicSteps.length - 1;
     const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
-    const optionsToShow = isLastStep ? getFilteredLastStepOptions() : step.options;
+    const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step.options || []);
 
     return (
       <Form>
@@ -1229,7 +1298,7 @@ const CreateMatches = () => {
                               disabled={(() => {
                                 const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
                                 const hasValidSelection = selectedCourts.every(court => court.time.length === 2 || court.time.length === 0);
-                                return !(totalSlots >= 2 && totalSlots % 2 === 0 && hasValidSelection);
+                                return !(totalSlots >= 2 && totalSlots % 2 === 0 && hasValidSelection && validateCourtTimeConsistency());
                               })()}
                               onClick={() => {
                                 if (existsOpenMatchData) {
@@ -1495,10 +1564,18 @@ const CreateMatches = () => {
 
                     <Form>
                       {(() => {
+                        if (!dynamicSteps || dynamicSteps.length === 0 || !dynamicSteps[currentStep]) {
+                          return <div>Loading options...</div>;
+                        }
+                        
                         const step = dynamicSteps[currentStep];
+                        if (!step || !step.options) {
+                          return <div>Loading options...</div>;
+                        }
+                        
                         const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
                         const isLastStep = currentStep === dynamicSteps.length - 1;
-                        const optionsToShow = isLastStep ? getFilteredLastStepOptions() : step.options;
+                        const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step.options || []);
 
                         return optionsToShow.map((opt, i) => {
                           const optValue = opt.value || opt.code || opt;
@@ -1510,7 +1587,7 @@ const CreateMatches = () => {
                             <div
                               key={opt._id || i}
                               onClick={() => handleAnswerSelect(currentStep, optValue)}
-                              className="d-flex align-items-center mb-1 px-3 py-2 rounded shadow-sm border step-option"
+                              className="d-flex align-items-center mb-0 border-0 px-3 py-2  shadow-sm  step-option"
                               style={{
                                 backgroundColor: isSelected ? "#eef2ff" : "#fff",
                                 borderColor: isSelected ? "#4f46e5" : "#e5e7eb",
@@ -1575,7 +1652,7 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 py-1 ms-auto"
-                    disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
+                    disabled={selectedCourts.length === 0 || !isCurrentStepValid() || !validateCourtTimeConsistency()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
@@ -1670,7 +1747,7 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 py-2 pt-1 d-flex align-items-center justify-content-center"
-                    disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
+                    disabled={selectedCourts.length === 0 || !isCurrentStepValid() || !validateCourtTimeConsistency()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
@@ -1700,7 +1777,11 @@ const CreateMatches = () => {
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
               userGender={userGender}
-
+              onBackToSlots={() => {
+                setMatchPlayer(false);
+                setCurrentStep(0);
+                setSlotError("");
+              }}
             />
           )}
         </Col>
