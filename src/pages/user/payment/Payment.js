@@ -422,7 +422,7 @@ const Payment = ({ className = "" }) => {
 
                 <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0 ">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                    Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                    Email 
                   </label>
                   <input
                     type="email"
