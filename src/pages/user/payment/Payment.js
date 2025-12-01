@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
-import { getUserProfile, loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { getUserProfile, loginUserNumber, updateUser } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
@@ -10,6 +10,7 @@ import { booking_logo_img, success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "react-icons/md";
 import { MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown } from "react-icons/md";
+import { showError } from "../../../helpers/Toast";
 
 const loadPayPal = (callback) => {
   const script = document.createElement("script");
@@ -111,7 +112,7 @@ const Payment = ({ className = "" }) => {
                 const payload = { /* same payload as above */ };
 
                 if (!user?.name || !user?.phoneNumber) {
-                  await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
+                  await dispatch(updateUser({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
                 }
 
                 // Pehle payment capture → fir booking API
@@ -232,7 +233,7 @@ const Payment = ({ className = "" }) => {
       // First: Login if needed
       if (!user?.name && !user?.phoneNumber) {
         await dispatch(
-          loginUserNumber({
+          updateUser({
             phoneNumber: rawPhoneNumber,
             name: name.trim(),
             email: email.trim(),
@@ -265,7 +266,7 @@ const Payment = ({ className = "" }) => {
               throw new Error(bookingResponse?.message || "Booking failed");
             }
           } catch (err) {
-            alert("Booking failed after payment: " + (err.message || "Please contact support"));
+            showError("Booking failed after payment: " + (err.message || "Please contact support"));
             console.error(err);
           }
         },
