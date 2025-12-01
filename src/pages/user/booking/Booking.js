@@ -162,10 +162,13 @@ const Booking = ({ className = "" }) => {
   const MAX_SLOTS = 15;
 
   const toggleTime = (time, courtId, date) => {
-    const totalSlots = selectedCourts.reduce(
-      (acc, c) => acc + (c.time?.length || 0),
-      0
-    );
+    // Calculate total slots across all dates and courts
+    const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+      return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+        return dateTotal + timeSlots.length;
+      }, 0);
+    }, 0);
+    
     const dateKey = date || selectedDate.fullDate;
     const uniqueKey = `${courtId}-${time._id}-${dateKey}`;
 
@@ -194,7 +197,7 @@ const Booking = ({ className = "" }) => {
           .filter((court) => court.time.length > 0)
       );
     } else {
-      if (totalSlots >= MAX_SLOTS) {
+      if (currentTotalSlots >= MAX_SLOTS) {
         setErrorMessage(
           `You can select up to ${MAX_SLOTS} slots only`
         );
@@ -383,7 +386,13 @@ const Booking = ({ className = "" }) => {
     (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
     0
   );
-  const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
+  
+  // Calculate total slots across all dates and courts
+  const totalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+    return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+      return dateTotal + timeSlots.length;
+    }, 0);
+  }, 0);
 
   useEffect(() => {
     if (totalSlots === 0) {
@@ -546,13 +555,26 @@ const Booking = ({ className = "" }) => {
         pointer-events: none;
         white-space: nowrap;
         display: none;
+        max-width: 90vw;
+        word-wrap: break-word;
+        text-align: center;
       `;
       document.body.appendChild(newTooltip);
       return newTooltip;
     })();
 
     const handleMouseEnter = (e) => {
-      if (totalSlots >= MAX_SLOTS) {
+      // Don't show tooltip on mobile devices
+      if (window.innerWidth <= 768) return;
+      
+      // Calculate current total slots for tooltip
+      const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+        return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+          return dateTotal + timeSlots.length;
+        }, 0);
+      }, 0);
+      
+      if (currentTotalSlots >= MAX_SLOTS) {
         const button = e.currentTarget;
         const isSelected = button.style.background.includes('linear-gradient');
         if (!isSelected) {
@@ -565,7 +587,17 @@ const Booking = ({ className = "" }) => {
     };
 
     const handleMouseMove = (e) => {
-      if (totalSlots >= MAX_SLOTS && tooltip.style.display === 'block') {
+      // Don't show tooltip on mobile devices
+      if (window.innerWidth <= 768) return;
+      
+      // Calculate current total slots for tooltip movement
+      const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+        return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+          return dateTotal + timeSlots.length;
+        }, 0);
+      }, 0);
+      
+      if (currentTotalSlots >= MAX_SLOTS && tooltip.style.display === 'block') {
         tooltip.style.left = e.clientX + 10 + 'px';
         tooltip.style.top = e.clientY - 30 + 'px';
       }
@@ -589,7 +621,7 @@ const Booking = ({ className = "" }) => {
         button.removeEventListener('mouseleave', handleMouseLeave);
       });
     };
-  }, [totalSlots, MAX_SLOTS]);
+  }, [selectedTimes, slotData]);
 
   const tabData = [
     { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
@@ -1393,6 +1425,27 @@ const Booking = ({ className = "" }) => {
                 </div>
               )}
             </div>
+            {errorShow && errorMessage && (
+              <div className="d-lg-none px-3 mb-3">
+                <div
+                  className="text-center w-100 p-3 rounded"
+                  style={{
+                    fontWeight: 500,
+                    backgroundColor: "#ffebee",
+                    color: "#c62828",
+                    border: "1px solid #ffcdd2",
+                    fontSize: "14px",
+                    fontFamily: "Poppins",
+                    wordWrap: "break-word",
+                    lineHeight: "1.4",
+                    maxWidth: "100%",
+                    overflow: "visible",
+                  }}
+                >
+                  {errorMessage}
+                </div>
+              </div>
+            )}
           </div>
           <div
             className={`col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-booking-summary ${totalSlots === 0 ? "d-lg-block d-none" : ""
