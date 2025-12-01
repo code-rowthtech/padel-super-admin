@@ -52,23 +52,27 @@ const Booking = () => {
     getBookingLoading,
     getBookingDetailsData,
     updateBookingLoading,
+    bookingCount: tabCount,
   } = useSelector((state) => state.booking);
 
-  const tabCount = useSelector((state) => state.booking.bookingCount);
   const bookings = getBookingData?.bookings || [];
   const totalItems = getBookingData?.totalItems || 0;
   const sendDate = startDate && endDate;
-  const allCount = sendDate && tab === 0 ? totalItems : tabCount?.allCount || 0;
-  const upcomingCount =
-    sendDate && tab === 1 ? totalItems : tabCount?.upcomingCount || 0;
-  const completedCount =
-    sendDate && tab === 2 ? totalItems : tabCount?.completedCount || 0;
+
+  // Store counts in state to persist across tab changes
+  const [counts, setCounts] = useState({
+    allCount: 0,
+    upcomingCount: 0,
+    completedCount: 0,
+  });
+
+  const allCount = sendDate && tab === 0 ? totalItems : counts.allCount;
+  const upcomingCount = sendDate && tab === 1 ? totalItems : counts.upcomingCount;
+  const completedCount = sendDate && tab === 2 ? totalItems : counts.completedCount;
 
   const defaultLimit = 20;
 
   useEffect(() => {
-    dispatch(resetBookingData());
-
     const payload: any = {
       ownerId,
       page: currentPage,
@@ -91,9 +95,20 @@ const Booking = () => {
       payload.endDate = formatToYYYYMMDD(endDate);
     }
 
+    dispatch(bookingCount({ ownerId }));
+    dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
-    dispatch(bookingCount({ ownerId: ownerId }));
   }, [tab, currentPage, dispatch, ownerId, sendDate]);
+
+  useEffect(() => {
+    if (tabCount && !sendDate) {
+      setCounts({
+        allCount: tabCount.allCount || 0,
+        upcomingCount: tabCount.upcomingCount || 0,
+        completedCount: tabCount.completedCount || 0,
+      });
+    }
+  }, [tabCount, sendDate]);
 
   const handleBookingDetails = async (id, type) => {
     setLoadingBookingId(id);
