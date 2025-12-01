@@ -19,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 import { resetClub } from "../../../../redux/admin/club/slice";
 import { showError, showInfo, showWarning } from "../../../../helpers/Toast";
 
-// Helper: Normalize time to consistent format (e.g., "6 am" → "6 am")
 const normalizeTime = (time) => {
   if (!time) return "";
   return time.trim().replace(/:\d{2}/g, "").replace(/\s+/g, " ").toLowerCase();
@@ -54,7 +53,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
 
   const [selectAllChecked, setSelectAllChecked] = useState(true);
 
-  // Helper: Convert time to minutes for sorting
   const convertTimeToMinutes = (timeStr) => {
     const match = timeStr.match(/(\d+)\s*(am|pm)/i);
     if (!match) return 0;
@@ -65,7 +63,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     return hours * 60;
   };
 
-  // Helper: Convert time to 12-hour format (for display)
   const convertTo12HourFormat = (time) => {
     if (!time) return "";
     let hour, minute, period;
@@ -89,7 +86,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     return time;
   };
 
-  // Get slots for selected days
   const getSelectedDaySlots = () => {
     const allSlots = clubData?.data?.[0]?.slot || [];
     const selectedDays = Object.keys(formData.days).filter((day) => formData.days[day]);
@@ -104,7 +100,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     });
   };
 
-  // Initialize prices when data loads
   useEffect(() => {
     const selectedDaySlots = getSelectedDaySlots();
     const slotData = selectedDaySlots[0]?.slotTimes || [];
@@ -113,7 +108,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       setFormData((prev) => {
         const newPrices = { ...prev.prices };
         
-        // Only initialize if the slot type doesn't have prices yet
         if (!newPrices[prev.selectedSlots] || Object.keys(newPrices[prev.selectedSlots]).length === 0) {
           newPrices[prev.selectedSlots] = {};
           slotData.forEach((slot) => {
@@ -122,7 +116,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
           });
         }
 
-        // Auto-select all slots for "All" category when selectAllChecked is true
         if (selectAllChecked && (!newPrices.All || Object.keys(newPrices.All).length === 0)) {
           const timeSet = new Set();
           selectedDaySlots.forEach((slotDay) => {
@@ -142,7 +135,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     }
   }, [clubData?.data, formData.selectedSlots, formData.days, selectAllChecked]);
 
-  // Sync selectAllChecked
   useEffect(() => {
     const allSelected = Object.values(formData.days).every(Boolean);
     setSelectAllChecked(allSelected);
@@ -225,13 +217,11 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     );
   };
 
-  // Filter slots by time period
   const filterSlotsByPeriod = (slots, period) => {
     return slots.filter((slot) => {
       const timeStr = slot.time;
       if (!timeStr) return false;
 
-      // Parse hour from time string
       let hour;
       if (timeStr.includes(":")) {
         const [hourStr] = timeStr.split(":");
@@ -245,7 +235,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         if (periodStr === "am" && hour === 12) hour = 0;
       }
 
-      // Filter by time period
       switch (period) {
         case "Morning":
           return hour >= 0 && hour <= 11;
@@ -259,7 +248,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     });
   };
 
-  // Render slots for single day
   const renderTimeSlots = () => {
     if (selectAllChecked) return renderAllSlots();
 
@@ -315,7 +303,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     });
   };
 
-  // Render All slots (Select All)
   const renderAllSlots = () => {
     const selectedDaySlots = getSelectedDaySlots();
     const timeSet = new Set();
@@ -372,7 +359,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
           const newPrices = { ...prev.prices.All };
           const selectedTimes = Object.keys(newPrices);
           selectedTimes.forEach((t) => {
-            newPrices[t] = price; // ← Keep as string
           });
           return { ...prev, prices: { ...prev.prices, All: newPrices } };
         });
@@ -457,7 +443,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     );
   };
 
-  // Submit Handler - FIXED
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -489,17 +474,14 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       return;
     }
 
-    // FIXED: Convert price to string before trim
     const filledSlotTimes = selectedSlotData
       .flatMap(day => day.slotTimes || [])
       .map(slot => {
         const normalizedApiTime = normalizeTime(slot.time);
         const time12hr = convertTo12HourFormat(slot.time);
         
-        // Try both normalized time and 12hr format for price lookup
         const priceValue = slotPrices[normalizedApiTime] || slotPrices[time12hr];
 
-        // Convert number to string, then trim
         const priceStr = priceValue == null ? "" : String(priceValue).trim();
         if (!priceStr) return null;
 
@@ -513,7 +495,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       return;
     }
 
-    // Business Hours
     const businessHours = selectedSlotData.flatMap(d => d.businessHours || []);
     const completeBusinessHours = selectedDays.map((day) => {
       const existing = businessHours.find((bh) => bh.day === day);
@@ -553,7 +534,6 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       });
   };
 
-  // Fetch slots when days or slot type change
   useEffect(() => {
     const selectedDays = Object.keys(formData.days).filter((day) => formData.days[day]);
     const isAllSelected = selectedDays.length === 7;

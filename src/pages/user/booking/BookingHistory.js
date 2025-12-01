@@ -324,7 +324,7 @@ const BookingHistory = () => {
                                 onChange={(update) => setDateRange(update)}
                                 dateFormat="dd/MM/yy"
                                 placeholderText="dd/mm/yy – dd/mm/yy"
-                                className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                                className="form-control border-0 bg-transparent shadow-none custom-datepicker-input w-100"
                             />
 
                         </div>
@@ -369,13 +369,11 @@ const BookingHistory = () => {
                                     {activeTab === "cancelled" && (
                                         <th className="position-relative" style={{ padding: "8px 0" }}>
                                             <div className="dropdown-wrapper">
-                                                {/* Header */}
                                                 <div
                                                     ref={headerRef}
                                                     className="dropdown-header table-data"
                                                     onClick={() => setIsOpen(!isOpen)}
                                                     style={{
-                                                        // minHeight: "48px",
                                                         padding: "0px 8px",
                                                         cursor: "pointer",
                                                         background: "transparent",
@@ -389,7 +387,6 @@ const BookingHistory = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Dropdown menu rendered in body */}
                                             {isOpen &&
                                                 ReactDOM.createPortal(
                                                     <div
@@ -649,7 +646,6 @@ const BookingHistory = () => {
                                                                 className="text-muted"
                                                                 onClick={() => {
 
-                                                                    // Check if booking type is open match
                                                                     if (booking?.bookingType === "open Match" && booking?.bookingStatus === 'upcoming') {
                                                                         setSelectedMatchId(booking?.openMatchId || booking?._id);
                                                                         setShowViewMatchModal(true);
@@ -796,7 +792,6 @@ const BookingHistory = () => {
 
             <TokenExpire isTokenExpired={expireModal} />
 
-            {/* ViewMatch Modal */}
             <Offcanvas
                 show={showViewMatchModal}
                 onHide={() => setShowViewMatchModal(false)}
@@ -811,6 +806,7 @@ const BookingHistory = () => {
                         <ViewMatch
                             match={{ _id: selectedMatchId }}
                             onBack={() => setShowViewMatchModal(false)}
+                            isFromBookingHistory={true}
                         />
                     )}
                 </Offcanvas.Body>

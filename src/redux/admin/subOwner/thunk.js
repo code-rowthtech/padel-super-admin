@@ -19,18 +19,15 @@ export const getSubOwner = createAsyncThunk(
       const res = await ownerApi.get(
         `${Url.GET_SUBOWNER}?${buildQuery(params)}`
       );
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }

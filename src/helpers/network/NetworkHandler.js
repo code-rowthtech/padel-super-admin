@@ -28,7 +28,6 @@ const NetworkHandler = ({ children }) => {
 
   useEffect(() => {
     if (!isOnline) {
-      // ✅ Save last route BEFORE navigating to no-internet
       if (location.pathname !== "/no-internet") {
         localStorage.setItem("lastOnlineRoute", location.pathname);
       }

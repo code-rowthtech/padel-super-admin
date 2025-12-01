@@ -88,7 +88,6 @@ const CourtAvailability = () => {
     "staff unavailability": "#ffd1d5ff",
   };
 
-  // बाहर क्लिक → डेट पिकर बंद
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
@@ -100,7 +99,6 @@ const CourtAvailability = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 41 दिनों की लिस्ट
   const today = new Date();
   const maxSelectableDate = new Date();
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
@@ -119,12 +117,10 @@ const CourtAvailability = () => {
   const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
   const businessHours = activeCourtsData?.[0]?.slot?.[0]?.businessHours || [];
 
-  // कोर्ट सिलेक्ट (सिर्फ एक)
   const handleCourtSelect = (courtId) => {
     setSelectedCourt(courtId);
   };
 
-  // टाइम स्लॉट टॉगल
   const toggleTime = (slot) => {
     if (!selectedCourt) {
       showInfo("Please select a court first.");
@@ -175,7 +171,6 @@ const CourtAvailability = () => {
     setSelectedSlots(newSelectedSlots);
   };
 
-  // स्लॉट डिलीट
   const handleRemoveSlot = (date, courtId, slotId) => {
     setSelectedSlots((prev) => {
       const newCourtSlots = prev[date][courtId].filter(
@@ -196,7 +191,6 @@ const CourtAvailability = () => {
     });
   };
 
-  // कॉमन स्टेटस चेंज → सभी सिलेक्टेड स्लॉट्स पर लागू
   useEffect(() => {
     if (!commonStatus) return;
 
@@ -214,7 +208,6 @@ const CourtAvailability = () => {
     });
   }, [commonStatus]);
 
-  // API कॉल्स
   useEffect(() => {
     dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
   }, []);
@@ -284,7 +277,6 @@ const CourtAvailability = () => {
       };
 
       await dispatch(updateCourt(payload)).unwrap();
-      // Remove only the current date's slots after successful update
       setSelectedSlots((prev) => {
         const { [selectedDate]: _, ...rest } = prev;
         return rest;
@@ -296,13 +288,11 @@ const CourtAvailability = () => {
     }
   };
 
-  // स्क्रॉल हैंडल
   const scrollLeft = () =>
     scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () =>
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
-  // सभी सिलेक्टेड स्लॉट्स की लिस्ट (फ्लैट)
   const allSelectedSlots = Object.entries(selectedSlots).flatMap(
     ([date, dateData]) =>
       Object.entries(dateData).flatMap(([courtId, slots]) =>
@@ -310,7 +300,6 @@ const CourtAvailability = () => {
       )
   );
 
-  // मंथ डिस्प्ले
   const getCurrentMonth = (date) =>
     date
       ? new Date(date)
@@ -330,9 +319,7 @@ const CourtAvailability = () => {
             className="mx-auto bg-white shadow-sm rounded-3"
             style={{ height: "88vh" }}
           >
-            {/* Left Side */}
             <Col xs={12} lg={8} className="p-2 p-md-4">
-              {/* Court Selector */}
               <div className="mb-3">
                 <div className="all-matches mb-2" style={{ color: "#374151" }}>
                   Select Court
@@ -364,7 +351,6 @@ const CourtAvailability = () => {
                 </div>
               </div>
 
-              {/* Date Selector */}
               <div className="calendar-strip">
                 <div className="calendar-strip">
                   <div
@@ -426,7 +412,6 @@ const CourtAvailability = () => {
                       )}
                     </div>
                   </div>
-                  {/* Replace the date selector section with this code */}
                   <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
                     <div
                       className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill"
@@ -484,7 +469,6 @@ const CourtAvailability = () => {
                           const isSelected =
                             formatDate(new Date(selectedDate)) === d.fullDate;
 
-                          // Calculate slot count for this specific date
                           const dateSlots = selectedSlots[d.fullDate] || {};
                           const slotCount = Object.values(dateSlots).reduce(
                             (acc, courtSlots) =>
@@ -584,7 +568,6 @@ const CourtAvailability = () => {
                 </div>
               </div>
 
-              {/* Time Slots */}
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <p className="mb-0 all-matches" style={{ color: "#374151" }}>
                   Available Slots <span className="fs-6 text-muted">(60m)</span>
@@ -699,8 +682,7 @@ const CourtAvailability = () => {
                                   : isPast
                                   ? "#c9cfcfff"
                                   : showUnavailable
-                                  ? // ? statusColorMap[status] || "#FFFFFF"
-                                    "#FFFFFF"
+                                  ? "#FFFFFF"
                                   : "#FFFFFF",
                                 color:
                                   isSelected || isBooked ? "white" : "#000000",
@@ -713,13 +695,11 @@ const CourtAvailability = () => {
                             >
                               {isBooked ? "Booked" : formatSlotTime(slot.time)}
 
-                              {/* 🔥 Full diagonal X overlay */}
                               {!isBooked &&
                                 (status === "maintenance" ||
                                   status === "weather conditions" ||
                                   status === "staff unavailability") && (
                                   <>
-                                    {/* Line 1 — top-left to bottom-right */}
                                     <span
                                       style={{
                                         position: "absolute",
@@ -732,7 +712,6 @@ const CourtAvailability = () => {
                                         pointerEvents: "none",
                                       }}
                                     ></span>
-                                    {/* Line 2 — bottom-left to top-right */}
                                     <span
                                       style={{
                                         position: "absolute",
@@ -767,7 +746,6 @@ const CourtAvailability = () => {
               )}
             </Col>
 
-            {/* Right Side - Selected Slots */}
             <Col xs={12} lg={4} className="py-2 py-md-4 px-2 px-md-3">
               <div
                 className="bg-white rounded-3 p-3"
@@ -777,7 +755,6 @@ const CourtAvailability = () => {
                   Selected Slots
                 </h6>
 
-                {/* कॉमन स्टेटस ड्रॉपडाउन (ऊपर) */}
                 {allSelectedSlots.length > 0 && (
                   <div className="mb-3">
                     <Form.Select
@@ -799,7 +776,6 @@ const CourtAvailability = () => {
                   </div>
                 )}
 
-                {/* सिलेक्टेड स्लॉट्स लिस्ट */}
                 <div
                   className="custom-scrollbar"
                   style={{
@@ -910,7 +886,6 @@ const CourtAvailability = () => {
                   )}
                 </div>
 
-                {/* कन्फर्म / कैंसिल */}
                 {allSelectedSlots.length > 0 && (
                   <div className="d-flex justify-content-end gap-2 mt-3">
                     <Button

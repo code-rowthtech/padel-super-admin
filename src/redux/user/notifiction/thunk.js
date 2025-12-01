@@ -9,17 +9,14 @@ export const getNotificationView = createAsyncThunk(
     try {
 
       const res = await userApi.get(`${Url.GET_NOTIFICATION_USER_VIEW}?id=${params.noteId}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
       return rejectWithValue(error.message);
     }
   }
@@ -31,17 +28,14 @@ export const getNotificationCount = createAsyncThunk(
     try {
 
       const res = await userApi.get(`${Url.GET_NOTIFICATION_USER_COUNT}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
       return rejectWithValue(error.message);
     }
   }
@@ -53,17 +47,14 @@ export const getNotificationData = createAsyncThunk(
     try {
 
       const res = await userApi.get(`${Url.GET_NOTIFICATION_USER_DATA}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
       return rejectWithValue(error.message);
     }
   }
@@ -94,17 +85,14 @@ export const getQuestionData = createAsyncThunk(
     try {
 
       const res = await userApi.get(`${Url.GET_QUESTION_LIST}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
       return rejectWithValue(error.message);
     }
   }
@@ -116,17 +104,14 @@ export const getPlayerLevel = createAsyncThunk(
     try {
 
       const res = await userApi.get(`${Url.PLAYER_LEVEL}?skillLevel=${params}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
       return rejectWithValue(error.message);
     }
   }
@@ -138,17 +123,14 @@ export const getPlayerLevelBySkillLevel = createAsyncThunk(
     try {
 
       const res = await userApi.get(`${Url.PLAYER_LEVEL_BY_SKILL_LEVEL}?type=${params}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
-      // showError(error);
       return rejectWithValue(error.message);
     }
   }

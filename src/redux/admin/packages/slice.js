@@ -30,7 +30,6 @@ const packageSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // -----------------------------------------------------//---- Get All Packages
       .addCase(getAllPackages.pending, (state) => {
         state.packageLoading = true;
         state.packageError = null;
@@ -43,7 +42,6 @@ const packageSlice = createSlice({
         state.packageLoading = false;
         state.packageError = action.payload;
       })
-      // -----------------------------------------------------//---- Create Package
       .addCase(createPackage.pending, (state) => {
         state.packageLoading = true;
         state.packageError = null;
@@ -56,7 +54,6 @@ const packageSlice = createSlice({
         state.packageLoading = false;
         state.packageError = action.payload;
       })
-      // -----------------------------------------------------//---- Update Package
       .addCase(updatePackage.pending, (state) => {
         state.updatePackageLoading = true;
         state.packageError = null;
@@ -69,7 +66,6 @@ const packageSlice = createSlice({
         state.updatePackageLoading = false;
         state.packageError = action.payload;
       })
-      // -----------------------------------------------------//---- Delete Package
       .addCase(deletePackage.pending, (state) => {
         state.deletePackageLoading = true;
         state.packageError = null;

@@ -26,7 +26,6 @@ const Support = () => {
           border: "1px solid #e2e8f0",
         }}
       >
-        {/* Logo or Icon Placeholder */}
         <div
           style={{
             fontSize: "48px",
@@ -39,7 +38,6 @@ const Support = () => {
           Help & Support
         </div>
 
-        {/* Tagline */}
         <p
           style={{
             fontSize: "18px",
@@ -51,7 +49,6 @@ const Support = () => {
           Something amazing is brewing...
         </p>
 
-        {/* Main Heading */}
         <h1
           style={{
             fontSize: "36px",
@@ -63,7 +60,6 @@ const Support = () => {
           Coming Soon
         </h1>
 
-        {/* Subtitle */}
         <p
           style={{
             fontSize: "16px",
@@ -99,7 +95,6 @@ const Support = () => {
         >
           <i className="bi bi-arrow-left me-1"></i> Back
         </button>
-        {/* Footer Text */}
         <p
           style={{
             marginTop: "20px",

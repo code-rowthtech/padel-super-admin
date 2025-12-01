@@ -8,7 +8,6 @@ const DefaultLayout = () => {
   const location = useLocation();
   const user = getUserFromSession();
 
-  // List of pages where Navbar/Footer should be hidden
   const excludedPages = useMemo(
     () => [
       "login",
@@ -24,7 +23,6 @@ const DefaultLayout = () => {
     []
   );
 
-  // Get current page name from URL
   const currentPageName = useMemo(() => {
     const path = location.pathname.substring(
       location.pathname.lastIndexOf("/") + 1
@@ -32,7 +30,6 @@ const DefaultLayout = () => {
     return path.toLowerCase();
   }, [location.pathname]);
 
-  // Determine if header/footer should be hidden
   const shouldHideHeaderFooter = useMemo(() => {
     return (
       excludedPages.includes(currentPageName) ||
@@ -42,7 +39,6 @@ const DefaultLayout = () => {
 
   useEffect(() => {
     const currentPath = location.pathname;
-    // Only clear addedPlayers when leaving match-related pages
     const matchPages = ["/create-matches", "/match-payment", "/match-player"];
     const isMatchPage = matchPages.some(page => currentPath.includes(page));
 

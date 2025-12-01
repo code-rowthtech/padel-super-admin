@@ -28,7 +28,7 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender
+  userSkillLevel, selectedGender,defaultSkillLevel
 }) => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -89,9 +89,7 @@ const NewPlayers = ({
       newErrors.name = "Name must be at least 3 characters";
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+    if (formData.email.trim() && !/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = "Enter a valid email";
     }
 
@@ -105,11 +103,7 @@ const NewPlayers = ({
 
     const added = getAddedPlayers();
     const existingLevels = Object.values(added)
-      .filter((p) => p?.slotId !== activeSlot) // Exclude current slot
       .map((p) => p?.level);
-    // if (existingLevels.includes(formData.level)) {
-    //   newErrors.level = "This level is already taken";
-    // }
 
     setErrors(newErrors);
     setShowErrors(
@@ -133,20 +127,15 @@ const NewPlayers = ({
         const playerData = {
           ...res.response,
           level: formData.level,
-          slotId: activeSlot, // Add slot ID for tracking
-          _id: res.response._id || res.response.id, // Ensure ID is included
         };
 
-        // ---- UPDATE localStorage ----
         const current = getAddedPlayers();
         const updated = { ...current, [activeSlot]: playerData };
         localStorage.setItem("addedPlayers", JSON.stringify(updated));
 
-        // Trigger custom event for real-time update
         window.dispatchEvent(new Event("playersUpdated"));
 
 
-        // ---- UI cleanup ----
         setFormData({
           name: "",
           email: "",
@@ -172,7 +161,7 @@ const NewPlayers = ({
       try {
         const result = await dispatch(getUserProfile()).unwrap();
 
-        const firstAnswer = result?.response?.level;
+        const firstAnswer = result?.response?.skillLevel;
         if (firstAnswer) {
           const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
 
@@ -183,7 +172,6 @@ const NewPlayers = ({
           }
         }
       } catch (err) {
-        console.error("Error:", err);
       }
 
       setProfileLoading(false);
@@ -201,22 +189,13 @@ const NewPlayers = ({
     setShowErrors((prev) => ({ ...prev, [field]: false }));
   };
 
-  // Reset form when modal opens
   useEffect(() => {
     if (showAddMeForm) {
-      setFormData({
-        name: "",
-        email: "",
-        phoneNumber: "",
-        gender: "",
-        level: "",
-      });
       setErrors({});
       setShowErrors({});
     }
   }, [showAddMeForm]);
 
-  // Auto-hide errors
   useEffect(() => {
     const timers = Object.keys(showErrors)
       .filter((f) => showErrors[f])
@@ -241,9 +220,10 @@ const NewPlayers = ({
   };
 
   useEffect(() => {
-    if (!selectedGender) return;
-    setFormData((prev) => ({ ...prev, gender: selectedGender }));
-  }, [selectedGender]);
+    if (showAddMeForm && selectedGender) {
+      setFormData((prev) => ({ ...prev, gender: selectedGender }));
+    }
+  }, [showAddMeForm, selectedGender]);
 
   return (
     <Modal
@@ -264,7 +244,6 @@ const NewPlayers = ({
         </h6>
 
         <form onSubmit={handleSubmit}>
-          {/* Name */}
           <div className="mb-3">
             <label className="form-label">
               Name <span className="text-danger">*</span>
@@ -298,41 +277,6 @@ const NewPlayers = ({
             )}
           </div>
 
-          {/* Email */}
-          <div className="mb-3">
-            <label className="form-label">
-              Email <span className="text-danger">*</span>
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v === "" || /^[A-Za-z0-9@.]*$/.test(v)) {
-                  const formatted = v
-                    .replace(/\s+/g, "")
-                    .replace(
-                      /^(.)(.*)(@.*)?$/,
-                      (m, f, r, d = "") => f.toUpperCase() + r.toLowerCase() + d
-                    );
-                  handleInputChange("email", formatted);
-                }
-              }}
-              className="form-control p-2"
-              placeholder="Enter your email"
-              style={inputStyle("email")}
-            />
-            {showErrors.email && errors.email && (
-              <small
-                className="text-danger d-block mt-1"
-                style={{ fontSize: "12px" }}
-              >
-                {errors.email}
-              </small>
-            )}
-          </div>
-
-          {/* Phone */}
           <div className="mb-3">
             <label className="form-label">
               Phone No <span className="text-danger">*</span>
@@ -367,10 +311,37 @@ const NewPlayers = ({
             )}
           </div>
 
-          {/* Gender */}
+          <div className="mb-3">
+            <label className="form-label">
+              Email
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "" || /^[A-Za-z0-9@.]*$/.test(v)) {
+                  const formatted = v.replace(/\s+/g, "");
+                  handleInputChange("email", formatted);
+                }
+              }}
+              className="form-control p-2"
+              placeholder="Enter your email"
+              style={inputStyle("email")}
+            />
+            {showErrors.email && errors.email && (
+              <small
+                className="text-danger d-block mt-1"
+                style={{ fontSize: "12px" }}
+              >
+                {errors.email}
+              </small>
+            )}
+          </div>
+
           <div className="mb-3">
             <label className="form-label">Gender</label>
-            <div className="d-flex gap-4">
+            <div className="d-flex gap-3">
               {[
                 { value: "Male Only", label: "Male Only" },
                 { value: "Female Only", label: "Female Only" },
@@ -400,7 +371,6 @@ const NewPlayers = ({
             </div>
           </div>
 
-          {/* Level */}
           <div className="mb-3">
             <label className="form-label">
               Select Level <span className="text-danger">*</span>
@@ -429,6 +399,7 @@ const NewPlayers = ({
                       ...base,
                       color: "#6c757d",
                     }),
+                    overflow: "hidden"
                   }}
                 />
               )}
@@ -443,7 +414,6 @@ const NewPlayers = ({
             )}
           </div>
 
-          {/* Submit error */}
           {showErrors.submit && errors.submit && (
             <div className="text-center mb-3">
               <small
@@ -455,7 +425,6 @@ const NewPlayers = ({
             </div>
           )}
 
-          {/* Buttons */}
           <div className="d-flex flex-column flex-sm-row gap-2 mt-4">
             <Button
               variant="outlined"

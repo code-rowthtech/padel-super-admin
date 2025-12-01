@@ -19,7 +19,6 @@ const slotSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // -------------------------G-E-T--M-A-T-C-H----------------------//
             .addCase(getUserSlot.pending, (state) => {
                 state.slotLoading = true;
                 state.slotError = null;
@@ -45,7 +44,6 @@ const slotSlice = createSlice({
                 state.slotLoading = false;
                 state.slotError = action.payload;
             })
-            // -------------------------U-P-D-A-T-E--M-A-T-C-H----------------------//
 
             .addCase(getMatchesSlot.pending, (state) => {
                 state.slotLoading = true;

@@ -57,7 +57,6 @@ const LoginPage = () => {
         <div className="auth-wrapper" style={{ backgroundColor: "#F8F8F8", height: "100vh", overflow: "hidden" }}>
             <Container fluid className="h-lg-100 p-0">
                 <Row className="g-0 h-lg-100  ">
-                    {/* Left Form */}
                     <Col
                         xs={12}
                         lg={6}
@@ -103,7 +102,6 @@ const LoginPage = () => {
                         </div>
                     </Col>
 
-                    {/* Right Image */}
                     <Col lg={6} className="d-none d-lg-block p-0">
                         <img
                             src={authImg}

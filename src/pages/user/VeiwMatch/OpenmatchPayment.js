@@ -248,7 +248,10 @@ const OpenmatchPayment = () => {
 
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));
-                        navigate("/open-matches", { replace: true });
+                        navigate("/open-matches", {
+                            replace: true,
+                            state: { selectedDate }
+                        });
                         dispatch(getUserProfile());
 
                     } catch (err) {
@@ -333,90 +336,91 @@ const OpenmatchPayment = () => {
             <div className="row  mx-auto">
                 {/* Left: Contact + Payment */}
                 <div
-                    className="col-lg-7 col-12 py-md-3 pt-0 pb-3 rounded-3 mobile-payment-content"
+                    className="col-lg-7 col-12 py-md-3 pt-0 pb-3  rounded-3 mobile-payment-content"
                     style={{
                         paddingBottom: localSelectedCourts.length > 0 ? "120px" : "20px",
                     }}
                 >
-                    {/* Contact Info */}
+                    {/* Information Section */}
                     <div
-                        className="rounded-4 py-md-4 py-3 px-3 mb-md-4 mb-3"
+                        className="rounded-4 py-md-4 py-2 px-3 px-md-5 mb-md-4 mb-3"
                         style={{
                             backgroundColor: "#F5F5F566",
                             border:
                                 error.name || error.email || error.phoneNumber
-                                    ? "1px solid red"
-                                    : "",
+                                    ? "2px solid red"
+                                    : "none",
                         }}
                     >
-                        <h6
-                            className="mb-md-3 mb-1 small_font_mobile text-center text-md-start"
-                            style={{ fontSize: 20, fontWeight: 600 }}
-                        >
-                            Contact Info
+                        <h6 className="mb-md-3 mb-0 custom-heading-use fw-semibold text-center text-md-start">
+                            Information
                         </h6>
-                        <div className="row mx-auto">
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                        <div className="row">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-2"
-                                    style={{ fontSize: 12, fontWeight: 500 }}
+                                    style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Name <span className="text-danger">*</span>
+                                    Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                 </label>
                                 <input
                                     type="text"
                                     value={name}
+                                    style={{ boxShadow: "none" }}
                                     onChange={(e) => {
-                                        const v = e.target.value;
-                                        if (!v || /^[A-Za-z\s]*$/.test(v)) {
-                                            setName(
-                                                v
-                                                    .trimStart()
-                                                    .replace(/\s+/g, " ")
-                                                    .replace(/\b\w/g, (c) => c.toUpperCase())
-                                            );
+                                        const value = e.target.value;
+                                        if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+                                            if (value.length === 0 && value.trim() === "") {
+                                                setName("");
+                                                return;
+                                            }
+                                            const formattedValue = value
+                                                .trimStart()
+                                                .replace(/\s+/g, " ")
+                                                .toLowerCase()
+                                                .replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
+                                            setName(formattedValue);
                                         }
                                     }}
                                     className="form-control border-0 p-2"
                                     placeholder="Enter your name"
+                                    aria-label="Name"
                                 />
                                 {error.name && (
                                     <div
-                                        className="text-danger"
-                                        style={{ fontSize: 12, marginTop: 4 }}
+                                        className="text-danger position-absolute"
+                                        style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
                                         {error.name}
                                     </div>
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-1"
-                                    style={{ fontSize: 12, fontWeight: 500 }}
+                                    style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Phone Number <span className="text-danger">*</span>
+                                    Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                 </label>
                                 <div className="input-group">
                                     <span
                                         className="input-group-text border-0 p-2"
                                         style={{ backgroundColor: "#F5F5F5" }}
                                     >
-                                        <img
-                                            src="https://flagcdn.com/w40/in.png"
-                                            alt="IN"
-                                            width={20}
-                                        />
+                                        <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
                                     </span>
                                     <input
                                         type="text"
                                         maxLength={13}
                                         value={phoneNumber}
-                                        disabled={!!User?.phoneNumber}
+                                        style={{ boxShadow: "none" }}
+                                        disabled={User?.phoneNumber}
                                         onChange={(e) => {
-                                            const v = e.target.value.replace(/[^0-9]/g, "");
-                                            if (!v || /^[6-9][0-9]{0,9}$/.test(v)) {
-                                                setPhoneNumber(v ? `+91 ${v}` : "");
+                                            const inputValue = e.target.value.replace(/[^0-9]/g, "");
+                                            if (inputValue === "" || /^[6-9][0-9]{0,9}$/.test(inputValue)) {
+                                                const formattedValue = inputValue === "" ? "" : `+91 ${inputValue}`;
+                                                setPhoneNumber(formattedValue);
                                             }
                                         }}
                                         className="form-control border-0 p-2"
@@ -425,32 +429,47 @@ const OpenmatchPayment = () => {
                                 </div>
                                 {error.phoneNumber && (
                                     <div
-                                        className="text-danger"
-                                        style={{ fontSize: 12, marginTop: 4 }}
+                                        className="text-danger position-absolute"
+                                        style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
                                         {error.phoneNumber}
                                     </div>
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-1">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-2"
-                                    style={{ fontSize: 12, fontWeight: 500 }}
+                                    style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Email <span className="text-danger">*</span>
+                                    Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                 </label>
                                 <input
                                     type="email"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value.replace(/\s/g, ""))}
+                                    style={{ boxShadow: "none" }}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
+                                            if (value.length === 0) {
+                                                setEmail("");
+                                                return;
+                                            }
+                                            const formattedValue = value
+                                                .replace(/\s+/g, "")
+                                                .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
+                                                    return first.toUpperCase() + rest.toLowerCase() + domain;
+                                                });
+                                            setEmail(formattedValue);
+                                        }
+                                    }}
                                     className="form-control border-0 p-2"
                                     placeholder="Enter your email"
                                 />
                                 {error.email && (
                                     <div
-                                        className="text-danger"
-                                        style={{ fontSize: 12, marginTop: 4 }}
+                                        className="text-danger position-absolute"
+                                        style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
                                         {error.email}
                                     </div>
@@ -459,52 +478,39 @@ const OpenmatchPayment = () => {
                         </div>
                     </div>
 
-                    {/* Payment Method */}
+                    {/* Payment Method Section */}
                     <div
-                        className="rounded-4 py-3 py-md-4 px-md-3 px-2"
+                        className="rounded-4 py-md-4 py-2 px-3 px-md-5"
                         style={{
                             backgroundColor: "#F5F5F566",
-                            border: error.paymentMethod ? "1px solid red" : "",
+                            border: error.paymentMethod ? "2px solid red" : "none",
                         }}
                     >
-                        <h6
-                            className="mb-md-4 mb-3 small_font_mobile text-center text-md-start"
-                            style={{ fontSize: 20, fontWeight: 600 }}
-                        >
+                        <h6 className="mb-md-4 mb-3 fw-semibold custom-heading-use text-center text-md-start">
                             Payment Method
                         </h6>
                         <div className="d-flex flex-column gap-3">
                             {[
-                                {
-                                    id: "google",
-                                    name: "Google Pay",
-                                    icon: "https://img.icons8.com/color/48/google-pay.png",
-                                },
-                                {
-                                    id: "paypal",
-                                    name: "PayPal",
-                                    icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png",
-                                },
-                                {
-                                    id: "apple",
-                                    name: "Apple Pay",
-                                    icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png",
-                                },
-                            ].map((m) => (
+                                { id: "Gpay", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
+                                { id: "Apple Pay", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
+                                { id: "Paypal", name: "PayPal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
+                            ].map((method) => (
                                 <label
-                                    key={m.id}
+                                    key={method.id}
                                     className="d-flex justify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
-                                    style={{ boxShadow: "3px 4px 6.3px 0px #0000001F" }}
+                                    style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5" }}
                                 >
                                     <div className="d-flex align-items-center gap-3">
-                                        <img src={m.icon} alt={m.name} width={28} />
-                                        <span className="fw-medium">{m.name}</span>
+                                        <img src={method.icon} alt={method.name} width={28} />
+                                        <span className="fw-medium">{method.name}</span>
                                     </div>
                                     <input
                                         type="radio"
                                         name="payment"
-                                        value={m.id}
-                                        checked={selectedPayment === m.id}
+                                        value={method.id}
+                                        className="form-check-input"
+                                        checked={selectedPayment === method.id}
+                                        style={{ border: "4px solid #4D4DFF", width: "20px", height: "20px", boxShadow: "none" }}
                                         onChange={(e) => setSelectedPayment(e.target.value)}
                                     />
                                 </label>

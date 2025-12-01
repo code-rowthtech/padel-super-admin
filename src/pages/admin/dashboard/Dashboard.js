@@ -199,7 +199,6 @@ const AdminDashboard = () => {
         ? setShowBookingCancel(true)
         : setShowCancellation(true);
     } catch (error) {
-      console.error("Failed to fetch booking details:", error);
     } finally {
       setLoadingById(null);
     }
@@ -276,7 +275,6 @@ const AdminDashboard = () => {
     year: 2025,
   }));
 
-  // Aggregate booking & amount data
   dashboardRevenue?.forEach((item) => {
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
@@ -289,7 +287,6 @@ const AdminDashboard = () => {
     }
   });
 
-  // Aggregate cancelations
   dashboardRevenue?.forEach((item) => {
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
@@ -360,7 +357,6 @@ const AdminDashboard = () => {
                           </span>
                         </div> */}
 
-                        {/* <span className="small">{card.percent}</span> */}
                       </div>
                     </div>
                     <div className=" mb-2 text-end">
@@ -578,7 +574,6 @@ const AdminDashboard = () => {
                   >
                     {dashboardCancelledBookings?.length > 0 ? (
                       <>
-                        {/* Desktop Table */}
                         <Table
                           borderless
                           size="sm"
@@ -667,7 +662,6 @@ const AdminDashboard = () => {
                           </tbody>
                         </Table>
 
-                        {/* Mobile Card Layout */}
                         <div className="mobile-card-table d-block d-md-none">
                           {dashboardCancelledBookings?.map((item) => (
                             <div key={item?._id} className="card">
@@ -764,7 +758,6 @@ const AdminDashboard = () => {
                   </div>
                   {dashboardRecentBookings?.length > 0 ? (
                     <>
-                      {/* Desktop Table */}
                       <div className="custom-scroll-container d-none d-md-block">
                         <Table
                           responsive
@@ -876,7 +869,6 @@ const AdminDashboard = () => {
                         </Table>
                       </div>
 
-                      {/* Mobile Card Layout */}
                       <div className="mobile-card-table d-block d-md-none">
                         {dashboardRecentBookings?.map((item) => (
                           <div key={item._id} className="card">
@@ -968,7 +960,6 @@ const AdminDashboard = () => {
         </>
       )}
 
-      {/* ---------------Bookings------------------------- */}
       <BookingDetailsModal
         show={showBookingDetails}
         handleClose={() => setShowBookingDetails(false)}
@@ -994,7 +985,6 @@ const AdminDashboard = () => {
             });
         }}
       />
-      {/* ----------------Cancellation------------------------ */}
       <BookingCancellationModal
         show={showCancellation}
         handleClose={() => setShowCancellation(false)}

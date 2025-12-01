@@ -48,7 +48,6 @@ const LoginPage = () => {
       [name]: updatedValue,
     }));
 
-    // Clear specific field error on user input
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -73,7 +72,6 @@ const LoginPage = () => {
       const ownerData = getOwnerFromSession();
       const shouldSkipRegister = ownerData?.hasCourt || ownerData?.generatedBy;
 
-      // 3. Navigate based on fresh data
       navigate(shouldSkipRegister ? "/admin/dashboard" : "/admin/register");
     } catch (err) {
       setApiError(err || "Login failed. Try again.");
@@ -141,8 +139,6 @@ const LoginPage = () => {
           </p>
 
           <Form onSubmit={handleLogin} noValidate className="small">
-            {/* <span className="p-1 small text-danger">{apiError}</span> */}
-            {/* Email */}
             <Form.Group
               controlId="formEmail"
               className="mb-3 position-relative"
@@ -178,7 +174,6 @@ const LoginPage = () => {
               </Form.Control.Feedback>
             </Form.Group>
 
-            {/* Password */}
             <Form.Group
               controlId="formPassword"
               className="mb-3 position-relative"
@@ -218,7 +213,6 @@ const LoginPage = () => {
               </Form.Control.Feedback>
             </Form.Group>
 
-            {/* Remember & Forgot */}
             <div className="d-flex justify-content-between align-items-center mb-3 small">
               <Form.Check
                 type="checkbox"
@@ -248,7 +242,6 @@ const LoginPage = () => {
                 Forgot password?
               </Link>
             </div>
-            {/* Submit Button */}
             <Button
               type="submit"
               disabled={authLoading}
@@ -266,7 +259,6 @@ const LoginPage = () => {
             </Button>
           </Form>
 
-          {/* Sign Up */}
           {/* <p className="mt-4 text-center small">
             Don't have an account?{" "}
             <Link

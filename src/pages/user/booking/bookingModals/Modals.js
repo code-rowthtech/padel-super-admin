@@ -1,4 +1,3 @@
-// src/components/BookingHistoryCancelModal.js
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { modalSuccess } from '../../../../assets/files';
@@ -70,14 +69,8 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
   useEffect(() => {
     if (bookingStatusData?.bookingStatusData?.status === "200" && bookingStatusData?.bookingStatusData?.message) {
       setShowSuccessModal(false);
-      // setShowConfirmationModal(true);
       handleClose();
     }
-    // if (!activeTab === 'all' && User?.token) {
-    //   dispatch(getBooking({ type: activeTab, page: 1, limit: 10 }));
-    // } else if (User?.token) {
-    //   dispatch(getBooking({ page: 1, limit: 10 }));
-    // }
   }, [bookingStatusData?.bookingStatusData?.status, bookingStatusData?.bookingStatusData?.message])
 
   const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
@@ -124,12 +117,10 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
                   : {
                     "in-progress": "Your cancellation request is pending for action.",
                     "upcoming": "Your slot has been booked",
-                    // "cancelled": "Your booking has been cancelled", // optional
                   }[tableData?.booking?.bookingStatus] || ""}
               </p>
             </div>
             <div className="p-2 px-3">
-              {/* Court Name */}
               <div className="d-flex justify-content-between align-items-center">
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   Court Name
@@ -139,7 +130,6 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
                 </p>
               </div>
 
-              {/* Court Number */}
               <div className="d-flex justify-content-between align-items-center">
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   Court Number
@@ -149,7 +139,6 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
                 </p>
               </div>
 
-              {/* Date & Time */}
               <div className="d-flex justify-content-between align-items-center">
                 <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
                   Date
@@ -162,7 +151,6 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
                 </p>
               </div>
 
-              {/* Cancellation Date (conditional) */}
               {tableData?.booking?.bookingStatus === "in-progress" && (
                 <div className="d-flex justify-content-between align-items-center">
                   <p className="text-muted mb-1" style={{ fontSize: '12px', fontWeight: '500', fontFamily: 'Poppins' }}>
@@ -364,7 +352,6 @@ export const BookingHistorySuccessModal = ({ show, onHide, safeFormatDate, booki
 export const CancellationConfirmationModal = ({ tableData, show, onHide, selectedReason, otherReason }) => {
   const displayReason = selectedReason === 'other' && otherReason.trim() ? otherReason : selectedReason || 'No reason provided';
   const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy", fallback = "N/A") => {
-    if (!dateValue) return fallback; // Handle null or undefined
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
   };
@@ -452,7 +439,6 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
 
 export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, selectedOption, selectedReason, otherReason }) => {
   const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy", fallback = "N/A") => {
-    if (!dateValue) return fallback; // Handle null or undefined
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
   };
@@ -477,7 +463,6 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
       </div>
       <Modal.Body className="text-center p-4 pt-0">
         <div className="mb-2 border-top border-bottom rounded bg-light p-2 px-3">
-          {/* Court Name */}
           <div className="d-flex justify-content-between align-items-center">
             <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
               Court Name
@@ -487,7 +472,6 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
             </p>
           </div>
 
-          {/* Court Number */}
           <div className="d-flex justify-content-between align-items-center">
             <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
               Court Number
@@ -497,7 +481,6 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
             </p>
           </div>
 
-          {/* Date & Time */}
           <div className="d-flex justify-content-between align-items-center">
             <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
               Date
@@ -507,7 +490,6 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
             </p>
           </div>
 
-          {/* Cancelled Date */}
           {(booking?.booking?.bookingStatus === "in-progress" ||
             booking?.booking?.bookingStatus === "refunded" ||
             booking?.booking?.bookingStatus === "rejected") && (
@@ -521,7 +503,6 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               </div>
             )}
 
-          {/* Refund Date */}
           {booking?.booking?.bookingStatus === "refunded" && (
             <div className="d-flex justify-content-between align-items-center">
               <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
@@ -533,7 +514,6 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
             </div>
           )}
 
-          {/* Rejected Date */}
           {booking?.booking?.bookingStatus === "rejected" && (
             <div className="d-flex justify-content-between align-items-center">
               <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>

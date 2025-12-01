@@ -19,7 +19,6 @@ export const getReviewsForOwner = createAsyncThunk(
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }

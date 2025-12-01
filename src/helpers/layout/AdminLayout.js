@@ -9,7 +9,6 @@ const AdminLayout = () => {
 
     const { pathname } = useLocation();
 
-    // Page name mapping
     const getPageName = (path) => {
         const pageMap = {
             '/admin/dashboard': 'Dashboard',
@@ -31,7 +30,6 @@ const AdminLayout = () => {
             '/admin/privacy': 'Privacy'
         };
 
-        // Handle dynamic routes
         if (path.startsWith('/admin/match-details/')) {
             return 'View Match';
         }
@@ -50,7 +48,6 @@ const AdminLayout = () => {
             localStorage.removeItem("clubFormData");
         }
 
-        // Clear manual booking slots when navigating away from manual booking page
         if (!pathname.includes('/admin/manualbooking')) {
             sessionStorage.removeItem('manual-booking-slots');
         }
@@ -173,7 +170,6 @@ const AdminLayout = () => {
                         padding: 15px;
                     }
                     
-                    /* Mobile table improvements */
                     .table-responsive {
                         font-size: 0.875rem;
                     }
@@ -185,7 +181,6 @@ const AdminLayout = () => {
                         white-space: nowrap;
                     }
                     
-                    /* Mobile card-based table */
                     .mobile-card-table {
                         display: none;
                     }
@@ -223,7 +218,6 @@ const AdminLayout = () => {
                         text-align: right;
                     }
                     
-                    /* Card improvements for mobile */
                     .card {
                         margin-bottom: 1rem;
                         border-radius: 8px;
@@ -233,13 +227,11 @@ const AdminLayout = () => {
                         padding: 1rem;
                     }
                     
-                    /* Mobile button improvements */
                     .btn {
                         font-size: 0.875rem;
                         padding: 0.5rem 1rem;
                     }
                     
-                    /* Mobile form improvements */
                     .form-control {
                         font-size: 0.875rem;
                     }
@@ -255,12 +247,10 @@ const AdminLayout = () => {
                         padding-right: 10px;
                     }
                     
-                    /* Hide regular table on mobile */
                     .table-responsive {
                         display: none;
                     }
                     
-                    /* Show card-based table on mobile */
                     .mobile-card-table {
                         display: block;
                     }
@@ -269,7 +259,6 @@ const AdminLayout = () => {
                         padding: 0.75rem;
                     }
                     
-                    /* Modal improvements for mobile */
                     .modal-dialog {
                         margin: 0.25rem;
                         max-width: calc(100% - 0.5rem);
@@ -283,7 +272,6 @@ const AdminLayout = () => {
                         padding: 0.75rem;
                     }
                     
-                    /* Form improvements for small mobile */
                     .form-control {
                         font-size: 0.8rem;
                         padding: 0.5rem;
@@ -294,7 +282,6 @@ const AdminLayout = () => {
                         padding: 0.5rem 0.75rem;
                     }
                     
-                    /* Court availability mobile */
                     .calendar-day-btn {
                         min-width: 70px !important;
                         font-size: 0.75rem;
@@ -304,7 +291,6 @@ const AdminLayout = () => {
                         font-size: 0.7rem !important;
                     }
                     
-                    /* Manual booking mobile */
                     .manual-heading {
                         font-size: 1.25rem !important;
                     }
