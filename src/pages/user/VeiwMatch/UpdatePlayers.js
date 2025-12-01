@@ -190,7 +190,7 @@ const UpdatePlayers = ({
         }
       })
       .catch(() => {
-        setErrors({ email: "Enter valid email address" });
+        // setErrors({ email: "Enter valid email address" });
         setShowErrors({ email: true });
       });
   };
@@ -291,9 +291,9 @@ const UpdatePlayers = ({
               onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
               style={inputStyle("email")}
             />
-            {showErrors.email && errors.email && (
+            {/* {showErrors.email && errors.email && (
               <small className="text-danger d-block mt-1">{errors.email}</small>
-            )}
+            )} */}
           </div>
 
           <div className="mb-3">
