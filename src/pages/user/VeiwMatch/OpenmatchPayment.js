@@ -429,7 +429,7 @@ const OpenmatchPayment = () => {
                                     className="form-label mb-0 ps-lg-2"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                                    Email 
                                 </label>
                                 <input
                                     type="email"
