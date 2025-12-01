@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
-import { getUserProfile, loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { getUserProfile, loginUserNumber, updateUser } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
@@ -111,7 +111,7 @@ const Payment = ({ className = "" }) => {
                 const payload = { /* same payload as above */ };
 
                 if (!user?.name || !user?.phoneNumber) {
-                  await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
+                  await dispatch(updateUser({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
                 }
 
                 // Pehle payment capture → fir booking API
@@ -232,7 +232,7 @@ const Payment = ({ className = "" }) => {
       // First: Login if needed
       if (!user?.name && !user?.phoneNumber) {
         await dispatch(
-          loginUserNumber({
+          updateUser({
             phoneNumber: rawPhoneNumber,
             name: name.trim(),
             email: email.trim(),
