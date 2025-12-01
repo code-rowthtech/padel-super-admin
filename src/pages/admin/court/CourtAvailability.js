@@ -28,6 +28,7 @@ import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { format } from "date-fns";
 import { formatSlotTime } from "../../../helpers/Formatting";
+import { IoCopy } from "react-icons/io5";
 import {
   MdOutlineArrowBackIosNew,
   MdOutlineArrowForwardIos,
@@ -605,27 +606,34 @@ const CourtAvailability = () => {
                 <p className="mb-0 all-matches" style={{ color: "#374151" }}>
                   Available Slots <span className="fs-6 text-muted">(60m)</span>
                 </p>
-                <div className="form-switch d-flex align-items-center gap-2">
-                  <input
-                    className="form-check-input fs-5  mb-2"
-                    type="checkbox"
-                    role="switch"
-                    id="flexSwitchCheckDefault"
-                    checked={showUnavailable}
-                    onChange={(e) => setShowUnavailable(e.target.checked)}
-                    style={{ boxShadow: "none" }}
-                  />
-                  <label
-                    className="form-check-label"
-                    htmlFor="flexSwitchCheckDefault"
-                    style={{
-                      whiteSpace: "nowrap",
-                      fontFamily: "Poppins",
-                      color: "#626262",
-                    }}
-                  >
-                    Show Unavailable Slots
-                  </label>
+                <div className="d-flex align-items-center">
+                  {selectedCourt === "all" && (
+                    <div className="me-3 pb-2" style={{ cursor: "pointer" }}>
+                      <IoCopy />
+                    </div>
+                  )}
+                  <div className="form-switch d-flex align-items-center gap-2">
+                    <input
+                      className="form-check-input fs-5  mb-2"
+                      type="checkbox"
+                      role="switch"
+                      id="flexSwitchCheckDefault"
+                      checked={showUnavailable}
+                      onChange={(e) => setShowUnavailable(e.target.checked)}
+                      style={{ boxShadow: "none" }}
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="flexSwitchCheckDefault"
+                      style={{
+                        whiteSpace: "nowrap",
+                        fontFamily: "Poppins",
+                        color: "#626262",
+                      }}
+                    >
+                      Show Unavailable Slots
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -643,6 +651,8 @@ const CourtAvailability = () => {
                               court?.slot?.[0]?.slotTimes || [];
                             const filteredCourtSlots = courtSlots?.filter(
                               (slot) => {
+                                if (showUnavailable) return true;
+
                                 const slotDate = new Date(selectedDate);
                                 const [hourString, period] = slot?.time
                                   ?.toLowerCase()
@@ -659,13 +669,14 @@ const CourtAvailability = () => {
                                 const isPast =
                                   isSameDay &&
                                   slotDate.getTime() < now.getTime();
-                                const isAvailable =
-                                  slot?.availabilityStatus === "available" &&
-                                  slot?.status !== "booked";
 
-                                return (
-                                  showUnavailable || (isAvailable && !isPast)
-                                );
+                                if (isPast) return false;
+                                if (slot?.status === "booked") return false;
+
+                                const isUnavailableForThisCourt =
+                                  slot?.courtIdsForSlot?.includes(court._id);
+
+                                return !isUnavailableForThisCourt;
                               }
                             );
 
@@ -729,9 +740,7 @@ const CourtAvailability = () => {
                                       const isBooked =
                                         slot?.status === "booked";
                                       const isDisabled =
-                                        isPast ||
-                                        isBooked ||
-                                        isUnavailableForThisCourt;
+                                        isPast || isBooked;
 
                                       const tooltipText = isPast
                                         ? "Past Time - Cannot Book"
@@ -906,6 +915,8 @@ const CourtAvailability = () => {
                     } else if (selectedCourt && selectedCourt !== "all") {
                       // Show single court slots (original logic)
                       const filteredSlotTimes = slotTimes?.filter((slot) => {
+                        if (showUnavailable) return true;
+
                         const slotDate = new Date(selectedDate);
                         const [hourString, period] = slot?.time
                           ?.toLowerCase()
@@ -920,11 +931,14 @@ const CourtAvailability = () => {
                           slotDate.toDateString() === now.toDateString();
                         const isPast =
                           isSameDay && slotDate.getTime() < now.getTime();
-                        const isAvailable =
-                          slot?.availabilityStatus === "available" &&
-                          slot?.status !== "booked";
 
-                        return showUnavailable || (isAvailable && !isPast);
+                        if (isPast) return false;
+                        if (slot?.status === "booked") return false;
+
+                        const isUnavailableForThisCourt =
+                          slot?.courtIdsForSlot?.includes(selectedCourt);
+
+                        return !isUnavailableForThisCourt;
                       });
 
                       return filteredSlotTimes?.length === 0 ? (
@@ -963,8 +977,7 @@ const CourtAvailability = () => {
                               ? slot?.availabilityStatus
                               : "available";
                             const isBooked = slot?.status === "booked";
-                            const isDisabled =
-                              isPast || isBooked || isUnavailableForThisCourt;
+                            const isDisabled = isPast || isBooked;
 
                             const tooltipText = isPast
                               ? "Past Time - Cannot Book"
