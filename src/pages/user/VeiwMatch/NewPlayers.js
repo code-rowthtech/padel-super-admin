@@ -28,7 +28,7 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender,defaultSkillLevel
+  userSkillLevel, selectedGender, defaultSkillLevel
 }) => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -148,7 +148,7 @@ const NewPlayers = ({
         showSuccess("Player Added Successfully");
       })
       .catch((err) => {
-        const msg = err?.response?.data?.message || "Failed to add player";
+        const msg = err?.response?.data?.message // || "Failed to add player";
         setErrors({ submit: msg });
         setShowErrors({ submit: true });
       });
