@@ -114,7 +114,7 @@ const CourtAvailability = () => {
     };
   });
 
-  const courts = activeCourtsData || [];
+  const courts = activeCourtsData?.data || [];
   const selectedCourtData =
     selectedCourt === "all"
       ? null
@@ -277,7 +277,8 @@ const CourtAvailability = () => {
 
     try {
       const payload = {
-        _id: activeCourtsData?.[0]?._id,
+        _id: slotsPayload[0]?.courtId,
+        type: "court",
         businessHoursUpdates: slotsPayload[0]?.businessHours || [],
         slotTimesUpdates: slotsPayload.flatMap((slot) =>
           slot?.slotTimes.map((st) => ({
@@ -611,7 +612,53 @@ const CourtAvailability = () => {
                 </p>
                 <div className="d-flex align-items-center">
                   {selectedCourt === "all" && (
-                    <div className="me-3 pb-2" style={{ cursor: "pointer" }}>
+                    <div
+                      className="me-3 pb-2"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        let copyText = "";
+                        let totalSlots = 0;
+                        courts.forEach((court) => {
+                          const slots = court?.slot?.[0]?.slotTimes || [];
+                          const availableSlots = slots
+                            .filter((s) => {
+                              const slotDate = new Date(selectedDate);
+                              const [hourString, period] = s?.time
+                                ?.toLowerCase()
+                                .split(" ");
+                              let hour = parseInt(hourString);
+                              if (period === "pm" && hour !== 12) hour += 12;
+                              if (period === "am" && hour === 12) hour = 0;
+                              slotDate.setHours(hour, 0, 0, 0);
+                              const now = new Date();
+                              const isSameDay =
+                                slotDate.toDateString() === now.toDateString();
+                              const isPast =
+                                isSameDay && slotDate.getTime() < now.getTime();
+                              return (
+                                !isPast &&
+                                !s?.courtIdsForSlot?.includes(court._id) &&
+                                s?.status !== "booked"
+                              );
+                            })
+                            .map((s) => s.time);
+                          if (availableSlots.length > 0) {
+                            copyText += `${
+                              court.courtName
+                            }: ${availableSlots.join(", ")}\n`;
+                            totalSlots += availableSlots.length;
+                          }
+                        });
+                        navigator.clipboard.writeText(
+                          `Available Slots\n${copyText.trim()}`
+                        );
+                        showSuccess(
+                          `Copied ${totalSlots} slot time${
+                            totalSlots !== 1 ? "s" : ""
+                          }`
+                        );
+                      }}
+                    >
                       <IoCopy />
                     </div>
                   )}

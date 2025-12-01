@@ -128,20 +128,29 @@ const Pricing = ({
       PricingData[0]?.slot?.length &&
       formData.selectedSlots
     ) {
-      const slotTimes = PricingData[0]?.slot?.[0]?.slotTimes || [];
-      if (slotTimes.length) {
+      const allSlotTimes = PricingData[0]?.slot?.flatMap(s => s.slotTimes || []) || [];
+      if (allSlotTimes.length) {
+        const allPrices = {};
+        const amounts = [];
+        allSlotTimes.forEach((slot) => {
+          const display = formatTo12HourDisplay(slot?.time);
+          if (display && !allPrices[display]) {
+            allPrices[display] = slot?.amount || "";
+            if (slot?.amount) amounts.push(slot.amount);
+          }
+        });
+        const allSame = amounts.length > 0 && amounts.every(a => a === amounts[0]);
+        const commonAmount = allSame ? String(amounts[0]) : "";
+        
+        Object.keys(allPrices).forEach(key => {
+          allPrices[key] = commonAmount;
+        });
+
         setFormData((prev) => ({
           ...prev,
           prices: {
             ...prev.prices,
-            [prev.selectedSlots]: slotTimes.reduce((acc, slot) => {
-              const display = formatTo12HourDisplay(slot?.time);
-              return acc;
-            }, {}),
-            All: slotTimes.reduce((acc, slot) => {
-              const display = formatTo12HourDisplay(slot?.time);
-              return acc;
-            }, {}),
+            All: allPrices,
           },
         }));
       }
@@ -563,16 +572,10 @@ const Pricing = ({
       showWarning("No targeted slots to update.");
       return;
     }
-    const normalizedPrices = {};
-    for (const [displayKey, price] of Object.entries(slotPrices)) {
-      const normalizedKey = normalizeTimeKey(displayKey);
-      if (normalizedKey) normalizedPrices[normalizedKey] = price;
-    }
     const filledSlotTimes = targetedSlotTimes
       .map((slot) => {
-        const normalizedSlotTime = normalizeTimeKey(slot.time);
-        if (!normalizedSlotTime) return null;
-        const price = normalizedPrices[normalizedSlotTime];
+        const displayTime = formatTo12HourDisplay(slot.time);
+        const price = slotPrices[displayTime];
         if (price == null || String(price).trim() === "") return null;
         const amount = parseFloat(price);
         if (Number.isNaN(amount) || amount <= 0) return null;
