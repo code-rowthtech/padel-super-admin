@@ -16,7 +16,7 @@ const PlayerSlot = memo(function PlayerSlot({
     isRemovable,
     team,
     onRemove,
-    onAdd, 
+    onAdd,
     openMatches,
     isFromBookingHistory = false
 }) {
@@ -26,7 +26,7 @@ const PlayerSlot = memo(function PlayerSlot({
         if (
             !isFromBookingHistory &&
             ((team === "A" && index === 1) ||
-            (team === "B" && [2, 3].includes(index)))
+                (team === "B" && [2, 3].includes(index)))
         ) {
             return (
                 <div className="text-center d-flex align-items-center justify-content-center   flex-column  mb-md-4 mb-3 pb-2 col-6">
@@ -116,13 +116,12 @@ const PlayerSlot = memo(function PlayerSlot({
                         : "Unknown"}
                 </p>
             )}
-
             <span
                 className="badge text-white"
                 style={{ backgroundColor: team === "A" ? "#3DBE64" : "#1F41BB" }}
             >
                 {
-                    openMatches?.skillDetails?.[openMatches.skillDetails.length - 1]
+                    user?.level?.split(' - ')[0] || user?.level || "A"
                 }
             </span>
 
@@ -157,7 +156,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [showShareDropdown, setShowShareDropdown] = useState(false);
 
     const { id } = useParams();
-  const matchId = id || state?.match?._id || match?._id;
+    const matchId = id || state?.match?._id || match?._id;
 
     useEffect(() => {
         if (matchId) {
@@ -213,7 +212,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const formatMatchTimes = (slots) => {
         if (!slots || slots.length === 0) return "";
         const times = slots.flatMap((slot) => slot.slotTimes.map((slotTime) => slotTime.time));
-        
+
         const formattedTimes = times.map(time => {
             let hour, period;
             if (/am|pm/i.test(time)) {
@@ -232,9 +231,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             }
             return { hour, period };
         });
-        
+
         if (formattedTimes.length === 0) return "";
-        
+
         const lastPeriod = formattedTimes[formattedTimes.length - 1].period;
         const formatted = formattedTimes.map((time, index) => {
             if (index === formattedTimes.length - 1) {
@@ -242,7 +241,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             }
             return time.hour;
         });
-        
+
         return formatted.join("-");
     };
 
@@ -451,7 +450,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         isRemovable={s.removable}
                                         team={s.team}
                                         onRemove={handleRemove}
-                                        onAdd={()=>handleAdd(s.team)}
+                                        onAdd={() => handleAdd(s.team)}
                                         openMatches={matchesData?.data}
                                         isFromBookingHistory={isFromBookingHistory}
                                     />
@@ -467,7 +466,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         isRemovable={s.removable}
                                         team={s.team}
                                         onRemove={handleRemove}
-                                        onAdd={()=>handleAdd(s.team)}
+                                        onAdd={() => handleAdd(s.team)}
+                                        openMatches={matchesData?.data}
                                         isFromBookingHistory={isFromBookingHistory}
                                     />
                                 ))}

@@ -537,7 +537,7 @@ const Payment = ({ className = "" }) => {
               </div>
             )}
 
-            <style jsx>{`
+            <style>{`
     .small-curve-arrow {
       position: absolute;
       top: -14px;
@@ -592,7 +592,7 @@ const Payment = ({ className = "" }) => {
                       justifyContent: "center",
                     }}
                   >
-                    <img src={logo} alt="Club" style={{ width: "100%", height: "auto!important" }} />
+                    <img src={logo} alt="Club" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 ) : (
                   <div
@@ -622,7 +622,7 @@ const Payment = ({ className = "" }) => {
 
             {/* Desktop Slots Scroll */}
             <div className="px-3" style={{ maxHeight: "200px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
-              <style jsx>{`
+              <style>{`
       div::-webkit-scrollbar {
         width: 8px;
         border-radius: 3px;
@@ -693,7 +693,7 @@ const Payment = ({ className = "" }) => {
                       Order Summary :
                     </h6>
                   )}
-                  <style jsx>{`
+                  <style>{`
                                  .mobile-expanded-slots.expanded::-webkit-scrollbar {
                                 width: 6px;
                             }

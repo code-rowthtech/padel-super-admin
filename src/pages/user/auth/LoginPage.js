@@ -76,7 +76,6 @@ const LoginPage = () => {
                                         className=" form-control  py-md-3"
                                         style={{ borderRadius: "15px", fontSize: "14px", fontWeight: "400", fontFamily: "Poppins", color: "#636364", boxShadow: '0px 3px 10px 0px #00000040' }}
                                         value={phone}
-                                        defaultValue={phone}
                                         minLength={10}
                                         maxLength={10}
                                         onChange={(e) => {
