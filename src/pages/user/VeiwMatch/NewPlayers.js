@@ -172,7 +172,7 @@ const NewPlayers = ({
       try {
         const result = await dispatch(getUserProfile()).unwrap();
 
-        const firstAnswer = result?.response?.surveyData?.[0]?.playerLevel?.skillLevel;
+        const firstAnswer = result?.response?.level;
         if (firstAnswer) {
           const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
 

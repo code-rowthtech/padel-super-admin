@@ -7,9 +7,10 @@ import { getUserClub } from "../../../redux/user/club/thunk";
 import { padal } from "../../../assets/files";
 import { Tooltip } from "react-tooltip";
 import NewPlayers from "../VeiwMatch/NewPlayers";
+import { getUserProfile } from "../../../redux/user/auth/authThunk";
 
 // Button styling variables
-const width = 400;
+const width = 400
 const height = 75;
 const circleRadius = height * 0.3;
 const curvedSectionStart = width * 0.76;
@@ -81,10 +82,12 @@ const MatchPlayer = ({
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const User = getUserFromSession();
-    const [selectedGender, setSelectedGender] = useState("Mixed Double");
+    const [selectedGender, setSelectedGender] = useState('');
+    const [genderError, setGenderError] = useState('');
+    console.log({ genderError });
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
-
+    const [defaultLevel, setDefaultLevel] = useState("Open Match");
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
@@ -94,6 +97,23 @@ const MatchPlayer = ({
             setSelectedGender(userGender || updateName?.gender);
         }
     }, [userGender, updateName?.gender]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+
+            try {
+                const result = await dispatch(getUserProfile()).unwrap();
+                const firstAnswer = result?.response?.level;
+                setDefaultLevel(firstAnswer || "Open Match");
+            } catch (err) {
+                console.error("Error:", err);
+            }
+
+        };
+
+        fetchData();
+
+    }, [dispatch]);
 
     useEffect(() => {
         const syncFromStorage = () => {
@@ -214,13 +234,49 @@ const MatchPlayer = ({
             ? selectedAnswers[selectedAnswers.length - 1]
             : "A");
 
+    // const handleBookNow = () => {
+
+    //     if (!selectedGender) {
+    //         setGenderError('Please select your gender.');
+    //     }
+    //     const courtIds = selectedCourts.map((c) => c._id).join(",");
+
+    //     const latestPlayers = JSON.parse(
+    //         localStorage.getItem("addedPlayers") || "{}"
+    //     );
+
+
+    //     navigate("/match-payment", {
+    //         state: {
+    //             courtData: {
+    //                 day: selectedDate.day,
+    //                 date: selectedDate.fullDate,
+    //                 time: selectedCourts.flatMap((c) => c.time),
+    //                 courtId: courtIds,
+    //                 court: selectedCourts,
+    //             },
+    //             selectedCourts,
+    //             selectedDate,
+    //             grandTotal: totalAmount,
+    //             totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
+    //             selectedAnswers, selectedGender, dynamicSteps, finalLevelStep,
+    //             addedPlayers: latestPlayers, // Use latest from localStorage
+    //         },
+    //     });
+    // };
+
+
     const handleBookNow = () => {
+        if (!selectedGender || selectedGender === "") {
+            setGenderError("Please select your gender.");
+            return;
+        } else {
+            setGenderError("");
+        }
+
         const courtIds = selectedCourts.map((c) => c._id).join(",");
 
-        const latestPlayers = JSON.parse(
-            localStorage.getItem("addedPlayers") || "{}"
-        );
-
+        const latestPlayers = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
 
         navigate("/match-payment", {
             state: {
@@ -235,16 +291,26 @@ const MatchPlayer = ({
                 selectedDate,
                 grandTotal: totalAmount,
                 totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
-                selectedAnswers, selectedGender, dynamicSteps, finalLevelStep,
-                addedPlayers: latestPlayers, // Use latest from localStorage
+                selectedAnswers,
+                selectedGender,
+                dynamicSteps,
+                finalLevelStep,
+                addedPlayers: latestPlayers,
             },
         });
     };
+
 
     const onBack = () => {
         navigate('/open-matches')
     }
 
+    useEffect(() => {
+        if (genderError) {
+            const timer = setTimeout(() => setGenderError(""), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [genderError]);
     return (
         <>
             <div className="py-md-3 pt-0 pb-3 rounded-3 px-md-4 px-2 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
@@ -399,22 +465,42 @@ const MatchPlayer = ({
                                         backgroundColor: "transparent",
                                         width: "auto",
                                         minWidth: "80px",
-                                        appearance: "none",                    // ← Yeh important hai
+                                        appearance: "none",                  
                                         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23000' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E")`,
                                         backgroundRepeat: "no-repeat",
                                         backgroundPosition: "right 15px center",
                                         backgroundSize: "15px",
-                                        paddingRight: "0px",                  // ← Arrow ke liye jagah
+                                        paddingRight: "0px",                 
                                         cursor: "pointer",
                                     }}
-                                    value={selectedGender || "Mixed Double"}
-                                    onChange={(e) => setSelectedGender(e.target.value)}
+                                    value={selectedGender}
+                                    onChange={(e) => {
+                                        setSelectedGender(e.target.value);
+                                        setGenderError('');
+                                    }}
+                                    required
                                 >
+                                    <option value="">Select Gender</option>
                                     <option value="Male Only">Male Only</option>
                                     <option value="Female Only">Female Only</option>
                                     <option value="Mixed Double">Mixed Double</option>
                                 </select>
                             </div>
+                            {genderError && (
+                                <div
+                                    className="text-center rounded mt-1"
+                                    style={{
+                                        backgroundColor: "#ffebee",
+                                        color: "#c62828",
+                                        border: "1px solid #ffcdd2",
+                                        fontWeight: 500,
+                                        fontSize: "14px",
+                                    }}
+                                >
+                                    {genderError}
+                                </div>
+                            )}
+
                         </div>
 
                         {/* Level */}
@@ -423,7 +509,7 @@ const MatchPlayer = ({
                                 Level
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
-                                {selectedAnswers[0] || "Open Match"}
+                                {selectedAnswers[0] || defaultLevel || "Open Match"}
                             </p>
                         </div>
 
@@ -638,6 +724,7 @@ const MatchPlayer = ({
                         <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                     </div>
                 </div>
+
 
                 <div className="d-flex justify-content-center align-items-center ">
                     <button
