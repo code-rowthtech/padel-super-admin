@@ -433,7 +433,7 @@ const BookingHistory = () => {
                                         <td
                                             colSpan={8}
                                             style={{ height: "60vh", verticalAlign: "middle" }}
-                                            className="text-center"
+                                            className="text-center d-flex justify-content-center align-items-center"
                                         >
                                             <DataLoading height={100} />
                                         </td>
