@@ -210,9 +210,9 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0 navbar-shadow-mobile">
+        <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0 navbar-shadow-mobile" style={{ zIndex: 1030 }}>
             <div className="container py-md-1 py-0 ps-md-0 ">
-                <div className="d-flex justify-content-between align-items-center w-100 px-0 ps-md-0 mt-md-1 mt-0">
+                <div className="d-flex justify-content-between align-items-center w-100 px-0 ps-md-0 mt-md-1 mt-0 position-relative">
                     <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand col-md-3 col-8">
                         {logo ? (
                             <div className='add_logo_font'
@@ -310,12 +310,32 @@ const Navbar = () => {
                         </ul>
                     </div>
 
-                    <button
-                        className="btn d-lg-none p-0 border-0 bg-transparent mb-1"
-                        onClick={() => setShowOffcanvas(true)}
-                    >
-                        <img src={clearall} alt='' style={{ width: "20px", height: "10px" }} />
-                    </button>
+                    <div className="d-lg-none position-absolute" style={{ right: "15px", top: "50%", transform: "translateY(-50%)", zIndex: 1001 }}>
+                        <button
+                            className="btn p-2 border-0 bg-transparent"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('Hamburger clicked');
+                                setShowOffcanvas(true);
+                            }}
+                            style={{
+                                minWidth: "48px",
+                                minHeight: "48px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                WebkitTapHighlightColor: "transparent",
+                                border: "1px solid #ddd",
+                                borderRadius: "8px",
+                                backgroundColor: "rgba(255,255,255,0.9)"
+                            }}
+                            aria-label="Open menu"
+                            type="button"
+                        >
+                            <img src={clearall} alt='Menu' style={{ width: "20px", height: "10px", pointerEvents: "none" }} />
+                        </button>
+                    </div>
 
                     <div className="d-none d-lg-flex gap-3 align-items-center col-3 justify-content-end pe-2">
 
@@ -530,7 +550,16 @@ const Navbar = () => {
                 </div>
             </div>
 
-            <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end" className="border-0 w-75 ">
+            <Offcanvas 
+                show={showOffcanvas} 
+                onHide={() => setShowOffcanvas(false)} 
+                placement="end" 
+                className="border-0 w-75"
+                style={{ zIndex: 1055 }}
+                backdrop={true}
+                keyboard={true}
+                scroll={false}
+            >
                 <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2 py-2">
                     <Offcanvas.Title className="d-flex align-items-center gap-3">
 
@@ -564,8 +593,21 @@ const Navbar = () => {
                     </Offcanvas.Title>
 
                     <button
-                        className="btn p-0 border-0 bg-transparent"
-                        onClick={() => setShowOffcanvas(false)}
+                        className="btn p-2 border-0 bg-transparent"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowOffcanvas(false);
+                        }}
+                        style={{
+                            minWidth: "44px",
+                            minHeight: "44px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            WebkitTapHighlightColor: "transparent"
+                        }}
+                        aria-label="Close menu"
                     >
                         <FaTimes size={20} />
                     </button>
