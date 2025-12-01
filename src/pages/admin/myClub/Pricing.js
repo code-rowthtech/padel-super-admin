@@ -555,12 +555,14 @@ const Pricing = ({
     }
     const normalizedPrices = {};
     for (const [displayKey, price] of Object.entries(slotPrices)) {
-      if (key) normalizedPrices[key] = price;
+      const normalizedKey = normalizeTimeKey(displayKey);
+      if (normalizedKey) normalizedPrices[normalizedKey] = price;
     }
     const filledSlotTimes = targetedSlotTimes
       .map((slot) => {
-        if (!norm) return null;
-        const price = normalizedPrices[norm];
+        const normalizedSlotTime = normalizeTimeKey(slot.time);
+        if (!normalizedSlotTime) return null;
+        const price = normalizedPrices[normalizedSlotTime];
         if (price == null || String(price).trim() === "") return null;
         const amount = parseFloat(price);
         if (Number.isNaN(amount) || amount <= 0) return null;
