@@ -76,6 +76,7 @@ const MatchPlayer = ({
     userSkillLevel, selectedAnswers,
     dynamicSteps,
     finalLevelStep,
+    onBackToSlots,
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -87,7 +88,7 @@ const MatchPlayer = ({
     const [defaultLevel, setDefaultLevel] = useState();
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
     const [profileFetched, setProfileFetched] = useState(false);
-console.log({finalSkillDetails});
+    
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
@@ -302,7 +303,9 @@ console.log({displayUserSkillLevel});
 
 
     const onBack = () => {
-        if (window.innerWidth <= 768) {
+        if (onBackToSlots) {
+            onBackToSlots();
+        } else if (window.innerWidth <= 768) {
             window.history.back();
         } else {
             navigate('/open-matches');

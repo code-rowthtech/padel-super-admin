@@ -10,6 +10,7 @@ import { booking_logo_img, success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "react-icons/md";
 import { MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown } from "react-icons/md";
+import { showError } from "../../../helpers/Toast";
 
 const loadPayPal = (callback) => {
   const script = document.createElement("script");
@@ -265,7 +266,7 @@ const Payment = ({ className = "" }) => {
               throw new Error(bookingResponse?.message || "Booking failed");
             }
           } catch (err) {
-            alert("Booking failed after payment: " + (err.message || "Please contact support"));
+            showError("Booking failed after payment: " + (err.message || "Please contact support"));
             console.error(err);
           }
         },
