@@ -76,12 +76,12 @@ const getTimeCategory = (time) => {
 
 const Openmatches = () => {
   const { state } = useLocation();
-  
+
   const initialDate = state?.selectedDate || {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   };
-  
+
   const [startDate, setStartDate] = useState(() => {
     return state?.selectedDate ? new Date(state.selectedDate.fullDate) : new Date();
   });
@@ -312,7 +312,7 @@ const Openmatches = () => {
       .map((slot) => {
         const time = slot?.slotTimes?.[0]?.time;
         if (!time) return null;
-        
+
         let hour, period;
         if (/am|pm/i.test(time)) {
           const match = time.match(/(\d+)\s*(am|pm)/i);
@@ -328,13 +328,13 @@ const Openmatches = () => {
           period = hourNum >= 12 ? "PM" : "AM";
           hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
         }
-        
+
         return { hour, period };
       })
       .filter(Boolean);
-    
+
     if (times.length === 0) return "N/A";
-    
+
     const lastPeriod = times[times.length - 1].period;
     const formatted = times.map((time, index) => {
       if (index === times.length - 1) {
@@ -342,7 +342,7 @@ const Openmatches = () => {
       }
       return time.hour;
     });
-    
+
     return formatted.join("-") + (slots.length > 3 ? "...." : "");
   };
 
@@ -596,10 +596,10 @@ const Openmatches = () => {
                 </button>
               )}
             </div>
-            
+
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
               <div className="position-relative mt-md-0 mt-2">
-                
+
               </div>
 
               <div
@@ -683,8 +683,19 @@ const Openmatches = () => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
                           setShowCreateButton(false);
-                          dispatch(getMatchesUser({ matchDate: d.fullDate, clubId: localStorage.getItem("register_club_id") || "" }));
+
+                          if (user?.token) {
+                            dispatch(
+                              getMatchesUser({
+                                matchDate: d.fullDate,
+                                clubId: localStorage.getItem("register_club_id") || "",
+                              })
+                            );
+                          } else {
+                            navigate("/login"); // or show modal
+                          }
                         }}
+
                         onMouseEnter={(e) =>
                           !isSelected &&
                           (e.currentTarget.style.border = "1px solid #3DBE64")
@@ -870,7 +881,7 @@ const Openmatches = () => {
                                   className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"
                                   style={{ width: "100%", maxWidth: "100%" }}
                                 >
-                                  <p 
+                                  <p
                                     className="mb-1 all-match-name-level mt-2"
                                     style={{
                                       overflow: "hidden",
