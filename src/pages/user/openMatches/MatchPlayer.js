@@ -568,7 +568,7 @@ console.log({selectedGender});
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
-                                        {displayUserSkillLevel || defaultLevel?.split(" - ")[0] || "A"}
+                                        {defaultLevel?.split(" - ")[0] || displayUserSkillLevel  || "A"}
                                     </span>
                                 </div>
                             )}

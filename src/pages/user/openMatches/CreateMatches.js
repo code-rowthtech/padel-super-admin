@@ -768,15 +768,26 @@ const CreateMatches = () => {
             color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
             cursor: isDisabled ? "not-allowed" : "pointer",
             opacity: isDisabled ? 0.6 : 1,
-            border: isSelected ? "none" : "1px solid #4949491A",
+            border: isSelected ? "1px solid transparent" : "1px solid #4949491A",
+            borderLeft: "3px solid #0034E4",
             fontSize: "11px",
             padding: "4px 2px",
             height: "32px",
 
 
           }}
-          onMouseEnter={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #3DBE64")}
-          onMouseLeave={(e) => !isDisabled && slot.availabilityStatus === "available" && (e.currentTarget.style.border = "1px solid #4949491A")}
+          onMouseEnter={(e) => {
+            if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
+              e.currentTarget.style.border = "1px solid #3DBE64";
+              e.currentTarget.style.borderLeft = "3px solid #0034E4";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isDisabled && slot.availabilityStatus === "available") {
+              e.currentTarget.style.border = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+              e.currentTarget.style.borderLeft = "3px solid #0034E4";
+            }
+          }}
         >
           {formatTimeForDisplay(slot.time)}
         </button>
