@@ -1,4 +1,3 @@
-// src/utils/toast.js
 import { toast, Bounce } from "react-toastify";
 
 export const showSuccess = (message = "Success!") => {

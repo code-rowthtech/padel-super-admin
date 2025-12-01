@@ -1,4 +1,3 @@
-// App Constants
 export const SESSION_KEYS = {
   USER: "padel_user",
   OWNER: "padel_owner"

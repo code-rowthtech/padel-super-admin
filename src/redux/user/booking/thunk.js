@@ -8,11 +8,10 @@ export const createBooking = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.post(`${Url.CREATE_BOOKING_API}`, data);
-      // showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
-      showError(error?.message || error);
-      return rejectWithValue(error);
+      showError(error || error?.message);
+      // return rejectWithValue(error);
     }
   }
 );

@@ -73,14 +73,11 @@ const Payments = () => {
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
   const handlePaymentDetails = async (id) => {
-    setLoadingPaymentId(id); // Start loading for this ID
     try {
       await dispatch(getBookingDetailsById({ id })).unwrap();
       setShowPaymentDetails(true);
     } catch (error) {
-      console.error("Failed to fetch booking details:", error);
     } finally {
-      setLoadingPaymentId(null); // Stop loading
     }
   };
 
@@ -134,11 +131,6 @@ const Payments = () => {
                     <span
                       style={{
                         display: "inline-block",
-                        // transform:
-                        //   card.color === "danger"
-                        //     ? "rotate(45deg)"
-                        //     : "rotate(-45deg)",
-                        // transition: "transform 0.3s",
                       }}
                     >
                       {card.icon}
@@ -264,7 +256,6 @@ const Payments = () => {
               <>
                 {payments?.length > 0 ? (
                   <>
-                    {/* Desktop Table */}
                     <div className="custom-scroll-container d-none d-md-block">
                       <Table
                         responsive
@@ -342,7 +333,6 @@ const Payments = () => {
                       </Table>
                     </div>
 
-                    {/* Mobile Card Layout */}
                     <div className="mobile-card-table d-block d-md-none">
                       {payments?.map((item) => (
                         <div key={item?._id} className="card">

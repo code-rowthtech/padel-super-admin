@@ -21,7 +21,6 @@ const SubOwner = () => {
   const ownerId = Owner?.generatedBy || Owner?._id;
   const [currentPage, setCurrentPage] = useState(1);
   const [showUserModal, setShowUserModal] = useState(false);
-  // State
   const [selectedUser, setSelectedUser] = useState(null);
 
   const { getSubOwnerData, getSubOwnerLoading } = useSelector(
@@ -166,7 +165,6 @@ const SubOwner = () => {
         </Col>
       </Row>
 
-      {/* Modals */}
       <SubOwnerModal
         show={showUserModal}
         onHide={() => {

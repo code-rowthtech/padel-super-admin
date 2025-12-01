@@ -281,7 +281,6 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
               <div className="input-group border">
                 <span className="input-group-text border-0 p-2">
                   <img
-                    src="https://flagcdn.com/w40/in.png"
                     alt="IN"
                     width={20}
                   />
@@ -389,11 +388,6 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
             onClick={handleAddPlayer}
             disabled={userSignUpLoading}
             className="flex-fill order-1 order-sm-2 text-white"
-            // style={{
-            //   backgroundColor: "#22c55e",
-            //   border: "none",
-            //   minHeight: "45px",
-            // }}
             style={{
               background:
                 "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white", border: "none",

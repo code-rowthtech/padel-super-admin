@@ -214,9 +214,7 @@ const PrivacyPolicy = () => {
                       <p className="mb-1">
                         <i className="fas fa-building text-success me-2"></i>
                         <strong>Company:</strong>{" "}
-                        <a href="https://rowthtech.com/" target="_blank" rel="noopener noreferrer">
                           Rowthtech Enterprises LLP.
-                        </a>
                       </p>
                     </div>
                     {/* <div className="col-md-6">

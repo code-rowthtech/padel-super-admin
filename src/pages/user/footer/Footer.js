@@ -20,12 +20,10 @@ const Footer = () => {
   const clubIds = store?.userClub?.clubData?.data;
   const ownerId = store?.userClub?.clubData?.data?.courts?.[0]?.ownerId;
 
-  // Ensure we pick the first court if it's an array
   const club = Array.isArray(clubIds?.courts)
     ? clubIds.courts[0]
     : clubIds;
 
-  // Build social links safely
   const social = {
     facebook: club?.facebookLink || "",
     instagram: club?.instagramLink || "",
@@ -46,9 +44,7 @@ const Footer = () => {
     >
       <Container>
         <Row className="justify-content-between align-items-center">
-          {/* Left Section: Ready to Transform */}
           <Col md={6} className="mb-3 mb-md-0">
-            {/* Phone */}
             <div className="d-flex align-items-center gap-2  mb-0 m-0">
               <h4
                 className="mb-0 m-0 address_data col-2"
@@ -69,7 +65,6 @@ const Footer = () => {
                 {ownerId?.phoneNumber || "+91 9999999999"}
               </p>
             </div>
-            {/* Email */}
             <div className="d-flex align-items-center gap-2 m-0 mb-0">
               <h4
                 style={{
@@ -91,7 +86,6 @@ const Footer = () => {
             </div>
 
             <div className="d-flex align-items-start gap-2  mb-0 m-0">
-              {/* <strong>India</strong><br /> */}
               <h4
                 className="mb-0 m-0 address_data col-2"
                 style={{
@@ -120,9 +114,7 @@ const Footer = () => {
             </div>
           </Col>
 
-          {/* Right Section: Social + Links */}
           <Col md={4} className="text-lg-end text-start">
-            {/* Social Icons */}
             <div className="d-flex justify-content-md-end justify-content-center gap-3 mb-3">
 
               {social.facebook && (
@@ -171,7 +163,6 @@ const Footer = () => {
 
             </div>
 
-            {/* Bottom Footer Links */}
             <div className="d-flex flex-sm-row justify-content-md-end justify-content-center gap-3 small text-muted">
               <Link to="/privacy-policy" className="text-decoration-none address_data">
                 Privacy Policy
@@ -181,14 +172,11 @@ const Footer = () => {
                 Manage Cookies
               </Link>
 
-              {/* Uncomment if needed */}
-              {/* <Link to="/sitemap" className="text-decoration-none address_data">Sitemap</Link> */}
             </div>
           </Col>
 
         </Row>
 
-        {/* Copyright */}
         <Row className="mt-md-3 mt-0 pt-3 text-center text-muted small address_data">
           <Col>&copy; 2025 RowthTech | All Rights Reserved.</Col>
         </Row>

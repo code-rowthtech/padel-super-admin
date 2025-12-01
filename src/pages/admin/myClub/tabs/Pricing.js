@@ -48,7 +48,6 @@ const Pricing = () => {
   const [formData, setFormData] = useState({
     selectedSlots: "Morning",
     days: DAYS_OF_WEEK.reduce((acc, day, idx) => {
-      acc[day] = idx === 0; // Monday selected by default
       return acc;
     }, {}),
     prices: { Morning: {}, Afternoon: {}, Evening: {}, All: {} },
@@ -60,13 +59,11 @@ const Pricing = () => {
     [formData.days]
   );
 
-  /** Convert slot time to 12-hour format */
   const convertTo12HourFormat = (time) => {
     if (!time) return "";
 
     let hour, minute, period;
 
-    // Case 1: Input like "13:45" or "09:00"
     if (
       time.includes(":") &&
       !time.toLowerCase().includes("am") &&
@@ -75,14 +72,12 @@ const Pricing = () => {
       [hour, minute] = time.split(":").map(Number);
 
       period = hour >= 12 ? "PM" : "AM";
-      hour = hour % 12 || 12; // convert 0 -> 12, 13 -> 1, etc.
 
       return `${hour.toString().padStart(2, "0")}:${minute
         .toString()
         .padStart(2, "0")} ${period}`;
     }
 
-    // Case 2: Input like "6 AM", "12 pm"
     if (
       time.toLowerCase().includes("am") ||
       time.toLowerCase().includes("pm")
@@ -91,7 +86,6 @@ const Pricing = () => {
       hour = parseInt(hour, 10);
       minute = "00";
 
-      // Normalize hours (just in case input is invalid like 13 AM)
       if (hour === 0) hour = 12;
       if (hour > 12) hour = hour % 12;
 
@@ -100,11 +94,9 @@ const Pricing = () => {
         .padStart(2, "0")}:${minute} ${period.toUpperCase()}`;
     }
 
-    // Fallback (if input is not recognized)
     return time;
   };
 
-  /** Initialize formData prices from API */
   useEffect(() => {
     if (
       PricingData.length &&
@@ -128,7 +120,6 @@ const Pricing = () => {
     }
   }, [PricingData, formData.selectedSlots]);
 
-  /** Fetch slots when days/slots change */
   const selectedDays = Object.keys(formData.days).filter(
     (day) => formData.days[day]
   );
@@ -145,7 +136,6 @@ const Pricing = () => {
     );
   }, [formData.days, registerId, formData.selectedSlots, dispatch]);
 
-  /** Handlers */
   const updateForm = (field, value) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -210,7 +200,6 @@ const Pricing = () => {
       </Form.Check>
     ));
 
-  /** Render time slots */
   const renderTimeSlots = () => {
     if (selectAllChecked) return renderAllSlots();
 
@@ -247,7 +236,6 @@ const Pricing = () => {
     });
   };
 
-  /** Render all slots price setter */
   const renderAllSlots = () => {
     const allTimes =
       PricingData?.[0]?.slot?.[0]?.slotTimes?.map((slot) => slot.time) || [];
@@ -255,7 +243,6 @@ const Pricing = () => {
       (time) => formData.prices.All[time] !== undefined
     );
 
-    // Check if all slots are selected
     const allSelected =
       allTimes.length > 0 && selectedTimes.length === allTimes.length;
 
@@ -291,13 +278,11 @@ const Pricing = () => {
         const newPrices = { ...prev.prices.All };
 
         if (!allSelected) {
-          // Select all with current common price or empty
           const commonPrice = getCommonPrice() || "";
           allTimes.forEach((time) => {
             newPrices[time] = commonPrice;
           });
         } else {
-          // Deselect all
           allTimes.forEach((time) => {
             delete newPrices[time];
           });
@@ -402,7 +387,6 @@ const Pricing = () => {
     );
   };
 
-  /** Submit Handler */
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -412,21 +396,17 @@ const Pricing = () => {
     }
 
     const selectedDays = selectAllChecked
-      ? Object.keys(formData.days) // All days when "Select All" is checked
       : Object.keys(formData.days).filter((day) => formData.days[day]);
     const selectedSlotType = selectAllChecked ? "All" : formData.selectedSlots;
 
-    // Validate slot prices
     const slotPrices = formData.prices[selectedSlotType];
     if (!slotPrices || Object.keys(slotPrices).length === 0) {
       showWarning("No prices entered for the selected slot.");
       return;
     }
 
-    // Extract slotTimes and businessHours from the new structure
     const allSlots = PricingData?.[0]?.slot || [];
 
-    // Get slot data for selected days
     const selectedSlotData = selectAllChecked
       ? allSlots
       : allSlots.filter((slot) => {
@@ -434,12 +414,10 @@ const Pricing = () => {
           return slotDay && selectedDays.includes(slotDay);
         });
 
-    // Get all slot times (flattened array when selectAllChecked)
     const slotData = selectAllChecked
       ? selectedSlotData.flatMap((slot) => slot.slotTimes || [])
       : selectedSlotData[0]?.slotTimes || [];
 
-    // Get all business hours
     const businessHours = selectedSlotData.flatMap(
       (slot) => slot.businessHours || []
     );
@@ -448,7 +426,6 @@ const Pricing = () => {
       return;
     }
 
-    // Normalize time function
     function normalizeTime(timeStr) {
       const match = timeStr.match(/(\d+)[\s:]*(am|pm)/i);
       if (!match) return null;
@@ -457,7 +434,6 @@ const Pricing = () => {
       return `${h} ${ampm}`;
     }
 
-    // Normalize slotPrices keys once
     const normalizedSlotPrices = {};
     for (const [key, price] of Object.entries(slotPrices)) {
       const normalizedKey = key
@@ -467,10 +443,8 @@ const Pricing = () => {
       normalizedSlotPrices[normalizedKey] = price;
     }
 
-    // Filter and map using normalized keys
     const filledSlotTimes = slotData
       .filter((slot) => {
-        const key = normalizeTime(slot.time); // "6 am"
         const price = normalizedSlotPrices[key];
         return price != null && price.toString().trim() !== "";
       })
@@ -483,17 +457,13 @@ const Pricing = () => {
         };
       });
 
-    // Get business hours - send all when "Select All" is checked
     const completeBusinessHours = selectedDays.map((day) => {
       const existing = businessHours.find((bh) => bh.day === day);
       if (!existing) {
-        console.warn(`Missing business hours for ${day}`);
       }
       return (
         existing || {
-          _id: day._id, // or generate a proper ID
           day,
-          time: "06:00 AM - 11:00 PM", // default time
         }
       );
     });

@@ -189,7 +189,6 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
                     </div>
                 </div>
 
-                {/* Payment */}
                 <div className="text-start px-1 mb-1">
                     <h5 className="fw-bold mb-2">Payment Details</h5>
                     <div className="d-flex justify-content-between">
@@ -204,13 +203,11 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
                     </div>
                 </div>
 
-                {/* Rating */}
                 <div>
                     <h4 className="tabel-title m-0 text-start">Rate this court</h4>
                     {renderStars()}
                 </div>
 
-                {/* Review input */}
                 <div className="mt-1 text-start position-relative">
                     <p className="mb-2" style={{ fontWeight: "600", color: "#374151" }}>
                         Write a message
@@ -247,7 +244,6 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
                     }
                 </div>
 
-                {/* Button */}
                 {!hasReview && (
                     <div className="justify-content-center mt-2 d-flex align-items-center mb-3">
                         <Button

@@ -30,7 +30,6 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
   const startYRef = useRef(0);
   const startHeightRef = useRef(230);
 
-  // Validate form
   useEffect(() => {
     const isValid =
       formData.courtName &&
@@ -291,7 +290,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
         {errors[fieldName] && (
           <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
             {typeof errors[fieldName] === "string"
-              ? errors[fieldName] // show custom message
+              ? errors[fieldName]
               : fieldName === "description"
               ? "Description is required and max 500 words"
               : fieldName === "courtTypes"

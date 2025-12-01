@@ -20,7 +20,6 @@ const LogoSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // -----------------------------------------------------//---- Get Logo
     builder.addCase(getLogo.pending, (state) => {
       state.getLogoLoading = true;
       state.getLogoData = null;
@@ -36,7 +35,6 @@ const LogoSlice = createSlice({
       state.getLogoData = null;
       state.getLogoError = action.payload;
     });
-    // -----------------------------------------------------//---- create Logo
     builder.addCase(createLogo.pending, (state) => {
       state.getLogoLoading = true;
       state.logoData = null;
@@ -52,7 +50,6 @@ const LogoSlice = createSlice({
       state.logoData = null;
       state.getLogoError = action.payload;
     });
-    // -----------------------------------------------------//---- update Logo
     builder.addCase(updateLogo.pending, (state) => {
       state.getLogoLoading = true;
       state.logoData = null;
