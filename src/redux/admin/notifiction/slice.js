@@ -21,7 +21,6 @@ const NotificationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // -------------------------G-E-T--NOTIFICATION---COUNT----------------------//
       .addCase(getNotificationCount.pending, (state) => {
         state.getCountLoading = true;
         state.getCountError = null;
@@ -35,7 +34,6 @@ const NotificationSlice = createSlice({
         state.getCountError = action.payload;
       })
 
-      // -------------------------G-E-T--NOTIFICATION--D-A-T-A----------------------//
 
       .addCase(getNotificationData.pending, (state) => {
         state.getCountLoading = true;
@@ -50,7 +48,6 @@ const NotificationSlice = createSlice({
         state.getCountError = action.payload;
       })
 
-      // -------------------------V-I-E-W--NOTIFICATION----------------------//
 
       .addCase(getNotificationView.pending, (state) => {
         state.getCountLoading = true;
@@ -65,7 +62,6 @@ const NotificationSlice = createSlice({
         state.getCountError = action.payload;
       })
 
-      // -------------------------READ---ALL----NOTIFICATION----------------------//
 
       .addCase(readAllNotification.pending, (state) => {
         state.getCountLoading = true;

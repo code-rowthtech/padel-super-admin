@@ -160,7 +160,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
       style={{ backgroundColor: "#fff" }}
     >
       <div className="d-flex align-items-center gap-3">
-        {/* Mobile Hamburger Menu */}
         <button
           className="btn btn-link d-lg-none p-0 border-0 text-dark"
           onClick={onToggleSidebar}
@@ -169,7 +168,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
           <FaBars />
         </button>
 
-        {/* Desktop Collapse Toggle */}
         <button
           className="btn btn-link d-none d-lg-block p-0 border-0 text-dark"
           onClick={onToggleCollapse}
@@ -178,14 +176,12 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
           <FaBars />
         </button>
 
-        {/* Page Name */}
         {pageName && (
           <h5 className="mb-0" style={{ fontFamily: "Poppins", fontWeight: "600", color: "#374151" }}>
             {pageName}
           </h5>
         )}
       </div>
-      {/* Search Bar */}
       {/* <div
         className="d-flex align-items-center px-3 py-2 "
         style={{
@@ -212,10 +208,8 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
         )}
       </div> */}
 
-      {/* User Dropdown + Bell Icon */}
       <div className="d-flex align-items-center gap-2 gap-md-4">
         <div className="position-relative" ref={dropdownRef}>
-          {/* Bell Icon */}
           <div
             className="d-flex rounded-circle  align-items-center"
             style={{
@@ -241,7 +235,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             </Badge>
           </div>
 
-          {/* Dropdown */}
           {open && (
             <div
               className="shadow-sm p-2"
@@ -281,12 +274,10 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                         key={note._id}
                         className="d-flex gap-2 align-items-start justify-content-between p-3 mb-2 rounded "
                         style={{
-                          // backgroundColor: note.isRead ? "#fff" : "#f9f9ff",
                           borderBottom: "1px solid #f0f0f0",
                           cursor: "pointer",
                         }}
                       >
-                        {/* Left: Profile Image or Initial */}
                         {note?.userId?.profilePic ? (
                           <img
                             src={note?.userId?.profilePic}
@@ -316,7 +307,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                           </div>
                         )}
 
-                        {/* Middle: Notification content */}
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 500, fontSize: "13px" }}>
                             {note?.userId?.name?.trim() || "User"} – {note.title}
@@ -351,7 +341,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                           </p>
 
 
-                          {/* Show when expanded */}
                           {openNoteId === note._id && (
                             <div className="d-flex gap-2 mt-2">
                               <button
@@ -365,7 +354,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                             </div>
                           )}
                         </div>
-                        {/* Right: Toggle Icon */}
                         <div
                           className="mt-2"
                           onClick={(e) => {

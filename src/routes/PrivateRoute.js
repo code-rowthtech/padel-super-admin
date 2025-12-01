@@ -11,12 +11,10 @@ const PrivateRoute = ({ children }) => {
   const user = getUserFromSession()
 
   if (!authenticated) {
-    // Check if it's an admin route
     if (location.pathname.startsWith("/admin")) {
       return <Navigate to="/admin/login" state={{ from: location }} replace />;
     }
 
-    // For normal users
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 

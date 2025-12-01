@@ -151,12 +151,15 @@ const CourtAvailability = () => {
       }
     }
 
+    const isUnavailableForThisCourt =
+      slot?.courtIdsForSlot?.includes(selectedCourt);
+    const slotStatus = isUnavailableForThisCourt
+      ? slot?.availabilityStatus
+      : "available";
+
     let newCourtSlots = exists
       ? courtSlots.filter((s) => s.slot._id !== slot._id)
-      : [
-          ...courtSlots,
-          { slot, status: slot?.availabilityStatus || "available" },
-        ];
+      : [...courtSlots, { slot, status: slotStatus }];
 
     const newDateSlots = {
       ...selectedSlots[dateKey],
@@ -739,8 +742,7 @@ const CourtAvailability = () => {
                                         : "available";
                                       const isBooked =
                                         slot?.status === "booked";
-                                      const isDisabled =
-                                        isPast || isBooked;
+                                      const isDisabled = isPast || isBooked;
 
                                       const tooltipText = isPast
                                         ? "Past Time - Cannot Book"
@@ -772,6 +774,15 @@ const CourtAvailability = () => {
                                                 (s) => s.slot._id === slot._id
                                               );
 
+                                              const isUnavailableForThisCourt =
+                                                slot?.courtIdsForSlot?.includes(
+                                                  court._id
+                                                );
+                                              const slotStatus =
+                                                isUnavailableForThisCourt
+                                                  ? slot?.availabilityStatus
+                                                  : "available";
+
                                               let newCourtSlots = exists
                                                 ? courtSlots.filter(
                                                     (s) =>
@@ -781,9 +792,7 @@ const CourtAvailability = () => {
                                                     ...courtSlots,
                                                     {
                                                       slot,
-                                                      status:
-                                                        slot?.availabilityStatus ||
-                                                        "available",
+                                                      status: slotStatus,
                                                     },
                                                   ];
 

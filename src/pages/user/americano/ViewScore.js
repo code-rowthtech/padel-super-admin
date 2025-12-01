@@ -17,11 +17,6 @@ const ViewScore = ({ setScore }) => {
     const [userScroll, setUserScroll] = useState(false);
 
     const players = [
-        { id: 1, name: "Dianne", points: 120, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=1" },
-        { id: 2, name: "Jane", points: 110, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=2" },
-        { id: 3, name: "Lily", points: 100, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=3" },
-        { id: 4, name: "Aubrey", points: 95, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=4" },
-        { id: 5, name: "Connie", points: 90, record: "8-2-1", recordhead: "W-L-T", img: "https://i.pravatar.cc/50?img=5" },
     ];
 
     return (
@@ -38,7 +33,6 @@ const ViewScore = ({ setScore }) => {
             </div>
 
 
-            {/* Tabs */}
             <Nav
                 variant="tabs"
                 className="justify-content-evenly mb-2 p-2 ms-4 rounded me-4 border-0 text-white"
@@ -81,18 +75,15 @@ const ViewScore = ({ setScore }) => {
             </Nav>
 
 
-            {/* Tab Content */}
             <Card className="rounded-0 rounded-bottom border-0" style={{ backgroundColor: "#1F41BB" }}>
                 {activeTab === "leaderboard" && (
                     <>
-                        {/* Rank Info */}
                         {userScroll ? '' : (<div className="  p-2 pt-3 pb-0 ms-4 rounded me-4 text-center  d-flex align-items-center justify-content-start gap-3" style={{ backgroundColor: "#CBD6FF" }}>
                             <p className="fw-bold rounded py-2 px-3 text-white" style={{ backgroundColor: "#374151" }}>#4</p>
                             <p style={{ color: "#1F41BB", fontSize: "14px", fontWeight: "600", fontFamily: "Poppins" }}>You are doing better than 60% of other players!</p>
                         </div>
                         )}
 
-                        {/* Podium */}
                         <div
                             className="mb-4"
                             style={{
@@ -103,21 +94,17 @@ const ViewScore = ({ setScore }) => {
                                 position: "relative",
                             }}
                         >
-                            {/* Top podium section */}
                             <div className="d-flex justify-content-center gap-5 align-items-end" style={{ marginTop: "60px" }}>
-                                {/* 2nd place */}
                                 <div className="text-center mx-2" style={{ marginTop: "40px" }}>
                                     <img src={players[1].img} alt="" className="rounded-circle" width={50} height={50} />
                                     <p className="text-white m-0">{players[1].name}</p>
                                 </div>
 
-                                {/* 1st place */}
                                 <div className="text-center mx-2" style={{ marginTop: "0px" }}>
                                     <img src={players[0].img} alt="" className="rounded-circle" width={60} height={60} />
                                     <p className="text-white m-0">{players[0].name}</p>
                                 </div>
 
-                                {/* 3rd place */}
                                 <div className="text-center mx-2" style={{ marginTop: "50px" }}>
                                     <img src={players[2].img} alt="" className="rounded-circle" width={50} height={50} />
                                     <p className="text-white m-0">{players[2].name}</p>
@@ -162,7 +149,6 @@ const ViewScore = ({ setScore }) => {
                                     borderRadius: "20px 20px 0 0",
                                 }}
                             >
-                                {/* Center Tab Shape */}
 
 
                                 {(userScroll ? players : players.slice(0, 3)).map((p, idx) => (
@@ -206,7 +192,6 @@ const ViewScore = ({ setScore }) => {
 
                 {activeTab === "rounds" && (
                     <>
-                        {/* Podium */}
                         <div
                             className="mb-4"
                             style={{
@@ -214,18 +199,14 @@ const ViewScore = ({ setScore }) => {
                                 position: "relative",
                             }}
                         >
-                            {/* Top podium section */}
                             <div
                                 className="rounded text-white text-center mt-4 me-4 ms-4 p-4"
                                 style={{ backgroundColor: "#111A79" }}
                             >
-                                {/* Title */}
                                 <h6 className="mb-4">Your Match</h6>
 
-                                {/* Main Row */}
                                 <div className="row align-items-center">
 
-                                    {/* Left Side */}
                                     <div className="col-4 d-flex flex-column align-items-center">
                                         <img
                                             src="left.jpg"
@@ -243,12 +224,10 @@ const ViewScore = ({ setScore }) => {
                                         </span>
                                     </div>
 
-                                    {/* VS Section */}
                                     <div className="col-4 d-flex flex-column align-items-center">
                                         <h2 className="fw-bold">VS</h2>
                                     </div>
 
-                                    {/* Right Side */}
                                     <div className="col-4 d-flex flex-column align-items-center">
                                         <img
                                             src="right.jpg"
@@ -308,7 +287,6 @@ const ViewScore = ({ setScore }) => {
                                     borderRadius: "20px 20px 0 0",
                                 }}
                             >
-                                {/* Center Tab Shape */}
 
 
                                 {(userScroll ? players : players.slice(0, 3)).map((p, idx) => (

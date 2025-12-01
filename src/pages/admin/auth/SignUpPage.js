@@ -84,19 +84,17 @@ const SignUpPage = () => {
   };
 
   const handlePhoneChange = (e) => {
-    let input = e.target.value.replace(/[^0-9]/g, ""); // Only digits
+    let input = e.target.value.replace(/[^0-9]/g, "");
 
     if (input.length === 0) {
       setForm((prev) => ({ ...prev, phoneNumber: "" }));
       return;
     }
 
-    // First digit must be 6-9
     if (!/^[6-9]/.test(input)) {
-      return; // Ignore if first digit is not 6-9
+      return;
     }
 
-    // Limit to 10 digits
     if (input.length > 10) {
       input = input.slice(0, 10);
     }
@@ -183,9 +181,7 @@ const SignUpPage = () => {
           </p>
 
           <Form onSubmit={handleSubmit} noValidate className="small">
-            {/* <span className="p-1 text-danger small d-block">{errors.api}</span> */}
 
-            {/* Name */}
             <Form.Group controlId="name" className="mb-2">
               <Form.Label>Name</Form.Label>
               <Form.Control
@@ -208,8 +204,6 @@ const SignUpPage = () => {
               </Form.Control.Feedback>
             </Form.Group>
 
-            {/* Phone Number */}
-            {/* Phone Number */}
             <Form.Group controlId="phoneNumber" className="mb-2">
               <Form.Label>Phone Number</Form.Label>
               <InputGroup>
@@ -261,7 +255,6 @@ const SignUpPage = () => {
               </InputGroup>
             </Form.Group>
 
-            {/* Email */}
             <Form.Group controlId="email" className="mb-2">
               <Form.Label>Email</Form.Label>
               <Form.Control
@@ -284,7 +277,6 @@ const SignUpPage = () => {
               </Form.Control.Feedback>
             </Form.Group>
 
-            {/* Password */}
             <Form.Group controlId="password" className="mb-2">
               <Form.Label>Password</Form.Label>
               <InputGroup>
@@ -322,7 +314,6 @@ const SignUpPage = () => {
               </InputGroup>
             </Form.Group>
 
-            {/* Confirm Password */}
             <Form.Group controlId="confirmPassword" className="mb-3">
               <Form.Label>Confirm Password</Form.Label>
               <InputGroup>
@@ -360,7 +351,6 @@ const SignUpPage = () => {
               </InputGroup>
             </Form.Group>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               disabled={authLoading}

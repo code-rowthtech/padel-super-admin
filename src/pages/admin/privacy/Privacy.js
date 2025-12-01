@@ -830,11 +830,9 @@ const Privacy = () => {
                     targeting advertising for all NAI member ad networks by
                     visiting:{" "}
                     <a
-                      href="http://www.networkadvertising.org/."
                       target="_blank"
                       className="text-primary link"
                     >
-                      http://www.networkadvertising.org/.
                     </a>
                   </p>
                 </div>

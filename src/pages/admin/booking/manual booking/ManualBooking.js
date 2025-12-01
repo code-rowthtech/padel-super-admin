@@ -56,7 +56,6 @@ const ManualBooking = () => {
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [userTypedName, setUserTypedName] = useState(false);
 
-  // Close on outside click
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
@@ -99,14 +98,6 @@ const ManualBooking = () => {
   const scrollRef = useRef(null);
   const selectedButtonRef = useRef(null);
 
-  // const scroll = (direction) => {
-  //   if (scrollRef.current) {
-  //     scrollRef.current.scrollBy({
-  //       left: direction === "left" ? -120 : 120,
-  //       behavior: "smooth",
-  //     });
-  //   }
-  // };
 
   const courts = activeCourtsData?.[0]?.courts || [];
   const slotTimes = activeCourtsData?.[0]?.slot?.[0]?.slotTimes || [];
@@ -419,7 +410,6 @@ const ManualBooking = () => {
           </div>
           <Row className="mx-auto  bg-white shadow-sm rounded-3" style={{ height: "83vh" }}>
             <Col xs={12} lg={8} className="p-2 p-md-4">
-              {/* Court Selector */}
               <div className="mb-3 mb-md-4">
                 <div className="all-matches mb-2" style={{
                   color: "#374151",
@@ -459,7 +449,6 @@ const ManualBooking = () => {
                 </div>
               </div>
 
-              {/* Date Selector */}
               <div className="calendar-strip">
                 <div className="all-matches mb-3" style={{
                   color: "#374151",
@@ -475,7 +464,6 @@ const ManualBooking = () => {
                         cursor: "pointer",
                         width: "22px",
                         height: "22px",
-                        // backgroundColor: "rgb(229, 233, 236)",
                       }}
                       onClick={() => setIsOpen(!isOpen)}
                     >
@@ -608,7 +596,6 @@ const ManualBooking = () => {
                 <hr />
               </div>
 
-              {/* Time Selector */}
               <div className="mb-3">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <p
@@ -803,7 +790,6 @@ const ManualBooking = () => {
                     marginRight: "8px",
                   }}
                 >
-                  {/* Custom scrollbar styling */}
                   <style jsx>{`
                     div::-webkit-scrollbar {
                       width: 8px;

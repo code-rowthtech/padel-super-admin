@@ -45,12 +45,10 @@ const authSlice = createSlice({
       localStorage.removeItem("padel_user");
       sessionStorage.clear();
 
-      // window.location.href = '/home';
     },
     resetAuth(state) {
       state.userAuthLoading = false;
       state.user = null;
-      // state.otp = null;
       state.error = null;
       state.userSignUpLoading = false;
       state.userSignUp = null;
@@ -60,7 +58,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login
       .addCase(loginUser.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -77,7 +74,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // LoginNumber
       .addCase(loginUserNumber.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -94,7 +90,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // SignUp
       .addCase(Usersignup.pending, (state) => {
         state.userSignUpLoading = true;
         state.errorSignUp = null;
@@ -102,16 +97,12 @@ const authSlice = createSlice({
       .addCase(Usersignup.fulfilled, (state, action) => {
         state.userSignUpLoading = false;
         state.userSignUp = action.payload;
-        // const { response } = action.payload;
-        // const user = { ...response.user, token: response.token };
-        // setLoggedInUser(user);
       })
       .addCase(Usersignup.rejected, (state, action) => {
         state.userSignUpLoading = false;
         state.errorSignUp = action.payload;
       })
 
-      //Send Otp
       .addCase(sendOtp.pending, (state) => {
         state.userAuthLoading = true;
         state.errorSignUp = null;
@@ -125,7 +116,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Verify Otp
       .addCase(verifyOtp.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -133,14 +123,12 @@ const authSlice = createSlice({
       .addCase(verifyOtp.fulfilled, (state, action) => {
         state.userAuthLoading = false;
         state.otp = action.payload;
-        // setLoggedInUser(action.payload);
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.userAuthLoading = false;
         state.error = action.payload || "OTP verification failed";
       })
 
-      //Get User
       .addCase(getUser.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -154,7 +142,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Get All Users
       .addCase(getAllUsers.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -168,7 +155,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Get Logo
       .addCase(getLogo.pending, (state) => {
         state.logoLoading = true;
         state.error = null;
@@ -183,7 +169,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // update profile
       .addCase(updateUser.pending, (state) => {
         state.userLoading = true;
         state.error = null;
@@ -197,7 +182,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // get profile
       .addCase(getUserProfile.pending, (state) => {
         state.userLoading = true;
         state.error = null;
@@ -211,7 +195,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // get states
       .addCase(getStates.pending, (state) => {
         state.statesLoading = true;
         state.statesError = null;

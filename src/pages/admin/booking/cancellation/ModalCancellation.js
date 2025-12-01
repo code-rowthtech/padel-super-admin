@@ -268,7 +268,6 @@ export const BookingRefundModal = ({
   const [refundDate, setRefundDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  // Validate reason
   const validateReason = (text) => {
     if (!text.trim()) return "Reason is required";
     if (text.trim().length < 10) return "Reason must be at least 10 characters";
@@ -295,12 +294,10 @@ export const BookingRefundModal = ({
   useEffect(() => {
     if (bookingDetails?.totalAmount != null) {
       setRefundAmount(bookingDetails.totalAmount);
-      setHasChangedAmount(false); // Reset on new booking
     }
   }, [bookingDetails?.totalAmount]);
 
   const handleAmountChange = (e) => {
-    setHasChangedAmount(true); // Mark as user-modified
     const value = e.target.value;
     const maxAmount = Number(bookingDetails?.totalAmount) || 0;
 
@@ -319,7 +316,6 @@ export const BookingRefundModal = ({
       return;
     }
 
-    // Final amount to send
     const finalAmount =
       hasChangedAmount && refundAmount !== ""
         ? Number(refundAmount)
@@ -528,7 +524,6 @@ export const BookingRefundModal = ({
             </div>
           </div>
           <div className=" col-md-6 border-start col-12">
-            {/* Refund Amount Input */}
             <div className="d-flex justify-content-between">
               <h2
                 className="tabel-title py-1 text-start ps-1 text-muted"
@@ -553,7 +548,6 @@ export const BookingRefundModal = ({
               </h2>
             </div>
 
-            {/* Date Picker */}
             <div className="d-flex flex-column text-start">
               <label
                 className="tabel-title text-muted ps-1"
@@ -569,7 +563,6 @@ export const BookingRefundModal = ({
                 type="date"
                 value={refundDate}
                 onChange={(e) => setRefundDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]} // 👈 disables past dates
                 className="form-control w-100"
                 style={{
                   fontFamily: "Poppins",
@@ -585,7 +578,6 @@ export const BookingRefundModal = ({
           </div>
         </div>
 
-        {/* Refund Amount Field */}
         <div className="mt-3 text-start position-relative">
           <label
             className="form-label ps-1"
@@ -606,7 +598,6 @@ export const BookingRefundModal = ({
               resize: "none",
             }}
           />
-          {/* Character Counter */}
           <small
             className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining <= 0 ? "text-danger" : "text-muted"
               }`}
@@ -614,7 +605,6 @@ export const BookingRefundModal = ({
           >
             {remaining}/250
           </small>
-          {/* Error Message */}
           {error && (
             <div className="invalid-feedback d-block text-start ps-1">
               {error}
@@ -622,7 +612,6 @@ export const BookingRefundModal = ({
           )}
         </div>
 
-        {/* Submit Button */}
         <div className="px-3 mt-3">
           <Button
             className="py-2 border-0 rounded-pill w-100"
@@ -642,64 +631,7 @@ export const BookingRefundModal = ({
   );
 };
 
-// export const RefundSuccessModal = ({ show, handleClose }) => (
-//   <Modal
-//     show={show}
-//     onHide={handleClose}
-//     className="h-100"
-//     centered
-//     backdrop="static"
-//   >
-//     <Modal.Body className="text-center p-4 position-relative">
-//       <button
-//         onClick={handleClose}
-//         style={{
-//           position: "absolute",
-//           top: "10px",
-//           right: "20px",
-//           background: "none",
-//           border: "none",
-//           fontSize: "24px",
-//           cursor: "pointer",
-//           color: "red",
-//         }}
-//       >
-//         ×
-//       </button>
 
-//       <div className="text-center">
-//         <img
-//           src={modalSuccess}
-//           alt="Details"
-//           className="mt-3 animated-img"
-//           style={{ width: "250px", marginBottom: "20px" }}
-//         />
-//         <h2
-//           className="tabel-title mb-3"
-//           style={{ fontFamily: "Poppins", fontSize: "15px", fontWeight: "600" }}
-//         >
-//           Refund successfully Complete
-//         </h2>
-//         <p className="table-data text-dark fw-bold">
-//           The refund has been successfully Completed.
-//         </p>
-//         <div className="ps-3 pe-3 mt-3">
-//           <Button
-//             onClick={handleClose}
-//             className=" py-2 border-0 rounded-pill w-100 "
-//             style={{
-//               backgroundColor: "#3DBE64",
-//               fontSize: "17px",
-//               fontWeight: "600",
-//             }}
-//           >
-//             Continue
-//           </Button>
-//         </div>
-//       </div>
-//     </Modal.Body>
-//   </Modal>
-// );
 
 export const CancelRequestModal = ({
   show,
@@ -772,7 +704,6 @@ export const CancelRequestModal = ({
       </div>
       <Modal.Body className="text-center ">
         <Row className="mb-4 px-3">
-          {/* Left Column */}
           <Col
             md={6}
             className="d-flex justify-content-between rounded-3 border p-3"
@@ -874,7 +805,6 @@ export const CancelRequestModal = ({
             </div>
           </Col>
 
-          {/* Right Column */}
           <Col md={6}>
             <div>
               <h6>
@@ -919,7 +849,6 @@ export const CancelRequestModal = ({
           </Col>
         </Row>
 
-        {/* User's reason */}
         <div className="mb-4 text-start">
           <h6>What's user reason to cancel this slot</h6>
           <Form.Control
@@ -937,7 +866,6 @@ export const CancelRequestModal = ({
           />
         </div>
 
-        {/* Rejection reason textarea */}
         <div className="mb-4 text-start position-relative">
           <h6>Why You Reject this Request</h6>
           <Form.Control
@@ -958,8 +886,6 @@ export const CancelRequestModal = ({
           </small>
         </div>
 
-        {/* Checkbox */}
-        {/* Checkbox - Sirf tab dikhe jab reason match NA kare */}
         {showCheckbox && (
           <Form.Check
             type="checkbox"
@@ -975,7 +901,6 @@ export const CancelRequestModal = ({
           />
         )}
 
-        {/* Continue Button */}
         <div className="d-flex justify-content-end">
           <Button
             onClick={handleSubmit}

@@ -115,7 +115,6 @@ export default function PadelSupportPage() {
   function handleSubmit(e) {
     e.preventDefault();
     if (!validateForm()) return;
-    // Simulate submission
     setSent(false);
     setTimeout(() => {
       setSent(true);

@@ -33,7 +33,6 @@ const MatchDetails = () => {
     setShowModal(false);
   };
 
-  // Render player or empty slot
   const renderPlayer = (player, index, team) => {
     if (!player) {
       return (
@@ -87,7 +86,6 @@ const MatchDetails = () => {
             src={userId?.profilePic}
             alt="Profile"
             onError={(e) => {
-              e.target.style.display = "none"; // Hide broken images
             }}
           />
         ) : (
@@ -347,7 +345,6 @@ const MatchDetails = () => {
                   <div className="mt-4">
                     <h6 className="fw-bold mb-3">Players</h6>
 
-                    {/* Desktop Layout */}
                     <div className="d-none d-md-block">
                       <div className="row align-items-center justify-content-between border rounded-4 p-4">
                         <div className="col-6 d-flex justify-content-evenly">
@@ -385,9 +382,7 @@ const MatchDetails = () => {
                       </div>
                     </div>
 
-                    {/* Mobile Layout */}
                     <div className="d-block d-md-none">
-                      {/* Team A */}
                       <div className="border rounded-3 p-3 mb-3">
                         <div className="fw-semibold small mb-3 text-muted text-center">
                           Team A
@@ -406,7 +401,6 @@ const MatchDetails = () => {
                         </div>
                       </div>
 
-                      {/* VS Divider */}
                       <div className="text-center mb-3">
                         <span
                           className="badge bg-dark px-3 py-2"
@@ -416,7 +410,6 @@ const MatchDetails = () => {
                         </span>
                       </div>
 
-                      {/* Team B */}
                       <div className="border rounded-3 p-3">
                         <div className="fw-semibold small mb-3 text-muted text-center">
                           Team B

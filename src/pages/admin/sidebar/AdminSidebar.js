@@ -31,7 +31,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   );
   const ownerId = Owner?._id || Owner?.generatedBy;
 
-  // Tracks active status of dropdown based on location
   const [isBookingOpen, setBookingOpen] = useState(false);
   const [clubLogo, setClubLogo] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -51,7 +50,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
     }
   }, [location.pathname]);
 
-  // Utility function for active link styling
   const linkClasses = ({ isActive }) =>
     `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${
       isActive ? "active-parent-link" : "bg-transparent"
@@ -324,7 +322,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               (isBookingOpen ? <FaChevronUp /> : <FaChevronDown />)}
           </button>
 
-          {/* Desktop Collapsed Hover Dropdown */}
           {isCollapsed && window.innerWidth > 768 && showDropdown && (
             <div
               className="position-absolute"

@@ -1,4 +1,3 @@
-// apiCore.js
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import config from "../../config";
@@ -6,9 +5,6 @@ import { SESSION_KEYS } from "../../constants";
 
 const { USER, OWNER } = SESSION_KEYS;
 
-// -------------------
-// SESSION MANAGEMENT
-// -------------------
 export const getUserFromSession = () => {
   const stored = localStorage.getItem(USER);
   if (!stored) return null;
@@ -45,9 +41,6 @@ export const setLoggedInOwner = (session) => {
   }
 };
 
-// -------------------
-// TOKEN VALIDATION
-// -------------------
 const validateToken = (token, userType) => {
   if (!token) return false;
   try {
@@ -78,9 +71,6 @@ export const isOwnerAuthenticated = () => {
 export const isAuthenticated = () =>
   isUserAuthenticated() || isOwnerAuthenticated();
 
-// -------------------
-// AXIOS INSTANCES
-// -------------------
 const userAxios = axios.create({ baseURL: config.API_URL });
 const ownerAxios = axios.create({ baseURL: config.API_URL });
 
@@ -141,11 +131,9 @@ const errorInterceptor = (err) => {
   return Promise.reject(message);
 };
 
-// Attach interceptors
 userAxios.interceptors.response.use((res) => res, errorInterceptor);
 ownerAxios.interceptors.response.use((res) => res, errorInterceptor);
 
-// Attach tokens dynamically
 userAxios.interceptors.request.use((config) => {
   const token = getUserFromSession()?.token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -158,9 +146,6 @@ ownerAxios.interceptors.request.use((config) => {
   return config;
 });
 
-// -------------------
-// ROLE-BASED HELPERS
-// -------------------
 const buildFormData = (data) => {
   const formData = new FormData();
   for (const key in data) {

@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-//_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 import ownerAuthReducer from "./admin/auth/slice";
 import clubReducer from "./admin/club/slice";
 import manualBookingReducer from "./admin/manualBooking/slice";
@@ -10,7 +9,6 @@ import reviewReducer from "./admin/reviews/slice";
 import subOwnerReducer from "./admin/subOwner/slice";
 import logoReducer from "./admin/logo/slice";
 import openMatchesReducer from "./admin/openMatches/slice";
-//_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 import userClubReducer from "./user/club/slice";
 import userSlotReducer from "./user/slot/slice";
 import userBookingReducer from "./user/booking/slice";
@@ -23,7 +21,6 @@ import userNotificationDataReducer from "./user/notifiction/slice";
 import searchUserByNumberReducer  from "./admin/searchUserbynumber/slice";
 const store = configureStore({
   reducer: {
-    //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 
     ownerAuth: ownerAuthReducer,
     club: clubReducer,
@@ -37,7 +34,6 @@ const store = configureStore({
     openMatches: openMatchesReducer,
     notificationData: notificationDataReducer,
     searchUserByNumber: searchUserByNumberReducer,
-    //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
     userAuth: userAuthReducer,
     userClub: userClubReducer,
     userSlot: userSlotReducer,

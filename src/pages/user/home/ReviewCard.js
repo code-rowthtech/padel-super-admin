@@ -56,6 +56,7 @@ export const ReviewCard = ({ review }) => {
             </div>
 
             <div className="d-flex align-items-center mb-lg-4 mb-3 justify-content-between gap-3" style={{ marginTop: "5px" }}>
+                <div className="d-flex align-items-center gap-3">
                     <img
                         src={
                             review?.avatar ||
@@ -72,29 +73,30 @@ export const ReviewCard = ({ review }) => {
                             fontSize: "20px",
                             fontWeight: "600",
                             color: "#111827",
-                            fontFamily:"Inter"
+                            fontFamily: "Inter"
                         }}
                         className="step-heading-data"
                     >
                         {review?.userId?.name?.charAt(0).toUpperCase() +
                             review?.userId?.name?.slice(1) || "Anonymous"}
                     </h6>
-                    <div className="d-flex align-items-center">
-                        {[...Array(fullStars)].map((_, i) => (
-                            <StarIcon key={i} style={{ fontSize: "30px", color: "#22C55E" }} className="add_font_star" />
-                        ))}
-                        {hasHalfStar && (
-                            <StarHalfIcon style={{ fontSize: "30px", color: "#22C55E" }} className="add_font_star" />
-                        )}
-                        {[...Array(emptyStars)].map((_, i) => (
-                            <MdOutlineStar
-                                key={i}
-                                style={{ fontSize: "30px", color: "#F5F5F5" }}
-                                className="add_font_star"
-                            />
-                        ))}
-                    </div>
                 </div>
+                <div className="d-flex align-items-center">
+                    {[...Array(fullStars)].map((_, i) => (
+                        <StarIcon key={i} style={{ fontSize: "30px", color: "#22C55E" }} className="add_font_star" />
+                    ))}
+                    {hasHalfStar && (
+                        <StarHalfIcon style={{ fontSize: "30px", color: "#22C55E" }} className="add_font_star" />
+                    )}
+                    {[...Array(emptyStars)].map((_, i) => (
+                        <MdOutlineStar
+                            key={i}
+                            style={{ fontSize: "30px", color: "#F5F5F5" }}
+                            className="add_font_star"
+                        />
+                    ))}
+                </div>
+            </div>
         </Card>
     );
 };

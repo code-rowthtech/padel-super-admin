@@ -19,7 +19,6 @@ const Profile = () => {
   );
   const store = useSelector((state) => state?.userAuth);
 
-  // Format date for input
   const formatDateForInput = (isoDate) => {
     if (!isoDate) return "";
     const date = new Date(isoDate);
@@ -29,7 +28,6 @@ const Profile = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Initial form data state
   const initialFormData = {
     fullName:
       user?.response?.name ||
@@ -59,7 +57,6 @@ const Profile = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [initialState, setInitialState] = useState(initialFormData);
 
-  // Fetch user profile and states data
   useEffect(() => {
     dispatch(getUserProfile()).then((result) => {
       if (result.payload) {
@@ -75,7 +72,6 @@ const Profile = () => {
             result.payload.response?.profilePic || User?.profilePic || "",
         };
         setFormData(newFormData);
-        setInitialState(newFormData); // Store initial state for comparison
       }
     });
     dispatch(getStates());
@@ -107,15 +103,10 @@ const Profile = () => {
 
   localStorage.setItem("updateprofile", JSON.stringify(updateProfileData));
 
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-  // };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Capitalize first letter only
     const formatted =
       value.length > 0
         ? value.charAt(0).toUpperCase() + value.slice(1)
@@ -156,7 +147,6 @@ const Profile = () => {
 
     const payload = new FormData();
 
-    // Compare current formData with initialState to find changed fields
     const changedFields = {};
     Object.keys(formData).forEach((key) => {
       if (formData[key] !== initialState[key]) {
@@ -164,7 +154,6 @@ const Profile = () => {
       }
     });
 
-    // Append only changed fields to FormData
     if (changedFields.fullName) payload.append("name", changedFields.fullName);
     if (changedFields.email) payload.append("email", changedFields.email);
     if (changedFields.phone) payload.append("phoneNumber", changedFields.phone);
@@ -178,22 +167,18 @@ const Profile = () => {
       payload.append("profilePic", blob, "profile.jpg");
     }
 
-    // Only append location if it has changed
     if (changedFields.location) {
       payload.append("city", changedFields.location);
     }
 
-    // Only dispatch if there are changes
     if (Object.keys(changedFields).length > 0) {
       dispatch(updateUser(payload))
         .then(() => {
           dispatch(getUserProfile());
         })
         .catch((err) => {
-          console.error("Update failed:", err);
         });
     } else {
-      console.log("No changes detected, skipping API call.");
     }
   };
 
@@ -206,7 +191,7 @@ const Profile = () => {
       style={{ borderRadius: "12px" }}
     >
       <div
-        className="mt-md-5 mt-0"
+        className="mt-md-5 mt-0 height_low"
         style={{
           background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
           height: "80px",
@@ -220,7 +205,7 @@ const Profile = () => {
         className="bg-white mb-md-5 mb-4 rounded-bottom shadow p-3 p-md-4"
       >
         <div
-          className="d-flex align-items-center"
+          className="d-md-flex d-none align-items-center"
           style={{ marginTop: "-70px" }}
         >
           <div className="position-relative me-3">
@@ -265,8 +250,76 @@ const Profile = () => {
             style={{ boxShadow: "none" }}
           />
         </div>
+        <div
+          className="d-flex d-md-none align-items-center"
+          style={{ marginTop: "-70px" }}
+        >
+          <div
+            className="position-relative me-3"
+            style={{
+              width: "80px",
+              height: "80px",
+            }}
+          >
+            {formData.profileImage ? (
+              <img
+                src={formData.profileImage}
+                alt="Profile"
+                className="border bg-secondary"
+                style={{
+                  objectFit: "cover",
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "50%",
+                }}
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className=" d-flex align-items-center justify-content-center bg-secondary"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius:"50px"
+                }}
+              >
+                <FaUserCircle style={{ width: "70px", height: "70px"}} />
+              </div>
+            )}
 
-        <div className="row mt-4">
+            <label
+              htmlFor="profileImageUpload"
+              className="position-absolute"
+              style={{
+                width: "30px",
+                height: "30px",
+                backgroundColor: "#ca60ad",
+                opacity: 0.9,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                bottom: "-5px",
+                right: "-5px",
+                borderRadius: "50%",
+                boxShadow: "0px 2px 8px rgba(0,0,0,0.25)",
+              }}
+            >
+              <FaCamera style={{ color: "white", fontSize: "14px" }} />
+            </label>
+          </div>
+
+          <input
+            type="file"
+            id="profileImageUpload"
+            accept="image/*"
+            onChange={handleImageChange}
+            hidden
+          />
+        </div>
+
+
+        <div className="row mt-md-4 mt-3">
           <div className="col-12 col-md-4 mb-3">
             <label className="label">
               Full Name <span className="text-danger">*</span>

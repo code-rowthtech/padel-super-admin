@@ -117,7 +117,6 @@ const Navbar = () => {
                     const parsedData = JSON.parse(userLocal);
                     setUserData(parsedData);
                 } catch (error) {
-                    console.error('Error parsing user data from localStorage:', error);
                     setUserData(null);
                 }
             } else {
@@ -134,7 +133,6 @@ const Navbar = () => {
                     const parsedData = JSON.parse(userLocal);
                     setUserData(parsedData);
                 } catch (error) {
-                    console.error('Error parsing user data from localStorage:', error);
                     setUserData(null);
                 }
             } else {
@@ -149,11 +147,10 @@ const Navbar = () => {
         };
     }, [store?.user?.status, store?.user?.response?.user,]);
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
-console.log({updateName});
     const initialFormData = {
         fullName: user?.response?.name || updateName?.fullName || User?.name || "",
         phone: user?.response?.phoneNumber || updateName?.phone || User?.phoneNumber || "",
-        profileImage:updateName?.profile || user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic,
+        profileImage: updateName?.profile || user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic,
     };
 
     useEffect(() => {
@@ -215,8 +212,7 @@ console.log({updateName});
     return (
         <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0 navbar-shadow-mobile">
             <div className="container py-md-1 py-0 ps-md-0 ">
-                <div className="d-flex justify-content-between align-items-center w-100 px-0 ps-md-0 mt-1">
-                    {/* Logo */}
+                <div className="d-flex justify-content-between align-items-center w-100 px-0 ps-md-0 mt-md-1 mt-0">
                     <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand col-md-3 col-8">
                         {logo ? (
                             <div className='add_logo_font'
@@ -261,7 +257,6 @@ console.log({updateName});
                         <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
                     </Link>
 
-                    {/* Navigation links - Hidden on mobile */}
                     <div className="mx-auto d-none d-lg-flex col-6 align-items-center justify-content-center">
                         <ul className="navbar-nav ps-md-0 ps-0 ms-md-0 ms-0 mb-2 mb-lg-0 gap-md-5">
                             {/* <li className="nav-item">
@@ -315,22 +310,18 @@ console.log({updateName});
                         </ul>
                     </div>
 
-                    {/* Mobile Menu Toggle */}
                     <button
                         className="btn d-lg-none p-0 border-0 bg-transparent mb-1"
                         onClick={() => setShowOffcanvas(true)}
                     >
-                        {/* <FaBars size={24} className="text-dark" /> */}
                         <img src={clearall} alt='' style={{ width: "20px", height: "10px" }} />
                     </button>
 
-                    {/* Profile Section - Desktop only */}
                     <div className="d-none d-lg-flex gap-3 align-items-center col-3 justify-content-end pe-2">
 
                         {store?.user?.status === '200' || token || store?.user?.status === 200 ? (
                             <>
                                 <div className="position-relative" ref={dropdownRef}>
-                                    {/* Bell Icon */}
                                     <div
                                         className="d-flex rounded-circle justify-content-center mt-1 notification-bg align-items-center"
                                         style={{
@@ -344,7 +335,6 @@ console.log({updateName});
                                         </Badge>
                                     </div>
 
-                                    {/* Dropdown */}
                                     {open && (
                                         <div
                                             className="shadow-sm p-2"
@@ -388,10 +378,8 @@ console.log({updateName});
                                                                     cursor: "pointer",
                                                                 }}
                                                             >
-                                                                {/* Left: Profile Image or Initial */}
 
 
-                                                                {/* Middle: Notification content */}
                                                                 <div style={{ flex: 1 }}>
                                                                     <div style={{ fontWeight: 500, fontSize: "13px" }}>
                                                                         {note?.adminId ? "Padel" : ''} – {note.title}
@@ -426,7 +414,6 @@ console.log({updateName});
                                                                     </p>
 
 
-                                                                    {/* Show when expanded */}
                                                                     {openNoteId === note._id && (
                                                                         <div className="d-flex gap-2 mt-2">
                                                                             <button
@@ -440,7 +427,6 @@ console.log({updateName});
                                                                         </div>
                                                                     )}
                                                                 </div>
-                                                                {/* Right: Toggle Icon */}
                                                                 <div
                                                                     className="mt-2"
                                                                     onClick={(e) => {
@@ -544,12 +530,10 @@ console.log({updateName});
                 </div>
             </div>
 
-            {/* Mobile Offcanvas Menu */}
             <Offcanvas show={showOffcanvas} onHide={() => setShowOffcanvas(false)} placement="end" className="border-0 w-75 ">
-                <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2 py-0">
+                <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2 py-2">
                     <Offcanvas.Title className="d-flex align-items-center gap-3">
 
-                        {/* Logo / Avatar */}
                         <Link
                             to="/home"
                             className="d-flex align-items-center text-decoration-none"
@@ -588,7 +572,6 @@ console.log({updateName});
                 </Offcanvas.Header>
                 <Offcanvas.Body className="p-0">
                     <div className="d-flex flex-column h-100">
-                        {/* Navigation Links */}
                         <div className="flex-grow-1">
                             {/* <NavLink
                                 to="/home"
@@ -642,7 +625,6 @@ console.log({updateName});
                                 <span>Americanos</span>
                             </NavLink> */}
 
-                            {/* User Menu Items */}
                             {(store?.user?.status === '200' || token || store?.user?.status === 200) && (
                                 <>
                                     <div className="px-4 py-2 bg-light border-bottom">
@@ -691,21 +673,37 @@ console.log({updateName});
                             )}
                         </div>
 
-                        {/* Bottom Section */}
                         <div className="border-top">
                             {(store?.user?.status === '200' || token || store?.user?.status === 200) ? (
                                 <>
-                                    {/* User Info */}
                                     <div className="px-4 py-3 border-bottom">
                                         <div className="d-flex align-items-center gap-3">
-                                            <img
-                                                src={User?.user?.response?.profilePic || updateName?.profile || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                                                alt="user"
-                                                className="rounded-circle"
-                                                width="50"
-                                                height="50"
-                                                loading="lazy"
-                                            />
+                                            {initialFormData?.profileImage ? (
+                                                <img
+                                                    src={initialFormData.profileImage}
+                                                    alt="user"
+                                                    className="rounded-circle"
+                                                    width="50"
+                                                    height="50"
+                                                    loading="lazy"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <Avatar
+                                                sx={{
+                                                    width: 50,
+                                                    height: 50,
+                                                    backgroundColor: '#1F41BB',
+                                                    fontSize: '20px',
+                                                    fontWeight: 600,
+                                                    display: initialFormData?.profileImage ? 'none' : 'flex'
+                                                }}
+                                            >
+                                                {(userData?.name || initialFormData?.fullName || 'User').charAt(0).toUpperCase()}
+                                            </Avatar>
                                             <div>
                                                 <div className="fw-semibold">
                                                     {userData?.name
@@ -717,7 +715,6 @@ console.log({updateName});
                                         </div>
                                     </div>
 
-                                    {/* Logout */}
                                     <button
                                         className="btn w-100 d-flex align-items-center px-4 py-3 text-start border-0 bg-transparent"
                                         style={{ color: '#dc3545' }}

@@ -47,7 +47,6 @@ const BookingSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // -----------------------------------------------------//---- Get Bookings by status
     builder.addCase(getBookingByStatus.pending, (state) => {
       state.getBookingLoading = true;
       state.getBookingData = null;
@@ -63,7 +62,6 @@ const BookingSlice = createSlice({
       state.getBookingData = null;
       state.getBookingError = action.payload;
     });
-    // -----------------------------------------------------//---- Get Booking Details By Id
     builder.addCase(getBookingDetailsById.pending, (state) => {
       state.getBookingDetailsLoading = true;
       state.getBookingDetailsData = null;
@@ -79,7 +77,6 @@ const BookingSlice = createSlice({
       state.getBookingDetailsData = null;
       state.getBookingDetailsError = action.payload;
     });
-    // -----------------------------------------------------//---- Update Booking Status
     builder.addCase(updateBookingStatus.pending, (state) => {
       state.updateBookingLoading = true;
       state.updateBookingData = null;
@@ -96,7 +93,6 @@ const BookingSlice = createSlice({
       state.updateBookingError = action.payload;
     });
 
-    // -----------------------------------------------------//---- count Booking Status
     builder.addCase(bookingCount.pending, (state) => {
       state.bookingCountLoading = true;
       state.bookingCount = null;

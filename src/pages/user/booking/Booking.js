@@ -14,7 +14,7 @@ import {
 } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
 import {
@@ -40,6 +40,7 @@ import {
 import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
+import { createBooking } from "../../../redux/user/booking/thunk";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -97,6 +98,7 @@ const Booking = ({ className = "" }) => {
     useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+  const bookingStatus = useSelector((state) => state?.userBooking);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorShow, setErrorShow] = useState(false);
   const logo =
@@ -110,11 +112,12 @@ const Booking = ({ className = "" }) => {
   const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedBuisness, setSelectedBuisness] = useState([]);
   const [selectedCourts, setSelectedCourts] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
   const [selectedDate, setSelectedDate] = useState({
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
-  const [activeTab, setActiveTab] = useState(0); // Default to morning tab
+  const [showBanner, setShowBanner] = useState(true);
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -170,7 +173,6 @@ const Booking = ({ className = "" }) => {
     const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
 
     if (isAlreadySelected) {
-      // Deselect
       const filteredTimes = currentCourtTimes.filter((t) => t._id !== time._id);
       setSelectedTimes((prev) => ({
         ...prev,
@@ -383,28 +385,89 @@ const Booking = ({ className = "" }) => {
   );
   const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
 
-  // Close Order Summary when all slots are removed
   useEffect(() => {
     if (totalSlots === 0) {
       setIsExpanded(false);
     }
   }, [totalSlots]);
 
-  const handleBookNow = () => {
-    if (totalSlots === 0) {
-      setErrorMessage("Select a slot to enable booking");
-      setErrorShow(true);
-      return;
+  const handleBookNow = async () => {
+    const register_club_id = localStorage.getItem("register_club_id");
+    const owner_id = localStorage.getItem("owner_id");
+
+    if (!register_club_id || !owner_id) {
+      throw new Error("Club information missing.");
     }
-    if (!user?.token) {
-      const courtIds = selectedCourts
-        .map((court) => court._id)
-        .filter((id) => id)
-        .join(",");
-      navigate("/login", {
-        state: {
-          redirectTo: "/payment",
-          paymentState: {
+
+    const slotArray = selectedCourts.flatMap((court) =>
+      court.time.map((timeSlot) => ({
+        slotId: timeSlot._id,
+        businessHours: slotData?.data?.[0]?.slots?.[0]?.businessHours?.map((t) => ({
+          time: t?.time,
+          day: t?.day,
+        })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
+        slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount ?? 2000 }],
+        courtName: court.courtName,
+        courtId: court._id,
+        bookingDate: court.date,
+      }))
+    );
+
+    const payload = {
+      name: 'testing',
+      phoneNumber: 9999999999,
+      email: 'testing@gmail.com',
+      register_club_id,
+      bookingStatus: "upcoming",
+      bookingType: "regular",
+      ownerId: owner_id,
+      slot: slotArray,
+      paymentMethod: 'gpay',
+      isSlotCheck: true
+    };
+
+    const bookingResponse = await dispatch(createBooking(payload)).unwrap();
+
+    console.log({ bookingResponse });
+    if (bookingResponse?.success === true) {
+
+      if (totalSlots === 0) {
+        setErrorMessage("Select a slot to enable booking");
+        setErrorShow(true);
+        return;
+      }
+      if (!user?.token) {
+        const courtIds = selectedCourts
+          .map((court) => court._id)
+          .filter((id) => id)
+          .join(",");
+        navigate("/login", {
+          state: {
+            redirectTo: "/payment",
+            paymentState: {
+              courtData: {
+                day: selectedDate?.day,
+                date: selectedDate?.fullDate,
+                time: selectedBuisness,
+                courtId: courtIds,
+                court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
+                slot: slotData?.data?.[0]?.slots,
+              },
+              clubData,
+              selectedCourts,
+              selectedDate,
+              grandTotal,
+              totalSlots,
+            },
+          },
+        });
+      } else {
+        const courtIds = selectedCourts
+          .map((court) => court._id)
+          .filter((id) => id)
+          .join(",");
+        navigate("/payment", {
+          state: {
             courtData: {
               day: selectedDate?.day,
               date: selectedDate?.fullDate,
@@ -419,30 +482,10 @@ const Booking = ({ className = "" }) => {
             grandTotal,
             totalSlots,
           },
-        },
-      });
+        });
+      }
     } else {
-      const courtIds = selectedCourts
-        .map((court) => court._id)
-        .filter((id) => id)
-        .join(",");
-      navigate("/payment", {
-        state: {
-          courtData: {
-            day: selectedDate?.day,
-            date: selectedDate?.fullDate,
-            time: selectedBuisness,
-            courtId: courtIds,
-            court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
-            slot: slotData?.data?.[0]?.slots,
-          },
-          clubData,
-          selectedCourts,
-          selectedDate,
-          grandTotal,
-          totalSlots,
-        },
-      });
+      window.location.reload();
     }
   };
 
@@ -488,7 +531,6 @@ const Booking = ({ className = "" }) => {
     }
   }, [errorShow, errorMessage]);
 
-  // Show tooltip for 15 slot limit when hovering over any slot after reaching the limit
   useEffect(() => {
     const tooltip = document.getElementById('slot-limit-tooltip') || (() => {
       const newTooltip = document.createElement('div');
@@ -638,58 +680,60 @@ const Booking = ({ className = "" }) => {
             </div>
           </div>
         </div>
-        <div className="px-3 d-lg-none mobile-banner">
-          <div
-            className="image-zoom-container position-relative overflow-hidden rounded-3"
-            style={{
-              height: "100%",
-              background:
-                "linear-gradient(269.34deg, rgba(80, 78, 78, 0.61) 0.57%, #111827 94.62%)",
-              backgroundBlendMode: "multiply",
-            }}
-          >
-            {/* <img
-                            src={twoball}
-                            alt="Paddle"
-                            className="img-fluid w-100 h-100 object-fit-cover sharp-image"
-                            style={{
-                                borderRadius: "13px",
-                                imageRendering: "auto",
-                                imageRendering: "-webkit-optimize-contrast",
-                                filter: "none"
-                            }}
-                        /> */}
-            <img
-              src={bannerimg}
-              alt="Paddle"
-              className="img-fluid w-100 object-fit-cover rounded-3 d-block d-md-none"
-              style={{ height: "173px" }}
-            />
-
+        {showBanner && (
+          <div className="px-3 d-lg-none mobile-banner">
             <div
-              className="position-absolute top-0 start-0 w-100 h-100 pt-lg-0 d-flex flex-column justify-content-center text-white p-5"
+              className="image-zoom-container position-relative overflow-hidden rounded-3"
               style={{
+                height: "100%",
                 background:
-                  "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)",
+                  "linear-gradient(269.34deg, rgba(80, 78, 78, 0.61) 0.57%, #111827 94.62%)",
                 backgroundBlendMode: "multiply",
               }}
             >
-              <p
-                className="mb-0 ps-md-4"
+              {/* <img
+                              src={twoball}
+                              alt="Paddle"
+                              className="img-fluid w-100 h-100 object-fit-cover sharp-image"
+                              style={{
+                                  borderRadius: "13px",
+                                  imageRendering: "auto",
+                                  imageRendering: "-webkit-optimize-contrast",
+                                  filter: "none"
+                              }}
+                          /> */}
+              <img
+                src={bannerimg}
+                alt="Paddle"
+                className="img-fluid w-100 object-fit-cover rounded-3 d-block d-md-none"
+                style={{ height: "173px" }}
+              />
+
+              <div
+                className="position-absolute top-0 start-0 w-100 h-100 pt-lg-0 d-flex flex-column justify-content-center text-white p-5"
                 style={{
-                  fontSize: "12px",
-                  fontFamily: "Poppins",
-                  fontWeight: "500",
+                  background:
+                    "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)",
+                  backgroundBlendMode: "multiply",
                 }}
               >
-                BOOK YOUR SLOT AT
-              </p>
-              <h1 className="booking-img-heading ps-md-4">
-                {clubData?.clubName || ""}
-              </h1>
+                <p
+                  className="mb-0 ps-md-4"
+                  style={{
+                    fontSize: "12px",
+                    fontFamily: "Poppins",
+                    fontWeight: "500",
+                  }}
+                >
+                  BOOK YOUR SLOT AT
+                </p>
+                <h1 className="booking-img-heading ps-md-4">
+                  {clubData?.clubName || ""}
+                </h1>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="container mb-md-0 mb-0 pt-1 pt-lg-0 px-lg-4">
         <div className="row g-4">
@@ -735,6 +779,7 @@ const Booking = ({ className = "" }) => {
                             });
                             setSelectedDate({ fullDate: formattedDate, day });
                             setSelectedTimes({});
+                            setShowBanner(false);
                             dispatch(
                               getUserSlotBooking({
                                 day,
@@ -968,6 +1013,7 @@ const Booking = ({ className = "" }) => {
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
+                          setShowBanner(false);
                           dispatch(
                             getUserSlotBooking({
                               day: d.day,
@@ -1277,20 +1323,24 @@ const Booking = ({ className = "" }) => {
                                               : "pointer",
                                             opacity: isDisabled ? 0.6 : 1,
                                             border: isSelected
-                                              ? ""
+                                              ? "1px solid transparent"
                                               : "1px solid #4949491A",
+                                            borderLeft: "3px solid #0034E4",
                                             fontSize: "11px",
                                             padding: "4px 2px",
                                             height: "32px",
+
                                           }}
                                           onMouseEnter={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
                                               e.currentTarget.style.border = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
                                           onMouseLeave={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available") {
-                                              e.currentTarget.style.border = "1px solid #4949491A";
+                                              e.currentTarget.style.border = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+                                              e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
                                         >
@@ -1606,7 +1656,7 @@ const Booking = ({ className = "" }) => {
             <div
               className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
               style={{
-                height: "63vh",
+                height: "68vh",
                 borderRadius: "10px 30% 10px 10px",
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 position: "relative",
@@ -2168,9 +2218,10 @@ const Booking = ({ className = "" }) => {
                       />
                     </g>
                   </svg>
-                  <div style={contentStyle}> Book Now</div>
+                  <div style={contentStyle}>  {bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
                 </button>
               </div>
+
             </div>
           </div>
         </div>

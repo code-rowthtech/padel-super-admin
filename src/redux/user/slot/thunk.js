@@ -28,7 +28,6 @@ export const getUserSlotBooking = createAsyncThunk(
 
       return response?.data;
     } catch (error) {
-      // Display error message and reject with error data
       showError(error?.message || "Something went wrong while fetching slots");
       return rejectWithValue(error?.response?.data || error.message);
     }
@@ -55,7 +54,6 @@ export const getUserSlot = createAsyncThunk(
 
       return response?.data;
     } catch (error) {
-      // Display error message and reject with error data
       showError(error?.message || "Something went wrong while fetching slots");
       return rejectWithValue(error?.response?.data || error.message);
     }
@@ -68,7 +66,6 @@ export const getMatchesSlot = createAsyncThunk(
   "club/getMathcesSlot",
   async ({ register_club_id, day, date }, { rejectWithValue }) => {
     try {
-      // Early validation
       if (!register_club_id || !day || !date) {
         throw new Error("Missing required parameters: register_club_id or day");
       }

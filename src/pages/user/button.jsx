@@ -1,14 +1,9 @@
 import React from 'react';
 
 const CustomButton = () => {
-  // Mock props for demonstration
   const width = 370;
   const height = 75;
   const circleRadius = height * 0.3;
-  // Calculate the center of the curved end section more precisely
-  const curvedSectionStart = width * 0.76; // Where the curve starts
-  const curvedSectionEnd = width * 0.996; // Where the curve ends
-  const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1; // Added 1 pixel to the right
   const circleY = height * 0.5;
   const arrowSize = circleRadius * 0.6;
   const arrowX = circleX;
@@ -52,7 +47,6 @@ const CustomButton = () => {
     alert('Button clicked! (would navigate to /payment)');
   };
 
-  // Mock Link component since we don't have react-router-dom
   const Link = ({ to, children, style, className }) => (
     <div style={style} className={className}>
       {children}
@@ -80,7 +74,6 @@ const CustomButton = () => {
               </linearGradient>
             </defs>
 
-            {/* Main button shape - responsive to dimensions */}
             <path
               d={`M ${width * 0.76} ${height * 0.15} 
              C ${width * 0.79} ${height * 0.15} ${width * 0.81} ${height * 0.20} ${width * 0.83} ${height * 0.30} 
@@ -100,7 +93,6 @@ const CustomButton = () => {
               fill={`url(#buttonGradient-${width}-${height})`}
             />
 
-            {/* Green circle - properly positioned and sized */}
             <circle
               cx={circleX}
               cy={circleY}
@@ -108,7 +100,6 @@ const CustomButton = () => {
               fill="#3DBE64"
             />
 
-            {/* Arrow icon - scaled proportionally */}
             <g stroke="white" strokeWidth={height * 0.03} fill="none" strokeLinecap="round" strokeLinejoin="round">
               <path d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4} L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4}`} />
               <path d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4} L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4}`} />

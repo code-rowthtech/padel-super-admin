@@ -39,7 +39,6 @@ const Booking = () => {
   const ownerId = getOwnerFromSession()?._id;
   const [currentPage, setCurrentPage] = useState(1);
 
-  // State
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [showBookingCancel, setShowBookingCancel] = useState(false);
   const [tab, setTab] = useState(0);
@@ -73,7 +72,6 @@ const Booking = () => {
 
   const defaultLimit = 20;
 
-  // Fetch bookings based on tab
   useEffect(() => {
     const payload: any = {
       ownerId,
@@ -82,7 +80,6 @@ const Booking = () => {
     };
 
     if (tab !== 0) {
-      // Only send status if not "All"
       const status = tab === 1 ? "upcoming" : "completed";
       payload.status = status;
     }
@@ -121,7 +118,6 @@ const Booking = () => {
         ? setShowBookingDetails(true)
         : setShowBookingCancel(true);
     } catch (error) {
-      console.error("Failed to fetch booking details:", error);
     } finally {
       setLoadingBookingId(null);
     }
@@ -136,7 +132,6 @@ const Booking = () => {
 
   return (
     <Container fluid className="px-2 px-md-4">
-      {/* Heading & Manual Booking Button */}
 
       <Row className="mb-3">
         <Col xs={12}>
@@ -343,7 +338,6 @@ const Booking = () => {
               <DataLoading height="60vh" />
             ) : bookings.length > 0 ? (
               <>
-                {/* Desktop Table */}
                 <div
                   className="custom-scroll-container flex-grow-1"
                   style={{
@@ -478,7 +472,6 @@ const Booking = () => {
                   </Table>
                 </div>
 
-                {/* Mobile Card Layout */}
                 <div className="mobile-card-table d-block d-md-none">
                   {bookings.map((item) => (
                     <div key={item?._id} className="card">
@@ -573,7 +566,6 @@ const Booking = () => {
               </div>
             )}
 
-            {/* Pagination */}
             {totalItems > defaultLimit && (
               <div
                 className="pt-3 d-flex justify-content-center align-items-center border-top"
@@ -594,7 +586,6 @@ const Booking = () => {
         </Col>
       </Row>
 
-      {/* Modals */}
       <BookingDetailsModal
         show={showBookingDetails}
         handleClose={() => setShowBookingDetails(false)}

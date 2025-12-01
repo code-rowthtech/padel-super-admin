@@ -9,7 +9,6 @@ export const registerClub = createAsyncThunk(
     try {
       const res = await ownerApi.post(Url.REGISTER_CLUB, data);
       if (res?.data?.status === 200) {
-        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to register club");
@@ -17,7 +16,6 @@ export const registerClub = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      // return rejectWithValue(error?.response?.data?.message || "Network error");
     }
   }
 );
@@ -32,7 +30,6 @@ export const getSlots = createAsyncThunk(
         }&time=${data?.time || ""}`
       );
       if (res?.status === 200) {
-        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to create slot");
@@ -40,7 +37,6 @@ export const getSlots = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      // return rejectWithValue(error?.response?.data?.message || "Network error");
     }
   }
 );
@@ -51,7 +47,6 @@ export const updateRegisteredClub = createAsyncThunk(
     try {
       const res = await ownerApi.put(Url.UPDATE_REGISTERED_CLUB, data);
       if (res?.status === 200) {
-        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to update club");
@@ -59,7 +54,6 @@ export const updateRegisteredClub = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      // return rejectWithValue(error);
     }
   }
 );
@@ -78,7 +72,6 @@ export const createSlot = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      // return rejectWithValue(error);
     }
   }
 );
@@ -89,7 +82,6 @@ export const updateCourt = createAsyncThunk(
     try {
       const res = await ownerApi.put(Url.UPDATE_COURT, data);
       if (res?.status === 200) {
-        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to create slot");
@@ -97,7 +89,6 @@ export const updateCourt = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      // return rejectWithValue(error);
     }
   }
 );
@@ -109,7 +100,6 @@ export const getClubRegister = createAsyncThunk(
     try {
       const res = await ownerApi.get(`${Url.GET_CLUB_REGISTER}?clubId=${data}`);
       if (res?.status === 200) {
-        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to create slot");
@@ -117,7 +107,6 @@ export const getClubRegister = createAsyncThunk(
       }
     } catch (error) {
       showError(error);
-      // return rejectWithValue(error);
     }
   }
 );
