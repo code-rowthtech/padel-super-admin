@@ -115,15 +115,10 @@ const CourtAvailability = () => {
   });
 
   const courts = activeCourtsData?.data || [];
-  const selectedCourtData =
-    selectedCourt === "all"
-      ? null
-      : courts.find((c) => c._id === selectedCourt);
-  const slotTimes =
-    selectedCourt === "all"
-      ? courts.flatMap((court) => court?.slot?.[0]?.slotTimes || [])
-      : selectedCourtData?.slot?.[0]?.slotTimes || [];
-  const businessHours = selectedCourtData?.slot?.[0]?.businessHours || [];
+  const [allCourtsList, setAllCourtsList] = useState([]);
+  const slotTimes = activeCourtsData?.data?.[0]?.slot?.[0]?.slotTimes || [];
+  const businessHours =
+    activeCourtsData?.data?.[0]?.slot?.[0]?.businessHours || [];
 
   const handleCourtSelect = (courtId) => {
     setSelectedCourt(courtId);
@@ -224,25 +219,38 @@ const CourtAvailability = () => {
   }, []);
 
   useEffect(() => {
-    if (ownerClubData?.[0]?._id) {
+    if (ownerClubData?.[0]?._id && selectedCourt === "all") {
       dispatch(
         getActiveCourts({
           register_club_id: ownerClubData[0]._id,
           day: selectedDay,
           date: selectedDate,
-          courtId: selectedCourt === "all" ? "" : selectedCourt,
+          courtId: "",
         })
       );
     }
-  }, [selectedDay, selectedDate, ownerClubData?.[0]?._id, selectedCourt]);
+  }, [ownerClubData?.[0]?._id, selectedDay, selectedDate, selectedCourt]);
 
   useEffect(() => {
-    if (selectedCourt && ownerClubData?.[0]?._id) {
-      console.log("Court selected:", selectedCourt);
-      // Send courtId to backend but don't update state to keep all courts visible
-      // You can log or send to a different endpoint if needed
+    if (ownerClubData?.[0]?._id && selectedCourt && selectedCourt !== "all") {
+      dispatch(
+        getActiveCourts({
+          register_club_id: ownerClubData[0]._id,
+          day: selectedDay,
+          date: selectedDate,
+          courtId: selectedCourt,
+        })
+      );
     }
-  }, [selectedCourt]);
+  }, [selectedCourt, selectedDay, selectedDate]);
+
+  useEffect(() => {
+    if (activeCourtsData?.allCourts?.[0]?.court) {
+      setAllCourtsList(activeCourtsData.allCourts[0].court);
+    } else if (activeCourtsData?.data && allCourtsList.length === 0) {
+      setAllCourtsList(activeCourtsData.data);
+    }
+  }, [activeCourtsData]);
 
   const handleConfirm = async () => {
     const slotsPayload = [];
@@ -295,8 +303,16 @@ const CourtAvailability = () => {
         const { [selectedDate]: _, ...rest } = prev;
         return rest;
       });
-      setSelectedCourt("");
       setCommonStatus("");
+
+      dispatch(
+        getActiveCourts({
+          register_club_id: ownerClubData[0]._id,
+          day: selectedDay,
+          date: selectedDate,
+          courtId: selectedCourt === "all" ? "" : selectedCourt,
+        })
+      );
     } catch (error) {
       showError("Failed to update slot status.");
     }
@@ -363,7 +379,7 @@ const CourtAvailability = () => {
                   >
                     All Courts
                   </button>
-                  {courts.map((court) => (
+                  {allCourtsList?.map((court) => (
                     <button
                       key={court._id}
                       onClick={() => handleCourtSelect(court._id)}
@@ -691,288 +707,230 @@ const CourtAvailability = () => {
                 <DataLoading height="15vh" />
               ) : (
                 <div className="mb-4">
-                  {(() => {
-                    if (selectedCourt === "all" || !selectedCourt) {
-                      // Show all courts grouped
-                      return (
-                        <div>
-                          {courts.map((court) => {
-                            const courtSlots =
-                              court?.slot?.[0]?.slotTimes || [];
-                            const filteredCourtSlots = courtSlots?.filter(
-                              (slot) => {
-                                if (showUnavailable) return true;
+                  {selectedCourt === "all" ? (
+                    <div>
+                      {courts.map((court) => {
+                        const courtSlots = court?.slot?.[0]?.slotTimes || [];
+                        const filteredCourtSlots = courtSlots.filter((slot) => {
+                          if (showUnavailable) return true;
+                          const slotDate = new Date(selectedDate);
+                          const [hourString, period] = slot?.time
+                            ?.toLowerCase()
+                            .split(" ");
+                          let hour = parseInt(hourString);
+                          if (period === "pm" && hour !== 12) hour += 12;
+                          if (period === "am" && hour === 12) hour = 0;
+                          slotDate.setHours(hour, 0, 0, 0);
+                          const now = new Date();
+                          const isSameDay =
+                            slotDate.toDateString() === now.toDateString();
+                          const isPast =
+                            isSameDay && slotDate.getTime() < now.getTime();
+                          if (isPast) return false;
+                          if (slot?.status === "booked") return false;
+                          const isUnavailableForThisCourt =
+                            slot?.courtIdsForSlot?.includes(court._id);
+                          return !isUnavailableForThisCourt;
+                        });
 
-                                const slotDate = new Date(selectedDate);
-                                const [hourString, period] = slot?.time
-                                  ?.toLowerCase()
-                                  .split(" ");
-                                let hour = parseInt(hourString);
-                                if (period === "pm" && hour !== 12) hour += 12;
-                                if (period === "am" && hour === 12) hour = 0;
-                                slotDate.setHours(hour, 0, 0, 0);
-
-                                const now = new Date();
-                                const isSameDay =
-                                  slotDate.toDateString() ===
-                                  now.toDateString();
-                                const isPast =
-                                  isSameDay &&
-                                  slotDate.getTime() < now.getTime();
-
-                                if (isPast) return false;
-                                if (slot?.status === "booked") return false;
-
-                                const isUnavailableForThisCourt =
-                                  slot?.courtIdsForSlot?.includes(court._id);
-
-                                return !isUnavailableForThisCourt;
-                              }
-                            );
-
-                            return (
-                              <div key={court._id} className="mb-4">
-                                <h6
+                        return (
+                          <div key={court._id} className="mb-4">
+                            <h6
+                              style={{
+                                color: "#374151",
+                                fontWeight: "600",
+                                fontFamily: "Poppins",
+                              }}
+                            >
+                              {court.courtName}
+                            </h6>
+                            <div className="d-flex flex-wrap gap-2">
+                              {filteredCourtSlots.length === 0 ? (
+                                <div
+                                  className="text-muted"
                                   style={{
-                                    color: "#374151",
-                                    fontWeight: "600",
+                                    fontSize: "12px",
                                     fontFamily: "Poppins",
                                   }}
                                 >
-                                  {court.courtName}
-                                </h6>
-                                <div className="d-flex flex-wrap gap-2">
-                                  {filteredCourtSlots?.length === 0 ? (
-                                    <div
-                                      className="text-muted"
-                                      style={{
-                                        fontSize: "12px",
-                                        fontFamily: "Poppins",
-                                      }}
+                                  No slots available
+                                </div>
+                              ) : (
+                                filteredCourtSlots.map((slot, i) => {
+                                  const slotDate = new Date(selectedDate);
+                                  const [hourString, period] = slot?.time
+                                    ?.toLowerCase()
+                                    .split(" ");
+                                  let hour = parseInt(hourString);
+                                  if (period === "pm" && hour !== 12)
+                                    hour += 12;
+                                  if (period === "am" && hour === 12) hour = 0;
+                                  slotDate.setHours(hour, 0, 0, 0);
+                                  const now = new Date();
+                                  const isSameDay =
+                                    slotDate.toDateString() ===
+                                    now.toDateString();
+                                  const isPast =
+                                    isSameDay &&
+                                    slotDate.getTime() < now.getTime();
+                                  const dateSlots =
+                                    selectedSlots[selectedDate] || {};
+                                  const courtSelectedSlots =
+                                    dateSlots[court._id] || [];
+                                  const isSelected = courtSelectedSlots.some(
+                                    (t) => t?.slot?._id === slot?._id
+                                  );
+                                  const isUnavailableForThisCourt =
+                                    slot?.courtIdsForSlot?.includes(court._id);
+                                  const status = isUnavailableForThisCourt
+                                    ? slot?.availabilityStatus
+                                    : "available";
+                                  const isBooked = slot?.status === "booked";
+                                  const isDisabled = isPast || isBooked;
+                                  const tooltipText = isPast
+                                    ? "Past Time"
+                                    : isBooked
+                                    ? "Booked"
+                                    : status.charAt(0).toUpperCase() +
+                                      status.slice(1);
+
+                                  return (
+                                    <OverlayTrigger
+                                      key={i}
+                                      placement="top"
+                                      overlay={<Tooltip>{tooltipText}</Tooltip>}
                                     >
-                                      No slots available
-                                    </div>
-                                  ) : (
-                                    filteredCourtSlots?.map((slot, i) => {
-                                      const slotDate = new Date(selectedDate);
-                                      const [hourString, period] = slot?.time
-                                        ?.toLowerCase()
-                                        .split(" ");
-                                      let hour = parseInt(hourString);
-                                      if (period === "pm" && hour !== 12)
-                                        hour += 12;
-                                      if (period === "am" && hour === 12)
-                                        hour = 0;
-                                      slotDate.setHours(hour, 0, 0, 0);
-
-                                      const now = new Date();
-                                      const isSameDay =
-                                        slotDate.toDateString() ===
-                                        now.toDateString();
-                                      const isPast =
-                                        isSameDay &&
-                                        slotDate.getTime() < now.getTime();
-                                      const dateSlots =
-                                        selectedSlots[selectedDate] || {};
-                                      const courtSelectedSlots =
-                                        dateSlots[court._id] || [];
-                                      const isSelected =
-                                        courtSelectedSlots.some(
-                                          (t) => t?.slot?._id === slot?._id
-                                        );
-                                      const isUnavailableForThisCourt =
-                                        slot?.courtIdsForSlot?.includes(
-                                          court._id
-                                        );
-                                      const status = isUnavailableForThisCourt
-                                        ? slot?.availabilityStatus
-                                        : "available";
-                                      const isBooked =
-                                        slot?.status === "booked";
-                                      const isDisabled = isPast || isBooked;
-
-                                      const tooltipText = isPast
-                                        ? "Past Time - Cannot Book"
-                                        : isBooked
-                                        ? "Booked"
-                                        : status.charAt(0).toUpperCase() +
-                                          status.slice(1);
-
-                                      const buttonEl = (
-                                        <div
-                                          key={slot._id}
-                                          className="position-relative"
-                                          style={{ display: "inline-block" }}
-                                        >
-                                          <button
-                                            className={`border rounded-3 slot-time-btn text-nowrap py-1 ${
-                                              isBooked
-                                                ? "bg-danger text-white"
-                                                : ""
-                                            }`}
-                                            onClick={() => {
-                                              // Don't switch tabs, just toggle the slot
-                                              const dateKey = selectedDate;
-                                              const courtSlots =
-                                                selectedSlots[dateKey]?.[
-                                                  court._id
-                                                ] || [];
-                                              const exists = courtSlots.some(
-                                                (s) => s.slot._id === slot._id
-                                              );
-
-                                              const isUnavailableForThisCourt =
-                                                slot?.courtIdsForSlot?.includes(
-                                                  court._id
-                                                );
-                                              const slotStatus =
-                                                isUnavailableForThisCourt
-                                                  ? slot?.availabilityStatus
-                                                  : "available";
-
-                                              let newCourtSlots = exists
-                                                ? courtSlots.filter(
-                                                    (s) =>
-                                                      s.slot._id !== slot._id
-                                                  )
-                                                : [
-                                                    ...courtSlots,
-                                                    {
-                                                      slot,
-                                                      status: slotStatus,
-                                                    },
-                                                  ];
-
-                                              const newDateSlots = {
-                                                ...selectedSlots[dateKey],
-                                                [court._id]: newCourtSlots,
-                                              };
-
-                                              let newSelectedSlots;
-                                              if (newCourtSlots.length === 0) {
+                                      <span className="d-inline-block">
+                                        <button
+                                          className={`border rounded-3 slot-time-btn text-nowrap py-1 ${
+                                            isBooked
+                                              ? "bg-danger text-white"
+                                              : ""
+                                          }`}
+                                          onClick={() => {
+                                            const dateKey = selectedDate;
+                                            const courtSlots =
+                                              selectedSlots[dateKey]?.[
+                                                court._id
+                                              ] || [];
+                                            const exists = courtSlots.some(
+                                              (s) => s.slot._id === slot._id
+                                            );
+                                            const slotStatus =
+                                              isUnavailableForThisCourt
+                                                ? slot?.availabilityStatus
+                                                : "available";
+                                            let newCourtSlots = exists
+                                              ? courtSlots.filter(
+                                                  (s) => s.slot._id !== slot._id
+                                                )
+                                              : [
+                                                  ...courtSlots,
+                                                  { slot, status: slotStatus },
+                                                ];
+                                            const newDateSlots = {
+                                              ...selectedSlots[dateKey],
+                                              [court._id]: newCourtSlots,
+                                            };
+                                            let newSelectedSlots;
+                                            if (newCourtSlots.length === 0) {
+                                              const {
+                                                [court._id]: _,
+                                                ...restCourts
+                                              } = newDateSlots;
+                                              if (
+                                                Object.keys(restCourts)
+                                                  .length === 0
+                                              ) {
                                                 const {
-                                                  [court._id]: _,
-                                                  ...restCourts
-                                                } = newDateSlots;
-                                                if (
-                                                  Object.keys(restCourts)
-                                                    .length === 0
-                                                ) {
-                                                  const {
-                                                    [dateKey]: _,
-                                                    ...restDates
-                                                  } = selectedSlots;
-                                                  newSelectedSlots = restDates;
-                                                } else {
-                                                  newSelectedSlots = {
-                                                    ...selectedSlots,
-                                                    [dateKey]: restCourts,
-                                                  };
-                                                }
+                                                  [dateKey]: _,
+                                                  ...restDates
+                                                } = selectedSlots;
+                                                newSelectedSlots = restDates;
                                               } else {
                                                 newSelectedSlots = {
                                                   ...selectedSlots,
-                                                  [dateKey]: newDateSlots,
+                                                  [dateKey]: restCourts,
                                                 };
                                               }
-
-                                              setSelectedSlots(
-                                                newSelectedSlots
-                                              );
-                                            }}
-                                            disabled={isDisabled}
-                                            style={{
-                                              backgroundColor: isSelected
-                                                ? "#374151"
-                                                : isBooked
-                                                ? "#dc3545"
-                                                : isPast
-                                                ? "#c9cfcfff"
-                                                : showUnavailable
-                                                ? "#FFFFFF"
-                                                : "#FFFFFF",
-                                              color:
-                                                isSelected || isBooked
-                                                  ? "white"
-                                                  : "#000000",
-                                              fontSize: "12px",
-                                              fontFamily: "Poppins",
-                                              position: "relative",
-                                              minWidth: "70px",
-                                              overflow: "hidden",
-                                            }}
-                                          >
-                                            {isBooked
-                                              ? "Booked"
-                                              : formatSlotTime(slot.time)}
-
-                                            {!isBooked &&
-                                              (status === "maintenance" ||
-                                                status ===
-                                                  "weather conditions" ||
-                                                status ===
-                                                  "staff unavailability") && (
-                                                <>
-                                                  <span
-                                                    style={{
-                                                      position: "absolute",
-                                                      top: "50%",
-                                                      left: "-20%",
-                                                      width: "140%",
-                                                      height: "2px",
-                                                      backgroundColor:
-                                                        "#dc3545",
-                                                      transform:
-                                                        "rotate(20deg)",
-                                                      pointerEvents: "none",
-                                                    }}
-                                                  ></span>
-                                                  <span
-                                                    style={{
-                                                      position: "absolute",
-                                                      top: "50%",
-                                                      left: "-20%",
-                                                      width: "140%",
-                                                      height: "2px",
-                                                      backgroundColor:
-                                                        "#dc3545",
-                                                      transform:
-                                                        "rotate(-20deg)",
-                                                      pointerEvents: "none",
-                                                    }}
-                                                  ></span>
-                                                </>
-                                              )}
-                                          </button>
-                                        </div>
-                                      );
-
-                                      return (
-                                        <OverlayTrigger
-                                          key={i}
-                                          placement="top"
-                                          overlay={
-                                            <Tooltip>{tooltipText}</Tooltip>
-                                          }
+                                            } else {
+                                              newSelectedSlots = {
+                                                ...selectedSlots,
+                                                [dateKey]: newDateSlots,
+                                              };
+                                            }
+                                            setSelectedSlots(newSelectedSlots);
+                                          }}
+                                          disabled={isDisabled}
+                                          style={{
+                                            backgroundColor: isSelected
+                                              ? "#374151"
+                                              : isBooked
+                                              ? "#dc3545"
+                                              : isPast
+                                              ? "#c9cfcfff"
+                                              : "#FFFFFF",
+                                            color:
+                                              isSelected || isBooked
+                                                ? "white"
+                                                : "#000000",
+                                            fontSize: "12px",
+                                            fontFamily: "Poppins",
+                                            position: "relative",
+                                            minWidth: "70px",
+                                            overflow: "hidden",
+                                          }}
                                         >
-                                          <span className="d-inline-block">
-                                            {buttonEl}
-                                          </span>
-                                        </OverlayTrigger>
-                                      );
-                                    })
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    } else if (selectedCourt && selectedCourt !== "all") {
-                      // Show single court slots (original logic)
+                                          {isBooked
+                                            ? "Booked"
+                                            : formatSlotTime(slot.time)}
+                                          {!isBooked &&
+                                            (status === "maintenance" ||
+                                              status === "weather conditions" ||
+                                              status ===
+                                                "staff unavailability") && (
+                                              <>
+                                                <span
+                                                  style={{
+                                                    position: "absolute",
+                                                    top: "50%",
+                                                    left: "-20%",
+                                                    width: "140%",
+                                                    height: "2px",
+                                                    backgroundColor: "#dc3545",
+                                                    transform: "rotate(20deg)",
+                                                    pointerEvents: "none",
+                                                  }}
+                                                ></span>
+                                                <span
+                                                  style={{
+                                                    position: "absolute",
+                                                    top: "50%",
+                                                    left: "-20%",
+                                                    width: "140%",
+                                                    height: "2px",
+                                                    backgroundColor: "#dc3545",
+                                                    transform: "rotate(-20deg)",
+                                                    pointerEvents: "none",
+                                                  }}
+                                                ></span>
+                                              </>
+                                            )}
+                                        </button>
+                                      </span>
+                                    </OverlayTrigger>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    (() => {
                       const filteredSlotTimes = slotTimes?.filter((slot) => {
                         if (showUnavailable) return true;
-
                         const slotDate = new Date(selectedDate);
                         const [hourString, period] = slot?.time
                           ?.toLowerCase()
@@ -981,19 +939,15 @@ const CourtAvailability = () => {
                         if (period === "pm" && hour !== 12) hour += 12;
                         if (period === "am" && hour === 12) hour = 0;
                         slotDate.setHours(hour, 0, 0, 0);
-
                         const now = new Date();
                         const isSameDay =
                           slotDate.toDateString() === now.toDateString();
                         const isPast =
                           isSameDay && slotDate.getTime() < now.getTime();
-
                         if (isPast) return false;
                         if (slot?.status === "booked") return false;
-
                         const isUnavailableForThisCourt =
                           slot?.courtIdsForSlot?.includes(selectedCourt);
-
                         return !isUnavailableForThisCourt;
                       });
 
@@ -1128,8 +1082,8 @@ const CourtAvailability = () => {
                           })}
                         </div>
                       );
-                    }
-                  })()}
+                    })()
+                  )}
                 </div>
               )}
             </Col>
