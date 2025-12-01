@@ -165,7 +165,6 @@ const OpenmatchPayment = () => {
         // Validation
         if (!selectedPayment) return setError({ paymentMethod: "Select payment method" });
         if (!name?.trim()) return setError({ name: "Name required" });
-        if (!email?.trim() || !/^\S+@\S+\.\S+$/.test(email)) return setError({ email: " Email is required" });
 
         const cleanPhone = phoneNumber?.replace(/^\+91\s*/, "").trim();
         if (!cleanPhone || cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone))

@@ -178,11 +178,7 @@ const Payment = ({ className = "" }) => {
         : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
           ? "Invalid phone number"
           : "",
-      email: !email.trim()
-        ? "Email is required"
-        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-          ? "Invalid email"
-          : "",
+    
       paymentMethod: !selectedPayment ? "Please select a payment method" : "",
     };
 
