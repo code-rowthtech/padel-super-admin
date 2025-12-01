@@ -768,7 +768,9 @@ const CreateMatches = () => {
             color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
             cursor: isDisabled ? "not-allowed" : "pointer",
             opacity: isDisabled ? 0.6 : 1,
-            border: isSelected ? "1px solid transparent" : "1px solid #4949491A",
+            borderTop: isSelected ? "1px solid transparent" : "1px solid #4949491A",
+            borderRight: isSelected ? "1px solid transparent" : "1px solid #4949491A",
+            borderBottom: isSelected ? "1px solid transparent" : "1px solid #4949491A",
             borderLeft: "3px solid #0034E4",
             fontSize: "11px",
             padding: "4px 2px",
@@ -778,13 +780,17 @@ const CreateMatches = () => {
           }}
           onMouseEnter={(e) => {
             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
-              e.currentTarget.style.border = "1px solid #3DBE64";
+              e.currentTarget.style.borderTop = "1px solid #3DBE64";
+              e.currentTarget.style.borderRight = "1px solid #3DBE64";
+              e.currentTarget.style.borderBottom = "1px solid #3DBE64";
               e.currentTarget.style.borderLeft = "3px solid #0034E4";
             }
           }}
           onMouseLeave={(e) => {
             if (!isDisabled && slot.availabilityStatus === "available") {
-              e.currentTarget.style.border = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+              e.currentTarget.style.borderTop = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+              e.currentTarget.style.borderRight = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+              e.currentTarget.style.borderBottom = isSelected ? "1px solid transparent" : "1px solid #4949491A";
               e.currentTarget.style.borderLeft = "3px solid #0034E4";
             }
           }}
@@ -1141,7 +1147,7 @@ const CreateMatches = () => {
                         }}
                         className="hide-scrollbar"
                       >
-                        <style jsx>{`
+                        <style>{`
                           .hide-scrollbar::-webkit-scrollbar {
                             display: none;
                           }
@@ -1301,7 +1307,7 @@ const CreateMatches = () => {
                     marginBottom: isExpanded ? "10px" : "0",
                   }}
                 >
-                  <style jsx>{`
+                  <style>{`
                     .mobile-expanded-slots::-webkit-scrollbar {
                       width: 8px;
                       border-radius: 3px;

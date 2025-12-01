@@ -1209,7 +1209,7 @@ const Booking = ({ className = "" }) => {
                       >
                         {/* Your content here */}
 
-                        <style jsx>{`
+                        <style>{`
                           .hide-scrollbar::-webkit-scrollbar {
                             display: none; /* Safari and Chrome */
                           }
@@ -1322,7 +1322,13 @@ const Booking = ({ className = "" }) => {
                                               ? "not-allowed"
                                               : "pointer",
                                             opacity: isDisabled ? 0.6 : 1,
-                                            border: isSelected
+                                            borderTop: isSelected
+                                              ? "1px solid transparent"
+                                              : "1px solid #4949491A",
+                                            borderRight: isSelected
+                                              ? "1px solid transparent"
+                                              : "1px solid #4949491A",
+                                            borderBottom: isSelected
                                               ? "1px solid transparent"
                                               : "1px solid #4949491A",
                                             borderLeft: "3px solid #0034E4",
@@ -1333,13 +1339,17 @@ const Booking = ({ className = "" }) => {
                                           }}
                                           onMouseEnter={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
-                                              e.currentTarget.style.border = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderTop = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderRight = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderBottom = "1px solid #3DBE64";
                                               e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
                                           onMouseLeave={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available") {
-                                              e.currentTarget.style.border = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+                                              e.currentTarget.style.borderTop = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+                                              e.currentTarget.style.borderRight = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+                                              e.currentTarget.style.borderBottom = isSelected ? "1px solid transparent" : "1px solid #4949491A";
                                               e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
@@ -1465,7 +1475,7 @@ const Booking = ({ className = "" }) => {
                                     marginRight: "8px",            
                                 }}
                             >
-                                <style jsx>{`
+                                <style>{`
                                      div::-webkit-scrollbar {
                                               width: 8px;
                                     border-radius : 3px;
@@ -1517,7 +1527,7 @@ const Booking = ({ className = "" }) => {
                                         overflowY: totalSlots > 2 && isExpanded ? "auto" : "hidden",
                                         transition: "max-height 0.3s ease",
                                     }}>
-                                        <style jsx>{`
+                                        <style>{`
                                             .mobile-expanded-slots.expanded::-webkit-scrollbar {
                                                 width: 6px;
                                                 border-radius: 3px;
@@ -1686,7 +1696,7 @@ const Booking = ({ className = "" }) => {
                 </div>
               )}
 
-              <style jsx>{`
+              <style>{`
                 .small-curve-arrow {
                   position: absolute;
                   top: -14px;
@@ -1819,7 +1829,7 @@ const Booking = ({ className = "" }) => {
                   paddingRight: "16px",
                 }}
               >
-                <style jsx>{`
+                <style>{`
                   div::-webkit-scrollbar {
                     width: 8px;
                     border-radius: 3px;
@@ -1960,7 +1970,7 @@ const Booking = ({ className = "" }) => {
                       </h6>
                     )}
 
-                    <style jsx>{`
+                    <style>{`
                       .mobile-expanded-slots.expanded::-webkit-scrollbar {
                         width: 6px;
                         border-radius: 3px;

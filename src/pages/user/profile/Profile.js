@@ -107,8 +107,9 @@ const Profile = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    const formatted =
-      value.length > 0
+    const formatted = name === 'email' 
+      ? value
+      : value.length > 0
         ? value.charAt(0).toUpperCase() + value.slice(1)
         : "";
 

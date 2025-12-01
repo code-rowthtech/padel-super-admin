@@ -16,8 +16,10 @@ import {
 import {
     getUserProfile,
     loginUserNumber,
+    updateUser,
 } from "../../../redux/user/auth/authThunk";
 import { booking_logo_img } from "../../../assets/files";
+import { showError } from "../../../helpers/Toast";
 
 const formatTime = (timeStr) =>
     timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
@@ -129,12 +131,13 @@ const OpenmatchPayment = () => {
 
     const {
         slotData = {},
-        selectedAnswers = [],
+        finalSkillDetails = [],
         selectedDate = {},
         selectedCourts = [],
         selectedGender = [],
         addedPlayers: stateAddedPlayers = {}, dynamicSteps, finalLevelStep
     } = state || {};
+    console.log({finalSkillDetails});
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -173,12 +176,12 @@ const OpenmatchPayment = () => {
 
         try {
             if (!User?.name || !User?.phoneNumber || !User?.email) {
-                await dispatch(loginUserNumber({ phoneNumber: cleanPhone, name, email })).unwrap();
+                await dispatch(updateUser({ phoneNumber: cleanPhone, name, email })).unwrap();
             }
-            const answersArray = selectedAnswers
-                ? Object.keys(selectedAnswers)
+            const answersArray = finalSkillDetails
+                ? Object.keys(finalSkillDetails)
                     .sort((a, b) => a - b)
-                    .map(key => selectedAnswers[key])
+                    .map(key => finalSkillDetails[key])
                 : [];
 
             const formattedMatch = {
@@ -256,7 +259,7 @@ const OpenmatchPayment = () => {
 
                     } catch (err) {
                         console.error("Post-payment error:", err);
-                        alert(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
+                        showError(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
                     }
                 },
 
@@ -283,22 +286,6 @@ const OpenmatchPayment = () => {
         }
     };
 
-    const formatDate = (dateStr) => {
-        if (!dateStr) return { day: "Sun", formattedDate: "27 Aug" };
-        const date = new Date(dateStr);
-        const day = date.toLocaleDateString("en-US", { weekday: "short" });
-        const formattedDate = `${date.getDate()} ${date.toLocaleDateString(
-            "en-US",
-            { month: "short" }
-        )}`;
-        return { day, formattedDate };
-    };
-
-    const totalAmount = selectedCourts.reduce(
-        (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 1000), 0),
-        0
-    );
-    const totalPlayers = 1 + Object.keys(finalAddedPlayers).length;
 
     // Local state for mobile summary
     const localSelectedCourts = selectedCourts || [];
@@ -567,7 +554,7 @@ const OpenmatchPayment = () => {
                                             justifyContent: "center",
                                         }}
                                     >
-                                        <img src={logo} alt="Club" style={{ width: "100%", height: "auto!important" }} />
+                                        <img src={logo} alt="Club" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                     </div>
                                 ) : (
                                     <div
@@ -594,7 +581,7 @@ const OpenmatchPayment = () => {
                                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary {localTotalSlots > 0 ? ` (${localTotalSlots} Slot selected)` : ''}</h6>
                             </div>
                             <div className="px-3">
-                                <style jsx>{`
+                                <style>{`
                                      .slots-container::-webkit-scrollbar {
                                        width: 8px;
                                        border-radius : 3px;
@@ -697,7 +684,7 @@ const OpenmatchPayment = () => {
                                             )}
                                         </div>
                                     )}
-                                    <style jsx>{`
+                                    <style>{`
                     .small-curve-arrow {
                       position: absolute;
                       top: -14px;
@@ -742,7 +729,7 @@ const OpenmatchPayment = () => {
                                                 Order Summary :
                                             </h6>
                                         )}
-                                        <style jsx>{`
+                                        <style>{`
                       .mobile-expanded-slots::-webkit-scrollbar {
                         width: 8px;
                         border-radius: 3px;

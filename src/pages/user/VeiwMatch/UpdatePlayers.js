@@ -171,6 +171,7 @@ const UpdatePlayers = ({
                     matchDate: selectedDate?.fullDate,
                     ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
                     ...(selectedLevel && { skillLevel: selectedLevel }),
+                    clubId: localStorage.getItem("register_club_id"),
                   };
 
                   dispatch(getMatchesUser(payload));
@@ -262,7 +263,10 @@ const UpdatePlayers = ({
                 placeholder="Enter phone"
                 value={formData.phoneNumber}
                 onChange={(e) => {
-                  const v = e.target.value.replace(/[^0-9]/g, "");
+                  let v = e.target.value.replace(/[^0-9]/g, "");
+                  if (v.length === 1 && !['6', '7', '8', '9'].includes(v)) {
+                    v = '6';
+                  }
                   if (v.length <= 10) {
                     setFormData((prev) => ({ ...prev, phoneNumber: v }));
                   }
