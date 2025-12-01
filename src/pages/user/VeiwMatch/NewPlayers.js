@@ -89,9 +89,9 @@ const NewPlayers = ({
       newErrors.name = "Name must be at least 3 characters";
     }
 
-    if (formData.email.trim() && !/^\S+@\S+\.\S+$/.test(formData.email)) {
-      newErrors.email = "Enter a valid email";
-    }
+    // if (formData.email.trim() && !/^\S+@\S+\.\S+$/.test(formData.email)) {
+    //   newErrors.email = "Enter a valid email";
+    // }
 
     if (!formData.phoneNumber) {
       newErrors.phoneNumber = "Phone number is required";
@@ -177,9 +177,11 @@ const NewPlayers = ({
       setProfileLoading(false);
     };
 
-    fetchData();
+    if (showAddMeForm) {
+      fetchData();
+    }
 
-  }, [dispatch]);
+  }, [showAddMeForm]);
 
 
   const handleInputChange = (field, value, formatFn = null) => {
@@ -329,14 +331,14 @@ const NewPlayers = ({
               placeholder="Enter your email"
               style={inputStyle("email")}
             />
-            {showErrors.email && errors.email && (
+            {/* {showErrors.email && errors.email && (
               <small
                 className="text-danger d-block mt-1"
                 style={{ fontSize: "12px" }}
               >
                 {errors.email}
               </small>
-            )}
+            )} */}
           </div>
 
           <div className="mb-3">
