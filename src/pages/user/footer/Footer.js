@@ -177,7 +177,7 @@ const Footer = () => {
 
         </Row>
 
-        <Row className="mt-md-3 mt-0 pt-3 text-center text-muted small address_data">
+        <Row className="mt-md-3 mb-lg-0 mb-5 mt-0 pt-3 text-center text-muted small address_data">
           <Col>&copy; 2025 RowthTech | All Rights Reserved.</Col>
         </Row>
       </Container>

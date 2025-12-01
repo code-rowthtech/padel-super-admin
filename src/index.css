@@ -1107,7 +1107,22 @@ h1.display-5 {
   }
 
   footer {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+    margin-bottom: 0 !important;
+    min-height: auto !important;
+  }
+
+  .address_data {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  footer .container {
+    padding-bottom: 1rem !important;
+  }
+
+  footer .row {
+    margin-bottom: 0.5rem !important;
   }
 
   /* Court list responsive */

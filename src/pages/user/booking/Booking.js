@@ -14,7 +14,7 @@ import {
 } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
 import {
@@ -98,6 +98,7 @@ const Booking = ({ className = "" }) => {
     useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+  const bookingStatus = useSelector((state) => state?.userBooking);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorShow, setErrorShow] = useState(false);
   const logo =
@@ -2214,9 +2215,10 @@ const Booking = ({ className = "" }) => {
                       />
                     </g>
                   </svg>
-                  <div style={contentStyle}> Book Now</div>
+                  <div style={contentStyle}>  {bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
                 </button>
               </div>
+
             </div>
           </div>
         </div>
