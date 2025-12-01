@@ -988,28 +988,16 @@ const ClubUpdateForm = () => {
               </Row>
               <Row className="mb-3">
                 <Col md={3}>
-                  <Input
-                    label="Instagram Link"
-                    field="instagramLink"
-                  />
+                  <Input label="Instagram Link" field="instagramLink" />
                 </Col>
                 <Col md={3}>
-                  <Input
-                    label="LinkedIn Link"
-                    field="linkedinLink"
-                  />
+                  <Input label="LinkedIn Link" field="linkedinLink" />
                 </Col>
                 <Col md={3}>
-                  <Input
-                    label="Facebook Link"
-                    field="facebookLink"
-                  />
+                  <Input label="Facebook Link" field="facebookLink" />
                 </Col>
                 <Col md={3}>
-                  <Input
-                    label="X Link"
-                    field="xlink"
-                  />
+                  <Input label="X Link" field="xlink" />
                 </Col>
               </Row>
             </Col>

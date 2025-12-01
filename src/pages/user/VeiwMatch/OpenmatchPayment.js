@@ -86,6 +86,7 @@ const OpenmatchPayment = () => {
     );
     const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
     );
+    console.log({User});
     const store = useSelector((state) => state?.userAuth);
 
     const logo = localStorage.getItem("logo")
@@ -164,7 +165,7 @@ const OpenmatchPayment = () => {
         // Validation
         if (!selectedPayment) return setError({ paymentMethod: "Select payment method" });
         if (!name?.trim()) return setError({ name: "Name required" });
-        if (!email?.trim() || !/^\S+@\S+\.\S+$/.test(email)) return setError({ email: "Valid email required" });
+        if (!email?.trim() || !/^\S+@\S+\.\S+$/.test(email)) return setError({ email: " Email is required" });
 
         const cleanPhone = phoneNumber?.replace(/^\+91\s*/, "").trim();
         if (!cleanPhone || cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone))
@@ -375,7 +376,7 @@ const OpenmatchPayment = () => {
                                 />
                                 {error.name && (
                                     <div
-                                        className="text-danger position-absolute"
+                                        className="text-danger position-absolute mt-3"
                                         style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
                                         {error.name}
@@ -438,16 +439,7 @@ const OpenmatchPayment = () => {
                                     onChange={(e) => {
                                         const value = e.target.value;
                                         if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
-                                            if (value.length === 0) {
-                                                setEmail("");
-                                                return;
-                                            }
-                                            const formattedValue = value
-                                                .replace(/\s+/g, "")
-                                                .replace(/^(.)(.*)(@.*)?$/, (match, first, rest, domain = "") => {
-                                                    return first.toUpperCase() + rest.toLowerCase() + domain;
-                                                });
-                                            setEmail(formattedValue);
+                                            setEmail(value.replace(/\s+/g, ""));
                                         }
                                     }}
                                     className="form-control border-0 p-2"

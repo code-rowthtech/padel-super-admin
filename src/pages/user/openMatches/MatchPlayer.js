@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
@@ -76,6 +76,7 @@ const MatchPlayer = ({
     userSkillLevel, selectedAnswers,
     dynamicSteps,
     finalLevelStep,
+    onBackToSlots,
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -87,21 +88,26 @@ const MatchPlayer = ({
     const [defaultLevel, setDefaultLevel] = useState();
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
     const [profileFetched, setProfileFetched] = useState(false);
-console.log({finalSkillDetails});
+    const hasCalledProfile = useRef(false);
+
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
+
+    const [userName, setUserName] = useState(User?.name);
 
 
 
     useEffect(() => {
         const fetchData = async () => {
-            if (profileFetched) return;
+            if (hasCalledProfile.current) return;
+            hasCalledProfile.current = true;
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
                 const firstAnswer = result?.response?.level;
                 setDefaultSkillLevel(result?.response?.skillLevel || "Open Match");
                 setDefaultLevel(firstAnswer);
+                setUserName(result?.response?.name);
                 setProfileFetched(true);
             } catch (err) {
                 setProfileFetched(true);
@@ -114,10 +120,10 @@ console.log({finalSkillDetails});
                 const skillCode = lastStepAnswer.split(' - ')[0];
                 setDefaultLevel(skillCode);
             }
-        } else if (!profileFetched) {
+        } else if (!hasCalledProfile.current) {
             fetchData();
         }
-    }, [dispatch, finalSkillDetails, profileFetched]);
+    }, []);
 
     useEffect(() => {
         const syncFromStorage = () => {
@@ -159,9 +165,9 @@ console.log({finalSkillDetails});
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
-console.log({selectedGender});
+    console.log({ selectedGender });
     const handleAddMeClick = (slot) => {
-        if (!selectedGender ) {
+        if (!selectedGender) {
             setGenderError("Please select  gender.");
             return;
         } else {
@@ -220,7 +226,7 @@ console.log({selectedGender});
     const formatMatchTimes = (courts) => {
         if (!courts || courts.length === 0) return "";
         const times = courts.flatMap((c) => c.time.map((t) => t.time));
-        
+
         const formattedTimes = times.map(time => {
             let hour, period;
             if (/am|pm/i.test(time)) {
@@ -239,9 +245,9 @@ console.log({selectedGender});
             }
             return { hour, period };
         });
-        
+
         if (formattedTimes.length === 0) return "";
-        
+
         const lastPeriod = formattedTimes[formattedTimes.length - 1].period;
         const formatted = formattedTimes.map((time, index) => {
             if (index === formattedTimes.length - 1) {
@@ -249,7 +255,7 @@ console.log({selectedGender});
             }
             return time.hour;
         });
-        
+
         return formatted.join("-");
     };
 
@@ -265,7 +271,7 @@ console.log({selectedGender});
         ? finalSkillDetails[Object.keys(finalSkillDetails)[0]]
         : "Intermediate";
 
-console.log({displayUserSkillLevel});
+    console.log({ displayUserSkillLevel });
 
     const handleBookNow = () => {
         if (!selectedGender || selectedGender === "") {
@@ -302,7 +308,9 @@ console.log({displayUserSkillLevel});
 
 
     const onBack = () => {
-        if (window.innerWidth <= 768) {
+        if (onBackToSlots) {
+            onBackToSlots();
+        } else if (window.innerWidth <= 768) {
             window.history.back();
         } else {
             navigate('/open-matches');
@@ -435,7 +443,7 @@ console.log({displayUserSkillLevel});
                         >
                             {matchDate.day}, {matchDate.formattedDate} |{" "}
                             {matchTime.slice(0, 20)}
-                            {matchTime.length > 20 ? "..." : ""} 
+                            {matchTime.length > 20 ? "..." : ""}
                         </small>
                         <small
                             className="text-muted d-lg-none add_font_mobile"
@@ -443,7 +451,7 @@ console.log({displayUserSkillLevel});
                         >
                             {matchDate.day}, {matchDate.formattedDate}{" "}
                             {matchTime.slice(0, 20)}
-                            {matchTime.length > 20 ? "..." : ""} 
+                            {matchTime.length > 20 ? "..." : ""}
                         </small>
                     </div>
 
@@ -505,7 +513,7 @@ console.log({displayUserSkillLevel});
                                 Level
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
-                                {finalSkillDetails && Object.keys(finalSkillDetails).length > 0 
+                                {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
                                     ? finalSkillDetails[0]
                                     : defaultSkillLevel || "Open Match"}
                             </p>
@@ -569,7 +577,7 @@ console.log({displayUserSkillLevel});
                                             <img src={User.profilePic || updateName?.profile} alt="you" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {updateName?.fullName ? updateName?.fullName?.[0]?.toUpperCase() : User.name?.[0]?.toUpperCase() || "U"}
+                                                {User.name?.[0]?.toUpperCase() || "U"}
                                             </span>
                                         )}
                                     </div>
@@ -577,13 +585,16 @@ console.log({displayUserSkillLevel});
                                         className="mb-0 mt-2 fw-semibold text-center"
                                         style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
-                                        data-tooltip-content={User.name}
+                                        data-tooltip-content={userName || User.name}
                                     >
-                                        {updateName?.fullName ? updateName?.fullName?.length > 12 ? `${updateName?.fullName.substring(0, 12)}...` : updateName?.fullName : User.name?.length > 12 ? `${User.name.substring(0, 12)}...` : User.name || 'User'}
+                                        {(() => {
+                                            const displayName = userName || User.name || 'User';
+                                            return displayName.length > 12 ? `${displayName.substring(0, 12)}...` : displayName;
+                                        })()}
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
-                                        {finalSkillDetails && Object.keys(finalSkillDetails).length > 0 
+                                        {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
                                             ? (finalSkillDetails[5] ? finalSkillDetails[5].split(' - ')[0] : finalSkillDetails[0])
                                             : defaultLevel?.split(" - ")[0] || "A"}
                                     </span>
