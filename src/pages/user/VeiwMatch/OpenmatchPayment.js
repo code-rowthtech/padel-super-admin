@@ -260,7 +260,7 @@ const OpenmatchPayment = () => {
 
                     } catch (err) {
                         console.error("Post-payment error:", err);
-                        showError(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
+                        // showError(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
                     }
                 },
 

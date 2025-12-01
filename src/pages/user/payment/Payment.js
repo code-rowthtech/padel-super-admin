@@ -266,7 +266,7 @@ const Payment = ({ className = "" }) => {
               throw new Error(bookingResponse?.message || "Booking failed");
             }
           } catch (err) {
-            showError("Booking failed after payment: " + (err.message || "Please contact support"));
+            // showError("Booking failed after payment: " + (err.message || "Please contact support"));
             console.error(err);
           }
         },
