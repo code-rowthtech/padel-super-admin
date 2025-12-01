@@ -503,7 +503,7 @@ const Payment = ({ className = "" }) => {
         {/* Booking Summary */}
         <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-payment-summary">
           <div
-            className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
+            className="border w-100 px-0 pt-1 pb-3 border-0 mobile-summary-container small-curve-wrapper d-flex flex-column"
             style={{
               height: "62vh",
               borderRadius: "10px 30% 10px 10px",
@@ -620,7 +620,7 @@ const Payment = ({ className = "" }) => {
             </div>
 
             {/* Desktop Slots Scroll */}
-            <div className="px-3" style={{ maxHeight: "160px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
+            <div className="px-3" style={{ maxHeight: "200px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
               <style jsx>{`
       div::-webkit-scrollbar {
         width: 8px;
@@ -831,14 +831,7 @@ const Payment = ({ className = "" }) => {
             )}
 
             {/* Book Button */}
-            {/* <div className="d-flex justify-content-center align-items-center px-3">
-    <button style={buttonStyle} className={className} onClick={handlePayment}>
-      <div style={contentStyle}>
-        {isLoading || bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}
-      </div>
-    </button>
-  </div> */}
-            <div className="d-flex justify-content-center align-items-center px-3">
+            <div className="mt-auto d-flex justify-content-center align-items-center px-3 pb-2">
               <button
                 style={{
                   ...buttonStyle,
