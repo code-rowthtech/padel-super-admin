@@ -40,6 +40,7 @@ import {
 import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
+import { createBooking } from "../../../redux/user/booking/thunk";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -389,21 +390,83 @@ const Booking = ({ className = "" }) => {
     }
   }, [totalSlots]);
 
-  const handleBookNow = () => {
-    if (totalSlots === 0) {
-      setErrorMessage("Select a slot to enable booking");
-      setErrorShow(true);
-      return;
+  const handleBookNow = async () => {
+    const register_club_id = localStorage.getItem("register_club_id");
+    const owner_id = localStorage.getItem("owner_id");
+
+    if (!register_club_id || !owner_id) {
+      throw new Error("Club information missing.");
     }
-    if (!user?.token) {
-      const courtIds = selectedCourts
-        .map((court) => court._id)
-        .filter((id) => id)
-        .join(",");
-      navigate("/login", {
-        state: {
-          redirectTo: "/payment",
-          paymentState: {
+
+    const slotArray = selectedCourts.flatMap((court) =>
+      court.time.map((timeSlot) => ({
+        slotId: timeSlot._id,
+        businessHours: slotData?.data?.[0]?.slots?.[0]?.businessHours?.map((t) => ({
+          time: t?.time,
+          day: t?.day,
+        })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
+        slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount ?? 2000 }],
+        courtName: court.courtName,
+        courtId: court._id,
+        bookingDate: court.date,
+      }))
+    );
+
+    const payload = {
+      name: 'pankk',
+      phoneNumber: 786564534,
+      email: 'panak@gmail.com',
+      register_club_id,
+      bookingStatus: "upcoming",
+      bookingType: "regular",
+      ownerId: owner_id,
+      slot: slotArray,
+      paymentMethod: 'gpay',
+      isSlotCheck: true
+    };
+
+    const bookingResponse = await dispatch(createBooking(payload)).unwrap();
+
+    console.log({ bookingResponse });
+    if (bookingResponse?.success === true) {
+
+      if (totalSlots === 0) {
+        setErrorMessage("Select a slot to enable booking");
+        setErrorShow(true);
+        return;
+      }
+      if (!user?.token) {
+        const courtIds = selectedCourts
+          .map((court) => court._id)
+          .filter((id) => id)
+          .join(",");
+        navigate("/login", {
+          state: {
+            redirectTo: "/payment",
+            paymentState: {
+              courtData: {
+                day: selectedDate?.day,
+                date: selectedDate?.fullDate,
+                time: selectedBuisness,
+                courtId: courtIds,
+                court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
+                slot: slotData?.data?.[0]?.slots,
+              },
+              clubData,
+              selectedCourts,
+              selectedDate,
+              grandTotal,
+              totalSlots,
+            },
+          },
+        });
+      } else {
+        const courtIds = selectedCourts
+          .map((court) => court._id)
+          .filter((id) => id)
+          .join(",");
+        navigate("/payment", {
+          state: {
             courtData: {
               day: selectedDate?.day,
               date: selectedDate?.fullDate,
@@ -418,30 +481,10 @@ const Booking = ({ className = "" }) => {
             grandTotal,
             totalSlots,
           },
-        },
-      });
+        });
+      }
     } else {
-      const courtIds = selectedCourts
-        .map((court) => court._id)
-        .filter((id) => id)
-        .join(",");
-      navigate("/payment", {
-        state: {
-          courtData: {
-            day: selectedDate?.day,
-            date: selectedDate?.fullDate,
-            time: selectedBuisness,
-            courtId: courtIds,
-            court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
-            slot: slotData?.data?.[0]?.slots,
-          },
-          clubData,
-          selectedCourts,
-          selectedDate,
-          grandTotal,
-          totalSlots,
-        },
-      });
+      window.location.reload();
     }
   };
 
@@ -941,6 +984,7 @@ const Booking = ({ className = "" }) => {
                       formatDate(new Date(selectedDate?.fullDate)) ===
                       d.fullDate;
 
+                    // Calculate slot count for this specific date
                     const slotCount = Object.values(selectedTimes).reduce(
                       (acc, courtDates) => {
                         const dateSlots = courtDates[d.fullDate] || [];
@@ -1030,6 +1074,7 @@ const Booking = ({ className = "" }) => {
               </div>
             </div>
 
+            {/* Global Tabs above courts - COMMENTED OUT */}
             {/* <div className="row mb-2 mx-xs-auto">
                             <div className="col-12 d-flex p-0 justify-content-center align-items-center">
                                 <div className="weather-tabs-wrapper w-100">
@@ -1073,6 +1118,7 @@ const Booking = ({ className = "" }) => {
                     !isPastTime(slot.time) &&
                     slot.amount > 0;
 
+                  // Apply mobile tab filter only on mobile screens
                   if (window.innerWidth <= 768) {
                     const tabKey = tabs[activeTab]?.key;
                     return basicFilter && filterSlotsByTab(slot, tabKey);
@@ -1126,7 +1172,7 @@ const Booking = ({ className = "" }) => {
                                         activeTab === index
                                           ? "text-primary"
                                           : "text-dark"
-                                      }
+                                      } // dark when inactive
                                     />
                                   </div>
                                 );
@@ -1154,14 +1200,21 @@ const Booking = ({ className = "" }) => {
                           overflowY: "auto",
                           overflowX: "hidden",
                           paddingRight: "8px",
+                          // WebKit: Hide scrollbar visually but keep functionality
+                          msOverflowStyle: "none", // IE and Edge
+                          scrollbarWidth: "none", // Firefox
                         }}
                         className="hide-scrollbar"
                       >
+                        {/* Your content here */}
 
                         <style jsx>{`
                           .hide-scrollbar::-webkit-scrollbar {
+                            display: none; /* Safari and Chrome */
                           }
                           .hide-scrollbar {
+                            -ms-overflow-style: none; /* IE and Edge */
+                            scrollbar-width: none; /* Firefox */
                           }
                         `}</style>
                         {slotData?.data.map((court, courtIndex) => {
@@ -1173,6 +1226,7 @@ const Booking = ({ className = "" }) => {
                               !isPastTime(slot.time) &&
                               slot.amount > 0;
 
+                            // Apply mobile tab filter only on mobile screens
                             if (window.innerWidth <= 768) {
                               const tabKey = tabs[activeTab]?.key;
                               return (
@@ -1243,6 +1297,7 @@ const Booking = ({ className = "" }) => {
                                             toggleTime(slot, court._id)
                                           }
                                           disabled={isDisabled}
+                                          // title={totalSlots >= MAX_SLOTS && !isSelected ? `You can select up to ${MAX_SLOTS} slots only` : ''}
 
                                           style={{
                                             background:
@@ -1306,6 +1361,7 @@ const Booking = ({ className = "" }) => {
                             slot.status !== "booked" &&
                             !isPastTime(slot.time));
 
+                        // Apply mobile tab filter only on mobile screens
                         if (window.innerWidth <= 768) {
                           const tabKey = tabs[activeTab]?.key;
                           return basicFilter && filterSlotsByTab(slot, tabKey);
@@ -1523,7 +1579,7 @@ const Booking = ({ className = "" }) => {
                                                         <MdKeyboardDoubleArrowUp
                                                             size={25}
                                                             style={{ color: "white" }}
-                                                            className="-infinite"
+                                                            className="arrow-shake-infinite"
                                                         />
                                                     </>
                                                 ) : (
@@ -1531,7 +1587,7 @@ const Booking = ({ className = "" }) => {
                                                         <MdKeyboardDoubleArrowDown
                                                             size={25}
                                                             style={{ color: "white" }}
-                                                            className="-infinite"
+                                                            className="arrow-shake-infinite"
                                                         />
                                                     </>
                                                 )}
@@ -1596,7 +1652,7 @@ const Booking = ({ className = "" }) => {
             <div
               className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
               style={{
-                height: "63vh",
+                height: "68vh",
                 borderRadius: "10px 30% 10px 10px",
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 position: "relative",
@@ -1614,13 +1670,13 @@ const Booking = ({ className = "" }) => {
                     <MdKeyboardArrowUp
                       size={25}
                       color="white"
-                      className="-infinite"
+                      className="arrow-shake-infinite"
                     />
                   ) : (
                     <MdKeyboardArrowDown
                       size={25}
                       color="white"
-                      className="-infinite"
+                      className="arrow-shake-infinite"
                     />
                   )}
                 </div>
@@ -1776,6 +1832,7 @@ const Booking = ({ className = "" }) => {
                   }
                 `}</style>
 
+                {/* Desktop Slots */}
                 <div
                   className="div d-none d-lg-block"
                   style={{ height: "18vh" }}

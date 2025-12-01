@@ -91,11 +91,7 @@ const MatchPlayer = ({
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
 
-    useEffect(() => {
-        if (userGender || updateName?.gender) {
-            setSelectedGender(userGender || updateName?.gender);
-        }
-    }, [userGender, updateName?.gender]);
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -154,9 +150,9 @@ const MatchPlayer = ({
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
-
+console.log({selectedGender});
     const handleAddMeClick = (slot) => {
-        if (!selectedGender || selectedGender === "") {
+        if (!selectedGender ) {
             setGenderError("Please select  gender.");
             return;
         } else {
@@ -212,8 +208,44 @@ const MatchPlayer = ({
     const matchDate = selectedDate?.fullDate
         ? formatMatchDate(selectedDate.fullDate)
         : { day: "Fri", formattedDate: "29 Aug" };
+    const formatMatchTimes = (courts) => {
+        if (!courts || courts.length === 0) return "";
+        const times = courts.flatMap((c) => c.time.map((t) => t.time));
+        
+        const formattedTimes = times.map(time => {
+            let hour, period;
+            if (/am|pm/i.test(time)) {
+                const match = time.match(/(\d+)\s*(am|pm)/i);
+                if (match) {
+                    hour = parseInt(match[1], 10);
+                    period = match[2].toUpperCase();
+                } else {
+                    return time;
+                }
+            } else {
+                const [hours, minutes] = time.split(":");
+                const hourNum = parseInt(hours, 10);
+                period = hourNum >= 12 ? "PM" : "AM";
+                hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
+            }
+            return { hour, period };
+        });
+        
+        if (formattedTimes.length === 0) return "";
+        
+        const lastPeriod = formattedTimes[formattedTimes.length - 1].period;
+        const formatted = formattedTimes.map((time, index) => {
+            if (index === formattedTimes.length - 1) {
+                return `${time.hour}${time.period}`;
+            }
+            return time.hour;
+        });
+        
+        return formatted.join("-");
+    };
+
     const matchTime = selectedCourts.length
-        ? selectedCourts.flatMap((c) => c.time.map((t) => t.time)).join(", ")
+        ? formatMatchTimes(selectedCourts)
         : "";
 
     const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
@@ -390,7 +422,7 @@ const MatchPlayer = ({
                         >
                             {matchDate.day}, {matchDate.formattedDate} |{" "}
                             {matchTime.slice(0, 20)}
-                            {matchTime.length > 20 ? "..." : ""} (60m)
+                            {matchTime.length > 20 ? "..." : ""} 
                         </small>
                         <small
                             className="text-muted d-lg-none add_font_mobile"
@@ -398,7 +430,7 @@ const MatchPlayer = ({
                         >
                             {matchDate.day}, {matchDate.formattedDate}{" "}
                             {matchTime.slice(0, 20)}
-                            {matchTime.length > 20 ? "..." : ""} (60m)
+                            {matchTime.length > 20 ? "..." : ""} 
                         </small>
                     </div>
 
@@ -469,7 +501,7 @@ const MatchPlayer = ({
                                 Your share
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
-                                ₹ {totalAmount.toLocaleString('en-IN')}
+                                ₹ {Math.round(totalAmount / 4).toLocaleString('en-IN')}
                             </p>
                         </div>
 
@@ -787,7 +819,7 @@ const MatchPlayer = ({
                                 className="mb-0"
                                 style={{ fontSize: "13px", color: "#374151" }}
                             >
-                                Doubles, Outdoor, Crystal
+                                Doubles
                             </p>
                         </div>
                     </div>
@@ -833,6 +865,7 @@ const MatchPlayer = ({
                 setAddedPlayers={setParentAddedPlayers}
                 skillDetails={selectedAnswers}
                 userSkillLevel={userSkillLevel || defaultSkillLevel}
+                defaultSkillLevel={defaultSkillLevel}
                 selectedGender={selectedGender}
             />
         </>

@@ -28,7 +28,7 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender
+  userSkillLevel, selectedGender,defaultSkillLevel
 }) => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -89,9 +89,7 @@ const NewPlayers = ({
       newErrors.name = "Name must be at least 3 characters";
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+    if (formData.email.trim() && !/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = "Enter a valid email";
     }
 
@@ -163,7 +161,7 @@ const NewPlayers = ({
       try {
         const result = await dispatch(getUserProfile()).unwrap();
 
-        const firstAnswer = result?.response?.level;
+        const firstAnswer = result?.response?.skillLevel;
         if (firstAnswer) {
           const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
 
@@ -281,39 +279,6 @@ const NewPlayers = ({
 
           <div className="mb-3">
             <label className="form-label">
-              Email <span className="text-danger">*</span>
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v === "" || /^[A-Za-z0-9@.]*$/.test(v)) {
-                  const formatted = v
-                    .replace(/\s+/g, "")
-                    .replace(
-                      /^(.)(.*)(@.*)?$/,
-                      (m, f, r, d = "") => f.toUpperCase() + r.toLowerCase() + d
-                    );
-                  handleInputChange("email", formatted);
-                }
-              }}
-              className="form-control p-2"
-              placeholder="Enter your email"
-              style={inputStyle("email")}
-            />
-            {showErrors.email && errors.email && (
-              <small
-                className="text-danger d-block mt-1"
-                style={{ fontSize: "12px" }}
-              >
-                {errors.email}
-              </small>
-            )}
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">
               Phone No <span className="text-danger">*</span>
             </label>
             <div className="input-group border rounded">
@@ -342,6 +307,34 @@ const NewPlayers = ({
                 style={{ fontSize: "12px" }}
               >
                 {errors.phoneNumber}
+              </small>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">
+              Email
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "" || /^[A-Za-z0-9@.]*$/.test(v)) {
+                  const formatted = v.replace(/\s+/g, "");
+                  handleInputChange("email", formatted);
+                }
+              }}
+              className="form-control p-2"
+              placeholder="Enter your email"
+              style={inputStyle("email")}
+            />
+            {showErrors.email && errors.email && (
+              <small
+                className="text-danger d-block mt-1"
+                style={{ fontSize: "12px" }}
+              >
+                {errors.email}
               </small>
             )}
           </div>

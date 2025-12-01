@@ -109,7 +109,7 @@ const UpdatePlayers = ({
   }, [playerLevels]);
   const validateField = (name, value) => {
     if (name === "name" && !value.trim()) return "Name is required";
-    if (name === "email" && !value.trim()) return "Email is required";
+    if (name === "email" && value.trim() && !/^\S+@\S+\.\S+$/.test(value)) return "Enter a valid email";
     if (name === "phoneNumber") {
       if (!value) return "Phone number is required";
       if (!/^[6-9]\d{9}$/.test(value)) return "Invalid phone number";
@@ -128,9 +128,13 @@ const UpdatePlayers = ({
 
   const handleAddPlayer = () => {
     const newErrors = {};
-    ["name", "email", "phoneNumber", "level"].forEach((field) => {
+    ["name", "phoneNumber", "level"].forEach((field) => {
       newErrors[field] = validateField(field, formData[field]);
     });
+    // Only validate email if it's provided
+    if (formData.email.trim()) {
+      newErrors.email = validateField("email", formData.email);
+    }
 
     if (Object.values(newErrors).some(Boolean)) {
       setErrors(newErrors);
@@ -173,7 +177,7 @@ const UpdatePlayers = ({
                 });
 
               showSuccess("Player added successfully");
-              
+
               setFormData({
                 name: "",
                 email: "",
@@ -245,27 +249,11 @@ const UpdatePlayers = ({
 
           <div className="mb-3">
             <label className="form-label">
-              Email <span className="text-danger">*</span>
-            </label>
-            <input
-              type="email"
-              className="form-control p-2"
-              placeholder="Enter email"
-              value={formData.email}
-              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-              style={inputStyle("email")}
-            />
-            {showErrors.email && errors.email && (
-              <small className="text-danger d-block mt-1">{errors.email}</small>
-            )}
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">
               Phone No <span className="text-danger">*</span>
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
               <span className="input-group-text border-0 bg-white">
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
               </span>
               <input
                 type="text"
@@ -284,6 +272,23 @@ const UpdatePlayers = ({
             </div>
             {showErrors.phoneNumber && errors.phoneNumber && (
               <small className="text-danger d-block mt-1">{errors.phoneNumber}</small>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">
+              Email
+            </label>
+            <input
+              type="email"
+              className="form-control p-2"
+              placeholder="Enter email"
+              value={formData.email}
+              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+              style={inputStyle("email")}
+            />
+            {showErrors.email && errors.email && (
+              <small className="text-danger d-block mt-1">{errors.email}</small>
             )}
           </div>
 
@@ -328,7 +333,7 @@ const UpdatePlayers = ({
             <div style={inputStyle("level")}>
               {getPlayerLevelsLoading === true ? (
                 <div className="text-center">
-                 <ButtonLoading />
+                  <ButtonLoading />
                 </div>
               ) : (
                 <Select

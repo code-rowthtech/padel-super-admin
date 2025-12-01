@@ -210,10 +210,46 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     };
 
 
+    const formatMatchTimes = (slots) => {
+        if (!slots || slots.length === 0) return "";
+        const times = slots.flatMap((slot) => slot.slotTimes.map((slotTime) => slotTime.time));
+        
+        const formattedTimes = times.map(time => {
+            let hour, period;
+            if (/am|pm/i.test(time)) {
+                const match = time.match(/(\d+)\s*(am|pm)/i);
+                if (match) {
+                    hour = parseInt(match[1], 10);
+                    period = match[2].toUpperCase();
+                } else {
+                    return time;
+                }
+            } else {
+                const [hours, minutes] = time.split(":");
+                const hourNum = parseInt(hours, 10);
+                period = hourNum >= 12 ? "PM" : "AM";
+                hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
+            }
+            return { hour, period };
+        });
+        
+        if (formattedTimes.length === 0) return "";
+        
+        const lastPeriod = formattedTimes[formattedTimes.length - 1].period;
+        const formatted = formattedTimes.map((time, index) => {
+            if (index === formattedTimes.length - 1) {
+                return `${time.hour}${time.period}`;
+            }
+            return time.hour;
+        });
+        
+        return formatted.join("-");
+    };
+
     const matchDate = matchesData?.data?.matchDate
         ? formatDate(matchesData.data.matchDate)
         : { day: "Sun", formattedDate: "27 Aug" };
-    const matchTime = matchesData?.data?.matchTime || "5 am, 6 am";
+    const matchTime = matchesData?.data?.slot ? formatMatchTimes(matchesData.data.slot) : "5-6AM";
 
     const handleRemove = useCallback(
         (playerId, team) => {
