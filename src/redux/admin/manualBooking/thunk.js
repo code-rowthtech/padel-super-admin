@@ -37,13 +37,12 @@ export const getActiveCourts = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const res = await ownerApi.get(
-        `${Url.GET_ACTIVE_COURTS}?register_club_id=${params?.register_club_id
-        }&day=${params?.day}&date=${params?.date}&courtId=${params?.courtId}`
+        `${Url.GET_ACTIVE_COURTS}?register_club_id=${params?.register_club_id}&day=${params?.day}&date=${params?.date}&courtId=${params?.courtId}`
       );
 
-      const { status, data, message } = res?.data || {};
+      const { status, data, message, allCourts, allSlotTimes, allCourtNames } = res?.data || {};
       if (status === 200 || "200") {
-        return data;
+        return { data, allCourts, allSlotTimes, allCourtNames };
       }
 
       const errorMessage = message || "error fetching active clubs";
