@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { resetClub } from "../../../redux/admin/club/slice";
 import { showError, showInfo, showWarning } from "../../../helpers/Toast";
+import SlotDetailsModal from "./SlotDetailsModal";
 const DAYS_OF_WEEK = [
   "Monday",
   "Tuesday",
@@ -111,6 +112,9 @@ const Pricing = ({
     changesConfirmed: true,
   });
   const [hasPriceChanges, setHasPriceChanges] = useState(false);
+  const [showSlotModal, setShowSlotModal] = useState(false);
+  const [selectedSlotData, setSelectedSlotData] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
   const selectAllChecked = useMemo(
     () =>
       selectAllDays !== undefined
@@ -207,6 +211,11 @@ const Pricing = ({
     }));
     setHasPriceChanges(true);
   }, []);
+  const handleSlotClick = (slot, day) => {
+    setSelectedSlotData(slot);
+    setSelectedDay(day);
+    setShowSlotModal(true);
+  };
   const renderDays = () =>
     DAYS_OF_WEEK.map((day) => (
       <Form.Check
@@ -482,8 +491,9 @@ const Pricing = ({
             }}
           >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""
-              }`
+              ? `Set Price for ${selectedTimes.length} slot${
+                  selectedTimes.length > 1 ? "s" : ""
+                }`
               : "Set Price (select slots first)"}
           </h5>
           <InputGroup>
@@ -546,8 +556,8 @@ const Pricing = ({
     const selectedDisplayTimes = Object.keys(slotPrices);
     const targetedSlotTimes = selectAllChecked
       ? slotTimes.filter((slot) =>
-        selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
-      )
+          selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
+        )
       : slotTimes;
     if (targetedSlotTimes.length === 0) {
       showWarning("No targeted slots to update.");
@@ -781,6 +791,12 @@ const Pricing = ({
           </div>
         </Col>
       </Row>
+      <SlotDetailsModal
+        show={showSlotModal}
+        onHide={() => setShowSlotModal(false)}
+        slotData={selectedSlotData}
+        day={selectedDay}
+      />
     </div>
   );
 };
