@@ -1326,7 +1326,7 @@ h1.display-5 {
   }
 
   .mention_height_court {
-    max-height: 70vh !important;
+    max-height: 69vh !important;
   }
 
 }
@@ -2304,9 +2304,11 @@ h1.display-5 {
   /* Remove top space from mobile banner */
   .mobile-banner-container.container {
     padding-top: 0 !important;
-    margin-top: 0 !important;
+    margin-top: -8px !important;
   }
-
+.add_margin_top_minus{
+  margin-top: -20px;
+}
   /* Container padding reduction */
   .container.mb-5.px-4 {
     padding-left: 0.5rem !important;
