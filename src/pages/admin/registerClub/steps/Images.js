@@ -476,21 +476,21 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     }
 
     // ---------- 1. LOGO API (if logo exists) ----------
-    if (formData.logo) {
-      const logoForm = new FormData();
-      logoForm.append("ownerId", ownerId);
-      logoForm.append("image", formData.logo);
+    // if (formData.logo) {
+    //   const logoForm = new FormData();
+    //   logoForm.append("ownerId", ownerId);
+    //   logoForm.append("image", formData.logo);
 
-      try {
-        if (updateImage) {
-          dispatch(updateLogo(logoForm));
-        } else {
-          await dispatch(createLogo(logoForm)).unwrap();
-        }
-      } catch (err) {
-        showInfo("Failed to upload logo. Continuing with club registration...");
-      }
-    }
+    //   try {
+    //     if (updateImage) {
+    //       dispatch(updateLogo(logoForm));
+    //     } else {
+    //       await dispatch(createLogo(logoForm)).unwrap();
+    //     }
+    //   } catch (err) {
+    //     showInfo("Failed to upload logo. Continuing with club registration...");
+    //   }
+    // }
 
     // ---------- 2. CLUB REGISTER / UPDATE ----------
     const savedPreviews = previewImages
@@ -514,6 +514,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
         formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
       }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
     );
+    apiFormData.append("ownerId", ownerId);
+    apiFormData.append("logo", formData.logo);
     apiFormData.append("courtCount", formData.courtCount || "");
     apiFormData.append("city", formData.city || "");
     apiFormData.append("state", formData.state || "");

@@ -159,9 +159,9 @@ export const BookingCancellationModal = ({
         >
           {bookingDetails?.paymentMethod
             ? bookingDetails?.paymentMethod
-              ?.charAt(0)
-              .toUpperCase()
-              .concat(bookingDetails?.paymentMethod?.slice(1))
+                ?.charAt(0)
+                .toUpperCase()
+                .concat(bookingDetails?.paymentMethod?.slice(1))
             : "N/A"}{" "}
         </h2>
       </div>
@@ -292,10 +292,10 @@ export const BookingRefundModal = ({
   };
 
   useEffect(() => {
-    if (bookingDetails?.totalAmount != null) {
+    if (bookingDetails?.totalAmount != null && !hasChangedAmount) {
       setRefundAmount(bookingDetails.totalAmount);
     }
-  }, [bookingDetails?.totalAmount]);
+  }, [bookingDetails?.totalAmount, hasChangedAmount]);
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
@@ -306,6 +306,7 @@ export const BookingRefundModal = ({
       (!isNaN(value) && Number(value) >= 0 && Number(value) <= maxAmount)
     ) {
       setRefundAmount(value);
+      setHasChangedAmount(true);
     }
   };
 
@@ -486,9 +487,9 @@ export const BookingRefundModal = ({
               >
                 {bookingDetails?.paymentMethod
                   ? bookingDetails?.paymentMethod
-                    ?.charAt(0)
-                    ?.toUpperCase()
-                    ?.concat(bookingDetails?.paymentMethod?.slice(1))
+                      ?.charAt(0)
+                      ?.toUpperCase()
+                      ?.concat(bookingDetails?.paymentMethod?.slice(1))
                   : "N/A"}
               </h2>
             </div>
@@ -591,16 +592,18 @@ export const BookingRefundModal = ({
             placeholder="Enter details about how the payment will be processed refund (e.g., UPI, Bank Transfer, Cash, etc.)"
             value={reason}
             onChange={handleReasonChange}
-            className={`rounded-3 textarea-palceholder ${error ? "is-invalid" : ""
-              }`}
+            className={`rounded-3 textarea-palceholder ${
+              error ? "is-invalid" : ""
+            }`}
             style={{
               boxShadow: "none",
               resize: "none",
             }}
           />
           <small
-            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining <= 0 ? "text-danger" : "text-muted"
-              }`}
+            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${
+              remaining <= 0 ? "text-danger" : "text-muted"
+            }`}
             style={{ fontSize: "0.75rem" }}
           >
             {remaining}/250
@@ -630,8 +633,6 @@ export const BookingRefundModal = ({
     </Modal>
   );
 };
-
-
 
 export const CancelRequestModal = ({
   show,
@@ -824,9 +825,9 @@ export const CancelRequestModal = ({
                 <p className="mb-0">
                   {bookingDetails?.paymentMethod
                     ? bookingDetails?.paymentMethod
-                      ?.charAt(0)
-                      .toUpperCase()
-                      .concat(bookingDetails?.paymentMethod?.slice(1))
+                        ?.charAt(0)
+                        .toUpperCase()
+                        .concat(bookingDetails?.paymentMethod?.slice(1))
                     : "N/A"}
                 </p>
               </div>
@@ -857,7 +858,7 @@ export const CancelRequestModal = ({
             value={
               bookingDetails?.cancellationReason
                 ? bookingDetails.cancellationReason.charAt(0).toUpperCase() +
-                bookingDetails.cancellationReason.slice(1)
+                  bookingDetails.cancellationReason.slice(1)
                 : ""
             }
             disabled
@@ -878,8 +879,9 @@ export const CancelRequestModal = ({
             maxLength={maxLength}
           />
           <small
-            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining < 0 ? "text-danger" : "text-muted"
-              }`}
+            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${
+              remaining < 0 ? "text-danger" : "text-muted"
+            }`}
             style={{ fontSize: "0.75rem" }}
           >
             {remaining}/250
@@ -996,9 +998,9 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
               <p className="  mb-0">
                 {bookingDetails?.paymentMethod
                   ? bookingDetails?.paymentMethod
-                    ?.charAt(0)
-                    .toUpperCase()
-                    .concat(bookingDetails?.paymentMethod?.slice(1))
+                      ?.charAt(0)
+                      .toUpperCase()
+                      .concat(bookingDetails?.paymentMethod?.slice(1))
                   : "N/A"}
               </p>
             </div>
