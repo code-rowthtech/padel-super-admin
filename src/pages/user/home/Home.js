@@ -682,7 +682,7 @@ const Home = () => {
       </div>
 
       {/* Photos Gallery Section */}
-      <div className="mt-md-5 mb-md-5 my-4">
+      <div className="mt-md-5 mb-md-5 my-4 px-2 px-md-0">
         <div className="position-relative">
           <div className="overflow-hidden rounded-3">
             <div
@@ -1046,7 +1046,7 @@ const Home = () => {
                 ?.map((review, index) => (
                   <div
                     key={`mobile-${index}`}
-                    className="flex-shrink-0 d-lg-none d-block"
+                    className="d-lg-none d-block"
                     style={{ width: "100%" }}
                   >
                     <ReviewCard review={review} />

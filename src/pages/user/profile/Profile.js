@@ -298,7 +298,7 @@ const Profile = () => {
                   borderRadius:"50px"
                 }}
               >
-                <FaUserCircle style={{ width: "70px", height: "70px"}} />
+                <FaUserCircle style={{ width: "80px", height: "80px"}} />
               </div>
             )}
 
