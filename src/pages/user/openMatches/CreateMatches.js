@@ -780,9 +780,9 @@ const CreateMatches = () => {
           }}
           onMouseEnter={(e) => {
             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
-              e.currentTarget.style.borderTop = "1px solid #3DBE64";
-              e.currentTarget.style.borderRight = "1px solid #3DBE64";
-              e.currentTarget.style.borderBottom = "1px solid #3DBE64";
+              e.currentTarget.style.borderTop = "1px solid #0034E4";
+              e.currentTarget.style.borderRight = "1px solid #0034E4";
+              e.currentTarget.style.borderBottom = "1px solid #0034E4";
               e.currentTarget.style.borderLeft = "3px solid #0034E4";
             }
           }}
@@ -1185,10 +1185,10 @@ const CreateMatches = () => {
                           }
                           @keyframes slideTextLeftToRight {
                             0% {
-                              transform: translateY(-50%) translateX(-100%);
+                              transform: translateY(-50%) translateX(100%);
                             }
                             100% {
-                              transform: translateY(-50%) translateX(100%);
+                              transform: translateY(-50%) translateX(-100%);
                             }
                           }
                         `}</style>
@@ -1745,6 +1745,7 @@ const CreateMatches = () => {
                 setCurrentStep(0);
                 setSlotError("");
               }}
+              matchPlayer={matchPlayer}
             />
           )}
         </Col>
