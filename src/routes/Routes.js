@@ -14,7 +14,7 @@ const Routes = () => (
         <ScrollToTop />
         <NetworkHandler>
             <AppWrapper>
-                <Suspense fallback={<Loading color="#3dbe64ff" />}>
+                <Suspense fallback={<Loading color="#be573dff" />}>
                     <AllRoutes />
                 </Suspense>
             </AppWrapper>

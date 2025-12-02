@@ -1745,6 +1745,7 @@ const CreateMatches = () => {
                 setCurrentStep(0);
                 setSlotError("");
               }}
+              matchPlayer={matchPlayer}
             />
           )}
         </Col>
