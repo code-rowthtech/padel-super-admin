@@ -396,7 +396,7 @@ const NewPlayers = ({
             </div>
           )}
 
-          <div className="d-flex flex-column flex-sm-row gap-2 mt-4">
+          <div className="d-flex flex-sm-row gap-2 mt-4 aling-items-center justify-content-end">
             <Button
               variant="outlined"
               color="secondary"
@@ -407,7 +407,8 @@ const NewPlayers = ({
                 setErrors({});
                 setShowErrors({});
               }}
-              sx={{ width: { xs: "100%", sm: "50%", border: "1px solid #001b76", color: "#001B76" } }}
+              sx={{ width: { xs: "25%", sm: "25%", border: "1px solid #001b76", color: "#001B76" } }}
+              className="py-1 font_size_mobile_button"
 
             >
               Cancel
@@ -415,12 +416,14 @@ const NewPlayers = ({
             <Button
               type="submit"
               fullWidth
-              sx={{ width: { xs: "100%", sm: "50%" } }}
+              sx={{ width: { xs: "25%", sm: "25%" } }}
               style={{
                 background:
                   "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white"
               }}
               disabled={userLoading}
+                            className="py-1 font_size_mobile_button"
+
             >
               {userLoading ? <ButtonLoading color="white" /> : "Submit"}
             </Button>

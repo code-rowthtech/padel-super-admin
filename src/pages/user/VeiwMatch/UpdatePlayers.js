@@ -328,7 +328,8 @@ const UpdatePlayers = ({
             <Button
               variant="outlined"
               onClick={() => setShowModal(false)}
-              sx={{ borderColor: "#001B76", color: "#001B76" }}
+              sx={{ borderColor: "#001B76", color: "#001B76",width:"25%" }}
+               className="py-1 font_size_mobile_button"
             >
               Cancel
             </Button>
@@ -339,7 +340,9 @@ const UpdatePlayers = ({
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 color: "white",
                 "&:hover": { background: "#001B76" },
+                width:"25%",
               }}
+               className="py-1 font_size_mobile_button"
             >
               {loading ? <ButtonLoading color="white" /> : "Add "}
             </Button>
