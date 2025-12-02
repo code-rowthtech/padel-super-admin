@@ -6,9 +6,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 import { Avatar, Tooltip, Modal, Box } from "@mui/material";
+import { Offcanvas } from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 
 const PlayerSlot = memo(function PlayerSlot({
     player,
@@ -143,6 +145,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const { state } = useLocation();
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
+    const getPlayerLevelsData = useSelector(
+        (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
+    );
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
@@ -152,9 +157,17 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [showShareDropdown, setShowShareDropdown] = useState(false);
     const [showPlayerModal, setShowPlayerModal] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
-
+    const [showRequestModal, setShowRequestModal] = useState(false);
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const [playerLevels, setPlayerLevels] = useState([]);
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         if (matchId) {
@@ -280,6 +293,33 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         { player: teamBData[1], index: 3, removable: true, team: "B" },
     ];
     console.log({ slots });
+
+    useEffect(() => {
+        if (!matchesData?.data?.skillLevel) return;
+
+        dispatch(getPlayerLevelBySkillLevel(matchesData?.data?.skillLevel))
+            .unwrap()
+            .then((res) => {
+                const levels = (res?.data[0]?.levelIds || []).map((l) => ({
+                    code: l.code,
+                    title: l.question,
+                }));
+
+                setPlayerLevels(levels);
+            })
+            .catch(() => setPlayerLevels([]));
+    }, [ matchesData?.data?.skillLevel]);
+
+    useEffect(() => {
+        if (Array.isArray(getPlayerLevelsData) && getPlayerLevelsData?.length > 0) {
+            setPlayerLevels(
+                getPlayerLevelsData?.map((l) => ({
+                    code: l?.code,
+                    title: l?.question,
+                }))
+            );
+        }
+    }, [getPlayerLevelsData]);
 
 
 
@@ -415,7 +455,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                         <div className="col py-2">
                             <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '20px', fontWeight: "500", color: '#1F41BB' }}>
                                 ₹{" "}
                                 {Math.round(
                                     (matchesData?.data?.slot?.reduce((total, court) => {
@@ -429,10 +469,27 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
 
                 <div
                     className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
-                    style={{ backgroundColor: "#CBD6FF1A" }}
+                    style={{ backgroundColor: "#CBD6FF1A", cursor: "pointer" }}
+                    onClick={() => setShowRequestModal(true)}
                 >
-                
+                    <div className="d-flex align-items-center gap-3">
+                        <i className="bi bi-people fs-4" style={{ color: "#1F41BB" }} />
+                        <div>
+                            <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", color: "#374151" }}>
+                                View Requests
+                            </h6>
+                            <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                3 players want to join
+                            </p>
+                        </div>
+                    </div>
+                    <div className="d-flex align-items-center">
+                        <span className="badge bg-primary rounded-pill" style={{ fontSize: "10px" }}>3</span>
+                        <i className="bi bi-chevron-right ms-2" style={{ color: "#6B7280" }} />
+                    </div>
                 </div>
+
+
 
                 <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
                     <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
@@ -533,6 +590,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 matchData={matchesData?.data || match}
                 skillLevel={matchesData?.data?.skillLevel}
                 selectedDate={selectedDate}
+                playerLevels={playerLevels}
             />
 
             <Modal open={showPlayerModal} onClose={() => setShowPlayerModal(false)}>
@@ -641,6 +699,68 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 </Box>
             </Modal>
 
+            <Offcanvas
+                show={showRequestModal}
+                onHide={() => setShowRequestModal(false)}
+                placement={windowWidth >= 992 ? "end" : "bottom"}
+                style={{ width: windowWidth >= 992 ? "400px" : "100%", height: windowWidth < 992 ? "60vh" : "100%" }}
+            >
+                <Offcanvas.Header closeButton>
+                    <Offcanvas.Title style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
+                        Join Requests
+                    </Offcanvas.Title>
+                </Offcanvas.Header>
+                <Offcanvas.Body>
+                    <div className="d-flex flex-column gap-3">
+                        {/* Static Players */}
+                        {[
+                            { name: "Rahul Sharma", level: "B1", avatar: null },
+                            { name: "Priya Patel", level: "A", avatar: null },
+                            { name: "Amit Kumar", level: "C2", avatar: null }
+                        ].map((player, index) => (
+                            <div key={index} className="d-flex align-items-center justify-content-between p-3 border rounded-3">
+                                <div className="d-flex align-items-center gap-3">
+                                    <div
+                                        className="rounded-circle d-flex align-items-center justify-content-center"
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            backgroundColor: "#1F41BB",
+                                            color: "white",
+                                            fontWeight: 600,
+                                            fontSize: "18px"
+                                        }}
+                                    >
+                                        {player.name[0]}
+                                    </div>
+                                    <div>
+                                        <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
+                                            {player.name}
+                                        </h6>
+                                        <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                            Level: {player.level}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="d-flex gap-2">
+                                    <button
+                                        className="btn btn-sm btn-success"
+                                        style={{ fontSize: "12px", padding: "4px 12px" }}
+                                    >
+                                        Accept
+                                    </button>
+                                    <button
+                                        className="btn btn-sm btn-outline-danger"
+                                        style={{ fontSize: "12px", padding: "4px 12px" }}
+                                    >
+                                        Decline
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </Offcanvas.Body>
+            </Offcanvas>
 
         </>
     );

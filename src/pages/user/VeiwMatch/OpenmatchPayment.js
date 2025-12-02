@@ -163,7 +163,6 @@ const OpenmatchPayment = () => {
         setError({});
 
         // Validation
-        if (!selectedPayment) return setError({ paymentMethod: "Select payment method" });
         if (!name?.trim()) return setError({ name: "Name required" });
 
         const cleanPhone = phoneNumber?.replace(/^\+91\s*/, "").trim();
@@ -232,7 +231,7 @@ const OpenmatchPayment = () => {
                             email,
                             register_club_id: savedClubId,
                             ownerId: owner_id,
-                            paymentMethod: selectedPayment,
+                            paymentMethod: 'Gpay',
                             bookingType: "open Match",
                             bookingStatus: "upcoming",
                             openMatchId: matchId,
@@ -330,7 +329,7 @@ const OpenmatchPayment = () => {
                 >
                     {/* Information Section */}
                     <div
-                        className="rounded-4 py-md-4 py-2 px-3 px-md-5 mb-md-4 mb-3"
+                        className="rounded-4 py-md-4 py-2 px-3 px-md-5 pb-5  mb-md-4"
                         style={{
                             backgroundColor: "#F5F5F566",
                             border:
@@ -339,10 +338,10 @@ const OpenmatchPayment = () => {
                                     : "none",
                         }}
                     >
-                        <h6 className="mb-md-3 mb-0 custom-heading-use fw-semibold text-center text-md-start">
+                        <h6 className="mb-md-3 mb-0 mt-5 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start">
                             Information
                         </h6>
-                        <div className="row">
+                        <div className="row d-flex justify-content-center align-tems-center">
                             <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-2"
@@ -457,7 +456,7 @@ const OpenmatchPayment = () => {
                     </div>
 
                     {/* Payment Method Section */}
-                    <div
+                    {/* <div
                         className="rounded-4 py-md-4 py-2 px-3 px-md-5"
                         style={{
                             backgroundColor: "#F5F5F566",
@@ -494,7 +493,7 @@ const OpenmatchPayment = () => {
                                 </label>
                             ))}
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Right: Summary */}
