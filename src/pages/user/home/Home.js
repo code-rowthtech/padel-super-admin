@@ -34,6 +34,7 @@ const Home = () => {
   const [reviewSlide, setReviewSlide] = useState(0);
   const [selectedSport, setSelectedSport] = useState(0);
   const [loadedImages, setLoadedImages] = useState({});
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const store = useSelector((state) => state);
@@ -51,6 +52,7 @@ const Home = () => {
   const defaultMapSrc =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937950147!2d-73.98731968482413!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes+Square!5e0!3m2!1sen!2sus!4v1510579767645";
 
+  // Convert address to embeddable Google Maps URL
   const createEmbedUrl = (address) => {
     const encodedAddress = encodeURIComponent(address);
     return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
@@ -60,6 +62,12 @@ const Home = () => {
 
   const todayIndex = new Date().getDay();
   const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
@@ -131,6 +139,7 @@ const Home = () => {
     }
   }, [clubData?._id]);
 
+  // Fetch map data when club address is available
   useEffect(() => {
     if (clubData?.address && clubData?.city) {
       const fullAddress = `${clubData.address}, ${clubData.city}`;
@@ -138,48 +147,54 @@ const Home = () => {
     }
   }, [clubData?.address, clubData?.city]);
 
+  // Auto-play carousel
   useEffect(() => {
-    if (clubData?.courtImage?.length > 3) {
+    if (windowWidth < 992 && clubData?.courtImage?.length > 1) {
       const interval = setInterval(() => {
         setCurrentSlide((prev) => {
-          if (prev >= clubData.courtImage.length) {
-            return 1;
+          if (prev >= clubData.courtImage.length - 1) {
+            return 0;
           }
           return prev + 1;
         });
-      }, 3000);
+      }, 2500);
       return () => clearInterval(interval);
     }
-  }, [clubData?.courtImage?.length]);
+  }, [clubData?.courtImage?.length, windowWidth]);
 
+  // Handle seamless loop reset
   useEffect(() => {
     if (
+      windowWidth >= 992 &&
       currentSlide === clubData?.courtImage?.length &&
-      clubData?.courtImage?.length > 3
+      clubData?.courtImage?.length > 4
     ) {
       const timer = setTimeout(() => {
         setCurrentSlide(0);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [currentSlide, clubData?.courtImage?.length]);
+  }, [currentSlide, clubData?.courtImage?.length, windowWidth]);
 
+  // Auto-play review carousel
   useEffect(() => {
-    if (getReviewData?.reviews?.length > 3) {
+    if (windowWidth < 992 && getReviewData?.reviews?.length > 1) {
       const interval = setInterval(() => {
         setReviewSlide((prev) => {
-          if (prev >= getReviewData.reviews.length) {
-            return 1;
+          if (prev >= getReviewData.reviews.length - 1) {
+            return 0;
           }
           return prev + 1;
         });
-      }, 4000);
+      }, 3000);
       return () => clearInterval(interval);
     }
-  }, [getReviewData?.reviews?.length]);
+  }, [getReviewData?.reviews?.length, windowWidth]);
 
+  // Handle seamless review loop reset
   useEffect(() => {
     if (
+      windowWidth >= 992 &&
       reviewSlide === getReviewData?.reviews?.length &&
       getReviewData?.reviews?.length > 3
     ) {
@@ -188,18 +203,18 @@ const Home = () => {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [reviewSlide, getReviewData?.reviews?.length]);
+  }, [reviewSlide, getReviewData?.reviews?.length, windowWidth]);
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleKeyDown = (event) => {
+  //     if (event.key === "Escape" && isOpen) {
+  //       setIsOpen(false);
+  //     }
+  //   };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  //   document.addEventListener("keydown", handleKeyDown);
+  //   return () => document.removeEventListener("keydown", handleKeyDown);
+  // }, [isOpen]);
 
   const padelimg = [
     { img: football },
@@ -213,6 +228,7 @@ const Home = () => {
     <>
       <div className="container px-0 mt-md-4 mt-0">
         <div className="row g-4 px-3 px-md-0">
+          {/* Hero Section */}
           <div className="col-12 ps-md-0 pt-0 mt-3 mt-md-4">
             <div
               className="image-zoom-container position-relative overflow-hidden rounded-3"
@@ -260,7 +276,7 @@ const Home = () => {
                 >
                   Book Now <FaArrowRight className="ms-2" />
                 </Link>
-                <style>{`
+                <style jsx>{`
                   .book-now-btn {
                     background: #ffffff;
                     position: relative;
@@ -301,6 +317,7 @@ const Home = () => {
         style={{ backgroundColor: "#F5F5F569" }}
       >
         <div className="row position-relative align-items-stretch px-0 px-md-0">
+          {/* Left Column: Club Name, About, Address, and Timings */}
           <div className="col-lg-8 col-12  d-md-flex d-block ps-2 ps-md-0">
             <div
               className=" row mx-2 ms-lg-0 me-lg-2  pe-lg-3 bg-white  p-lg-2 flex-fill"
@@ -315,7 +332,7 @@ const Home = () => {
                   borderImageSlice: 1,
                 }}
               >
-                <div className="mb-md-4 mb-2 pt-md-1 pt-3   d-flex flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-md-3 gap-1">
+                <div className="mb-md-4 mb-2 pt-md-1 pt-3   d-md-flex d-none flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-md-3 gap-1">
                   <div className="mb-2 mt-lg-4 mb-lg-0 flex-shrink-0">
                     <Avatar>
                       {clubData?.clubName
@@ -372,64 +389,66 @@ const Home = () => {
                       </p>
                     </div>
                   </div>
-                  {/* <div
-                                        className="border rounded-4  me-1 p-2  py-3 mt-0 sport-box d-inline-block"
-                                        style={{
-                                            borderColor: "#e5e7eb",
-                                            backgroundColor: "#fff",
 
-                                        }}
-                                    >
-                                        <p
-                                            className="mb-1"
-                                            style={{
-                                                fontSize: "8.57px",
-                                                fontWeight: "600",
-                                                fontFamily: "Poppins",
-                                                color: "#111827",
-                                            }}
-                                        >
-                                            cc
-                                        </p>
+                </div>
+                <div
+                  className="d-flex d-md-none align-items-center bg-black text-white px-3 py-0 ps-0 mb-2 mt-3"
+                  style={{ width: "fit-content", gap: "12px", borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}
+                >
+                  <div className="logo_add_star bg-white py-1" style={{ borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}>
+                    <img
+                      src="https://i.imgur.com/4QfKuz1.png"
+                      alt="logo"
+                      style={{
+                        width: "45px",
+                        height: "45px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                      className="me-1"
+                    />
+                  </div>
 
-                                        <div
-                                            className="d-flex align-items-center  justify-content-between border rounded-pill  "
-                                            style={{
-                                                backgroundColor: "#f9fafb",
-                                                overflowX: "auto",
-                                                whiteSpace: "nowrap",
-                                                scrollbarWidth: "none",
-                                            }}
-                                        >
-                                            {padelimg.map((img, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className="d-flex align-items-center p-0 justify-content-center rounded-pill"
-                                                    style={{
-                                                        backgroundColor: selectedSport === idx ? "#D9D9D9" : "transparent",
-                                                        transition: "0.2s",
-                                                        cursor: "pointer",
-                                                        width: "63px",
-                                                        height: "38px"
-                                                    }}
-                                                    onClick={() => setSelectedSport(idx)}
-                                                >
-                                                    <img
-                                                        src={img.img}
-                                                        alt=""
-                                                        style={{
-                                                            width: "45px",
-                                                            height: "45px",
-                                                            objectFit: "contain",
-                                                        }}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div> */}
+
+                  {/* Club Name + Green Stars */}
+                  <div className="d-flex flex-column" style={{ lineHeight: "1.5" }}>
+                    <span style={{ fontSize: "14px", fontWeight: 600 }}>                      {clubData?.clubName || "The Court Line Club"}
+                    </span>
+
+                    <div className="d-flex align-items-center" style={{ marginTop: "2px" }}>
+                      {[...Array(5)].map((_, i) => {
+                        const rating = getReviewData?.averageRating || "";
+                        if (i < Math.floor(rating)) {
+                          return (
+                            <StarIcon key={i} style={{ color: "#32B768" }} />
+                          );
+                        } else if (i < rating && rating % 1 >= 0.5) {
+                          return (
+                            <StarHalfIcon
+                              key={i}
+                              style={{ color: "#32B768" }}
+                            />
+                          );
+                        } else {
+                          return (
+                            <StarBorderIcon
+                              key={i}
+                              style={{ color: "#ccc" }}
+                            />
+                          );
+                        }
+                      })}
+                      <span style={{ fontSize: "13px" }} className="ms-3">{getReviewData?.averageRating || ""}</span>
+                    </div>
+                  </div>
+
+                  {/* Rating */}
+
                 </div>
 
+
                 <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
+                  {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
                   <p
                     className="mb-2 mb-md-3 add_font_small_mobile"
                     style={{
@@ -445,7 +464,7 @@ const Home = () => {
                         h1: ({ ...props }) => <h1 style={{ fontSize: 20, fontWeight: 700 }} {...props} />,
                         h2: ({ ...props }) => <h2 style={{ fontSize: 18, fontWeight: 600 }} {...props} />,
                         h3: ({ ...props }) => <h3 style={{ fontSize: 16, fontWeight: 600 }} {...props} />,
-                        p: ({ ...props }) => <span style={{ fontSize: 14, marginBottom: 6 }} {...props} />,
+                        p: ({ ...props }) => <p style={{ fontSize: 14, marginBottom: 6 }} {...props} />,
                         li: ({ ...props }) => <li style={{ marginLeft: 18, fontSize: 14 }} {...props} />,
                         strong: ({ ...props }) => <strong style={{ fontWeight: 700 }} {...props} />,
                         em: ({ ...props }) => <em style={{ fontStyle: "italic" }} {...props} />,
@@ -470,9 +489,11 @@ const Home = () => {
                     Join the Padel community group on WhatsApp
                   </p>
                   <a href="" className="add_font_small_mobile">
+                    https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt
                   </a>
                   <p className="mt-md-4 mt-2 add_font_small_mobile">
                     <a href="">
+                      https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic
                     </a>
                   </p> */}
                 </div>
@@ -531,7 +552,7 @@ const Home = () => {
                 style={{
                   ...buttonStyle,
                 }}
-                className=""
+                className
               >
                 <svg
                   style={svgStyle}
@@ -611,6 +632,7 @@ const Home = () => {
             </div>
           </div>
 
+          {/* Right Column: Upcoming Matches */}
           <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-block d-none ">
             <div
               className="text-white  position-relative h-100"
@@ -668,29 +690,26 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="mt-md-5 mb-md-5 my-4">
+      {/* Photos Gallery Section */}
+      <div className="mt-md-5 mb-md-5 my-4 px-2 px-md-0">
         <div className="position-relative">
           <div className="overflow-hidden rounded-3">
             <div
-              className={`d-flex ${clubData?.courtImage?.length > 4
-                ? window.innerWidth >= 992
-                  ? "justify-content-start"
-                  : "justify-content-start"
-                : "justify-content-center"
-                } align-items-center gap-3`}
+              className={`d-flex align-items-center ${windowWidth >= 992 ? 'gap-3' : ''}`}
               style={{
                 transform:
-                  clubData?.courtImage?.length > 4
-                    ? window.innerWidth >= 992
+                  windowWidth >= 992
+                    ? clubData?.courtImage?.length > 4
                       ? `translateX(-${currentSlide * 25}%)`
-                      : `translateX(-${currentSlide * 50}%)`
-                    : "translateX(0%)",
-                transition:
-                  clubData?.courtImage?.length > 4 && currentSlide !== 0
-                    ? "transform 0.5s ease"
-                    : "none",
+                      : "translateX(0%)"
+                    : clubData?.courtImage?.length > 1
+                      ? `translateX(-${currentSlide * 100}%)`
+                      : "translateX(0%)",
+                transition: "transform 0.5s ease",
+                justifyContent: windowWidth >= 992 && clubData?.courtImage?.length <= 4 ? "center" : "flex-start",
               }}
             >
+              {/* Desktop: Show only first 4 + duplicates for infinite if >4 */}
               {(clubData?.courtImage?.length > 4
                 ? clubData?.courtImage?.concat(
                   clubData?.courtImage?.slice(0, 4)
@@ -747,22 +766,18 @@ const Home = () => {
                 </div>
               ))}
 
-              {(clubData?.courtImage?.length > 4
-                ? clubData?.courtImage?.concat(
-                  clubData?.courtImage?.slice(0, 2)
-                )
-                : clubData?.courtImage
-              )?.map((image, index) => (
+              {clubData?.courtImage?.map((image, index) => (
                 <div
                   key={`mobile-${index}`}
                   className="flex-shrink-0 d-lg-none d-block"
-                  style={{ width: "calc(50% - 6px)" }}
+                  style={{ width: "100vw", minWidth: "100vw" }}
                 >
                   <div
-                    className="position-relative overflow-hidden rounded-3"
+                    className="position-relative overflow-hidden rounded-3 mx-auto"
                     style={{
                       height: "200px",
-                      width: "100%",
+                      width: "90%",
+                      maxWidth: "350px",
                       cursor: "pointer",
                     }}
                     onClick={() => {
@@ -799,7 +814,7 @@ const Home = () => {
             </div>
           </div>
 
-          {clubData?.courtImage?.length > 4 && (
+          {((windowWidth < 992 && clubData?.courtImage?.length > 1) || (windowWidth >= 992 && clubData?.courtImage?.length > 4)) && (
             <>
               <button
                 className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
@@ -811,18 +826,14 @@ const Home = () => {
                   backgroundColor: "#011E84",
                 }}
                 onClick={() => {
-                  if (window.innerWidth < 992) {
-                    if (currentSlide === 0) {
-                      setCurrentSlide(Math.ceil(clubData?.courtImage?.length / 2) - 1);
-                    } else {
-                      setCurrentSlide(currentSlide - 1);
-                    }
-                  } else {
+                  if (windowWidth < 992) {
                     if (currentSlide === 0) {
                       setCurrentSlide(clubData?.courtImage?.length - 1);
                     } else {
                       setCurrentSlide(currentSlide - 1);
                     }
+                  } else {
+                    setCurrentSlide(currentSlide - 1);
                   }
                 }}
               >
@@ -839,18 +850,14 @@ const Home = () => {
                   backgroundColor: "#011E84",
                 }}
                 onClick={() => {
-                  if (window.innerWidth < 992) {
-                    if (currentSlide >= Math.ceil(clubData?.courtImage?.length / 2) - 1) {
-                      setCurrentSlide(0);
-                    } else {
-                      setCurrentSlide(currentSlide + 1);
-                    }
-                  } else {
+                  if (windowWidth < 992) {
                     if (currentSlide >= clubData?.courtImage?.length - 1) {
                       setCurrentSlide(0);
                     } else {
                       setCurrentSlide(currentSlide + 1);
                     }
+                  } else {
+                    setCurrentSlide(currentSlide + 1);
                   }
                 }}
               >
@@ -860,7 +867,7 @@ const Home = () => {
           )}
         </div>
 
-        {isOpen && galleryImages.length > 0 && (
+        {/* {isOpen && galleryImages.length > 0 && (
           <>
             <Lightbox
               mainSrc={galleryImages[photoIndex]}
@@ -903,7 +910,7 @@ const Home = () => {
             </button>
           </>
         )}
-        <style>{`
+        <style jsx global>{`
           .full-screen-lightbox .ril-image-current {
             max-width: 30vw !important;
             max-height: 30vh !important;
@@ -913,6 +920,7 @@ const Home = () => {
             position: relative !important;
           }
           .full-screen-lightbox .ril-inner {
+            // background-color: #d9e0f8 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -936,7 +944,7 @@ const Home = () => {
             transform: translateX(50%) translateY(-50%) !important;
             z-index: 10001 !important;
           }
-        `}</style>
+        `}</style> */}
       </div>
       <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-none d-block px-1">
         <div
@@ -994,6 +1002,7 @@ const Home = () => {
           </div>
         </div>
       </div>
+      {/* Reviews Section */}
       <div className="container my-md-5 mt-4 mb-0">
         {getReviewData?.reviews?.length > 0 && (
           <h4
@@ -1015,44 +1024,104 @@ const Home = () => {
               className="d-flex"
               style={{
                 transform:
-                  window.innerWidth >= 992
+                  windowWidth >= 992
                     ? `translateX(-${reviewSlide * 33.333}%)`
                     : `translateX(-${reviewSlide * 100}%)`,
                 transition:
-                  reviewSlide === 0 &&
-                    reviewSlide !== getReviewData?.reviews?.length
+                  (windowWidth >= 992 && reviewSlide === getReviewData?.reviews?.length) ||
+                  (windowWidth < 992 && reviewSlide === 0)
                     ? "none"
                     : "transform 0.5s ease",
               }}
             >
-              {getReviewData?.reviews
-                ?.concat(getReviewData?.reviews?.slice(0, 3))
-                ?.map((review, index) => (
-                  <div
-                    key={index}
-                    className="flex-shrink-0  d-lg-block d-none"
-                    style={{ width: "33.333%" }}
-                  >
-                    <ReviewCard review={review} />
-                  </div>
-                ))}
-              {getReviewData?.reviews
-                ?.concat(getReviewData?.reviews?.slice(0, 1))
-                ?.map((review, index) => (
-                  <div
-                    key={`mobile-${index}`}
-                    className="flex-shrink-0 d-lg-none d-block"
-                    style={{ width: "100%" }}
-                  >
-                    <ReviewCard review={review} />
-                  </div>
-                ))}
+              {windowWidth >= 992
+                ? getReviewData?.reviews
+                    ?.concat(getReviewData?.reviews?.slice(0, 3))
+                    ?.map((review, index) => (
+                      <div
+                        key={index}
+                        className="flex-shrink-0 d-lg-block d-none"
+                        style={{ width: "33.333%" }}
+                      >
+                        <ReviewCard review={review} />
+                      </div>
+                    ))
+                : getReviewData?.reviews?.map((review, index) => (
+                    <div
+                      key={`mobile-${index}`}
+                      className="flex-shrink-0 d-lg-none d-block"
+                      style={{ width: "100%" }}
+                    >
+                      <ReviewCard review={review} />
+                    </div>
+                  ))}
             </div>
           </div>
+          
+          {((windowWidth < 992 && getReviewData?.reviews?.length > 1) || (windowWidth >= 992 && getReviewData?.reviews?.length > 3)) && (
+            <>
+              <button
+                className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  marginLeft: "10px",
+                  zIndex: 10,
+                  backgroundColor: "#011E84",
+                }}
+                onClick={() => {
+                  if (windowWidth < 992) {
+                    if (reviewSlide === 0) {
+                      setReviewSlide(getReviewData?.reviews?.length - 1);
+                    } else {
+                      setReviewSlide(reviewSlide - 1);
+                    }
+                  } else {
+                    if (reviewSlide === 0) {
+                      setReviewSlide(getReviewData?.reviews?.length - 1);
+                    } else {
+                      setReviewSlide(reviewSlide - 1);
+                    }
+                  }
+                }}
+              >
+                <ArrowBackIosIcon style={{ fontSize: "16px" }} />
+              </button>
+
+              <button
+                className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  marginRight: "10px",
+                  zIndex: 10,
+                  backgroundColor: "#011E84",
+                }}
+                onClick={() => {
+                  if (windowWidth < 992) {
+                    if (reviewSlide >= getReviewData?.reviews?.length - 1) {
+                      setReviewSlide(0);
+                    } else {
+                      setReviewSlide(reviewSlide + 1);
+                    }
+                  } else {
+                    if (reviewSlide >= getReviewData?.reviews?.length - 1) {
+                      setReviewSlide(0);
+                    } else {
+                      setReviewSlide(reviewSlide + 1);
+                    }
+                  }
+                }}
+              >
+                <ArrowForwardIosIcon style={{ fontSize: "16px" }} />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="container">
+      {/* Map Section */}
+      <div div className="container">
         <div className="row">
           <div className="col-12">
             <div className="my-md-5 my-4">

@@ -928,7 +928,7 @@ const OpenmatchPayment = () => {
                                                 {isLoading ? (
                                                     <ButtonLoading color={"#001B76"} />
                                                 ) : (
-                                                    "Book Now"
+                                                    "Pay Now"
                                                 )}
                                             </div>
                                         </button>
@@ -1036,7 +1036,7 @@ const OpenmatchPayment = () => {
                                     </g>
                                 </svg>
                                 <div style={contentStyle}>
-                                    {isLoading ? <ButtonLoading color={"#001B76"} /> : "Book Now"}
+                                    {isLoading ? <ButtonLoading color={"#001B76"} /> : "Pay Now"}
                                 </div>
                             </button>
                         </div>
