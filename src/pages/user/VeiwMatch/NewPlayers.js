@@ -28,9 +28,8 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender, defaultSkillLevel
+  userSkillLevel, selectedGender, defaultSkillLevel,profileLoading
 }) => {
-  const [profileLoading, setProfileLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -154,36 +153,6 @@ const NewPlayers = ({
       });
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setProfileLoading(true);
-
-      try {
-        const result = await dispatch(getUserProfile()).unwrap();
-
-        const firstAnswer = result?.response?.skillLevel;
-        if (firstAnswer) {
-          const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
-
-          const apiData = response?.data || [];
-
-          if (!Array.isArray(apiData) || apiData.length === 0) {
-            throw new Error("Empty API response");
-          }
-        }
-      } catch (err) {
-      }
-
-      setProfileLoading(false);
-    };
-
-    if (showAddMeForm) {
-      fetchData();
-    }
-
-  }, [showAddMeForm]);
-
-
   const handleInputChange = (field, value, formatFn = null) => {
     const formatted = formatFn ? formatFn(value) : value;
     setFormData((prev) => ({ ...prev, [field]: formatted }));
@@ -284,7 +253,7 @@ const NewPlayers = ({
               Phone No <span className="text-danger">*</span>
             </label>
             <div className="input-group border rounded">
-              <span className="input-group-text border-0 p-2 bg-white">
+              <span className="input-group-text border-0 p-2 bg-white" style={{fontSize:"11px"}}>
                 <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />{" "}
                 +91
               </span>

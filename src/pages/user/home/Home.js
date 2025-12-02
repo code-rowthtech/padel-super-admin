@@ -44,6 +44,7 @@ const Home = () => {
   const getReviewData = store?.userClub?.getReviewData?.data;
   const mapApiData = store?.userClub?.mapData?.data;
   const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
+  const logo = JSON.parse(localStorage.getItem("logo"));
 
   const handleImageLoad = (index) => {
     setLoadedImages((prev) => ({ ...prev, [index]: true }));
@@ -397,8 +398,8 @@ const Home = () => {
                 >
                   <div className="logo_add_star bg-white py-1" style={{ borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}>
                     <img
-                      src="https://i.imgur.com/4QfKuz1.png"
-                      alt="logo"
+                      src={logo || 'Courtline'}
+                      alt="Courtline"
                       style={{
                         width: "45px",
                         height: "45px",
@@ -1029,35 +1030,35 @@ const Home = () => {
                     : `translateX(-${reviewSlide * 100}%)`,
                 transition:
                   (windowWidth >= 992 && reviewSlide === getReviewData?.reviews?.length) ||
-                  (windowWidth < 992 && reviewSlide === 0)
+                    (windowWidth < 992 && reviewSlide === 0)
                     ? "none"
                     : "transform 0.5s ease",
               }}
             >
               {windowWidth >= 992
                 ? getReviewData?.reviews
-                    ?.concat(getReviewData?.reviews?.slice(0, 3))
-                    ?.map((review, index) => (
-                      <div
-                        key={index}
-                        className="flex-shrink-0 d-lg-block d-none"
-                        style={{ width: "33.333%" }}
-                      >
-                        <ReviewCard review={review} />
-                      </div>
-                    ))
-                : getReviewData?.reviews?.map((review, index) => (
+                  ?.concat(getReviewData?.reviews?.slice(0, 3))
+                  ?.map((review, index) => (
                     <div
-                      key={`mobile-${index}`}
-                      className="flex-shrink-0 d-lg-none d-block"
-                      style={{ width: "100%" }}
+                      key={index}
+                      className="flex-shrink-0 d-lg-block d-none"
+                      style={{ width: "33.333%" }}
                     >
                       <ReviewCard review={review} />
                     </div>
-                  ))}
+                  ))
+                : getReviewData?.reviews?.map((review, index) => (
+                  <div
+                    key={`mobile-${index}`}
+                    className="flex-shrink-0 d-lg-none d-block"
+                    style={{ width: "100%" }}
+                  >
+                    <ReviewCard review={review} />
+                  </div>
+                ))}
             </div>
           </div>
-          
+
           {((windowWidth < 992 && getReviewData?.reviews?.length > 1) || (windowWidth >= 992 && getReviewData?.reviews?.length > 3)) && (
             <>
               <button
