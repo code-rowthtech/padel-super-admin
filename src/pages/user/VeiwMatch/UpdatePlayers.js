@@ -36,7 +36,7 @@ const UpdatePlayers = ({
   selectedDate,
   selectedTime,
   selectedLevel,
-  match, skillLevel,setPlayerLevels,playerLevels
+  match, skillLevel,setPlayerLevels,playerLevels,
 }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -46,7 +46,7 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
-
+console.log({playerLevels});
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
@@ -266,7 +266,7 @@ const UpdatePlayers = ({
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Gender</label>
+            <label className="form-label">Game Type</label>
             <div className="d-flex gap-3">
               {[
                 { value: "Male Only", label: "Male Only" },

@@ -99,7 +99,7 @@ const MatchPlayer = ({
     const [userName, setUserName] = useState(User?.name);
 
 
-
+console.log({userName});
     useEffect(() => {
         const fetchData = async () => {
             if (hasCalledProfile.current) return;
@@ -628,7 +628,6 @@ const MatchPlayer = ({
                                         })()}
                                     </p>
                                     <Tooltip id="you" />
-                                    {console.log(finalSkillDetails, defaultLevel, 'finalSkillDetails, defaultLevel')}
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
                                         {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
                                             ? (finalSkillDetails[1] ? finalSkillDetails[1].split(' - ')[0] : (finalSkillDetails[0] || "A"))
