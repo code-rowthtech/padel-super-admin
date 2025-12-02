@@ -501,8 +501,7 @@ const ClubUpdateForm = () => {
           .then(() => {
             dispatch(getOwnerRegisteredClub({ ownerId }));
           });
-      } catch (err) {
-      }
+      } catch (err) {}
     },
     [formData, previewImages]
   );
@@ -606,7 +605,6 @@ const ClubUpdateForm = () => {
     applyToAll,
     hasChanged,
   ]);
-
 
   useEffect(() => {
     dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
