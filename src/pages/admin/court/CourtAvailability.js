@@ -351,7 +351,7 @@ const CourtAvailability = () => {
           >
             <Col
               xs={12}
-              lg={selectedCourt === "all" ? 12 : 8}
+              lg={selectedCourt === "all" ? 8 : 8}
               className="p-2 p-md-4"
             >
               <div className="mb-3">
@@ -981,6 +981,7 @@ const CourtAvailability = () => {
                             const isSelected = courtSelectedSlots.some(
                               (t) => t?.slot?._id === slot?._id
                             );
+
                             const isUnavailableForThisCourt =
                               slot?.courtIdsForSlot?.includes(selectedCourt);
                             const status = isUnavailableForThisCourt
@@ -1000,7 +1001,11 @@ const CourtAvailability = () => {
                               <div
                                 key={slot._id}
                                 className="position-relative"
-                                style={{ display: "inline-block" }}
+                                style={{
+                                  display: "inline-block",
+                                  flex: "0 0 calc(10% - 8px)", // ⭐ only 10 buttons per row
+                                  maxWidth: "calc(10% - 8px)",
+                                }}
                               >
                                 <button
                                   className={`border rounded-3 slot-time-btn text-nowrap py-1 ${
@@ -1015,8 +1020,6 @@ const CourtAvailability = () => {
                                       ? "#dc3545"
                                       : isPast
                                       ? "#c9cfcfff"
-                                      : showUnavailable
-                                      ? "#FFFFFF"
                                       : "#FFFFFF",
                                     color:
                                       isSelected || isBooked

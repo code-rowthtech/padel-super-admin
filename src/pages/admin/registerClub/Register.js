@@ -27,6 +27,7 @@ function Register() {
     >
       <Container>
         <Row className="align-items-center justify-content-center g-5 position-relative">
+          {/* Left Column */}
           <Col lg={7} md={12} className="position-relative z-1">
             <div className="pe-lg-4">
               <h1 className="fw-bold text-primary mb-2">Welcome</h1>
@@ -83,6 +84,7 @@ function Register() {
             </div>
           </Col>
 
+          {/* Right Column - Image */}
           <Col lg={5} md={12} className="position-relative text-center">
             <div
               className="position-absolute d-none d-lg-block"
@@ -91,9 +93,11 @@ function Register() {
               <img
                 src={registerClubBG}
                 alt="Padel Player"
+                // className="img-fluid"
                 style={{ maxHeight: "800px", objectFit: "contain" }}
               />
             </div>
+            {/* Fallback for smaller devices */}
             <div className="d-lg-none mt-4">
               <img
                 src={registerClubBG}

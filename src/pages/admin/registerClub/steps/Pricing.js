@@ -19,9 +19,14 @@ import { useNavigate } from "react-router-dom";
 import { resetClub } from "../../../../redux/admin/club/slice";
 import { showError, showInfo, showWarning } from "../../../../helpers/Toast";
 
+// Helper: Normalize time to consistent format (e.g., "6 am" → "6 am")
 const normalizeTime = (time) => {
   if (!time) return "";
-  return time.trim().replace(/:\d{2}/g, "").replace(/\s+/g, " ").toLowerCase();
+  return time
+    .trim()
+    .replace(/:\d{2}/g, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 };
 
 const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
@@ -53,6 +58,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
 
   const [selectAllChecked, setSelectAllChecked] = useState(true);
 
+  // Helper: Convert time to minutes for sorting
   const convertTimeToMinutes = (timeStr) => {
     const match = timeStr.match(/(\d+)\s*(am|pm)/i);
     if (!match) return 0;
@@ -63,32 +69,47 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     return hours * 60;
   };
 
+  // Helper: Convert time to 12-hour format (for display)
   const convertTo12HourFormat = (time) => {
     if (!time) return "";
     let hour, minute, period;
 
-    if (time.includes(":") && !time.toLowerCase().includes("am") && !time.toLowerCase().includes("pm")) {
+    if (
+      time.includes(":") &&
+      !time.toLowerCase().includes("am") &&
+      !time.toLowerCase().includes("pm")
+    ) {
       [hour, minute] = time.split(":").map(Number);
       period = hour >= 12 ? "PM" : "AM";
       hour = hour % 12 || 12;
-      return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")} ${period}`;
+      return `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")} ${period}`;
     }
 
-    if (time.toLowerCase().includes("am") || time.toLowerCase().includes("pm")) {
+    if (
+      time.toLowerCase().includes("am") ||
+      time.toLowerCase().includes("pm")
+    ) {
       [hour, period] = time.split(" ");
       hour = parseInt(hour, 10);
       minute = "00";
       if (hour === 0) hour = 12;
       if (hour > 12) hour = hour % 12;
-      return `${hour.toString().padStart(2, "0")}:${minute} ${period.toUpperCase()}`;
+      return `${hour
+        .toString()
+        .padStart(2, "0")}:${minute} ${period.toUpperCase()}`;
     }
 
     return time;
   };
 
+  // Get slots for selected days
   const getSelectedDaySlots = () => {
     const allSlots = clubData?.data?.[0]?.slot || [];
-    const selectedDays = Object.keys(formData.days).filter((day) => formData.days[day]);
+    const selectedDays = Object.keys(formData.days).filter(
+      (day) => formData.days[day]
+    );
 
     if (selectAllChecked || selectedDays.length === 0) {
       return allSlots;
@@ -100,6 +121,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     });
   };
 
+  // Initialize prices when data loads
   useEffect(() => {
     const selectedDaySlots = getSelectedDaySlots();
     const slotData = selectedDaySlots[0]?.slotTimes || [];
@@ -107,16 +129,25 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     if (slotData.length > 0 && formData.selectedSlots) {
       setFormData((prev) => {
         const newPrices = { ...prev.prices };
-        
-        if (!newPrices[prev.selectedSlots] || Object.keys(newPrices[prev.selectedSlots]).length === 0) {
+
+        // Only initialize if the slot type doesn't have prices yet
+        if (
+          !newPrices[prev.selectedSlots] ||
+          Object.keys(newPrices[prev.selectedSlots]).length === 0
+        ) {
           newPrices[prev.selectedSlots] = {};
           slotData.forEach((slot) => {
             const time12hr = convertTo12HourFormat(slot.time);
-            newPrices[prev.selectedSlots][time12hr] = slot.amount?.toString() || "";
+            newPrices[prev.selectedSlots][time12hr] =
+              slot.amount?.toString() || "";
           });
         }
 
-        if (selectAllChecked && (!newPrices.All || Object.keys(newPrices.All).length === 0)) {
+        // Auto-select all slots for "All" category when selectAllChecked is true
+        if (
+          selectAllChecked &&
+          (!newPrices.All || Object.keys(newPrices.All).length === 0)
+        ) {
           const timeSet = new Set();
           selectedDaySlots.forEach((slotDay) => {
             slotDay.slotTimes?.forEach((slot) => {
@@ -135,6 +166,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     }
   }, [clubData?.data, formData.selectedSlots, formData.days, selectAllChecked]);
 
+  // Sync selectAllChecked
   useEffect(() => {
     const allSelected = Object.values(formData.days).every(Boolean);
     setSelectAllChecked(allSelected);
@@ -145,8 +177,8 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       ...prev,
       days: {
         ...prev.days,
-        [day]: !prev.days[day]
-      }
+        [day]: !prev.days[day],
+      },
     }));
   };
 
@@ -180,7 +212,15 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
   };
 
   const renderDays = () => {
-    const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const daysOfWeek = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
     return (
       <div>
         {daysOfWeek.map((day) => (
@@ -193,7 +233,14 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
             className="mb-1 d-flex justify-content-between align-items-center"
             style={{ display: "flex", alignItems: "center", gap: "10px" }}
           >
-            <Form.Label style={{ fontSize: "12px", color: "#1D1B20", fontWeight: 400,fontFamily:"Poppins" }}>
+            <Form.Label
+              style={{
+                fontSize: "12px",
+                color: "#1D1B20",
+                fontWeight: 400,
+                fontFamily: "Poppins",
+              }}
+            >
               {day}
             </Form.Label>
             <Form.Check.Input
@@ -217,11 +264,13 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     );
   };
 
+  // Filter slots by time period
   const filterSlotsByPeriod = (slots, period) => {
     return slots.filter((slot) => {
       const timeStr = slot.time;
       if (!timeStr) return false;
 
+      // Parse hour from time string
       let hour;
       if (timeStr.includes(":")) {
         const [hourStr] = timeStr.split(":");
@@ -235,6 +284,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         if (periodStr === "am" && hour === 12) hour = 0;
       }
 
+      // Filter by time period
       switch (period) {
         case "Morning":
           return hour >= 0 && hour <= 11;
@@ -248,6 +298,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     });
   };
 
+  // Render slots for single day
   const renderTimeSlots = () => {
     if (selectAllChecked) return renderAllSlots();
 
@@ -255,11 +306,16 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     if (selectedDaySlots.length === 0) return <div>No slots available</div>;
 
     const allSlotData = selectedDaySlots[0]?.slotTimes || [];
-    const filteredSlotData = filterSlotsByPeriod(allSlotData, formData.selectedSlots);
+    const filteredSlotData = filterSlotsByPeriod(
+      allSlotData,
+      formData.selectedSlots
+    );
     const slots = formData.selectedSlots;
 
     if (filteredSlotData.length === 0) {
-      return <div>No {formData.selectedSlots.toLowerCase()} slots available</div>;
+      return (
+        <div>No {formData.selectedSlots.toLowerCase()} slots available</div>
+      );
     }
 
     return filteredSlotData.map((slot) => {
@@ -286,7 +342,9 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                 type="number"
                 placeholder="Price"
                 value={formData.prices[slots][time12hr] || ""}
-                onChange={(e) => handlePriceChange(slots, time12hr, e.target.value)}
+                onChange={(e) =>
+                  handlePriceChange(slots, time12hr, e.target.value)
+                }
                 min="0"
                 max="4000"
                 style={{
@@ -303,6 +361,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     });
   };
 
+  // Render All slots (Select All)
   const renderAllSlots = () => {
     const selectedDaySlots = getSelectedDaySlots();
     const timeSet = new Set();
@@ -319,12 +378,15 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
 
     const selectedTimes = Object.keys(formData.prices.All);
 
-    const allSelected = allTimes.length > 0 && selectedTimes.length === allTimes.length;
+    const allSelected =
+      allTimes.length > 0 && selectedTimes.length === allTimes.length;
 
     const getCommonPrice = () => {
       if (selectedTimes.length === 0) return "";
       const firstPrice = formData.prices.All[selectedTimes[0]];
-      return selectedTimes.every((t) => formData.prices.All[t] === firstPrice) ? firstPrice : "";
+      return selectedTimes.every((t) => formData.prices.All[t] === firstPrice)
+        ? firstPrice
+        : "";
     };
 
     const toggleSlot = (time) => {
@@ -359,6 +421,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
           const newPrices = { ...prev.prices.All };
           const selectedTimes = Object.keys(newPrices);
           selectedTimes.forEach((t) => {
+            newPrices[t] = price; // ← Keep as string
           });
           return { ...prev, prices: { ...prev.prices, All: newPrices } };
         });
@@ -389,7 +452,14 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
           </span>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px", marginBottom: "16px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(5, 1fr)",
+            gap: "8px",
+            marginBottom: "16px",
+          }}
+        >
           {allTimes.map((time) => {
             const isSelected = formData.prices.All[time] !== undefined;
             return (
@@ -413,9 +483,20 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         </div>
 
         <div className="mt-3">
-          <h5 style={{ fontWeight: 500, color: "#000000", marginBottom: "10px", fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+          <h5
+            style={{
+              fontWeight: 500,
+              color: "#000000",
+              marginBottom: "10px",
+              fontSize: "14px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+            }}
+          >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""}`
+              ? `Set Price for ${selectedTimes.length} slot${
+                  selectedTimes.length > 1 ? "s" : ""
+                }`
               : "Set Price (select slots first)"}
           </h5>
           <InputGroup>
@@ -431,8 +512,8 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                 border: "1px solid #E5E7EB",
                 fontSize: "14px",
                 backgroundColor: "#fff",
-                fontFamily: 'Poppins',
-                boxShadow: "none"
+                fontFamily: "Poppins",
+                boxShadow: "none",
               }}
               min={0}
               max={4000}
@@ -443,6 +524,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     );
   };
 
+  // Submit Handler - FIXED
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -464,8 +546,10 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
     if (selectAllChecked) {
       selectedSlotData = allSlots;
     } else {
-      selectedSlotData = allSlots.filter(s =>
-        s.businessHours?.[0]?.day && selectedDays.includes(s.businessHours[0].day)
+      selectedSlotData = allSlots.filter(
+        (s) =>
+          s.businessHours?.[0]?.day &&
+          selectedDays.includes(s.businessHours[0].day)
       );
     }
 
@@ -474,14 +558,18 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       return;
     }
 
+    // FIXED: Convert price to string before trim
     const filledSlotTimes = selectedSlotData
-      .flatMap(day => day.slotTimes || [])
-      .map(slot => {
+      .flatMap((day) => day.slotTimes || [])
+      .map((slot) => {
         const normalizedApiTime = normalizeTime(slot.time);
         const time12hr = convertTo12HourFormat(slot.time);
-        
-        const priceValue = slotPrices[normalizedApiTime] || slotPrices[time12hr];
 
+        // Try both normalized time and 12hr format for price lookup
+        const priceValue =
+          slotPrices[normalizedApiTime] || slotPrices[time12hr];
+
+        // Convert number to string, then trim
         const priceStr = priceValue == null ? "" : String(priceValue).trim();
         if (!priceStr) return null;
 
@@ -495,7 +583,10 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       return;
     }
 
-    const businessHours = selectedSlotData.flatMap(d => d.businessHours || []);
+    // Business Hours
+    const businessHours = selectedSlotData.flatMap(
+      (d) => d.businessHours || []
+    );
     const completeBusinessHours = selectedDays.map((day) => {
       const existing = businessHours.find((bh) => bh.day === day);
       return existing || { day, time: "06:00 AM - 11:00 PM" };
@@ -534,8 +625,11 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
       });
   };
 
+  // Fetch slots when days or slot type change
   useEffect(() => {
-    const selectedDays = Object.keys(formData.days).filter((day) => formData.days[day]);
+    const selectedDays = Object.keys(formData.days).filter(
+      (day) => formData.days[day]
+    );
     const isAllSelected = selectedDays.length === 7;
     const payloadDays = isAllSelected ? "" : selectedDays;
 
@@ -556,7 +650,15 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         <Row>
           <Col md={6}>
             <div className="d-flex justify-content-between">
-              <h5 style={{ fontWeight: 600, fontSize: "20px", color: "#374151", fontFamily: "Poppins", marginBottom: "10px" }}>
+              <h5
+                style={{
+                  fontWeight: 600,
+                  fontSize: "20px",
+                  color: "#374151",
+                  fontFamily: "Poppins",
+                  marginBottom: "10px",
+                }}
+              >
                 Set Price
               </h5>
               <Form.Check
@@ -603,7 +705,11 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                     right: "0%",
                     display: "flex",
                     alignItems: "center",
-                    gap: "8px",fontSize: "12px",fontWeight:"500", fontFamily:"Poppins",color:"#000000"
+                    gap: "8px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                    color: "#000000",
                   }}
                 >
                   {formData.selectedSlots} slots
@@ -623,7 +729,16 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
               </Dropdown>
             )}
 
-            <h5 style={{ fontWeight: 500, color: "#000000", marginBottom: "10px", fontSize: "14px", fontWeight: "500", fontFamily: "Poppins" }}>
+            <h5
+              style={{
+                fontWeight: 500,
+                color: "#000000",
+                marginBottom: "10px",
+                fontSize: "14px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+              }}
+            >
               {selectAllChecked ? "All" : formData.selectedSlots} slots
             </h5>
             <div

@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, useRef, memo } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  memo,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, Row, Col, Form, Button, Alert } from "react-bootstrap";
 import { SlCloudUpload } from "react-icons/sl";
@@ -20,7 +27,7 @@ const mdParser = new MarkdownIt();
 mdParser.use(markdownItIns);
 
 const MAX_IMAGES = 10;
-const MAX_WORDS = 500;
+const MAX_WORDS = 125;
 const FEATURES = [
   { key: "changingRooms", label: "Changing Rooms" },
   { key: "parking", label: "Parking" },
@@ -253,6 +260,51 @@ const AddImageTile = ({ onFiles, hidden }) => {
   );
 };
 
+const Input = React.memo(
+  ({
+    label,
+    field,
+    type = "text",
+    placeholder,
+    formData,
+    handleChange,
+    setTouched,
+    visibleErrors,
+    setEditorHeight,
+  }) => (
+    <Form.Group className="mb-2">
+      <Form.Label className="fw-semibold small text-secondary">
+        {label}
+      </Form.Label>
+      <Form.Control
+        type={type}
+        placeholder={!formData[field] ? placeholder : ""}
+        value={formData[field] || ""}
+        onChange={(e) => handleChange(field, e.target.value)}
+        onFocus={() => setEditorHeight(130)}
+        onBlur={() => setTouched((p) => ({ ...p, [field]: true }))}
+        isInvalid={!!visibleErrors[field]}
+        style={{
+          height: "33px",
+          borderRadius: "12px",
+          fontSize: "14px",
+          backgroundColor: "#fff",
+          boxShadow: "none",
+        }}
+      />
+      {visibleErrors[field] && (
+        <Form.Control.Feedback type="invalid" className="d-block small">
+          {field === "zip"
+            ? "Zip code must be 4-6 digits and cannot start with 0"
+            : field === "courtCount"
+            ? "Please enter a valid number"
+            : "This field is required"}
+        </Form.Control.Feedback>
+      )}
+    </Form.Group>
+  )
+);
+
 const ClubUpdateForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -373,73 +425,70 @@ const ClubUpdateForm = () => {
     };
   }, [isDragging]);
 
-  const countWords = useCallback((text) => {
+  const countWords = (text) => {
     return text.trim().split(/\s+/).filter(Boolean).length;
-  }, []);
+  };
 
-  const handleChange = useCallback(
-    (field, value) => {
-      if (field === "description") {
-        const wordCount = countWords(value);
-        if (wordCount <= MAX_WORDS) {
-          setFormData((prev) => ({ ...prev, [field]: value }));
-          setWordCount(wordCount);
-        } else {
-          showWarning(`Description cannot exceed ${MAX_WORDS} words.`);
-        }
-      } else if (field === "courtCount") {
-        if (value.trim() === "") {
-          setFormData((prev) => ({ ...prev, [field]: value }));
-          return;
-        }
-        const num = Number(value);
-        if (!/^\d+$/.test(value.trim())) {
-          showWarning("Please enter a valid number of courts.");
-          return;
-        }
-        if (num > 10) {
-          showWarning("You can only add up to 10 courts.");
-          return;
-        }
+  const handleChange = (field, value) => {
+    if (field === "description") {
+      const wordCount = countWords(value);
+      if (wordCount <= MAX_WORDS) {
         setFormData((prev) => ({ ...prev, [field]: value }));
-      } else if (field === "zip") {
-        if (value.trim() === "") {
-          setFormData((prev) => ({ ...prev, [field]: value }));
-          return;
-        }
-        if (!/^\d+$/.test(value.trim())) {
-          showWarning("Zip code must contain only digits.");
-          return;
-        }
-        if (value.trim().startsWith("0")) {
-          showWarning("Zip code cannot start with 0.");
-          return;
-        }
-        if (value.trim().length > 6) {
-          showWarning("Zip code must be 4-6 digits.");
-          return;
-        }
-        setFormData((prev) => ({ ...prev, [field]: value }));
+        setWordCount(wordCount);
       } else {
-        setFormData((prev) => ({ ...prev, [field]: value }));
+        showWarning(`Description cannot exceed ${MAX_WORDS} words.`);
       }
+    } else if (field === "courtCount") {
+      if (value.trim() === "") {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+        return;
+      }
+      const num = Number(value);
+      if (!/^\d+$/.test(value.trim())) {
+        showWarning("Please enter a valid number of courts.");
+        return;
+      }
+      if (num > 10) {
+        showWarning("You can only add up to 10 courts.");
+        return;
+      }
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    } else if (field === "zip") {
+      if (value.trim() === "") {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+        return;
+      }
+      if (!/^\d+$/.test(value.trim())) {
+        showWarning("Zip code must contain only digits.");
+        return;
+      }
+      if (value.trim().startsWith("0")) {
+        showWarning("Zip code cannot start with 0.");
+        return;
+      }
+      if (value.trim().length > 6) {
+        showWarning("Zip code must be 4-6 digits.");
+        return;
+      }
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
 
-      setTouched((prev) => ({ ...prev, [field]: true }));
-    },
-    [countWords]
-  );
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
 
-  const handleBlur = useCallback((field) => {
+  const handleBlur = (field) => {
     setTouched((p) => ({ ...p, [field]: true }));
-  }, []);
+  };
 
-  const handleCheckbox = useCallback((section, key) => {
+  const handleCheckbox = (section, key) => {
     setFormData((prev) => ({
       ...prev,
       [section]: { ...prev[section], [key]: !prev[section]?.[key] },
     }));
     setTouched((prev) => ({ ...prev, [section]: true }));
-  }, []);
+  };
 
   const handleAddFiles = useCallback(
     (files) => {
@@ -647,39 +696,6 @@ const ClubUpdateForm = () => {
     }
   };
 
-  const Input = memo(({ label, field, type = "text", placeholder }) => (
-    <Form.Group className="mb-2">
-      <Form.Label className="fw-semibold small text-secondary">
-        {label}
-      </Form.Label>
-      <Form.Control
-        type={type}
-        placeholder={!formData[field] ? placeholder : ""}
-        value={formData[field]}
-        onChange={(e) => handleChange(field, e.target.value)}
-        onFocus={() => setEditorHeight(130)}
-        onBlur={() => setTouched((p) => ({ ...p, [field]: true }))}
-        isInvalid={!!visibleErrors[field]}
-        style={{
-          height: "33px",
-          borderRadius: "12px",
-          fontSize: "14px",
-          backgroundColor: "#fff",
-          boxShadow: "none",
-        }}
-      />
-      {visibleErrors[field] && (
-        <Form.Control.Feedback type="invalid" className="d-block small">
-          {field === "zip"
-            ? "Zip code must be 4-6 digits and cannot start with 0"
-            : field === "courtCount"
-            ? "Please enter a valid number"
-            : "This field is required"}
-        </Form.Control.Feedback>
-      )}
-    </Form.Group>
-  ));
-
   return (
     <Card className="p-4 pt-2 shadow-sm border-0">
       {ownerClubLoading ? (
@@ -692,37 +708,74 @@ const ClubUpdateForm = () => {
                 <Col md={4}>
                   <Input
                     className=""
-                    key="courtName"
                     label="Club/Facility Name"
                     field="courtName"
                     placeholder="e.g., Smash Arena"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
                   />
                 </Col>
                 <Col md={4}>
-                  <Input key="city" label="City" field="city" />
+                  <Input
+                    label="City"
+                    field="city"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
+                  />
                 </Col>
                 <Col md={4}>
-                  <Input key="state" label="State" field="state" />
+                  <Input
+                    label="State"
+                    field="state"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
+                  />
                 </Col>{" "}
                 <Col md={3}>
-                  <Input key="zip" label="Zip Code" field="zip" type="number" />
+                  <Input
+                    label="Zip Code"
+                    field="zip"
+                    type="number"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
+                  />
                 </Col>
                 <Col md={3}>
                   <Input
-                    key="courtCount"
                     label="Number of Courts "
                     field="courtCount"
                     type="number"
                     max={4000}
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
                   />
                 </Col>
                 <Col md={6}>
                   <Input
-                    key="address"
                     as="textArea"
                     label="Full Address"
                     field="address"
                     placeholder="Street, Area"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
                   />
                 </Col>
                 <Col md={12}>
@@ -770,10 +823,10 @@ const ClubUpdateForm = () => {
                         config={{
                           view: {
                             menu: true,
-                            md: true,
-                            html: false,
+                            md: false,
+                            html: true,
                           },
-                          placeholder: "Short description (max 500 words)",
+                          placeholder: "Short description (max 125 words)",
                           toolbar: [
                             "bold",
                             "italic",
@@ -988,16 +1041,48 @@ const ClubUpdateForm = () => {
               </Row>
               <Row className="mb-3">
                 <Col md={3}>
-                  <Input label="Instagram Link" field="instagramLink" />
+                  <Input
+                    label="Instagram Link"
+                    field="instagramLink"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
+                  />
                 </Col>
                 <Col md={3}>
-                  <Input label="LinkedIn Link" field="linkedinLink" />
+                  <Input
+                    label="LinkedIn Link"
+                    field="linkedinLink"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
+                  />
                 </Col>
                 <Col md={3}>
-                  <Input label="Facebook Link" field="facebookLink" />
+                  <Input
+                    label="Facebook Link"
+                    field="facebookLink"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
+                  />
                 </Col>
                 <Col md={3}>
-                  <Input label="X Link" field="xlink" />
+                  <Input
+                    label="X Link"
+                    field="xlink"
+                    formData={formData}
+                    handleChange={handleChange}
+                    setTouched={setTouched}
+                    visibleErrors={visibleErrors}
+                    setEditorHeight={setEditorHeight}
+                  />
                 </Col>
               </Row>
             </Col>
