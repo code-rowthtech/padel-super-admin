@@ -254,7 +254,7 @@ const NewPlayers = ({
             </label>
             <div className="input-group border rounded">
               <span className="input-group-text border-0 p-2 bg-white" style={{fontSize:"11px"}}>
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />{" "}
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" />{" "}
                 +91
               </span>
               <input

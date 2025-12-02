@@ -1604,6 +1604,17 @@ h1.display-5 {
   .font_size_mobile_button{
     font-size: 12px!important;
   }
+  .view_match_data{
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right: 0px;
+    left: 0px;
+    transform: translate(0px, 0px);
+  }
 }
 
 /* Right Column Responsive */

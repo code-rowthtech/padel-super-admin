@@ -791,7 +791,7 @@ const Home = () => {
                     className="position-relative overflow-hidden rounded-3 mx-auto"
                     style={{
                       height: "200px",
-                      width: "90%",
+                      width: "100%",
                       maxWidth: "350px",
                       cursor: "pointer",
                     }}

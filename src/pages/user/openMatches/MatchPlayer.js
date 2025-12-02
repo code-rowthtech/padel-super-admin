@@ -490,7 +490,7 @@ const MatchPlayer = ({
                         </small>
                     </div>
 
-                    <div className="col-12 ps-0 text-center">
+                    <div className="col-12 ps-0 text-center d-flex">
                         <div className="col-md-4 col-5 py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Game Type

@@ -325,7 +325,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
 
     return (
         <>
-            <div className=" rounded-3 px-md-3 px-0 py-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
+            <div className=" rounded-3 px-md-3 px-0 py-md-2 pt-0 pb-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
                     <div className="d-flex align-items-center gap-2">
                         {onBack && (
@@ -544,12 +544,12 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </div>
                 </div>
                 <div className="d-flex justify-content-between align-items-center mt-4">
-                    <h6 className="mb-0 all-matches" style={{ color: "#374151" }}>
+                    <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
                         Information
                     </h6>
                 </div>
 
-                <div className="d-lg-flex gap-2">
+                <div className="d-lg-flex gap-2 position-relative">
                     <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
                         <div>
@@ -576,10 +576,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             </p>
                         </div>
                     </div>
-                </div>
-                <div className="col-12 d-flex justify-content-end align-item-center d-md-none" style={{ marginTop: '-60px' }}>
+                      <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
                     <button
-                        className="d-flex align-items-center gap-2 border-0"
+                        className="d-flex align-items-center gap-2 border-0 py-1"
                         style={{
                             background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
                             borderRadius: "25px",
@@ -594,6 +593,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </button>
 
                 </div>
+                </div>
+              
 
             </div>
 

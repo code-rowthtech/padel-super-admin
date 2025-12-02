@@ -223,7 +223,7 @@ const UpdatePlayers = ({
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
               <span className="input-group-text border-0 border-end bg-white" style={{fontSize:"11px"}}>
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" /> +91
               </span>
               <input
                 type="text"
