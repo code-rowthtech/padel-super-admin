@@ -579,33 +579,20 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 </div>
                 <div className="col-12 d-flex justify-content-end align-item-center d-md-none" style={{ marginTop: '-60px' }}>
                     <button
-                        className="d-flex align-items-center justify-content-center border-0 position-relative"
+                        className="d-flex align-items-center gap-2 border-0"
                         style={{
                             background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
-                            borderRadius: "50%",
-                            width: "50px",
-                            height: "50px",
+                            borderRadius: "25px",
+                            padding: "8px 16px",
                             color: "#fff",
+                            fontWeight: 600,
                         }}
                     // onClick={() => setShowChat(true)}
                     >
-                        <i className="bi bi-chat-dots-fill" style={{ fontSize: "20px" }}></i>
-
-                        <span
-                            style={{
-                                position: "absolute",
-                                right: "-12px",
-                                top: "-5px",
-                                background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
-                                borderRadius: "50%",
-                                padding: "4px 10px",
-                                fontSize: "10px",
-                                fontWeight: "600"
-                            }}
-                        >
-                            LIVE
-                        </span>
+                        <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
+                        Chat
                     </button>
+
                 </div>
 
             </div>
