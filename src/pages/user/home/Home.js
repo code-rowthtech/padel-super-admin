@@ -398,8 +398,8 @@ const Home = () => {
                 >
                   <div className="logo_add_star bg-white py-1" style={{ borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}>
                     <img
-                      src={logo}
-                      alt="logo"
+                      src={logo || 'Courtline'}
+                      alt="Courtline"
                       style={{
                         width: "45px",
                         height: "45px",
