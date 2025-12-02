@@ -28,9 +28,8 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender, defaultSkillLevel
+  userSkillLevel, selectedGender, defaultSkillLevel,profileLoading
 }) => {
-  const [profileLoading, setProfileLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -154,36 +153,6 @@ const NewPlayers = ({
       });
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setProfileLoading(true);
-
-      try {
-        const result = await dispatch(getUserProfile()).unwrap();
-
-        const firstAnswer = result?.response?.skillLevel;
-        if (firstAnswer) {
-          const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
-
-          const apiData = response?.data || [];
-
-          if (!Array.isArray(apiData) || apiData.length === 0) {
-            throw new Error("Empty API response");
-          }
-        }
-      } catch (err) {
-      }
-
-      setProfileLoading(false);
-    };
-
-    if (showAddMeForm) {
-      fetchData();
-    }
-
-  }, [showAddMeForm]);
-
-
   const handleInputChange = (field, value, formatFn = null) => {
     const formatted = formatFn ? formatFn(value) : value;
     setFormData((prev) => ({ ...prev, [field]: formatted }));
@@ -284,8 +253,8 @@ const NewPlayers = ({
               Phone No <span className="text-danger">*</span>
             </label>
             <div className="input-group border rounded">
-              <span className="input-group-text border-0 p-2 bg-white">
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />{" "}
+              <span className="input-group-text border-0 p-2 bg-white" style={{fontSize:"11px"}}>
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" />{" "}
                 +91
               </span>
               <input
@@ -342,7 +311,7 @@ const NewPlayers = ({
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Gender</label>
+            <label className="form-label">Game Type</label>
             <div className="d-flex gap-3">
               {[
                 { value: "Male Only", label: "Male Only" },
@@ -390,6 +359,8 @@ const NewPlayers = ({
                   placeholder="Choose level"
                   classNamePrefix="select"
                   isSearchable={false}
+                  maxMenuHeight={250}
+                  menuPortalTarget={document.body}
                   styles={{
                     control: (base) => ({
                       ...base,
@@ -401,7 +372,16 @@ const NewPlayers = ({
                       ...base,
                       color: "#6c757d",
                     }),
-                    overflow: "hidden"
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menu: (base) => ({ ...base, maxHeight: 150, overflowY: 'auto' })
+                  }}
+                  components={{
+                    Input: (props) => <div {...props} style={{ ...props.style, caretColor: 'transparent' }} />
+                  }}
+                  onMenuOpen={() => {
+                    if (document.activeElement) {
+                      document.activeElement.blur();
+                    }
                   }}
                 />
               )}
@@ -427,7 +407,7 @@ const NewPlayers = ({
             </div>
           )}
 
-          <div className="d-flex flex-column flex-sm-row gap-2 mt-4">
+          <div className="d-flex flex-sm-row gap-2 mt-4 aling-items-center justify-content-end">
             <Button
               variant="outlined"
               color="secondary"
@@ -438,7 +418,8 @@ const NewPlayers = ({
                 setErrors({});
                 setShowErrors({});
               }}
-              sx={{ width: { xs: "100%", sm: "50%", border: "1px solid #001b76", color: "#001B76" } }}
+              sx={{ width: { xs: "25%", sm: "25%", border: "1px solid #001b76", color: "#001B76" } }}
+              className="py-1 font_size_mobile_button"
 
             >
               Cancel
@@ -446,12 +427,14 @@ const NewPlayers = ({
             <Button
               type="submit"
               fullWidth
-              sx={{ width: { xs: "100%", sm: "50%" } }}
+              sx={{ width: { xs: "25%", sm: "25%" } }}
               style={{
                 background:
                   "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white"
               }}
               disabled={userLoading}
+                            className="py-1 font_size_mobile_button"
+
             >
               {userLoading ? <ButtonLoading color="white" /> : "Submit"}
             </Button>

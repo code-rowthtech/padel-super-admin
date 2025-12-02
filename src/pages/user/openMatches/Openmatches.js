@@ -22,6 +22,7 @@ import StarHalfIcon from "@mui/icons-material/StarHalf";
 import { MdKeyboardArrowDown, MdOutlineArrowBackIosNew } from "react-icons/md";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { getReviewClub } from "../../../redux/user/club/thunk";
+import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import "react-datepicker/dist/react-datepicker.css";
 import {
   booking_dropdown_img,
@@ -109,9 +110,21 @@ const Openmatches = () => {
   const [showModal, setShowModal] = useState(false);
   const [matchId, setMatchId] = useState(null);
   const [teamName, setTeamName] = useState("");
-  const [showViewMatch, setShowViewMatch] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [showViewMatch, setShowViewMatch] = useState(() => {
+    if (window.innerWidth <= 768) {
+      return localStorage.getItem('mobileViewMatch') === 'true';
+    }
+    return false;
+  });
+  const [selectedMatch, setSelectedMatch] = useState(() => {
+    if (window.innerWidth <= 768) {
+      const saved = localStorage.getItem('mobileSelectedMatch');
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
   const [showCreateButton, setShowCreateButton] = useState(true);
+  const [playerLevels, setPlayerLevels] = useState([]);
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
   const debouncedFetchMatches = useCallback(
@@ -127,16 +140,36 @@ const Openmatches = () => {
     }
   }, [user?.token])
 
+  useEffect(() => {
+    if (matchId?.skillLevel) {
+      dispatch(getPlayerLevelBySkillLevel(matchId?.skillLevel))
+        .unwrap()
+        .then((res) => {
+          const levels = (res?.data[0]?.levelIds || []).map((l) => ({
+            code: l.code,
+            title: l.question,
+          }));
+          setPlayerLevels(levels);
+        })
+        .catch(() => setPlayerLevels([]));
+    }
+  }, [matchId?.skillLevel, dispatch]);
+
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
+    }
+    
+    // Close modals on outside click (except payment modals)
+    if (showModal && !e.target.closest('.modal-content') && !e.target.closest('[data-bs-toggle="modal"]')) {
+      setShowModal(false);
     }
   };
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [showModal]);
 
   useEffect(() => {
     const savedClubId = localStorage.getItem("register_club_id");
@@ -516,8 +549,9 @@ const Openmatches = () => {
   const scrollRight = () =>
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
+  
   return (
-    <div className="container mt-lg-4 px-3 px-md-0 mb-md-4 mb-0">
+    <div className="container mt-lg-4 px-3 px-md-0 mb-md-4 mb-0 add_margin_top_minus">
       <div className="row g-md-4 mx-auto">
         <div
           className={`col-lg-7 col-12 py-md-4 py-2 rounded-3 px-md-4 px-0 order-2 order-md-1 bg-white-color ${showViewMatch ? "d-none d-md-block " : "pt-0"
@@ -850,6 +884,10 @@ const Openmatches = () => {
                             onClick={() => {
                               setSelectedMatch(match);
                               setShowViewMatch(true);
+                              if (window.innerWidth <= 768) {
+                                localStorage.setItem('mobileViewMatch', 'true');
+                                localStorage.setItem('mobileSelectedMatch', JSON.stringify(match));
+                              }
                             }}
                           >
                             <div className="row px-2 mx-auto px-md-0 py-2 d-flex justify-content-between align-items- flex-wrap">
@@ -985,6 +1023,10 @@ const Openmatches = () => {
                                         onClick={() => {
                                           setSelectedMatch(match);
                                           setShowViewMatch(true);
+                                          if (window.innerWidth <= 768) {
+                                            localStorage.setItem('mobileViewMatch', 'true');
+                                            localStorage.setItem('mobileSelectedMatch', JSON.stringify(match));
+                                          }
                                         }}
                                         aria-label={`View match on ${formatMatchDate(
                                           match.matchDate
@@ -1011,6 +1053,10 @@ const Openmatches = () => {
                         onClick={() => {
                           setSelectedMatch(match);
                           setShowViewMatch(true);
+                          if (window.innerWidth <= 768) {
+                            localStorage.setItem('mobileViewMatch', 'true');
+                            localStorage.setItem('mobileSelectedMatch', JSON.stringify(match));
+                          }
                         }}
                       >
                         <div className="row px-0 px-md-3 pt-0 pb-0 d-flex justify-content-between align-items- flex-wrap mx-auto">
@@ -1313,6 +1359,10 @@ const Openmatches = () => {
                                   onClick={() => {
                                     setSelectedMatch(match);
                                     setShowViewMatch(true);
+                                    if (window.innerWidth <= 768) {
+                                      localStorage.setItem('mobileViewMatch', 'true');
+                                      localStorage.setItem('mobileSelectedMatch', JSON.stringify(match));
+                                    }
                                   }}
                                   aria-label={`View match on ${formatMatchDate(
                                     match.matchDate
@@ -1349,7 +1399,7 @@ const Openmatches = () => {
             } order-1 order-md-2 ${showViewMatch ? "d-block" : ""}`}
         >
           {!showViewMatch ? (
-            <div className="ms-0 ms-lg-2 mt-md-3 mt-0">
+            <div className="ms-0 ms-lg-2 mt-md-3 mt-2">
               {showCreateButton && (
                 <div
                   className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner mx-auto d-flex d-md-none"
@@ -1362,7 +1412,7 @@ const Openmatches = () => {
                     height: "312px",
                     borderRadius: "20px",
                     overflow: "hidden",
-                    marginTop: "-20px",
+                    marginTop: "-10px",
                   }}
                 >
                   <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
@@ -1593,7 +1643,13 @@ const Openmatches = () => {
           ) : (
             <ViewMatch
               match={selectedMatch}
-              onBack={() => setShowViewMatch(false)}
+              onBack={() => {
+                setShowViewMatch(false);
+                if (window.innerWidth <= 768) {
+                  localStorage.removeItem('mobileViewMatch');
+                  localStorage.removeItem('mobileSelectedMatch');
+                }
+              }}
               updateName={updateName}
               selectedDate={selectedDate}
             />
@@ -1609,6 +1665,8 @@ const Openmatches = () => {
         selectedLevel={selectedLevel}
         selectedTime={selectedTime}
         skillLevel={matchId?.skillLevel}
+        playerLevels={playerLevels}
+        setPlayerLevels={setPlayerLevels}
       />
     </div>
   );

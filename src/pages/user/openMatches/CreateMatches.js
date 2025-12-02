@@ -780,9 +780,9 @@ const CreateMatches = () => {
           }}
           onMouseEnter={(e) => {
             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
-              e.currentTarget.style.borderTop = "1px solid #3DBE64";
-              e.currentTarget.style.borderRight = "1px solid #3DBE64";
-              e.currentTarget.style.borderBottom = "1px solid #3DBE64";
+              e.currentTarget.style.borderTop = "1px solid #0034E4";
+              e.currentTarget.style.borderRight = "1px solid #0034E4";
+              e.currentTarget.style.borderBottom = "1px solid #0034E4";
               e.currentTarget.style.borderLeft = "3px solid #0034E4";
             }
           }}
@@ -1131,7 +1131,7 @@ const CreateMatches = () => {
                       ) && (
                           <>
                             <div className="row mb-md-2 mb-0">
-                              <div className="col-12">
+                              <div className="col-12 mb-2">
                                 <div className="div p-3 animation-slider">
                                 </div>
                               </div>
@@ -1148,14 +1148,14 @@ const CreateMatches = () => {
                         )}
                       <div
                         style={{
-                          maxHeight: "60vh",
+                          // maxHeight: "60vh",
                           overflowY: "auto",
                           overflowX: "hidden",
                           paddingRight: "8px",
                           msOverflowStyle: "none",
                           scrollbarWidth: "none",
                         }}
-                        className="hide-scrollbar"
+                        className="hide-scrollbar mention_height_court"
                       >
                         <style>{`
                           .hide-scrollbar::-webkit-scrollbar {
@@ -1185,10 +1185,10 @@ const CreateMatches = () => {
                           }
                           @keyframes slideTextLeftToRight {
                             0% {
-                              transform: translateY(-50%) translateX(-100%);
+                              transform: translateY(-50%) translateX(100%);
                             }
                             100% {
-                              transform: translateY(-50%) translateX(100%);
+                              transform: translateY(-50%) translateX(-100%);
                             }
                           }
                         `}</style>
@@ -1745,6 +1745,7 @@ const CreateMatches = () => {
                 setCurrentStep(0);
                 setSlotError("");
               }}
+              matchPlayer={matchPlayer}
             />
           )}
         </Col>
