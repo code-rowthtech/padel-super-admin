@@ -412,7 +412,7 @@ const Home = () => {
 
                   {/* Club Name + Green Stars */}
                   <div className="d-flex flex-column" style={{ lineHeight: "1.5" }}>
-                    <span style={{ fontSize: "14px", fontWeight: 600 }}>                      {clubData?.clubName || "The Court Line Club"}
+                    <span style={{ fontSize: "14px", fontWeight: 600, }}>                      {clubData?.clubName || "The Court Line Club"}
                     </span>
 
                     <div className="d-flex align-items-center" style={{ marginTop: "2px" }}>
@@ -455,6 +455,7 @@ const Home = () => {
                       fontSize: "13px",
                       fontFamily: "Poppins",
                       fontWeight: "400",
+                      textAlign:"justify"
                     }}
                   >
                     {clubData?.clubName || "The Court Line Club"}{" "}
@@ -1029,35 +1030,35 @@ const Home = () => {
                     : `translateX(-${reviewSlide * 100}%)`,
                 transition:
                   (windowWidth >= 992 && reviewSlide === getReviewData?.reviews?.length) ||
-                  (windowWidth < 992 && reviewSlide === 0)
+                    (windowWidth < 992 && reviewSlide === 0)
                     ? "none"
                     : "transform 0.5s ease",
               }}
             >
               {windowWidth >= 992
                 ? getReviewData?.reviews
-                    ?.concat(getReviewData?.reviews?.slice(0, 3))
-                    ?.map((review, index) => (
-                      <div
-                        key={index}
-                        className="flex-shrink-0 d-lg-block d-none"
-                        style={{ width: "33.333%" }}
-                      >
-                        <ReviewCard review={review} />
-                      </div>
-                    ))
-                : getReviewData?.reviews?.map((review, index) => (
+                  ?.concat(getReviewData?.reviews?.slice(0, 3))
+                  ?.map((review, index) => (
                     <div
-                      key={`mobile-${index}`}
-                      className="flex-shrink-0 d-lg-none d-block"
-                      style={{ width: "100%" }}
+                      key={index}
+                      className="flex-shrink-0 d-lg-block d-none"
+                      style={{ width: "33.333%" }}
                     >
                       <ReviewCard review={review} />
                     </div>
-                  ))}
+                  ))
+                : getReviewData?.reviews?.map((review, index) => (
+                  <div
+                    key={`mobile-${index}`}
+                    className="flex-shrink-0 d-lg-none d-block"
+                    style={{ width: "100%" }}
+                  >
+                    <ReviewCard review={review} />
+                  </div>
+                ))}
             </div>
           </div>
-          
+
           {((windowWidth < 992 && getReviewData?.reviews?.length > 1) || (windowWidth >= 992 && getReviewData?.reviews?.length > 3)) && (
             <>
               <button
