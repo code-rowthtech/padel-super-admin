@@ -308,7 +308,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 setPlayerLevels(levels);
             })
             .catch(() => setPlayerLevels([]));
-    }, [ matchesData?.data?.skillLevel]);
+    }, [matchesData?.data?.skillLevel]);
 
     useEffect(() => {
         if (Array.isArray(getPlayerLevelsData) && getPlayerLevelsData?.length > 0) {
@@ -351,7 +351,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             <i className="bi bi-share" />
                         </button>
                         <button
-                            className="btn rounded-circle p-2 d-flex align-items-center justify-content-center text-white"
+                            className="btn rounded-circle p-2 align-items-center justify-content-center text-white d-none d-md-flex"
                             style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
                         >
                             <i className="bi bi-chat-left-text" />
@@ -484,7 +484,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                     </div>
                     <div className="d-flex align-items-center">
-                        <span className="badge bg-primary rounded-pill" style={{ fontSize: "10px" }}>3</span>
+                        <span className="badge bg-primary rounded-pill d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "20px", height: "20px", }}>3</span>
                         <i className="bi bi-chevron-right ms-2" style={{ color: "#6B7280" }} />
                     </div>
                 </div>
@@ -543,13 +543,12 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                     </div>
                 </div>
-
-                <div>
-                    <h6 className="mb-md-3 mb-2 mt-4 all-matches" style={{ color: "#374151" }}>
+                <div className="d-flex justify-content-between align-items-center mt-4">
+                    <h6 className="mb-0 all-matches" style={{ color: "#374151" }}>
                         Information
                     </h6>
-
                 </div>
+
                 <div className="d-lg-flex gap-2">
                     <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
@@ -578,7 +577,36 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                     </div>
                 </div>
+                <div className="col-12 d-flex justify-content-end align-item-center d-md-none" style={{ marginTop: '-60px' }}>
+                    <button
+                        className="d-flex align-items-center justify-content-center border-0 position-relative"
+                        style={{
+                            background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
+                            borderRadius: "50%",
+                            width: "50px",
+                            height: "50px",
+                            color: "#fff",
+                        }}
+                    // onClick={() => setShowChat(true)}
+                    >
+                        <i className="bi bi-chat-dots-fill" style={{ fontSize: "20px" }}></i>
 
+                        <span
+                            style={{
+                                position: "absolute",
+                                right: "-12px",
+                                top: "-5px",
+                                background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
+                                borderRadius: "50%",
+                                padding: "4px 10px",
+                                fontSize: "10px",
+                                fontWeight: "600"
+                            }}
+                        >
+                            LIVE
+                        </span>
+                    </button>
+                </div>
 
             </div>
 

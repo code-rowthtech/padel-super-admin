@@ -314,7 +314,7 @@ h1.display-5 {
   font-size: 22px;
   font-weight: 500;
   color: #374151;
-  font-family: "Poppins" sans-serif;
+  font-family: "Poppins"sans-serif;
 }
 
 .custom-radio .form-check-input[type="radio"] {
@@ -330,20 +330,20 @@ h1.display-5 {
   font-size: 20px;
   font-weight: 700;
   color: #04103b;
-  font-family: "Nunito" sans-serif;
+  font-family: "Nunito"sans-serif;
 }
 
 .dashboard-viewmore {
   font-size: 12px;
   font-weight: 600;
-  font-family: "Nunito" sans-serif;
+  font-family: "Nunito"sans-serif;
 }
 
 .card-value {
   font-size: 30px;
   color: #04103b;
   font-weight: 700;
-  font-family: "Nunito" sans-serif;
+  font-family: "Nunito"sans-serif;
 }
 
 .table-data .dropdown-item {
@@ -367,13 +367,13 @@ h1.display-5 {
 .table-data {
   font-size: 16px;
   font-weight: 500;
-  font-family: "Poppins" sans-serif;
+  font-family: "Poppins"sans-serif;
   color: #000000;
 }
 
 .manual-heading {
   font-weight: 600;
-  font-family: "Poppins" sans-serif;
+  font-family: "Poppins"sans-serif;
   font-size: 26px;
   color: #04103b;
 }
@@ -1188,7 +1188,7 @@ h1.display-5 {
     min-width: 28px !important;
     max-width: 28px !important;
     padding: 0 !important;
-    display: flex !important;
+    /* display: flex !important; */
     align-items: center !important;
     justify-content: center !important;
     flex-shrink: 0 !important;
@@ -1319,12 +1319,14 @@ h1.display-5 {
   .form-control {
     font-size: 12px !important;
   }
-  .react-datepicker-wrapper{
+
+  .react-datepicker-wrapper {
     width: 100%;
   }
-  .mention_height_court{
-  max-height: 70vh!important;
-}
+
+  .mention_height_court {
+    max-height: 70vh !important;
+  }
 
 }
 
@@ -1333,7 +1335,8 @@ h1.display-5 {
   height: 4px;
   margin: 10px 0px;
 }
-.mention_height_court{
+
+.mention_height_court {
   max-height: 50vh;
 }
 
@@ -2145,9 +2148,11 @@ h1.display-5 {
   z-index: 0;
   animation: wave 2s linear infinite;
 }
-.css-4nrp27{
-  overflow: visible!important;
+
+.css-4nrp27 {
+  overflow: visible !important;
 }
+
 @keyframes wave {
   0% {
     left: -100%;
@@ -2195,8 +2200,9 @@ h1.display-5 {
     padding: 10px 0 5px 0 !important;
     transition: all 0.3s ease !important;
   }
-  .height_low{
-    height: 60px!important  ;
+
+  .height_low {
+    height: 60px !important;
   }
 
   /* Mobile slots container */
@@ -2388,7 +2394,7 @@ h1.display-5 {
 
   /* Month display responsive */
   .d-flex.justify-content-center.align-items-center.rounded-pill {
-    height: 40px !important;
+    /* height: 40px !important; */
     /* padding: 2px 4px !important; */
   }
 
@@ -2441,7 +2447,7 @@ h1.display-5 {
 
   .add_font_size_nav_logo {
     font-size: 15px !important;
-    font-weight: 600!important;
+    font-weight: 600 !important;
   }
 
   .add_top_margin {
