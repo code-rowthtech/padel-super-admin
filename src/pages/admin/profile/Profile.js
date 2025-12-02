@@ -3,7 +3,12 @@ import { FaEdit, FaUserCircle } from "react-icons/fa";
 import { IoTennisballOutline } from "react-icons/io5";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
-import { updateOwner, getLogo, createLogo, updateLogo } from "../../../redux/thunks";
+import {
+  updateOwner,
+  getLogo,
+  createLogo,
+  updateLogo,
+} from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 
@@ -120,8 +125,7 @@ const Profile = () => {
       .then(() => {
         window.location.reload();
       })
-      .catch((err) => {
-      });
+      .catch((err) => {});
   };
 
   const handleCancel = () => {
@@ -177,7 +181,10 @@ const Profile = () => {
                     />
                   </div>
                 ) : (
-                  <div className="bg-secondary rounded-circle p-2 d-flex align-items-center justify-content-center" style={{ width: "100px", height: "100px" }}>
+                  <div
+                    className="bg-secondary rounded-circle p-2 d-flex align-items-center justify-content-center"
+                    style={{ width: "100px", height: "100px" }}
+                  >
                     <IoTennisballOutline size={60} color="white" />
                   </div>
                 )}
@@ -290,7 +297,7 @@ const Profile = () => {
               maxLength={10}
             />
           </div>
-          <div className="col-md-4 mb-3">
+          {/* <div className="col-md-4 mb-3">
             <label className="form-label">Date of Birth</label>
             <input
               type="date"
@@ -300,7 +307,7 @@ const Profile = () => {
               className="form-control"
               max="2024-12-31"
             />
-          </div>
+          </div> */}
           <div className="col-md-4 mb-3">
             <label className="form-label">Location / City</label>
             <input
@@ -311,7 +318,7 @@ const Profile = () => {
               className="form-control"
             />
           </div>
-          <div className="col-md-4 mb-3">
+          {/* <div className="col-md-4 mb-3">
             <label className="form-label d-block">Gender</label>
             {["Female", "Male", "Other"].map((g) => (
               <div key={g} className="form-check form-check-inline">
@@ -326,7 +333,7 @@ const Profile = () => {
                 <label className="form-check-label">{g}</label>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
 
         <div className="d-flex justify-content-end gap-3">
@@ -340,7 +347,9 @@ const Profile = () => {
           <button
             type="submit"
             className="btn border-0 text-white px-4"
-            style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" }}
+            style={{
+              background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+            }}
           >
             {authLoading ? <ButtonLoading /> : "Update"}
           </button>
