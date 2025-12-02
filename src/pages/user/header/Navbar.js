@@ -212,7 +212,7 @@ const Navbar = () => {
     return (
         <nav className="navbar navbar-expand-lg fixed-top bg-white py-md-2 py-0 navbar-shadow-mobile" style={{ zIndex: 1030 }}>
             <div className="container py-md-1 py-0 ps-md-0 ">
-                <div className="d-flex justify-content-between align-items-center w-100 px-0 ps-md-0 mt-md-1 mt-0 position-relative">
+                <div className="d-flex justify-content-between align-items-center w-100 pe-0 ps-2 ps-md-0 mt-md-1 mt-0 position-relative">
                     <Link to="/home" style={{ textDecoration: 'none' }} className="text-white d-flex gap-1 align-items-center navbar-brand col-md-3 col-8">
                         {logo ? (
                             <div className='add_logo_font'
