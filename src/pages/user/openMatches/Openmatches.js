@@ -116,9 +116,7 @@ const Openmatches = () => {
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
-      if (user?.token) {
-        dispatch(getMatchesUser(payload));
-      }
+      dispatch(getMatchesUser(payload));
     }, 300),
     [dispatch, user?.token]
   );
@@ -638,7 +636,7 @@ const Openmatches = () => {
                   style={{
                     position: "absolute",
                     left: "-9%",
-                    top:"0px",
+                    top: "0px",
                     zIndex: 10,
                     boxShadow: "none",
                   }}
@@ -684,17 +682,13 @@ const Openmatches = () => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
                           setShowCreateButton(false);
+                          dispatch(
+                            getMatchesUser({
+                              matchDate: d.fullDate,
+                              clubId: localStorage.getItem("register_club_id") || "",
+                            })
+                          );
 
-                          if (user?.token) {
-                            dispatch(
-                              getMatchesUser({
-                                matchDate: d.fullDate,
-                                clubId: localStorage.getItem("register_club_id") || "",
-                              })
-                            );
-                          } else {
-                            navigate("/login"); // or show modal
-                          }
                         }}
 
                         onMouseEnter={(e) =>
@@ -721,7 +715,7 @@ const Openmatches = () => {
                   style={{
                     position: "absolute",
                     right: -18,
-                    top:'0px',
+                    top: '0px',
                     zIndex: 10,
                     boxShadow: "none",
                   }}
@@ -1379,19 +1373,20 @@ const Openmatches = () => {
                       Great for competitive vibes.
                     </p>
                     <button
-                      className="btn shadow border-0 create-match-btn mt-lg-2 text-white rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
+                      className="btn shadow border-0 create-match-btn mt-lg-2 rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
                       onClick={createMatchesHandle}
                       style={{
-                        background:
-                          "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                        background: "#fff",
                         fontSize: "14px",
                         fontFamily: "Poppins",
                         fontWeight: "500",
+                        color: "#0034E4"
                       }}
                       aria-label="Create open matches"
                     >
                       Create Open Matches
                     </button>
+
                   </div>
                 </div>
               )}
