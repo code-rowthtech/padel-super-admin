@@ -232,7 +232,7 @@ const Navbar = () => {
                                     alt="User Profile"
                                     style={{
                                         width: "100%",
-                                        height: "100%",
+                                        height: "auto",
                                         backgroundSize: "cover",
                                     }}
                                 />
@@ -312,7 +312,7 @@ const Navbar = () => {
 
                     <div className="d-lg-none position-absolute" style={{ right: "15px", top: "50%", transform: "translateY(-50%)", zIndex: 1001 }}>
                         <button
-                            className="btn p-2 border-0 bg-transparent"
+                            className="btn ps-5 pe-0 border-0 bg-transparent"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
