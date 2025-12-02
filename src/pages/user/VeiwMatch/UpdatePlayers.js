@@ -36,7 +36,7 @@ const UpdatePlayers = ({
   selectedDate,
   selectedTime,
   selectedLevel,
-  match, skillLevel
+  match, skillLevel,setPlayerLevels,playerLevels
 }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -49,33 +49,11 @@ const UpdatePlayers = ({
 
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
-  const [playerLevels, setPlayerLevels] = useState([]);
-
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
-  const getPlayerLevelsData = useSelector(
-    (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
-  );
+ 
   const getPlayerLevelsLoading = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
-  useEffect(() => {
-    if (!showModal) return;
-    if (!skillLevel) return;
-
-    dispatch(getPlayerLevelBySkillLevel(skillLevel))
-      .unwrap()
-      .then((res) => {
-        const levels = (res?.data[0]?.levelIds || []).map((l) => ({
-          code: l.code,
-          title: l.question,
-        }));
-
-        setPlayerLevels(levels);
-      })
-      .catch(() => setPlayerLevels([]));
-  }, [showModal, skillLevel]);
-
-
   const isGenderDisabled = (optionGender) => {
     const matchGender = matchId?.gender?.toLowerCase();
     return matchGender && matchGender !== optionGender.toLowerCase();
@@ -83,20 +61,11 @@ const UpdatePlayers = ({
 
 
 
-  useEffect(() => {
-    if (Array.isArray(getPlayerLevelsData) && getPlayerLevelsData.length > 0) {
-      setPlayerLevels(
-        getPlayerLevelsData.map((l) => ({
-          code: l.code,
-          title: l.question,
-        }))
-      );
-    }
-  }, [getPlayerLevelsData]);
+ 
 
   const levelOptions = React.useMemo(() => {
-    return playerLevels.map((item) => ({
-      value: item.code,
+    return playerLevels?.map((item) => ({
+      value: item?.code,
       label: (
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <span style={{ color: "#1d4ed8", fontWeight: 600, fontSize: "15px", fontFamily: "Poppins" }}>
@@ -253,7 +222,7 @@ const UpdatePlayers = ({
               Phone No <span className="text-danger">*</span>
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
-              <span className="input-group-text border-0 bg-white">
+              <span className="input-group-text border-0 border-end bg-white" style={{fontSize:"11px"}}>
                 <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
               </span>
               <input
@@ -342,7 +311,7 @@ const UpdatePlayers = ({
               ) : (
                 <Select
                   options={levelOptions}
-                  value={levelOptions.find((o) => o.value === formData.level)}
+                  value={levelOptions?.find((o) => o.value === formData?.level)}
                   onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt?.value }))}
                   placeholder="Choose level"
                   classNamePrefix="select"
