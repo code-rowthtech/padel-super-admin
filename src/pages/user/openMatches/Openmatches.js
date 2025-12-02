@@ -551,7 +551,7 @@ const Openmatches = () => {
 
   
   return (
-    <div className="container mt-lg-4 px-3 px-md-0 mb-md-4 mb-0">
+    <div className="container mt-lg-4 px-3 px-md-0 mb-md-4 mb-0 add_margin_top_minus">
       <div className="row g-md-4 mx-auto">
         <div
           className={`col-lg-7 col-12 py-md-4 py-2 rounded-3 px-md-4 px-0 order-2 order-md-1 bg-white-color ${showViewMatch ? "d-none d-md-block " : "pt-0"
@@ -1412,7 +1412,7 @@ const Openmatches = () => {
                     height: "312px",
                     borderRadius: "20px",
                     overflow: "hidden",
-                    marginTop: "-20px",
+                    marginTop: "-10px",
                   }}
                 >
                   <div className="col-12 col-md-6 mb-1 text-start mb-md-0">

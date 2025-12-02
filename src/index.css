@@ -2305,7 +2305,9 @@ h1.display-5 {
     padding-top: 0 !important;
     margin-top: -8px !important;
   }
-
+.add_margin_top_minus{
+  margin-top: -20px;
+}
   /* Container padding reduction */
   .container.mb-5.px-4 {
     padding-left: 0.5rem !important;
