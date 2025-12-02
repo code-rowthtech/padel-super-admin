@@ -665,7 +665,7 @@ const Booking = ({ className = "" }) => {
 
   return (
     <>
-      <div className="container px-0 mb-lg-3 mb-0 mobile-banner-container mt-md-4 mt-0">
+      <div className="container px-0 mb-lg-3 mb-0 mobile-banner-container mt-md-4 mt-0 pb-3">
         <div className="ps-0 d-none d-lg-block" style={{ height: "340px" }}>
           <div
             className="image-zoom-container position-relative overflow-hidden rounded-3"
@@ -769,7 +769,7 @@ const Booking = ({ className = "" }) => {
       </div>
       <div className="container mb-md-0 mb-0 pt-1 pt-lg-0 px-lg-4">
         <div className="row g-4">
-          <div className="col-lg-7 col-12 py-md-4 pt-0 pb-0 rounded-3 px-lg-4 mobile-booking-content px-3">
+          <div className="col-lg-7 col-12 py-md-4 pt-0 pb-0 rounded-3 px-lg-4 mobile-booking-content px-3 mt-0">
             <div className="d-flex justify-content-between align-items-center mb-md-2 mb-0">
               <div className="custom-heading-use text-nowrap">
                 Select Date
@@ -1229,7 +1229,7 @@ const Booking = ({ className = "" }) => {
                       </div>
                       <div
                         style={{
-                          maxHeight: "39vh",
+                          // maxHeight: "39vh",
                           overflowY: "auto",
                           overflowX: "hidden",
                           paddingRight: "8px",
@@ -1237,7 +1237,7 @@ const Booking = ({ className = "" }) => {
                           msOverflowStyle: "none", // IE and Edge
                           scrollbarWidth: "none", // Firefox
                         }}
-                        className="hide-scrollbar"
+                        className="hide-scrollbar mention_height_court"
                       >
                         {/* Your content here */}
 
