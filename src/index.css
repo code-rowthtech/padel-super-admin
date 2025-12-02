@@ -1616,7 +1616,7 @@ h1.display-5 {
 /* Banner Image Responsive */
 @media (min-width: 360px) and (max-width: 768px) {
   .image-zoom-container {
-    height: 173px !important;
+    /* height: 173px !important; */
   }
 
   .image-zoom-container .position-absolute {
