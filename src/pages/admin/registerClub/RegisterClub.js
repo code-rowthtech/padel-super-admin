@@ -25,6 +25,8 @@ const defaultFormData = {
     chillPad: false,
     coachingAvailable: false,
   },
+  images: [], // <-- **File[]** (only while wizard is open)
+  previewUrls: [], // <-- URLs that survive page reload / update
   businessHours: {
     Monday: { start: "06:00 AM", end: "11:00 PM" },
     Tuesday: { start: "06:00 AM", end: "11:00 PM" },
@@ -41,6 +43,7 @@ const RegisterClub = () => {
   const dispatch = useDispatch();
   const registerID = sessionStorage.getItem("registerId");
 
+  // Initialize step from localStorage or default logic
   const [step, setStep] = useState(() => {
     const savedStep = localStorage.getItem("clubRegistrationStep");
     if (savedStep) {
@@ -51,6 +54,7 @@ const RegisterClub = () => {
 
   const [updateImage, setUpdateImage] = useState(false);
 
+  // Save step to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("clubRegistrationStep", step.toString());
   }, [step]);
@@ -67,6 +71,7 @@ const RegisterClub = () => {
           previewUrls: parsed.previewUrls || [],
         };
       } catch (e) {
+        console.error("Parse error:", e);
         return defaultFormData;
       }
     }
