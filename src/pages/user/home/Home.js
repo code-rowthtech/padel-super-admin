@@ -335,11 +335,24 @@ const Home = () => {
               >
                 <div className="mb-md-4 mb-2 pt-md-1 pt-3   d-md-flex d-none flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-md-3 gap-1">
                   <div className="mb-2 mt-lg-4 mb-lg-0 flex-shrink-0">
-                    <Avatar>
+                    {/* <Avatar>
                       {clubData?.clubName
                         ? clubData.clubName.charAt(0).toUpperCase()
                         : "User"}
-                    </Avatar>
+                    </Avatar> */}
+                    <div className="logo_add_star bg-white py-1" style={{ borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}>
+                      <img
+                        src={logo || 'Courtline'}
+                        alt="Courtline"
+                        style={{
+                          width: "45px",
+                          height: "45px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                        className="me-1"
+                      />
+                    </div>
                   </div>
                   <div className="flex-shrink-0 mt-lg-3">
                     <h5
@@ -413,7 +426,7 @@ const Home = () => {
 
                   {/* Club Name + Green Stars */}
                   <div className="d-flex flex-column" style={{ lineHeight: "1.5" }}>
-                    <span style={{ fontSize: "14px", fontWeight: 600 }}>                      {clubData?.clubName || "The Court Line Club"}
+                    <span style={{ fontSize: "14px", fontWeight: 600, }}>                      {clubData?.clubName || "The Court Line Club"}
                     </span>
 
                     <div className="d-flex align-items-center" style={{ marginTop: "2px" }}>
@@ -456,6 +469,7 @@ const Home = () => {
                       fontSize: "13px",
                       fontFamily: "Poppins",
                       fontWeight: "400",
+                      textAlign:"justify"
                     }}
                   >
                     {clubData?.clubName || "The Court Line Club"}{" "}
@@ -868,84 +882,7 @@ const Home = () => {
           )}
         </div>
 
-        {/* {isOpen && galleryImages.length > 0 && (
-          <>
-            <Lightbox
-              mainSrc={galleryImages[photoIndex]}
-              nextSrc={galleryImages[(photoIndex + 1) % galleryImages.length]}
-              prevSrc={
-                galleryImages[
-                (photoIndex + galleryImages.length - 1) % galleryImages.length
-                ]
-              }
-              onCloseRequest={() => setIsOpen(false)}
-              onMovePrevRequest={() =>
-                setPhotoIndex(
-                  (photoIndex + galleryImages.length - 1) % galleryImages.length
-                )
-              }
-              onMoveNextRequest={() =>
-                setPhotoIndex((photoIndex + 1) % galleryImages.length)
-              }
-              imagePadding={50}
-              wrapperClassName="full-screen-lightbox"
-              imageLoadErrorMessage="Image failed to load"
-            />
-            <button
-              onClick={() => setIsOpen(false)}
-              className="close-btn-on-image"
-              style={{
-                background: "rgba(0, 0, 0, 0.8)",
-                color: "white",
-                border: "none",
-                borderRadius: "50%",
-                width: "40px",
-                height: "40px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <CloseIcon />
-            </button>
-          </>
-        )}
-        <style jsx global>{`
-          .full-screen-lightbox .ril-image-current {
-            max-width: 30vw !important;
-            max-height: 30vh !important;
-            object-fit: contain !important;
-            margin: 0 auto !important;
-            display: block !important;
-            position: relative !important;
-          }
-          .full-screen-lightbox .ril-inner {
-            // background-color: #d9e0f8 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            position: relative !important;
-            height: 100vh !important;
-            width: 100vw !important;
-          }
-          .full-screen-lightbox .ril-image-current::after {
-            content: "" !important;
-            position: absolute !important;
-            top: 0 !important;
-            right: 0 !important;
-            width: 50px !important;
-            height: 50px !important;
-            pointer-events: none !important;
-          }
-          .close-btn-on-image {
-            position: absolute !important;
-            top: 10% !important;
-            right: 10% !important;
-            transform: translateX(50%) translateY(-50%) !important;
-            z-index: 10001 !important;
-          }
-        `}</style> */}
+
       </div>
       <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-none d-block px-1">
         <div
