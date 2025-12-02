@@ -359,6 +359,8 @@ const NewPlayers = ({
                   placeholder="Choose level"
                   classNamePrefix="select"
                   isSearchable={false}
+                  maxMenuHeight={200}
+                  menuPortalTarget={document.body}
                   styles={{
                     control: (base) => ({
                       ...base,
@@ -370,7 +372,16 @@ const NewPlayers = ({
                       ...base,
                       color: "#6c757d",
                     }),
-                    overflow: "hidden"
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menu: (base) => ({ ...base, maxHeight: 100, overflowY: 'auto' })
+                  }}
+                  components={{
+                    Input: (props) => <div {...props} style={{ ...props.style, caretColor: 'transparent' }} />
+                  }}
+                  onMenuOpen={() => {
+                    if (document.activeElement) {
+                      document.activeElement.blur();
+                    }
                   }}
                 />
               )}

@@ -36,7 +36,7 @@ const UpdatePlayers = ({
   selectedDate,
   selectedTime,
   selectedLevel,
-  match, skillLevel,setPlayerLevels,playerLevels,
+  match, skillLevel, setPlayerLevels, playerLevels,
 }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -46,11 +46,11 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
-console.log({playerLevels});
+  console.log({ playerLevels });
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
- 
+
   const getPlayerLevelsLoading = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
@@ -61,7 +61,7 @@ console.log({playerLevels});
 
 
 
- 
+
 
   const levelOptions = React.useMemo(() => {
     return playerLevels?.map((item) => ({
@@ -222,7 +222,7 @@ console.log({playerLevels});
               Phone No <span className="text-danger">*</span>
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
-              <span className="input-group-text border-0 border-end bg-white" style={{fontSize:"11px"}}>
+              <span className="input-group-text border-0 border-end bg-white" style={{ fontSize: "11px" }}>
                 <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" /> +91
               </span>
               <input
@@ -311,11 +311,31 @@ console.log({playerLevels});
               ) : (
                 <Select
                   options={levelOptions}
+                  isSearchable={false}
                   value={levelOptions?.find((o) => o.value === formData?.level)}
                   onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt?.value }))}
                   placeholder="Choose level"
                   classNamePrefix="select"
-                  styles={{ control: (base) => ({ ...base, border: "none", boxShadow: "none" }) }}
+                  maxMenuHeight={200}
+                  menuPortalTarget={document.body}
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      cursor: "pointer",
+                    }),
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menu: (base) => ({ ...base, maxHeight: 100, overflowY: 'auto' })
+                  }}
+                  components={{
+                    Input: (props) => <div {...props} style={{ ...props.style, caretColor: 'transparent' }} />
+                  }}
+                  onMenuOpen={() => {
+                    if (document.activeElement) {
+                      document.activeElement.blur();
+                    }
+                  }}
                 />
               )}
             </div>
@@ -328,8 +348,8 @@ console.log({playerLevels});
             <Button
               variant="outlined"
               onClick={() => setShowModal(false)}
-              sx={{ borderColor: "#001B76", color: "#001B76",width:"25%" }}
-               className="py-1 font_size_mobile_button"
+              sx={{ borderColor: "#001B76", color: "#001B76", width: "25%" }}
+              className="py-1 font_size_mobile_button"
             >
               Cancel
             </Button>
@@ -340,9 +360,9 @@ console.log({playerLevels});
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 color: "white",
                 "&:hover": { background: "#001B76" },
-                width:"25%",
+                width: "25%",
               }}
-               className="py-1 font_size_mobile_button"
+              className="py-1 font_size_mobile_button"
             >
               {loading ? <ButtonLoading color="white" /> : "Add "}
             </Button>

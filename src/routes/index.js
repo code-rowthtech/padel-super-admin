@@ -4,7 +4,7 @@ import { getOwnerFromSession } from "../helpers/api/apiCore";
 import DefaultLayout from "../helpers/layout/DefaultLayout";
 import Root from "./Root";
 import PrivateRoute from "./PrivateRoute";
-import { Loading } from "../helpers/loading/Loaders";
+import { DataLoading, Loading } from "../helpers/loading/Loaders";
 import NoInternet from "../helpers/network/NoInternet";
 import AdminLayout from "../helpers/layout/AdminLayout";
 
@@ -105,7 +105,7 @@ const Support = React.lazy(() =>
 
 const UnAuthorized = React.lazy(() => import("../pages/error/UnAuthorized"));
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
-const loading = <Loading color={"#3dbe64ff"} />;
+const loading = <DataLoading  height={900} />;
 const LoadComponent = (Component) => (
   <Suspense fallback={loading}>
     <Component />
