@@ -36,7 +36,6 @@ const NoInternet = () => {
     }
   };
 
-  // Inline styles
   const styles = {
     container: {
       height: "100vh",
@@ -78,8 +77,6 @@ const NoInternet = () => {
       width: "90%",
     },
     signalIcon: {
-      // fontSize: '80px',
-      // marginBottom: '20px',
       color: "#dc3545",
     },
     onlineSignalIcon: {
@@ -153,7 +150,6 @@ const NoInternet = () => {
 
   return (
     <Container fluid style={styles.container}>
-      {/* Animated grid background */}
       <div style={styles.connectionGrid}>
         {Array.from({ length: 400 }).map((_, i) => (
           <div
@@ -166,7 +162,6 @@ const NoInternet = () => {
         ))}
       </div>
 
-      {/* Main content */}
       <Row className="justify-content-center">
         <Col style={styles.statusContainer}>
           <div
@@ -223,7 +218,6 @@ const NoInternet = () => {
         </Col>
       </Row>
 
-      {/* Status indicator */}
       <div style={styles.statusIndicator}>
         <span
           style={{

@@ -51,7 +51,6 @@ const Home = () => {
   const defaultMapSrc =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937950147!2d-73.98731968482413!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes+Square!5e0!3m2!1sen!2sus!4v1510579767645";
 
-  // Convert address to embeddable Google Maps URL
   const createEmbedUrl = (address) => {
     const encodedAddress = encodeURIComponent(address);
     return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
@@ -132,7 +131,6 @@ const Home = () => {
     }
   }, [clubData?._id]);
 
-  // Fetch map data when club address is available
   useEffect(() => {
     if (clubData?.address && clubData?.city) {
       const fullAddress = `${clubData.address}, ${clubData.city}`;
@@ -140,7 +138,6 @@ const Home = () => {
     }
   }, [clubData?.address, clubData?.city]);
 
-  // Auto-play carousel
   useEffect(() => {
     if (clubData?.courtImage?.length > 3) {
       const interval = setInterval(() => {
@@ -155,7 +152,6 @@ const Home = () => {
     }
   }, [clubData?.courtImage?.length]);
 
-  // Handle seamless loop reset
   useEffect(() => {
     if (
       currentSlide === clubData?.courtImage?.length &&
@@ -168,7 +164,6 @@ const Home = () => {
     }
   }, [currentSlide, clubData?.courtImage?.length]);
 
-  // Auto-play review carousel
   useEffect(() => {
     if (getReviewData?.reviews?.length > 3) {
       const interval = setInterval(() => {
@@ -183,7 +178,6 @@ const Home = () => {
     }
   }, [getReviewData?.reviews?.length]);
 
-  // Handle seamless review loop reset
   useEffect(() => {
     if (
       reviewSlide === getReviewData?.reviews?.length &&
@@ -196,7 +190,6 @@ const Home = () => {
     }
   }, [reviewSlide, getReviewData?.reviews?.length]);
 
-  // Handle Escape key to close lightbox
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape" && isOpen) {
@@ -220,7 +213,6 @@ const Home = () => {
     <>
       <div className="container px-0 mt-md-4 mt-0">
         <div className="row g-4 px-3 px-md-0">
-          {/* Hero Section */}
           <div className="col-12 ps-md-0 pt-0 mt-3 mt-md-4">
             <div
               className="image-zoom-container position-relative overflow-hidden rounded-3"
@@ -268,7 +260,7 @@ const Home = () => {
                 >
                   Book Now <FaArrowRight className="ms-2" />
                 </Link>
-                <style jsx>{`
+                <style>{`
                   .book-now-btn {
                     background: #ffffff;
                     position: relative;
@@ -309,7 +301,6 @@ const Home = () => {
         style={{ backgroundColor: "#F5F5F569" }}
       >
         <div className="row position-relative align-items-stretch px-0 px-md-0">
-          {/* Left Column: Club Name, About, Address, and Timings */}
           <div className="col-lg-8 col-12  d-md-flex d-block ps-2 ps-md-0">
             <div
               className=" row mx-2 ms-lg-0 me-lg-2  pe-lg-3 bg-white  p-lg-2 flex-fill"
@@ -439,7 +430,6 @@ const Home = () => {
                 </div>
 
                 <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
-                  {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
                   <p
                     className="mb-2 mb-md-3 add_font_small_mobile"
                     style={{
@@ -455,7 +445,7 @@ const Home = () => {
                         h1: ({ ...props }) => <h1 style={{ fontSize: 20, fontWeight: 700 }} {...props} />,
                         h2: ({ ...props }) => <h2 style={{ fontSize: 18, fontWeight: 600 }} {...props} />,
                         h3: ({ ...props }) => <h3 style={{ fontSize: 16, fontWeight: 600 }} {...props} />,
-                        p: ({ ...props }) => <p style={{ fontSize: 14, marginBottom: 6 }} {...props} />,
+                        p: ({ ...props }) => <span style={{ fontSize: 14, marginBottom: 6 }} {...props} />,
                         li: ({ ...props }) => <li style={{ marginLeft: 18, fontSize: 14 }} {...props} />,
                         strong: ({ ...props }) => <strong style={{ fontWeight: 700 }} {...props} />,
                         em: ({ ...props }) => <em style={{ fontStyle: "italic" }} {...props} />,
@@ -480,11 +470,9 @@ const Home = () => {
                     Join the Padel community group on WhatsApp
                   </p>
                   <a href="" className="add_font_small_mobile">
-                    https://chat.whatsapp.com/DqKAR0MiI5i8dP2Wqe0srt
                   </a>
                   <p className="mt-md-4 mt-2 add_font_small_mobile">
                     <a href="">
-                      https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic
                     </a>
                   </p> */}
                 </div>
@@ -543,7 +531,7 @@ const Home = () => {
                 style={{
                   ...buttonStyle,
                 }}
-                className
+                className=""
               >
                 <svg
                   style={svgStyle}
@@ -623,7 +611,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Right Column: Upcoming Matches */}
           <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-block d-none ">
             <div
               className="text-white  position-relative h-100"
@@ -681,8 +668,12 @@ const Home = () => {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Photos Gallery Section */}
       <div className="mt-md-5 mb-md-5 my-4 px-2 px-md-0">
+=======
+      <div className="mt-md-5 mb-md-5 my-4">
+>>>>>>> 86b880e129b0c5933a4720c611ce2a38c2fa8802
         <div className="position-relative">
           <div className="overflow-hidden rounded-3">
             <div
@@ -691,22 +682,20 @@ const Home = () => {
                   ? "justify-content-start"
                   : "justify-content-start"
                 : "justify-content-center"
-                } align-items-center`}
+                } align-items-center gap-3`}
               style={{
                 transform:
                   clubData?.courtImage?.length > 4
                     ? window.innerWidth >= 992
                       ? `translateX(-${currentSlide * 25}%)`
-                      : `translateX(-${currentSlide * 100}%)`
+                      : `translateX(-${currentSlide * 50}%)`
                     : "translateX(0%)",
                 transition:
                   clubData?.courtImage?.length > 4 && currentSlide !== 0
                     ? "transform 0.5s ease"
                     : "none",
-                gap: clubData?.courtImage?.length > 4 ? "12px" : "16px", // spacing
               }}
             >
-              {/* Desktop: Show only first 4 + duplicates for infinite if >4 */}
               {(clubData?.courtImage?.length > 4
                 ? clubData?.courtImage?.concat(
                   clubData?.courtImage?.slice(0, 4)
@@ -763,22 +752,21 @@ const Home = () => {
                 </div>
               ))}
 
-              {/* Mobile: Show one at a time, or center if <=4 */}
               {(clubData?.courtImage?.length > 4
                 ? clubData?.courtImage?.concat(
-                  clubData?.courtImage?.slice(0, 1)
+                  clubData?.courtImage?.slice(0, 2)
                 )
                 : clubData?.courtImage
               )?.map((image, index) => (
                 <div
                   key={`mobile-${index}`}
                   className="flex-shrink-0 d-lg-none d-block"
-                  style={{ width: "100%", padding: 0 }}
+                  style={{ width: "calc(50% - 6px)" }}
                 >
                   <div
                     className="position-relative overflow-hidden rounded-3"
                     style={{
-                      height: "300px",
+                      height: "200px",
                       width: "100%",
                       cursor: "pointer",
                     }}
@@ -816,7 +804,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Navigation Arrows - Only show if more than 4 images */}
           {clubData?.courtImage?.length > 4 && (
             <>
               <button
@@ -829,10 +816,18 @@ const Home = () => {
                   backgroundColor: "#011E84",
                 }}
                 onClick={() => {
-                  if (currentSlide === 0) {
-                    setCurrentSlide(clubData?.courtImage?.length - 1);
+                  if (window.innerWidth < 992) {
+                    if (currentSlide === 0) {
+                      setCurrentSlide(Math.ceil(clubData?.courtImage?.length / 2) - 1);
+                    } else {
+                      setCurrentSlide(currentSlide - 1);
+                    }
                   } else {
-                    setCurrentSlide(currentSlide - 1);
+                    if (currentSlide === 0) {
+                      setCurrentSlide(clubData?.courtImage?.length - 1);
+                    } else {
+                      setCurrentSlide(currentSlide - 1);
+                    }
                   }
                 }}
               >
@@ -849,10 +844,18 @@ const Home = () => {
                   backgroundColor: "#011E84",
                 }}
                 onClick={() => {
-                  if (currentSlide >= clubData?.courtImage?.length - 1) {
-                    setCurrentSlide(0);
+                  if (window.innerWidth < 992) {
+                    if (currentSlide >= Math.ceil(clubData?.courtImage?.length / 2) - 1) {
+                      setCurrentSlide(0);
+                    } else {
+                      setCurrentSlide(currentSlide + 1);
+                    }
                   } else {
-                    setCurrentSlide(currentSlide + 1);
+                    if (currentSlide >= clubData?.courtImage?.length - 1) {
+                      setCurrentSlide(0);
+                    } else {
+                      setCurrentSlide(currentSlide + 1);
+                    }
                   }
                 }}
               >
@@ -862,7 +865,6 @@ const Home = () => {
           )}
         </div>
 
-        {/* Lightbox */}
         {isOpen && galleryImages.length > 0 && (
           <>
             <Lightbox
@@ -906,7 +908,7 @@ const Home = () => {
             </button>
           </>
         )}
-        <style jsx global>{`
+        <style>{`
           .full-screen-lightbox .ril-image-current {
             max-width: 30vw !important;
             max-height: 30vh !important;
@@ -916,7 +918,6 @@ const Home = () => {
             position: relative !important;
           }
           .full-screen-lightbox .ril-inner {
-            // background-color: #d9e0f8 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -998,7 +999,6 @@ const Home = () => {
           </div>
         </div>
       </div>
-      {/* Reviews Section */}
       <div className="container my-md-5 mt-4 mb-0">
         {getReviewData?.reviews?.length > 0 && (
           <h4
@@ -1057,8 +1057,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Map Section */}
-      <div div className="container">
+      <div className="container">
         <div className="row">
           <div className="col-12">
             <div className="my-md-5 my-4">

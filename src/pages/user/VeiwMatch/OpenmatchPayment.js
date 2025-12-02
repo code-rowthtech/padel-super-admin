@@ -16,8 +16,10 @@ import {
 import {
     getUserProfile,
     loginUserNumber,
+    updateUser,
 } from "../../../redux/user/auth/authThunk";
 import { booking_logo_img } from "../../../assets/files";
+import { showError } from "../../../helpers/Toast";
 
 const formatTime = (timeStr) =>
     timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
@@ -84,6 +86,7 @@ const OpenmatchPayment = () => {
     );
     const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
     );
+    console.log({User});
     const store = useSelector((state) => state?.userAuth);
 
     const logo = localStorage.getItem("logo")
@@ -129,12 +132,13 @@ const OpenmatchPayment = () => {
 
     const {
         slotData = {},
-        selectedAnswers = [],
+        finalSkillDetails = [],
         selectedDate = {},
         selectedCourts = [],
         selectedGender = [],
         addedPlayers: stateAddedPlayers = {}, dynamicSteps, finalLevelStep
     } = state || {};
+    console.log({finalSkillDetails});
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -161,7 +165,6 @@ const OpenmatchPayment = () => {
         // Validation
         if (!selectedPayment) return setError({ paymentMethod: "Select payment method" });
         if (!name?.trim()) return setError({ name: "Name required" });
-        if (!email?.trim() || !/^\S+@\S+\.\S+$/.test(email)) return setError({ email: "Valid email required" });
 
         const cleanPhone = phoneNumber?.replace(/^\+91\s*/, "").trim();
         if (!cleanPhone || cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone))
@@ -173,12 +176,12 @@ const OpenmatchPayment = () => {
 
         try {
             if (!User?.name || !User?.phoneNumber || !User?.email) {
-                await dispatch(loginUserNumber({ phoneNumber: cleanPhone, name, email })).unwrap();
+                await dispatch(updateUser({ phoneNumber: cleanPhone, name, email })).unwrap();
             }
-            const answersArray = selectedAnswers
-                ? Object.keys(selectedAnswers)
+            const answersArray = finalSkillDetails
+                ? Object.keys(finalSkillDetails)
                     .sort((a, b) => a - b)
-                    .map(key => selectedAnswers[key])
+                    .map(key => finalSkillDetails[key])
                 : [];
 
             const formattedMatch = {
@@ -256,7 +259,7 @@ const OpenmatchPayment = () => {
 
                     } catch (err) {
                         console.error("Post-payment error:", err);
-                        alert(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
+                        // showError(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
                     }
                 },
 
@@ -283,22 +286,6 @@ const OpenmatchPayment = () => {
         }
     };
 
-    const formatDate = (dateStr) => {
-        if (!dateStr) return { day: "Sun", formattedDate: "27 Aug" };
-        const date = new Date(dateStr);
-        const day = date.toLocaleDateString("en-US", { weekday: "short" });
-        const formattedDate = `${date.getDate()} ${date.toLocaleDateString(
-            "en-US",
-            { month: "short" }
-        )}`;
-        return { day, formattedDate };
-    };
-
-    const totalAmount = selectedCourts.reduce(
-        (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 1000), 0),
-        0
-    );
-    const totalPlayers = 1 + Object.keys(finalAddedPlayers).length;
 
     // Local state for mobile summary
     const localSelectedCourts = selectedCourts || [];
@@ -341,91 +328,86 @@ const OpenmatchPayment = () => {
                         paddingBottom: localSelectedCourts.length > 0 ? "120px" : "20px",
                     }}
                 >
-                    {/* Contact Info */}
+                    {/* Information Section */}
                     <div
-                        className="rounded-4 py-md-4 py-2 px-3 mb-md-4 mb-3"
+                        className="rounded-4 py-md-4 py-2 px-3 px-md-5 mb-md-4 mb-3"
                         style={{
                             backgroundColor: "#F5F5F566",
                             border:
                                 error.name || error.email || error.phoneNumber
-                                    ? "1px solid red"
-                                    : "",
+                                    ? "2px solid red"
+                                    : "none",
                         }}
                     >
-                        <h6
-                            className="mb-md-3 mb-2 d-none  d-lg-block text-md-start"
-                            style={{ fontSize: "20px", fontWeight: 600, display: "block", visibility: "visible" }}
-                        >
-                            Contact Info
+                        <h6 className="mb-md-3 mb-0 custom-heading-use fw-semibold text-center text-md-start">
+                            Information
                         </h6>
-                        <h6
-                            className="mb-3 mb-2 mt-2 ps-2 d-lg-none text-md-start"
-                            style={{ fontSize: "15px", fontWeight: 500, display: "block", visibility: "visible" }}
-                        >
-                            Contact Info
-                        </h6>
-                        <div className="row mx-auto ">
-                            <div className="col-12 col-md-4 mb-md-3 mb-2 p-md-1 py-0">
+                        <div className="row">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-1 ps-lg-2"
-                                    style={{ fontSize: "12px", fontWeight: 500, display: "block", visibility: "visible" }}
+                                    className="form-label mb-0 ps-lg-2"
+                                    style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Name <span className="text-danger">*</span>
+                                    Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                 </label>
                                 <input
                                     type="text"
                                     value={name}
+                                    style={{ boxShadow: "none" }}
                                     onChange={(e) => {
-                                        const v = e.target.value;
-                                        if (!v || /^[A-Za-z\s]*$/.test(v)) {
-                                            setName(
-                                                v
-                                                    .trimStart()
-                                                    .replace(/\s+/g, " ")
-                                                    .replace(/\b\w/g, (c) => c.toUpperCase())
-                                            );
+                                        const value = e.target.value;
+                                        if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+                                            if (value.length === 0 && value.trim() === "") {
+                                                setName("");
+                                                return;
+                                            }
+                                            const formattedValue = value
+                                                .trimStart()
+                                                .replace(/\s+/g, " ")
+                                                .toLowerCase()
+                                                .replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
+                                            setName(formattedValue);
                                         }
                                     }}
                                     className="form-control border-0 p-2"
                                     placeholder="Enter your name"
+                                    aria-label="Name"
                                 />
                                 {error.name && (
                                     <div
-                                        className="text-danger"
-                                        style={{ fontSize: 12, marginTop: 4 }}
+                                        className="text-danger position-absolute mt-3"
+                                        style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
                                         {error.name}
                                     </div>
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-2 p-md-1 py-0">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-1 ps-lg-1"
-                                    style={{ fontSize: "12px", fontWeight: 500, display: "block", visibility: "visible" }}
+                                    className="form-label mb-0 ps-lg-1"
+                                    style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Phone Number <span className="text-danger">*</span>
+                                    Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                                 </label>
                                 <div className="input-group">
                                     <span
                                         className="input-group-text border-0 p-2"
                                         style={{ backgroundColor: "#F5F5F5" }}
                                     >
-                                        <img
-                                            src="https://flagcdn.com/w40/in.png"
-                                            alt="IN"
-                                            width={20}
-                                        />
+                                        <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
                                     </span>
                                     <input
                                         type="text"
                                         maxLength={13}
                                         value={phoneNumber}
-                                        disabled={!!User?.phoneNumber}
+                                        style={{ boxShadow: "none" }}
+                                        disabled={User?.phoneNumber}
                                         onChange={(e) => {
-                                            const v = e.target.value.replace(/[^0-9]/g, "");
-                                            if (!v || /^[6-9][0-9]{0,9}$/.test(v)) {
-                                                setPhoneNumber(v ? `+91 ${v}` : "");
+                                            const inputValue = e.target.value.replace(/[^0-9]/g, "");
+                                            if (inputValue === "" || /^[6-9][0-9]{0,9}$/.test(inputValue)) {
+                                                const formattedValue = inputValue === "" ? "" : `+91 ${inputValue}`;
+                                                setPhoneNumber(formattedValue);
                                             }
                                         }}
                                         className="form-control border-0 p-2"
@@ -434,32 +416,38 @@ const OpenmatchPayment = () => {
                                 </div>
                                 {error.phoneNumber && (
                                     <div
-                                        className="text-danger"
-                                        style={{ fontSize: 12, marginTop: 4 }}
+                                        className="text-danger position-absolute"
+                                        style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
                                         {error.phoneNumber}
                                     </div>
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-2 p-md-1 py-0">
+                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-1 ps-lg-2"
-                                    style={{ fontSize: "12px", fontWeight: 500, display: "block", visibility: "visible" }}
+                                    className="form-label mb-0 ps-lg-2"
+                                    style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Email <span className="text-danger">*</span>
+                                    Email 
                                 </label>
                                 <input
                                     type="email"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value.replace(/\s/g, ""))}
+                                    style={{ boxShadow: "none" }}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
+                                            setEmail(value.replace(/\s+/g, ""));
+                                        }
+                                    }}
                                     className="form-control border-0 p-2"
                                     placeholder="Enter your email"
                                 />
                                 {error.email && (
                                     <div
-                                        className="text-danger"
-                                        style={{ fontSize: 12, marginTop: 4 }}
+                                        className="text-danger position-absolute"
+                                        style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
                                         {error.email}
                                     </div>
@@ -468,63 +456,41 @@ const OpenmatchPayment = () => {
                         </div>
                     </div>
 
-                    {/* Payment Method */}
+                    {/* Payment Method Section */}
                     <div
-                        className="rounded-4 py-2 py-md-4 px-md-3 px-2"
+                        className="rounded-4 py-md-4 py-2 px-3 px-md-5"
                         style={{
                             backgroundColor: "#F5F5F566",
-                            border: error.paymentMethod ? "1px solid red" : "",
+                            border: error.paymentMethod ? "2px solid red" : "none",
                         }}
                     >
-                        <h6
-                            className="mb-md-4 mb-3 d-none d-lg-block small_font_mobile text-center text-md-start"
-                            style={{ fontSize: 20, fontWeight: 600 }}
-                        >
-                            Payment Method
-                        </h6>
-                        <h6
-                            className="mb-md-4 mb-3 d-lg-none small_font_mobile text-start"
-                            style={{ fontSize: 15, fontWeight: 500 }}
-                        >
+                        <h6 className="mb-md-4 mb-3 fw-semibold custom-heading-use text-center text-md-start">
                             Payment Method
                         </h6>
                         <div className="d-flex flex-column gap-3">
                             {[
-                                {
-                                    id: "google",
-                                    name: "Google Pay",
-                                    icon: "https://img.icons8.com/color/48/google-pay.png",
-                                },
-                                {
-                                    id: "paypal",
-                                    name: "PayPal",
-                                    icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png",
-                                },
-                                {
-                                    id: "apple",
-                                    name: "Apple Pay",
-                                    icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png",
-                                },
-                            ].map((m) => (
+                                { id: "Gpay", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
+                                { id: "Apple Pay", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
+                                { id: "Paypal", name: "PayPal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
+                            ].map((method) => (
                                 <label
-                                    key={m.id}
+                                    key={method.id}
                                     className="d-flex justify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
-                                    style={{ boxShadow: "3px 4px 6.3px 0px #0000001F", cursor: "pointer" }}
+                                    style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5" }}
                                 >
                                     <div className="d-flex align-items-center gap-3">
-                                        <img src={m.icon} alt={m.name} width={28} />
-                                        <span className="fw-medium">{m.name}</span>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                        <input
-                                            type="radio"
-                                            name="payment"
-                                            value={m.id}
-                                            checked={selectedPayment === m.id}
-                                            onChange={(e) => setSelectedPayment(e.target.value)}
-                                            style={{ width: "20px", height: "20px", cursor: "pointer" }}
-                                        />
-                                    </div>
+                                        <img src={method.icon} alt={method.name} width={28} />
+                                        <span className="fw-medium d-none d-lg-block" style={{ fontFamily: "Poppins" }}>{method.name}</span>
+                                        <span className="d-lg-none" style={{ fontSize: '14px', fontFamily: "Poppins", fontWeight: "500" }}>{method.name}</span>                                    </div>
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value={method.id}
+                                        className="form-check-input"
+                                        checked={selectedPayment === method.id}
+                                        style={{ border: "4px solid #4D4DFF", width: "20px", height: "20px", boxShadow: "none" }}
+                                        onChange={(e) => setSelectedPayment(e.target.value)}
+                                    />
                                 </label>
                             ))}
                         </div>
@@ -545,23 +511,17 @@ const OpenmatchPayment = () => {
                         {/* Desktop Logo/Address Section */}
                         <div className="d-flex mb-4 position-relative d-none d-lg-flex">
                             <img src={booking_logo_img} className="booking-logo-img" alt="" />
-                            <div className="text-center ps-2 pe-1 mt-3">
-                                <p
-                                    className="mt-2 mb-0 text-white"
-                                    style={{
-                                        fontSize: "25px",
-                                        fontWeight: "600",
-                                        fontFamily: "Poppins",
-                                    }}
-                                >
+                            <div className="text-center ps-2 pe-0 mt-3" style={{ maxWidth: "200px" }}>
+                                <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
                                     {clubData?.clubName}
                                 </p>
                                 <p
-                                    className=" mb-1 text-white"
+                                    className="mt-2 mb-1 text-white"
                                     style={{
                                         fontSize: "14px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
+                                        lineHeight: "1.3",
                                     }}
                                 >
                                     {clubData?.address} <br /> {clubData?.zipCode}
@@ -585,7 +545,7 @@ const OpenmatchPayment = () => {
                                             justifyContent: "center",
                                         }}
                                     >
-                                        <img src={logo} alt="Club" style={{ width: "100%", height: "auto!important" }} />
+                                        <img src={logo} alt="Club" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                     </div>
                                 ) : (
                                     <div
@@ -612,7 +572,7 @@ const OpenmatchPayment = () => {
                                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary {localTotalSlots > 0 ? ` (${localTotalSlots} Slot selected)` : ''}</h6>
                             </div>
                             <div className="px-3">
-                                <style jsx>{`
+                                <style>{`
                                      .slots-container::-webkit-scrollbar {
                                        width: 8px;
                                        border-radius : 3px;
@@ -638,9 +598,9 @@ const OpenmatchPayment = () => {
                                         paddingRight: "8px",
                                     }}
                                 >
-                                    {localSelectedCourts.length > 0 ? (
-                                        localSelectedCourts.map((court, index) =>
-                                            court.time.map((timeSlot, timeIndex) => (
+                                    {localSelectedCourts?.length > 0 ? (
+                                        localSelectedCourts?.map((court, index) =>
+                                            court?.time?.map((timeSlot, timeIndex) => (
                                                 <div key={`${index}-${timeIndex}`} className="row mb-2">
                                                     <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                         <div className="d-flex text-white">
@@ -679,7 +639,7 @@ const OpenmatchPayment = () => {
                             borderRadius: "10px 10px 0 0",
                             padding: "0px 15px",
                         }}>
-                            {localSelectedCourts.length > 0 && (
+                            {localSelectedCourts?.length > 0 && (
                                 <>
                                     {/* Arrow controls - First row */}
                                     {/* <div className="d-flex justify-content-center align-items-center py-2" style={{ borderBottom: isExpanded ? "1px solid rgba(255,255,255,0.2)" : "none" }}>
@@ -692,7 +652,7 @@ const OpenmatchPayment = () => {
                                         </div>
                                     </div> */}
 
-                                    {localSelectedCourts.length > 0 && (
+                                    {localSelectedCourts?.length > 0 && (
                                         <div
                                             className="small-curve-arrow d-lg-none"
                                             onClick={(e) => {
@@ -715,7 +675,7 @@ const OpenmatchPayment = () => {
                                             )}
                                         </div>
                                     )}
-                                    <style jsx>{`
+                                    <style>{`
                     .small-curve-arrow {
                       position: absolute;
                       top: -14px;
@@ -760,7 +720,7 @@ const OpenmatchPayment = () => {
                                                 Order Summary :
                                             </h6>
                                         )}
-                                        <style jsx>{`
+                                        <style>{`
                       .mobile-expanded-slots::-webkit-scrollbar {
                         width: 8px;
                         border-radius: 3px;
@@ -783,8 +743,8 @@ const OpenmatchPayment = () => {
                     `}</style>
 
                                         {isExpanded &&
-                                            localSelectedCourts.map((court, cIdx) =>
-                                                court.time.map((timeSlot, sIdx) => (
+                                            localSelectedCourts?.map((court, cIdx) =>
+                                                court?.time?.map((timeSlot, sIdx) => (
                                                     <div key={`${cIdx}-${sIdx}`} className="row mb-0">
                                                         <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
                                                             <div className="d-flex text-white">

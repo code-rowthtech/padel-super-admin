@@ -16,11 +16,9 @@ import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import Pricing from "./Pricing";
 
-// Initialize markdown-it with underline support
 const mdParser = new MarkdownIt();
 mdParser.use(markdownItIns);
 
-// -------------------- constants --------------------
 const MAX_IMAGES = 10;
 const MAX_WORDS = 500;
 const FEATURES = [
@@ -42,7 +40,6 @@ const BUSINESS_HOURS_TEMPLATE = {
   Sunday: { start: "06:00 AM", end: "11:00 PM" },
 };
 
-// -------------------- helpers --------------------
 const getInitialFormState = (club = {}) => ({
   courtName: club?.clubName || "",
   address: club?.address || "",
@@ -126,7 +123,6 @@ const validateForm = (data) => {
 const formatAmPm = (hour, meridian) =>
   `${String(hour).padStart(2, "0")}:00 ${meridian}`;
 
-// -------------------- small components --------------------
 const TimeSelect = ({ value, onChange, idPrefix }) => {
   const { hour, meridian } = useMemo(() => {
     if (!value) return { hour: 6, meridian: "AM" };
@@ -257,7 +253,6 @@ const AddImageTile = ({ onFiles, hidden }) => {
   );
 };
 
-// -------------------- main --------------------
 const ClubUpdateForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -290,7 +285,6 @@ const ClubUpdateForm = () => {
   const startYRef = useRef(0);
   const startHeightRef = useRef(130);
 
-  // Track initial form data to detect changes
   const [initialFormData, setInitialFormData] = useState(() =>
     getInitialFormState(clubDetails)
   );
@@ -298,10 +292,8 @@ const ClubUpdateForm = () => {
     getInitialPreviews(clubDetails?.images || clubDetails?.courtImage)
   );
 
-  // Handle selectAllDays change
   useEffect(() => {
     if (!selectAllDays) {
-      // When "All" is unchecked, select only Monday by default
       const firstDayOnly = Object.keys(formData.businessHours).reduce(
         (acc, day) => {
           acc[day] = day === "Monday";
@@ -317,12 +309,10 @@ const ClubUpdateForm = () => {
     }
   }, [selectAllDays]);
 
-  // fetch once
   useEffect(() => {
     dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
   }, [dispatch, ownerId]);
 
-  // hydrate when async data arrives
   useEffect(() => {
     if (!clubDetails) return;
     const newFormData = getInitialFormState(clubDetails);
@@ -342,7 +332,6 @@ const ClubUpdateForm = () => {
     );
   }, [clubDetails]);
 
-  // update visible errors on change
   useEffect(() => {
     const { errors } = validateForm(formData);
     const v = Object.fromEntries(
@@ -351,7 +340,6 @@ const ClubUpdateForm = () => {
     setVisibleErrors(v);
   }, [formData, touched]);
 
-  // revoke blob URLs on unmount
   useEffect(
     () => () => {
       previews.forEach((p) => {
@@ -363,7 +351,7 @@ const ClubUpdateForm = () => {
       });
     },
     []
-  ); // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -520,11 +508,9 @@ const ClubUpdateForm = () => {
     formData.termsAccepted &&
     !updateClubLoading;
 
-  // Check if form data or images have changed
   const hasFormChanged = useMemo(() => {
     if (!initialFormData || !formData) return false;
 
-    // Compare simple fields
     const simpleFields = [
       "courtName",
       "address",
@@ -542,19 +528,16 @@ const ClubUpdateForm = () => {
       if (formData[field] !== initialFormData[field]) return true;
     }
 
-    // Compare courtTypes
     if (
       formData.courtTypes.indoor !== initialFormData.courtTypes.indoor ||
       formData.courtTypes.outdoor !== initialFormData.courtTypes.outdoor
     )
       return true;
 
-    // Compare features
     for (const key of Object.keys(formData.features)) {
       if (formData.features[key] !== initialFormData.features[key]) return true;
     }
 
-    // Compare business hours
     for (const day of Object.keys(formData.businessHours)) {
       if (
         formData.businessHours[day].start !==
@@ -565,7 +548,6 @@ const ClubUpdateForm = () => {
         return true;
     }
 
-    // Compare images
     if (previews.length !== initialPreviews.length) return true;
     for (let i = 0; i < previews.length; i++) {
       if (
@@ -632,7 +614,6 @@ const ClubUpdateForm = () => {
     if (formData.linkedinLink) fd.append("linkedinLink", formData.linkedinLink);
     if (formData.facebookLink) fd.append("facebookLink", formData.facebookLink);
     if (formData.xlink) fd.append("xlink", formData.xlink);
-    // NOTE: placeholder coordinates; replace with real coordinates if available
     fd.append("location[coordinates][0]", "50.90");
     fd.append("location[coordinates][1]", "80.09");
 
@@ -648,7 +629,6 @@ const ClubUpdateForm = () => {
     previews.forEach((img, index) => {
       if (!img.isRemote && img.file) {
         fd.append("image", img.file);
-        fd.append("imageIndex", String(index)); // keep order compatibility
       }
     });
 
@@ -660,17 +640,13 @@ const ClubUpdateForm = () => {
       dispatch(getOwnerRegisteredClub({ ownerId }));
       setHitUpdateApi(false);
       setHasChanged(false);
-      // Update initial state to reflect the new saved data
       setInitialFormData(formData);
       setInitialPreviews(previews);
     } catch (err) {
-      // why: preserve UX on API errors
-      console.error("Update failed", err);
       setHitUpdateApi(false);
     }
   };
 
-  // -------------------- render helpers --------------------
   const Input = memo(({ label, field, type = "text", placeholder }) => (
     <Form.Group className="mb-2">
       <Form.Label className="fw-semibold small text-secondary">
@@ -704,7 +680,6 @@ const ClubUpdateForm = () => {
     </Form.Group>
   ));
 
-  // -------------------- UI --------------------
   return (
     <Card className="p-4 pt-2 shadow-sm border-0">
       {ownerClubLoading ? (
@@ -1013,32 +988,16 @@ const ClubUpdateForm = () => {
               </Row>
               <Row className="mb-3">
                 <Col md={3}>
-                  <Input
-                    label="Instagram Link"
-                    field="instagramLink"
-                    placeholder="https://instagram.com/..."
-                  />
+                  <Input label="Instagram Link" field="instagramLink" />
                 </Col>
                 <Col md={3}>
-                  <Input
-                    label="LinkedIn Link"
-                    field="linkedinLink"
-                    placeholder="https://linkedin.com/..."
-                  />
+                  <Input label="LinkedIn Link" field="linkedinLink" />
                 </Col>
                 <Col md={3}>
-                  <Input
-                    label="Facebook Link"
-                    field="facebookLink"
-                    placeholder="https://facebook.com/..."
-                  />
+                  <Input label="Facebook Link" field="facebookLink" />
                 </Col>
                 <Col md={3}>
-                  <Input
-                    label="X Link"
-                    field="xlink"
-                    placeholder="https://x.com/..."
-                  />
+                  <Input label="X Link" field="xlink" />
                 </Col>
               </Row>
             </Col>

@@ -19,7 +19,6 @@ const Profile = () => {
   );
   const store = useSelector((state) => state?.userAuth);
 
-  // Format date for input
   const formatDateForInput = (isoDate) => {
     if (!isoDate) return "";
     const date = new Date(isoDate);
@@ -29,7 +28,6 @@ const Profile = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Initial form data state
   const initialFormData = {
     fullName:
       user?.response?.name ||
@@ -59,7 +57,6 @@ const Profile = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [initialState, setInitialState] = useState(initialFormData);
 
-  // Fetch user profile and states data
   useEffect(() => {
     dispatch(getUserProfile()).then((result) => {
       if (result.payload) {
@@ -75,7 +72,6 @@ const Profile = () => {
             result.payload.response?.profilePic || User?.profilePic || "",
         };
         setFormData(newFormData);
-        setInitialState(newFormData); // Store initial state for comparison
       }
     });
     dispatch(getStates());
@@ -107,17 +103,13 @@ const Profile = () => {
 
   localStorage.setItem("updateprofile", JSON.stringify(updateProfileData));
 
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-  // };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Capitalize first letter only
-    const formatted =
-      value.length > 0
+    const formatted = name === 'email' 
+      ? value
+      : value.length > 0
         ? value.charAt(0).toUpperCase() + value.slice(1)
         : "";
 
@@ -156,7 +148,6 @@ const Profile = () => {
 
     const payload = new FormData();
 
-    // Compare current formData with initialState to find changed fields
     const changedFields = {};
     Object.keys(formData).forEach((key) => {
       if (formData[key] !== initialState[key]) {
@@ -164,7 +155,6 @@ const Profile = () => {
       }
     });
 
-    // Append only changed fields to FormData
     if (changedFields.fullName) payload.append("name", changedFields.fullName);
     if (changedFields.email) payload.append("email", changedFields.email);
     if (changedFields.phone) payload.append("phoneNumber", changedFields.phone);
@@ -178,22 +168,18 @@ const Profile = () => {
       payload.append("profilePic", blob, "profile.jpg");
     }
 
-    // Only append location if it has changed
     if (changedFields.location) {
       payload.append("city", changedFields.location);
     }
 
-    // Only dispatch if there are changes
     if (Object.keys(changedFields).length > 0) {
       dispatch(updateUser(payload))
         .then(() => {
           dispatch(getUserProfile());
         })
         .catch((err) => {
-          console.error("Update failed:", err);
         });
     } else {
-      console.log("No changes detected, skipping API call.");
     }
   };
 
@@ -302,7 +288,6 @@ const Profile = () => {
               </div>
             )}
 
-            {/* CAMERA ICON */}
             <label
               htmlFor="profileImageUpload"
               className="position-absolute"
@@ -351,7 +336,7 @@ const Profile = () => {
           </div>
           <div className="col-12 col-md-4 mb-3">
             <label className="label">
-              Email <span className="text-danger">*</span>
+              Email
             </label>
             <input
               type="email"

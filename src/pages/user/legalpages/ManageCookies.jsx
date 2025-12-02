@@ -22,7 +22,6 @@ const ManageCookies = () => {
                     simply won't function without them.
                 </p>
 
-                {/* Essential Cookies */}
                 <div className="mb-4 p-4 bg-light rounded-3 border-start border-success border-4">
                     <h4 className="text-success mb-2">Essential Cookies</h4>
                     <p className="text-muted mb-3">
@@ -34,7 +33,6 @@ const ManageCookies = () => {
                     </div>
                 </div>
 
-                {/* Analytics Cookies */}
                 <div className="mb-4 p-4 bg-light rounded-3">
                     <h4 className="text-success mb-2">Analytics Cookies</h4>
                     <p className="text-muted mb-3">
@@ -47,7 +45,6 @@ const ManageCookies = () => {
                     </div>
                 </div>
 
-                {/* Functional Cookies */}
                 <div className="mb-4 p-4 bg-light rounded-3">
                     <h4 className="text-success mb-2">Functional Cookies</h4>
                     <p className="text-muted mb-3">
@@ -60,7 +57,6 @@ const ManageCookies = () => {
                     </div>
                 </div>
 
-                {/* Marketing Cookies */}
                 <div className="mb-4 p-4 bg-light rounded-3">
                     <h4 className="text-success mb-2">Marketing Cookies</h4>
                     <p className="text-muted mb-3">

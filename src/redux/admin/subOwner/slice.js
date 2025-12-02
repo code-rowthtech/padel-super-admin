@@ -21,7 +21,6 @@ const subOwnerSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // -----------------------------------------------------//---- Get sub owner
     builder.addCase(getSubOwner.pending, (state) => {
       state.getSubOwnerLoading = true;
       state.getSubOwnerData = null;
@@ -37,7 +36,6 @@ const subOwnerSlice = createSlice({
       state.getSubOwnerData = null;
       state.getSubOwnerError = action.payload;
     });
-    // -----------------------------------------------------//---- Update sub owner
     builder.addCase(updateSubOwner.pending, (state) => {
       state.updateSubOwnerLoading = true;
       state.updateSubOwnerData = null;

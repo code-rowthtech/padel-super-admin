@@ -39,7 +39,6 @@ const Booking = () => {
   const ownerId = getOwnerFromSession()?._id;
   const [currentPage, setCurrentPage] = useState(1);
 
-  // State
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [showBookingCancel, setShowBookingCancel] = useState(false);
   const [tab, setTab] = useState(0);
@@ -53,24 +52,27 @@ const Booking = () => {
     getBookingLoading,
     getBookingDetailsData,
     updateBookingLoading,
+    bookingCount: tabCount,
   } = useSelector((state) => state.booking);
 
-  const tabCount = useSelector((state) => state.booking.bookingCount);
   const bookings = getBookingData?.bookings || [];
   const totalItems = getBookingData?.totalItems || 0;
   const sendDate = startDate && endDate;
-  const allCount = sendDate && tab === 0 ? totalItems : tabCount?.allCount || 0;
-  const upcomingCount =
-    sendDate && tab === 1 ? totalItems : tabCount?.upcomingCount || 0;
-  const completedCount =
-    sendDate && tab === 2 ? totalItems : tabCount?.completedCount || 0;
+
+  // Store counts in state to persist across tab changes
+  const [counts, setCounts] = useState({
+    allCount: 0,
+    upcomingCount: 0,
+    completedCount: 0,
+  });
+
+  const allCount = sendDate && tab === 0 ? totalItems : counts.allCount;
+  const upcomingCount = sendDate && tab === 1 ? totalItems : counts.upcomingCount;
+  const completedCount = sendDate && tab === 2 ? totalItems : counts.completedCount;
 
   const defaultLimit = 20;
 
-  // Fetch bookings based on tab
   useEffect(() => {
-    dispatch(resetBookingData());
-
     const payload: any = {
       ownerId,
       page: currentPage,
@@ -78,7 +80,6 @@ const Booking = () => {
     };
 
     if (tab !== 0) {
-      // Only send status if not "All"
       const status = tab === 1 ? "upcoming" : "completed";
       payload.status = status;
     }
@@ -94,9 +95,20 @@ const Booking = () => {
       payload.endDate = formatToYYYYMMDD(endDate);
     }
 
+    dispatch(bookingCount({ ownerId }));
+    dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
-    dispatch(bookingCount({ ownerId: ownerId }));
   }, [tab, currentPage, dispatch, ownerId, sendDate]);
+
+  useEffect(() => {
+    if (tabCount && !sendDate) {
+      setCounts({
+        allCount: tabCount.allCount || 0,
+        upcomingCount: tabCount.upcomingCount || 0,
+        completedCount: tabCount.completedCount || 0,
+      });
+    }
+  }, [tabCount, sendDate]);
 
   const handleBookingDetails = async (id, type) => {
     setLoadingBookingId(id);
@@ -106,7 +118,6 @@ const Booking = () => {
         ? setShowBookingDetails(true)
         : setShowBookingCancel(true);
     } catch (error) {
-      console.error("Failed to fetch booking details:", error);
     } finally {
       setLoadingBookingId(null);
     }
@@ -121,7 +132,6 @@ const Booking = () => {
 
   return (
     <Container fluid className="px-2 px-md-4">
-      {/* Heading & Manual Booking Button */}
 
       <Row className="mb-3">
         <Col xs={12}>
@@ -328,7 +338,6 @@ const Booking = () => {
               <DataLoading height="60vh" />
             ) : bookings.length > 0 ? (
               <>
-                {/* Desktop Table */}
                 <div
                   className="custom-scroll-container flex-grow-1"
                   style={{
@@ -463,7 +472,6 @@ const Booking = () => {
                   </Table>
                 </div>
 
-                {/* Mobile Card Layout */}
                 <div className="mobile-card-table d-block d-md-none">
                   {bookings.map((item) => (
                     <div key={item?._id} className="card">
@@ -558,7 +566,6 @@ const Booking = () => {
               </div>
             )}
 
-            {/* Pagination */}
             {totalItems > defaultLimit && (
               <div
                 className="pt-3 d-flex justify-content-center align-items-center border-top"
@@ -579,7 +586,6 @@ const Booking = () => {
         </Col>
       </Row>
 
-      {/* Modals */}
       <BookingDetailsModal
         show={showBookingDetails}
         handleClose={() => setShowBookingDetails(false)}

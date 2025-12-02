@@ -28,7 +28,6 @@ const clubSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // -------------------------G-E-T--C-L-U-B----------------------//
             .addCase(getUserClub.pending, (state) => {
                 state.clubLoading = true;
                 state.clubError = null;
@@ -43,7 +42,6 @@ const clubSlice = createSlice({
             })
 
 
-            // -------------------------A-D-D---R-E-V-I-E-W----------------------//
 
             .addCase(addReviewClub.pending, (state) => {
                 state.reviewLoading = true;
@@ -59,7 +57,6 @@ const clubSlice = createSlice({
                 state.reviewError = action.payload;
             })
 
-              // -------------------------G-E-T---R-E-V-I-E-W----------------------//
 
             .addCase(getReviewClub.pending, (state) => {
                 state.getReviewLoading = true;
@@ -75,7 +72,6 @@ const clubSlice = createSlice({
                 state.getReviewError = action.payload;
             })
 
-            // -------------------------G-E-T---M-A-P----------------------//
             .addCase(getMapData.pending, (state) => {
                 state.mapLoading = true;
                 state.mapError = null;

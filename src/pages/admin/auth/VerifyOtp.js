@@ -17,7 +17,6 @@ const VerifyOTP = () => {
   const location = useLocation();
   const email = location.state?.email;
 
-  // Timer countdown
   useEffect(() => {
     const countdown = setInterval(() => {
       setTimer((prev) => (prev > 0 ? prev - 1 : 0));
@@ -25,21 +24,17 @@ const VerifyOTP = () => {
     return () => clearInterval(countdown);
   }, []);
 
-  // Handle OTP input change
   const handleChange = (index, value) => {
-    if (!/^\d?$/.test(value)) return; // Only allow digits
 
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Move to next input if current filled
     if (value && index < otp.length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  // Handle keydown for backspace navigation
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace") {
       if (otp[index]) {
@@ -52,7 +47,6 @@ const VerifyOTP = () => {
     }
   };
 
-  // Handle OTP paste
   const handlePaste = (e) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text").trim().slice(0, 4);
@@ -68,7 +62,6 @@ const VerifyOTP = () => {
     }
   };
 
-  // Submit OTP
   const handleSubmit = async () => {
     const fullOtp = otp.join("");
     if (fullOtp.length < 4) {
@@ -80,7 +73,6 @@ const VerifyOTP = () => {
       await dispatch(verifyOtp({ email, otp: fullOtp.trim() })).unwrap();
       navigate("/admin/reset-password", { state: { email } });
     } catch (err) {
-      // showError("Something went wrong during OTP verification.");
     }
   };
 
@@ -149,6 +141,8 @@ const VerifyOTP = () => {
             <Form.Control
               key={index}
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               maxLength={1}
               disabled={authLoading}
               ref={(el) => (inputRefs.current[index] = el)}

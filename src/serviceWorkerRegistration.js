@@ -1,5 +1,3 @@
-// This optional code is used to register a service worker.
-// register() is not called by default.
 
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
@@ -18,10 +16,8 @@ export function register(config) {
       const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
 
       if (isLocalhost) {
-        // This is running on localhost. Check if service worker still exists or not.
         checkValidServiceWorker(swUrl, config);
       } else {
-        // Register service worker
         registerValidSW(swUrl, config);
       }
     });
@@ -38,10 +34,8 @@ function registerValidSW(swUrl, config) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              // New content available; show refresh
               if (config && config.onUpdate) config.onUpdate(registration);
             } else {
-              // Content cached for offline use
               if (config && config.onSuccess) config.onSuccess(registration);
             }
           }
@@ -49,7 +43,6 @@ function registerValidSW(swUrl, config) {
       };
     })
     .catch((error) => {
-      console.error('Error during service worker registration:', error);
     });
 }
 
@@ -73,7 +66,6 @@ function checkValidServiceWorker(swUrl, config) {
       }
     })
     .catch(() => {
-      console.log('No internet connection. App is running in offline mode.');
     });
 }
 
@@ -84,7 +76,6 @@ export function unregister() {
         registration.unregister();
       })
       .catch((error) => {
-        console.error(error.message);
       });
   }
 }

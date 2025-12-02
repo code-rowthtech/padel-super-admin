@@ -21,6 +21,8 @@ import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { showInfo } from "../../../../helpers/Toast";
 import { Link, useNavigate } from "react-router-dom";
 
+const MAX_FILE_SIZE = 1024 * 1024; // 1MB
+
 const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const dispatch = useDispatch();
   const MAX_IMAGES = 10;
@@ -30,12 +32,11 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const { getLogoLoading } = useSelector((s) => s.logo);
   const ownerId = localStorage.getItem("owner_signup_id");
 
-  /* -------------------  IMAGES  ------------------- */
   const [previewImages, setPreviewImages] = useState([]);
   const [duplicateError, setDuplicateError] = useState("");
+  const [logoPreview, setLogoPreview] = useState(null);
   const navigate = useNavigate();
 
-  // Initialize preview images from formData
   useEffect(() => {
     const newImages = formData.images || [];
     const previews = newImages.map((file) => ({
@@ -45,7 +46,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     setPreviewImages(previews);
   }, [formData.images]);
 
-  // Save images metadata to localStorage (not the actual image data)
   useEffect(() => {
     if (formData.images && formData.images.length > 0) {
       const imageMetadata = formData.images.map((file) => ({
@@ -57,12 +57,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       try {
         localStorage.setItem("clubImagesMetadata", JSON.stringify(imageMetadata));
       } catch (error) {
-        console.warn("Failed to save image metadata to localStorage:", error);
       }
     }
   }, [formData.images]);
 
-  // Save logo metadata to localStorage (not the actual logo data)
   useEffect(() => {
     if (formData.logo && formData.logo instanceof File) {
       const logoMetadata = {
@@ -74,13 +72,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       try {
         localStorage.setItem("clubLogoMetadata", JSON.stringify(logoMetadata));
       } catch (error) {
-        console.warn("Failed to save logo metadata to localStorage:", error);
       }
     }
   }, [formData.logo]);
 
-  // Note: Removed localStorage restoration of actual image files to prevent quota exceeded errors
-  // Images will need to be re-selected if user navigates away and comes back
 
   useEffect(() => {
     if (updateImage) {
@@ -101,14 +96,12 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const currentCount = formData.images?.length || 0;
-    const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
 
     if (currentCount + files.length > MAX_IMAGES) {
       showInfo(`You can upload a maximum of ${MAX_IMAGES} images.`);
       return;
     }
 
-    // Check file sizes
     const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
     if (oversizedFiles.length > 0) {
       const fileDetails = oversizedFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)}MB)`).join(', ');
@@ -117,7 +110,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       return;
     }
 
-    // Get all currently uploaded images from both sources
     const allExistingImages = [
       ...(formData.images || []),
       ...previewImages.filter((img) => img.file).map((img) => img.file),
@@ -127,13 +119,11 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     const newFiles = [];
 
     files.forEach((file, index) => {
-      // Check against ALL existing images
       const isDuplicateInExisting = allExistingImages.some(
         (existingFile) =>
           existingFile.name === file.name && existingFile.size === file.size
       );
 
-      // Check against other files in current selection
       const isDuplicateInCurrentSelection = files.some(
         (otherFile, otherIndex) =>
           otherIndex < index &&
@@ -187,10 +177,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     setPreviewImages(previewImages.filter((_, i) => i !== index));
   };
 
-  /* -------------------  LOGO  ------------------- */
-  const [logoPreview, setLogoPreview] = useState(null); // { file, preview }
 
-  // Load saved logo when editing
   useEffect(() => {
     if (updateImage) {
       const saved = localStorage.getItem("clubFormData");
@@ -207,14 +194,12 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
     if (file.size > MAX_FILE_SIZE) {
       showInfo(`Logo size must be up to 1MB. Current size: ${(file.size / (1024 * 1024)).toFixed(2)}MB. Please compress the image.`);
       e.target.value = "";
       return;
     }
 
-    // Revoke old preview
     if (logoPreview?.preview && !logoPreview.isSaved) {
       URL.revokeObjectURL(logoPreview.preview);
     }
@@ -232,11 +217,9 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     if (logoPreview?.preview) URL.revokeObjectURL(logoPreview.preview);
     setLogoPreview(null);
     updateFormData({ logo: null });
-    // Remove from localStorage
     localStorage.removeItem("clubLogoMetadata");
   };
 
-  /* -------------------  BUSINESS HOURS  ------------------- */
   const [referenceHours, setReferenceHours] = useState({ start: "", end: "" });
   const [hasChanged, setHasChanged] = useState(false);
 
@@ -339,7 +322,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 </span>
               </Col>
 
-              {/* START */}
               <Col md={4}>
                 <InputGroup>
                   <FormControl
@@ -399,7 +381,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                 To
               </Col>
 
-              {/* END */}
               <Col md={4}>
                 <InputGroup>
                   <FormControl
@@ -448,7 +429,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
     );
   };
 
-  /* -------------------  SUBMIT  ------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -463,7 +443,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       return;
     }
 
-    // ---------- 1. LOGO API (if logo exists) ----------
     if (formData.logo) {
       const logoForm = new FormData();
       logoForm.append("ownerId", ownerId);
@@ -480,7 +459,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       }
     }
 
-    // ---------- 2. CLUB REGISTER / UPDATE ----------
     const savedPreviews = previewImages
       .filter((img) => img.isSaved)
       .map((img) => img.preview);
@@ -541,19 +519,14 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       } else {
         result = await dispatch(registerClub(apiFormData)).unwrap();
       }
-      // Check status 200
       if (result?.status === 200 || result?.success === true) {
-        onNext(); // Only call if status is 200
       } else {
-        // showInfo(result?.message || "Something went wrong.");
       }
     } catch (error) {
-      console.error("API Error:", error);
       showInfo(error?.message || "Failed to save club. Please try again.");
     }
   };
 
-  /* -------------------  RENDER  ------------------- */
   return (
     <div className="border-top small">
       <Form onSubmit={handleSubmit}>
@@ -815,7 +788,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           </Col>
         </Row>
 
-        {/* TERMS */}
         <Row className="mt-4">
           <Col>
             <Form.Check
@@ -873,7 +845,6 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
           </Col>
         </Row>
 
-        {/* BUTTONS */}
         <div className="d-flex justify-content-end mt-4">
           <Button
             type="button"

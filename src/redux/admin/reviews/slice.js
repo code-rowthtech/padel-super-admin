@@ -19,7 +19,6 @@ const reviewSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // -----------------------------------------------------//---- Get All Reviews
       .addCase(getReviewsForOwner.pending, (state) => {
         state.reviewsLoading = true;
         state.reviewsData = null;

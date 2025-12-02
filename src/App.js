@@ -6,7 +6,6 @@ import "react-toastify/dist/ReactToastify.css";
 function App() {
   const [centerButton, setCenterButton] = useState(false);
 
-  // Handle unhandled chunk load error
   window.addEventListener("unhandledrejection", (event) => {
     const reason = event.reason;
     if (reason && /Loading chunk [\d]+ failed/.test(reason.message)) {
@@ -14,7 +13,6 @@ function App() {
     }
   });
 
-  // scroll detection
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) setCenterButton(true);
@@ -29,7 +27,6 @@ function App() {
     <>
       <Routes />
       
-      {/* Floating Button */}
       {/* <button
         style={{
           position: "fixed",

@@ -51,7 +51,6 @@ const Cancellation = () => {
   const [tab, setTab] = useState(0);
   const status = ["in-progress", "refunded", "rejected"][tab];
 
-  // Modal state
   const [showDetails, setShowDetails] = useState(false);
   const [showCancellation, setShowCancellation] = useState(false);
   const [showRefund, setShowRefund] = useState(false);
@@ -71,7 +70,6 @@ const Cancellation = () => {
   const totalItems = getBookingData?.totalItems || 0;
   const sendDate = startDate && endDate;
 
-  // Store counts in state to persist across tab changes
   const [counts, setCounts] = useState({
     request: 0,
     cancelled: 0,
@@ -108,7 +106,6 @@ const Cancellation = () => {
       }
     });
   }, [tab, sendDate, status, currentPage]);
-  // Booking details handler
   const handleBookingDetails = async (id) => {
     setLoadingBookingId(id);
     try {
@@ -117,7 +114,6 @@ const Cancellation = () => {
       if (tab === 1) setShowDetails(true);
       if (tab === 2) setShowRequestSuccess(true);
     } catch (err) {
-      console.error("Failed to fetch booking details:", err);
     } finally {
       setLoadingBookingId(null);
     }
@@ -131,7 +127,6 @@ const Cancellation = () => {
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
     <Container fluid className="">
-      {/* Tabs + Date filters */}
       <Row className="mb-3">
         <Col xs={12}>
           <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
@@ -271,7 +266,6 @@ const Cancellation = () => {
               <DataLoading height="60vh" />
             ) : bookings.length > 0 ? (
               <>
-                {/* Desktop Table */}
                 <div className="custom-scroll-container d-none d-md-block">
                   <Table
                     responsive
@@ -350,7 +344,6 @@ const Cancellation = () => {
                   </Table>
                 </div>
 
-                {/* Mobile Card Layout */}
                 <div className="mobile-card-table d-block d-md-none">
                   {bookings?.map((item) => (
                     <div key={item?._id} className="card">
@@ -440,21 +433,12 @@ const Cancellation = () => {
           />
         </Col>
       </Row>
-      {/* Modals */}
       <BookingCancellationModal
         show={showCancellation}
         handleClose={() => setShowCancellation(false)}
         updateStatus={() => {
           setShowRefund(true);
           setShowCancellation(false);
-          // dispatch(
-          //   updateBookingStatus({ id: bookingDetails._id, status: "refunded" })
-          // )
-          //   .unwrap()
-          //   .then(() => {
-          //     setShowCancellation(false);
-          //     dispatch(getBookingByStatus({ status, ownerId }));
-          //   });
         }}
         openRejection={() => {
           setShowCancellation(false);

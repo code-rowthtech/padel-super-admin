@@ -15,18 +15,15 @@ export const getLogo = createAsyncThunk(
         return query.toString();
       };
       const res = await ownerApi.get(`${Url.GET_LOGO}?${buildQuery(params)}`);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }
@@ -36,19 +33,15 @@ export const createLogo = createAsyncThunk(
   async (payload, { rejectWithValue }) => {
     try {
       const res = await ownerApi.post(Url.CREATE_LOGO, payload);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        // showSuccess(res?.data?.message);
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }
@@ -58,19 +51,15 @@ export const updateLogo = createAsyncThunk(
   async (payload, { rejectWithValue }) => {
     try {
       const res = await ownerApi.put(Url.UPDATE_LOGO, payload);
-      // Destructure response data
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        // showSuccess(res?.data?.message);
         return data;
       }
 
       const errorMessage = message;
-      // showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      // showError(error);
       return rejectWithValue(errorMessage);
     }
   }

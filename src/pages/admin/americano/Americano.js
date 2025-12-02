@@ -23,7 +23,6 @@ const Americano = () => {
           border: "1px solid #e2e8f0",
         }}
       >
-        {/* Logo or Icon Placeholder */}
         <div
           style={{
             fontSize: "48px",
@@ -36,7 +35,6 @@ const Americano = () => {
           Americano
         </div>
 
-        {/* Tagline */}
         <p
           style={{
             fontSize: "18px",
@@ -48,7 +46,6 @@ const Americano = () => {
           Something amazing is brewing...
         </p>
 
-        {/* Main Heading */}
         <h1
           style={{
             fontSize: "36px",
@@ -60,7 +57,6 @@ const Americano = () => {
           Coming Soon
         </h1>
 
-        {/* Subtitle */}
         <p
           style={{
             fontSize: "16px",
@@ -73,7 +69,6 @@ const Americano = () => {
           experience.
         </p>
 
-        {/* Decorative Divider */}
         <div
           style={{
             width: "60px",
@@ -84,7 +79,6 @@ const Americano = () => {
           }}
         ></div>
 
-        {/* Footer Text */}
         <p
           style={{
             marginTop: "20px",

@@ -28,7 +28,6 @@ const matchesSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // -------------------------C-R-E-A-T-E--B-O-O-K-I-N-G----------------------//
             .addCase(createMatches.pending, (state) => {
                 state.matchesLoading = true;
                 state.matchesError = null;
@@ -41,7 +40,6 @@ const matchesSlice = createSlice({
                 state.matchesLoading = false;
                 state.matchesError = action.payload;
             })
-            // -------------------------G-E-T--B-O-O-K-I-N-G----------------------//
             .addCase(getMatches.pending, (state) => {
                 state.matchesLoading = true;
                 state.matchesError = null;
@@ -54,7 +52,6 @@ const matchesSlice = createSlice({
                 state.matchesLoading = false;
                 state.matchesError = action.payload;
             })
-            // -------------------------O-P-E-N-M-A-T-C-H-E-S-U-S-E-R--------------------//
 
             .addCase(getMatchesUser.pending, (state) => {
                 state.usersLoading = true;
@@ -68,7 +65,6 @@ const matchesSlice = createSlice({
                 state.usersLoading = false;
                 state.usersError = action.payload;
             })
-            // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
             .addCase(getMatchesView.pending, (state) => {
                 state.viewMatchesLoading = true;
                 state.viewMatchesData = null;
@@ -82,7 +78,6 @@ const matchesSlice = createSlice({
                 state.viewMatchesError = action.payload;
             })
 
-             // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
             .addCase(addPlayers.pending, (state) => {
                 state.viewMatchesLoading = true;
                 state.viewMatchesData = null;
@@ -96,7 +91,6 @@ const matchesSlice = createSlice({
                 state.viewMatchesError = action.payload;
             })
 
-               // -------------------------C-H-A-N-G-E--B-O-O-K-I-N-G--S-T-A-T-U-S--------------------//
             .addCase(removePlayers.pending, (state) => {
                 state.viewMatchesLoading = true;
                 state.viewMatchesData = null;

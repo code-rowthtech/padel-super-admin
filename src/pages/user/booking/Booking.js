@@ -14,7 +14,7 @@ import {
 } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
 import {
@@ -40,6 +40,7 @@ import {
 import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
+import { createBooking } from "../../../redux/user/booking/thunk";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -97,6 +98,7 @@ const Booking = ({ className = "" }) => {
     useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+  const bookingStatus = useSelector((state) => state?.userBooking);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorShow, setErrorShow] = useState(false);
   const logo =
@@ -110,11 +112,11 @@ const Booking = ({ className = "" }) => {
   const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedBuisness, setSelectedBuisness] = useState([]);
   const [selectedCourts, setSelectedCourts] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
   const [selectedDate, setSelectedDate] = useState({
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
-  const [activeTab, setActiveTab] = useState(0); // Default to morning tab
   const [showBanner, setShowBanner] = useState(true);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -160,10 +162,13 @@ const Booking = ({ className = "" }) => {
   const MAX_SLOTS = 15;
 
   const toggleTime = (time, courtId, date) => {
-    const totalSlots = selectedCourts.reduce(
-      (acc, c) => acc + (c.time?.length || 0),
-      0
-    );
+    // Calculate total slots across all dates and courts
+    const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+      return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+        return dateTotal + timeSlots.length;
+      }, 0);
+    }, 0);
+    
     const dateKey = date || selectedDate.fullDate;
     const uniqueKey = `${courtId}-${time._id}-${dateKey}`;
 
@@ -171,7 +176,6 @@ const Booking = ({ className = "" }) => {
     const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
 
     if (isAlreadySelected) {
-      // Deselect
       const filteredTimes = currentCourtTimes.filter((t) => t._id !== time._id);
       setSelectedTimes((prev) => ({
         ...prev,
@@ -193,7 +197,7 @@ const Booking = ({ className = "" }) => {
           .filter((court) => court.time.length > 0)
       );
     } else {
-      if (totalSlots >= MAX_SLOTS) {
+      if (currentTotalSlots >= MAX_SLOTS) {
         setErrorMessage(
           `You can select up to ${MAX_SLOTS} slots only`
         );
@@ -382,30 +386,97 @@ const Booking = ({ className = "" }) => {
     (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
     0
   );
-  const totalSlots = selectedCourts.reduce((sum, c) => sum + c.time.length, 0);
+  
+  // Calculate total slots across all dates and courts
+  const totalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+    return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+      return dateTotal + timeSlots.length;
+    }, 0);
+  }, 0);
 
-  // Close Order Summary when all slots are removed
   useEffect(() => {
     if (totalSlots === 0) {
       setIsExpanded(false);
     }
   }, [totalSlots]);
 
-  const handleBookNow = () => {
-    if (totalSlots === 0) {
-      setErrorMessage("Select a slot to enable booking");
-      setErrorShow(true);
-      return;
+  const handleBookNow = async () => {
+    const register_club_id = localStorage.getItem("register_club_id");
+    const owner_id = localStorage.getItem("owner_id");
+
+    if (!register_club_id || !owner_id) {
+      throw new Error("Club information missing.");
     }
-    if (!user?.token) {
-      const courtIds = selectedCourts
-        .map((court) => court._id)
-        .filter((id) => id)
-        .join(",");
-      navigate("/login", {
-        state: {
-          redirectTo: "/payment",
-          paymentState: {
+
+    const slotArray = selectedCourts.flatMap((court) =>
+      court.time.map((timeSlot) => ({
+        slotId: timeSlot._id,
+        businessHours: slotData?.data?.[0]?.slots?.[0]?.businessHours?.map((t) => ({
+          time: t?.time,
+          day: t?.day,
+        })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
+        slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount ?? 2000 }],
+        courtName: court.courtName,
+        courtId: court._id,
+        bookingDate: court.date,
+      }))
+    );
+
+    const payload = {
+      name: 'testing',
+      phoneNumber: 9999999999,
+      email: 'testing@gmail.com',
+      register_club_id,
+      bookingStatus: "upcoming",
+      bookingType: "regular",
+      ownerId: owner_id,
+      slot: slotArray,
+      paymentMethod: 'gpay',
+      isSlotCheck: true
+    };
+
+    const bookingResponse = await dispatch(createBooking(payload)).unwrap();
+
+    console.log({ bookingResponse });
+    if (bookingResponse?.success === true) {
+
+      if (totalSlots === 0) {
+        setErrorMessage("Select a slot to enable booking");
+        setErrorShow(true);
+        return;
+      }
+      if (!user?.token) {
+        const courtIds = selectedCourts
+          .map((court) => court._id)
+          .filter((id) => id)
+          .join(",");
+        navigate("/login", {
+          state: {
+            redirectTo: "/payment",
+            paymentState: {
+              courtData: {
+                day: selectedDate?.day,
+                date: selectedDate?.fullDate,
+                time: selectedBuisness,
+                courtId: courtIds,
+                court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
+                slot: slotData?.data?.[0]?.slots,
+              },
+              clubData,
+              selectedCourts,
+              selectedDate,
+              grandTotal,
+              totalSlots,
+            },
+          },
+        });
+      } else {
+        const courtIds = selectedCourts
+          .map((court) => court._id)
+          .filter((id) => id)
+          .join(",");
+        navigate("/payment", {
+          state: {
             courtData: {
               day: selectedDate?.day,
               date: selectedDate?.fullDate,
@@ -420,30 +491,10 @@ const Booking = ({ className = "" }) => {
             grandTotal,
             totalSlots,
           },
-        },
-      });
+        });
+      }
     } else {
-      const courtIds = selectedCourts
-        .map((court) => court._id)
-        .filter((id) => id)
-        .join(",");
-      navigate("/payment", {
-        state: {
-          courtData: {
-            day: selectedDate?.day,
-            date: selectedDate?.fullDate,
-            time: selectedBuisness,
-            courtId: courtIds,
-            court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
-            slot: slotData?.data?.[0]?.slots,
-          },
-          clubData,
-          selectedCourts,
-          selectedDate,
-          grandTotal,
-          totalSlots,
-        },
-      });
+      window.location.reload();
     }
   };
 
@@ -489,7 +540,6 @@ const Booking = ({ className = "" }) => {
     }
   }, [errorShow, errorMessage]);
 
-  // Show tooltip for 15 slot limit when hovering over any slot after reaching the limit
   useEffect(() => {
     const tooltip = document.getElementById('slot-limit-tooltip') || (() => {
       const newTooltip = document.createElement('div');
@@ -505,13 +555,26 @@ const Booking = ({ className = "" }) => {
         pointer-events: none;
         white-space: nowrap;
         display: none;
+        max-width: 90vw;
+        word-wrap: break-word;
+        text-align: center;
       `;
       document.body.appendChild(newTooltip);
       return newTooltip;
     })();
 
     const handleMouseEnter = (e) => {
-      if (totalSlots >= MAX_SLOTS) {
+      // Don't show tooltip on mobile devices
+      if (window.innerWidth <= 768) return;
+      
+      // Calculate current total slots for tooltip
+      const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+        return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+          return dateTotal + timeSlots.length;
+        }, 0);
+      }, 0);
+      
+      if (currentTotalSlots >= MAX_SLOTS) {
         const button = e.currentTarget;
         const isSelected = button.style.background.includes('linear-gradient');
         if (!isSelected) {
@@ -524,7 +587,17 @@ const Booking = ({ className = "" }) => {
     };
 
     const handleMouseMove = (e) => {
-      if (totalSlots >= MAX_SLOTS && tooltip.style.display === 'block') {
+      // Don't show tooltip on mobile devices
+      if (window.innerWidth <= 768) return;
+      
+      // Calculate current total slots for tooltip movement
+      const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+        return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+          return dateTotal + timeSlots.length;
+        }, 0);
+      }, 0);
+      
+      if (currentTotalSlots >= MAX_SLOTS && tooltip.style.display === 'block') {
         tooltip.style.left = e.clientX + 10 + 'px';
         tooltip.style.top = e.clientY - 30 + 'px';
       }
@@ -548,7 +621,7 @@ const Booking = ({ className = "" }) => {
         button.removeEventListener('mouseleave', handleMouseLeave);
       });
     };
-  }, [totalSlots, MAX_SLOTS]);
+  }, [selectedTimes, slotData]);
 
   const tabData = [
     { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
@@ -1168,7 +1241,7 @@ const Booking = ({ className = "" }) => {
                       >
                         {/* Your content here */}
 
-                        <style jsx>{`
+                        <style>{`
                           .hide-scrollbar::-webkit-scrollbar {
                             display: none; /* Safari and Chrome */
                           }
@@ -1281,22 +1354,35 @@ const Booking = ({ className = "" }) => {
                                               ? "not-allowed"
                                               : "pointer",
                                             opacity: isDisabled ? 0.6 : 1,
-                                            border: isSelected
-                                              ? ""
+                                            borderTop: isSelected
+                                              ? "1px solid transparent"
                                               : "1px solid #4949491A",
+                                            borderRight: isSelected
+                                              ? "1px solid transparent"
+                                              : "1px solid #4949491A",
+                                            borderBottom: isSelected
+                                              ? "1px solid transparent"
+                                              : "1px solid #4949491A",
+                                            borderLeft: "3px solid #0034E4",
                                             fontSize: "11px",
                                             padding: "4px 2px",
                                             height: "32px",
-                                            borderLeft:"3px solid #001b76"
+
                                           }}
                                           onMouseEnter={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
-                                              e.currentTarget.style.border = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderTop = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderRight = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderBottom = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
                                           onMouseLeave={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available") {
-                                              e.currentTarget.style.border = "1px solid #4949491A";
+                                              e.currentTarget.style.borderTop = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+                                              e.currentTarget.style.borderRight = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+                                              e.currentTarget.style.borderBottom = isSelected ? "1px solid transparent" : "1px solid #4949491A";
+                                              e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
                                         >
@@ -1349,6 +1435,27 @@ const Booking = ({ className = "" }) => {
                 </div>
               )}
             </div>
+            {errorShow && errorMessage && (
+              <div className="d-lg-none px-3 mb-3">
+                <div
+                  className="text-center w-100 p-3 rounded"
+                  style={{
+                    fontWeight: 500,
+                    backgroundColor: "#ffebee",
+                    color: "#c62828",
+                    border: "1px solid #ffcdd2",
+                    fontSize: "14px",
+                    fontFamily: "Poppins",
+                    wordWrap: "break-word",
+                    lineHeight: "1.4",
+                    maxWidth: "100%",
+                    overflow: "visible",
+                  }}
+                >
+                  {errorMessage}
+                </div>
+              </div>
+            )}
           </div>
           <div
             className={`col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-booking-summary ${totalSlots === 0 ? "d-lg-block d-none" : ""
@@ -1421,7 +1528,7 @@ const Booking = ({ className = "" }) => {
                                     marginRight: "8px",            
                                 }}
                             >
-                                <style jsx>{`
+                                <style>{`
                                      div::-webkit-scrollbar {
                                               width: 8px;
                                     border-radius : 3px;
@@ -1473,7 +1580,7 @@ const Booking = ({ className = "" }) => {
                                         overflowY: totalSlots > 2 && isExpanded ? "auto" : "hidden",
                                         transition: "max-height 0.3s ease",
                                     }}>
-                                        <style jsx>{`
+                                        <style>{`
                                             .mobile-expanded-slots.expanded::-webkit-scrollbar {
                                                 width: 6px;
                                                 border-radius: 3px;
@@ -1612,7 +1719,7 @@ const Booking = ({ className = "" }) => {
             <div
               className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
               style={{
-                height: "63vh",
+                height: "68vh",
                 borderRadius: "10px 30% 10px 10px",
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 position: "relative",
@@ -1642,7 +1749,7 @@ const Booking = ({ className = "" }) => {
                 </div>
               )}
 
-              <style jsx>{`
+              <style>{`
                 .small-curve-arrow {
                   position: absolute;
                   top: -14px;
@@ -1775,7 +1882,7 @@ const Booking = ({ className = "" }) => {
                   paddingRight: "16px",
                 }}
               >
-                <style jsx>{`
+                <style>{`
                   div::-webkit-scrollbar {
                     width: 8px;
                     border-radius: 3px;
@@ -1916,7 +2023,7 @@ const Booking = ({ className = "" }) => {
                       </h6>
                     )}
 
-                    <style jsx>{`
+                    <style>{`
                       .mobile-expanded-slots.expanded::-webkit-scrollbar {
                         width: 6px;
                         border-radius: 3px;
@@ -2174,9 +2281,10 @@ const Booking = ({ className = "" }) => {
                       />
                     </g>
                   </svg>
-                  <div style={contentStyle}> Book Now</div>
+                  <div style={contentStyle}>  {bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
                 </button>
               </div>
+
             </div>
           </div>
         </div>

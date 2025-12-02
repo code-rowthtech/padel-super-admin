@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { resetClub } from "../../../redux/admin/club/slice";
 import { showError, showInfo, showWarning } from "../../../helpers/Toast";
+import SlotDetailsModal from "./SlotDetailsModal";
 const DAYS_OF_WEEK = [
   "Monday",
   "Tuesday",
@@ -24,23 +25,16 @@ const DAYS_OF_WEEK = [
   "Sunday",
 ];
 const containerStyle = {
-  // border: "1px solid #E5E7EB",
   borderRadius: "8px",
   padding: "3px 10px",
-  // background: "#F9FAFB",
 };
-/** -------- Time helpers (consistent normalization & display) -------- */
-/** Normalize any time string to key form: "h am" / "h pm" */
 function normalizeTimeKey(timeStr) {
   if (!timeStr) return null;
   const s = String(timeStr).trim();
-  // Case: "6 AM", "06:00 am", "6am", "06am", "06:00AM"
   const ampm = s.match(/(\d{1,2})(?::\d{2})?\s*([aApP][mM])/);
   if (ampm) {
     const h = Math.max(1, Math.min(12, parseInt(ampm[1], 10) || 12));
-    return `${h} ${ampm[2].toLowerCase()}`; // "6 am"
   }
-  // Case: "13:30" or "09:00"
   const hhmm = s.match(/^(\d{1,2}):(\d{2})$/);
   if (hhmm) {
     let h = parseInt(hhmm[1], 10);
@@ -48,7 +42,6 @@ function normalizeTimeKey(timeStr) {
     h = h % 12 || 12;
     return `${h} ${period}`;
   }
-  // Last resort: a bare number like "6" -> assume AM
   const hBare = s.match(/^(\d{1,2})$/);
   if (hBare) {
     const h = Math.max(1, Math.min(12, parseInt(hBare[1], 10) || 12));
@@ -56,11 +49,9 @@ function normalizeTimeKey(timeStr) {
   }
   return null;
 }
-/** Convert to "hh:mm AM/PM" for display */
 function formatTo12HourDisplay(time) {
   if (!time) return "";
   const s = String(time).trim();
-  // Already includes AM/PM (with or without minutes)
   const ampm = s.match(/(\d{1,2})(?::(\d{2}))?\s*([aApP][mM])/);
   if (ampm) {
     let h = parseInt(ampm[1], 10);
@@ -70,7 +61,6 @@ function formatTo12HourDisplay(time) {
     if (h > 12) h = h % 12;
     return `${String(h).padStart(2, "0")}:${m} ${p}`;
   }
-  // 24-hour "HH:MM"
   const hhmm = s.match(/^(\d{1,2}):(\d{2})$/);
   if (hhmm) {
     let h = parseInt(hhmm[1], 10);
@@ -79,7 +69,6 @@ function formatTo12HourDisplay(time) {
     h = h % 12 || 12;
     return `${String(h).padStart(2, "0")}:${m} ${p}`;
   }
-  // Bare hour
   const hBare = s.match(/^(\d{1,2})$/);
   if (hBare) {
     let h = parseInt(hBare[1], 10);
@@ -87,7 +76,6 @@ function formatTo12HourDisplay(time) {
     h = h % 12 || 12;
     return `${String(h).padStart(2, "0")}:00 ${p}`;
   }
-  return s; // fallback (unrecognized)
 }
 
 function to24hMinutes(time) {
@@ -118,13 +106,15 @@ const Pricing = ({
   const [formData, setFormData] = useState({
     selectedSlots: "Morning",
     days: DAYS_OF_WEEK.reduce((acc, day) => {
-      acc[day] = true; // All days selected by default
       return acc;
     }, {}),
     prices: { Morning: {}, Afternoon: {}, Evening: {}, All: {} },
     changesConfirmed: true,
   });
   const [hasPriceChanges, setHasPriceChanges] = useState(false);
+  const [showSlotModal, setShowSlotModal] = useState(false);
+  const [selectedSlotData, setSelectedSlotData] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
   const selectAllChecked = useMemo(
     () =>
       selectAllDays !== undefined
@@ -132,37 +122,40 @@ const Pricing = ({
         : Object.values(formData.days).every(Boolean),
     [selectAllDays, formData.days]
   );
-  /** Initialize formData prices from API for the selected slot type */
   useEffect(() => {
     if (
       PricingData.length &&
       PricingData[0]?.slot?.length &&
       formData.selectedSlots
     ) {
-      const slotTimes = PricingData[0]?.slot?.[0]?.slotTimes || [];
-      if (slotTimes.length) {
+      const allSlotTimes = PricingData[0]?.slot?.flatMap(s => s.slotTimes || []) || [];
+      if (allSlotTimes.length) {
+        const allPrices = {};
+        const amounts = [];
+        allSlotTimes.forEach((slot) => {
+          const display = formatTo12HourDisplay(slot?.time);
+          if (display && !allPrices[display]) {
+            allPrices[display] = slot?.amount || "";
+            if (slot?.amount) amounts.push(slot.amount);
+          }
+        });
+        const allSame = amounts.length > 0 && amounts.every(a => a === amounts[0]);
+        const commonAmount = allSame ? String(amounts[0]) : "";
+        
+        Object.keys(allPrices).forEach(key => {
+          allPrices[key] = commonAmount;
+        });
+
         setFormData((prev) => ({
           ...prev,
           prices: {
             ...prev.prices,
-            [prev.selectedSlots]: slotTimes.reduce((acc, slot) => {
-              // Store keys using display format for UI (we normalize later for matching)
-              const display = formatTo12HourDisplay(slot?.time);
-              acc[display] = slot?.amount?.toString() || "100"; // Default price 100
-              return acc;
-            }, {}),
-            All: slotTimes.reduce((acc, slot) => {
-              const display = formatTo12HourDisplay(slot?.time);
-              acc[display] = slot?.amount?.toString() || "100"; // Default price for All slots
-              return acc;
-            }, {}),
+            All: allPrices,
           },
         }));
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [PricingData, formData.selectedSlots]);
-  /** Fetch slots when days/slot-type change */
   const selectedDaysList = useMemo(
     () => Object.keys(formData.days).filter((d) => formData.days[d]),
     [formData.days]
@@ -184,13 +177,11 @@ const Pricing = ({
     registerId,
     selectedDaysList,
   ]);
-  /** Handlers */
   const updateForm = useCallback(
     (field, value) => setFormData((prev) => ({ ...prev, [field]: value })),
     []
   );
   const handleDayChange = useCallback((day) => {
-    // Toggle individual day selection
     setFormData((prev) => ({
       ...prev,
       days: {
@@ -215,7 +206,6 @@ const Pricing = ({
     [onSelectAllChange]
   );
   const handlePriceChange = useCallback((slotType, timeKey, value) => {
-    // Prevent values greater than 4000
     const numericValue = Number(value);
     if (value !== "" && (numericValue > 4000 || numericValue < 0)) {
       return;
@@ -230,6 +220,11 @@ const Pricing = ({
     }));
     setHasPriceChanges(true);
   }, []);
+  const handleSlotClick = (slot, day) => {
+    setSelectedSlotData(slot);
+    setSelectedDay(day);
+    setShowSlotModal(true);
+  };
   const renderDays = () =>
     DAYS_OF_WEEK.map((day) => (
       <Form.Check
@@ -269,13 +264,11 @@ const Pricing = ({
         </div>
       </Form.Check>
     ));
-  /** Helper function to filter slots by time period */
   const filterSlotsByPeriod = (slots, period) => {
     return slots.filter((slot) => {
       const timeStr = slot?.time;
       if (!timeStr) return false;
 
-      // Parse time to get hour in 24-hour format
       const display = formatTo12HourDisplay(timeStr);
       const [time, meridian] = display.split(" ");
       const [hour] = time.split(":").map(Number);
@@ -297,7 +290,6 @@ const Pricing = ({
     });
   };
 
-  /** Render time slots for current slot type (Morning/Afternoon/Evening) */
   const renderTimeSlots = () => {
     if (selectAllChecked) return renderAllSlots();
     const slotType = formData.selectedSlots;
@@ -410,7 +402,6 @@ const Pricing = ({
       });
     };
     const updatePriceForAll = (price) => {
-      // Auto-cap values above 4000
       const numericValue = Number(price);
       if (price !== "" && (numericValue > 4000 || numericValue < 0)) {
         return;
@@ -509,8 +500,9 @@ const Pricing = ({
             }}
           >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""
-              }`
+              ? `Set Price for ${selectedTimes.length} slot${
+                  selectedTimes.length > 1 ? "s" : ""
+                }`
               : "Set Price (select slots first)"}
           </h5>
           <InputGroup>
@@ -539,7 +531,6 @@ const Pricing = ({
       </>
     );
   };
-  /** Submit Handler (same flow, but safer normalization & params) */
   const handleSubmit = () => {
     if (!formData.changesConfirmed) {
       showInfo("Please confirm that you have completed all changes.");
@@ -549,7 +540,6 @@ const Pricing = ({
       ? DAYS_OF_WEEK
       : Object.keys(formData.days).filter((day) => formData.days[day]);
     const selectedSlotType = selectAllChecked ? "All" : formData.selectedSlots;
-    // Validate slot prices
     const slotPrices = formData.prices[selectedSlotType];
     if (!slotPrices || Object.keys(slotPrices).length === 0) {
       if (selectAllChecked) {
@@ -560,7 +550,6 @@ const Pricing = ({
       return;
     }
     const allSlots = PricingData?.[0]?.slot || [];
-    // Pick slots for chosen days (or all)
     const selectedSlotData = allSlots.filter((slot) => {
       const slotDay = slot?.businessHours?.[0]?.day;
       return slotDay && chosenDays.includes(slotDay);
@@ -573,29 +562,20 @@ const Pricing = ({
       showWarning("Slot times or business hours not found in response.");
       return;
     }
-    // For validation: determine targeted slotTimes
     const selectedDisplayTimes = Object.keys(slotPrices);
     const targetedSlotTimes = selectAllChecked
       ? slotTimes.filter((slot) =>
-        selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
-      )
+          selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
+        )
       : slotTimes;
     if (targetedSlotTimes.length === 0) {
       showWarning("No targeted slots to update.");
       return;
     }
-    // Build normalized price lookup: "h am/pm" -> price
-    const normalizedPrices = {};
-    for (const [displayKey, price] of Object.entries(slotPrices)) {
-      const key = normalizeTimeKey(displayKey); // "6 am"
-      if (key) normalizedPrices[key] = price;
-    }
-    // Filter & map slot times that have a price
     const filledSlotTimes = targetedSlotTimes
       .map((slot) => {
-        const norm = normalizeTimeKey(slot?.time); // "6 am"
-        if (!norm) return null;
-        const price = normalizedPrices[norm];
+        const displayTime = formatTo12HourDisplay(slot.time);
+        const price = slotPrices[displayTime];
         if (price == null || String(price).trim() === "") return null;
         const amount = parseFloat(price);
         if (Number.isNaN(amount) || amount <= 0) return null;
@@ -609,12 +589,10 @@ const Pricing = ({
       showWarning("All targeted prices must be filled and greater than 0.");
       return;
     }
-    // Keep existing business hours (for selected days), fallback with minimal safe shape
     const completeBusinessHours = chosenDays.map((dayName) => {
       const existing = businessHours.find((bh) => bh?.day === dayName);
       return (
         existing || {
-          // _id may be undefined if it doesn't exist; backend should handle
           day: dayName,
           time: "06:00 AM - 11:00 PM",
         }
@@ -661,7 +639,6 @@ const Pricing = ({
     }
   }, [hitApi, hasPriceChanges]);
 
-  // Sync formData.days when selectAllDays prop changes
   useEffect(() => {
     if (selectAllDays !== undefined) {
       setFormData((prev) => ({
@@ -674,11 +651,9 @@ const Pricing = ({
     }
   }, [selectAllDays]);
 
-  // Ensure at least one day is selected when not all selected
   useEffect(() => {
     const selectedDays = Object.values(formData.days).filter(Boolean);
     if (selectedDays.length === 0 && !selectAllDays) {
-      // If no days selected and not "All", select Monday by default
       setFormData((prev) => ({
         ...prev,
         days: {
@@ -707,7 +682,6 @@ const Pricing = ({
                   const checked = e.target.checked;
                   setSelectAllDays(checked);
                   if (!checked) {
-                    // When unchecking All, select only first day
                     setFormData((prev) => ({
                       ...prev,
                       days: DAYS_OF_WEEK.reduce((acc, day, index) => {
@@ -820,6 +794,12 @@ const Pricing = ({
           </div>
         </Col>
       </Row>
+      <SlotDetailsModal
+        show={showSlotModal}
+        onHide={() => setShowSlotModal(false)}
+        slotData={selectedSlotData}
+        day={selectedDay}
+      />
     </div>
   );
 };

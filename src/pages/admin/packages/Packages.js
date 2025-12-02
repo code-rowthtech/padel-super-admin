@@ -90,7 +90,6 @@ const Packages = () => {
             dispatch(getAllPackages({ search: "" }));
           });
       } catch (error) {
-        console.error("Error updating package status:", error);
       } finally {
         setToggleLoadingId(null);
       }
@@ -98,7 +97,6 @@ const Packages = () => {
     [dispatch]
   );
 
-  // Open modal instead of direct delete
   const confirmDeletePackage = (pkg) => {
     setPackageToDelete(pkg);
     setShowDeleteModal(true);
@@ -115,7 +113,6 @@ const Packages = () => {
           setPackageToDelete(null);
         });
     } catch (error) {
-      console.error("Error Deleting package:", error);
     }
   };
 
@@ -128,7 +125,6 @@ const Packages = () => {
         minHeight: "100vh",
       }}
     >
-      {/* Delete Confirmation Modal */}
       <Modal
         show={showDeleteModal}
         onHide={() => setShowDeleteModal(false)}
@@ -151,7 +147,6 @@ const Packages = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Header */}
       <Row className="mb-4 justify-content-end align-items-center">
         <Col xs="auto">
           <button
@@ -208,7 +203,6 @@ const Packages = () => {
       </Row>
 
       <Row className="g-4">
-        {/* Left: Plans */}
         <Col sm={5}>
           <Stack gap={3} className="d-flex flex-row">
             {plans.map((plan) => (
@@ -308,7 +302,6 @@ const Packages = () => {
           </Stack>
         </Col>
 
-        {/* Right: Packages */}
         <Col sm={4}>
           {packageLoading ? (
             <DataLoading height="60vh" />
@@ -331,7 +324,6 @@ const Packages = () => {
                       onClick={() => setSelectedPackage(index)}
                     >
                       <Card.Body className="p-3 d-flex justify-content-between align-items-start">
-                        {/* Left Section (Price + Info) */}
                         <div>
                           <div
                             className="fw-bold mb-1"
@@ -357,9 +349,7 @@ const Packages = () => {
                           </p>
                         </div>
 
-                        {/* Right Section (Icons + Details + Toggle) */}
                         <div className="d-flex flex-column align-items-end">
-                          {/* Icons */}
                           <div className="d-flex mb-2">
                             <i
                               className="bi bi-pencil"
@@ -384,7 +374,6 @@ const Packages = () => {
                             ></i>
                           </div>
 
-                          {/* Toggle */}
                           <div className="d-flex align-items-center mb-2">
                             {pkg?._id === toggleLoadingId &&
                             updatePackageLoading ? (
@@ -426,7 +415,6 @@ const Packages = () => {
                             )}
                           </div>
 
-                          {/* Slots + Validity */}
                           <div
                             className="text-end"
                             style={{ fontSize: "12px", color: "#475569" }}

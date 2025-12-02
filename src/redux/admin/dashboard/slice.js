@@ -34,7 +34,6 @@ const dashboardSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // -----------------------------------------------------//---- Get All Counts
       .addCase(getCountDataForDashboard.pending, (state) => {
         state.dashboardLoading = true;
         state.dashboardError = null;
@@ -47,7 +46,6 @@ const dashboardSlice = createSlice({
         state.dashboardLoading = false;
         state.dashboardError = action.payload;
       })
-      // -----------------------------------------------------//---- Get cancelled bookings
       .addCase(getCancelledBookingsForDashboard.pending, (state) => {
         state.dashboardLoading = true;
         state.dashboardError = null;
@@ -60,7 +58,6 @@ const dashboardSlice = createSlice({
         state.dashboardLoading = false;
         state.dashboardError = action.payload;
       })
-      // -----------------------------------------------------//---- Get recent bookings
       .addCase(getRecentBookingsForDashboard.pending, (state) => {
         state.dashboardLoading = true;
         state.dashboardError = null;
@@ -74,7 +71,6 @@ const dashboardSlice = createSlice({
         state.dashboardError = action.payload;
       })
 
-        // -----------------------------------------------------//---- Get revinue dashboard
       .addCase(getRevenueForDashboard.pending, (state) => {
         state.dashboardRevenueLoading = true;
         state.dashboardError = null;

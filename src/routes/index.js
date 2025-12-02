@@ -8,9 +8,7 @@ import { Loading } from "../helpers/loading/Loaders";
 import NoInternet from "../helpers/network/NoInternet";
 import AdminLayout from "../helpers/layout/AdminLayout";
 
-// Lazy imports
 
-//_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 
 const Home = React.lazy(() => import("../pages/user/home/Home"));
 const Booking = React.lazy(() => import("../pages/user/booking/Booking"));
@@ -41,7 +39,6 @@ const Login = React.lazy(() => import("../pages/user/auth/LoginPage"));
 
 const VerifyOtpUser = React.lazy(() => import("../pages/user/auth/VerifyOtp"));
 
-//_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 const AdminLogin = React.lazy(() => import("../pages/admin/auth/Login"));
 const ResetPassword = React.lazy(() =>
   import("../pages/admin/auth/ResetPassword")
@@ -106,10 +103,8 @@ const Support = React.lazy(() =>
   import("../pages/admin/helpAndSupport/Support")
 );
 
-// Errors
 const UnAuthorized = React.lazy(() => import("../pages/error/UnAuthorized"));
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
-// const NoInternet = React.lazy(() => import('../helpers/network/NoInternet'));
 const loading = <Loading color={"#3dbe64ff"} />;
 const LoadComponent = (Component) => (
   <Suspense fallback={loading}>
@@ -124,7 +119,6 @@ const AllRoutes = () => {
     { path: "/", element: <Root /> },
     { path: "/admin", element: <Navigate to="/admin/login" replace /> },
 
-    //_#_#_#_#_#_#_#_#_#_#_--USER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 
     {
       path: "/",
@@ -216,7 +210,6 @@ const AllRoutes = () => {
       ],
     },
 
-    //_#_#_#_#_#_#_#_#_#_#_--COURT_OWNER--#_#_#_#_#_#_#_#_#_#_#_#_#_#_
 
     {
       path: "/admin",

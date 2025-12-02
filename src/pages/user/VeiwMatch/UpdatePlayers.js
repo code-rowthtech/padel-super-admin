@@ -83,7 +83,6 @@ const UpdatePlayers = ({
 
 
 
-  // Backup: Redux state se bhi sync rakho
   useEffect(() => {
     if (Array.isArray(getPlayerLevelsData) && getPlayerLevelsData.length > 0) {
       setPlayerLevels(
@@ -110,7 +109,7 @@ const UpdatePlayers = ({
   }, [playerLevels]);
   const validateField = (name, value) => {
     if (name === "name" && !value.trim()) return "Name is required";
-    if (name === "email" && !value.trim()) return "Email is required";
+    if (name === "email" && value.trim() && !/^\S+@\S+\.\S+$/.test(value)) return "Enter a valid email";
     if (name === "phoneNumber") {
       if (!value) return "Phone number is required";
       if (!/^[6-9]\d{9}$/.test(value)) return "Invalid phone number";
@@ -129,9 +128,13 @@ const UpdatePlayers = ({
 
   const handleAddPlayer = () => {
     const newErrors = {};
-    ["name", "email", "phoneNumber", "level"].forEach((field) => {
+    ["name", "phoneNumber", "level"].forEach((field) => {
       newErrors[field] = validateField(field, formData[field]);
     });
+    // Only validate email if it's provided
+    if (formData.email.trim()) {
+      newErrors.email = validateField("email", formData.email);
+    }
 
     if (Object.values(newErrors).some(Boolean)) {
       setErrors(newErrors);
@@ -155,33 +158,27 @@ const UpdatePlayers = ({
             .then(() => {
               setShowModal(false);
 
-              // WAIT for match data
               dispatch(getMatchesView(matchId?._id))
                 .unwrap()
                 .then((matchRes) => {
-                  // EXTRACT CLUB ID PROPERLY
                   const clubId = matchRes?.data?.clubId?._id;
 
                   if (!clubId) {
-                    console.error("Club ID not found in match response");
                     return;
                   }
 
-                  // NOW BUILD CORRECT PAYLOAD
                   const payload = {
-                    clubId, // <-- REQUIRED
                     matchDate: selectedDate?.fullDate,
                     ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
                     ...(selectedLevel && { skillLevel: selectedLevel }),
+                    clubId: localStorage.getItem("register_club_id"),
                   };
 
-                  // NOW CALL MATCH USER API
                   dispatch(getMatchesUser(payload));
                 });
 
               showSuccess("Player added successfully");
-              
-              // Reset form only on success
+
               setFormData({
                 name: "",
                 email: "",
@@ -193,12 +190,11 @@ const UpdatePlayers = ({
         }
       })
       .catch(() => {
-        setErrors({ email: "Enter valid email address" });
+        // setErrors({ email: "Enter valid email address" });
         setShowErrors({ email: true });
       });
   };
 
-  // Auto hide errors
   useEffect(() => {
     const timers = Object.keys(showErrors)
       .filter((key) => showErrors[key])
@@ -228,7 +224,6 @@ const UpdatePlayers = ({
         </h6>
 
         <form onSubmit={(e) => e.preventDefault()}>
-          {/* Name */}
           <div className="mb-3">
             <label className="form-label">
               Name <span className="text-danger">*</span>
@@ -253,25 +248,6 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          {/* Email */}
-          <div className="mb-3">
-            <label className="form-label">
-              Email <span className="text-danger">*</span>
-            </label>
-            <input
-              type="email"
-              className="form-control p-2"
-              placeholder="Enter email"
-              value={formData.email}
-              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-              style={inputStyle("email")}
-            />
-            {showErrors.email && errors.email && (
-              <small className="text-danger d-block mt-1">{errors.email}</small>
-            )}
-          </div>
-
-          {/* Phone */}
           <div className="mb-3">
             <label className="form-label">
               Phone No <span className="text-danger">*</span>
@@ -287,7 +263,10 @@ const UpdatePlayers = ({
                 placeholder="Enter phone"
                 value={formData.phoneNumber}
                 onChange={(e) => {
-                  const v = e.target.value.replace(/[^0-9]/g, "");
+                  let v = e.target.value.replace(/[^0-9]/g, "");
+                  if (v.length === 1 && !['6', '7', '8', '9'].includes(v)) {
+                    v = '6';
+                  }
                   if (v.length <= 10) {
                     setFormData((prev) => ({ ...prev, phoneNumber: v }));
                   }
@@ -300,7 +279,23 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          {/* Gender (optional) */}
+          <div className="mb-3">
+            <label className="form-label">
+              Email
+            </label>
+            <input
+              type="email"
+              className="form-control p-2"
+              placeholder="Enter email"
+              value={formData.email}
+              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+              style={inputStyle("email")}
+            />
+            {/* {showErrors.email && errors.email && (
+              <small className="text-danger d-block mt-1">{errors.email}</small>
+            )} */}
+          </div>
+
           <div className="mb-3">
             <label className="form-label">Gender</label>
             <div className="d-flex gap-3">
@@ -335,7 +330,6 @@ const UpdatePlayers = ({
 
 
 
-          {/* Level */}
           <div className="mb-4">
             <label className="form-label">
               Select Level <span className="text-danger">*</span>
@@ -343,7 +337,7 @@ const UpdatePlayers = ({
             <div style={inputStyle("level")}>
               {getPlayerLevelsLoading === true ? (
                 <div className="text-center">
-                 <ButtonLoading />
+                  <ButtonLoading />
                 </div>
               ) : (
                 <Select
@@ -361,7 +355,6 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          {/* Buttons */}
           <div className="d-flex gap-3 justify-content-end">
             <Button
               variant="outlined"

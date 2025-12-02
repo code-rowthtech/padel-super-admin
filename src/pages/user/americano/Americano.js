@@ -14,7 +14,6 @@ import Upcoming from './Upcoming';
 import ViewScore from './ViewScore';
 import { styled } from '@mui/system';
 
-// Styled Tabs for left and right alignment
 const StyledTabs = styled(Tabs)({
   display: "flex",
   justifyContent: "space-evenly",
@@ -84,12 +83,6 @@ const Americano = () => {
     ];
 
     const players = [
-        { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'Alice' } },
-        { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'Bob' } },
-        { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'Charlie' } },
-        { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'David' } },
-        { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'Eve' } },
-        { profilePic: 'https://www.fifpro.org/media/5chb3dva/lionel-messi_imago1019567000h.jpg?rxy=0.32986930611281567,0.18704579979466449&rnd=133378758718600000', userId: { name: 'Eve' } }
     ];
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -102,16 +95,13 @@ const Americano = () => {
         }
     }, [registerId]);
 
-    // Example: If you want to add full day logic (optional, based on your previous question)
     /*
     useEffect(() => {
-        const selectedDate = { day: 'Tue', fullDate: '2025-09-02' }; // Example data, replace with actual
         if (registerId && selectedDate?.day && selectedDate?.fullDate) {
             const fullDay = new Date(selectedDate.fullDate).toLocaleDateString("en-US", { weekday: "long" });
             dispatch(
                 getMatchesSlot({
                     register_club_id: registerId,
-                    day: fullDay, // Sends full day like "Tuesday"
                     date: selectedDate.fullDate,
                 })
             );
@@ -210,7 +200,6 @@ const Americano = () => {
                             <Upcoming tournaments={tournaments} players={players} />
                         </CustomTabPanel>
                     </Col>
-                    {/* Right Section - Booking Summary */}
                     {score ? <ViewScore setScore={setScore} /> : (
                         <Col md={5} className="">
                             <div className="container ms-2">

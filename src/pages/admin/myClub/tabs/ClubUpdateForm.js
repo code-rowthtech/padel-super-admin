@@ -1,4 +1,3 @@
-// ClubUpdateForm.jsx
 import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -92,11 +91,9 @@ const getInitialFormState = (details = {}) => {
 };
 
 const getInitialPreviews = (details = {}) => {
-  // Handle single image URL (courtImage)
   if (typeof details === "string") {
     return [{ preview: details, isRemote: true }];
   }
-  // Handle array of images (images)
   if (Array.isArray(details)) {
     return details.slice(0, MAX_IMAGES).map((url) => ({
       preview: url,
@@ -105,7 +102,6 @@ const getInitialPreviews = (details = {}) => {
   }
   return [];
 };
-// Validation helper (full validation, independent of touched)
 const validateFields = (data) => {
   const hasValidCourtTypes = !!(
     data.courtTypes?.indoor || data.courtTypes?.outdoor
@@ -143,7 +139,6 @@ const ClubUpdateForm = () => {
   const { updateClubLoading } = useSelector((state) => state.club);
   const clubDetails = ownerClubData?.[0];
 
-  // Prefill from clubDetails and update if clubDetails changes.
   const [formData, setFormData] = useState(() =>
     getInitialFormState(clubDetails)
   );
@@ -151,11 +146,9 @@ const ClubUpdateForm = () => {
     getInitialPreviews(clubDetails?.images || clubDetails?.courtImage)
   );
 
-  // Keep reference hours for "Apply to all"
   const [referenceHours, setReferenceHours] = useState({ start: "", end: "" });
   const [hasChanged, setHasChanged] = useState(false);
 
-  // touched controls whether we show validation messages for a field
   const [touched, setTouched] = useState({
     courtName: false,
     address: false,
@@ -167,7 +160,6 @@ const ClubUpdateForm = () => {
     features: false,
   });
 
-  // errors reflect currently-visible errors (touched-aware or forced on submit)
   const [errors, setErrors] = useState({
     courtName: false,
     address: false,
@@ -179,7 +171,6 @@ const ClubUpdateForm = () => {
     features: false,
   });
 
-  // Keep track of locally created object URLs so we can revoke them on unmount
   useEffect(() => {
     return () => {
       previewImages.forEach((img) => {
@@ -190,16 +181,13 @@ const ClubUpdateForm = () => {
         }
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // If clubDetails is loaded/updated asynchronously, update form + previews
   useEffect(() => {
     setFormData(getInitialFormState(clubDetails));
     setPreviewImages(
       getInitialPreviews(clubDetails?.images || clubDetails?.courtImage)
     );
-    // Reset touched/errors so prefilled values don't show errors immediately
     setTouched({
       courtName: false,
       address: false,
@@ -222,10 +210,8 @@ const ClubUpdateForm = () => {
     });
   }, [clubDetails]);
 
-  // Update visible errors when formData or touched changes (only show for touched)
   useEffect(() => {
     const { errorsObj } = validateFields(formData);
-    // only show errors for touched fields
     const visibleErrors = {};
     Object.keys(errorsObj).forEach((k) => {
       visibleErrors[k] = !!(touched[k] && errorsObj[k]);
@@ -233,12 +219,10 @@ const ClubUpdateForm = () => {
     setErrors((prev) => ({ ...prev, ...visibleErrors }));
   }, [formData, touched]);
 
-  // overall valid state (no visible errors + images + terms)
   const noVisibleErrors = !Object.values(errors).some(Boolean);
   const isFormValid =
     noVisibleErrors && previewImages.length > 0 && formData.termsAccepted;
 
-  // --- Handlers ---
   const handleChange = useCallback((field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -252,14 +236,11 @@ const ClubUpdateForm = () => {
       };
       return { ...prev, [section]: updatedSection };
     });
-    // mark the section as touched so validation will show
     setTouched((prev) => ({ ...prev, [section]: true }));
   }, []);
 
   const handleFileChange = useCallback(
     (eOrObj) => {
-      // Accept either a real event or a synthetic object { target: { files } } used by drop handler
-      const filesList = eOrObj?.target?.files ?? eOrObj; // e.target.files or array
       const files = Array.isArray(filesList)
         ? filesList
         : Array.from(filesList || []);
@@ -294,7 +275,6 @@ const ClubUpdateForm = () => {
     });
   }, []);
 
-  // Time conversion helpers (AM/PM <-> 24:00)
   const convertAmPmTo24Hour = useCallback((timeStr) => {
     if (!timeStr) return "";
     const parts = timeStr.trim().split(" ");
@@ -351,7 +331,6 @@ const ClubUpdateForm = () => {
       Object.keys(prev.businessHours).forEach((d) => {
         const existing = prev.businessHours[d] || {};
         updatedHours[d] = {
-          _id: existing._id || undefined, // keep the existing _id if present
           start: referenceHours.start,
           end: referenceHours.end,
         };
@@ -361,7 +340,6 @@ const ClubUpdateForm = () => {
     });
   }, [referenceHours]);
 
-  // Render helpers
   const renderInput = useCallback(
     (placeholder, fieldName, type = "text") => (
       <div className="mb-3">
@@ -376,12 +354,10 @@ const ClubUpdateForm = () => {
             }
             isInvalid={!!errors[fieldName]}
             style={{
-              height: "70px", // Adjust height for textarea
               borderRadius: "12px",
               border: `1px solid ${errors[fieldName] ? "#EF4444" : "#E5E7EB"}`,
               fontSize: "14px",
               backgroundColor: "#F9FAFB",
-              resize: "vertical", // Allow vertical resizing
             }}
           />
         ) : (
@@ -441,11 +417,9 @@ const ClubUpdateForm = () => {
     [formData, toggleCheckbox]
   );
 
-  // Submit: force-show all errors (touch everything) and validate synchronously
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      // mark all fields touched
       const allTouched = {
         courtName: true,
         address: true,
@@ -458,7 +432,6 @@ const ClubUpdateForm = () => {
       };
       setTouched(allTouched);
 
-      // full validation
       const { errorsObj, isValid } = validateFields(formData);
       setErrors(errorsObj);
 
@@ -472,7 +445,6 @@ const ClubUpdateForm = () => {
         return;
       }
 
-      // prepare FormData
       const apiFormData = new FormData();
       apiFormData.append("_id", clubDetails?._id);
       apiFormData.append("clubName", formData.courtName);
@@ -488,7 +460,6 @@ const ClubUpdateForm = () => {
       apiFormData.append("zipCode", formData.zip);
       apiFormData.append("address", formData.address);
       apiFormData.append("description", formData.description);
-      // placeholder coordinates (replace with real)
       apiFormData.append("location[coordinates][0]", "50.90");
       apiFormData.append("location[coordinates][1]", "80.09");
 
@@ -509,7 +480,6 @@ const ClubUpdateForm = () => {
         });
       }
 
-      // Only append new images (files) to the form data
       previewImages.forEach((image, index) => {
         if (!image.isRemote && image.file) {
           apiFormData.append("image", image.file);
@@ -517,7 +487,6 @@ const ClubUpdateForm = () => {
         }
       });
 
-      // If there are remote images that should be kept, you might want to send their URLs
       const remoteImages = previewImages
         .filter((img) => img.isRemote)
         .map((img) => img.preview);
@@ -533,7 +502,6 @@ const ClubUpdateForm = () => {
             dispatch(getOwnerRegisteredClub({ ownerId }));
           });
       } catch (err) {
-        console.error("Update failed:", err);
       }
     },
     [formData, previewImages]
@@ -542,7 +510,6 @@ const ClubUpdateForm = () => {
     navigate("/admin/dashboard");
   };
 
-  // Business hours UI renderer
   const renderBusinessHours = useCallback(() => {
     const days = [
       "Monday",
@@ -574,14 +541,12 @@ const ClubUpdateForm = () => {
                 <InputGroup>
                   <Form.Control
                     type="time"
-                    step="3600" // This ensures hour-only increments
                     value={
                       startTime24.includes(":")
                         ? startTime24
                         : `${startTime24}:00`
                     }
                     onChange={(e) => {
-                      // Extract just the hour part and add :00 for minutes
                       const hourValue = e.target.value.split(":")[0] || "00";
                       const hourOnly24 = `${hourValue.padStart(2, "0")}:00`;
                       const amPmTime = convert24HourToAmPm(hourOnly24);
@@ -642,7 +607,6 @@ const ClubUpdateForm = () => {
     hasChanged,
   ]);
 
-  // --- Render ---
 
   useEffect(() => {
     dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();

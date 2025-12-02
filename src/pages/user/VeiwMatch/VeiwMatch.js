@@ -1,4 +1,3 @@
-// src/pages/user/VeiwMatch/ViewMatch.js
 import React, { useState, useEffect, useCallback, memo } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -6,32 +5,30 @@ import { padal, club, player } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
 import { DataLoading } from "../../../helpers/loading/Loaders";
-import { Avatar } from "@mui/material";
+import { Avatar, Tooltip, Modal, Box } from "@mui/material";
 import { FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
-import { Tooltip } from "react-tooltip"; // Only import Tooltip
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 
-// Memoized Player Slot Component
 const PlayerSlot = memo(function PlayerSlot({
     player,
     index,
     isRemovable,
     team,
     onRemove,
-    onAdd, 
+    onAdd,
     openMatches,
-    isFromBookingHistory = false
+    isFromBookingHistory = false,
+    onPlayerClick
 }) {
+    console.log({ player });
     const user = player?.userId || player;
-    console.log({openMatches});
     const tooltipId = `player-${team}-${index}`;
     if (!player) {
-        // Show "Add Me" only for specific empty slots and not from booking history
         if (
             !isFromBookingHistory &&
             ((team === "A" && index === 1) ||
-            (team === "B" && [2, 3].includes(index)))
+                (team === "B" && [2, 3].includes(index)))
         ) {
             return (
                 <div className="text-center d-flex align-items-center justify-content-center   flex-column  mb-md-4 mb-3 pb-2 col-6">
@@ -63,13 +60,11 @@ const PlayerSlot = memo(function PlayerSlot({
                 </div>
             );
         }
-        // Return invisible placeholder to avoid NaN warning
         return <div style={{ width: 64, height: 64 }} />;
     }
 
     return (
         <div className="text-center d-flex justify-content-center align-items-center flex-column  mb-md-3 mb-0 position-relative col-6">
-            {/* Avatar */}
             <div
                 className="rounded-circle border d-flex align-items-center justify-content-center"
                 style={{
@@ -81,7 +76,9 @@ const PlayerSlot = memo(function PlayerSlot({
                             ? "#3DBE64"
                             : "#1F41BB",
                     overflow: "hidden",
+                    cursor: "pointer"
                 }}
+                onClick={() => onPlayerClick && onPlayerClick(user)}
             >
                 {user.profilePic ? (
                     <img
@@ -96,7 +93,6 @@ const PlayerSlot = memo(function PlayerSlot({
                 )}
             </div>
 
-            {/* Name with Tooltip */}
             {user.name && user.name.length > 12 ? (
                 <>
                     <span
@@ -124,30 +120,18 @@ const PlayerSlot = memo(function PlayerSlot({
                         : "Unknown"}
                 </p>
             )}
-
-            {/* Level Badge */}
             <span
                 className="badge text-white"
                 style={{ backgroundColor: team === "A" ? "#3DBE64" : "#1F41BB" }}
             >
                 {
-                    openMatches?.skillDetails?.[openMatches.skillDetails.length - 1]
-                        ?.split(" - ")[0] || user?.level   // extracts: A, B1, B2, C1 etc.
+                    user?.level?.split(' - ')[0] || user?.level || "A"
                 }
             </span>
 
 
 
-            {/* Remove Button */}
-            {/* {isRemovable && (
-                <button
-                    className="position-absolute top-0 end-0 btn btn-sm btn-danger rounded-circle p-1"
-                    style={{ transform: "translate(50%, -50%)" }}
-                    onClick={() => onRemove(user._id, team)}
-                >
-                    <FaTrash />
-                </button>
-            )} */}
+        
         </div>
     );
 });
@@ -156,7 +140,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
-    const { id } = useParams(); // Get match ID from URL
     const { state } = useLocation();
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
@@ -167,7 +150,10 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [showModal, setShowModal] = useState(false);
     const [teamName, setTeamName] = useState('teamA');
     const [showShareDropdown, setShowShareDropdown] = useState(false);
+    const [showPlayerModal, setShowPlayerModal] = useState(false);
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
 
+    const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
 
     useEffect(() => {
@@ -185,17 +171,14 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}, ${date.toLocaleDateString("en-US", { month: "short" })}`;
         return { day, formattedDate };
     };
-    console.log(matchesData?.data, 'matchesData?.data');
     const calculateEndRegistrationTime = () => {
         const slots = matchesData?.data?.slot;
         if (!slots || slots.length === 0) return "Today at 10:00 PM";
 
-        // Collect all slot times
         const allTimes = slots.flatMap((court) =>
             court.slotTimes.map((slot) => slot.time)
         );
 
-        // Convert to absolute minutes
         const timesInMinutes = allTimes.map((t) => {
             const [timePart, period] = t.split(" ");
             const [hourStr, minuteStr = "0"] = timePart.split(":");
@@ -209,12 +192,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             return hour * 60 + minute;
         });
 
-        // Latest match start time
         const latestMinutes = Math.max(...timesInMinutes);
 
-        // Subtract 10 minutes (change to 15 if needed)
         let endMinutes = latestMinutes - 10;
-        if (endMinutes < 0) endMinutes += 24 * 60; // handle midnight wrap
 
         const endHour24 = Math.floor(endMinutes / 60);
         const endMin = endMinutes % 60;
@@ -227,10 +207,46 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     };
 
 
+    const formatMatchTimes = (slots) => {
+        if (!slots || slots.length === 0) return "";
+        const times = slots.flatMap((slot) => slot.slotTimes.map((slotTime) => slotTime.time));
+
+        const formattedTimes = times.map(time => {
+            let hour, period;
+            if (/am|pm/i.test(time)) {
+                const match = time.match(/(\d+)\s*(am|pm)/i);
+                if (match) {
+                    hour = parseInt(match[1], 10);
+                    period = match[2].toUpperCase();
+                } else {
+                    return time;
+                }
+            } else {
+                const [hours, minutes] = time.split(":");
+                const hourNum = parseInt(hours, 10);
+                period = hourNum >= 12 ? "PM" : "AM";
+                hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
+            }
+            return { hour, period };
+        });
+
+        if (formattedTimes.length === 0) return "";
+
+        const lastPeriod = formattedTimes[formattedTimes.length - 1].period;
+        const formatted = formattedTimes.map((time, index) => {
+            if (index === formattedTimes.length - 1) {
+                return `${time.hour}${time.period}`;
+            }
+            return time.hour;
+        });
+
+        return formatted.join("-");
+    };
+
     const matchDate = matchesData?.data?.matchDate
         ? formatDate(matchesData.data.matchDate)
         : { day: "Sun", formattedDate: "27 Aug" };
-    const matchTime = matchesData?.data?.matchTime || "5 am, 6 am";
+    const matchTime = matchesData?.data?.slot ? formatMatchTimes(matchesData.data.slot) : "5-6AM";
 
     const handleRemove = useCallback(
         (playerId, team) => {
@@ -247,6 +263,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         setShowModal(true);
     }, []);
 
+    const handlePlayerClick = useCallback((player) => {
+        setSelectedPlayer(player);
+        setShowPlayerModal(true);
+    }, []);
+
 
     const formatTime = (timeStr) => {
         return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
@@ -258,12 +279,12 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         { player: teamBData[0], index: 2, removable: true, team: "B" },
         { player: teamBData[1], index: 3, removable: true, team: "B" },
     ];
+    console.log({slots});
 
 
 
     return (
         <>
-            {/* Left Section */}
             <div className=" rounded-3 px-md-3 px-0 py-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
                     <div className="d-flex align-items-center gap-2">
@@ -324,7 +345,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         const url = window.location.href;
                                         const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         window.open(
-                                            `https://x.com/intent/tweet?url=${encodeURIComponent(
+                                            `https://twitter.com/intent/tweet?url=${encodeURIComponent(
                                                 url
                                             )}&text=${encodeURIComponent(text)}`,
                                             "_blank"
@@ -341,7 +362,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         const url = window.location.href;
                                         const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         navigator.share ? navigator.share({ url, text }) : window.open(
-                                            `https://www.instagram.com/`,
                                             "_blank"
                                         );
                                         setShowShareDropdown(false);
@@ -356,7 +376,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         const url = window.location.href;
                                         const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
                                         window.open(
-                                            `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
                                             "_blank"
                                         );
                                         setShowShareDropdown(false);
@@ -370,9 +389,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </div>
                 </div>
 
-                {/* Game Info */}
                 <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <div className="d-md-flex d-block justify-content-between align-items-start py-2">
+                    <div className="d-flex  justify-content-between align-items-start py-2">
                         <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
                             <span className="ms-2 all-matches" style={{ color: "#374151" }}>
@@ -409,7 +427,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </div>
                 </div>
 
-                {/* Court Number */}
                 <div
                     className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
                     style={{ backgroundColor: "#CBD6FF1A" }}
@@ -419,7 +436,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </p>
                 </div>
 
-                {/* Players Section */}
                 <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
                     <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
                         Players
@@ -429,7 +445,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         <DataLoading />
                     ) : (
                         <div className="row mx-auto">
-                            {/* Team A */}
                             <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 ">
                                 {slots.slice(0, 2).map((s) => (
                                     <PlayerSlot
@@ -439,9 +454,10 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         isRemovable={s.removable}
                                         team={s.team}
                                         onRemove={handleRemove}
-                                        onAdd={()=>handleAdd(s.team)}
+                                        onAdd={() => handleAdd(s.team)}
                                         openMatches={matchesData?.data}
                                         isFromBookingHistory={isFromBookingHistory}
+                                        onPlayerClick={handlePlayerClick}
                                     />
                                 ))}
                             </div>
@@ -455,8 +471,10 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         isRemovable={s.removable}
                                         team={s.team}
                                         onRemove={handleRemove}
-                                        onAdd={()=>handleAdd(s.team)}
+                                        onAdd={() => handleAdd(s.team)}
+                                        openMatches={matchesData?.data}
                                         isFromBookingHistory={isFromBookingHistory}
+                                        onPlayerClick={handlePlayerClick}
                                     />
                                 ))}
                             </div>
@@ -471,7 +489,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </div>
                 </div>
 
-                {/* Information */}
                 <div>
                     <h6 className="mb-md-3 mb-2 mt-4 all-matches" style={{ color: "#374151" }}>
                         Information
@@ -510,7 +527,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
 
             </div>
 
-            {/* Modal */}
             <UpdatePlayers
                 showModal={showModal}
                 matchId={matchesData?.data}
@@ -519,8 +535,113 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 matchData={matchesData?.data || match}
                 skillLevel={matchesData?.data?.skillLevel}
                 selectedDate={selectedDate}
-
             />
+
+            <Modal open={showPlayerModal} onClose={() => setShowPlayerModal(false)}>
+                <Box sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: { xs: "90%", sm: "80%", md: 400 },
+                    maxWidth: "400px",
+                    bgcolor: "background.paper",
+                    p: 3,
+                    borderRadius: 2,
+                    border: "none",
+                    boxShadow: 24,
+                }}>
+                    <h6 className="text-center mb-3" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
+                        Player Details
+                    </h6>
+                    
+                    {selectedPlayer && (
+                        <div className="text-center">
+                            <div className="mb-3">
+                                <div
+                                    className="rounded-circle border d-flex align-items-center justify-content-center mx-auto mb-2"
+                                    style={{
+                                        width: 80,
+                                        height: 80,
+                                        backgroundColor: selectedPlayer.profilePic ? "transparent" : "#1F41BB",
+                                        overflow: "hidden",
+                                    }}
+                                >
+                                    {selectedPlayer.profilePic ? (
+                                        <img
+                                            src={selectedPlayer.profilePic}
+                                            alt="player"
+                                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                        />
+                                    ) : (
+                                        <span style={{ color: "white", fontWeight: 600, fontSize: "32px" }}>
+                                            {selectedPlayer?.name?.[0]?.toUpperCase() ?? "U"}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="text-start">
+                                <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                    <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Name:</strong>
+                                    <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                        {selectedPlayer.name || "Unknown"}
+                                    </p>
+                                </div>
+                                
+                                {selectedPlayer.email && (
+                                    <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Email:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                            {selectedPlayer.email}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {selectedPlayer.phoneNumber && (
+                                    <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Phone:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                            +91 {selectedPlayer.phoneNumber}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {selectedPlayer.level && (
+                                    <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Level:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                            {selectedPlayer.level}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {selectedPlayer.skillLevel && (
+                                    <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                        <strong style={{ fontSize: "14px", color: "#374151" ,fontFamily:'Poppins'}}>Skill Level:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                            {matchesData?.data?.skillLevel || "Unknown"}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <button
+                                className="btn btn-primary mt-3"
+                                onClick={() => setShowPlayerModal(false)}
+                                style={{
+                                    background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    padding: "8px 24px"
+                                }}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    )}
+                </Box>
+            </Modal>
 
 
         </>

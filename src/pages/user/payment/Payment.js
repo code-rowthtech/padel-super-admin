@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
-import { getUserProfile, loginUserNumber } from "../../../redux/user/auth/authThunk";
+import { getUserProfile, loginUserNumber, updateUser } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
@@ -10,6 +10,7 @@ import { booking_logo_img, success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "react-icons/md";
 import { MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown } from "react-icons/md";
+import { showError } from "../../../helpers/Toast";
 
 const loadPayPal = (callback) => {
   const script = document.createElement("script");
@@ -111,7 +112,7 @@ const Payment = ({ className = "" }) => {
                 const payload = { /* same payload as above */ };
 
                 if (!user?.name || !user?.phoneNumber) {
-                  await dispatch(loginUserNumber({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
+                  await dispatch(updateUser({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
                 }
 
                 // Pehle payment capture → fir booking API
@@ -177,11 +178,7 @@ const Payment = ({ className = "" }) => {
         : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
           ? "Invalid phone number"
           : "",
-      email: !email.trim()
-        ? "Email is required"
-        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-          ? "Invalid email"
-          : "",
+    
       paymentMethod: !selectedPayment ? "Please select a payment method" : "",
     };
 
@@ -232,7 +229,7 @@ const Payment = ({ className = "" }) => {
       // First: Login if needed
       if (!user?.name && !user?.phoneNumber) {
         await dispatch(
-          loginUserNumber({
+          updateUser({
             phoneNumber: rawPhoneNumber,
             name: name.trim(),
             email: email.trim(),
@@ -265,7 +262,7 @@ const Payment = ({ className = "" }) => {
               throw new Error(bookingResponse?.message || "Booking failed");
             }
           } catch (err) {
-            alert("Booking failed after payment: " + (err.message || "Please contact support"));
+            // showError("Booking failed after payment: " + (err.message || "Please contact support"));
             console.error(err);
           }
         },
@@ -385,7 +382,7 @@ const Payment = ({ className = "" }) => {
                     aria-label="Name"
                   />
                   {errors.name && (
-                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                    <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
                       {errors.name}
                     </div>
                   )}
@@ -417,7 +414,7 @@ const Payment = ({ className = "" }) => {
                     />
                   </div>
                   {errors.phoneNumber && (
-                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                    <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
                       {errors.phoneNumber}
                     </div>
                   )}
@@ -425,7 +422,7 @@ const Payment = ({ className = "" }) => {
 
                 <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0 ">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                    Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                    Email 
                   </label>
                   <input
                     type="email"
@@ -450,7 +447,7 @@ const Payment = ({ className = "" }) => {
                     placeholder="Enter your email"
                   />
                   {errors.email && (
-                    <div className="text-danger position-absolute" style={{ fontSize: "12px", marginTop: "4px" }}>
+                    <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
                       {errors.email}
                     </div>
                   )}
@@ -482,7 +479,8 @@ const Payment = ({ className = "" }) => {
                   >
                     <div className="d-flex align-items-center gap-3">
                       <img src={method.icon} alt={method.name} width={28} />
-                      <span className="fw-medium">{method.name}</span>
+                      <span className="fw-medium d-none d-lg-block" style={{fontFamily:"Poppins"}}>{method.name}</span>
+                      <span className="d-lg-none" style={{fontSize:'14px',fontFamily:"Poppins",fontWeight:"500"}}>{method.name}</span>
                     </div>
                     <input
                       type="radio"
@@ -503,7 +501,7 @@ const Payment = ({ className = "" }) => {
         {/* Booking Summary */}
         <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-payment-summary">
           <div
-            className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
+            className="border w-100 px-0 pt-1 pb-3 border-0 mobile-summary-container small-curve-wrapper d-flex flex-column"
             style={{
               height: "62vh",
               borderRadius: "10px 30% 10px 10px",
@@ -536,7 +534,7 @@ const Payment = ({ className = "" }) => {
               </div>
             )}
 
-            <style jsx>{`
+            <style>{`
     .small-curve-arrow {
       position: absolute;
       top: -14px;
@@ -591,7 +589,7 @@ const Payment = ({ className = "" }) => {
                       justifyContent: "center",
                     }}
                   >
-                    <img src={logo} alt="Club" style={{ width: "100%", height: "auto!important" }} />
+                    <img src={logo} alt="Club" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 ) : (
                   <div
@@ -620,8 +618,8 @@ const Payment = ({ className = "" }) => {
             </div>
 
             {/* Desktop Slots Scroll */}
-            <div className="px-3" style={{ maxHeight: "160px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
-              <style jsx>{`
+            <div className="px-3" style={{ maxHeight: "200px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
+              <style>{`
       div::-webkit-scrollbar {
         width: 8px;
         border-radius: 3px;
@@ -632,9 +630,9 @@ const Payment = ({ className = "" }) => {
     `}</style>
 
               <div className="d-none d-lg-block">
-                {selectedCourts.length > 0 ? (
-                  selectedCourts.map((court, idx) =>
-                    court.time.map((slot, i) => (
+                {selectedCourts?.length > 0 ? (
+                  selectedCourts?.map((court, idx) =>
+                    court?.time?.map((slot, i) => (
                       <div key={`${idx}-${i}`} className="row mb-2">
                         <div className="col-12 d-flex justify-content-between align-items-center text-white">
                           <div className="d-flex">
@@ -692,13 +690,13 @@ const Payment = ({ className = "" }) => {
                       Order Summary :
                     </h6>
                   )}
-                  <style jsx>{`
+                  <style>{`
                                  .mobile-expanded-slots.expanded::-webkit-scrollbar {
                                 width: 6px;
                             }
                             `}</style>
 
-                  {isExpanded && localSelectedCourts.map((court, cIdx) =>
+                  {isExpanded && localSelectedCourts?.map((court, cIdx) =>
                     court.time.map((slot, sIdx) => (
                       <div key={`${cIdx}-${sIdx}`} className="row mb-1 text-white">
                         <div className="col-12 d-flex justify-content-between align-items-center">
@@ -831,14 +829,7 @@ const Payment = ({ className = "" }) => {
             )}
 
             {/* Book Button */}
-            {/* <div className="d-flex justify-content-center align-items-center px-3">
-    <button style={buttonStyle} className={className} onClick={handlePayment}>
-      <div style={contentStyle}>
-        {isLoading || bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}
-      </div>
-    </button>
-  </div> */}
-            <div className="d-flex justify-content-center align-items-center px-3">
+            <div className="mt-auto d-flex justify-content-center align-items-center px-3 pb-2">
               <button
                 style={{
                   ...buttonStyle,

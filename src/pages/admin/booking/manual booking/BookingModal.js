@@ -1,4 +1,3 @@
-// BookingModals.js
 import { useState } from "react";
 import {
   Modal,
@@ -285,9 +284,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
         loading="lazy"
       /> */}
       <Col xs={12} className="px-0">
-        {/* Full Width Container */}
         <div style={{ backgroundColor: "#CBD6FF1A" }} className="p-3">
-          {/* Name */}
           <div className="d-flex justify-content-between align-items-center">
             <p
               className="text-muted mb-0"
@@ -318,7 +315,6 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             style={{ borderTop: "1px solid #E5E7EB" }}
           />
 
-          {/* Court */}
           <div className="d-flex justify-content-between align-items-center">
             <p
               className="text-muted mb-0"
@@ -346,7 +342,6 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             style={{ borderTop: "1px solid #E5E7EB" }}
           />
 
-          {/* Slot Time */}
           <div className="d-flex justify-content-between align-items-center">
             <p
               className="text-muted mb-0"
@@ -375,7 +370,6 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             style={{ borderTop: "1px solid #E5E7EB" }}
           />
 
-          {/* Booking Date */}
           <div className="d-flex justify-content-between align-items-center">
             <p
               className="text-muted mb-0"
@@ -403,7 +397,6 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             style={{ borderTop: "1px solid #E5E7EB" }}
           />
 
-          {/* Conditional Fields */}
           {bookingDetails?.cancellationDate && (
             <>
               <div className="d-flex justify-content-between align-items-center">
@@ -684,13 +677,11 @@ export const BookingCancelModal = ({
   };
 
   const handleSubmit = () => {
-    // Validate reason selection
     if (!cancelReason) {
       setError("Please select a reason for cancellation.");
       return;
     }
 
-    // Validate other reason text if "Other" is selected
     if (cancelReason === "other" && !otherReason.trim()) {
       setError("Please describe your reason for cancellation.");
       return;
@@ -698,7 +689,6 @@ export const BookingCancelModal = ({
 
     setError("");
 
-    // Prepare the reason to send - if "Other", use the text area content
     const finalReason =
       cancelReason === "other" ? otherReason.trim() : cancelReason;
 
@@ -709,7 +699,6 @@ export const BookingCancelModal = ({
   return (
     <Modal show={show} onHide={closeModal} centered backdrop="static" size="md">
       <Modal.Body>
-        {/* Close Button */}
         <div className="d-flex justify-content-between align-items-center">
           <h3
             className="flex-grow-1 text-center mb-0"
@@ -808,7 +797,6 @@ export const BookingCancelModal = ({
             </div>
           </div>
 
-          {/* Payment Details */}
           <div className="text-start p-2 pt-0">
             <h5 style={{ color: "#1F2937", fontWeight: "600" }}>
               Payment Details
@@ -831,7 +819,6 @@ export const BookingCancelModal = ({
             </div>
           </div>
 
-          {/* Cancel Reason Section */}
           {changeContent && (
             <div className="mt-2 text-start p-2 pt-0">
               <h6
@@ -848,7 +835,6 @@ export const BookingCancelModal = ({
                 value={cancelReason}
                 onChange={(e) => {
                   setCancelReason(e.target.value);
-                  setOtherReason(""); // Clear other reason when changing selection
                   if (error) setError("");
                 }}
                 isInvalid={!!error && !cancelReason}
@@ -862,7 +848,6 @@ export const BookingCancelModal = ({
                 <option value="Other">Other</option>
               </Form.Select>
 
-              {/* Text area for "Other" reason */}
               {cancelReason === "other" && (
                 <Form.Group className="mt-2">
                   <Form.Label style={{ fontSize: "14px", fontWeight: "500" }}>
@@ -900,7 +885,6 @@ export const BookingCancelModal = ({
         </div>
       </Modal.Body>
 
-      {/* Action Buttons */}
       <Modal.Footer className="d-flex justify-content-center border-0 p-3 pt-0">
         {changeContent ? (
           <Button

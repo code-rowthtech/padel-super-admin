@@ -138,48 +138,72 @@ const BookingHistory = () => {
         if (club_id) dispatch(getReviewClub(club_id));
     }, [User?.token, club_id]);
 
-    const filterStatus = getBookingData?.bookingData?.data?.filter((booking) => {
-        const status = booking?.bookingStatus?.toLowerCase();
-        let statusMatch = false;
-
-        if (activeTab === "cancelled") {
-            if (selectedOption === "Rejected") {
-                statusMatch = status === "rejected";
-            } else if (selectedOption === "Accepted") {
-                statusMatch = status === "refunded";
-            } else if (selectedOption === "Requested") {
-                statusMatch = status === "in-progress";
-            } else {
-                statusMatch = ["in-progress", "refunded", "rejected","cancelled"].includes(status);
+    const filterStatus = React.useMemo(() => {
+        try {
+            if (!getBookingData?.bookingData?.data || !Array.isArray(getBookingData.bookingData.data)) {
+                return [];
             }
-        } else if (activeTab === "upcoming") {
-            statusMatch = ["upcoming", "in-progress", "rejected"].includes(status);
-        }
-        else if (activeTab === "completed") {
-            statusMatch = status === "completed";
-        } else if (activeTab === "all") {
-            statusMatch = true;
-        } else {
-            statusMatch = true;
-        }
+            
+            return getBookingData.bookingData.data.filter((booking) => {
+                if (!booking) return false;
+                
+                const status = booking?.bookingStatus?.toLowerCase() || '';
+                let statusMatch = false;
 
-        let dateMatch = true;
-        if (searchDate) {
-            dateMatch = booking?.slot?.some((slotItem) => {
-                const bookingDate = new Date(slotItem?.bookingDate);
-                return bookingDate.toDateString() === searchDate.toDateString();
+                if (activeTab === "cancelled") {
+                    if (selectedOption === "Rejected") {
+                        statusMatch = status === "rejected";
+                    } else if (selectedOption === "Accepted") {
+                        statusMatch = status === "refunded";
+                    } else if (selectedOption === "Requested") {
+                        statusMatch = status === "in-progress";
+                    } else {
+                        statusMatch = ["in-progress", "refunded", "rejected", "cancelled"].includes(status);
+                    }
+                } else if (activeTab === "upcoming") {
+                    statusMatch = ["upcoming", "in-progress", "rejected"].includes(status);
+                }
+                else if (activeTab === "completed") {
+                    statusMatch = status === "completed";
+                } else if (activeTab === "all") {
+                    statusMatch = true;
+                } else {
+                    statusMatch = true;
+                }
+
+                let dateMatch = true;
+                if (searchDate && booking?.slot) {
+                    try {
+                        dateMatch = booking.slot.some((slotItem) => {
+                            if (!slotItem?.bookingDate) return false;
+                            const bookingDate = new Date(slotItem.bookingDate);
+                            return bookingDate.toDateString() === searchDate.toDateString();
+                        });
+                    } catch (error) {
+                        console.error('Date filtering error:', error);
+                        dateMatch = true;
+                    }
+                }
+
+                let courtMatch = true;
+                if (searchText.trim() !== "" && booking?.slot) {
+                    try {
+                        courtMatch = booking.slot.some((slotItem) =>
+                            slotItem?.courtName?.toLowerCase()?.includes(searchText.toLowerCase())
+                        );
+                    } catch (error) {
+                        console.error('Court filtering error:', error);
+                        courtMatch = true;
+                    }
+                }
+
+                return statusMatch && dateMatch && courtMatch;
             });
+        } catch (error) {
+            console.error('Filter error:', error);
+            return [];
         }
-
-        let courtMatch = true;
-        if (searchText.trim() !== "") {
-            courtMatch = booking?.slot?.some((slotItem) =>
-                slotItem?.courtName?.toLowerCase().includes(searchText.toLowerCase())
-            );
-        }
-
-        return statusMatch && dateMatch && courtMatch;
-    });
+    }, [getBookingData?.bookingData?.data, activeTab, selectedOption, searchDate, searchText]);
 
     const totalRecords = getBookingData?.bookingData?.total || filterStatus?.length || 0;
     const totalPages = getBookingData?.bookingData?.totalPages || Math.ceil(totalRecords / 10);
@@ -195,11 +219,18 @@ const BookingHistory = () => {
     };
 
     const formatDate = (date) => {
-        const d = new Date(date);
-        const day = d.getDate();
-        const month = d.toLocaleString("en-US", { month: "short" });
-        const year = d.getFullYear();
-        return `${day}${getOrdinalSuffix(day)}${month}' ${year}`;
+        try {
+            if (!date) return 'Invalid Date';
+            const d = new Date(date);
+            if (isNaN(d.getTime())) return 'Invalid Date';
+            const day = d.getDate();
+            const month = d.toLocaleString("en-US", { month: "short" });
+            const year = d.getFullYear();
+            return `${day}${getOrdinalSuffix(day)}${month}' ${year}`;
+        } catch (error) {
+            console.error('Date formatting error:', error);
+            return 'Invalid Date';
+        }
     };
 
     useEffect(() => {
@@ -216,20 +247,39 @@ const BookingHistory = () => {
         let text = "No Message";
 
         if (booking?.bookingStatus === "refunded" && booking?.refundDescription) {
-            text = booking.refundDescription;
+            text = booking?.refundDescription;
         } else if (booking?.bookingStatus === "rejected" && booking?.cancellationReasonForOwner) {
-            text = booking.cancellationReasonForOwner;
+            text = booking?.cancellationReasonForOwner;
         } else if (booking?.cancellationReason) {
-            text = booking.cancellationReason;
+            text = booking?.cancellationReason;
         }
 
-        text = text.trim();
+        text = text?.trim() || "";
         if (!text || text === "No Message") return "No Message";
 
-        const capitalized = text.charAt(0).toUpperCase() + text.slice(1);
+        const capitalized = text?.charAt(0)?.toUpperCase() + text?.slice(1);
 
-        return full ? capitalized : (capitalized.length > 35 ? capitalized.slice(0, 35) + "..." : capitalized);
+        return full ? capitalized : (capitalized?.length > 35 ? capitalized?.slice(0, 35) + "..." : capitalized);
     };
+
+    // Add error boundary check
+    if (getBookingData?.error) {
+        return (
+            <Container>
+                <Row className="justify-content-center mt-5">
+                    <Col md={6} className="text-center">
+                        <p className="text-danger">Something went wrong loading booking history.</p>
+                        <button 
+                            className="btn btn-primary" 
+                            onClick={() => window.location.reload()}
+                        >
+                            Reload Page
+                        </button>
+                    </Col>
+                </Row>
+            </Container>
+        );
+    }
 
     return (
         <Container>
@@ -369,13 +419,11 @@ const BookingHistory = () => {
                                     {activeTab === "cancelled" && (
                                         <th className="position-relative" style={{ padding: "8px 0" }}>
                                             <div className="dropdown-wrapper">
-                                                {/* Header */}
                                                 <div
                                                     ref={headerRef}
                                                     className="dropdown-header table-data"
                                                     onClick={() => setIsOpen(!isOpen)}
                                                     style={{
-                                                        // minHeight: "48px",
                                                         padding: "0px 8px",
                                                         cursor: "pointer",
                                                         background: "transparent",
@@ -389,7 +437,6 @@ const BookingHistory = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Dropdown menu rendered in body */}
                                             {isOpen &&
                                                 ReactDOM.createPortal(
                                                     <div
@@ -452,8 +499,8 @@ const BookingHistory = () => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
                                                             return time ? formatTime(time) : "";
-                                                        }) || [];
-                                                        const displayed = times?.slice(0, 5).join(", ");
+                                                        })?.filter(Boolean) || [];
+                                                        const displayed = times?.slice(0, 5)?.join(", ");
                                                         return times?.length > 5 ? `${displayed} ...` : displayed;
                                                     })()}
                                                 </td>
@@ -461,7 +508,7 @@ const BookingHistory = () => {
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
                                                 <td className="table-data pt-2 py-1">
-                                                    {booking?.bookingType.charAt(0).toUpperCase() + (booking?.bookingType?.slice(1)) || "N/A"}
+                                                    {booking?.bookingType ? (booking.bookingType.charAt(0).toUpperCase() + booking.bookingType.slice(1)) : "N/A"}
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
@@ -470,7 +517,7 @@ const BookingHistory = () => {
                                                         <OverlayTrigger
                                                             placement="top"
                                                             overlay={
-                                                                <Tooltip id={`reason-tooltip-${booking?._id}`}>
+                                                                <Tooltip id={`reason-tooltip-${booking?._id || 'unknown'}`}>
                                                                     {getReasonText(booking, true)}
                                                                 </Tooltip>
                                                             }
@@ -512,8 +559,8 @@ const BookingHistory = () => {
                                                             overlay={
                                                                 <Tooltip id="review-tooltip">
                                                                     {booking?.customerReview?.reviewComment
-                                                                        ? booking.customerReview.reviewComment.charAt(0).toUpperCase() +
-                                                                        booking.customerReview.reviewComment.slice(1)
+                                                                        ? booking?.customerReview?.reviewComment?.charAt(0)?.toUpperCase() +
+                                                                        booking?.customerReview?.reviewComment?.slice(1)
                                                                         : "No Message"}
                                                                 </Tooltip>
                                                             }
@@ -521,12 +568,12 @@ const BookingHistory = () => {
                                                             <span>
                                                                 {(() => {
                                                                     const comment = booking?.customerReview?.reviewComment?.trim() || "No Message";
-                                                                    if (!comment) return "No Message";
+                                                                    if (!comment || comment === "No Message") return "No Message";
 
                                                                     const shortText =
-                                                                        comment.length > 35
-                                                                            ? comment.charAt(0).toUpperCase() + comment.slice(1, 35) + "..."
-                                                                            : comment.charAt(0).toUpperCase() + comment.slice(1);
+                                                                        comment?.length > 35
+                                                                            ? comment?.charAt(0)?.toUpperCase() + comment?.slice(1, 35) + "..."
+                                                                            : comment?.charAt(0)?.toUpperCase() + comment?.slice(1);
 
                                                                     return shortText;
                                                                 })()}
@@ -540,7 +587,7 @@ const BookingHistory = () => {
                                                         color: "#1A237E",
                                                     }}
                                                 >
-                                                    <span style={{ fontFamily: "italic", }}>  ₹ </span>{booking?.totalAmount || "N/A"}
+                                                    <span style={{ fontFamily: "italic", }}>  ₹ </span>{booking?.totalAmount ? Number(booking.totalAmount).toLocaleString('en-IN') : "N/A"}
                                                 </td>
                                                 {activeTab === "cancelled" && (
                                                     <td className="py-1 pt-2"
@@ -581,7 +628,7 @@ const BookingHistory = () => {
                                                                 ) : booking?.bookingStatus === "refunded" || booking?.bookingStatus === "cancelled" ? (
                                                                     <span
                                                                         style={{
-                                                                            color:booking?.bookingStatus === "cancelled" ? "red" : "darkcyan",
+                                                                            color: booking?.bookingStatus === "cancelled" ? "red" : "darkcyan",
                                                                             fontSize: "12px",
                                                                             fontWeight: "600",
                                                                             fontFamily: "Poppins",
@@ -600,7 +647,7 @@ const BookingHistory = () => {
                                                                     >
                                                                         Rejected
                                                                     </span>
-                                                                ) 
+                                                                )
                                                                     : booking?.bookingStatus === "upcoming" &&
                                                                         activeTab !== "upcoming" ? (
                                                                         <span
@@ -649,7 +696,6 @@ const BookingHistory = () => {
                                                                 className="text-muted"
                                                                 onClick={() => {
 
-                                                                    // Check if booking type is open match
                                                                     if (booking?.bookingType === "open Match" && booking?.bookingStatus === 'upcoming') {
                                                                         setSelectedMatchId(booking?.openMatchId || booking?._id);
                                                                         setShowViewMatchModal(true);
@@ -699,7 +745,7 @@ const BookingHistory = () => {
                                                                         ) {
                                                                             setAcceptedRejected(true);
                                                                             setStatusData({ booking, slotItem });
-                                                                        } else if (booking?.bookingStatus === "in-progress" ) {
+                                                                        } else if (booking?.bookingStatus === "in-progress") {
                                                                             setModalCancel(true);
                                                                             setCourtData({ slotItem, booking });
                                                                         } else {
@@ -796,17 +842,16 @@ const BookingHistory = () => {
 
             <TokenExpire isTokenExpired={expireModal} />
 
-            {/* ViewMatch Modal */}
             <Offcanvas
                 show={showViewMatchModal}
                 onHide={() => setShowViewMatchModal(false)}
                 placement="end"
                 className="view-match-offcanvas"
             >
-                <Offcanvas.Header  className="border-0">
+                <Offcanvas.Header className="border-0">
                     <Offcanvas.Title>Match Details</Offcanvas.Title>
                 </Offcanvas.Header>
-                <Offcanvas.Body className="p-0">
+                <Offcanvas.Body className="p-lg-0 p-3">
                     {selectedMatchId && (
                         <ViewMatch
                             match={{ _id: selectedMatchId }}

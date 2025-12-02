@@ -12,6 +12,7 @@ import { authImg } from "../../../assets/files";
 import { showError, showSuccess, showInfo } from "../../../helpers/Toast";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  getUserProfile,
   loginUserNumber,
   sendOtp,
   verifyOtp,
@@ -99,6 +100,7 @@ const VerifyOTP = () => {
       localStorage.removeItem("otpTimer");
       localStorage.removeItem("otpTimestamp");
       localStorage.removeItem("timerExpired");
+      dispatch(getUserProfile());
       if (redirectTo && paymentState) {
         navigate(redirectTo, { state: paymentState });
       } else if (redirectTo) {
@@ -140,7 +142,7 @@ const VerifyOTP = () => {
               dispatch(loginUserNumber({ phoneNumber: phone }));
             }
           })
-          .catch(() => {});
+          .catch(() => { });
       }
     }
   };
@@ -219,6 +221,8 @@ const VerifyOTP = () => {
                       key={index}
                       id={`otp-${index}`}
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={1}
                       value={digit}
                       className="opt-input"
