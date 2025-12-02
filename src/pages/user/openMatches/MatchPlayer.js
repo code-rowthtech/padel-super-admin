@@ -462,7 +462,7 @@ const MatchPlayer = ({
                 </div>
 
                 <div
-                    className="rounded-4 border px-3 pt-2 pb-0 mb-2"
+                    className="rounded-4 border row mx-auto pt-2 pb-0 mb-2"
                     style={{ backgroundColor: "#CBD6FF1A" }}
                 >
                     <div className="d-flex d-block justify-content-between align-items-start py-2">
@@ -490,7 +490,7 @@ const MatchPlayer = ({
                         </small>
                     </div>
 
-                    <div className="row text-center border-top">
+                    <div className="row text-center border-top mx-auto">
                         <div className="col-4 py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Game Type
@@ -558,7 +558,7 @@ const MatchPlayer = ({
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Your share
                             </p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '20px', fontWeight: "500", color: '#1F41BB' }}>
+                            <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
                                 ₹ {Math.round(totalAmount / 4).toLocaleString('en-IN')}
                             </p>
                         </div>

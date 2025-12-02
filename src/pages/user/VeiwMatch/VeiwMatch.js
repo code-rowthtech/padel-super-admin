@@ -455,7 +455,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                         <div className="col py-2">
                             <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '20px', fontWeight: "500", color: '#1F41BB' }}>
+                            <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
                                 ₹{" "}
                                 {Math.round(
                                     (matchesData?.data?.slot?.reduce((total, court) => {
