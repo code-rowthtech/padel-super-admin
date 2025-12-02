@@ -77,7 +77,7 @@ const MatchPlayer = ({
     userSkillLevel, selectedAnswers,
     dynamicSteps,
     finalLevelStep,
-    onBackToSlots,
+    onBackToSlots, matchPlayer
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -99,7 +99,7 @@ const MatchPlayer = ({
     const [userName, setUserName] = useState(User?.name);
 
 
-console.log({userName});
+    console.log({ userName });
     useEffect(() => {
         const fetchData = async () => {
             if (hasCalledProfile.current) return;
@@ -316,12 +316,18 @@ console.log({userName});
 
 
     const onBack = () => {
-        if (onBackToSlots) {
-            onBackToSlots();
-        } else if (window.innerWidth <= 768) {
-            window.history.back();
+        if (window.innerWidth <= 768) {
+            if (matchPlayer && onBackToSlots) {
+                onBackToSlots();
+            } else {
+                window.history.back();
+            }
         } else {
-            navigate('/open-matches');
+            if (onBackToSlots) {
+                onBackToSlots();
+            } else {
+                navigate('/open-matches');
+            }
         }
     }
 
@@ -355,7 +361,7 @@ console.log({userName});
             setProfileLoading(false);
         };
 
-            fetchData();
+        fetchData();
 
     }, [dispatch]);
     return (
@@ -363,13 +369,15 @@ console.log({userName});
             <div className="py-md-3 pt-0 pb-3 rounded-3 px-md-4 px-2 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
                     <div className="d-flex align-items-center ">
-                        <button
-                            className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
-                            style={{ width: 36, height: 36 }}
-                            onClick={onBack}
-                        >
-                            <i className="bi bi-arrow-left" />
-                        </button>
+                        {(window.innerWidth <= 768 || !matchPlayer) &&
+                            <button
+                                className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
+                                style={{ width: 36, height: 36 }}
+                                onClick={onBack}
+                            >
+                                <i className="bi bi-arrow-left" />
+                            </button>
+                        }
                         <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
                             Details
                         </h5>

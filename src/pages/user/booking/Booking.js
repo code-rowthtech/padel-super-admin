@@ -689,7 +689,7 @@ const Booking = ({ className = "" }) => {
             />
 
             <div
-              className="position-absolute top-0 start-0 w-100 h-100 pt-lg-0 d-flex flex-column justify-content-center text-white p-5"
+              className="position-absolute top-0 start-0 w-100 h-100 pt-lg-5 d-flex flex-column justify-content-center text-white p-5"
               style={{
                 background:
                   "linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, #111827 94.62%)",
@@ -1371,9 +1371,9 @@ const Booking = ({ className = "" }) => {
                                           }}
                                           onMouseEnter={(e) => {
                                             if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
-                                              e.currentTarget.style.borderTop = "1px solid #3DBE64";
-                                              e.currentTarget.style.borderRight = "1px solid #3DBE64";
-                                              e.currentTarget.style.borderBottom = "1px solid #3DBE64";
+                                              e.currentTarget.style.borderTop = "1px solid #0034E4";
+                                              e.currentTarget.style.borderRight = "1px solid #0034E4";
+                                              e.currentTarget.style.borderBottom = "1px solid #0034E4";
                                               e.currentTarget.style.borderLeft = "3px solid #0034E4";
                                             }
                                           }}
