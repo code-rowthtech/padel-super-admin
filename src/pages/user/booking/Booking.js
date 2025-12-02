@@ -738,7 +738,7 @@ const Booking = ({ className = "" }) => {
                 src={bannerimg}
                 alt="Paddle"
                 className="img-fluid w-100 object-fit-cover rounded-3 d-block d-md-none"
-                style={{ height: "173px" }}
+                // style={{ height: "24vh" }}
               />
 
               <div

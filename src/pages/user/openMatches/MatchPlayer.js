@@ -99,7 +99,7 @@ const MatchPlayer = ({
     const [userName, setUserName] = useState(User?.name);
 
 
-
+console.log({userName});
     useEffect(() => {
         const fetchData = async () => {
             if (hasCalledProfile.current) return;
@@ -462,10 +462,10 @@ const MatchPlayer = ({
                 </div>
 
                 <div
-                    className="rounded-4 border px-3 pt-2 pb-0 mb-2"
+                    className="rounded-4 border row mx-auto pt-2 pb-0 mb-2"
                     style={{ backgroundColor: "#CBD6FF1A" }}
                 >
-                    <div className="d-flex d-block justify-content-between align-items-start py-2">
+                    <div className="d-flex d-block justify-content-between align-items-start py-2 border-bottom">
                         <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
                             <span className="ms-2 all-matches" style={{ color: "#374151" }}>
@@ -490,8 +490,8 @@ const MatchPlayer = ({
                         </small>
                     </div>
 
-                    <div className="row text-center border-top">
-                        <div className="col-4 py-2">
+                    <div className="col-12 ps-0 text-center d-flex">
+                        <div className="col-md-4 col-5 py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Game Type
                             </p>
@@ -554,11 +554,11 @@ const MatchPlayer = ({
                             </p>
                         </div>
 
-                        <div className="col-4 py-2">
+                        <div className="col-md-4 col-3 py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Your share
                             </p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '20px', fontWeight: "500", color: '#1F41BB' }}>
+                            <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
                                 ₹ {Math.round(totalAmount / 4).toLocaleString('en-IN')}
                             </p>
                         </div>
@@ -628,7 +628,6 @@ const MatchPlayer = ({
                                         })()}
                                     </p>
                                     <Tooltip id="you" />
-                                    {console.log(finalSkillDetails, defaultLevel, 'finalSkillDetails, defaultLevel')}
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
                                         {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
                                             ? (finalSkillDetails[1] ? finalSkillDetails[1].split(' - ')[0] : (finalSkillDetails[0] || "A"))

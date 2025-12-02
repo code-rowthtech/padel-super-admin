@@ -36,7 +36,7 @@ const UpdatePlayers = ({
   selectedDate,
   selectedTime,
   selectedLevel,
-  match, skillLevel,setPlayerLevels,playerLevels
+  match, skillLevel,setPlayerLevels,playerLevels,
 }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -46,7 +46,7 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
-
+console.log({playerLevels});
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
@@ -223,7 +223,7 @@ const UpdatePlayers = ({
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
               <span className="input-group-text border-0 border-end bg-white" style={{fontSize:"11px"}}>
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" /> +91
               </span>
               <input
                 type="text"
@@ -266,7 +266,7 @@ const UpdatePlayers = ({
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Gender</label>
+            <label className="form-label">Game Type</label>
             <div className="d-flex gap-3">
               {[
                 { value: "Male Only", label: "Male Only" },
@@ -328,7 +328,8 @@ const UpdatePlayers = ({
             <Button
               variant="outlined"
               onClick={() => setShowModal(false)}
-              sx={{ borderColor: "#001B76", color: "#001B76" }}
+              sx={{ borderColor: "#001B76", color: "#001B76",width:"25%" }}
+               className="py-1 font_size_mobile_button"
             >
               Cancel
             </Button>
@@ -339,7 +340,9 @@ const UpdatePlayers = ({
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 color: "white",
                 "&:hover": { background: "#001B76" },
+                width:"25%",
               }}
+               className="py-1 font_size_mobile_button"
             >
               {loading ? <ButtonLoading color="white" /> : "Add "}
             </Button>
