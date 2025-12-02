@@ -148,20 +148,23 @@ const Home = () => {
     }
   }, [clubData?.address, clubData?.city]);
 
-  // Auto-play carousel
-  useEffect(() => {
-    if (windowWidth < 992 && clubData?.courtImage?.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => {
-          if (prev >= clubData.courtImage.length - 1) {
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 2500);
-      return () => clearInterval(interval);
-    }
-  }, [clubData?.courtImage?.length, windowWidth]);
+  // Auto-play carousel - DISABLED
+  // useEffect(() => {
+  //   if (windowWidth < 992 && clubData?.courtImage?.length > 1) {
+  //     const interval = setInterval(() => {
+  //       setCurrentSlide((prev) => {
+  //         const isLastImage = prev >= clubData.courtImage.length - 1;
+  //         if (isLastImage) {
+  //           // Fast loop back to start
+  //           setTimeout(() => setCurrentSlide(0), 100);
+  //           return prev;
+  //         }
+  //         return prev + 1;
+  //       });
+  //     }, 2500);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [clubData?.courtImage?.length, windowWidth, currentSlide]);
 
   // Handle seamless loop reset
   useEffect(() => {
@@ -177,20 +180,20 @@ const Home = () => {
     }
   }, [currentSlide, clubData?.courtImage?.length, windowWidth]);
 
-  // Auto-play review carousel
-  useEffect(() => {
-    if (windowWidth < 992 && getReviewData?.reviews?.length > 1) {
-      const interval = setInterval(() => {
-        setReviewSlide((prev) => {
-          if (prev >= getReviewData.reviews.length - 1) {
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [getReviewData?.reviews?.length, windowWidth]);
+  // Auto-play review carousel - DISABLED
+  // useEffect(() => {
+  //   if (windowWidth < 992 && getReviewData?.reviews?.length > 1) {
+  //     const interval = setInterval(() => {
+  //       setReviewSlide((prev) => {
+  //         if (prev >= getReviewData.reviews.length - 1) {
+  //           return 0;
+  //         }
+  //         return prev + 1;
+  //       });
+  //     }, 3000);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [getReviewData?.reviews?.length, windowWidth]);
 
   // Handle seamless review loop reset
   useEffect(() => {
@@ -785,13 +788,13 @@ const Home = () => {
                 <div
                   key={`mobile-${index}`}
                   className="flex-shrink-0 d-lg-none d-block"
-                  style={{ width: "100vw", minWidth: "100vw" }}
+                  style={{ width: "100%", minWidth: "100%" }}
                 >
                   <div
                     className="position-relative overflow-hidden rounded-3 mx-auto"
                     style={{
                       height: "200px",
-                      width: "100%",
+                      width: "90%",
                       maxWidth: "350px",
                       cursor: "pointer",
                     }}
@@ -842,13 +845,13 @@ const Home = () => {
                 }}
                 onClick={() => {
                   if (windowWidth < 992) {
-                    if (currentSlide === 0) {
-                      setCurrentSlide(clubData?.courtImage?.length - 1);
-                    } else {
+                    if (currentSlide > 0) {
                       setCurrentSlide(currentSlide - 1);
                     }
                   } else {
-                    setCurrentSlide(currentSlide - 1);
+                    if (currentSlide > 0) {
+                      setCurrentSlide(currentSlide - 1);
+                    }
                   }
                 }}
               >

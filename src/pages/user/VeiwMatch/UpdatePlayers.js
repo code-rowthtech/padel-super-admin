@@ -50,8 +50,12 @@ const UpdatePlayers = ({
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
-
+   const authData = useSelector((state) => state.userAuth);
+console.log({authData});
   const getPlayerLevelsLoading = useSelector(
+    (state) => state?.userNotificationData?.getPlayerLevelLoading || []
+  );
+    const playererror = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
   const isGenderDisabled = (optionGender) => {
@@ -111,6 +115,7 @@ const UpdatePlayers = ({
       return;
     }
 
+ 
     dispatch(Usersignup(formData))
       .unwrap()
       .then((res) => {
@@ -146,7 +151,6 @@ const UpdatePlayers = ({
                   dispatch(getMatchesUser(payload));
                 });
 
-              showSuccess("Player added successfully");
 
               setFormData({
                 name: "",
@@ -316,7 +320,7 @@ const UpdatePlayers = ({
                   onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt?.value }))}
                   placeholder="Choose level"
                   classNamePrefix="select"
-                  maxMenuHeight={200}
+                  maxMenuHeight={250}
                   menuPortalTarget={document.body}
                   styles={{
                     control: (base) => ({
@@ -326,7 +330,7 @@ const UpdatePlayers = ({
                       cursor: "pointer",
                     }),
                     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    menu: (base) => ({ ...base, maxHeight: 100, overflowY: 'auto' })
+                    menu: (base) => ({ ...base, maxHeight: 150, overflowY: 'auto' })
                   }}
                   components={{
                     Input: (props) => <div {...props} style={{ ...props.style, caretColor: 'transparent' }} />
