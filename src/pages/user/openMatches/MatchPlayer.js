@@ -7,6 +7,7 @@ import { padal } from "../../../assets/files";
 import { Tooltip } from "react-tooltip";
 import NewPlayers from "../VeiwMatch/NewPlayers";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
+import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
 
 const width = 400
 const height = 75;
@@ -89,6 +90,7 @@ const MatchPlayer = ({
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
     const [profileFetched, setProfileFetched] = useState(false);
     const hasCalledProfile = useRef(false);
+    const [profileLoading, setProfileLoading] = useState(true);
 
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
@@ -329,6 +331,33 @@ const MatchPlayer = ({
             return () => clearTimeout(timer);
         }
     }, [genderError]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setProfileLoading(true);
+
+            try {
+                const result = await dispatch(getUserProfile()).unwrap();
+
+                const firstAnswer = result?.response?.skillLevel;
+                if (firstAnswer) {
+                    const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
+
+                    const apiData = response?.data || [];
+
+                    if (!Array.isArray(apiData) || apiData.length === 0) {
+                        throw new Error("Empty API response");
+                    }
+                }
+            } catch (err) {
+            }
+
+            setProfileLoading(false);
+        };
+
+            fetchData();
+
+    }, [dispatch]);
     return (
         <>
             <div className="py-md-3 pt-0 pb-3 rounded-3 px-md-4 px-2 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
@@ -468,7 +497,7 @@ const MatchPlayer = ({
                             </p>
                             <div className="d-flex justify-content-center">
                                 <select
-                                    className="form-select add_font_mobile form-select-sm border-0 shadow-none text-center px-3 pe-5 py-1"
+                                    className="form-select add_font_mobile p-0 gap-0 form-select-sm border-0 shadow-none text-center px-3 pe-5 py-1"
                                     style={{
                                         fontSize: "15px",
                                         fontWeight: "500",
@@ -476,7 +505,7 @@ const MatchPlayer = ({
                                         color: "#000000",
                                         backgroundColor: "transparent",
                                         width: "auto",
-                                        minWidth: "80px",
+                                        minWidth: "auto",
                                         appearance: "none",
                                         backgroundRepeat: "no-repeat",
                                         backgroundPosition: "right 15px center",
@@ -491,7 +520,7 @@ const MatchPlayer = ({
                                     }}
                                     required
                                 >
-                                    <option className="add_font_mobile" value="">Select Game Type</option>
+                                    <option className="add_font_mobile" value="">Select </option>
                                     <option value="Male Only">Male Only</option>
                                     <option value="Female Only">Female Only</option>
                                     <option value="Mixed Double">Mixed Double</option>
@@ -599,9 +628,10 @@ const MatchPlayer = ({
                                         })()}
                                     </p>
                                     <Tooltip id="you" />
+                                    {console.log(finalSkillDetails, defaultLevel, 'finalSkillDetails, defaultLevel')}
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
                                         {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
-                                            ? (finalSkillDetails[5] ? finalSkillDetails[5].split(' - ')[0] : finalSkillDetails[0])
+                                            ? (finalSkillDetails[1] ? finalSkillDetails[1].split(' - ')[0] : (finalSkillDetails[0] || "A"))
                                             : defaultLevel?.split(" - ")[0] || "A"}
                                     </span>
                                 </div>
@@ -901,6 +931,7 @@ const MatchPlayer = ({
                 userSkillLevel={userSkillLevel || defaultSkillLevel}
                 defaultSkillLevel={defaultSkillLevel}
                 selectedGender={selectedGender}
+                profileLoading={profileLoading}
             />
         </>
     );

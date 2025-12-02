@@ -254,7 +254,7 @@ const Navbar = () => {
                             </Avatar>
                         )}
 
-                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Logo"}</h4>
+                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Courtline"}</h4>
                     </Link>
 
                     <div className="mx-auto d-none d-lg-flex col-6 align-items-center justify-content-center">
@@ -550,10 +550,10 @@ const Navbar = () => {
                 </div>
             </div>
 
-            <Offcanvas 
-                show={showOffcanvas} 
-                onHide={() => setShowOffcanvas(false)} 
-                placement="end" 
+            <Offcanvas
+                show={showOffcanvas}
+                onHide={() => setShowOffcanvas(false)}
+                placement="end"
                 className="border-0 w-75"
                 style={{ zIndex: 1055 }}
                 backdrop={true}

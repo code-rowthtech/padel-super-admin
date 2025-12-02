@@ -44,6 +44,7 @@ const Home = () => {
   const getReviewData = store?.userClub?.getReviewData?.data;
   const mapApiData = store?.userClub?.mapData?.data;
   const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
+  const logo = JSON.parse(localStorage.getItem("logo"));
 
   const handleImageLoad = (index) => {
     setLoadedImages((prev) => ({ ...prev, [index]: true }));
@@ -397,8 +398,8 @@ const Home = () => {
                 >
                   <div className="logo_add_star bg-white py-1" style={{ borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}>
                     <img
-                      src="https://i.imgur.com/4QfKuz1.png"
-                      alt="logo"
+                      src={logo || 'Courtline'}
+                      alt="Courtline"
                       style={{
                         width: "45px",
                         height: "45px",
