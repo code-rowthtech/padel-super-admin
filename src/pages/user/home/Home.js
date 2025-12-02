@@ -426,7 +426,7 @@ const Home = () => {
 
                   {/* Club Name + Green Stars */}
                   <div className="d-flex flex-column" style={{ lineHeight: "1.5" }}>
-                    <span style={{ fontSize: "14px", fontWeight: 600 }}>                      {clubData?.clubName || "The Court Line Club"}
+                    <span style={{ fontSize: "14px", fontWeight: 600, }}>                      {clubData?.clubName || "The Court Line Club"}
                     </span>
 
                     <div className="d-flex align-items-center" style={{ marginTop: "2px" }}>
@@ -469,6 +469,7 @@ const Home = () => {
                       fontSize: "13px",
                       fontFamily: "Poppins",
                       fontWeight: "400",
+                      textAlign:"justify"
                     }}
                   >
                     {clubData?.clubName || "The Court Line Club"}{" "}

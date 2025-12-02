@@ -1322,12 +1322,19 @@ h1.display-5 {
   .react-datepicker-wrapper{
     width: 100%;
   }
+  .mention_height_court{
+  max-height: 70vh!important;
+}
+
 }
 
 /* date scroll css */
 .overflow-auto::-webkit-scrollbar {
   height: 4px;
   margin: 10px 0px;
+}
+.mention_height_court{
+  max-height: 50vh;
 }
 
 /* .ratio>*{
