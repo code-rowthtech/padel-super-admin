@@ -22,7 +22,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
     description: false,
   });
   const [isFormValid, setIsFormValid] = useState(false);
-  const MAX_DESC = 125;
+  const MAX_DESC = 80;
   const [wordCount, setWordCount] = useState(0);
   const editorRef = useRef(null);
   const [editorHeight, setEditorHeight] = useState(230);
@@ -216,7 +216,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
                 renderHTML={(text) => mdParser.render(text)}
                 config={{
                   view: { menu: true, md: true, html: true },
-                  placeholder: "Short description (max 125 words)",
+                  placeholder: "Short description (max 80 words)",
                   toolbar: [
                     "bold",
                     "italic",
@@ -293,7 +293,7 @@ const VenueDetails = ({ formData, onNext, updateFormData }) => {
             {typeof errors[fieldName] === "string"
               ? errors[fieldName] // show custom message
               : fieldName === "description"
-              ? "Description is required and max 125 words"
+              ? "Description is required and max 80 words"
               : fieldName === "courtTypes"
               ? "Please select at least one court type"
               : "This field is required"}

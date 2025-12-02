@@ -27,7 +27,7 @@ const mdParser = new MarkdownIt();
 mdParser.use(markdownItIns);
 
 const MAX_IMAGES = 10;
-const MAX_WORDS = 125;
+const MAX_WORDS = 80;
 const FEATURES = [
   { key: "changingRooms", label: "Changing Rooms" },
   { key: "parking", label: "Parking" },
@@ -823,7 +823,7 @@ const ClubUpdateForm = () => {
                         config={{
                           view: {
                             menu: true,
-                            md: false,
+                            md: true,
                             html: true,
                           },
                           placeholder: "Short description (max 125 words)",
