@@ -34,6 +34,7 @@ const Home = () => {
   const [reviewSlide, setReviewSlide] = useState(0);
   const [selectedSport, setSelectedSport] = useState(0);
   const [loadedImages, setLoadedImages] = useState({});
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const store = useSelector((state) => state);
@@ -60,6 +61,12 @@ const Home = () => {
 
   const todayIndex = new Date().getDay();
   const adjustedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
@@ -139,47 +146,49 @@ const Home = () => {
   }, [clubData?.address, clubData?.city]);
 
   useEffect(() => {
-    if (clubData?.courtImage?.length > 3) {
+    if (windowWidth < 992 && clubData?.courtImage?.length > 1) {
       const interval = setInterval(() => {
         setCurrentSlide((prev) => {
-          if (prev >= clubData.courtImage.length) {
-            return 1;
+          if (prev >= clubData.courtImage.length - 1) {
+            return 0;
           }
           return prev + 1;
         });
-      }, 3000);
+      }, 2500);
       return () => clearInterval(interval);
     }
-  }, [clubData?.courtImage?.length]);
+  }, [clubData?.courtImage?.length, windowWidth]);
 
   useEffect(() => {
     if (
+      windowWidth >= 992 &&
       currentSlide === clubData?.courtImage?.length &&
-      clubData?.courtImage?.length > 3
+      clubData?.courtImage?.length > 4
     ) {
       const timer = setTimeout(() => {
         setCurrentSlide(0);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [currentSlide, clubData?.courtImage?.length]);
+  }, [currentSlide, clubData?.courtImage?.length, windowWidth]);
 
   useEffect(() => {
-    if (getReviewData?.reviews?.length > 3) {
+    if (windowWidth < 992 && getReviewData?.reviews?.length > 1) {
       const interval = setInterval(() => {
         setReviewSlide((prev) => {
-          if (prev >= getReviewData.reviews.length) {
-            return 1;
+          if (prev >= getReviewData.reviews.length - 1) {
+            return 0;
           }
           return prev + 1;
         });
-      }, 4000);
+      }, 3000);
       return () => clearInterval(interval);
     }
-  }, [getReviewData?.reviews?.length]);
+  }, [getReviewData?.reviews?.length, windowWidth]);
 
   useEffect(() => {
     if (
+      windowWidth >= 992 &&
       reviewSlide === getReviewData?.reviews?.length &&
       getReviewData?.reviews?.length > 3
     ) {
@@ -188,18 +197,18 @@ const Home = () => {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [reviewSlide, getReviewData?.reviews?.length]);
+  }, [reviewSlide, getReviewData?.reviews?.length, windowWidth]);
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleKeyDown = (event) => {
+  //     if (event.key === "Escape" && isOpen) {
+  //       setIsOpen(false);
+  //     }
+  //   };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  //   document.addEventListener("keydown", handleKeyDown);
+  //   return () => document.removeEventListener("keydown", handleKeyDown);
+  // }, [isOpen]);
 
   const padelimg = [
     { img: football },
@@ -672,23 +681,18 @@ const Home = () => {
         <div className="position-relative">
           <div className="overflow-hidden rounded-3">
             <div
-              className={`d-flex ${clubData?.courtImage?.length > 4
-                ? window.innerWidth >= 992
-                  ? "justify-content-start"
-                  : "justify-content-start"
-                : "justify-content-center"
-                } align-items-center gap-3`}
+              className={`d-flex align-items-center ${windowWidth >= 992 ? 'gap-3' : ''}`}
               style={{
                 transform:
-                  clubData?.courtImage?.length > 4
-                    ? window.innerWidth >= 992
+                  windowWidth >= 992
+                    ? clubData?.courtImage?.length > 4
                       ? `translateX(-${currentSlide * 25}%)`
-                      : `translateX(-${currentSlide * 50}%)`
-                    : "translateX(0%)",
-                transition:
-                  clubData?.courtImage?.length > 4 && currentSlide !== 0
-                    ? "transform 0.5s ease"
-                    : "none",
+                      : "translateX(0%)"
+                    : clubData?.courtImage?.length > 1
+                      ? `translateX(-${currentSlide * 100}%)`
+                      : "translateX(0%)",
+                transition: "transform 0.5s ease",
+                justifyContent: windowWidth >= 992 && clubData?.courtImage?.length <= 4 ? "center" : "flex-start",
               }}
             >
               {(clubData?.courtImage?.length > 4
@@ -747,22 +751,18 @@ const Home = () => {
                 </div>
               ))}
 
-              {(clubData?.courtImage?.length > 4
-                ? clubData?.courtImage?.concat(
-                  clubData?.courtImage?.slice(0, 2)
-                )
-                : clubData?.courtImage
-              )?.map((image, index) => (
+              {clubData?.courtImage?.map((image, index) => (
                 <div
                   key={`mobile-${index}`}
                   className="flex-shrink-0 d-lg-none d-block"
-                  style={{ width: "calc(50% - 6px)" }}
+                  style={{ width: "100vw", minWidth: "100vw" }}
                 >
                   <div
-                    className="position-relative overflow-hidden rounded-3"
+                    className="position-relative overflow-hidden rounded-3 mx-auto"
                     style={{
                       height: "200px",
-                      width: "100%",
+                      width: "90%",
+                      maxWidth: "350px",
                       cursor: "pointer",
                     }}
                     onClick={() => {
@@ -799,7 +799,7 @@ const Home = () => {
             </div>
           </div>
 
-          {clubData?.courtImage?.length > 4 && (
+          {((windowWidth < 992 && clubData?.courtImage?.length > 1) || (windowWidth >= 992 && clubData?.courtImage?.length > 4)) && (
             <>
               <button
                 className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
@@ -811,9 +811,9 @@ const Home = () => {
                   backgroundColor: "#011E84",
                 }}
                 onClick={() => {
-                  if (window.innerWidth < 992) {
+                  if (windowWidth < 992) {
                     if (currentSlide === 0) {
-                      setCurrentSlide(Math.ceil(clubData?.courtImage?.length / 2) - 1);
+                      setCurrentSlide(clubData?.courtImage?.length - 1);
                     } else {
                       setCurrentSlide(currentSlide - 1);
                     }
@@ -839,8 +839,8 @@ const Home = () => {
                   backgroundColor: "#011E84",
                 }}
                 onClick={() => {
-                  if (window.innerWidth < 992) {
-                    if (currentSlide >= Math.ceil(clubData?.courtImage?.length / 2) - 1) {
+                  if (windowWidth < 992) {
+                    if (currentSlide >= clubData?.courtImage?.length - 1) {
                       setCurrentSlide(0);
                     } else {
                       setCurrentSlide(currentSlide + 1);
@@ -860,7 +860,7 @@ const Home = () => {
           )}
         </div>
 
-        {isOpen && galleryImages.length > 0 && (
+        {/* {isOpen && galleryImages.length > 0 && (
           <>
             <Lightbox
               mainSrc={galleryImages[photoIndex]}
@@ -936,7 +936,7 @@ const Home = () => {
             transform: translateX(50%) translateY(-50%) !important;
             z-index: 10001 !important;
           }
-        `}</style>
+        `}</style> */}
       </div>
       <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-none d-block px-1">
         <div
@@ -1015,40 +1015,99 @@ const Home = () => {
               className="d-flex"
               style={{
                 transform:
-                  window.innerWidth >= 992
+                  windowWidth >= 992
                     ? `translateX(-${reviewSlide * 33.333}%)`
                     : `translateX(-${reviewSlide * 100}%)`,
                 transition:
-                  reviewSlide === 0 &&
-                    reviewSlide !== getReviewData?.reviews?.length
+                  (windowWidth >= 992 && reviewSlide === getReviewData?.reviews?.length) ||
+                  (windowWidth < 992 && reviewSlide === 0)
                     ? "none"
                     : "transform 0.5s ease",
               }}
             >
-              {getReviewData?.reviews
-                ?.concat(getReviewData?.reviews?.slice(0, 3))
-                ?.map((review, index) => (
-                  <div
-                    key={index}
-                    className="flex-shrink-0  d-lg-block d-none"
-                    style={{ width: "33.333%" }}
-                  >
-                    <ReviewCard review={review} />
-                  </div>
-                ))}
-              {getReviewData?.reviews
-                ?.concat(getReviewData?.reviews?.slice(0, 1))
-                ?.map((review, index) => (
-                  <div
-                    key={`mobile-${index}`}
-                    className="flex-shrink-0 d-lg-none d-block"
-                    style={{ width: "100%" }}
-                  >
-                    <ReviewCard review={review} />
-                  </div>
-                ))}
+              {windowWidth >= 992
+                ? getReviewData?.reviews
+                    ?.concat(getReviewData?.reviews?.slice(0, 3))
+                    ?.map((review, index) => (
+                      <div
+                        key={index}
+                        className="flex-shrink-0 d-lg-block d-none"
+                        style={{ width: "33.333%" }}
+                      >
+                        <ReviewCard review={review} />
+                      </div>
+                    ))
+                : getReviewData?.reviews?.map((review, index) => (
+                    <div
+                      key={`mobile-${index}`}
+                      className="flex-shrink-0 d-lg-none d-block"
+                      style={{ width: "100%" }}
+                    >
+                      <ReviewCard review={review} />
+                    </div>
+                  ))}
             </div>
           </div>
+          
+          {((windowWidth < 992 && getReviewData?.reviews?.length > 1) || (windowWidth >= 992 && getReviewData?.reviews?.length > 3)) && (
+            <>
+              <button
+                className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  marginLeft: "10px",
+                  zIndex: 10,
+                  backgroundColor: "#011E84",
+                }}
+                onClick={() => {
+                  if (windowWidth < 992) {
+                    if (reviewSlide === 0) {
+                      setReviewSlide(getReviewData?.reviews?.length - 1);
+                    } else {
+                      setReviewSlide(reviewSlide - 1);
+                    }
+                  } else {
+                    if (reviewSlide === 0) {
+                      setReviewSlide(getReviewData?.reviews?.length - 1);
+                    } else {
+                      setReviewSlide(reviewSlide - 1);
+                    }
+                  }
+                }}
+              >
+                <ArrowBackIosIcon style={{ fontSize: "16px" }} />
+              </button>
+
+              <button
+                className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  marginRight: "10px",
+                  zIndex: 10,
+                  backgroundColor: "#011E84",
+                }}
+                onClick={() => {
+                  if (windowWidth < 992) {
+                    if (reviewSlide >= getReviewData?.reviews?.length - 1) {
+                      setReviewSlide(0);
+                    } else {
+                      setReviewSlide(reviewSlide + 1);
+                    }
+                  } else {
+                    if (reviewSlide >= getReviewData?.reviews?.length - 1) {
+                      setReviewSlide(0);
+                    } else {
+                      setReviewSlide(reviewSlide + 1);
+                    }
+                  }
+                }}
+              >
+                <ArrowForwardIosIcon style={{ fontSize: "16px" }} />
+              </button>
+            </>
+          )}
         </div>
       </div>
 

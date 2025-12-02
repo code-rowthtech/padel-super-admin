@@ -168,7 +168,7 @@ const MatchPlayer = ({
     console.log({ selectedGender });
     const handleAddMeClick = (slot) => {
         if (!selectedGender) {
-            setGenderError("Please select  gender.");
+            setGenderError("Please select game type.");
             return;
         } else {
             setGenderError("");
@@ -263,19 +263,10 @@ const MatchPlayer = ({
         ? formatMatchTimes(selectedCourts)
         : "";
 
-    // Validate that all courts have the same time slots
     const validateCourtTimeConsistency = () => {
-        if (selectedCourts.length <= 1) return true;
-        
-        const firstCourtTimes = selectedCourts[0].time.map(t => t.time).sort();
-        
-        for (let i = 1; i < selectedCourts.length; i++) {
-            const currentCourtTimes = selectedCourts[i].time.map(t => t.time).sort();
-            if (JSON.stringify(firstCourtTimes) !== JSON.stringify(currentCourtTimes)) {
-                return false;
-            }
-        }
-        return true;
+        const allTimes = selectedCourts.flatMap(court => court.time.map(t => t.time));
+        const uniqueTimes = [...new Set(allTimes)];
+        return allTimes.length === uniqueTimes.length;
     };
 
     const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
@@ -290,7 +281,7 @@ const MatchPlayer = ({
 
     const handleBookNow = () => {
         if (!selectedGender || selectedGender === "") {
-            setGenderError("Please select  gender.");
+            setGenderError("Please select  game type.");
             return;
         } else {
             setGenderError("");
@@ -471,9 +462,9 @@ const MatchPlayer = ({
                     </div>
 
                     <div className="row text-center border-top">
-                        <div className="col py-2">
+                        <div className="col-4 py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
-                                Gender
+                                Game Type
                             </p>
                             <div className="d-flex justify-content-center">
                                 <select
@@ -500,7 +491,7 @@ const MatchPlayer = ({
                                     }}
                                     required
                                 >
-                                    <option className="add_font_mobile" value="">Select Gender</option>
+                                    <option className="add_font_mobile" value="">Select Game Type</option>
                                     <option value="Male Only">Male Only</option>
                                     <option value="Female Only">Female Only</option>
                                     <option value="Mixed Double">Mixed Double</option>
@@ -523,7 +514,7 @@ const MatchPlayer = ({
 
                         </div>
 
-                        <div className="col border-start border-end py-2">
+                        <div className="col-4 border-start border-end py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Level
                             </p>
@@ -534,11 +525,11 @@ const MatchPlayer = ({
                             </p>
                         </div>
 
-                        <div className="col py-2">
+                        <div className="col-4 py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Your share
                             </p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '18px', fontWeight: "500", color: '#1F41BB' }}>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '20px', fontWeight: "500", color: '#1F41BB' }}>
                                 ₹ {Math.round(totalAmount / 4).toLocaleString('en-IN')}
                             </p>
                         </div>

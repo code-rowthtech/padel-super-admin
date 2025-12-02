@@ -131,7 +131,7 @@ const PlayerSlot = memo(function PlayerSlot({
 
 
 
-        
+
         </div>
     );
 });
@@ -279,7 +279,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         { player: teamBData[0], index: 2, removable: true, team: "B" },
         { player: teamBData[1], index: 3, removable: true, team: "B" },
     ];
-    console.log({slots});
+    console.log({ slots });
 
 
 
@@ -394,7 +394,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
                             <span className="ms-2 all-matches" style={{ color: "#374151" }}>
-                                PADEL
+                                Open Match
                             </span>
                         </div>
                         <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
@@ -431,9 +431,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
                     style={{ backgroundColor: "#CBD6FF1A" }}
                 >
-                    <p className="text-muted mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: 500 }}>
-                        {matchesData?.data?.matchStatus && "Open Match"}
-                    </p>
+                
                 </div>
 
                 <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
@@ -554,7 +552,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     <h6 className="text-center mb-3" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
                         Player Details
                     </h6>
-                    
+
                     {selectedPlayer && (
                         <div className="text-center">
                             <div className="mb-3">
@@ -580,52 +578,52 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                     )}
                                 </div>
                             </div>
-                            
+
                             <div className="text-start">
                                 <div className="mb-2 d-flex gap-2 align-items-center    ">
-                                    <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Name:</strong>
-                                    <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                    <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Name:</strong>
+                                    <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
                                         {selectedPlayer.name || "Unknown"}
                                     </p>
                                 </div>
-                                
+
                                 {selectedPlayer.email && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
-                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Email:</strong>
-                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                        <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Email:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
                                             {selectedPlayer.email}
                                         </p>
                                     </div>
                                 )}
-                                
+
                                 {selectedPlayer.phoneNumber && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
-                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Phone:</strong>
-                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                        <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Phone:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
                                             +91 {selectedPlayer.phoneNumber}
                                         </p>
                                     </div>
                                 )}
-                                
+
                                 {selectedPlayer.level && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
-                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Level:</strong>
-                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                        <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Level:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
                                             {selectedPlayer.level}
                                         </p>
                                     </div>
                                 )}
-                                
+
                                 {selectedPlayer.skillLevel && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
-                                        <strong style={{ fontSize: "14px", color: "#374151" ,fontFamily:'Poppins'}}>Skill Level:</strong>
-                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                        <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Skill Level:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
                                             {matchesData?.data?.skillLevel || "Unknown"}
                                         </p>
                                     </div>
                                 )}
                             </div>
-                            
+
                             <button
                                 className="btn btn-primary mt-3"
                                 onClick={() => setShowPlayerModal(false)}
