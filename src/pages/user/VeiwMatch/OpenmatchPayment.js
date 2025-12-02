@@ -165,7 +165,6 @@ const OpenmatchPayment = () => {
         // Validation
         if (!selectedPayment) return setError({ paymentMethod: "Select payment method" });
         if (!name?.trim()) return setError({ name: "Name required" });
-        if (!email?.trim() || !/^\S+@\S+\.\S+$/.test(email)) return setError({ email: " Email is required" });
 
         const cleanPhone = phoneNumber?.replace(/^\+91\s*/, "").trim();
         if (!cleanPhone || cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone))
@@ -260,7 +259,7 @@ const OpenmatchPayment = () => {
 
                     } catch (err) {
                         console.error("Post-payment error:", err);
-                        showError(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
+                        // showError(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
                     }
                 },
 
@@ -430,7 +429,7 @@ const OpenmatchPayment = () => {
                                     className="form-label mb-0 ps-lg-2"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                                    Email 
                                 </label>
                                 <input
                                     type="email"

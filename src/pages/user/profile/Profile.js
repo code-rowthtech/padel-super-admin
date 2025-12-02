@@ -336,7 +336,7 @@ const Profile = () => {
           </div>
           <div className="col-12 col-md-4 mb-3">
             <label className="label">
-              Email <span className="text-danger">*</span>
+              Email
             </label>
             <input
               type="email"

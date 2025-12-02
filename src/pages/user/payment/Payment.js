@@ -178,11 +178,7 @@ const Payment = ({ className = "" }) => {
         : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
           ? "Invalid phone number"
           : "",
-      email: !email.trim()
-        ? "Email is required"
-        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-          ? "Invalid email"
-          : "",
+    
       paymentMethod: !selectedPayment ? "Please select a payment method" : "",
     };
 
@@ -266,7 +262,7 @@ const Payment = ({ className = "" }) => {
               throw new Error(bookingResponse?.message || "Booking failed");
             }
           } catch (err) {
-            showError("Booking failed after payment: " + (err.message || "Please contact support"));
+            // showError("Booking failed after payment: " + (err.message || "Please contact support"));
             console.error(err);
           }
         },
@@ -426,7 +422,7 @@ const Payment = ({ className = "" }) => {
 
                 <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0 ">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                    Email <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                    Email 
                   </label>
                   <input
                     type="email"

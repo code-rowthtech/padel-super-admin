@@ -220,7 +220,7 @@ const CreateMatches = () => {
     if (courtIds.length <= 1) return true;
 
     const firstCourtTimes = selectedTimes[courtIds[0]].map(t => t.time).sort();
-    
+
     for (let i = 1; i < courtIds.length; i++) {
       const currentCourtTimes = selectedTimes[courtIds[i]].map(t => t.time).sort();
       if (JSON.stringify(firstCourtTimes) !== JSON.stringify(currentCourtTimes)) {
@@ -318,7 +318,7 @@ const CreateMatches = () => {
             otherCourtTimes.push(...times.map(t => t.time));
           }
         });
-        
+
         if (otherCourtTimes.length > 0 && !otherCourtTimes.includes(time.time)) {
           setSlotError("You can only select the same time slots across different courts.");
           return;
@@ -352,13 +352,15 @@ const CreateMatches = () => {
       return;
     }
 
-    if (currentSelectedTimes.length === 1) {
-      const firstSlot = currentSelectedTimes[0];
-      const firstMinutes = timeToMinutes(firstSlot.time);
+    if (currentSelectedTimes.length >= 1 && currentSelectedTimes.length < 3) {
+      // Check if the new slot is consecutive to any existing slot
       const newMinutes = timeToMinutes(time.time);
-      const diff = Math.abs(firstMinutes - newMinutes);
+      const isConsecutive = currentSelectedTimes.some(slot => {
+        const existingMinutes = timeToMinutes(slot.time);
+        return Math.abs(existingMinutes - newMinutes) === 60;
+      });
 
-      if (diff !== 60) {
+      if (!isConsecutive) {
         setSlotError("You can only select consecutive hourly slots.");
         return;
       }
@@ -382,14 +384,13 @@ const CreateMatches = () => {
             : c
         )
       );
-      
-      // Clear any existing errors since we're adding a valid consecutive slot
+
       setSlotError("");
       return;
     }
 
-    if (currentSelectedTimes.length >= 2) {
-      setSlotError("Maximum 2 slots per court allowed.");
+    if (currentSelectedTimes.length >= 3) {
+      setSlotError("Maximum 3 slots per court allowed.");
       return;
     }
 
@@ -474,7 +475,7 @@ const CreateMatches = () => {
 
   const getFilteredLastStepOptions = () => {
     if (!dynamicSteps || dynamicSteps.length === 0) return [];
-    
+
     const firstAnswer = selectedAnswers[0];
     const lastStep = dynamicSteps[dynamicSteps.length - 1];
     if (!lastStep) return [];
@@ -581,7 +582,7 @@ const CreateMatches = () => {
       c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
     0
   );
-  
+
 
   const handleNext = async () => {
     if (selectedCourts.length === 0) {
@@ -792,7 +793,7 @@ const CreateMatches = () => {
           isDisabled = isDisabled || diff !== 60;
         }
       }
-      else if (currentCourtTimes.length >= 2) {
+      else if (currentCourtTimes.length >= 3) {
         isDisabled = true;
       }
     }
@@ -805,20 +806,20 @@ const CreateMatches = () => {
           disabled={isDisabled}
           title={(() => {
             if (isDisabled && !isSelected) {
-              if (currentCourtTimes.length >= 2) return 'Maximum 2 slots per court';
-              
+              if (currentCourtTimes.length >= 3) return 'Maximum 3 slots per court';
+
               const otherCourtTimes = [];
               Object.entries(selectedTimes).forEach(([cId, times]) => {
                 if (cId !== courtId) {
                   otherCourtTimes.push(...times.map(t => t.time));
                 }
               });
-              
+
               if (currentCourtTimes.length === 0 && otherCourtTimes.length > 0 && !otherCourtTimes.includes(slot.time)) {
                 return 'Only same time slots allowed across courts';
               }
-              
-              if (currentCourtTimes.length === 1) {
+
+              if (currentCourtTimes.length >= 1) {
                 const firstSlot = currentCourtTimes[0];
                 const firstMinutes = timeToMinutes(firstSlot.time);
                 const newMinutes = timeToMinutes(slot.time);
@@ -875,7 +876,7 @@ const CreateMatches = () => {
     if (!step) {
       return <div>Loading questions...</div>;
     }
-    
+
     const isLastStep = currentStep === dynamicSteps.length - 1;
     const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
     const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step.options || []);
@@ -1194,16 +1195,22 @@ const CreateMatches = () => {
                             slot.amount > 0)
                         )
                       ) && (
-                          <div className="row mb-md-2 mb-0">
-                            <div className="col-3 d-md-block d-none">
-                              <h6 className="all-matches text-start">Courts</h6>
+                          <>
+                            <div className="row mb-md-2 mb-0">
+                              <div className="col-12">
+                                <div className="div p-3 animation-slider">
+                                </div>
+                              </div>
+                              <div className="col-3 d-md-block d-none">
+                                <h6 className="all-matches text-start">Courts</h6>
+                              </div>
+                              <div className="col-md-9 col-12 ">
+                                <h6 className="all-matches text-center mb-0 me-2 me-md-0">
+                                  Available Slots
+                                </h6>
+                              </div>
                             </div>
-                            <div className="col-md-9 col-12 ">
-                              <h6 className="all-matches text-center mb-0 me-2 me-md-0">
-                                Available Slots
-                              </h6>
-                            </div>
-                          </div>
+                          </>
                         )}
                       <div
                         style={{
@@ -1223,6 +1230,32 @@ const CreateMatches = () => {
                           .hide-scrollbar {
                             -ms-overflow-style: none;
                             scrollbar-width: none;
+                          }
+                          .animation-slider {
+                            background: #f8f9fa;
+                            border-radius: 8px;
+                            position: relative;
+                            overflow: hidden;
+                            white-space: nowrap;
+                            font-size: 14px;
+                            font-weight: 500;
+                            color: #0034E4;
+                          }
+                          .animation-slider::before {
+                            content: 'Game levels are self-managed for now. AI enhancement arrives January 2025.';
+                            position: absolute;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            animation: slideTextLeftToRight 8s infinite linear;
+                            white-space: nowrap;
+                          }
+                          @keyframes slideTextLeftToRight {
+                            0% {
+                              transform: translateY(-50%) translateX(-100%);
+                            }
+                            100% {
+                              transform: translateY(-50%) translateX(100%);
+                            }
                           }
                         `}</style>
                         {slotData?.data.map((court, courtIndex) => {
@@ -1297,8 +1330,7 @@ const CreateMatches = () => {
                               }}
                               disabled={(() => {
                                 const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
-                                const hasValidSelection = selectedCourts.every(court => court.time.length === 2 || court.time.length === 0);
-                                return !(totalSlots >= 2 && totalSlots % 2 === 0 && hasValidSelection && validateCourtTimeConsistency());
+                                return !(totalSlots >= 1 && totalSlots <= 3 && validateCourtTimeConsistency());
                               })()}
                               onClick={() => {
                                 if (existsOpenMatchData) {
@@ -1567,12 +1599,12 @@ const CreateMatches = () => {
                         if (!dynamicSteps || dynamicSteps.length === 0 || !dynamicSteps[currentStep]) {
                           return <div>Loading options...</div>;
                         }
-                        
+
                         const step = dynamicSteps[currentStep];
                         if (!step || !step.options) {
                           return <div>Loading options...</div>;
                         }
-                        
+
                         const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
                         const isLastStep = currentStep === dynamicSteps.length - 1;
                         const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step.options || []);
@@ -1652,7 +1684,10 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 py-1 ms-auto"
-                    disabled={selectedCourts.length === 0 || !isCurrentStepValid() || !validateCourtTimeConsistency()}
+                    disabled={(() => {
+                      const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
+                      return selectedCourts.length === 0 || !isCurrentStepValid() || !validateCourtTimeConsistency() || totalSlots < 1 || totalSlots > 3;
+                    })()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
@@ -1747,7 +1782,10 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 py-2 pt-1 d-flex align-items-center justify-content-center"
-                    disabled={selectedCourts.length === 0 || !isCurrentStepValid() || !validateCourtTimeConsistency()}
+                    disabled={(() => {
+                      const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
+                      return selectedCourts.length === 0 || !isCurrentStepValid() || !validateCourtTimeConsistency() || totalSlots < 1 || totalSlots > 3;
+                    })()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (

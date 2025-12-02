@@ -5,7 +5,7 @@ import { padal, club, player } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
 import { DataLoading } from "../../../helpers/loading/Loaders";
-import { Avatar, Tooltip } from "@mui/material";
+import { Avatar, Tooltip, Modal, Box } from "@mui/material";
 import { FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
@@ -18,8 +18,10 @@ const PlayerSlot = memo(function PlayerSlot({
     onRemove,
     onAdd,
     openMatches,
-    isFromBookingHistory = false
+    isFromBookingHistory = false,
+    onPlayerClick
 }) {
+    console.log({ player });
     const user = player?.userId || player;
     const tooltipId = `player-${team}-${index}`;
     if (!player) {
@@ -74,7 +76,9 @@ const PlayerSlot = memo(function PlayerSlot({
                             ? "#3DBE64"
                             : "#1F41BB",
                     overflow: "hidden",
+                    cursor: "pointer"
                 }}
+                onClick={() => onPlayerClick && onPlayerClick(user)}
             >
                 {user.profilePic ? (
                     <img
@@ -127,15 +131,7 @@ const PlayerSlot = memo(function PlayerSlot({
 
 
 
-            {/* {isRemovable && (
-                <button
-                    className="position-absolute top-0 end-0 btn btn-sm btn-danger rounded-circle p-1"
-                    style={{ transform: "translate(50%, -50%)" }}
-                    onClick={() => onRemove(user._id, team)}
-                >
-                    <FaTrash />
-                </button>
-            )} */}
+        
         </div>
     );
 });
@@ -154,6 +150,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [showModal, setShowModal] = useState(false);
     const [teamName, setTeamName] = useState('teamA');
     const [showShareDropdown, setShowShareDropdown] = useState(false);
+    const [showPlayerModal, setShowPlayerModal] = useState(false);
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
 
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
@@ -265,6 +263,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         setShowModal(true);
     }, []);
 
+    const handlePlayerClick = useCallback((player) => {
+        setSelectedPlayer(player);
+        setShowPlayerModal(true);
+    }, []);
+
 
     const formatTime = (timeStr) => {
         return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
@@ -276,6 +279,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         { player: teamBData[0], index: 2, removable: true, team: "B" },
         { player: teamBData[1], index: 3, removable: true, team: "B" },
     ];
+    console.log({slots});
 
 
 
@@ -453,6 +457,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         onAdd={() => handleAdd(s.team)}
                                         openMatches={matchesData?.data}
                                         isFromBookingHistory={isFromBookingHistory}
+                                        onPlayerClick={handlePlayerClick}
                                     />
                                 ))}
                             </div>
@@ -469,6 +474,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                         onAdd={() => handleAdd(s.team)}
                                         openMatches={matchesData?.data}
                                         isFromBookingHistory={isFromBookingHistory}
+                                        onPlayerClick={handlePlayerClick}
                                     />
                                 ))}
                             </div>
@@ -529,8 +535,113 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 matchData={matchesData?.data || match}
                 skillLevel={matchesData?.data?.skillLevel}
                 selectedDate={selectedDate}
-
             />
+
+            <Modal open={showPlayerModal} onClose={() => setShowPlayerModal(false)}>
+                <Box sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: { xs: "90%", sm: "80%", md: 400 },
+                    maxWidth: "400px",
+                    bgcolor: "background.paper",
+                    p: 3,
+                    borderRadius: 2,
+                    border: "none",
+                    boxShadow: 24,
+                }}>
+                    <h6 className="text-center mb-3" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
+                        Player Details
+                    </h6>
+                    
+                    {selectedPlayer && (
+                        <div className="text-center">
+                            <div className="mb-3">
+                                <div
+                                    className="rounded-circle border d-flex align-items-center justify-content-center mx-auto mb-2"
+                                    style={{
+                                        width: 80,
+                                        height: 80,
+                                        backgroundColor: selectedPlayer.profilePic ? "transparent" : "#1F41BB",
+                                        overflow: "hidden",
+                                    }}
+                                >
+                                    {selectedPlayer.profilePic ? (
+                                        <img
+                                            src={selectedPlayer.profilePic}
+                                            alt="player"
+                                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                        />
+                                    ) : (
+                                        <span style={{ color: "white", fontWeight: 600, fontSize: "32px" }}>
+                                            {selectedPlayer?.name?.[0]?.toUpperCase() ?? "U"}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="text-start">
+                                <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                    <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Name:</strong>
+                                    <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                        {selectedPlayer.name || "Unknown"}
+                                    </p>
+                                </div>
+                                
+                                {selectedPlayer.email && (
+                                    <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Email:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                            {selectedPlayer.email}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {selectedPlayer.phoneNumber && (
+                                    <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Phone:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                            +91 {selectedPlayer.phoneNumber}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {selectedPlayer.level && (
+                                    <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                        <strong style={{ fontSize: "14px", color: "#374151",fontFamily:'Poppins' }}>Level:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                            {selectedPlayer.level}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {selectedPlayer.skillLevel && (
+                                    <div className="mb-2 d-flex gap-2 align-items-center    ">
+                                        <strong style={{ fontSize: "14px", color: "#374151" ,fontFamily:'Poppins'}}>Skill Level:</strong>
+                                        <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500,fontFamily:'Poppins' }}>
+                                            {matchesData?.data?.skillLevel || "Unknown"}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <button
+                                className="btn btn-primary mt-3"
+                                onClick={() => setShowPlayerModal(false)}
+                                style={{
+                                    background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    padding: "8px 24px"
+                                }}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    )}
+                </Box>
+            </Modal>
 
 
         </>
