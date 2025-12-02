@@ -148,6 +148,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const getPlayerLevelsData = useSelector(
         (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
     );
+    console.log({ getPlayerLevelsData });
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
@@ -160,6 +161,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
     const [playerLevels, setPlayerLevels] = useState([]);
+    const [showReasonModal, setShowReasonModal] = useState(false);
+    const [selectedPlayerForAccept, setSelectedPlayerForAccept] = useState(null);
+    const [showDeclineModal, setShowDeclineModal] = useState(false);
+    const [selectedPlayerForDecline, setSelectedPlayerForDecline] = useState(null);
+    const [declineReason, setDeclineReason] = useState("");
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
 
@@ -308,7 +314,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 setPlayerLevels(levels);
             })
             .catch(() => setPlayerLevels([]));
-    }, [ matchesData?.data?.skillLevel]);
+    }, [matchesData?.data?.skillLevel]);
 
     useEffect(() => {
         if (Array.isArray(getPlayerLevelsData) && getPlayerLevelsData?.length > 0) {
@@ -320,6 +326,34 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             );
         }
     }, [getPlayerLevelsData]);
+
+    useEffect(() => {
+        let startY = 0;
+
+        const handleTouchStart = (e) => {
+            startY = e.touches[0].clientY;
+        };
+
+        const handleTouchMove = (e) => {
+            const endY = e.touches[0].clientY;
+            const diff = endY - startY;
+
+            // If user drags down more than 80px → close
+            if (diff > 80) {
+                setShowRequestModal(false);
+            }
+        };
+
+        if (showRequestModal && windowWidth < 992) {
+            document.addEventListener("touchstart", handleTouchStart);
+            document.addEventListener("touchmove", handleTouchMove);
+        }
+
+        return () => {
+            document.removeEventListener("touchstart", handleTouchStart);
+            document.removeEventListener("touchmove", handleTouchMove);
+        };
+    }, [showRequestModal, windowWidth]);
 
 
 
@@ -446,7 +480,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </div>
                     <div className="row text-center border-top">
                         <div className="col py-2">
-                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Gender</p>
+                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Game Type</p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.gender || "Any"}</p>
                         </div>
                         <div className="col border-start border-end py-2">
@@ -476,10 +510,10 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         <i className="bi bi-people fs-4" style={{ color: "#1F41BB" }} />
                         <div>
                             <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", color: "#374151" }}>
-                                View Requests
+                                Player's Requests
                             </h6>
                             <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                                3 players want to join
+                                View the status of player's requests <br /> to join.
                             </p>
                         </div>
                     </div>
@@ -703,64 +737,211 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 show={showRequestModal}
                 onHide={() => setShowRequestModal(false)}
                 placement={windowWidth >= 992 ? "end" : "bottom"}
-                style={{ width: windowWidth >= 992 ? "400px" : "100%", height: windowWidth < 992 ? "60vh" : "100%" }}
+                backdrop={true}  // click outside close
+                keyboard={true}
+                enforceFocus={false}
+                style={{
+                    width: windowWidth >= 992 ? "400px" : "100%",
+                    height: windowWidth < 992 ? "60vh" : "100%"
+                }}
             >
-                <Offcanvas.Header closeButton>
-                    <Offcanvas.Title style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
-                        Join Requests
-                    </Offcanvas.Title>
+                <Offcanvas.Header className="pb-1" closeButton={windowWidth >= 992}>
+                    <div>
+                        <Offcanvas.Title style={{ fontSize: "15px", fontWeight: 600, fontFamily: "Poppins" }}>
+                            Player's Requests
+                        </Offcanvas.Title>
+                        <p className="mb-0 mt-1" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
+                            In order for the player to join the match, all enrolled players must accept the player's request. You can change your vote.
+                        </p>
+                    </div>
                 </Offcanvas.Header>
-                <Offcanvas.Body>
-                    <div className="d-flex flex-column gap-3">
-                        {/* Static Players */}
-                        {[
-                            { name: "Rahul Sharma", level: "B1", avatar: null },
-                            { name: "Priya Patel", level: "A", avatar: null },
-                            { name: "Amit Kumar", level: "C2", avatar: null }
-                        ].map((player, index) => (
-                            <div key={index} className="d-flex align-items-center justify-content-between p-3 border rounded-3">
-                                <div className="d-flex align-items-center gap-3">
-                                    <div
-                                        className="rounded-circle d-flex align-items-center justify-content-center"
-                                        style={{
-                                            width: 50,
-                                            height: 50,
-                                            backgroundColor: "#1F41BB",
-                                            color: "white",
-                                            fontWeight: 600,
-                                            fontSize: "18px"
-                                        }}
-                                    >
-                                        {player.name[0]}
+                <Offcanvas.Body className="pt-0">
+                    <div className="div p-0" style={{ border: "1px solid #55e77aff", borderRadius: "8px", }}>
+                        <div className="d-flex align-items-center gap-3 rounded-top p-2 " style={{ backgroundColor: "#98daa0f1", }}>
+                            <i className="bi bi-person-fill fs-4" style={{ color: "#6B7280" }} />
+                            <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
+                        </div>
+                        <div className="d-flex flex-column ">
+                            {/* Static Players */}
+                            {[
+                                { name: "Rahul Sharma", level: "B1", avatar: null, number: '999999999' },
+                                { name: "Priya Patel", level: "A", avatar: null, number: '999999999' },
+                                { name: "Amit Kumar", level: "C2", avatar: null, number: '999999999' },
+                                { name: "Shubham Rawat", level: "C1", avatar: null, number: '999999999' }
+                            ].map((player, index) => (
+                                <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
+                                    <div className="d-flex align-items-center gap-3">
+                                        <div
+                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                            style={{
+                                                width: 25,
+                                                height: 25,
+                                                backgroundColor: "#bb1f41ff",
+                                                color: "white",
+                                                fontWeight: 600,
+                                                fontSize: "12px"
+                                            }}
+                                        >
+                                            {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
+                                                {player.name}
+                                            </h6>
+                                            <p className="mb-0 text-decoration-none" style={{ fontSize: "12px", color: "#007bff", fontFamily: "Poppins", cursor: "pointer", textDecoration: "underline" }}
+                                                onClick={() => window.open(`tel:+91${player.number}`)}>
+                                                +91 {player.number}
+                                            </p>
+                                            <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                                Level: {player.level}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
-                                            {player.name}
-                                        </h6>
-                                        <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                                            Level: {player.level}
-                                        </p>
+                                    <div className="d-flex gap-2">
+                                        <i className="bi bi-check-circle-fill"
+                                            style={{ color: "#28a745", fontSize: "20px", cursor: "pointer" }}
+                                            onClick={() => {
+                                                setSelectedPlayerForAccept(player);
+                                                setShowReasonModal(true);
+                                            }}></i>
+                                        <i className="bi bi-x-circle-fill"
+                                            style={{ color: "#dc3545", fontSize: "20px", cursor: "pointer" }}
+                                            onClick={() => {
+                                                setSelectedPlayerForDecline(player);
+                                                setShowDeclineModal(true);
+                                            }}></i>
                                     </div>
                                 </div>
-                                <div className="d-flex gap-2">
-                                    <button
-                                        className="btn btn-sm btn-success"
-                                        style={{ fontSize: "12px", padding: "4px 12px" }}
-                                    >
-                                        Accept
-                                    </button>
-                                    <button
-                                        className="btn btn-sm btn-outline-danger"
-                                        style={{ fontSize: "12px", padding: "4px 12px" }}
-                                    >
-                                        Decline
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </Offcanvas.Body>
             </Offcanvas>
+
+            <Modal
+                open={showReasonModal}
+                onClose={() => setShowReasonModal(false)}
+                closeAfterTransition
+                BackdropProps={{
+                    onClick: () => setShowReasonModal(false)
+                }}
+            >
+                <Box sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: { xs: "90%", sm: "80%", md: 400 },
+                    maxWidth: "400px",
+                    bgcolor: "background.paper",
+                    p: 3,
+                    borderRadius: 2,
+                    border: "none",
+                    boxShadow: 24,
+                }}>
+                    <h6 className="text-center mb-3" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
+                        Accept Player
+                    </h6>
+
+                    {selectedPlayerForAccept && (
+                        <div className="text-center mb-3">
+                            <p style={{ fontSize: "14px", fontFamily: "Poppins" }}>
+                                Are you sure you want to accept <strong>{selectedPlayerForAccept.name}</strong>?
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="d-flex gap-3 justify-content-center">
+                        <button
+                            className="btn btn-outline-secondary"
+                            onClick={() => setShowReasonModal(false)}
+                            style={{ padding: "8px 20px", fontSize: "14px" }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="btn btn-success"
+                            onClick={() => {
+                                // Handle accept logic here
+                                setShowReasonModal(false);
+                                setSelectedPlayerForAccept(null);
+                            }}
+                            style={{ padding: "8px 20px", fontSize: "14px" }}
+                        >
+                            Accept
+                        </button>
+                    </div>
+                </Box>
+            </Modal>
+
+            <Modal
+                open={showDeclineModal}
+                onClose={() => setShowDeclineModal(false)}
+                closeAfterTransition
+                BackdropProps={{
+                    onClick: () => setShowDeclineModal(false)
+                }}
+            >
+                <Box sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: { xs: "90%", sm: "80%", md: 400 },
+                    maxWidth: "400px",
+                    bgcolor: "background.paper",
+                    p: 3,
+                    borderRadius: 2,
+                    border: "none",
+                    boxShadow: 24,
+                }}>
+                    <h6 className="text-center mb-3" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
+                        Decline Player
+                    </h6>
+
+                    {selectedPlayerForDecline && (
+                        <div className="mb-3">
+                            <p style={{ fontSize: "14px", fontFamily: "Poppins" }}>
+                                Why are you declining <strong>{selectedPlayerForDecline.name}</strong>?
+                            </p>
+                            <textarea
+                                className="form-control"
+                                rows="3"
+                                placeholder="Enter reason for declining..."
+                                value={declineReason}
+                                onChange={(e) => setDeclineReason(e.target.value)}
+                                autoFocus
+                                style={{ fontSize: "14px", fontFamily: "Poppins" }}
+                            />
+                        </div>
+                    )}
+
+                    <div className="d-flex gap-3 justify-content-center">
+                        <button
+                            className="btn btn-outline-secondary"
+                            onClick={() => {
+                                setShowDeclineModal(false);
+                                setDeclineReason("");
+                            }}
+                            style={{ padding: "8px 20px", fontSize: "14px" }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="btn btn-danger"
+                            onClick={() => {
+                                // Handle decline logic here
+                                setShowDeclineModal(false);
+                                setSelectedPlayerForDecline(null);
+                                setDeclineReason("");
+                            }}
+                            style={{ padding: "8px 20px", fontSize: "14px" }}
+                        >
+                            Decline
+                        </button>
+                    </div>
+                </Box>
+            </Modal>
 
         </>
     );

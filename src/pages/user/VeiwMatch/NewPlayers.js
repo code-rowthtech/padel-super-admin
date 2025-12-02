@@ -311,7 +311,7 @@ const NewPlayers = ({
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Gender</label>
+            <label className="form-label">Game Type</label>
             <div className="d-flex gap-3">
               {[
                 { value: "Male Only", label: "Male Only" },

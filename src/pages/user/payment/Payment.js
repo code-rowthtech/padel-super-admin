@@ -35,7 +35,6 @@ const Payment = ({ className = "" }) => {
     updateName?.phone || user?.phoneNumber || updateName?.phone ? `+91 ${user.phoneNumber}` : ""
   );
   const [email, setEmail] = useState(updateName?.email || user?.email || store?.user?.response?.email || "");
-  const [selectedPayment, setSelectedPayment] = useState("");
   const [errors, setErrors] = useState({
     name: "",
     phoneNumber: "",
@@ -93,51 +92,6 @@ const Payment = ({ className = "" }) => {
     return () => clearTimeout(timer);
   }, [errors]);
 
-  // paypal integration
-  useEffect(() => {
-    if (selectedPayment === "Paypal" && !paypalLoaded) {
-      const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "").trim();
-      loadPayPal((paypal) => {
-        if (paypal) {
-          paypalRef.current = paypal;
-          setPaypalLoaded(true);
-          paypal.Buttons({
-            createOrder: (data, actions) => {
-              return actions.order.create({
-                purchase_units: [{ amount: { value: localGrandTotal.toString(), currency_code: "USD" } }],
-              });
-            },
-            onApprove: async (data, actions) => {
-              try {
-                const payload = { /* same payload as above */ };
-
-                if (!user?.name || !user?.phoneNumber) {
-                  await dispatch(updateUser({ phoneNumber: rawPhoneNumber, name, email })).unwrap();
-                }
-
-                // Pehle payment capture → fir booking API
-                const bookingResponse = await dispatch(createBooking(payload)).unwrap();
-
-                if (bookingResponse?.success || bookingResponse?.message?.includes("created")) {
-                  setPaymentConfirmed(true);
-                  setModal(true);
-                  setLocalSelectedCourts([]);
-                } else {
-                  throw new Error("Booking failed after payment");
-                }
-              } catch (err) {
-                setErrors((prev) => ({ ...prev, general: "Payment succeeded but booking failed. Contact support." }));
-              }
-            },
-            onError: (err) => {
-              setErrors((prev) => ({ ...prev, general: "PayPal payment failed." }));
-            },
-          }).render("#paypal-button-container");
-        }
-      });
-    }
-  }, [selectedPayment, paypalLoaded, localGrandTotal, localSelectedCourts, dispatch, courtData, name, phoneNumber, email, user]);
-
   const handleDeleteSlot = (courtIndex, slotIndex) => {
     const removedSlotId = localSelectedCourts[courtIndex]?.time[slotIndex]?._id;
     if (!removedSlotId) return;
@@ -178,8 +132,7 @@ const Payment = ({ className = "" }) => {
         : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
           ? "Invalid phone number"
           : "",
-    
-      paymentMethod: !selectedPayment ? "Please select a payment method" : "",
+
     };
 
     setErrors(newErrors);
@@ -223,7 +176,7 @@ const Payment = ({ className = "" }) => {
         bookingType: "regular",
         ownerId: owner_id,
         slot: slotArray,
-        paymentMethod: selectedPayment,
+        paymentMethod: 'Gpay',
       };
 
       // First: Login if needed
@@ -349,11 +302,11 @@ const Payment = ({ className = "" }) => {
           <div className="bg-white rounded">
             {/* Info Section */}
             <div
-              className="rounded-4 py-md-4 py-2 px-3 px-md-5 mb-md-4 mb-3"
+              className="rounded-4 py-md-4 py-2 pb-3 pb-lg-1 px-3 px-md-5 h-100 mb-md-4 mb-3"
               style={{ backgroundColor: "#F5F5F566", border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none" }}
             >
-              <h6 className="mb-md-3 mb-0 custom-heading-use fw-semibold text-center text-md-start">Information</h6>
-              <div className="row">
+              <h6 className="mb-md-3 mb-0 mt-3 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start">Information</h6>
+              <div className="row d-flex justify-content-center align-tems-center">
                 <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
@@ -422,7 +375,7 @@ const Payment = ({ className = "" }) => {
 
                 <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0 ">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                    Email 
+                    Email
                   </label>
                   <input
                     type="email"
@@ -455,46 +408,7 @@ const Payment = ({ className = "" }) => {
               </div>
             </div>
 
-            {/* Payment Method Section */}
-            <div
-              className="rounded-4 py-md-4 py-2 px-3 px-md-5"
-              style={{
-                backgroundColor: "#F5F5F566",
-                border: errors.paymentMethod ? "2px solid red" : "none",
-              }}
-            >
-              <h6 className="mb-md-4 mb-3 fw-semibold custom-heading-use text-center text-md-start">
-                Payment Method
-              </h6>
-              <div className="d-flex flex-column gap-3">
-                {[
-                  { id: "Gpay", name: "Google Pay", icon: "https://img.icons8.com/color/48/google-pay.png" },
-                  { id: "Apple Pay", name: "Apple Pay", icon: "https://img.icons8.com/ios-filled/48/000000/mac-os.png" },
-                  { id: "Paypal", name: "PayPal", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.png" },
-                ].map((method) => (
-                  <label
-                    key={method.id}
-                    className="d-flex justify-content-between align-items-center py-md-3 py-2 p-3 bg-white rounded-4"
-                    style={{ boxShadow: "3px 4px 6.3px 0px #F5F5F5", }}
-                  >
-                    <div className="d-flex align-items-center gap-3">
-                      <img src={method.icon} alt={method.name} width={28} />
-                      <span className="fw-medium d-none d-lg-block" style={{fontFamily:"Poppins"}}>{method.name}</span>
-                      <span className="d-lg-none" style={{fontSize:'14px',fontFamily:"Poppins",fontWeight:"500"}}>{method.name}</span>
-                    </div>
-                    <input
-                      type="radio"
-                      name="payment"
-                      value={method.id}
-                      className="form-check-input"
-                      checked={selectedPayment === method.id}
-                      style={{ border: "4px solid #4D4DFF", width: "20px", height: "20px", boxShadow: "none" }}
-                      onChange={(e) => setSelectedPayment(e.target.value)}
-                    />
-                  </label>
-                ))}
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -948,7 +862,6 @@ const Payment = ({ className = "" }) => {
       </Modal>
 
       {/* PayPal Container (hidden unless PayPal selected) */}
-      <div id="paypal-button-container" style={{ display: selectedPayment === "Paypal" ? "block" : "none" }}></div>
     </div>
   );
 };

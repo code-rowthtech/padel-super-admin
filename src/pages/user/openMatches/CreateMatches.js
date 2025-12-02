@@ -1185,10 +1185,10 @@ const CreateMatches = () => {
                           }
                           @keyframes slideTextLeftToRight {
                             0% {
-                              transform: translateY(-50%) translateX(-100%);
+                              transform: translateY(-50%) translateX(100%);
                             }
                             100% {
-                              transform: translateY(-50%) translateX(100%);
+                              transform: translateY(-50%) translateX(-100%);
                             }
                           }
                         `}</style>
