@@ -5,9 +5,9 @@ import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
 import {
   updateOwner,
-  getLogo,
+  updateRegisteredClub,
+  getOwnerRegisteredClub,
   createLogo,
-  updateLogo,
 } from "../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
@@ -17,7 +17,14 @@ const Profile = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { authLoading } = useSelector((state) => state.ownerAuth);
-  const { getLogoData, getLogoLoading } = useSelector((state) => state?.logo);
+  const { getClubData, ownerClubLoading } = useSelector(
+    (state) => state?.manualBooking
+  );
+
+  console.log("ownerClubLoading", ownerClubLoading);
+  const statedate = useSelector(
+    (state) => state.manualBooking?.ownerClubData?.[0]?.logo
+  );
   const ownerId = user?._id || user?.generatedBy;
   const [clubLogo, setClubLogo] = useState(null);
 
@@ -34,18 +41,18 @@ const Profile = () => {
     email: user?.email,
     phone: user?.phoneNumber,
     dob: formatDateForInput(user?.dob),
-    location: "Chandigarh",
-    gender: user?.gender,
+    city: user?.city || "",
+    // gender: user?.gender || "",
     profileImage: user?.profilePic,
   });
 
   useEffect(() => {
-    dispatch(getLogo({ ownerId: ownerId }));
+    dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
   }, [dispatch, ownerId]);
 
   useEffect(() => {
-    setClubLogo(getLogoData?.logo?.logo?.[0] || null);
-  }, [getLogoData?.logo?._id]);
+    setClubLogo(statedate || null);
+  }, [statedate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,10 +80,18 @@ const Profile = () => {
 
       const formData = new FormData();
       formData.append("ownerId", ownerId);
-      formData.append("image", file);
+      formData.append("logo", file);
 
-      if (getLogoData?.logo?._id) {
-        dispatch(updateLogo(formData));
+      if (statedate) {
+        // dispatch(updateLogo(formData));
+        dispatch(updateRegisteredClub(formData))
+          .unwrap()
+          .then((res) => {
+            console.log({ res });
+            if (res?.message === "res") {
+              dispatch(getOwnerRegisteredClub({ ownerId }));
+            }
+          });
       } else {
         dispatch(createLogo(formData));
       }
@@ -105,13 +120,15 @@ const Profile = () => {
     payload.append("name", formData.fullName);
     payload.append("email", formData.email);
     payload.append("phoneNumber", formData.phone);
-    if (formData.dob) {
-      payload.append("dob", formData.dob);
-    }
+    // if (formData.dob) {
+    //   payload.append("dob", formData.dob);
+    // }
 
-    payload.append("location[coordinates][0]", "50.90");
-    payload.append("location[coordinates][1]", "80.09");
-    payload.append("gender", formData.gender);
+    // payload.append("location[coordinates][0]", "50.90");
+    // payload.append("location[coordinates][1]", "80.09");
+
+    if (formData.city) payload.append("city", formData.city);
+    // if (formData.gender) payload.append("gender", formData.gender);
 
     if (
       formData.profileImage &&
@@ -153,7 +170,7 @@ const Profile = () => {
           style={{ marginTop: "-80px" }}
         >
           <div className="position-relative me-3">
-            {getLogoLoading ? (
+            {ownerClubLoading ? (
               <DataLoading height="100px" color="#ca60ad" />
             ) : (
               <>
@@ -312,8 +329,8 @@ const Profile = () => {
             <label className="form-label">Location / City</label>
             <input
               type="text"
-              name="location"
-              value={formData.location}
+              name="city"
+              value={formData.city}
               onChange={handleChange}
               className="form-control"
             />
