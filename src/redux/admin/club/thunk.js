@@ -93,7 +93,6 @@ export const updateCourt = createAsyncThunk(
   }
 );
 
-
 export const getClubRegister = createAsyncThunk(
   "club/getClubRegister",
   async (data, { rejectWithValue }) => {

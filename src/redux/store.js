@@ -18,10 +18,9 @@ import { review } from "../assets/files";
 import { use } from "react";
 import notificationDataReducer from "./admin/notifiction/slice";
 import userNotificationDataReducer from "./user/notifiction/slice";
-import searchUserByNumberReducer  from "./admin/searchUserbynumber/slice";
+import searchUserByNumberReducer from "./admin/searchUserbynumber/slice";
 const store = configureStore({
   reducer: {
-
     ownerAuth: ownerAuthReducer,
     club: clubReducer,
     manualBooking: manualBookingReducer,
