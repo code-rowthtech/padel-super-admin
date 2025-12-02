@@ -359,7 +359,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
 
     return (
         <>
-            <div className=" rounded-3 px-md-3 px-0 py-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
+            <div className=" rounded-3 px-md-3 px-0 py-md-2 pt-0 pb-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
                     <div className="d-flex align-items-center gap-2">
                         {onBack && (
@@ -385,7 +385,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             <i className="bi bi-share" />
                         </button>
                         <button
-                            className="btn rounded-circle p-2 d-flex align-items-center justify-content-center text-white"
+                            className="btn rounded-circle p-2 align-items-center justify-content-center text-white d-none d-md-flex"
                             style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
                         >
                             <i className="bi bi-chat-left-text" />
@@ -489,7 +489,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                         <div className="col py-2">
                             <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: '20px', fontWeight: "500", color: '#1F41BB' }}>
+                            <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
                                 ₹{" "}
                                 {Math.round(
                                     (matchesData?.data?.slot?.reduce((total, court) => {
@@ -518,7 +518,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                     </div>
                     <div className="d-flex align-items-center">
-                        <span className="badge bg-primary rounded-pill" style={{ fontSize: "10px" }}>3</span>
+                        <span className="badge bg-primary rounded-pill d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "20px", height: "20px", }}>3</span>
                         <i className="bi bi-chevron-right ms-2" style={{ color: "#6B7280" }} />
                     </div>
                 </div>
@@ -577,14 +577,13 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                     </div>
                 </div>
-
-                <div>
-                    <h6 className="mb-md-3 mb-2 mt-4 all-matches" style={{ color: "#374151" }}>
+                <div className="d-flex justify-content-between align-items-center mt-4">
+                    <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
                         Information
                     </h6>
-
                 </div>
-                <div className="d-lg-flex gap-2">
+
+                <div className="d-lg-flex gap-2 position-relative">
                     <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
                         <div>
@@ -611,8 +610,25 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             </p>
                         </div>
                     </div>
-                </div>
+                      <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
+                    <button
+                        className="d-flex align-items-center gap-2 border-0 py-1"
+                        style={{
+                            background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
+                            borderRadius: "25px",
+                            padding: "8px 16px",
+                            color: "#fff",
+                            fontWeight: 600,
+                        }}
+                    // onClick={() => setShowChat(true)}
+                    >
+                        <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
+                        Chat
+                    </button>
 
+                </div>
+                </div>
+              
 
             </div>
 

@@ -1131,7 +1131,7 @@ const CreateMatches = () => {
                       ) && (
                           <>
                             <div className="row mb-md-2 mb-0">
-                              <div className="col-12">
+                              <div className="col-12 mb-2">
                                 <div className="div p-3 animation-slider">
                                 </div>
                               </div>
@@ -1148,14 +1148,14 @@ const CreateMatches = () => {
                         )}
                       <div
                         style={{
-                          maxHeight: "60vh",
+                          // maxHeight: "60vh",
                           overflowY: "auto",
                           overflowX: "hidden",
                           paddingRight: "8px",
                           msOverflowStyle: "none",
                           scrollbarWidth: "none",
                         }}
-                        className="hide-scrollbar"
+                        className="hide-scrollbar mention_height_court"
                       >
                         <style>{`
                           .hide-scrollbar::-webkit-scrollbar {

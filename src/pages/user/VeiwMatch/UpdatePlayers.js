@@ -223,7 +223,7 @@ console.log({playerLevels});
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
               <span className="input-group-text border-0 border-end bg-white" style={{fontSize:"11px"}}>
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} /> +91
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" /> +91
               </span>
               <input
                 type="text"
@@ -328,7 +328,8 @@ console.log({playerLevels});
             <Button
               variant="outlined"
               onClick={() => setShowModal(false)}
-              sx={{ borderColor: "#001B76", color: "#001B76" }}
+              sx={{ borderColor: "#001B76", color: "#001B76",width:"25%" }}
+               className="py-1 font_size_mobile_button"
             >
               Cancel
             </Button>
@@ -339,7 +340,9 @@ console.log({playerLevels});
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 color: "white",
                 "&:hover": { background: "#001B76" },
+                width:"25%",
               }}
+               className="py-1 font_size_mobile_button"
             >
               {loading ? <ButtonLoading color="white" /> : "Add "}
             </Button>
