@@ -214,7 +214,7 @@ const VerifyOTP = () => {
                 }}
               >
                 {userAuthLoading ? (
-                  <DataLoading />
+                  <ButtonLoading />
                 ) : (
                   otp.map((digit, index) => (
                     <Form.Control

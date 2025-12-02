@@ -64,7 +64,7 @@ export const addPlayers = createAsyncThunk(
       return res?.data;
     } catch (error) {
       showError(error);
-      return rejectWithValue(error)
+      // return rejectWithValue(error)
     }
   }
 )
