@@ -335,11 +335,24 @@ const Home = () => {
               >
                 <div className="mb-md-4 mb-2 pt-md-1 pt-3   d-md-flex d-none flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-md-3 gap-1">
                   <div className="mb-2 mt-lg-4 mb-lg-0 flex-shrink-0">
-                    <Avatar>
+                    {/* <Avatar>
                       {clubData?.clubName
                         ? clubData.clubName.charAt(0).toUpperCase()
                         : "User"}
-                    </Avatar>
+                    </Avatar> */}
+                    <div className="logo_add_star bg-white py-1" style={{ borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}>
+                      <img
+                        src={logo || 'Courtline'}
+                        alt="Courtline"
+                        style={{
+                          width: "45px",
+                          height: "45px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                        className="me-1"
+                      />
+                    </div>
                   </div>
                   <div className="flex-shrink-0 mt-lg-3">
                     <h5
@@ -868,7 +881,7 @@ const Home = () => {
           )}
         </div>
 
-       
+
       </div>
       <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-none d-block px-1">
         <div
