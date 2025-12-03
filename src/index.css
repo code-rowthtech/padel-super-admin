@@ -1,7 +1,3 @@
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -9,9 +5,6 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  overflow-y: auto;
-  position: relative;
 }
 
 code {
@@ -31,17 +24,6 @@ code {
 * {
   scrollbar-width: none;
   /* Hide scrollbar */
-  box-sizing: border-box;
-}
-
-/* Ensure proper page scrolling */
-html, body {
-  scroll-behavior: smooth;
-}
-
-/* Fix any potential scroll issues */
-.container-fluid, .container {
-  overflow-x: hidden;
 }
 
 
@@ -834,30 +816,14 @@ h1.display-5 {
 .form-control::placeholder {
   font-weight: 400;
   font-family: "Poppins";
-  font-size: 16px;
+  font-size: 14px;
   color: #d9d9d9;
-}
-
-@media (max-width: 768px) {
-  .form-control::placeholder {
-    font-size: 16px !important;
-  }
 }
 
 .form-control {
   font-weight: 300;
   font-family: "Poppins";
-  font-size: 16px;
-}
-
-.opt-input {
-  font-size: 24px !important;
-}
-
-@media (max-width: 768px) {
-  .form-control:not(.opt-input) {
-    font-size: 16px !important;
-  }
+  font-size: 14px;
 }
 
 .all-match-time {
@@ -1351,7 +1317,7 @@ h1.display-5 {
 
   /* Search inputs responsive */
   .form-control {
-    font-size: 16px !important;
+    font-size: 12px !important;
   }
 
   .react-datepicker-wrapper {

@@ -314,19 +314,14 @@ const Navbar = () => {
                         </ul>
                     </div>
 
-                    <div className="d-lg-none position-absolute" style={{ right: "15px", top: "50%", transform: "translateY(-50%)", zIndex: 1051 }}>
+                    <div className="d-lg-none position-absolute" style={{ right: "15px", top: "50%", transform: "translateY(-50%)", zIndex: 1001 }}>
                         <button
-                            className="btn border-0 bg-transparent p-2 hamburger-btn"
+                            className="btn ps-5 pe-0 border-0 bg-transparent"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
+                                console.log('Hamburger clicked');
                                 setShowOffcanvas(true);
-                            }}
-                            onTouchStart={(e) => {
-                                e.currentTarget.style.transform = "scale(0.95)";
-                            }}
-                            onTouchEnd={(e) => {
-                                e.currentTarget.style.transform = "scale(1)";
                             }}
                             style={{
                                 minWidth: "48px",
@@ -335,13 +330,9 @@ const Navbar = () => {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 WebkitTapHighlightColor: "transparent",
-                                border: "1px solid #ddd !important",
+                                border: "1px solid #ddd",
                                 borderRadius: "8px",
-                                backgroundColor: "rgba(255,255,255,0.95)",
-                                cursor: "pointer",
-                                touchAction: "manipulation",
-                                userSelect: "none",
-                                transition: "transform 0.1s ease"
+                                backgroundColor: "rgba(255,255,255,0.9)"
                             }}
                             aria-label="Open menu"
                             type="button"
@@ -491,65 +482,63 @@ const Navbar = () => {
                                         </div>
                                     )}
                                 </div>
-                                <div style={{ position: 'relative', zIndex: 9999 }}>
-                                    <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)} drop="down">
-                                        <Dropdown.Toggle
-                                            variant="white"
-                                            className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
-                                        >
-                                            {/* Profile for all screens */}
-                                            <div className="d-flex align-items-center gap-2">
-                                                <img
-                                                    src={User?.user?.response?.profilePic || updateName?.profile || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                                                    alt="user"
-                                                    className="rounded-circle"
-                                                    width="40"
-                                                    height="40"
-                                                    loading="lazy"
-                                                />
-                                                <div className="text-start d-none d-lg-block">
-                                                    <div className="fw-semibold" style={{ textTransform: "capitalize" }}>
-                                                        {store?.user?.response?.name
-                                                            ? store?.user?.response?.name.charAt(0).toUpperCase() + store?.user?.response?.name.slice(1)
-                                                            : initialFormData?.fullName || 'User'}
+                                <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
+                                    <Dropdown.Toggle
+                                        variant="white"
+                                        className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
+                                    >
+                                        {/* Profile for all screens */}
+                                        <div className="d-flex align-items-center gap-2">
+                                            <img
+                                                src={User?.user?.response?.profilePic || updateName?.profile || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                                alt="user"
+                                                className="rounded-circle"
+                                                width="40"
+                                                height="40"
+                                                loading="lazy"
+                                            />
+                                            <div className="text-start d-none d-lg-block">
+                                                <div className="fw-semibold" style={{ textTransform: "capitalize" }}>
+                                                    {store?.user?.response?.name
+                                                        ? store?.user?.response?.name.charAt(0).toUpperCase() + store?.user?.response?.name.slice(1)
+                                                        : initialFormData?.fullName || 'User'}
 
-                                                    </div>
-                                                    <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
                                                 </div>
-                                                <FaChevronDown className="ms-2 text-muted d-none d-lg-block" />
+                                                <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
                                             </div>
-                                        </Dropdown.Toggle>
+                                            <FaChevronDown className="ms-2 text-muted d-none d-lg-block" />
+                                        </div>
+                                    </Dropdown.Toggle>
 
-                                        <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
-                                            <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
-                                                <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
-                                            </Dropdown.Item>
+                                    <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
+                                            <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
+                                        </Dropdown.Item>
 
-                                            <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
-                                                <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
-                                            </Dropdown.Item>
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
+                                            <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
+                                        </Dropdown.Item>
 
-                                            <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/support">
-                                                <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
-                                            </Dropdown.Item>
+                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/support">
+                                            <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
+                                        </Dropdown.Item>
 
-                                            <Dropdown.Item
-                                                className='mb-2 d-flex align-items-center'
-                                                onClick={() => {
-                                                    dispatch(logoutUser());
-                                                    localStorage.removeItem('padel_user');
-                                                    localStorage.removeItem('logo');
-                                                    localStorage.removeItem('updateprofile');
-                                                    setUserData(null);
-                                                    navigate('/home');
-                                                }}
-                                            >
-                                                <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
-                                            </Dropdown.Item>
-                                        </Dropdown.Menu>
+                                        <Dropdown.Item
+                                            className='mb-2 d-flex align-items-center'
+                                            onClick={() => {
+                                                dispatch(logoutUser());
+                                                localStorage.removeItem('padel_user');
+                                                localStorage.removeItem('logo');
+                                                localStorage.removeItem('updateprofile');
+                                                setUserData(null);
+                                                navigate('/home');
+                                            }}
+                                        >
+                                            <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
+                                        </Dropdown.Item>
+                                    </Dropdown.Menu>
 
-                                    </Dropdown>
-                                </div>
+                                </Dropdown>
                             </>
 
                         ) : (
@@ -574,8 +563,6 @@ const Navbar = () => {
                 backdrop={true}
                 keyboard={true}
                 scroll={false}
-                enforceFocus={false}
-                restoreFocus={false}
             >
                 <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2 py-2">
                     <Offcanvas.Title className="d-flex align-items-center gap-3">
