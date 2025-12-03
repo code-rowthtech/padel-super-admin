@@ -491,63 +491,65 @@ const Navbar = () => {
                                         </div>
                                     )}
                                 </div>
-                                <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)} drop="down">
-                                    <Dropdown.Toggle
-                                        variant="white"
-                                        className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
-                                    >
-                                        {/* Profile for all screens */}
-                                        <div className="d-flex align-items-center gap-2">
-                                            <img
-                                                src={User?.user?.response?.profilePic || updateName?.profile || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                                                alt="user"
-                                                className="rounded-circle"
-                                                width="40"
-                                                height="40"
-                                                loading="lazy"
-                                            />
-                                            <div className="text-start d-none d-lg-block">
-                                                <div className="fw-semibold" style={{ textTransform: "capitalize" }}>
-                                                    {store?.user?.response?.name
-                                                        ? store?.user?.response?.name.charAt(0).toUpperCase() + store?.user?.response?.name.slice(1)
-                                                        : initialFormData?.fullName || 'User'}
-
-                                                </div>
-                                                <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
-                                            </div>
-                                            <FaChevronDown className="ms-2 text-muted d-none d-lg-block" />
-                                        </div>
-                                    </Dropdown.Toggle>
-
-                                    <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px", zIndex: 1040, position: 'absolute', top: '100%' }}>
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
-                                            <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
-                                        </Dropdown.Item>
-
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
-                                            <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
-                                        </Dropdown.Item>
-
-                                        <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/support">
-                                            <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
-                                        </Dropdown.Item>
-
-                                        <Dropdown.Item
-                                            className='mb-2 d-flex align-items-center'
-                                            onClick={() => {
-                                                dispatch(logoutUser());
-                                                localStorage.removeItem('padel_user');
-                                                localStorage.removeItem('logo');
-                                                localStorage.removeItem('updateprofile');
-                                                setUserData(null);
-                                                navigate('/home');
-                                            }}
+                                <div style={{ position: 'relative', zIndex: 9999 }}>
+                                    <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)} drop="down">
+                                        <Dropdown.Toggle
+                                            variant="white"
+                                            className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
                                         >
-                                            <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
-                                        </Dropdown.Item>
-                                    </Dropdown.Menu>
+                                            {/* Profile for all screens */}
+                                            <div className="d-flex align-items-center gap-2">
+                                                <img
+                                                    src={User?.user?.response?.profilePic || updateName?.profile || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                                    alt="user"
+                                                    className="rounded-circle"
+                                                    width="40"
+                                                    height="40"
+                                                    loading="lazy"
+                                                />
+                                                <div className="text-start d-none d-lg-block">
+                                                    <div className="fw-semibold" style={{ textTransform: "capitalize" }}>
+                                                        {store?.user?.response?.name
+                                                            ? store?.user?.response?.name.charAt(0).toUpperCase() + store?.user?.response?.name.slice(1)
+                                                            : initialFormData?.fullName || 'User'}
 
-                                </Dropdown>
+                                                    </div>
+                                                    <div className="text-muted small">+91 {User?.user?.response?.phoneNumber || userData?.phoneNumber || initialFormData?.phoneNumber || 'N/A'}</div>
+                                                </div>
+                                                <FaChevronDown className="ms-2 text-muted d-none d-lg-block" />
+                                            </div>
+                                        </Dropdown.Toggle>
+
+                                        <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                            <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
+                                                <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
+                                            </Dropdown.Item>
+
+                                            <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/booking-history">
+                                                <MdOutlineDateRange size={20} style={{ minWidth: "24px" }} className="me-2" /> My Booking
+                                            </Dropdown.Item>
+
+                                            <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/support">
+                                                <FaHeadphones size={20} style={{ minWidth: "24px" }} className="me-2" /> Help & Support
+                                            </Dropdown.Item>
+
+                                            <Dropdown.Item
+                                                className='mb-2 d-flex align-items-center'
+                                                onClick={() => {
+                                                    dispatch(logoutUser());
+                                                    localStorage.removeItem('padel_user');
+                                                    localStorage.removeItem('logo');
+                                                    localStorage.removeItem('updateprofile');
+                                                    setUserData(null);
+                                                    navigate('/home');
+                                                }}
+                                            >
+                                                <IoIosLogOut size={20} style={{ minWidth: "24px" }} className="me-2" /> Logout
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+
+                                    </Dropdown>
+                                </div>
                             </>
 
                         ) : (
