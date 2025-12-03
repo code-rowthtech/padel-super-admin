@@ -146,11 +146,7 @@ const CourtAvailability = () => {
       }
     }
 
-    const isUnavailableForThisCourt =
-      slot?.courtIdsForSlot?.includes(selectedCourt);
-    const slotStatus = isUnavailableForThisCourt
-      ? slot?.availabilityStatus
-      : "available";
+    const slotStatus = "available";
 
     let newCourtSlots = exists
       ? courtSlots.filter((s) => s.slot._id !== slot._id)
@@ -216,7 +212,7 @@ const CourtAvailability = () => {
 
   useEffect(() => {
     dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
-  }, []);
+  }, [dispatch, ownerId]);
 
   useEffect(() => {
     if (ownerClubData?.[0]?._id && selectedCourt === "all") {
@@ -247,7 +243,7 @@ const CourtAvailability = () => {
   useEffect(() => {
     if (activeCourtsData?.allCourts?.[0]?.court) {
       setAllCourtsList(activeCourtsData.allCourts[0].court);
-    } else if (activeCourtsData?.data && allCourtsList.length === 0) {
+    } else if (activeCourtsData?.data) {
       setAllCourtsList(activeCourtsData.data);
     }
   }, [activeCourtsData]);
@@ -651,11 +647,7 @@ const CourtAvailability = () => {
                                 slotDate.toDateString() === now.toDateString();
                               const isPast =
                                 isSameDay && slotDate.getTime() < now.getTime();
-                              return (
-                                !isPast &&
-                                !s?.courtIdsForSlot?.includes(court._id) &&
-                                s?.status !== "booked"
-                              );
+                              return !isPast && s?.status !== "booked";
                             })
                             .map((s) => s.time);
                           if (availableSlots.length > 0) {
@@ -728,9 +720,7 @@ const CourtAvailability = () => {
                             isSameDay && slotDate.getTime() < now.getTime();
                           if (isPast) return false;
                           if (slot?.status === "booked") return false;
-                          const isUnavailableForThisCourt =
-                            slot?.courtIdsForSlot?.includes(court._id);
-                          return !isUnavailableForThisCourt;
+                          return slot?.status === "available";
                         });
 
                         return (
@@ -780,11 +770,8 @@ const CourtAvailability = () => {
                                   const isSelected = courtSelectedSlots.some(
                                     (t) => t?.slot?._id === slot?._id
                                   );
-                                  const isUnavailableForThisCourt =
-                                    slot?.courtIdsForSlot?.includes(court._id);
-                                  const status = isUnavailableForThisCourt
-                                    ? slot?.availabilityStatus
-                                    : "available";
+                                  const status =
+                                    slot?.availabilityStatus || "available";
                                   const isBooked = slot?.status === "booked";
                                   const isDisabled = isPast || isBooked;
                                   const tooltipText = isPast
@@ -816,10 +803,7 @@ const CourtAvailability = () => {
                                             const exists = courtSlots.some(
                                               (s) => s.slot._id === slot._id
                                             );
-                                            const slotStatus =
-                                              isUnavailableForThisCourt
-                                                ? slot?.availabilityStatus
-                                                : "available";
+                                            const slotStatus = "available";
                                             let newCourtSlots = exists
                                               ? courtSlots.filter(
                                                   (s) => s.slot._id !== slot._id
@@ -946,9 +930,7 @@ const CourtAvailability = () => {
                           isSameDay && slotDate.getTime() < now.getTime();
                         if (isPast) return false;
                         if (slot?.status === "booked") return false;
-                        const isUnavailableForThisCourt =
-                          slot?.courtIdsForSlot?.includes(selectedCourt);
-                        return !isUnavailableForThisCourt;
+                        return slot?.status === "available";
                       });
 
                       return filteredSlotTimes?.length === 0 ? (
@@ -982,11 +964,8 @@ const CourtAvailability = () => {
                               (t) => t?.slot?._id === slot?._id
                             );
 
-                            const isUnavailableForThisCourt =
-                              slot?.courtIdsForSlot?.includes(selectedCourt);
-                            const status = isUnavailableForThisCourt
-                              ? slot?.availabilityStatus
-                              : "available";
+                            const status =
+                              slot?.availabilityStatus || "available";
                             const isBooked = slot?.status === "booked";
                             const isDisabled = isPast || isBooked;
 
