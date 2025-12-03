@@ -96,7 +96,23 @@ const OpenmatchPayment = () => {
     );
     const [addedPlayers, setAddedPlayers] = useState(() => {
         const saved = localStorage.getItem("addedPlayers");
-        return saved ? JSON.parse(saved) : {};
+        if (saved) {
+            const players = JSON.parse(saved);
+            // Ensure unique IDs for existing players
+            const updatedPlayers = {};
+            Object.keys(players).forEach(slot => {
+                if (players[slot]) {
+                    updatedPlayers[slot] = {
+                        ...players[slot],
+                        _id: players[slot]._id?.includes('_') ? players[slot]._id : `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                    };
+                }
+            });
+            // Update localStorage with unique IDs
+            localStorage.setItem("addedPlayers", JSON.stringify(updatedPlayers));
+            return updatedPlayers;
+        }
+        return {};
     });
 
     useEffect(() => {
@@ -146,11 +162,15 @@ const OpenmatchPayment = () => {
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
 
+    console.log('finalAddedPlayers:', finalAddedPlayers);
+    
     const teamA = [User?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
     const teamB = [
         finalAddedPlayers.slot3?._id,
         finalAddedPlayers.slot4?._id,
     ].filter(Boolean);
+    
+    console.log('teamA:', teamA,teamB);
 
 
     useEffect(() => {
