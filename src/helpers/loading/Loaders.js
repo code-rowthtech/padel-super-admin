@@ -27,7 +27,7 @@ export const DataLoading = ({ color, height }) => {
       style={{ height: height }}
     >
       <div className="loader"></div>
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{__html: `
         .loader {
           width: 48px;
           height: 48px;
@@ -92,7 +92,7 @@ export const DataLoading = ({ color, height }) => {
             transform: scale(1.2, 1);
           }
         }
-      `}</style>
+      `}} />
     </div>
   );
 };

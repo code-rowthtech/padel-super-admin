@@ -28,7 +28,7 @@ const Payment = ({ className = "" }) => {
 
   const bookingStatus = useSelector((state) => state?.userBooking);
   const userLoading = useSelector((state) => state?.userAuth);
-  const logo = JSON.parse(localStorage.getItem("logo"));
+  const logo = clubData?.logo;
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
   const [name, setName] = useState(user?.name || updateName?.fullName || store?.user?.response?.name || "");
   const [phoneNumber, setPhoneNumber] = useState(
@@ -826,7 +826,7 @@ const Payment = ({ className = "" }) => {
                     />
                   </g>
                 </svg>
-                <div style={contentStyle}>  {bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
+                <div style={contentStyle}>  {bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Pay Now"}</div>
               </button>
             </div>
           </div>

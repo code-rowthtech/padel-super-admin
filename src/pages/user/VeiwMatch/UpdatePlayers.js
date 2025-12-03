@@ -11,6 +11,7 @@ import {
 import { showSuccess } from "../../../helpers/Toast";
 import Select from "react-select";
 import { getPlayerLevel, getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 const modalStyle = {
   position: "absolute",
@@ -35,10 +36,12 @@ const UpdatePlayers = ({
   setShowModal,
   selectedDate,
   selectedTime,
-  selectedLevel,
-  match, skillLevel, setPlayerLevels, playerLevels,
+  selectedLevel,matchesData,
+  playerLevels,
 }) => {
   const dispatch = useDispatch();
+  const User = getUserFromSession();
+  console.log('matchesDatamatchesData',matchesData);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -46,16 +49,14 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
-  console.log({ playerLevels });
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
-   const authData = useSelector((state) => state.userAuth);
-console.log({authData});
+  const authData = useSelector((state) => state.userAuth);
   const getPlayerLevelsLoading = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
-    const playererror = useSelector(
+  const playererror = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
   const isGenderDisabled = (optionGender) => {
@@ -84,8 +85,9 @@ console.log({authData});
     if (name === "name" && !value.trim()) return "Name is required";
     if (name === "email" && value.trim() && !/^\S+@\S+\.\S+$/.test(value)) return "Enter a valid email";
     if (name === "phoneNumber") {
-      if (!value) return "Phone number is required";
-      if (!/^[6-9]\d{9}$/.test(value)) return "Invalid phone number";
+      const isMatchCreator = matchId?.teamA?.[0]?.userId?._id === User?._id;
+      if (!isMatchCreator && !value) return "Phone number is required";
+      if (value && !/^[6-9]\d{9}$/.test(value)) return "Invalid phone number";
     }
     if (name === "level" && !value) return "Please select a level";
     return "";
@@ -115,7 +117,7 @@ console.log({authData});
       return;
     }
 
- 
+
     dispatch(Usersignup(formData))
       .unwrap()
       .then((res) => {
@@ -223,7 +225,7 @@ console.log({authData});
 
           <div className="mb-3">
             <label className="form-label">
-              Phone No <span className="text-danger">*</span>
+              Phone No {matchId?.teamA?.[0]?.userId?._id !== User?._id && <span className="text-danger">*</span>}
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
               <span className="input-group-text border-0 border-end bg-white" style={{ fontSize: "11px" }}>
@@ -320,7 +322,7 @@ console.log({authData});
                   onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt?.value }))}
                   placeholder="Choose level"
                   classNamePrefix="select"
-                  maxMenuHeight={250}
+                  maxMenuHeight={200}                    // ← Yeh kaam karega
                   menuPortalTarget={document.body}
                   styles={{
                     control: (base) => ({
@@ -329,16 +331,30 @@ console.log({authData});
                       boxShadow: "none",
                       cursor: "pointer",
                     }),
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    menu: (base) => ({ ...base, maxHeight: 150, overflowY: 'auto' })
+                    menuPortal: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                    // ← Yeh line sabse important hai
+                    menu: (provided) => ({
+                      ...provided,
+                      maxHeight: 100,              // maxMenuHeight ke barabar ya thoda zyada
+                      overflowY: 'auto',           // scroll enable
+                      position: 'relative',        // important for portal
+                    }),
+                    menuList: (provided) => ({
+                      ...provided,
+                      maxHeight: 100,              // menuList ko bhi height do
+                      overflowY: 'auto',           // yahan scroll aayega
+                      paddingTop: 0,
+                      paddingBottom: 0,
+                    }),
                   }}
+                  // Optional: agar caret hide karna hai
                   components={{
-                    Input: (props) => <div {...props} style={{ ...props.style, caretColor: 'transparent' }} />
-                  }}
-                  onMenuOpen={() => {
-                    if (document.activeElement) {
-                      document.activeElement.blur();
-                    }
+                    DropdownIndicator: () => null,
+                    IndicatorSeparator: () => null,
+                    // caret transparent karne ke liye (agar searchable=false hai toh Input ki zarurat nahi)
                   }}
                 />
               )}

@@ -96,7 +96,7 @@ const MatchPlayer = ({
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
 
-    const [userName, setUserName] = useState(User?.name);
+    const [userName, setUserName] = useState(User?.name || "");
 
 
     console.log({ userName });
@@ -107,11 +107,13 @@ const MatchPlayer = ({
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
                 const firstAnswer = result?.response?.level;
+                console.log({ result });
                 setDefaultSkillLevel(result?.response?.skillLevel || "Open Match");
                 setDefaultLevel(firstAnswer);
-                setUserName(result?.response?.name);
+                setUserName(result?.response?.name || User?.name || "");
                 setProfileFetched(true);
             } catch (err) {
+                setUserName(User?.name || "");
                 setProfileFetched(true);
             }
         };
@@ -125,7 +127,7 @@ const MatchPlayer = ({
         } else if (!hasCalledProfile.current) {
             fetchData();
         }
-    }, []);
+    }, [dispatch, User?.name]);
 
     useEffect(() => {
         const syncFromStorage = () => {
@@ -344,7 +346,7 @@ const MatchPlayer = ({
 
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
-
+                setUserName(result?.response?.name || User?.name || "");
                 const firstAnswer = result?.response?.skillLevel;
                 if (firstAnswer) {
                     const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
@@ -387,17 +389,19 @@ const MatchPlayer = ({
                             className="btn btn-light rounded-circle p-2 border shadow-sm"
                             style={{ width: 36, height: 36 }}
                             onClick={() => setShowShareDropdown((p) => !p)}
+                            disabled
                         >
                             <i className="bi bi-share d-flex justify-content-center align-items-center"></i>
                         </button>
                         <button
                             className="btn rounded-circle p-2 text-white"
                             style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
+                            disabled
                         >
                             <i className="bi bi-chat-left-text d-flex justify-content-center align-items-center"></i>
                         </button>
 
-                        {showShareDropdown && (
+                        {/* {showShareDropdown && (
                             <div
                                 className="position-absolute bg-white border rounded shadow-sm"
                                 style={{ top: "40px", right: 0, zIndex: 1000, minWidth: "120px" }}
@@ -465,7 +469,7 @@ const MatchPlayer = ({
                                     WhatsApp
                                 </button>
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </div>
 
@@ -505,7 +509,7 @@ const MatchPlayer = ({
                             </p>
                             <div className="d-flex justify-content-center">
                                 <select
-                                    className="form-select add_font_mobile p-0 gap-0 form-select-sm border-0 shadow-none text-center px-3 pe-5 py-1"
+                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm border-0 shadow-none text-center px-3 ${selectedGender === '' ? 'pe-3' : 'pe-5'} py-1`}
                                     style={{
                                         fontSize: "15px",
                                         fontWeight: "500",
@@ -528,10 +532,10 @@ const MatchPlayer = ({
                                     }}
                                     required
                                 >
-                                    <option className="add_font_mobile" value="">Select </option>
-                                    <option value="Male Only">Male Only</option>
-                                    <option value="Female Only">Female Only</option>
-                                    <option value="Mixed Double">Mixed Double</option>
+                                    <option className="add_font_mobile " value="">Select </option>
+                                    <option className="add_font_mobile" value="Male Only">Male Only</option>
+                                    <option className="add_font_mobile" value="Female Only">Female Only</option>
+                                    <option className="add_font_mobile" value="Mixed Double">Mixed Double</option>
                                 </select>
                             </div>
                             {genderError && (

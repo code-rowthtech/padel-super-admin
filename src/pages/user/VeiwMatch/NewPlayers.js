@@ -28,7 +28,7 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender, defaultSkillLevel,profileLoading
+  userSkillLevel, selectedGender, defaultSkillLevel, profileLoading
 }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -92,9 +92,7 @@ const NewPlayers = ({
     //   newErrors.email = "Enter a valid email";
     // }
 
-    if (!formData.phoneNumber) {
-      newErrors.phoneNumber = "Phone number is required";
-    } else if (!/^[6-9]\d{9}$/.test(formData.phoneNumber)) {
+    if (formData.phoneNumber && !/^[6-9]\d{9}$/.test(formData.phoneNumber)) {
       newErrors.phoneNumber = "Must be 10 digits, start with 6-9";
     }
 
@@ -250,10 +248,10 @@ const NewPlayers = ({
 
           <div className="mb-3">
             <label className="form-label">
-              Phone No <span className="text-danger">*</span>
+              Phone No
             </label>
             <div className="input-group border rounded">
-              <span className="input-group-text border-0 p-2 bg-white" style={{fontSize:"11px"}}>
+              <span className="input-group-text border-0 p-2 bg-white" style={{ fontSize: "11px" }}>
                 <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" />{" "}
                 +91
               </span>
@@ -354,34 +352,41 @@ const NewPlayers = ({
               ) : (
                 <Select
                   options={levelOptions}
-                  value={levelOptions.find((o) => o.value === formData.level) || null}
-                  onChange={(opt) => handleInputChange("level", opt?.value || "")}
+                  isSearchable={false}
+                  value={levelOptions?.find((o) => o.value === formData?.level)}
+                  onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt?.value }))}
                   placeholder="Choose level"
                   classNamePrefix="select"
-                  isSearchable={false}
-                  maxMenuHeight={250}
+                  maxMenuHeight={200}                    
                   menuPortalTarget={document.body}
                   styles={{
                     control: (base) => ({
                       ...base,
                       border: "none",
                       boxShadow: "none",
-                      minHeight: "38px",
+                      cursor: "pointer",
                     }),
-                    placeholder: (base) => ({
+                    menuPortal: (base) => ({
                       ...base,
-                      color: "#6c757d",
+                      zIndex: 9999,
                     }),
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    menu: (base) => ({ ...base, maxHeight: 150, overflowY: 'auto' })
+                    menu: (provided) => ({
+                      ...provided,
+                      maxHeight: 100,              
+                      overflowY: 'auto',           
+                      position: 'relative',       
+                    }),
+                    menuList: (provided) => ({
+                      ...provided,
+                      maxHeight: 100,            
+                      overflowY: 'auto',           
+                      paddingTop: 0,
+                      paddingBottom: 0,
+                    }),
                   }}
                   components={{
-                    Input: (props) => <div {...props} style={{ ...props.style, caretColor: 'transparent' }} />
-                  }}
-                  onMenuOpen={() => {
-                    if (document.activeElement) {
-                      document.activeElement.blur();
-                    }
+                    DropdownIndicator: () => null,
+                    IndicatorSeparator: () => null,
                   }}
                 />
               )}
@@ -433,7 +438,7 @@ const NewPlayers = ({
                   "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white"
               }}
               disabled={userLoading}
-                            className="py-1 font_size_mobile_button"
+              className="py-1 font_size_mobile_button"
 
             >
               {userLoading ? <ButtonLoading color="white" /> : "Submit"}
