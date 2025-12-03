@@ -99,7 +99,6 @@ console.log({localPlayers});
     const [userName, setUserName] = useState(User?.name || "");
 
 
-    console.log({ userName });
     useEffect(() => {
         const fetchData = async () => {
             if (hasCalledProfile.current) return;

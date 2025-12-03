@@ -11,7 +11,7 @@ import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/ap
 import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
 import { IoIosArrowDown, IoIosArrowUp, IoIosLogOut } from 'react-icons/io';
 import { PiRanking } from "react-icons/pi";
-import { getLogo, getUserProfile } from '../../../redux/user/auth/authThunk';
+import {  getUserProfile } from '../../../redux/user/auth/authThunk';
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { io } from 'socket.io-client';
@@ -163,11 +163,6 @@ const Navbar = () => {
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
-
-        const ownerId = localStorage.getItem('owner_id') || clubData?.ownerId;
-        if (ownerId) {
-            dispatch(getLogo(ownerId));
-        }
     }, []);
 
     useEffect(() => {

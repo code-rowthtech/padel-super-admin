@@ -85,7 +85,7 @@ const OpenmatchPayment = () => {
     );
     const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
     );
-    console.log({ User });
+    const [userName, setUserName] = useState(User?.name || "");
     const store = useSelector((state) => state?.userAuth);
     const createMatchesLoading = useSelector((state) => state?.userMatches?.matchesLoading);
     const bookingLoading = useSelector((state) => state?.userBooking?.bookingLoading);
@@ -98,7 +98,6 @@ const OpenmatchPayment = () => {
         const saved = localStorage.getItem("addedPlayers");
         if (saved) {
             const players = JSON.parse(saved);
-            // Ensure unique IDs for existing players
             const updatedPlayers = {};
             Object.keys(players).forEach(slot => {
                 if (players[slot]) {
@@ -108,7 +107,6 @@ const OpenmatchPayment = () => {
                     };
                 }
             });
-            // Update localStorage with unique IDs
             localStorage.setItem("addedPlayers", JSON.stringify(updatedPlayers));
             return updatedPlayers;
         }
@@ -133,7 +131,7 @@ const OpenmatchPayment = () => {
         return () => document.body.contains(script) && document.body.removeChild(script);
     }, []);
 
-    const [name, setName] = useState(User?.name || updateProfile?.fullName || store?.user?.response?.name || "");
+    const [name, setName] = useState(userName || User?.name || updateProfile?.fullName || store?.user?.response?.name || "");
     const [phoneNumber, setPhoneNumber] = useState(
         User?.phoneNumber
             ? `+91 ${User.phoneNumber}`
@@ -152,7 +150,6 @@ const OpenmatchPayment = () => {
         selectedGender = [],
         addedPlayers: stateAddedPlayers = {}, dynamicSteps, finalLevelStep
     } = state || {};
-    console.log({ finalSkillDetails });
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -163,15 +160,26 @@ const OpenmatchPayment = () => {
     const owner_id = localStorage.getItem("owner_id");
 
     console.log('finalAddedPlayers:', finalAddedPlayers);
-    
+
     const teamA = [User?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
     const teamB = [
         finalAddedPlayers.slot3?._id,
         finalAddedPlayers.slot4?._id,
     ].filter(Boolean);
-    
-    console.log('teamA:', teamA,teamB);
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const result = await dispatch(getUserProfile()).unwrap();
+                setUserName(result?.response?.name || User?.name || "");
+                setEmail(result?.response?.email );
+            } catch (err) {
+                setUserName(User?.name || "");
+            }
+        };
+
+        fetchData();
+    }, [dispatch, User?.name]);
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
@@ -239,10 +247,6 @@ const OpenmatchPayment = () => {
 
                 handler: async function (response) {
                     try {
-                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
-                        const matchId = matchResponse?.match?._id;
-                        if (!matchId) throw new Error("Failed to create match");
-
                         const bookingPayload = {
                             name,
                             phoneNumber: cleanPhone,
@@ -252,7 +256,6 @@ const OpenmatchPayment = () => {
                             paymentMethod: 'Gpay',
                             bookingType: "open Match",
                             bookingStatus: "upcoming",
-                            openMatchId: matchId,
                             slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
                                 slotId: timeSlot._id,
                                 businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
@@ -264,7 +267,11 @@ const OpenmatchPayment = () => {
                         };
 
                         const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
-                        if (!bookingResponse?.success) throw new Error("Booking failed after payment");
+                        if (!bookingResponse?.success) throw new Error("Booking creation failed");
+
+                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                        const matchId = matchResponse?.match?._id;
+                        if (!matchId) throw new Error("Failed to create match");
 
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));
@@ -929,6 +936,11 @@ const OpenmatchPayment = () => {
                                                     fill="none"
                                                     strokeLinecap="round"
                                                     strokeLinejoin="round"
+                                                    className="book-now-arrow"
+                                                    style={{
+                                                        transformOrigin: `${arrowX}px ${arrowY}px`,
+                                                        transition: "transform 0.3s ease"
+                                                    }}
                                                 >
                                                     <path
                                                         d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
@@ -1040,6 +1052,11 @@ const OpenmatchPayment = () => {
                                         fill="none"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
+                                        className="book-now-arrow"
+                                        style={{
+                                            transformOrigin: `${arrowX}px ${arrowY}px`,
+                                            transition: "transform 0.3s ease"
+                                        }}
                                     >
                                         <path
                                             d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
