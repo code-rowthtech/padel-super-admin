@@ -22,7 +22,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getReviewClub, getUserClub, getMapData } from "../../../redux/user/club/thunk";
 import { Avatar } from "@mui/material";
-import {  getUserProfile } from "../../../redux/user/auth/authThunk";
+import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { ReviewCard } from "./ReviewCard";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -56,7 +56,7 @@ const Home = () => {
       createdAt: new Date().toISOString()
     },
     {
-      _id: 'fake2', 
+      _id: 'fake2',
       reviewRating: 4,
       reviewComment: 'Excellent padel experience! Clean courts, good lighting, and convenient booking system. Highly recommended.',
       userId: { name: 'Priya Sharma' },
@@ -65,7 +65,7 @@ const Home = () => {
     },
     {
       _id: 'fake3',
-      reviewRating: 5, 
+      reviewRating: 5,
       reviewComment: 'Best padel club in the area! Great community, top-notch facilities, and reasonable pricing. Will definitely come back.',
       userId: { name: 'Amit Patel' },
       register_club_id: clubData?._id || '692f4431e3230ac71d22bdd1',
@@ -76,7 +76,7 @@ const Home = () => {
       reviewRating: 5,
       reviewComment: 'Outstanding service and quality courts. The booking process is smooth and the staff is always helpful.',
       userId: { name: 'Sneha Gupta' },
-      register_club_id: clubData?._id || '692f4431e3230ac71d22bdd1', 
+      register_club_id: clubData?._id || '692f4431e3230ac71d22bdd1',
       createdAt: new Date().toISOString()
     }
   ];
@@ -90,7 +90,7 @@ const Home = () => {
     averageRating: 4.8 // Updated average with fake reviews
   };
 
-console.log({getReviewData});
+  console.log({ getReviewData });
   const handleImageLoad = (index) => {
     setLoadedImages((prev) => ({ ...prev, [index]: true }));
   };
@@ -453,7 +453,8 @@ console.log({getReviewData});
 
                   {/* Club Name + Green Stars */}
                   <div className="d-flex flex-column" style={{ lineHeight: "1.5" }}>
-                    <span style={{ fontSize: "14px", fontWeight: 600, }}>                      {clubData?.clubName || "The Court Line Club"}
+                    <span style={{ fontSize: "14px", fontWeight: 600, }}>
+                      {clubData?.clubName || "Club Name"}
                     </span>
 
                     <div className="d-flex align-items-center" style={{ marginTop: "2px" }}>
@@ -496,7 +497,7 @@ console.log({getReviewData});
                       fontSize: "13px",
                       fontFamily: "Poppins",
                       fontWeight: "400",
-                      textAlign:"justify"
+                      textAlign: "justify"
                     }}
                   >
                     <span>{clubData?.clubName || "The Court Line Club"} </span>
@@ -1004,14 +1005,14 @@ console.log({getReviewData});
             >
               {windowWidth >= 992
                 ? enhancedReviewData?.reviews?.map((review, index) => (
-                    <div
-                      key={review._id || index}
-                      className="flex-shrink-0 d-lg-block d-none"
-                      style={{ width: "33.333%" }}
-                    >
-                      <ReviewCard review={review} />
-                    </div>
-                  ))
+                  <div
+                    key={review._id || index}
+                    className="flex-shrink-0 d-lg-block d-none"
+                    style={{ width: "33.333%" }}
+                  >
+                    <ReviewCard review={review} />
+                  </div>
+                ))
                 : enhancedReviewData?.reviews?.map((review, index) => (
                   <div
                     key={`mobile-${review._id || index}`}

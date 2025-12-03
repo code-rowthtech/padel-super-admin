@@ -167,8 +167,6 @@ const OpenmatchPayment = () => {
         finalAddedPlayers.slot4?._id,
     ].filter(Boolean);
 
-
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -249,10 +247,6 @@ const OpenmatchPayment = () => {
 
                 handler: async function (response) {
                     try {
-                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
-                        const matchId = matchResponse?.match?._id;
-                        if (!matchId) throw new Error("Failed to create match");
-
                         const bookingPayload = {
                             name,
                             phoneNumber: cleanPhone,
@@ -262,7 +256,6 @@ const OpenmatchPayment = () => {
                             paymentMethod: 'Gpay',
                             bookingType: "open Match",
                             bookingStatus: "upcoming",
-                            openMatchId: matchId,
                             slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
                                 slotId: timeSlot._id,
                                 businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
@@ -274,7 +267,11 @@ const OpenmatchPayment = () => {
                         };
 
                         const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
-                        if (!bookingResponse?.success) throw new Error("Booking failed after payment");
+                        if (!bookingResponse?.success) throw new Error("Booking creation failed");
+
+                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                        const matchId = matchResponse?.match?._id;
+                        if (!matchId) throw new Error("Failed to create match");
 
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));
