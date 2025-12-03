@@ -213,7 +213,7 @@ const VerifyOTP = () => {
                 }}
               >
                 {userAuthLoading ? (
-                  <DataLoading />
+                  <ButtonLoading />
                 ) : (
                   otp.map((digit, index) => (
                     <Form.Control
@@ -231,7 +231,7 @@ const VerifyOTP = () => {
                       style={{
                         width: 50,
                         height: 50,
-                        fontSize: 24,
+                        fontSize: window.innerWidth <= 768 ? 16 : 24,
                         textAlign: "center",
                         borderRadius: "4px",
                         boxShadow: "0px 1px 6.5px 0px #0000001F inset",
