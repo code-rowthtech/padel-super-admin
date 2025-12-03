@@ -22,7 +22,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getReviewClub, getUserClub, getMapData } from "../../../redux/user/club/thunk";
 import { Avatar } from "@mui/material";
-import { getLogo, getUserProfile } from "../../../redux/user/auth/authThunk";
+import {  getUserProfile } from "../../../redux/user/auth/authThunk";
 import { ReviewCard } from "./ReviewCard";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -44,7 +44,7 @@ const Home = () => {
   const getReviewData = store?.userClub?.getReviewData?.data;
   const mapApiData = store?.userClub?.mapData?.data;
   const galleryImages = clubData?.courtImage?.slice(0, 10) || [];
-  const logo = JSON.parse(localStorage.getItem("logo"));
+  const logo = clubData?.logo;
 
   const handleImageLoad = (index) => {
     setLoadedImages((prev) => ({ ...prev, [index]: true }));
@@ -82,7 +82,6 @@ const Home = () => {
     if (clubData && clubData._id) {
       localStorage.setItem("register_club_id", clubData?._id);
       localStorage.setItem("owner_id", clubData?.ownerId?._id);
-      dispatch(getLogo(clubData?.ownerId?._id));
     }
   }, [clubData]);
 

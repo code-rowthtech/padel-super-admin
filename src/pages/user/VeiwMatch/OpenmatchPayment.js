@@ -73,9 +73,7 @@ const contentStyle = {
 };
 
 const OpenmatchPayment = () => {
-    const [selectedPayment, setSelectedPayment] = useState("");
     const [error, setError] = useState({});
-    const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const { state } = useLocation();
     const navigate = useNavigate();
@@ -86,12 +84,11 @@ const OpenmatchPayment = () => {
     );
     const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
     );
-    console.log({User});
+    console.log({ User });
     const store = useSelector((state) => state?.userAuth);
-
-    const logo = localStorage.getItem("logo")
-        ? JSON.parse(localStorage.getItem("logo"))
-        : null;
+    const createMatchesLoading = useSelector((state) => state?.userMatches?.matchesLoading);
+    const bookingLoading = useSelector((state) => state?.userBooking?.bookingLoading);
+    const logo = clubData?.logo;
 
     const updateProfile = JSON.parse(
         localStorage.getItem("updateprofile") || "{}"
@@ -138,7 +135,7 @@ const OpenmatchPayment = () => {
         selectedGender = [],
         addedPlayers: stateAddedPlayers = {}, dynamicSteps, finalLevelStep
     } = state || {};
-    console.log({finalSkillDetails});
+    console.log({ finalSkillDetails });
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -170,9 +167,6 @@ const OpenmatchPayment = () => {
             return setError({ phoneNumber: "Valid 10-digit phone required" });
 
         if (localTotalSlots === 0) return setError({ general: "Select at least one slot" });
-
-        setIsLoading(true);
-
         try {
             if (!User?.name || !User?.phoneNumber || !User?.email) {
                 await dispatch(updateUser({ phoneNumber: cleanPhone, name, email })).unwrap();
@@ -264,7 +258,6 @@ const OpenmatchPayment = () => {
 
                 modal: {
                     ondismiss: () => {
-                        setIsLoading(false);
                         setError({ general: "Payment cancelled by user" });
                     }
                 }
@@ -274,14 +267,12 @@ const OpenmatchPayment = () => {
 
             razorpay.on("payment.failed", (response) => {
                 setError({ general: response.error?.description || "Payment failed. Try again." });
-                setIsLoading(false);
             });
 
             razorpay.open();
 
         } catch (err) {
             setError({ general: err.message || "Something went wrong" });
-            setIsLoading(false);
         }
     };
 
@@ -428,7 +419,7 @@ const OpenmatchPayment = () => {
                                     className="form-label mb-0 ps-lg-2"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Email 
+                                    Email
                                 </label>
                                 <input
                                     type="email"
@@ -924,7 +915,7 @@ const OpenmatchPayment = () => {
                                                 </g>
                                             </svg>
                                             <div style={contentStyle}>
-                                                {isLoading ? (
+                                                {createMatchesLoading || bookingLoading ? (
                                                     <ButtonLoading color={"#001B76"} />
                                                 ) : (
                                                     "Pay Now"
@@ -1035,7 +1026,7 @@ const OpenmatchPayment = () => {
                                     </g>
                                 </svg>
                                 <div style={contentStyle}>
-                                    {isLoading ? <ButtonLoading color={"#001B76"} /> : "Pay Now"}
+                                    {createMatchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Pay Now"}
                                 </div>
                             </button>
                         </div>

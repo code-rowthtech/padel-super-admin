@@ -36,6 +36,7 @@ const clubSlice = createSlice({
       .addCase(getUserClub.fulfilled, (state, action) => {
         state.clubLoading = false;
         state.clubData = action.payload;
+        console.log("club data", action.payload);
       })
       .addCase(getUserClub.rejected, (state, action) => {
         state.clubLoading = false;
