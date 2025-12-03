@@ -12,6 +12,7 @@ import { showSuccess } from "../../../helpers/Toast";
 import Select from "react-select";
 import { getPlayerLevel, getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { createRequest } from "../../../redux/user/playerrequest/thunk";
 
 const modalStyle = {
   position: "absolute",
@@ -36,12 +37,12 @@ const UpdatePlayers = ({
   setShowModal,
   selectedDate,
   selectedTime,
-  selectedLevel,matchesData,
+  selectedLevel, matchesData,
   playerLevels,
 }) => {
   const dispatch = useDispatch();
   const User = getUserFromSession();
-  console.log('matchesDatamatchesData',matchesData);
+  console.log('matchesDatamatchesData', matchesData);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -124,10 +125,16 @@ const UpdatePlayers = ({
         if (res?.status === "200") {
 
           dispatch(
-            addPlayers({
+            // addPlayers({
+            //   matchId: matchId?._id,
+            //   playerId: res?.response?._id,
+            //   team: teamName,
+            // })
+            createRequest({
               matchId: matchId?._id,
-              playerId: res?.response?._id,
-              team: teamName,
+              preferredTeam: teamName,
+              level: formData?.level,
+              requesterId: res?.response?._id,
             })
           )
             .unwrap()
