@@ -111,19 +111,8 @@ const Openmatches = () => {
   const [showModal, setShowModal] = useState(false);
   const [matchId, setMatchId] = useState(null);
   const [teamName, setTeamName] = useState("");
-  const [showViewMatch, setShowViewMatch] = useState(() => {
-    if (window.innerWidth <= 768) {
-      return localStorage.getItem('mobileViewMatch') === 'true';
-    }
-    return false;
-  });
-  const [selectedMatch, setSelectedMatch] = useState(() => {
-    if (window.innerWidth <= 768) {
-      const saved = localStorage.getItem('mobileSelectedMatch');
-      return saved ? JSON.parse(saved) : null;
-    }
-    return null;
-  });
+  const [showViewMatch, setShowViewMatch] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState(null);
   const [showCreateButton, setShowCreateButton] = useState(true);
   const [playerLevels, setPlayerLevels] = useState([]);
   const [showShareDropdown, setShowShareDropdown] = useState(null);
@@ -142,6 +131,24 @@ const Openmatches = () => {
       dispatch(getUserProfile())
     }
   }, [user?.token])
+
+  // Handle mobile state restoration only when coming back from ViewMatch
+  useEffect(() => {
+    if (window.innerWidth <= 768) {
+      const shouldShowViewMatch = localStorage.getItem('mobileViewMatch') === 'true';
+      const savedMatch = localStorage.getItem('mobileSelectedMatch');
+      
+      // Only restore ViewMatch state if user explicitly navigated to it
+      if (shouldShowViewMatch && savedMatch && window.location.hash === '#viewmatch') {
+        setShowViewMatch(true);
+        setSelectedMatch(JSON.parse(savedMatch));
+      } else {
+        // Clear any stale mobile state on fresh page load
+        localStorage.removeItem('mobileViewMatch');
+        localStorage.removeItem('mobileSelectedMatch');
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (matchId?.skillLevel) {
@@ -914,6 +921,7 @@ const Openmatches = () => {
                               if (window.innerWidth <= 768) {
                                 localStorage.setItem('mobileViewMatch', 'true');
                                 localStorage.setItem('mobileSelectedMatch', JSON.stringify(match));
+                                window.location.hash = 'viewmatch';
                               }
                             }}
                           >
@@ -1080,6 +1088,7 @@ const Openmatches = () => {
                                           if (window.innerWidth <= 768) {
                                             localStorage.setItem('mobileViewMatch', 'true');
                                             localStorage.setItem('mobileSelectedMatch', JSON.stringify(match));
+                                            window.location.hash = 'viewmatch';
                                           }
                                         }}
                                         aria-label={`View match on ${formatMatchDate(
@@ -1110,6 +1119,7 @@ const Openmatches = () => {
                           if (window.innerWidth <= 768) {
                             localStorage.setItem('mobileViewMatch', 'true');
                             localStorage.setItem('mobileSelectedMatch', JSON.stringify(match));
+                            window.location.hash = 'viewmatch';
                           }
                         }}
                       >
@@ -1443,6 +1453,7 @@ const Openmatches = () => {
                                     if (window.innerWidth <= 768) {
                                       localStorage.setItem('mobileViewMatch', 'true');
                                       localStorage.setItem('mobileSelectedMatch', JSON.stringify(match));
+                                      window.location.hash = 'viewmatch';
                                     }
                                   }}
                                   aria-label={`View match on ${formatMatchDate(
@@ -1729,6 +1740,7 @@ const Openmatches = () => {
                 if (window.innerWidth <= 768) {
                   localStorage.removeItem('mobileViewMatch');
                   localStorage.removeItem('mobileSelectedMatch');
+                  window.location.hash = '';
                 }
               }}
               updateName={updateName}

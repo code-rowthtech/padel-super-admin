@@ -74,6 +74,7 @@ const contentStyle = {
 
 const OpenmatchPayment = () => {
     const [error, setError] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const { state } = useLocation();
     const navigate = useNavigate();
@@ -95,7 +96,23 @@ const OpenmatchPayment = () => {
     );
     const [addedPlayers, setAddedPlayers] = useState(() => {
         const saved = localStorage.getItem("addedPlayers");
-        return saved ? JSON.parse(saved) : {};
+        if (saved) {
+            const players = JSON.parse(saved);
+            // Ensure unique IDs for existing players
+            const updatedPlayers = {};
+            Object.keys(players).forEach(slot => {
+                if (players[slot]) {
+                    updatedPlayers[slot] = {
+                        ...players[slot],
+                        _id: players[slot]._id?.includes('_') ? players[slot]._id : `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                    };
+                }
+            });
+            // Update localStorage with unique IDs
+            localStorage.setItem("addedPlayers", JSON.stringify(updatedPlayers));
+            return updatedPlayers;
+        }
+        return {};
     });
 
     useEffect(() => {
@@ -145,11 +162,15 @@ const OpenmatchPayment = () => {
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
 
+    console.log('finalAddedPlayers:', finalAddedPlayers);
+    
     const teamA = [User?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
     const teamB = [
         finalAddedPlayers.slot3?._id,
         finalAddedPlayers.slot4?._id,
     ].filter(Boolean);
+    
+    console.log('teamA:', teamA,teamB);
 
 
     useEffect(() => {
@@ -167,6 +188,9 @@ const OpenmatchPayment = () => {
             return setError({ phoneNumber: "Valid 10-digit phone required" });
 
         if (localTotalSlots === 0) return setError({ general: "Select at least one slot" });
+
+        setIsLoading(true);
+
         try {
             if (!User?.name || !User?.phoneNumber || !User?.email) {
                 await dispatch(updateUser({ phoneNumber: cleanPhone, name, email })).unwrap();
@@ -258,6 +282,7 @@ const OpenmatchPayment = () => {
 
                 modal: {
                     ondismiss: () => {
+                        setIsLoading(false);
                         setError({ general: "Payment cancelled by user" });
                     }
                 }
@@ -267,12 +292,14 @@ const OpenmatchPayment = () => {
 
             razorpay.on("payment.failed", (response) => {
                 setError({ general: response.error?.description || "Payment failed. Try again." });
+                setIsLoading(false);
             });
 
             razorpay.open();
 
         } catch (err) {
             setError({ general: err.message || "Something went wrong" });
+            setIsLoading(false);
         }
     };
 
@@ -307,6 +334,12 @@ const OpenmatchPayment = () => {
             return () => clearTimeout(t);
         }
     }, [error]);
+
+    useEffect(() => {
+        if (createMatchesLoading) {
+            setIsLoading(false);
+        }
+    }, [createMatchesLoading]);
 
     return (
         <div className="container mt-md-4 mt-0 mb-md-5 mb-0 d-flex gap-4 px-md-4 px-0 flex-wrap">
@@ -915,7 +948,7 @@ const OpenmatchPayment = () => {
                                                 </g>
                                             </svg>
                                             <div style={contentStyle}>
-                                                {createMatchesLoading || bookingLoading ? (
+                                                {isLoading || createMatchesLoading || bookingLoading ? (
                                                     <ButtonLoading color={"#001B76"} />
                                                 ) : (
                                                     "Pay Now"
@@ -1026,7 +1059,7 @@ const OpenmatchPayment = () => {
                                     </g>
                                 </svg>
                                 <div style={contentStyle}>
-                                    {createMatchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Pay Now"}
+                                    {isLoading || createMatchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Pay Now"}
                                 </div>
                             </button>
                         </div>

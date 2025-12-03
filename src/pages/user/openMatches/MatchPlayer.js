@@ -91,7 +91,7 @@ const MatchPlayer = ({
     const [profileFetched, setProfileFetched] = useState(false);
     const hasCalledProfile = useRef(false);
     const [profileLoading, setProfileLoading] = useState(true);
-
+console.log({localPlayers});
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
@@ -221,7 +221,7 @@ const MatchPlayer = ({
         const displayHour = endHour24 % 12 === 0 ? 12 : endHour24 % 12;
         const displayMinutes = String(endMin).padStart(2, "0");
 
-        return `Registration closes at ${displayHour}:${displayMinutes} ${period}`;
+        return `Registration close at ${displayHour}:${displayMinutes} ${period}`;
     };
 
     const matchDate = selectedDate?.fullDate
@@ -273,8 +273,8 @@ const MatchPlayer = ({
         return allTimes.length === uniqueTimes.length;
     };
 
-    const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
-    const slotsPerCourt = selectedCourts.length > 0 ? selectedCourts[0].time.length : 0;
+    const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time?.length, 0);
+    const slotsPerCourt = selectedCourts.length > 0 ? selectedCourts[0]?.time?.length : 0;
     const canBook = totalSlots >= 1 && slotsPerCourt >= 1 && slotsPerCourt <= 3 && matchTime.length > 0 && validateCourtTimeConsistency();
 
     const displayUserSkillLevel = finalSkillDetails && Object.keys(finalSkillDetails).length > 0
@@ -561,7 +561,7 @@ const MatchPlayer = ({
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
                                 {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
-                                    ? finalSkillDetails[0]
+                                    ? finalSkillDetails?.[0]
                                     : defaultSkillLevel || "Open Match"}
                             </p>
                         </div>
@@ -624,7 +624,7 @@ const MatchPlayer = ({
                                             <img src={User.profilePic || updateName?.profile} alt="you" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {User.name?.[0]?.toUpperCase() || "U"}
+                                                {userName?.[0]?.toUpperCase() || User?.name?.[0]?.toUpperCase() || "U"}
                                             </span>
                                         )}
                                     </div>
@@ -632,18 +632,18 @@ const MatchPlayer = ({
                                         className="mb-0 mt-2 fw-semibold text-center"
                                         style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
-                                        data-tooltip-content={userName || User.name}
+                                        data-tooltip-content={userName || User?.name}
                                     >
                                         {(() => {
-                                            const displayName = userName || User.name || 'User';
-                                            return displayName.length > 12 ? `${displayName.substring(0, 12)}...` : displayName;
+                                            const displayName = userName || User?.name || 'User';
+                                            return displayName?.length > 12 ? `${displayName.substring(0, 12)}...` : displayName;
                                         })()}
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
                                         {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
-                                            ? (finalSkillDetails[1] ? finalSkillDetails[1].split(' - ')[0] : (finalSkillDetails[0] || "A"))
-                                            : defaultLevel?.split(" - ")[0] || "A"}
+                                            ? (finalSkillDetails[1] ? finalSkillDetails[1].split(' - ')?.[0] : (finalSkillDetails?.[0] || "A"))
+                                            : defaultLevel?.split(" - ")?.[0] || "A"}
                                     </span>
                                 </div>
                             )}
@@ -663,7 +663,7 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot2.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers.slot2.name[0].toUpperCase()}
+                                                {localPlayers?.slot2.name?.[0].toUpperCase()}
                                             </span>
                                         )}
                                     </div>
@@ -709,7 +709,7 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot3.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers.slot3.name[0].toUpperCase()}
+                                                {localPlayers?.slot3?.name?.[0].toUpperCase()}
                                             </span>
                                         )}
                                     </div>
@@ -753,7 +753,7 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot4.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers.slot4.name[0].toUpperCase()}
+                                                {localPlayers?.slot4?.name?.[0].toUpperCase()}
                                             </span>
                                         )}
                                     </div>

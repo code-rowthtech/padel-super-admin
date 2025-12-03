@@ -123,6 +123,11 @@ const NewPlayers = ({
 
         const playerData = {
           ...res.response,
+          _id: res?.response?._id,
+          name: formData.name,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+          gender: formData.gender,
           level: formData.level,
         };
 
