@@ -278,6 +278,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     );
 
     const handleAdd = useCallback((team) => {
+        if(!user?.token) navigate('/login') ;
         setTeamName(team === "A" ? "teamA" : "teamB");
         setShowModal(true);
     }, []);

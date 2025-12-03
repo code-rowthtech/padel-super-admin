@@ -359,7 +359,7 @@ const NewPlayers = ({
                   placeholder="Choose level"
                   classNamePrefix="select"
                   isSearchable={false}
-                  maxMenuHeight={200}
+                  maxMenuHeight={250}
                   menuPortalTarget={document.body}
                   styles={{
                     control: (base) => ({
@@ -373,7 +373,7 @@ const NewPlayers = ({
                       color: "#6c757d",
                     }),
                     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    menu: (base) => ({ ...base, maxHeight: 100, overflowY: 'auto' })
+                    menu: (base) => ({ ...base, maxHeight: 150, overflowY: 'auto' })
                   }}
                   components={{
                     Input: (props) => <div {...props} style={{ ...props.style, caretColor: 'transparent' }} />

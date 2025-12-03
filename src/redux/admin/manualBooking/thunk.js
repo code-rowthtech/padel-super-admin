@@ -18,6 +18,7 @@ export const getOwnerRegisteredClub = createAsyncThunk(
 
       const { status, data, message } = res?.data || {};
       if (status === 200 || "200") {
+        console.log("Registered Club Data:", data);
         return data;
       }
 
@@ -40,7 +41,8 @@ export const getActiveCourts = createAsyncThunk(
         `${Url.GET_ACTIVE_COURTS}?register_club_id=${params?.register_club_id}&day=${params?.day}&date=${params?.date}&courtId=${params?.courtId}`
       );
 
-      const { status, data, message, allCourts, allSlotTimes, allCourtNames } = res?.data || {};
+      const { status, data, message, allCourts, allSlotTimes, allCourtNames } =
+        res?.data || {};
       if (status === 200 || "200") {
         return { data, allCourts, allSlotTimes, allCourtNames };
       }

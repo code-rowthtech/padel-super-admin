@@ -17,7 +17,7 @@ import { LuSwords } from "react-icons/lu";
 import { FaRankingStar } from "react-icons/fa6";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import { IoTennisballOutline } from "react-icons/io5";
-import { getLogo, createLogo, updateLogo } from "../../../redux/thunks";
+import { getOwnerRegisteredClub } from "../../../redux/thunks";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 
@@ -26,10 +26,14 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const Owner = getOwnerFromSession();
-  const { getLogoData, getLogoLoading, logoData } = useSelector(
-    (state) => state?.logo
-  );
+
   const ownerId = Owner?._id || Owner?.generatedBy;
+  const { getClubData, ownerClubLoading } = useSelector(
+    (state) => state?.manualBooking
+  );
+  const statedate = useSelector(
+    (state) => state.manualBooking?.ownerClubData?.[0]?.logo
+  );
 
   const [isBookingOpen, setBookingOpen] = useState(false);
   const [clubLogo, setClubLogo] = useState(null);
@@ -50,6 +54,14 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
     }
   }, [location.pathname]);
 
+  useEffect(() => {
+    dispatch(getOwnerRegisteredClub({ ownerId })).unwrap();
+  }, [dispatch, ownerId]);
+
+  useEffect(() => {
+    setClubLogo(statedate || null);
+  }, [statedate]);
+
   const linkClasses = ({ isActive }) =>
     `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${
       isActive ? "active-parent-link" : "bg-transparent"
@@ -57,18 +69,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
   const isDropdownActive = bookingPaths.includes(location.pathname);
   const isActiveLink = bookingPaths.includes(location.pathname);
-
-  useEffect(() => {
-    if (ownerId) {
-      dispatch(getLogo({ ownerId: ownerId }));
-    }
-  }, []);
-
-  useEffect(() => {
-    const updatedLogo =
-      logoData?.logo?.logo?.[0] || getLogoData?.logo?.logo?.[0] || null;
-    setClubLogo(updatedLogo);
-  }, [getLogoData?.logo?.logo, logoData?.logo?.logo]);
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -92,7 +92,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         style={{ marginTop: "10px" }}
       >
         <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
-          {getLogoLoading ? (
+          {ownerClubLoading ? (
             <DataLoading
               height={isCollapsed ? "40px" : "100px"}
               color="white"
