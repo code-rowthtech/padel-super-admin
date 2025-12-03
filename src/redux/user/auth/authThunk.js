@@ -37,7 +37,7 @@ export const Usersignup = createAsyncThunk(
       const res = await userApi.post(Url.User_Signup, data);
       return res?.data;
     } catch (error) {
-      // showError(error || error?.message);
+      showError(error || error?.message);
       return rejectWithValue(error);
     }
   }

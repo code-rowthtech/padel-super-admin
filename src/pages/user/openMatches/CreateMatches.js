@@ -244,10 +244,11 @@ const CreateMatches = () => {
   };
 
   const toggleTime = (time, courtId) => {
-    // Clear previous slots when switching dates
+    const currentSelectedDate = selectedDate?.fullDate || new Date().toISOString().split("T")[0];
+    const currentSelectedDay = selectedDate?.day || new Date().toLocaleDateString("en-US", { weekday: "long" });
     if (
       selectedCourts.length > 0 &&
-      selectedCourts[0].date !== selectedDate.fullDate
+      selectedCourts[0].date !== currentSelectedDate
     ) {
       setSelectedCourts([]);
       setSelectedTimes({});
@@ -341,8 +342,8 @@ const CreateMatches = () => {
           _id: currentCourt._id,
           courtName: currentCourt.courtName,
           type: currentCourt.type,
-          date: selectedDate.fullDate,
-          day: selectedDate.day,
+          date: currentSelectedDate,
+          day: currentSelectedDay,
           time: [newTimeEntry],
         },
       ]);
@@ -1085,11 +1086,10 @@ const CreateMatches = () => {
                   {dates.map((d, i) => {
                     const formatDate = (date) => date.toISOString().split("T")[0];
                     const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
-
                     const slotCount = selectedCourts
                       .filter(court => court.date === d.fullDate)
                       .reduce((acc, court) => acc + court.time.length, 0);
-
+                      console.log(selectedCourts , d.fullDate,'pankajm');
                     return (
                       <button
                         key={i}

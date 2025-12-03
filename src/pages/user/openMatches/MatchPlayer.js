@@ -624,7 +624,7 @@ const MatchPlayer = ({
                                             <img src={User.profilePic || updateName?.profile} alt="you" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {User.name?.[0]?.toUpperCase() || "U"}
+                                                {userName?.[0]?.toUpperCase() || User.name?.[0]?.toUpperCase() || "U"}
                                             </span>
                                         )}
                                     </div>
