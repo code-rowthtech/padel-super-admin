@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { padal, club, player } from "../../../assets/files";
@@ -168,12 +168,29 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [declineReason, setDeclineReason] = useState("");
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
+    const shareDropdownRef = useRef(null);
 
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (shareDropdownRef.current && !shareDropdownRef.current.contains(event.target)) {
+                setShowShareDropdown(false);
+            }
+        };
+
+        if (showShareDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showShareDropdown]);
 
     useEffect(() => {
         if (matchId) {
@@ -377,7 +394,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </h5>
 
                     </div>
-                    <div className="d-flex align-items-center gap-2 position-relative">
+                    <div className="d-flex align-items-center gap-2 position-relative" ref={shareDropdownRef}>
                         <button
                             className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center border shadow-sm"
                             style={{ width: 36, height: 36 }}
@@ -642,6 +659,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 skillLevel={matchesData?.data?.skillLevel}
                 selectedDate={selectedDate}
                 playerLevels={playerLevels}
+                matchesData={matchesData}
             />
 
             <Modal open={showPlayerModal} onClose={() => setShowPlayerModal(false)}>

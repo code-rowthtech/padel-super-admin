@@ -48,6 +48,7 @@ import { PiSunHorizonFill } from "react-icons/pi";
 import { IoIosArrowForward } from "react-icons/io";
 import { registerClub } from "../../../redux/thunks";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
+import { showSuccess } from "../../../helpers/Toast";
 
 const normalizeTime = (time) => {
   if (!time) return null;
@@ -125,6 +126,8 @@ const Openmatches = () => {
   });
   const [showCreateButton, setShowCreateButton] = useState(true);
   const [playerLevels, setPlayerLevels] = useState([]);
+  const [showShareDropdown, setShowShareDropdown] = useState(null);
+  const shareDropdownRef = useRef(null);
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
   const debouncedFetchMatches = useCallback(
@@ -160,6 +163,10 @@ const Openmatches = () => {
       setIsOpen(false);
     }
     
+    if (shareDropdownRef.current && !shareDropdownRef.current.contains(e.target)) {
+      setShowShareDropdown(null);
+    }
+    
     // Close modals on outside click (except payment modals)
     if (showModal && !e.target.closest('.modal-content') && !e.target.closest('[data-bs-toggle="modal"]')) {
       setShowModal(false);
@@ -169,7 +176,7 @@ const Openmatches = () => {
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showModal]);
+  }, [showModal, showShareDropdown]);
 
   useEffect(() => {
     const savedClubId = localStorage.getItem("register_club_id");
@@ -278,11 +285,31 @@ const Openmatches = () => {
           matchesData?.data || []
         );
         if (matchesForTab.length > 0) {
+          setActiveTab(i);
           break;
         }
       }
     }
   }, [filteredMatches, matchesData, activeTab, matchLoading]);
+
+  // Set default tab based on available data
+  useEffect(() => {
+    if (!matchLoading && matchesData?.data?.length > 0) {
+      const tabLabels = ["morning", "noon", "night"];
+      
+      // Find first tab with data
+      let defaultTabIndex = 0; // Default to morning
+      for (let i = 0; i < tabLabels.length; i++) {
+        const hasData = getMatchesForTab(tabLabels[i], matchesData.data).length > 0;
+        if (hasData) {
+          defaultTabIndex = i;
+          break;
+        }
+      }
+      
+      setActiveTab(defaultTabIndex);
+    }
+  }, [matchesData?.data, matchLoading, selectedDate.fullDate]);
 
   const toggleTime = (time) => {
     setSelectedTime(selectedTime === time ? null : time);
@@ -890,6 +917,33 @@ const Openmatches = () => {
                               }
                             }}
                           >
+                            <div className="position-absolute top-0 end-0 p-2  d-flex gap-1 position-relative" ref={showShareDropdown === `desktop-${index}` ? shareDropdownRef : null}>
+                              <button className="btn rounded-circle p-1 d-flex mb-2 align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `desktop-${index}` ? null : `desktop-${index}`); }}>
+                                <i className="bi bi-share" style={{ fontSize: "12px", color: "#1F41BB" }} />
+                              </button>
+                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); }}>
+                                <i className="bi bi-chat-left-text" style={{ fontSize: "12px", color: "#1F41BB" }} />
+                              </button>
+                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; navigator.clipboard.writeText(matchData); showSuccess("Match details copied to clipboard!"); }}>
+                                <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
+                              </button>
+                              {showShareDropdown === `desktop-${index}` && (
+                                <div className="position-absolute bg-white border rounded shadow-sm" style={{ top: "30px", right: 0, zIndex: 1000, minWidth: "120px" }}>
+                                  <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, "_blank"); setShowShareDropdown(null); }}>
+                                    <i className="bi bi-facebook" style={{ color: "#1877F2" }} />Facebook
+                                  </button>
+                                  <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank"); setShowShareDropdown(null); }}>
+                                    <i className="bi bi-twitter-x" style={{ color: "#000000" }} />X
+                                  </button>
+                                  <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; if (navigator.share) { navigator.share({ url, text }); } setShowShareDropdown(null); }}>
+                                    <i className="bi bi-instagram" style={{ color: "#E4405F" }} />Instagram
+                                  </button>
+                                  <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, "_blank"); setShowShareDropdown(null); }}>
+                                    <i className="bi bi-whatsapp" style={{ color: "#25D366" }} />WhatsApp
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                             <div className="row px-2 mx-auto px-md-0 py-2 d-flex justify-content-between align-items- flex-wrap">
                               <div className="col-lg-7 pb-0 col-6">
                                 <p
@@ -1059,6 +1113,33 @@ const Openmatches = () => {
                           }
                         }}
                       >
+                        <div className="position-absolute top-0 end-0 p-2 d-flex gap-1 position-relative" ref={showShareDropdown === `mobile-${index}` ? shareDropdownRef : null}>
+                          <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `mobile-${index}` ? null : `mobile-${index}`); }}>
+                            <i className="bi bi-share" style={{ fontSize: "12px", color: "#1F41BB" }} />
+                          </button>
+                          <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); }}>
+                            <i className="bi bi-chat-left-text" style={{ fontSize: "12px", color: "#1F41BB" }} />
+                          </button>
+                          <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; navigator.clipboard.writeText(matchData); showSuccess("Match details copied to clipboard!"); }}>
+                            <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
+                          </button>
+                          {showShareDropdown === `mobile-${index}` && (
+                            <div className="position-absolute bg-white border rounded shadow-sm" style={{ top: "30px", right: 0, zIndex: 1000, minWidth: "120px" }}>
+                              <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, "_blank"); setShowShareDropdown(null); }}>
+                                <i className="bi bi-facebook" style={{ color: "#1877F2" }} />Facebook
+                              </button>
+                              <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank"); setShowShareDropdown(null); }}>
+                                <i className="bi bi-twitter-x" style={{ color: "#000000" }} />X
+                              </button>
+                              <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; if (navigator.share) { navigator.share({ url, text }); } setShowShareDropdown(null); }}>
+                                <i className="bi bi-instagram" style={{ color: "#E4405F" }} />Instagram
+                              </button>
+                              <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, "_blank"); setShowShareDropdown(null); }}>
+                                <i className="bi bi-whatsapp" style={{ color: "#25D366" }} />WhatsApp
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         <div className="row px-0 px-md-3 pt-0 pb-0 d-flex justify-content-between align-items- flex-wrap mx-auto">
                           <div className="col-12">
                             <p

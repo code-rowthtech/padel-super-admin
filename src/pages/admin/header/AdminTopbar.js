@@ -24,7 +24,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from "../../../redux/admin/notifiction/thunk";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import updateLocale from "dayjs/plugin/updateLocale";
-import { DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 
 
 const SOCKET_URL = config.API_URL;
@@ -267,7 +267,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
               </div>
 
               <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
-                {notificationLoading ? <DataLoading /> :
+                {notificationLoading ? <ButtonLoading /> :
                   notifications?.length > 0 ? (
                     notifications?.map((note) => (
                       <div
