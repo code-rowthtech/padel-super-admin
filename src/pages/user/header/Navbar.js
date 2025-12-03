@@ -314,14 +314,19 @@ const Navbar = () => {
                         </ul>
                     </div>
 
-                    <div className="d-lg-none position-absolute" style={{ right: "15px", top: "50%", transform: "translateY(-50%)", zIndex: 1001 }}>
+                    <div className="d-lg-none position-absolute" style={{ right: "15px", top: "50%", transform: "translateY(-50%)", zIndex: 1051 }}>
                         <button
-                            className="btn ps-5 pe-0 border-0 bg-transparent"
+                            className="btn border-0 bg-transparent p-2 hamburger-btn"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                console.log('Hamburger clicked');
                                 setShowOffcanvas(true);
+                            }}
+                            onTouchStart={(e) => {
+                                e.currentTarget.style.transform = "scale(0.95)";
+                            }}
+                            onTouchEnd={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
                             }}
                             style={{
                                 minWidth: "48px",
@@ -330,9 +335,13 @@ const Navbar = () => {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 WebkitTapHighlightColor: "transparent",
-                                border: "1px solid #ddd",
+                                border: "1px solid #ddd !important",
                                 borderRadius: "8px",
-                                backgroundColor: "rgba(255,255,255,0.9)"
+                                backgroundColor: "rgba(255,255,255,0.95)",
+                                cursor: "pointer",
+                                touchAction: "manipulation",
+                                userSelect: "none",
+                                transition: "transform 0.1s ease"
                             }}
                             aria-label="Open menu"
                             type="button"
@@ -482,7 +491,7 @@ const Navbar = () => {
                                         </div>
                                     )}
                                 </div>
-                                <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
+                                <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)} drop="down">
                                     <Dropdown.Toggle
                                         variant="white"
                                         className="d-flex align-items-center gap-2 text-dark text-decoration-none p-0 border-0 shadow-none"
@@ -510,7 +519,7 @@ const Navbar = () => {
                                         </div>
                                     </Dropdown.Toggle>
 
-                                    <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px" }}>
+                                    <Dropdown.Menu className="table-data mt-2 border-0 shadow p-1 fw-medium" style={{ color: '#374151', width: "200px", zIndex: 1040, position: 'absolute', top: '100%' }}>
                                         <Dropdown.Item className='mb-2 d-flex align-items-center' as={NavLink} to="/user-profile">
                                             <FaRegUserCircle size={20} style={{ minWidth: "24px" }} className="me-2" /> Profile
                                         </Dropdown.Item>
@@ -563,6 +572,8 @@ const Navbar = () => {
                 backdrop={true}
                 keyboard={true}
                 scroll={false}
+                enforceFocus={false}
+                restoreFocus={false}
             >
                 <Offcanvas.Header className="border-bottom d-flex align-items-center justify-content-between p-2 py-2">
                     <Offcanvas.Title className="d-flex align-items-center gap-3">

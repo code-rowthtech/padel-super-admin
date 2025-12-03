@@ -53,11 +53,14 @@ const DefaultLayout = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Ensure page starts at top
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, [location.pathname])
 
   return (
-    <div className="d-flex flex-column" style={{ height: "100vh", overflowY: "auto", overflowX: "hidden" }}>
+    <div className="d-flex flex-column" style={{ minHeight: "100vh" }}>
       {!shouldHideHeaderFooter && <Navbar user={user} />}
 
       <div
