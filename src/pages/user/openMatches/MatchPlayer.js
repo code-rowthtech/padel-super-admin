@@ -91,7 +91,7 @@ const MatchPlayer = ({
     const [profileFetched, setProfileFetched] = useState(false);
     const hasCalledProfile = useRef(false);
     const [profileLoading, setProfileLoading] = useState(true);
-
+console.log({localPlayers});
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
