@@ -1674,6 +1674,7 @@ h1.display-5 {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    min-height: 100vh !important;
   }
 
   .auth-wrapper .auth-container {
@@ -1692,6 +1693,27 @@ h1.display-5 {
 
   .auth-wrapper .h-50 {
     height: auto !important;
+  }
+
+  /* VerifyOTP Mobile Center Fix */
+  .auth-wrapper .container-fluid {
+    min-height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .auth-wrapper .row {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .auth-wrapper .col-12 {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+    padding: 2rem 1rem !important;
   }
 }
 

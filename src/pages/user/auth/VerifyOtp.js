@@ -170,17 +170,16 @@ const VerifyOTP = () => {
             md={12}
             lg={6}
             xs={12}
+            className="d-flex flex-column justify-content-center align-items-center"
             style={{
               backgroundColor: "#F8F8F8",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
+              minHeight: "100vh",
+              padding: "2rem 1rem",
             }}
           >
             <div
-              className="w-100 h-50 text-center"
-              style={{ maxWidth: "400px" }}
+              className="w-100 text-center"
+              style={{ maxWidth: "400px", width: "100%" }}
             >
               <h2
                 className="welcome-heading mb-2"
@@ -214,7 +213,7 @@ const VerifyOTP = () => {
                 }}
               >
                 {userAuthLoading ? (
-                  <ButtonLoading />
+                  <DataLoading />
                 ) : (
                   otp.map((digit, index) => (
                     <Form.Control
