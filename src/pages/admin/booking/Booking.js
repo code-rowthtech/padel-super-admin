@@ -330,8 +330,8 @@ const Booking = () => {
               {tab === 0
                 ? "All Bookings"
                 : tab === 1
-                ? "Upcoming Bookings"
-                : "Completed Bookings"}
+                  ? "Upcoming Bookings"
+                  : "Completed Bookings"}
             </h6>
 
             {getBookingLoading ? (
@@ -368,6 +368,8 @@ const Booking = () => {
                     </thead>
                     <tbody>
                       {bookings.map((item, idx) => (
+                        console.log(item?.bookingType, 'itemitem'),
+
                         <tr
                           key={item?._id}
                           className="table-data border-bottom align-middle text-center"
@@ -384,7 +386,7 @@ const Booking = () => {
                           >
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
@@ -432,6 +434,7 @@ const Booking = () => {
                                   item?.bookingStatus !== "rejected" &&
                                   item?.bookingStatus !== "completed" &&
                                   item?.bookingStatus !== "in-progress" &&
+                                  item?.bookingType !== "open Match" &&
                                   item?.bookingStatus !== "cancelled" && (
                                     <OverlayTrigger
                                       placement="left"
@@ -481,7 +484,7 @@ const Booking = () => {
                           <span className="mobile-card-value">
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>
@@ -560,8 +563,8 @@ const Booking = () => {
                 {tab === 0
                   ? "bookings"
                   : tab === 1
-                  ? "upcoming bookings"
-                  : "completed bookings"}{" "}
+                    ? "upcoming bookings"
+                    : "completed bookings"}{" "}
                 found!
               </div>
             )}
