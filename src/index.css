@@ -1668,6 +1668,22 @@ h1.display-5 {
   }
 }
 
+/* Desktop Auth Pages - Prevent Scrollbar */
+@media (min-width: 992px) {
+  .auth-wrapper {
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  .auth-wrapper .container-fluid {
+    height: 100vh !important;
+  }
+
+  .auth-wrapper .row {
+    height: 100vh !important;
+  }
+}
+
 /* Login Page Mobile Center Fix */
 @media (min-width: 360px) and (max-width: 768px) {
   .auth-wrapper {
@@ -1714,6 +1730,17 @@ h1.display-5 {
     align-items: center !important;
     min-height: 100vh !important;
     padding: 2rem 1rem !important;
+  }
+
+  /* Prevent zoom on input focus */
+  input[type="text"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }
 
@@ -2560,6 +2587,12 @@ h1.display-5 {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+/* Book Now Button Arrow Rotation Effect */
+button:hover .book-now-arrow,
+button:focus .book-now-arrow {
+  transform: rotate(45deg) !important;
 }
 
 /* Mobile Booking Summary Styles */
