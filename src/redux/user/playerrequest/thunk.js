@@ -1,0 +1,60 @@
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import * as Url from "../../../helpers/api/apiEndpoint";
+import { showError, showSuccess } from "../../../helpers/Toast";
+import { userApi } from "../../../helpers/api/apiCore";
+
+export const getRequest = createAsyncThunk(
+  "playerrequest/getRequest",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await userApi.get(Url.PLAYER_REQUEST_GET);
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+
+      const errorMessage = message;
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message;
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+export const createRequest = createAsyncThunk(
+  "playerrequest/createRequest",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const res = await userApi.post(Url.PLAYER_REQUEST, payload);
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+      showSuccess(message);
+      const errorMessage = message;
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message;
+      showError(errorMessage || error.message);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+export const updateRequest = createAsyncThunk(
+  "playerrequest/updateRequest",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const res = await userApi.put(Url.PLAYER_REQUEST_UPDATE, payload);
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data;
+      }
+      showSuccess(message);
+      const errorMessage = message;
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      showError(error || error.message);
+      return rejectWithValue(error);
+    }
+  }
+);
