@@ -201,7 +201,7 @@ const OpenmatchPayment = () => {
 
         try {
             if (!User?.name || !User?.phoneNumber || !User?.email) {
-                await dispatch(updateUser({ phoneNumber: cleanPhone, name, email })).unwrap();
+                await dispatch(updateUser({ phoneNumber: cleanPhone, name, email, gender: selectedGender })).unwrap();
             }
             const answersArray = finalSkillDetails
                 ? Object.keys(finalSkillDetails)
