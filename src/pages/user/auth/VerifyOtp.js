@@ -174,7 +174,7 @@ const VerifyOTP = () => {
             style={{
               backgroundColor: "#F8F8F8",
               minHeight: "100vh",
-              padding: "2rem 1rem",
+              padding: "0rem 1rem 15rem 1rem",
             }}
           >
             <div
