@@ -48,7 +48,8 @@ import { PiSunHorizonFill } from "react-icons/pi";
 import { IoIosArrowForward } from "react-icons/io";
 import { registerClub } from "../../../redux/thunks";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
-import { showSuccess } from "../../../helpers/Toast";
+import { showError, showSuccess } from "../../../helpers/Toast";
+import { copyMatchCardWithScreenshot } from "../../../utils/matchCopy";
 
 const normalizeTime = (time) => {
   if (!time) return null;
@@ -113,10 +114,13 @@ const Openmatches = () => {
   const [teamName, setTeamName] = useState("");
   const [showViewMatch, setShowViewMatch] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
-  const [showCreateButton, setShowCreateButton] = useState(true);
+  const [showCreateButton, setShowCreateButton] = useState(() => {
+    return localStorage.getItem('hideCreateButton') !== 'true';
+  });
   const [playerLevels, setPlayerLevels] = useState([]);
   const [showShareDropdown, setShowShareDropdown] = useState(null);
   const shareDropdownRef = useRef(null);
+  const matchCardRefs = useRef({});
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
   const debouncedFetchMatches = useCallback(
@@ -137,7 +141,7 @@ const Openmatches = () => {
     if (window.innerWidth <= 768) {
       const shouldShowViewMatch = localStorage.getItem('mobileViewMatch') === 'true';
       const savedMatch = localStorage.getItem('mobileSelectedMatch');
-      
+
       // Only restore ViewMatch state if user explicitly navigated to it
       if (shouldShowViewMatch && savedMatch && window.location.hash === '#viewmatch') {
         setShowViewMatch(true);
@@ -169,11 +173,11 @@ const Openmatches = () => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
     }
-    
+
     if (shareDropdownRef.current && !shareDropdownRef.current.contains(e.target)) {
       setShowShareDropdown(null);
     }
-    
+
     // Close modals on outside click (except payment modals)
     if (showModal && !e.target.closest('.modal-content') && !e.target.closest('[data-bs-toggle="modal"]')) {
       setShowModal(false);
@@ -205,10 +209,9 @@ const Openmatches = () => {
     const payload = {
       matchDate: selectedDate?.fullDate,
       ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
-      ...(selectedLevel && { skillLevel: selectedLevel }),
+      ...(selectedLevel && selectedLevel !== "All" && { skillLevel: selectedLevel }),
       clubId: localStorage.getItem("register_club_id")
     };
-    console.log('Fetching matches with payload:', payload);
     debouncedFetchMatches(payload);
   }, [selectedTime, selectedLevel, debouncedFetchMatches]);
 
@@ -303,7 +306,7 @@ const Openmatches = () => {
   useEffect(() => {
     if (!matchLoading && matchesData?.data?.length > 0) {
       const tabLabels = ["morning", "noon", "night"];
-      
+
       // Find first tab with data
       let defaultTabIndex = 0; // Default to morning
       for (let i = 0; i < tabLabels.length; i++) {
@@ -313,7 +316,7 @@ const Openmatches = () => {
           break;
         }
       }
-      
+
       setActiveTab(defaultTabIndex);
     }
   }, [matchesData?.data, matchLoading, selectedDate.fullDate]);
@@ -399,16 +402,9 @@ const Openmatches = () => {
       .filter(Boolean);
 
     if (times.length === 0) return "N/A";
+    if (times.length === 1) return `${times[0].hour}${times[0].period}`;
 
-    const lastPeriod = times[times.length - 1].period;
-    const formatted = times.map((time, index) => {
-      if (index === times.length - 1) {
-        return `${time.hour}${time.period}`;
-      }
-      return time.hour;
-    });
-
-    return formatted.join("-") + (slots.length > 3 ? "...." : "");
+    return `${times[0].hour}-${times[times.length - 1].hour}${times[times.length - 1].period}`;
   };
 
   const TagWrapper = ({ children }) => (
@@ -508,7 +504,7 @@ const Openmatches = () => {
               : player.name
             : "Player"}
         </p>
-        <p
+        {/* <p
           className="m-0 mb-1 d-flex justify-content-center align-items-center rounded"
           style={{
             fontSize: "10px",
@@ -519,7 +515,7 @@ const Openmatches = () => {
           }}
         >
           A|B
-        </p>
+        </p> */}
       </div>
     </TagWrapper>
   );
@@ -583,7 +579,7 @@ const Openmatches = () => {
   const scrollRight = () =>
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
-  
+
   return (
     <div className="container mt-lg-4 px-3 px-md-0 mb-md-4 mb-0 add_margin_top_minus">
       <div className="row g-md-4 mx-auto">
@@ -631,7 +627,6 @@ const Openmatches = () => {
                             });
                             setSelectedDate({ fullDate: formattedDate, day });
                             setSelectedTime(null);
-                            setShowCreateButton(false);
                           }}
                           minDate={new Date()}
                           maxDate={maxSelectableDate}
@@ -644,23 +639,21 @@ const Openmatches = () => {
                   )}
                 </div>
               </div>
-              {!showCreateButton && (
-                <button
-                  className="btn shadow border-0 text-white rounded-pill d-block d-md-none"
-                  onClick={createMatchesHandle}
-                  style={{
-                    background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                    fontSize: "12px",
-                    fontFamily: "Poppins",
-                    fontWeight: "500",
-                    padding: "6px 12px",
-                    whiteSpace: "nowrap"
-                  }}
-                  aria-label="Create open matches"
-                >
-                  Create Open Matches
-                </button>
-              )}
+              <button
+                className="btn shadow border-0 text-white rounded-pill "
+                onClick={createMatchesHandle}
+                style={{
+                  background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                  fontSize: "12px",
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                  padding: "6px 12px",
+                  whiteSpace: "nowrap"
+                }}
+                aria-label="Create open matches"
+              >
+                Create Open Matches
+              </button>
             </div>
 
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
@@ -749,7 +742,6 @@ const Openmatches = () => {
                         onClick={() => {
                           setSelectedDate({ fullDate: d.fullDate, day: d.day });
                           setStartDate(new Date(d.fullDate));
-                          setShowCreateButton(false);
                           dispatch(
                             getMatchesUser({
                               matchDate: d.fullDate,
@@ -863,11 +855,11 @@ const Openmatches = () => {
                   <FaChevronDown style={{ fontSize: "10px" }} />
                 </button>
                 <ul className="dropdown-menu shadow-sm w-50">
-                  {["beginner", "intermediate", "advanced", "professional"].map(
+                  {["All", "beginner", "intermediate", "advanced", "professional"].map(
                     (level) => (
                       <li key={level}>
                         <button
-                          className="dropdown-item mb-3"
+                          className="dropdown-item mb-1"
                           style={{
                             fontSize: "14px",
                             fontWeight: "400",
@@ -907,6 +899,7 @@ const Openmatches = () => {
                       <div className="row px-1">
                         <div className="col">
                           <div
+                            ref={(el) => (matchCardRefs.current[`desktop-${index}`] = el)}
                             className="card  mb-2 py-3 p-0 shadow-0 rounded-2 d-md-block d-none"
                             style={{
                               backgroundColor: "#CBD6FF1A",
@@ -925,14 +918,8 @@ const Openmatches = () => {
                               }
                             }}
                           >
-                            <div className="position-absolute top-0 end-0 p-2  d-flex gap-1 position-relative" ref={showShareDropdown === `desktop-${index}` ? shareDropdownRef : null}>
-                              <button className="btn rounded-circle p-1 d-flex mb-2 align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `desktop-${index}` ? null : `desktop-${index}`); }}>
-                                <i className="bi bi-share" style={{ fontSize: "12px", color: "#1F41BB" }} />
-                              </button>
-                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); }}>
-                                <i className="bi bi-chat-left-text" style={{ fontSize: "12px", color: "#1F41BB" }} />
-                              </button>
-                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showSuccess("Could not copy to clipboard")); } else { showSuccess("Clipboard not supported on this device"); } }}>
+                            <div className="position-absolute top-0 end-0 p-2 pb-2 pt-0  d-flex gap-1 position-relative" ref={showShareDropdown === `desktop-${index}` ? shareDropdownRef : null}>
+                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={async (e) => { e.stopPropagation(); const matchCardElement = matchCardRefs.current[`desktop-${index}`]; if (matchCardElement) { await copyMatchCardWithScreenshot(matchCardElement, match); } else { const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showError("Could not copy to clipboard")); } else { showError("Clipboard not supported on this device"); } } }}>
                                 <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
                               </button>
                               {showShareDropdown === `desktop-${index}` && (
@@ -960,6 +947,7 @@ const Openmatches = () => {
                                 >
                                   {formatMatchDate(match.matchDate)} |{" "}
                                   {formatTimes(match.slot)}
+                                  <i className="bi bi-share ms-2" onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `desktop-${index}` ? null : `desktop-${index}`); }} style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }} />
                                 </p>
                                 <span className="text-muted all-match-name-level ms-0 d-none d-md-inline">
                                   {match?.skillLevel
@@ -973,6 +961,7 @@ const Openmatches = () => {
                                     match.skillLevel.slice(1)
                                     : "N/A"} | {match?.gender}
                                 </p>
+
                                 <div
                                   className="d-flex align-items-start mt-lg-4 pb-0 flex-column justify-content-start"
                                   style={{ width: "100%", maxWidth: "100%" }}
@@ -1107,6 +1096,7 @@ const Openmatches = () => {
                       </div>
 
                       <div
+                        ref={(el) => (matchCardRefs.current[`mobile-${index}`] = el)}
                         className="card  mb-2 py-2 p-0 shadow-0 rounded-3 d-block d-md-none"
                         style={{
                           backgroundColor: "#CBD6FF1A",
@@ -1127,10 +1117,8 @@ const Openmatches = () => {
                           <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `mobile-${index}` ? null : `mobile-${index}`); }}>
                             <i className="bi bi-share" style={{ fontSize: "12px", color: "#1F41BB" }} />
                           </button>
-                          <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); }}>
-                            <i className="bi bi-chat-left-text" style={{ fontSize: "12px", color: "#1F41BB" }} />
-                          </button>
-                          <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showSuccess("Could not copy to clipboard")); } else { showSuccess("Clipboard not supported on this device"); } }}>
+
+                          <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={async (e) => { e.stopPropagation(); const matchCardElement = matchCardRefs.current[`mobile-${index}`]; if (matchCardElement) { await copyMatchCardWithScreenshot(matchCardElement, match); } else { const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showError("Could not copy to clipboard")); } else { showError("Clipboard not supported on this device"); } } }}>
                             <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
                           </button>
                           {showShareDropdown === `mobile-${index}` && (
@@ -1149,6 +1137,7 @@ const Openmatches = () => {
                               </button>
                             </div>
                           )}
+
                         </div>
                         <div className="row px-0 px-md-3 pt-0 pb-0 d-flex justify-content-between align-items- flex-wrap mx-auto">
                           <div className="col-12">
@@ -1472,29 +1461,74 @@ const Openmatches = () => {
                 </div>
               ) : (
                 <div
-                  className="d-flex flex-column justify-content-center align-items-center text-danger fw-medium"
+                  className="d-flex flex-column justify-content-center align-items-center text-muted fw-medium text-center"
                   style={{
                     minHeight: "210px",
-                    fontSize: "18px",
+                    fontSize: "16px",
                     fontFamily: "Poppins",
                   }}
                 >
-                  <p>No Slots available</p>
+                  <p className="mb-2">No matches available for this date</p>
+                  <p className="mb-0" style={{ fontSize: "14px" }}>Try searching for a different date or location</p>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        <div
-          className={`col-12 col-lg-5 ps-md-3 pe-md-0 px-0 ${!showViewMatch ? "ps-md-4 pt-md-1 pt-1" : ""
-            } order-1 order-md-2 ${showViewMatch ? "d-block" : ""}`}
-        >
-          {!showViewMatch ? (
-            <div className="ms-0 ms-lg-2 mt-md-3 mt-2">
-              {showCreateButton && (
+        {showCreateButton && (
+          <div
+            className={`col-12 col-lg-5 ps-md-3 pe-md-0 px-0 ${!showViewMatch ? "ps-md-4 pt-md-1 pt-1" : ""
+              } order-1 order-md-2 ${showViewMatch ? "d-block" : ""}`}
+          >
+            {!showViewMatch ? (
+              <div className="ms-0 ms-lg-2 mt-md-3 mt-2">
+                {showCreateButton && (
+                  <div
+                    className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner mx-auto d-flex d-md-none"
+                    style={{
+                      backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
+                      position: "relative",
+                      backgroundSize: "cover",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right center",
+                      height: "312px",
+                      borderRadius: "20px",
+                      overflow: "hidden",
+                      marginTop: "-10px",
+                    }}
+                  >
+                    <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
+                      <h4 className="open-match-img-heading text-nowrap">
+                        Got a score to <br /> settle?
+                      </h4>
+                      <p className="text-light font_small_size">
+                        Great for competitive vibes.
+                      </p>
+                      <button
+                        className="btn shadow border-0 create-match-btn mt-lg-2 rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
+                        onClick={() => {
+                          localStorage.setItem('hideCreateButton', 'true');
+                          setShowCreateButton(false);
+                          createMatchesHandle();
+                        }}
+                        style={{
+                          background: "#fff",
+                          fontSize: "14px",
+                          fontFamily: "Poppins",
+                          fontWeight: "500",
+                          color: "#0034E4"
+                        }}
+                        aria-label="Create open matches"
+                      >
+                        Create Open Matches
+                      </button>
+
+                    </div>
+                  </div>
+                )}
                 <div
-                  className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner mx-auto d-flex d-md-none"
+                  className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-flex"
                   style={{
                     backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
                     position: "relative",
@@ -1504,7 +1538,7 @@ const Openmatches = () => {
                     height: "312px",
                     borderRadius: "20px",
                     overflow: "hidden",
-                    marginTop: "-10px",
+                    marginTop: "-20px",
                   }}
                 >
                   <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
@@ -1515,239 +1549,201 @@ const Openmatches = () => {
                       Great for competitive vibes.
                     </p>
                     <button
-                      className="btn shadow border-0 create-match-btn mt-lg-2 rounded-pill mb-md-3 mb-0 ps-3 pe-3 font_size_data"
+                      className="btn shadow border-0 create-match-btn mt-lg-3 text-white rounded-pill mb-md-2 mb-0 py-3 ps-3 pe-3 font_size_data"
                       onClick={createMatchesHandle}
                       style={{
-                        background: "#fff",
-                        fontSize: "14px",
+                        background:
+                          "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                        fontSize: "15px",
                         fontFamily: "Poppins",
                         fontWeight: "500",
-                        color: "#0034E4"
                       }}
                       aria-label="Create open matches"
                     >
                       Create Open Matches
                     </button>
-
                   </div>
                 </div>
-              )}
-              <div
-                className="row align-items-center text-white rounded-4 py-0 ps-md-4 ps-3 add_height_mobile_banner d-none d-md-flex"
-                style={{
-                  backgroundImage: `linear-gradient(269.34deg, rgba(255, 255, 255, 0) 0.57%, rgba(17, 24, 39, 0.6) 94.62%), url(${player2})`,
-                  position: "relative",
-                  backgroundSize: "cover",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right center",
-                  height: "312px",
-                  borderRadius: "20px",
-                  overflow: "hidden",
-                  marginTop: "-20px",
-                }}
-              >
-                <div className="col-12 col-md-6 mb-1 text-start mb-md-0">
-                  <h4 className="open-match-img-heading text-nowrap">
-                    Got a score to <br /> settle?
-                  </h4>
-                  <p className="text-light font_small_size">
-                    Great for competitive vibes.
-                  </p>
-                  <button
-                    className="btn shadow border-0 create-match-btn mt-lg-3 text-white rounded-pill mb-md-2 mb-0 py-3 ps-3 pe-3 font_size_data"
-                    onClick={createMatchesHandle}
-                    style={{
-                      background:
-                        "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
-                      fontSize: "15px",
-                      fontFamily: "Poppins",
-                      fontWeight: "500",
-                    }}
-                    aria-label="Create open matches"
-                  >
-                    Create Open Matches
-                  </button>
-                </div>
-              </div>
-              <div
-                className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100 d-none d-md-flex"
-                style={{ backgroundColor: "#F6F7FB" }}
-              >
-                {reviewLoading ? (
-                  <DataLoading />
-                ) : (
-                  <>
-                    <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0 ps-0">
-                      <div className="w-100">
-                        <p
-                          className="mb-0"
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: "500",
-                            color: "#111",
-                            fontFamily: "Poppins",
-                          }}
-                        >
-                          Overall Rating
-                        </p>
-                        <div className="d-flex flex-lg-column align-items-center justify-content-center">
-                          <div
-                            className="mb-2"
+                <div
+                  className="px-4 py-4 row rounded-4 border mt-3 mb-5 h-100 d-none d-md-flex"
+                  style={{ backgroundColor: "#F6F7FB" }}
+                >
+                  {reviewLoading ? (
+                    <DataLoading />
+                  ) : (
+                    <>
+                      <div className="col-12 border-end col-lg-4 pe-lg-3 text-center d-lg-flex align-items-center justify-content-center mb-4 mb-md-0 ps-0">
+                        <div className="w-100">
+                          <p
+                            className="mb-0"
                             style={{
-                              fontFamily: "Poppins",
-                              fontWeight: "600",
-                              fontSize: "40px",
+                              fontSize: "16px",
+                              fontWeight: "500",
                               color: "#111",
-                            }}
-                          >
-                            {reviewData?.averageRating?.toFixed(1) || "0.0"}
-                          </div>
-                          <div className="mb-2 d-flex gap-lg-0">
-                            {[...Array(5)].map((_, i) => {
-                              const rating = reviewData?.averageRating || 0;
-                              if (i < Math.floor(rating)) {
-                                return (
-                                  <StarIcon
-                                    key={i}
-                                    style={{
-                                      color: "#32B768",
-                                      fontSize: "25px",
-                                    }}
-                                  />
-                                );
-                              } else if (i < rating && rating % 1 >= 0.5) {
-                                return (
-                                  <StarHalfIcon
-                                    key={i}
-                                    style={{
-                                      color: "#32B768",
-                                      fontSize: "25px",
-                                    }}
-                                  />
-                                );
-                              } else {
-                                return (
-                                  <StarBorderIcon
-                                    key={i}
-                                    style={{ color: "#ccc", fontSize: "25px" }}
-                                  />
-                                );
-                              }
-                            })}
-                          </div>
-                          <div
-                            className="text-muted ps-0 pb-2"
-                            style={{
-                              fontSize: "12px",
-                              fontWeight: "400",
                               fontFamily: "Poppins",
                             }}
                           >
-                            Based on {reviewData?.totalReviews || 0} reviews
+                            Overall Rating
+                          </p>
+                          <div className="d-flex flex-lg-column align-items-center justify-content-center">
+                            <div
+                              className="mb-2"
+                              style={{
+                                fontFamily: "Poppins",
+                                fontWeight: "600",
+                                fontSize: "40px",
+                                color: "#111",
+                              }}
+                            >
+                              {reviewData?.averageRating?.toFixed(1) || "0.0"}
+                            </div>
+                            <div className="mb-2 d-flex gap-lg-0">
+                              {[...Array(5)].map((_, i) => {
+                                const rating = reviewData?.averageRating || 0;
+                                if (i < Math.floor(rating)) {
+                                  return (
+                                    <StarIcon
+                                      key={i}
+                                      style={{
+                                        color: "#32B768",
+                                        fontSize: "25px",
+                                      }}
+                                    />
+                                  );
+                                } else if (i < rating && rating % 1 >= 0.5) {
+                                  return (
+                                    <StarHalfIcon
+                                      key={i}
+                                      style={{
+                                        color: "#32B768",
+                                        fontSize: "25px",
+                                      }}
+                                    />
+                                  );
+                                } else {
+                                  return (
+                                    <StarBorderIcon
+                                      key={i}
+                                      style={{ color: "#ccc", fontSize: "25px" }}
+                                    />
+                                  );
+                                }
+                              })}
+                            </div>
+                            <div
+                              className="text-muted ps-0 pb-2"
+                              style={{
+                                fontSize: "12px",
+                                fontWeight: "400",
+                                fontFamily: "Poppins",
+                              }}
+                            >
+                              Based on {reviewData?.totalReviews || 0} reviews
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="col-12 col-lg-8 ps-lg-4 pe-0">
-                      <div className="w-100">
-                        {[5, 4, 3, 2, 1].map((star, idx) => {
-                          const total = reviewData?.totalReviews || 1;
-                          let count = 0;
-                          if (star === 5)
-                            count = reviewData?.ratingCounts?.Excellent || 0;
-                          else if (star === 4)
-                            count = reviewData?.ratingCounts?.Good || 0;
-                          else if (star === 3)
-                            count = reviewData?.ratingCounts?.Average || 0;
-                          else if (star <= 2)
-                            count = reviewData?.ratingCounts?.Below || 0;
+                      <div className="col-12 col-lg-8 ps-lg-4 pe-0">
+                        <div className="w-100">
+                          {[5, 4, 3, 2, 1].map((star, idx) => {
+                            const total = reviewData?.totalReviews || 1;
+                            let count = 0;
+                            if (star === 5)
+                              count = reviewData?.ratingCounts?.Excellent || 0;
+                            else if (star === 4)
+                              count = reviewData?.ratingCounts?.Good || 0;
+                            else if (star === 3)
+                              count = reviewData?.ratingCounts?.Average || 0;
+                            else if (star <= 2)
+                              count = reviewData?.ratingCounts?.Below || 0;
 
-                          const percent = Math.round((count / total) * 100);
+                            const percent = Math.round((count / total) * 100);
 
-                          return (
-                            <div
-                              key={star}
-                              className="d-flex align-items-center mb-3 gap-3"
-                              style={{ width: "100%" }}
-                            >
+                            return (
                               <div
-                                className="text-nowrap"
-                                style={{
-                                  width: "110px",
-                                  minWidth: "110px",
-                                  fontSize: "14px",
-                                  fontWeight: "500",
-                                  fontFamily: "Poppins",
-                                  color: "#111",
-                                }}
-                              >
-                                {star === 5
-                                  ? "Excellent"
-                                  : star === 4
-                                    ? "Good"
-                                    : star === 3
-                                      ? "Average"
-                                      : star === 2
-                                        ? "Below Average"
-                                        : "Poor"}
-                              </div>
-
-                              <div
-                                className="progress flex-grow-1 border"
-                                style={{
-                                  height: "10px",
-                                  backgroundColor: "#eee",
-                                  minWidth: 0,
-                                }}
+                                key={star}
+                                className="d-flex align-items-center mb-3 gap-3"
+                                style={{ width: "100%" }}
                               >
                                 <div
-                                  className="progress-bar"
+                                  className="text-nowrap"
                                   style={{
-                                    width: `${percent}%`,
-                                    backgroundColor:
-                                      star === 5
-                                        ? "#3DBE64"
-                                        : star === 4
-                                          ? "#7CBA3D"
-                                          : star === 3
-                                            ? "#ECD844"
-                                            : star === 2
-                                              ? "#FC702B"
-                                              : "#E9341F",
-                                    transition: "width 0.4s ease",
+                                    width: "110px",
+                                    minWidth: "110px",
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                    fontFamily: "Poppins",
+                                    color: "#111",
                                   }}
-                                />
-                              </div>
+                                >
+                                  {star === 5
+                                    ? "Excellent"
+                                    : star === 4
+                                      ? "Good"
+                                      : star === 3
+                                        ? "Average"
+                                        : star === 2
+                                          ? "Below Average"
+                                          : "Poor"}
+                                </div>
 
-                              {/* <small className="text-muted ms-2" style={{ fontSize: "12px" }}>
+                                <div
+                                  className="progress flex-grow-1 border"
+                                  style={{
+                                    height: "10px",
+                                    backgroundColor: "#eee",
+                                    minWidth: 0,
+                                  }}
+                                >
+                                  <div
+                                    className="progress-bar"
+                                    style={{
+                                      width: `${percent}%`,
+                                      backgroundColor:
+                                        star === 5
+                                          ? "#3DBE64"
+                                          : star === 4
+                                            ? "#7CBA3D"
+                                            : star === 3
+                                              ? "#ECD844"
+                                              : star === 2
+                                                ? "#FC702B"
+                                                : "#E9341F",
+                                      transition: "width 0.4s ease",
+                                    }}
+                                  />
+                                </div>
+
+                                {/* <small className="text-muted ms-2" style={{ fontSize: "12px" }}>
                   {count}
                 </small> */}
-                            </div>
-                          );
-                        })}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ) : (
-            <ViewMatch
-              match={selectedMatch}
-              onBack={() => {
-                setShowViewMatch(false);
-                if (window.innerWidth <= 768) {
-                  localStorage.removeItem('mobileViewMatch');
-                  localStorage.removeItem('mobileSelectedMatch');
-                  window.location.hash = '';
-                }
-              }}
-              updateName={updateName}
-              selectedDate={selectedDate}
-            />
-          )}
-        </div>
+            ) : (
+              <ViewMatch
+                match={selectedMatch}
+                onBack={() => {
+                  setShowViewMatch(false);
+                  if (window.innerWidth <= 768) {
+                    localStorage.removeItem('mobileViewMatch');
+                    localStorage.removeItem('mobileSelectedMatch');
+                    window.location.hash = '';
+                  }
+                }}
+                updateName={updateName}
+                selectedDate={selectedDate}
+              />
+            )}
+          </div>
+        )}
       </div>
       <UpdatePlayers
         showModal={showModal}

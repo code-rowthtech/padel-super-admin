@@ -1209,7 +1209,7 @@ const CreateMatches = () => {
                             color: #0034E4;
                           }
                           .animation-slider::before {
-                            content: 'Game levels are self-managed for now. AI enhancement arrives January 2025.';
+                            content: 'Game levels are self-assessed at the moment. AI assessment will start from Jan 2026.';
                             position: absolute;
                             top: 50%;
                             transform: translateY(-50%);

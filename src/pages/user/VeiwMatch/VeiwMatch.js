@@ -4,13 +4,16 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { padal, club, player } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
-import { DataLoading } from "../../../helpers/loading/Loaders";
-import { Avatar, Tooltip, Modal, Box } from "@mui/material";
+import { DataLoading, ButtonLoading } from "../../../helpers/loading/Loaders";
+import { Avatar, Tooltip, Modal, Box, Button } from "@mui/material";
 import { Offcanvas } from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
+import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thunk";
+import { copyMatchCardWithScreenshot } from "../../../utils/matchCopy";
+import { showSuccess, showError } from "../../../helpers/Toast";
 
 const PlayerSlot = memo(function PlayerSlot({
     player,
@@ -23,7 +26,8 @@ const PlayerSlot = memo(function PlayerSlot({
     isFromBookingHistory = false,
     onPlayerClick
 }) {
-    console.log({ player });
+    const store = useSelector((state) => state);
+
     const user = player?.userId || player;
     const tooltipId = `player-${team}-${index}`;
     if (!player) {
@@ -145,10 +149,10 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const { state } = useLocation();
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
+    const RequestData = useSelector((state) => state.requestData?.requestData?.requests);
     const getPlayerLevelsData = useSelector(
         (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
     );
-    console.log({ getPlayerLevelsData });
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
@@ -161,14 +165,15 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
     const [playerLevels, setPlayerLevels] = useState([]);
-    const [showReasonModal, setShowReasonModal] = useState(false);
-    const [selectedPlayerForAccept, setSelectedPlayerForAccept] = useState(null);
-    const [showDeclineModal, setShowDeclineModal] = useState(false);
-    const [selectedPlayerForDecline, setSelectedPlayerForDecline] = useState(null);
-    const [declineReason, setDeclineReason] = useState("");
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [selectedPlayerForAction, setSelectedPlayerForAction] = useState(null);
+    const [fullScreenLoading, setFullScreenLoading] = useState(false);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectReason, setRejectReason] = useState("");
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
     const shareDropdownRef = useRef(null);
+    const matchDetailsRef = useRef(null);
 
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
@@ -195,6 +200,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     useEffect(() => {
         if (matchId) {
             dispatch(getMatchesView(matchId));
+            dispatch(getRequest(matchId));
         }
     }, [matchId, dispatch]);
 
@@ -267,16 +273,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         });
 
         if (formattedTimes.length === 0) return "";
+        if (formattedTimes.length === 1) return `${formattedTimes[0].hour}${formattedTimes[0].period}`;
 
-        const lastPeriod = formattedTimes[formattedTimes.length - 1].period;
-        const formatted = formattedTimes.map((time, index) => {
-            if (index === formattedTimes.length - 1) {
-                return `${time.hour}${time.period}`;
-            }
-            return time.hour;
-        });
-
-        return formatted.join("-");
+        return `${formattedTimes[0].hour}-${formattedTimes[formattedTimes.length - 1].hour}${formattedTimes[formattedTimes.length - 1].period}`;
     };
 
     const matchDate = matchesData?.data?.matchDate
@@ -295,7 +294,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     );
 
     const handleAdd = useCallback((team) => {
-        if(!user?.token) navigate('/login') ;
+        if (!user?.token) navigate('/login');
         setTeamName(team === "A" ? "teamA" : "teamB");
         setShowModal(true);
     }, []);
@@ -316,7 +315,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         { player: teamBData[0], index: 2, removable: true, team: "B" },
         { player: teamBData[1], index: 3, removable: true, team: "B" },
     ];
-    console.log({ slots });
 
     useEffect(() => {
         if (!matchesData?.data?.skillLevel) return;
@@ -377,7 +375,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
 
     return (
         <>
-            <div className=" rounded-3 px-md-3 px-0 py-md-2 pt-0 pb-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
+            <div ref={matchDetailsRef} className=" rounded-3 px-md-3 px-0 py-md-2 pt-0 pb-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
                 <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
                     <div className="d-flex align-items-center gap-2">
                         {onBack && (
@@ -395,6 +393,25 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
 
                     </div>
                     <div className="d-flex align-items-center gap-2 position-relative" ref={shareDropdownRef}>
+                        <button
+                            className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center border shadow-sm"
+                            style={{ width: 36, height: 36 }}
+                            onClick={async () => {
+                                if (matchDetailsRef.current && matchesData?.data) {
+                                    await copyMatchCardWithScreenshot(matchDetailsRef.current, matchesData.data);
+                                } else {
+                                    const matchData = `Match Details:\nDate: ${matchDate.day}, ${matchDate.formattedDate}\nTime: ${matchTime}\nClub: ${clubData?.clubName || 'Unknown Club'}\nLevel: ${matchesData?.data?.skillLevel || 'N/A'}\nLink: ${window.location.href}`;
+                                    try {
+                                        await navigator.clipboard.writeText(matchData);
+                                        showSuccess('Match details copied to clipboard!');
+                                    } catch (error) {
+                                        showError('Could not copy to clipboard');
+                                    }
+                                }
+                            }}
+                        >
+                            <i className="bi bi-copy" />
+                        </button>
                         <button
                             className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center border shadow-sm"
                             style={{ width: 36, height: 36 }}
@@ -518,8 +535,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                     </div>
                 </div>
-
-                <div
+                {user?._id === matchesData?.data?.createdBy && (<div
                     className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
                     style={{ backgroundColor: "#CBD6FF1A", cursor: "pointer" }}
                     onClick={() => setShowRequestModal(true)}
@@ -536,10 +552,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                     </div>
                     <div className="d-flex align-items-center">
-                        <span className="badge bg-primary rounded-pill d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "20px", height: "20px", }}>3</span>
+                        <span className="badge bg-primary rounded-pill d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "20px", height: "20px", }}>{RequestData?.length}</span>
                         <i className="bi bi-chevron-right ms-2" style={{ color: "#6B7280" }} />
                     </div>
-                </div>
+                </div>)}
+
 
 
 
@@ -548,47 +565,42 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         Players
                     </h6>
 
-                    {userLoading ? (
-                        <DataLoading />
-                    ) : (
-                        <div className="row mx-auto">
-                            <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 ">
-                                {slots.slice(0, 2).map((s) => (
-                                    <PlayerSlot
-                                        key={s.index}
-                                        player={s.player}
-                                        index={s.index}
-                                        isRemovable={s.removable}
-                                        team={s.team}
-                                        onRemove={handleRemove}
-                                        onAdd={() => handleAdd(s.team)}
-                                        openMatches={matchesData?.data}
-                                        isFromBookingHistory={isFromBookingHistory}
-                                        onPlayerClick={handlePlayerClick}
-                                    />
-                                ))}
-                            </div>
-
-                            <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 border-start border-0 border-lg-start">
-                                {slots.slice(2, 4).map((s) => (
-                                    <PlayerSlot
-                                        key={s.index}
-                                        player={s.player}
-                                        index={s.index}
-                                        isRemovable={s.removable}
-                                        team={s.team}
-                                        onRemove={handleRemove}
-                                        onAdd={() => handleAdd(s.team)}
-                                        openMatches={matchesData?.data}
-                                        isFromBookingHistory={isFromBookingHistory}
-                                        onPlayerClick={handlePlayerClick}
-                                    />
-                                ))}
-                            </div>
-
+                    <div className="row mx-auto">
+                        <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 ">
+                            {slots.slice(0, 2).map((s) => (
+                                <PlayerSlot
+                                    key={s.index}
+                                    player={s.player}
+                                    index={s.index}
+                                    isRemovable={s.removable}
+                                    team={s.team}
+                                    onRemove={handleRemove}
+                                    onAdd={() => handleAdd(s.team)}
+                                    openMatches={matchesData?.data}
+                                    isFromBookingHistory={isFromBookingHistory}
+                                    onPlayerClick={handlePlayerClick}
+                                />
+                            ))}
                         </div>
 
-                    )}
+                        <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 border-start border-0 border-lg-start">
+                            {slots.slice(2, 4).map((s) => (
+                                <PlayerSlot
+                                    key={s.index}
+                                    player={s.player}
+                                    index={s.index}
+                                    isRemovable={s.removable}
+                                    team={s.team}
+                                    onRemove={handleRemove}
+                                    onAdd={() => handleAdd(s.team)}
+                                    openMatches={matchesData?.data}
+                                    isFromBookingHistory={isFromBookingHistory}
+                                    onPlayerClick={handlePlayerClick}
+                                />
+                            ))}
+                        </div>
+
+                    </div>
 
                     <div className="d-flex justify-content-between mt-2">
                         <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
@@ -601,7 +613,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </h6>
                 </div>
 
-                <div className="d-lg-flex gap-2 position-relative">
+                <div className="d-lg-flex justify-content-lg-between gap-2 position-relative">
                     <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
                         <div>
@@ -628,25 +640,25 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             </p>
                         </div>
                     </div>
-                      <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
-                    <button
-                        className="d-flex align-items-center gap-2 border-0 py-1"
-                        style={{
-                            background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
-                            borderRadius: "25px",
-                            padding: "8px 16px",
-                            color: "#fff",
-                            fontWeight: 600,
-                        }}
-                    // onClick={() => setShowChat(true)}
-                    >
-                        <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
-                        Chat
-                    </button>
+                    <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
+                        <button
+                            className="d-flex align-items-center gap-2 border-0 py-1"
+                            style={{
+                                background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
+                                borderRadius: "25px",
+                                padding: "8px 16px",
+                                color: "#fff",
+                                fontWeight: 600,
+                            }}
+                        // onClick={() => setShowChat(true)}
+                        >
+                            <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
+                            Chat
+                        </button>
 
+                    </div>
                 </div>
-                </div>
-              
+
 
             </div>
 
@@ -786,7 +798,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             Player's Requests
                         </Offcanvas.Title>
                         <p className="mb-0 mt-1" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                            In order for the player to join the match, all enrolled players must accept the player's request. You can change your vote.
+                            In order for the player to join the match, all enrolled players must accept the player's request.
                         </p>
                     </div>
                 </Offcanvas.Header>
@@ -797,53 +809,54 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
                         </div>
                         <div className="d-flex flex-column ">
-                            {/* Static Players */}
-                            {[
-                                { name: "Rahul Sharma", level: "B1", avatar: null, number: '999999999' },
-                                { name: "Priya Patel", level: "A", avatar: null, number: '999999999' },
-                                { name: "Amit Kumar", level: "C2", avatar: null, number: '999999999' },
-                                { name: "Shubham Rawat", level: "C1", avatar: null, number: '999999999' }
-                            ].map((player, index) => (
+                            {RequestData?.map((player, index) => (
                                 <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
                                     <div className="d-flex align-items-center gap-3">
                                         <div
                                             className="rounded-circle d-flex align-items-center justify-content-center"
                                             style={{
-                                                width: 25,
-                                                height: 25,
+                                                width: 35,
+                                                height: 35,
                                                 backgroundColor: "#bb1f41ff",
                                                 color: "white",
                                                 fontWeight: 600,
                                                 fontSize: "12px"
                                             }}
                                         >
-                                            {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                            {player?.requesterId?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                                         </div>
                                         <div>
                                             <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
-                                                {player.name}
+                                                {player?.requesterId?.name}
                                             </h6>
+                                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, fontFamily: "Poppins" }}>
+                                                {player?.requesterId?.email}
+                                            </p>
                                             <p className="mb-0 text-decoration-none" style={{ fontSize: "12px", color: "#007bff", fontFamily: "Poppins", cursor: "pointer", textDecoration: "underline" }}
-                                                onClick={() => window.open(`tel:+91${player.number}`)}>
-                                                +91 {player.number}
+                                                onClick={() => window.open(`tel:+91${player?.requesterId?.phoneNumber}`)}>
+                                                +91 {player?.requesterId?.phoneNumber}
                                             </p>
                                             <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                                                Level: {player.level}
+                                                Level: {player?.level}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="d-flex gap-2">
                                         <i className="bi bi-check-circle-fill"
-                                            style={{ color: "#28a745", fontSize: "20px", cursor: "pointer" }}
+                                            style={{ color: "#28a745", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
                                             onClick={() => {
-                                                setSelectedPlayerForAccept(player);
-                                                setShowReasonModal(true);
+                                                if (player?.status === 'pending') {
+                                                    setSelectedPlayerForAction(player);
+                                                    setShowConfirmModal(true);
+                                                }
                                             }}></i>
                                         <i className="bi bi-x-circle-fill"
-                                            style={{ color: "#dc3545", fontSize: "20px", cursor: "pointer" }}
+                                            style={{ color: "#dc3545", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
                                             onClick={() => {
-                                                setSelectedPlayerForDecline(player);
-                                                setShowDeclineModal(true);
+                                                if (player?.status === 'pending') {
+                                                    setSelectedPlayerForAction(player);
+                                                    setShowRejectModal(true);
+                                                }
                                             }}></i>
                                     </div>
                                 </div>
@@ -853,127 +866,146 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 </Offcanvas.Body>
             </Offcanvas>
 
-            <Modal
-                open={showReasonModal}
-                onClose={() => setShowReasonModal(false)}
-                closeAfterTransition
-                BackdropProps={{
-                    onClick: () => setShowReasonModal(false)
-                }}
-            >
+            {fullScreenLoading && (
+                <div style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 9999
+                }}>
+                    <DataLoading />
+                </div>
+            )}
+
+            <Modal open={showRejectModal} onClose={() => setShowRejectModal(false)}>
                 <Box sx={{
                     position: "absolute",
                     top: "50%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
                     width: { xs: "90%", sm: "80%", md: 400 },
-                    maxWidth: "400px",
                     bgcolor: "background.paper",
                     p: 3,
                     borderRadius: 2,
-                    border: "none",
                     boxShadow: 24,
                 }}>
                     <h6 className="text-center mb-3" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
-                        Accept Player
+                        Reject Request
                     </h6>
-
-                    {selectedPlayerForAccept && (
-                        <div className="text-center mb-3">
-                            <p style={{ fontSize: "14px", fontFamily: "Poppins" }}>
-                                Are you sure you want to accept <strong>{selectedPlayerForAccept.name}</strong>?
-                            </p>
-                        </div>
-                    )}
-
+                    <p className="text-center mb-3" style={{ fontSize: "14px", color: "#6B7280" }}>
+                        Please provide a reason for rejecting {selectedPlayerForAction?.requesterId?.name}'s request
+                    </p>
+                    <textarea
+                        className="form-control mb-3"
+                        rows="3"
+                        placeholder="Enter reason..."
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                        style={{ resize: "none" }}
+                    />
                     <div className="d-flex gap-3 justify-content-center">
-                        <button
-                            className="btn btn-outline-secondary"
-                            onClick={() => setShowReasonModal(false)}
-                            style={{ padding: "8px 20px", fontSize: "14px" }}
+                        <Button
+                            variant="outlined"
+                            onClick={() => {
+                                setShowRejectModal(false);
+                                setRejectReason("");
+                            }}
+                            sx={{ borderColor: "#001B76", color: "#001B76" }}
                         >
                             Cancel
-                        </button>
-                        <button
-                            className="btn btn-success"
+                        </Button>
+                        <Button
                             onClick={() => {
-                                // Handle accept logic here
-                                setShowReasonModal(false);
-                                setSelectedPlayerForAccept(null);
+                                setShowRejectModal(false);
+                                setShowRequestModal(false);
+                                setFullScreenLoading(true);
+                                dispatch(updateRequest({
+                                    requestId: selectedPlayerForAction?._id, action: 'reject', rejectedReason: rejectReason
+                                }))
+                                    .unwrap()
+                                    .then(() => {
+                                        return Promise.all([
+                                            dispatch(getRequest()),
+                                            dispatch(getMatchesView(matchId))
+                                        ]);
+                                    })
+                                    .finally(() => {
+                                        setFullScreenLoading(false);
+                                        setSelectedPlayerForAction(null);
+                                        setRejectReason("");
+                                    });
                             }}
-                            style={{ padding: "8px 20px", fontSize: "14px" }}
+                            disabled={!rejectReason.trim()}
+                            sx={{
+                                background: "linear-gradient(180deg, #dc3545 0%, #a71d2a 100%)",
+                                color: "white",
+                                "&:hover": { background: "#a71d2a" },
+                            }}
                         >
-                            Accept
-                        </button>
+                            Reject
+                        </Button>
                     </div>
                 </Box>
             </Modal>
 
-            <Modal
-                open={showDeclineModal}
-                onClose={() => setShowDeclineModal(false)}
-                closeAfterTransition
-                BackdropProps={{
-                    onClick: () => setShowDeclineModal(false)
-                }}
-            >
+            <Modal open={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
                 <Box sx={{
                     position: "absolute",
                     top: "50%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
                     width: { xs: "90%", sm: "80%", md: 400 },
-                    maxWidth: "400px",
                     bgcolor: "background.paper",
                     p: 3,
                     borderRadius: 2,
-                    border: "none",
                     boxShadow: 24,
                 }}>
                     <h6 className="text-center mb-3" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
-                        Decline Player
+                        Confirm Approval
                     </h6>
-
-                    {selectedPlayerForDecline && (
-                        <div className="mb-3">
-                            <p style={{ fontSize: "14px", fontFamily: "Poppins" }}>
-                                Why are you declining <strong>{selectedPlayerForDecline.name}</strong>?
-                            </p>
-                            <textarea
-                                className="form-control"
-                                rows="3"
-                                placeholder="Enter reason for declining..."
-                                value={declineReason}
-                                onChange={(e) => setDeclineReason(e.target.value)}
-                                autoFocus
-                                style={{ fontSize: "14px", fontFamily: "Poppins" }}
-                            />
-                        </div>
-                    )}
-
+                    <p className="text-center mb-4" style={{ fontSize: "14px", color: "#6B7280" }}>
+                        Are you sure you want to approve {selectedPlayerForAction?.requesterId?.name}'s request to join the match?
+                    </p>
                     <div className="d-flex gap-3 justify-content-center">
-                        <button
-                            className="btn btn-outline-secondary"
-                            onClick={() => {
-                                setShowDeclineModal(false);
-                                setDeclineReason("");
-                            }}
-                            style={{ padding: "8px 20px", fontSize: "14px" }}
+                        <Button
+                            variant="outlined"
+                            onClick={() => setShowConfirmModal(false)}
+                            sx={{ borderColor: "#001B76", color: "#001B76" }}
                         >
                             Cancel
-                        </button>
-                        <button
-                            className="btn btn-danger"
+                        </Button>
+                        <Button
                             onClick={() => {
-                                // Handle decline logic here
-                                setShowDeclineModal(false);
-                                setSelectedPlayerForDecline(null);
-                                setDeclineReason("");
+                                setShowConfirmModal(false);
+                                setShowRequestModal(false);
+                                setFullScreenLoading(true);
+                                dispatch(updateRequest({ requestId: selectedPlayerForAction?._id, action: 'accept' }))
+                                    .unwrap()
+                                    .then(() => {
+                                        return Promise.all([
+                                            dispatch(getRequest()),
+                                            dispatch(getMatchesView(matchId))
+                                        ]);
+                                    })
+                                    .finally(() => {
+                                        setFullScreenLoading(false);
+                                        setSelectedPlayerForAction(null);
+                                    });
                             }}
-                            style={{ padding: "8px 20px", fontSize: "14px" }}
+                            sx={{
+                                background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                                color: "white",
+                                "&:hover": { background: "#001B76" },
+                            }}
                         >
-                            Decline
-                        </button>
+                            Confirm
+                        </Button>
                     </div>
                 </Box>
             </Modal>
