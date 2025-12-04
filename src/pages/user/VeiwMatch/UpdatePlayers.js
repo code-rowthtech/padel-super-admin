@@ -199,8 +199,11 @@ const UpdatePlayers = ({
 
 
   return (
-    <Modal open={showModal} onClose={() => setShowModal(false)}>
-      <Box sx={modalStyle}>
+    <Modal 
+      open={showModal} 
+      onClose={() => setShowModal(false)}
+    >
+      <Box sx={modalStyle} onClick={(e) => e.stopPropagation()}>
         <h6 className="text-center mb-4" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
           Add Player
         </h6>

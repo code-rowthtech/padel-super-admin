@@ -177,11 +177,6 @@ const Openmatches = () => {
     if (shareDropdownRef.current && !shareDropdownRef.current.contains(e.target)) {
       setShowShareDropdown(null);
     }
-
-    // Close modals on outside click (except payment modals)
-    if (showModal && !e.target.closest('.modal-content') && !e.target.closest('[data-bs-toggle="modal"]')) {
-      setShowModal(false);
-    }
   };
 
   useEffect(() => {
