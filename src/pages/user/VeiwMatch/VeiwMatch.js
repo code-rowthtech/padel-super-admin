@@ -791,7 +791,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             Player's Requests
                         </Offcanvas.Title>
                         <p className="mb-0 mt-1" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                            In order for the player to join the match, all enrolled players must accept the player's request. You can change your vote.
+                            In order for the player to join the match, all enrolled players must accept the player's request.
                         </p>
                     </div>
                 </Offcanvas.Header>

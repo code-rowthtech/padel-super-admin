@@ -509,7 +509,7 @@ const Openmatches = () => {
               : player.name
             : "Player"}
         </p>
-        <p
+        {/* <p
           className="m-0 mb-1 d-flex justify-content-center align-items-center rounded"
           style={{
             fontSize: "10px",
@@ -520,7 +520,7 @@ const Openmatches = () => {
           }}
         >
           A|B
-        </p>
+        </p> */}
       </div>
     </TagWrapper>
   );
@@ -860,7 +860,7 @@ const Openmatches = () => {
                   <FaChevronDown style={{ fontSize: "10px" }} />
                 </button>
                 <ul className="dropdown-menu shadow-sm w-50">
-                  {["All","beginner", "intermediate", "advanced", "professional"].map(
+                  {["All", "beginner", "intermediate", "advanced", "professional"].map(
                     (level) => (
                       <li key={level}>
                         <button
