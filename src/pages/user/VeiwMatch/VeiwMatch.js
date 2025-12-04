@@ -376,7 +376,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     return (
         <>
             <div ref={matchDetailsRef} className=" rounded-3 px-md-3 px-0 py-md-2 pt-0 pb-2 h-100 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
-                <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
+                <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2 mt-1">
                     <div className="d-flex align-items-center gap-2">
                         {onBack && (
                             <button

@@ -8,7 +8,7 @@ import {
   getMatchesUser,
   getMatchesView,
 } from "../../../redux/user/matches/thunk";
-import { showSuccess } from "../../../helpers/Toast";
+import { showSuccess, showError } from "../../../helpers/Toast";
 import Select from "react-select";
 import { getPlayerLevel, getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
@@ -42,7 +42,8 @@ const UpdatePlayers = ({
 }) => {
   const dispatch = useDispatch();
   const User = getUserFromSession();
-  console.log('matchesDatamatchesData', matchesData);
+  const store = useSelector((state) => state);
+  console.log('11111222', store?.requestData?.requestData?.message);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -138,7 +139,8 @@ const UpdatePlayers = ({
             })
           )
             .unwrap()
-            .then(() => {
+            .then((requestRes) => {
+              showSuccess(requestRes?.message || "Player request sent successfully");
               setShowModal(false);
 
               dispatch(getMatchesView(matchId?._id))
@@ -171,9 +173,9 @@ const UpdatePlayers = ({
             });
         }
       })
-      .catch(() => {
-        // setErrors({ email: "Enter valid email address" });
-        setShowErrors({ email: true });
+      .catch((err) => {
+        const errorMsg = err?.message || err?.error || "Failed to send request";
+        showError(errorMsg);
       });
   };
 
@@ -199,14 +201,17 @@ const UpdatePlayers = ({
 
 
   return (
-    <Modal open={showModal} onClose={() => setShowModal(false)}>
-      <Box sx={modalStyle}>
-        <h6 className="text-center mb-4" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
+    <Modal
+      open={showModal}
+      onClose={() => setShowModal(false)}
+    >
+      <Box sx={modalStyle} onClick={(e) => e.stopPropagation()} className="p-3">
+        <h6 className="text-center mb-2" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
           Add Player
         </h6>
 
         <form onSubmit={(e) => e.preventDefault()}>
-          <div className="mb-3">
+          <div className="mb-2">
             <label className="form-label">
               Name <span className="text-danger">*</span>
             </label>
@@ -230,7 +235,7 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          <div className="mb-3">
+          <div className="mb-2">
             <label className="form-label">
               Phone No {matchId?.teamA?.[0]?.userId?._id !== User?._id && <span className="text-danger">*</span>}
             </label>
@@ -261,7 +266,7 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          <div className="mb-3">
+          <div className="mb-2">
             <label className="form-label">
               Email
             </label>
@@ -278,7 +283,7 @@ const UpdatePlayers = ({
             )} */}
           </div>
 
-          <div className="mb-3">
+          <div className="mb-2">
             <label className="form-label">Game Type</label>
             <div className="d-flex gap-3">
               {[
@@ -345,13 +350,13 @@ const UpdatePlayers = ({
                     // ← Yeh line sabse important hai
                     menu: (provided) => ({
                       ...provided,
-                      maxHeight: 100,              // maxMenuHeight ke barabar ya thoda zyada
+                      maxHeight: 'autos',              // maxMenuHeight ke barabar ya thoda zyada
                       overflowY: 'auto',           // scroll enable
                       position: 'relative',        // important for portal
                     }),
                     menuList: (provided) => ({
                       ...provided,
-                      maxHeight: 100,              // menuList ko bhi height do
+                      maxHeight: 'auto',              // menuList ko bhi height do
                       overflowY: 'auto',           // yahan scroll aayega
                       paddingTop: 0,
                       paddingBottom: 0,
