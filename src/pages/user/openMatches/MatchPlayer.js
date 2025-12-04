@@ -654,7 +654,7 @@ const MatchPlayer = ({
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #3DBE64" }}
                                     >
-                                        <span className="fs-3 " style={{ color: "#3DBE64" }}>+</span>
+                                        <span className="fs-3 pb-1" style={{ color: "#3DBE64" }}>+</span>
                                     </div>
                                     <p className="mb-0 mt-2 " style={{ color: "#3DBE64", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
@@ -700,7 +700,7 @@ const MatchPlayer = ({
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
                                     >
-                                        <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
+                                        <span className="fs-3 pb-1" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
                                     <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
@@ -744,7 +744,7 @@ const MatchPlayer = ({
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
                                     >
-                                        <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
+                                        <span className="fs-3 pb-1" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
                                     <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
