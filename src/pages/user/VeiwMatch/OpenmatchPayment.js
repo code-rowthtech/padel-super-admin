@@ -350,10 +350,10 @@ const OpenmatchPayment = () => {
 
     return (
         <div className="container mt-md-4 mt-0 mb-md-5 mb-0 d-flex gap-4 px-md-4 px-0 flex-wrap">
-            <div className="row  mx-auto">
+            <div className="row  mx-auto d-flex align-items-center justify-content-center">
                 {/* Left: Contact + Payment */}
                 <div
-                    className="col-lg-7 col-12 py-md-3 pt-0 pb-3  rounded-3 mobile-payment-content"
+                    className="col-lg-5 col-12 py-md-3 pt-0 pb-3  rounded-3 mobile-payment-content px-0"
                     style={{
                         paddingBottom: localSelectedCourts.length > 0 ? "120px" : "20px",
                     }}
@@ -362,18 +362,18 @@ const OpenmatchPayment = () => {
                     <div
                         className="rounded-4 py-md-4 py-2 px-3 px-md-5 pb-5  mb-md-4"
                         style={{
-                            backgroundColor: "#F5F5F566",
+                            // backgroundColor: "#F5F5F566",
                             border:
                                 error.name || error.email || error.phoneNumber
                                     ? "2px solid red"
                                     : "none",
                         }}
                     >
-                        <h6 className="mb-md-3 mb-0 mt-5 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start">
+                        <h6 className="mb-md-3 mb-0 mt-0 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start">
                             Information
                         </h6>
                         <div className="row d-flex justify-content-center align-tems-center">
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
+                            <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-2"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
@@ -399,7 +399,7 @@ const OpenmatchPayment = () => {
                                             setName(formattedValue);
                                         }
                                     }}
-                                    className="form-control border-0 p-2"
+                                    className="form-control p-2"
                                     placeholder="Enter your name"
                                     aria-label="Name"
                                 />
@@ -413,7 +413,7 @@ const OpenmatchPayment = () => {
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
+                            <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-1"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
@@ -440,7 +440,7 @@ const OpenmatchPayment = () => {
                                                 setPhoneNumber(formattedValue);
                                             }
                                         }}
-                                        className="form-control border-0 p-2"
+                                        className="form-control p-2"
                                         placeholder="+91"
                                     />
                                 </div>
@@ -454,7 +454,7 @@ const OpenmatchPayment = () => {
                                 )}
                             </div>
 
-                            <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
+                            <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-2"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
@@ -471,7 +471,7 @@ const OpenmatchPayment = () => {
                                             setEmail(value.replace(/\s+/g, ""));
                                         }
                                     }}
-                                    className="form-control border-0 p-2"
+                                    className="form-control p-2"
                                     placeholder="Enter your email"
                                 />
                                 {error.email && (
