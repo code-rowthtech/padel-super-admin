@@ -5,9 +5,10 @@ import { userApi } from "../../../helpers/api/apiCore";
 
 export const getRequest = createAsyncThunk(
   "playerrequest/getRequest",
-  async (params, { rejectWithValue }) => {
+  async (matchId, { rejectWithValue }) => {
     try {
-      const res = await userApi.get(Url.PLAYER_REQUEST_GET);
+      const url = matchId ? `${Url.PLAYER_REQUEST_GET}?matchId=${matchId}` : Url.PLAYER_REQUEST_GET;
+      const res = await userApi.get(url);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data;

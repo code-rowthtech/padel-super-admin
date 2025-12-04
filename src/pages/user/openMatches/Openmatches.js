@@ -49,6 +49,7 @@ import { IoIosArrowForward } from "react-icons/io";
 import { registerClub } from "../../../redux/thunks";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { showError, showSuccess } from "../../../helpers/Toast";
+import { copyMatchCardWithScreenshot } from "../../../utils/matchCopy";
 
 const normalizeTime = (time) => {
   if (!time) return null;
@@ -119,6 +120,7 @@ const Openmatches = () => {
   const [playerLevels, setPlayerLevels] = useState([]);
   const [showShareDropdown, setShowShareDropdown] = useState(null);
   const shareDropdownRef = useRef(null);
+  const matchCardRefs = useRef({});
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
 
   const debouncedFetchMatches = useCallback(
@@ -400,16 +402,9 @@ const Openmatches = () => {
       .filter(Boolean);
 
     if (times.length === 0) return "N/A";
+    if (times.length === 1) return `${times[0].hour}${times[0].period}`;
 
-    const lastPeriod = times[times.length - 1].period;
-    const formatted = times.map((time, index) => {
-      if (index === times.length - 1) {
-        return `${time.hour}${time.period}`;
-      }
-      return time.hour;
-    });
-
-    return formatted.join("-") + (slots.length > 3 ? "...." : "");
+    return `${times[0].hour}-${times[times.length - 1].hour}${times[times.length - 1].period}`;
   };
 
   const TagWrapper = ({ children }) => (
@@ -904,6 +899,7 @@ const Openmatches = () => {
                       <div className="row px-1">
                         <div className="col">
                           <div
+                            ref={(el) => (matchCardRefs.current[`desktop-${index}`] = el)}
                             className="card  mb-2 py-3 p-0 shadow-0 rounded-2 d-md-block d-none"
                             style={{
                               backgroundColor: "#CBD6FF1A",
@@ -923,7 +919,7 @@ const Openmatches = () => {
                             }}
                           >
                             <div className="position-absolute top-0 end-0 p-2 pb-2 pt-0  d-flex gap-1 position-relative" ref={showShareDropdown === `desktop-${index}` ? shareDropdownRef : null}>
-                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showError("Could not copy to clipboard")); } else { showError("Clipboard not supported on this device"); } }}>
+                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={async (e) => { e.stopPropagation(); const matchCardElement = matchCardRefs.current[`desktop-${index}`]; if (matchCardElement) { await copyMatchCardWithScreenshot(matchCardElement, match); } else { const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showError("Could not copy to clipboard")); } else { showError("Clipboard not supported on this device"); } } }}>
                                 <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
                               </button>
                               {showShareDropdown === `desktop-${index}` && (
@@ -1100,6 +1096,7 @@ const Openmatches = () => {
                       </div>
 
                       <div
+                        ref={(el) => (matchCardRefs.current[`mobile-${index}`] = el)}
                         className="card  mb-2 py-2 p-0 shadow-0 rounded-3 d-block d-md-none"
                         style={{
                           backgroundColor: "#CBD6FF1A",
@@ -1121,7 +1118,7 @@ const Openmatches = () => {
                             <i className="bi bi-share" style={{ fontSize: "12px", color: "#1F41BB" }} />
                           </button>
 
-                          <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={(e) => { e.stopPropagation(); const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showSuccess("Could not copy to clipboard")); } else { showSuccess("Clipboard not supported on this device"); } }}>
+                          <button className="btn rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={async (e) => { e.stopPropagation(); const matchCardElement = matchCardRefs.current[`mobile-${index}`]; if (matchCardElement) { await copyMatchCardWithScreenshot(matchCardElement, match); } else { const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showError("Could not copy to clipboard")); } else { showError("Clipboard not supported on this device"); } } }}>
                             <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
                           </button>
                           {showShareDropdown === `mobile-${index}` && (
