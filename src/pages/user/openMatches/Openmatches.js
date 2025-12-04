@@ -589,7 +589,7 @@ const Openmatches = () => {
           style={{ backgroundColor: "#F5F5F566", height: "auto" }}
         >
           <div className="calendar-strip mb-3">
-            <div className="mb-md-2 mb-0 mt-1 mt-md-0 custom-heading-use d-flex justify-content-between align-items-center">
+            <div className="mb-md-3 mb-0 mt-1 mt-md-0 custom-heading-use d-flex justify-content-between align-items-center">
               <div>
                 Select Date
                 <div

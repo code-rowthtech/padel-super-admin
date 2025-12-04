@@ -309,9 +309,11 @@ const Navbar = () => {
                         </ul>
                     </div>
 
-                    <div className="d-lg-none position-absolute" style={{ right: "15px", top: "50%", transform: "translateY(-50%)", zIndex: 1001 }}>
+                    <div className="d-lg-none position-absolute d-flex align-items-center " style={{ right: "0px", top: "50%", transform: "translateY(-50%)", zIndex: 1001 }}>
+                                                                    <NotificationsIcon size={30} className={`text-dark`} />
+
                         <button
-                            className="btn ps-5 pe-0 border-0 bg-transparent"
+                            className="btn ps-0 pe-0 border-0 bg-transparent"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
