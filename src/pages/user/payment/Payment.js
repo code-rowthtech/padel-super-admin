@@ -296,18 +296,20 @@ const Payment = ({ className = "" }) => {
   };
 
   return (
-    <div className="container mt-lg-4 mb-3 mb-md-0 px-3 px-md-0">
-      <div className="row g-4">
-        <div className="col-12 col-lg-7 mobile-payment-content">
+    <div className="container mt-lg-4 mb-3 mb-md-0 px-0 px-md-0">
+      <div className="row g-4 mx-auto d-flex align-items-center justify-content-center">
+        <div className="col-12 col-lg-5 mobile-payment-content px-0">
           <div className="bg-white rounded">
             {/* Info Section */}
             <div
               className="rounded-4 py-md-4 py-2 pb-3 pb-lg-1 px-3 px-md-5 h-100 mb-md-4 mb-3"
-              style={{ backgroundColor: "#F5F5F566", border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none" }}
+              style={{ 
+                // backgroundColor: "#F5F5F566",
+                 border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none" }}
             >
               <h6 className="mb-md-3 mb-0 mt-3 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start">Information</h6>
               <div className="row d-flex justify-content-center align-tems-center">
-                <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
+                <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
@@ -330,7 +332,7 @@ const Payment = ({ className = "" }) => {
                         setName(formattedValue);
                       }
                     }}
-                    className="form-control border-0 p-2"
+                    className="form-control p-2"
                     placeholder="Enter your name"
                     aria-label="Name"
                   />
@@ -341,7 +343,7 @@ const Payment = ({ className = "" }) => {
                   )}
                 </div>
 
-                <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0">
+                <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                   <label className="form-label mb-0 ps-lg-1" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
@@ -362,7 +364,7 @@ const Payment = ({ className = "" }) => {
                           setPhoneNumber(formattedValue);
                         }
                       }}
-                      className="form-control border-0 p-2"
+                      className="form-control p-2"
                       placeholder="+91"
                     />
                   </div>
@@ -373,7 +375,7 @@ const Payment = ({ className = "" }) => {
                   )}
                 </div>
 
-                <div className="col-12 col-md-4 mb-md-3 mb-0 p-md-1 py-0 ">
+                <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0 ">
                   <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Email
                   </label>
@@ -396,7 +398,7 @@ const Payment = ({ className = "" }) => {
                         setEmail(formattedValue);
                       }
                     }}
-                    className="form-control border-0 p-2"
+                    className="form-control p-2"
                     placeholder="Enter your email"
                   />
                   {errors.email && (

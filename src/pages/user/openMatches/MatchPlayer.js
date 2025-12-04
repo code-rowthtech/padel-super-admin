@@ -838,60 +838,62 @@ const MatchPlayer = ({
                         <div style={contentStyle}> Book Now</div>
                     </button>
                 </div>
+                <div className="col-md-9 col-12 mx-auto">
 
-                <h6
-                    className="mb-md-3 mb-2 mt-4 all-matches"
-                    style={{ fontSize: "18px", fontWeight: 600 }}
-                >
-                    Information
-                </h6>
-                <div className="d-lg-flex justify-content-evenly">
-                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
-                        <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "10px" }}>
-                                Type of Court
-                            </p>
-                            <p
-                                className="mb-0"
-                                style={{ fontSize: "13px", color: "#374151" }}
-                            >
-                                Doubles
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
-                        <i className="bi bi-calendar-check fs-2 text-dark"></i>
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "10px" }}>
-                                End registration
-                            </p>
-                            <p
-                                className="mb-0"
-                                style={{ fontSize: "13px", color: "#374151" }}
-                            >
-                                {calculateEndRegistrationTime()}
-                            </p>
-                        </div>
-                    </div>
-
-
-                </div>
-                {slotError && (
-                    <div
-                        className="text-center mb-3 p-2 rounded"
-                        style={{
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
-                            border: "1px solid #ffcdd2",
-                            fontWeight: 500,
-                            fontSize: "14px",
-                        }}
+                    <h6
+                        className="mb-md-3 mb-2 mt-4 all-matches"
+                        style={{ fontSize: "18px", fontWeight: 600 }}
                     >
-                        {slotError}
+                        Information
+                    </h6>
+                    <div className="d-lg-flex justify-content-between">
+                        <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "10px" }}>
+                                    Type of Court
+                                </p>
+                                <p
+                                    className="mb-0"
+                                    style={{ fontSize: "13px", color: "#374151" }}
+                                >
+                                    Doubles
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-calendar-check fs-2 text-dark"></i>
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "10px" }}>
+                                    End registration
+                                </p>
+                                <p
+                                    className="mb-0"
+                                    style={{ fontSize: "13px", color: "#374151" }}
+                                >
+                                    {calculateEndRegistrationTime()}
+                                </p>
+                            </div>
+                        </div>
+
+
                     </div>
-                )}
+                    {slotError && (
+                        <div
+                            className="text-center mb-3 p-2 rounded"
+                            style={{
+                                backgroundColor: "#ffebee",
+                                color: "#c62828",
+                                border: "1px solid #ffcdd2",
+                                fontWeight: 500,
+                                fontSize: "14px",
+                            }}
+                        >
+                            {slotError}
+                        </div>
+                    )}
+                </div>
             </div>
 
             <NewPlayers

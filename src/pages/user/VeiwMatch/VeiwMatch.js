@@ -607,14 +607,15 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                     </div>
                 </div>
-                <div className="d-flex justify-content-between align-items-center mt-4">
+                <div className="col-md-9 mx-auto col-12">
+ <div className="d-flex justify-content-between align-items-center mt-4">
                     <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
                         Information
                     </h6>
                 </div>
 
                 <div className="d-lg-flex justify-content-lg-between gap-2 position-relative">
-                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
+                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
                         <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
                         <div>
                             <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
@@ -629,7 +630,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </div>
                     </div>
 
-                    <div className="d-flex mb-md-4 mb-2  align-items-center gap-3 px-2">
+                    <div className="d-flex mb-md-4 mb-2  align-items-center gap-3 px-2 px-md-0">
                         <i className="bi bi-calendar-check fs-2 text-dark" />
                         <div>
                             <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
@@ -658,6 +659,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
 
                     </div>
                 </div>
+                </div>
+               
 
 
             </div>
