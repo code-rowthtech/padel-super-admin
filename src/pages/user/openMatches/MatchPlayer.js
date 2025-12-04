@@ -86,6 +86,12 @@ const MatchPlayer = ({
     const [selectedGender, setSelectedGender] = useState('');
     const [genderError, setGenderError] = useState('');
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
+
+    useEffect(() => {
+        if (userGender && userGender !== "") {
+            setSelectedGender(userGender);
+        }
+    }, [userGender]);
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
     const [defaultLevel, setDefaultLevel] = useState();
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");

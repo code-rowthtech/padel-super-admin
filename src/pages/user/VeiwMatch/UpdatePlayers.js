@@ -8,7 +8,7 @@ import {
   getMatchesUser,
   getMatchesView,
 } from "../../../redux/user/matches/thunk";
-import { showSuccess } from "../../../helpers/Toast";
+import { showSuccess, showError } from "../../../helpers/Toast";
 import Select from "react-select";
 import { getPlayerLevel, getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
@@ -42,7 +42,8 @@ const UpdatePlayers = ({
 }) => {
   const dispatch = useDispatch();
   const User = getUserFromSession();
-  console.log('matchesDatamatchesData', matchesData);
+  const store = useSelector((state) => state);
+  console.log('11111222', store?.requestData?.requestData?.message);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -138,7 +139,8 @@ const UpdatePlayers = ({
             })
           )
             .unwrap()
-            .then(() => {
+            .then((requestRes) => {
+              showSuccess(requestRes?.message || "Player request sent successfully");
               setShowModal(false);
 
               dispatch(getMatchesView(matchId?._id))
@@ -171,9 +173,9 @@ const UpdatePlayers = ({
             });
         }
       })
-      .catch(() => {
-        // setErrors({ email: "Enter valid email address" });
-        setShowErrors({ email: true });
+      .catch((err) => {
+        const errorMsg = err?.message || err?.error || "Failed to send request";
+        showError(errorMsg);
       });
   };
 
@@ -199,8 +201,8 @@ const UpdatePlayers = ({
 
 
   return (
-    <Modal 
-      open={showModal} 
+    <Modal
+      open={showModal}
       onClose={() => setShowModal(false)}
     >
       <Box sx={modalStyle} onClick={(e) => e.stopPropagation()}>
