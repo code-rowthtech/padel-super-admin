@@ -209,16 +209,16 @@ const NewPlayers = ({
         setShowErrors({});
       }}
     >
-      <Box sx={modalStyle} style={{ overflowY: "visible" }}>
+      <Box sx={modalStyle} style={{ overflowY: "visible" }} className="p-3">
         <h6
-          className="mb-4 text-center"
+          className="mb-2 text-center"
           style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}
         >
           Player Information
         </h6>
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
+          <div className="mb-2">
             <label className="form-label">
               Name <span className="text-danger">*</span>
             </label>
@@ -251,7 +251,7 @@ const NewPlayers = ({
             )}
           </div>
 
-          <div className="mb-3">
+          <div className="mb-2">
             <label className="form-label">
               Phone No
             </label>
@@ -285,7 +285,7 @@ const NewPlayers = ({
             )}
           </div>
 
-          <div className="mb-3">
+          <div className="mb-2">
             <label className="form-label">
               Email
             </label>
@@ -313,7 +313,7 @@ const NewPlayers = ({
             )} */}
           </div>
 
-          <div className="mb-3">
+          <div className="mb-2">
             <label className="form-label">Game Type</label>
             <div className="d-flex gap-3">
               {[
@@ -377,13 +377,13 @@ const NewPlayers = ({
                     }),
                     menu: (provided) => ({
                       ...provided,
-                      maxHeight: 100,              
+                      maxHeight: 'auto',              
                       overflowY: 'auto',           
                       position: 'relative',       
                     }),
                     menuList: (provided) => ({
                       ...provided,
-                      maxHeight: 100,            
+                      maxHeight: 'auto',            
                       overflowY: 'auto',           
                       paddingTop: 0,
                       paddingBottom: 0,
