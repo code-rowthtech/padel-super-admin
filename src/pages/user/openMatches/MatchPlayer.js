@@ -89,7 +89,15 @@ const MatchPlayer = ({
 
     useEffect(() => {
         if (userGender && userGender !== "") {
-            setSelectedGender(userGender);
+            const genderMap = {
+                "Male": "Male Only",
+                "Female": "Female Only",
+                "Male Only": "Male Only",
+                "Female Only": "Female Only",
+                "Mixed Double": "Mixed Double",
+                "Other": "Mixed Double"
+            };
+            setSelectedGender(genderMap[userGender] || "Mixed Double");
         }
     }, [userGender]);
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
