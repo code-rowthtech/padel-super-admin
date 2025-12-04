@@ -377,16 +377,19 @@ const NewPlayers = ({
                     }),
                     menu: (provided) => ({
                       ...provided,
-                      maxHeight: 'auto',              
+                      maxHeight: 120,              
                       overflowY: 'auto',           
-                      position: 'relative',       
+                      position: 'relative', 
+                      zIndex: 9999,      
                     }),
                     menuList: (provided) => ({
                       ...provided,
-                      maxHeight: 'auto',            
+                      maxHeight: 120,            
                       overflowY: 'auto',           
                       paddingTop: 0,
                       paddingBottom: 0,
+                                            zIndex: 9999,      
+
                     }),
                   }}
                   components={{
