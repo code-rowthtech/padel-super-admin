@@ -350,13 +350,13 @@ const UpdatePlayers = ({
                     // ← Yeh line sabse important hai
                     menu: (provided) => ({
                       ...provided,
-                      maxHeight: 'autos',              // maxMenuHeight ke barabar ya thoda zyada
+                      maxHeight: 120,              // maxMenuHeight ke barabar ya thoda zyada
                       overflowY: 'auto',           // scroll enable
                       position: 'relative',        // important for portal
                     }),
                     menuList: (provided) => ({
                       ...provided,
-                      maxHeight: 'auto',              // menuList ko bhi height do
+                      maxHeight: 120,              // menuList ko bhi height do
                       overflowY: 'auto',           // yahan scroll aayega
                       paddingTop: 0,
                       paddingBottom: 0,
