@@ -11,17 +11,18 @@ import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/ap
 import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
 import { IoIosArrowDown, IoIosArrowUp, IoIosLogOut } from 'react-icons/io';
 import { PiRanking } from "react-icons/pi";
-import { getLogo, getUserProfile } from '../../../redux/user/auth/authThunk';
+import {  getUserProfile } from '../../../redux/user/auth/authThunk';
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { io } from 'socket.io-client';
 import config from '../../../config';
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { DataLoading } from '../../../helpers/loading/Loaders';
+import { ButtonLoading, DataLoading } from '../../../helpers/loading/Loaders';
 import updateLocale from "dayjs/plugin/updateLocale";
 import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from '../../../redux/user/notifiction/thunk';
 import { clearall } from '../../../assets/files'
+import { getUserClub } from '../../../redux/thunks';
 const SOCKET_URL = config.API_URL;
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -34,10 +35,11 @@ const Navbar = () => {
 
     const User = useSelector((state) => state?.userAuth)
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
+
     const notificationData = useSelector((state) => state.notificationData?.getNotificationData);
     const notificationLoading = useSelector((state) => state.notificationData?.getCountLoading);
     let token = isUserAuthenticated()
-    const logo = JSON.parse(localStorage.getItem("logo"));
+    const logo = clubData?.logo;
     const { user, } = useSelector((state) => state?.userAuth);
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -160,10 +162,7 @@ const Navbar = () => {
     }, [User?.token])
 
     useEffect(() => {
-        const ownerId = localStorage.getItem('owner_id') || clubData?.ownerId;
-        if (ownerId) {
-            dispatch(getLogo(ownerId));
-        }
+        dispatch(getUserClub({ search: "" }));
     }, []);
 
     useEffect(() => {
@@ -387,7 +386,7 @@ const Navbar = () => {
                                             </div>
 
                                             <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
-                                                {notificationLoading ? <DataLoading /> :
+                                                {notificationLoading ? <ButtonLoading /> :
                                                     notifications?.length > 0 ? (
                                                         notifications?.map((note) => (
                                                             <div

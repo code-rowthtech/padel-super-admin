@@ -28,6 +28,7 @@
     "bootstrap": "^5.3.7",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
+    "html2canvas": "^1.4.1",
     "jwt-decode": "^4.0.0",
     "markdown-it": "^14.1.0",
     "markdown-it-ins": "^4.0.0",

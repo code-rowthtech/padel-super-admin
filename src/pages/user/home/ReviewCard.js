@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card } from "react-bootstrap";
+import { Card, OverlayTrigger, Tooltip } from "react-bootstrap";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
@@ -49,15 +49,15 @@ export const ReviewCard = ({ review, reviews = [] }) => {
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     const [showFullText, setShowFullText] = useState(false);
 
-    const truncateText = (text, wordLimit) => {
+    const truncateText = (text, charLimit = 120) => {
         if (!text) return "";
-        const words = text.split(' ');
-        if (words.length <= wordLimit) return text;
-        return words.slice(0, wordLimit).join(' ') + '...';
+        if (text.length <= charLimit) return text;
+        return text.substring(0, charLimit) + '...';
     };
 
     const reviewText = currentReview?.reviewComment || "";
-    const displayText = showFullText ? reviewText : truncateText(reviewText, 20);
+    const isLongText = reviewText.length > 120;
+    const displayText = truncateText(reviewText, 120);
 
     return (
         <Card
@@ -73,22 +73,51 @@ export const ReviewCard = ({ review, reviews = [] }) => {
             }}
         >
             <div className="flex-grow-1 d-flex flex-column padding_top_none" style={{ paddingTop: "30px" }}>
-                <p className="text-start d-flex align-items-center justify-content-start mb-md-0 mb-4 flex-grow-1 height_mention home-upcoming-heading-mobile"
-                    style={{
-                        fontSize: "19px",
-                        color: "#000000",
-                        fontWeight: "500",
-                        fontFamily: "Inter",
-                        margin: "0",
-                        cursor: reviewText.split(' ').length > 20 ? "pointer" : "default",
-                        minHeight: "150px",
-                        overflow: "hidden",
-                        textAlign: "center"
-                    }}
-                    title={reviewText.split(' ').length > 20 ? reviewText : ""}
-                >
-                    "{truncateText(reviewText, 20)}"
-                </p>
+                {isLongText ? (
+                    <OverlayTrigger
+                        placement="top"
+                        overlay={
+                            <Tooltip id={`tooltip-${currentReview?._id}`} style={{ maxWidth: '300px' }}>
+                                {reviewText}
+                            </Tooltip>
+                        }
+                    >
+                        <p className="text-start d-flex align-items-center justify-content-start mb-md-0 mb-4 flex-grow-1 height_mention home-upcoming-heading-mobile"
+                            style={{
+                                fontSize: "19px",
+                                color: "#000000",
+                                fontWeight: "500",
+                                fontFamily: "Inter",
+                                margin: "0",
+                                cursor: "pointer",
+                                minHeight: "150px",
+                                overflow: "hidden",
+                                textAlign: "center",
+                                display: "flex",
+                                alignItems: "center"
+                            }}
+                        >
+                            "{displayText}"
+                        </p>
+                    </OverlayTrigger>
+                ) : (
+                    <p className="text-start d-flex align-items-center justify-content-start mb-md-0 mb-4 flex-grow-1 height_mention home-upcoming-heading-mobile"
+                        style={{
+                            fontSize: "19px",
+                            color: "#000000",
+                            fontWeight: "500",
+                            fontFamily: "Inter",
+                            margin: "0",
+                            minHeight: "150px",
+                            overflow: "hidden",
+                            textAlign: "center",
+                            display: "flex",
+                            alignItems: "center"
+                        }}
+                    >
+                        "{reviewText}"
+                    </p>
+                )}
             </div>
 
             <div className="d-flex align-items-center mb-lg-4 mb-3 justify-content-between gap-3" style={{ marginTop: "5px" }}>

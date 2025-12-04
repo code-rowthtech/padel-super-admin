@@ -73,7 +73,6 @@ const contentStyle = {
 };
 
 const OpenmatchPayment = () => {
-    const [selectedPayment, setSelectedPayment] = useState("");
     const [error, setError] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
@@ -86,19 +85,32 @@ const OpenmatchPayment = () => {
     );
     const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
     );
-    console.log({User});
+    const [userName, setUserName] = useState(User?.name || "");
     const store = useSelector((state) => state?.userAuth);
-
-    const logo = localStorage.getItem("logo")
-        ? JSON.parse(localStorage.getItem("logo"))
-        : null;
+    const createMatchesLoading = useSelector((state) => state?.userMatches?.matchesLoading);
+    const bookingLoading = useSelector((state) => state?.userBooking?.bookingLoading);
+    const logo = clubData?.logo;
 
     const updateProfile = JSON.parse(
         localStorage.getItem("updateprofile") || "{}"
     );
     const [addedPlayers, setAddedPlayers] = useState(() => {
         const saved = localStorage.getItem("addedPlayers");
-        return saved ? JSON.parse(saved) : {};
+        if (saved) {
+            const players = JSON.parse(saved);
+            const updatedPlayers = {};
+            Object.keys(players).forEach(slot => {
+                if (players[slot]) {
+                    updatedPlayers[slot] = {
+                        ...players[slot],
+                        _id: players[slot]._id?.includes('_') ? players[slot]._id : `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                    };
+                }
+            });
+            localStorage.setItem("addedPlayers", JSON.stringify(updatedPlayers));
+            return updatedPlayers;
+        }
+        return {};
     });
 
     useEffect(() => {
@@ -119,7 +131,7 @@ const OpenmatchPayment = () => {
         return () => document.body.contains(script) && document.body.removeChild(script);
     }, []);
 
-    const [name, setName] = useState(User?.name || updateProfile?.fullName || store?.user?.response?.name || "");
+    const [name, setName] = useState(userName || User?.name || updateProfile?.fullName || store?.user?.response?.name || "");
     const [phoneNumber, setPhoneNumber] = useState(
         User?.phoneNumber
             ? `+91 ${User.phoneNumber}`
@@ -138,7 +150,6 @@ const OpenmatchPayment = () => {
         selectedGender = [],
         addedPlayers: stateAddedPlayers = {}, dynamicSteps, finalLevelStep
     } = state || {};
-    console.log({finalSkillDetails});
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -148,12 +159,27 @@ const OpenmatchPayment = () => {
     const savedClubId = localStorage.getItem("register_club_id");
     const owner_id = localStorage.getItem("owner_id");
 
+    console.log('finalAddedPlayers:', finalAddedPlayers);
+
     const teamA = [User?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
     const teamB = [
         finalAddedPlayers.slot3?._id,
         finalAddedPlayers.slot4?._id,
     ].filter(Boolean);
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const result = await dispatch(getUserProfile()).unwrap();
+                setUserName(result?.response?.name || User?.name || "");
+                setEmail(result?.response?.email );
+            } catch (err) {
+                setUserName(User?.name || "");
+            }
+        };
+
+        fetchData();
+    }, [dispatch, User?.name]);
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
@@ -221,10 +247,6 @@ const OpenmatchPayment = () => {
 
                 handler: async function (response) {
                     try {
-                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
-                        const matchId = matchResponse?.match?._id;
-                        if (!matchId) throw new Error("Failed to create match");
-
                         const bookingPayload = {
                             name,
                             phoneNumber: cleanPhone,
@@ -234,7 +256,6 @@ const OpenmatchPayment = () => {
                             paymentMethod: 'Gpay',
                             bookingType: "open Match",
                             bookingStatus: "upcoming",
-                            openMatchId: matchId,
                             slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
                                 slotId: timeSlot._id,
                                 businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
@@ -246,7 +267,11 @@ const OpenmatchPayment = () => {
                         };
 
                         const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
-                        if (!bookingResponse?.success) throw new Error("Booking failed after payment");
+                        if (!bookingResponse?.success) throw new Error("Booking creation failed");
+
+                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                        const matchId = matchResponse?.match?._id;
+                        if (!matchId) throw new Error("Failed to create match");
 
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));
@@ -316,6 +341,12 @@ const OpenmatchPayment = () => {
             return () => clearTimeout(t);
         }
     }, [error]);
+
+    useEffect(() => {
+        if (createMatchesLoading) {
+            setIsLoading(false);
+        }
+    }, [createMatchesLoading]);
 
     return (
         <div className="container mt-md-4 mt-0 mb-md-5 mb-0 d-flex gap-4 px-md-4 px-0 flex-wrap">
@@ -428,7 +459,7 @@ const OpenmatchPayment = () => {
                                     className="form-label mb-0 ps-lg-2"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
-                                    Email 
+                                    Email
                                 </label>
                                 <input
                                     type="email"
@@ -905,6 +936,11 @@ const OpenmatchPayment = () => {
                                                     fill="none"
                                                     strokeLinecap="round"
                                                     strokeLinejoin="round"
+                                                    className="book-now-arrow"
+                                                    style={{
+                                                        transformOrigin: `${arrowX}px ${arrowY}px`,
+                                                        transition: "transform 0.3s ease"
+                                                    }}
                                                 >
                                                     <path
                                                         d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
@@ -924,7 +960,7 @@ const OpenmatchPayment = () => {
                                                 </g>
                                             </svg>
                                             <div style={contentStyle}>
-                                                {isLoading ? (
+                                                {isLoading || createMatchesLoading || bookingLoading ? (
                                                     <ButtonLoading color={"#001B76"} />
                                                 ) : (
                                                     "Pay Now"
@@ -1016,6 +1052,11 @@ const OpenmatchPayment = () => {
                                         fill="none"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
+                                        className="book-now-arrow"
+                                        style={{
+                                            transformOrigin: `${arrowX}px ${arrowY}px`,
+                                            transition: "transform 0.3s ease"
+                                        }}
                                     >
                                         <path
                                             d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
@@ -1035,7 +1076,7 @@ const OpenmatchPayment = () => {
                                     </g>
                                 </svg>
                                 <div style={contentStyle}>
-                                    {isLoading ? <ButtonLoading color={"#001B76"} /> : "Pay Now"}
+                                    {isLoading || createMatchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Pay Now"}
                                 </div>
                             </button>
                         </div>

@@ -5,6 +5,7 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { padal } from "../../../assets/files";
 import { Tooltip } from "react-tooltip";
+import { showError } from "../../../helpers/Toast";
 import NewPlayers from "../VeiwMatch/NewPlayers";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
@@ -91,15 +92,14 @@ const MatchPlayer = ({
     const [profileFetched, setProfileFetched] = useState(false);
     const hasCalledProfile = useRef(false);
     const [profileLoading, setProfileLoading] = useState(true);
-
+    console.log({ localPlayers });
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
 
-    const [userName, setUserName] = useState(User?.name);
+    const [userName, setUserName] = useState(User?.name || "");
 
 
-    console.log({ userName });
     useEffect(() => {
         const fetchData = async () => {
             if (hasCalledProfile.current) return;
@@ -107,11 +107,13 @@ const MatchPlayer = ({
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
                 const firstAnswer = result?.response?.level;
+                console.log({ result });
                 setDefaultSkillLevel(result?.response?.skillLevel || "Open Match");
                 setDefaultLevel(firstAnswer);
-                setUserName(result?.response?.name);
+                setUserName(result?.response?.name || User?.name || "");
                 setProfileFetched(true);
             } catch (err) {
+                setUserName(User?.name || "");
                 setProfileFetched(true);
             }
         };
@@ -125,7 +127,7 @@ const MatchPlayer = ({
         } else if (!hasCalledProfile.current) {
             fetchData();
         }
-    }, []);
+    }, [dispatch, User?.name]);
 
     useEffect(() => {
         const syncFromStorage = () => {
@@ -170,10 +172,8 @@ const MatchPlayer = ({
     console.log({ selectedGender });
     const handleAddMeClick = (slot) => {
         if (!selectedGender) {
-            setGenderError("Please select game type.");
+            showError("Please select game type");
             return;
-        } else {
-            setGenderError("");
         }
         setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
         setActiveSlot((prev) => (prev === slot ? null : slot));
@@ -219,7 +219,7 @@ const MatchPlayer = ({
         const displayHour = endHour24 % 12 === 0 ? 12 : endHour24 % 12;
         const displayMinutes = String(endMin).padStart(2, "0");
 
-        return `Registration closes at ${displayHour}:${displayMinutes} ${period}`;
+        return `Registration close at ${displayHour}:${displayMinutes} ${period}`;
     };
 
     const matchDate = selectedDate?.fullDate
@@ -249,16 +249,9 @@ const MatchPlayer = ({
         });
 
         if (formattedTimes.length === 0) return "";
+        if (formattedTimes.length === 1) return `${formattedTimes[0].hour}${formattedTimes[0].period}`;
 
-        const lastPeriod = formattedTimes[formattedTimes.length - 1].period;
-        const formatted = formattedTimes.map((time, index) => {
-            if (index === formattedTimes.length - 1) {
-                return `${time.hour}${time.period}`;
-            }
-            return time.hour;
-        });
-
-        return formatted.join("-");
+        return `${formattedTimes[0].hour}-${formattedTimes[formattedTimes.length - 1].hour}${formattedTimes[formattedTimes.length - 1].period}`;
     };
 
     const matchTime = selectedCourts.length
@@ -271,8 +264,8 @@ const MatchPlayer = ({
         return allTimes.length === uniqueTimes.length;
     };
 
-    const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time.length, 0);
-    const slotsPerCourt = selectedCourts.length > 0 ? selectedCourts[0].time.length : 0;
+    const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time?.length, 0);
+    const slotsPerCourt = selectedCourts.length > 0 ? selectedCourts[0]?.time?.length : 0;
     const canBook = totalSlots >= 1 && slotsPerCourt >= 1 && slotsPerCourt <= 3 && matchTime.length > 0 && validateCourtTimeConsistency();
 
     const displayUserSkillLevel = finalSkillDetails && Object.keys(finalSkillDetails).length > 0
@@ -283,10 +276,8 @@ const MatchPlayer = ({
 
     const handleBookNow = () => {
         if (!selectedGender || selectedGender === "") {
-            setGenderError("Please select  game type.");
+            showError("Please select game type");
             return;
-        } else {
-            setGenderError("");
         }
 
         const courtIds = selectedCourts.map((c) => c._id).join(",");
@@ -344,7 +335,7 @@ const MatchPlayer = ({
 
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
-
+                setUserName(result?.response?.name || User?.name || "");
                 const firstAnswer = result?.response?.skillLevel;
                 if (firstAnswer) {
                     const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
@@ -387,17 +378,19 @@ const MatchPlayer = ({
                             className="btn btn-light rounded-circle p-2 border shadow-sm"
                             style={{ width: 36, height: 36 }}
                             onClick={() => setShowShareDropdown((p) => !p)}
+                            disabled
                         >
                             <i className="bi bi-share d-flex justify-content-center align-items-center"></i>
                         </button>
                         <button
                             className="btn rounded-circle p-2 text-white"
                             style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
+                            disabled
                         >
                             <i className="bi bi-chat-left-text d-flex justify-content-center align-items-center"></i>
                         </button>
 
-                        {showShareDropdown && (
+                        {/* {showShareDropdown && (
                             <div
                                 className="position-absolute bg-white border rounded shadow-sm"
                                 style={{ top: "40px", right: 0, zIndex: 1000, minWidth: "120px" }}
@@ -465,7 +458,7 @@ const MatchPlayer = ({
                                     WhatsApp
                                 </button>
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </div>
 
@@ -505,13 +498,15 @@ const MatchPlayer = ({
                             </p>
                             <div className="d-flex justify-content-center">
                                 <select
-                                    className="form-select add_font_mobile p-0 gap-0 form-select-sm border-0 shadow-none text-center px-3 pe-5 py-1"
+                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm shadow-none text-center px-3 ${selectedGender === '' ? 'pe-3' : 'pe-5'} py-1`}
                                     style={{
                                         fontSize: "15px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
-                                        color: "#000000",
-                                        backgroundColor: "transparent",
+                                        color: selectedGender === '' ? "#1F41BB" : "#000000",
+                                        backgroundColor: selectedGender === '' ? "#EEF2FF" : "transparent",
+                                        border: selectedGender === '' ? "1px solid #1F41BB" : "none",
+                                        borderRadius: "4px",
                                         width: "auto",
                                         minWidth: "auto",
                                         appearance: "none",
@@ -522,32 +517,16 @@ const MatchPlayer = ({
                                         cursor: "pointer",
                                     }}
                                     value={selectedGender}
-                                    onChange={(e) => {
-                                        setSelectedGender(e.target.value);
-                                        setGenderError('');
-                                    }}
+                                    onChange={(e) => setSelectedGender(e.target.value)}
                                     required
                                 >
-                                    <option className="add_font_mobile" value="">Select </option>
-                                    <option value="Male Only">Male Only</option>
-                                    <option value="Female Only">Female Only</option>
-                                    <option value="Mixed Double">Mixed Double</option>
+                                    <option className="add_font_mobile " value="">Select </option>
+                                    <option className="add_font_mobile" value="Male Only">Male Only</option>
+                                    <option className="add_font_mobile" value="Female Only">Female Only</option>
+                                    <option className="add_font_mobile" value="Mixed Double">Mixed Double</option>
                                 </select>
                             </div>
-                            {genderError && (
-                                <div
-                                    className="text-center d-none d-lg-block rounded mt-1"
-                                    style={{
-                                        backgroundColor: "#ffebee",
-                                        color: "#c62828",
-                                        border: "1px solid #ffcdd2",
-                                        fontWeight: 500,
-                                        fontSize: "14px",
-                                    }}
-                                >
-                                    {genderError}
-                                </div>
-                            )}
+
 
                         </div>
 
@@ -557,7 +536,7 @@ const MatchPlayer = ({
                             </p>
                             <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
                                 {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
-                                    ? finalSkillDetails[0]
+                                    ? finalSkillDetails?.[0]
                                     : defaultSkillLevel || "Open Match"}
                             </p>
                         </div>
@@ -573,20 +552,7 @@ const MatchPlayer = ({
 
                     </div>
                 </div>
-                {genderError && (
-                    <div
-                        className="text-center mb-2 w-100 d-lg-none rounded mt-1"
-                        style={{
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
-                            border: "1px solid #ffcdd2",
-                            fontWeight: 500,
-                            fontSize: "14px",
-                        }}
-                    >
-                        {genderError}
-                    </div>
-                )}
+
 
                 <div
                     className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border"
@@ -620,7 +586,7 @@ const MatchPlayer = ({
                                             <img src={User.profilePic || updateName?.profile} alt="you" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {User.name?.[0]?.toUpperCase() || "U"}
+                                                {userName?.[0]?.toUpperCase() || User?.name?.[0]?.toUpperCase() || "U"}
                                             </span>
                                         )}
                                     </div>
@@ -628,18 +594,18 @@ const MatchPlayer = ({
                                         className="mb-0 mt-2 fw-semibold text-center"
                                         style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                         data-tooltip-id="you"
-                                        data-tooltip-content={userName || User.name}
+                                        data-tooltip-content={userName || User?.name}
                                     >
                                         {(() => {
-                                            const displayName = userName || User.name || 'User';
-                                            return displayName.length > 12 ? `${displayName.substring(0, 12)}...` : displayName;
+                                            const displayName = userName || User?.name || 'User';
+                                            return displayName?.length > 12 ? `${displayName.substring(0, 12)}...` : displayName;
                                         })()}
                                     </p>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
                                         {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
-                                            ? (finalSkillDetails[1] ? finalSkillDetails[1].split(' - ')[0] : (finalSkillDetails[0] || "A"))
-                                            : defaultLevel?.split(" - ")[0] || "A"}
+                                            ? (finalSkillDetails[1] ? finalSkillDetails[1].split(' - ')?.[0] : (finalSkillDetails?.[0] || "A"))
+                                            : defaultLevel?.split(" - ")?.[0] || "A"}
                                     </span>
                                 </div>
                             )}
@@ -659,7 +625,7 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot2.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers.slot2.name[0].toUpperCase()}
+                                                {localPlayers?.slot2.name?.[0].toUpperCase()}
                                             </span>
                                         )}
                                     </div>
@@ -705,7 +671,7 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot3.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers.slot3.name[0].toUpperCase()}
+                                                {localPlayers?.slot3?.name?.[0].toUpperCase()}
                                             </span>
                                         )}
                                     </div>
@@ -749,7 +715,7 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot4.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers.slot4.name[0].toUpperCase()}
+                                                {localPlayers?.slot4?.name?.[0].toUpperCase()}
                                             </span>
                                         )}
                                     </div>

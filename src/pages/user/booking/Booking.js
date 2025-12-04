@@ -101,10 +101,7 @@ const Booking = ({ className = "" }) => {
   const bookingStatus = useSelector((state) => state?.userBooking);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorShow, setErrorShow] = useState(false);
-  const logo =
-    JSON.parse(localStorage.getItem("logo")) ||
-    clubData?.register_club_id?.logo?.[0];
-  const [showDropdown, setShowDropdown] = useState(false);
+  const logo = clubData?.logo;
   const dateRefs = useRef({});
   const [key, setKey] = useState("morning");
   const [key2, setKey2] = useState("padel");
@@ -168,7 +165,7 @@ const Booking = ({ className = "" }) => {
         return dateTotal + timeSlots.length;
       }, 0);
     }, 0);
-    
+
     const dateKey = date || selectedDate.fullDate;
     const uniqueKey = `${courtId}-${time._id}-${dateKey}`;
 
@@ -386,7 +383,7 @@ const Booking = ({ className = "" }) => {
     (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
     0
   );
-  
+
   // Calculate total slots across all dates and courts
   const totalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
     return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
@@ -566,14 +563,14 @@ const Booking = ({ className = "" }) => {
     const handleMouseEnter = (e) => {
       // Don't show tooltip on mobile devices
       if (window.innerWidth <= 768) return;
-      
+
       // Calculate current total slots for tooltip
       const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
         return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
           return dateTotal + timeSlots.length;
         }, 0);
       }, 0);
-      
+
       if (currentTotalSlots >= MAX_SLOTS) {
         const button = e.currentTarget;
         const isSelected = button.style.background.includes('linear-gradient');
@@ -589,14 +586,14 @@ const Booking = ({ className = "" }) => {
     const handleMouseMove = (e) => {
       // Don't show tooltip on mobile devices
       if (window.innerWidth <= 768) return;
-      
+
       // Calculate current total slots for tooltip movement
       const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
         return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
           return dateTotal + timeSlots.length;
         }, 0);
       }, 0);
-      
+
       if (currentTotalSlots >= MAX_SLOTS && tooltip.style.display === 'block') {
         tooltip.style.left = e.clientX + 10 + 'px';
         tooltip.style.top = e.clientY - 30 + 'px';
@@ -738,7 +735,7 @@ const Booking = ({ className = "" }) => {
                 src={bannerimg}
                 alt="Paddle"
                 className="img-fluid w-100 object-fit-cover rounded-3 d-block d-md-none"
-                // style={{ height: "24vh" }}
+              // style={{ height: "24vh" }}
               />
 
               <div
@@ -2263,6 +2260,11 @@ const Booking = ({ className = "" }) => {
                       fill="none"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      className="book-now-arrow"
+                      style={{
+                        transformOrigin: `${arrowX}px ${arrowY}px`,
+                        transition: "transform 0.3s ease"
+                      }}
                     >
                       <path
                         d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4

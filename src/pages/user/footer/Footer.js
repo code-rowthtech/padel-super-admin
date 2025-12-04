@@ -25,11 +25,14 @@ const Footer = () => {
     : clubIds;
 
   const social = {
-    facebook: club?.facebookLink || "",
-    instagram: club?.instagramLink || "",
-    linkedin: club?.linkedinLink || "",
-    twitter: club?.xlink || "",
+    facebook: club?.facebookLink || "https://facebook.com",
+    instagram: club?.instagramLink || "https://instagram.com",
+    linkedin: club?.linkedinLink || "https://linkedin.com",
+    twitter: club?.xlink || "https://twitter.com",
   };
+
+  console.log("Club data:", club);
+  console.log("Social links:", social);
 
 
   useEffect(() => {
