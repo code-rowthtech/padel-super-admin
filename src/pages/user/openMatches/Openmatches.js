@@ -122,6 +122,7 @@ const Openmatches = () => {
   const shareDropdownRef = useRef(null);
   const matchCardRefs = useRef({});
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
+  const [matchFilter, setMatchFilter] = useState("all");
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
@@ -264,6 +265,13 @@ const Openmatches = () => {
     console.log('Raw matches data:', matches);
     console.log('Active tab:', activeTab);
 
+    if (matchFilter === "my") {
+      matches = matches.filter((match) => 
+        match?.teamA?.some(p => p?.userId?._id === user?._id) || 
+        match?.teamB?.some(p => p?.userId?._id === user?._id)
+      );
+    }
+
     if (showUnavailableOnly) {
       matches = matches.filter((match) => match?.players?.length >= 4);
     }
@@ -275,7 +283,7 @@ const Openmatches = () => {
     const filtered = getMatchesForTab(currentTab, matches);
     console.log('Filtered matches:', filtered);
     return filtered;
-  }, [showUnavailableOnly, matchesData, activeTab]);
+  }, [showUnavailableOnly, matchesData, activeTab, matchFilter, user?._id]);
 
   useEffect(() => {
     if (
@@ -825,6 +833,34 @@ const Openmatches = () => {
           </div>
 
           <div className="pb-0">
+            <div className="d-flex gap-2 mb-3">
+              <button
+                className={`btn rounded-pill px-3 py-1 ${matchFilter === "all" ? "text-white" : "bg-white"}`}
+                style={{
+                  background: matchFilter === "all" ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#fff",
+                  border: matchFilter === "all" ? "none" : "1px solid #E5E7EB",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins"
+                }}
+                onClick={() => setMatchFilter("all")}
+              >
+                See All
+              </button>
+              <button
+                className={`btn rounded-pill px-3 py-1 ${matchFilter === "my" ? "text-white" : "bg-white"}`}
+                style={{
+                  background: matchFilter === "my" ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#fff",
+                  border: matchFilter === "my" ? "none" : "1px solid #E5E7EB",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins"
+                }}
+                onClick={() => setMatchFilter("my")}
+              >
+                My Open Matches
+              </button>
+            </div>
             <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-2 mb-2">
               <h5 className="mb-0 custom-heading-use">Available Matches</h5>
               <div className="dropdown">
@@ -1463,8 +1499,8 @@ const Openmatches = () => {
                     fontFamily: "Poppins",
                   }}
                 >
-                  <p className="mb-2">No matches available for this date</p>
-                  <p className="mb-0" style={{ fontSize: "14px" }}>Try searching for a different date or location</p>
+                  <p className="mb-2">No Open match are available for this date and {tabs[activeTab]?.label}{selectedLevel && selectedLevel !== "All" ? ` for ${selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} level` : ""}.</p>
+                  <p className="mb-0">Please choose another date</p>
                 </div>
               )}
             </div>

@@ -291,7 +291,7 @@ const Home = () => {
                 </h1>
                 <Link
                   to="/booking"
-                  className="text-decoration-none rounded-pill px-4 py-1 pt-2 custom-title d-inline-flex align-items-center book-now-btn d-md-flex d-none"
+                  className="text-decoration-none rounded-pill px-4 py-2 custom-title d-inline-flex align-items-center book-now-btn d-md-flex d-none"
                   style={{
                     color: "#2043BA",
                     fontWeight: "600",

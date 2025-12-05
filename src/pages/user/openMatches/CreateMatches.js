@@ -1089,7 +1089,7 @@ const CreateMatches = () => {
                     const slotCount = selectedCourts
                       .filter(court => court.date === d.fullDate)
                       .reduce((acc, court) => acc + court.time.length, 0);
-                      console.log(selectedCourts , d.fullDate,'pankajm');
+                    console.log(selectedCourts, d.fullDate, 'pankajm');
                     return (
                       <button
                         key={i}
@@ -1321,17 +1321,19 @@ const CreateMatches = () => {
                         )
                     ) && (
                         <div
-                          className="text-center py-4 text-danger d-flex justify-content-center align-items-center "
-                          style={{ fontFamily: "Poppins", fontWeight: 500 }}
+                          className="text-center py-4 d-flex flex-column justify-content-center align-items-center"
+                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" }}
                         >
-                          <p> No {showUnavailable ? "unavailable" : "available"} slots</p>
+                          <p className="mb-1">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
+                          <p className="mb-0">Please choose another date</p>
                         </div>
                       )}
                   </>
                 )
               ) : (
-                <div className="text-center py-4 d-flex justify-content-center align-items-center text-muted">
-                  No courts available
+                <div className="text-center py-4 d-flex flex-column justify-content-center align-items-center" style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" }}>
+                  <p className="mb-1">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
+                  <p className="mb-0">Please choose another date</p>
                 </div>
               )}
             </div>
