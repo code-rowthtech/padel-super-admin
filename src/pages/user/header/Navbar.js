@@ -309,9 +309,143 @@ const Navbar = () => {
                         </ul>
                     </div>
 
-                    <div className="d-lg-none position-absolute" style={{ right: "15px", top: "50%", transform: "translateY(-50%)", zIndex: 1001 }}>
+                    <div className="d-lg-none position-absolute d-flex align-items-center gap-2" style={{ right: "0px", top: "50%", transform: "translateY(-50%)", zIndex: 1001 }}>
+                        {(store?.user?.status === '200' || token || store?.user?.status === 200) && (
+                            <div className="position-relative" ref={dropdownRef}>
+                                <div
+                                    className="d-flex rounded-circle justify-content-center notification-bg align-items-center"
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => setOpen(!open)}
+                                >
+                                    <Badge badgeContent={notificationCount?.unreadCount || notifications?.filter(n => !n.isRead)?.length || 0} color="error">
+                                        <NotificationsIcon size={24} className="text-dark" />
+                                    </Badge>
+                                </div>
+
+                                {open && (
+                                    <div
+                                        className="shadow-sm p-2"
+                                        style={{
+                                            position: "fixed",
+                                            top: "60px",
+                                            right: "10px",
+                                            width: "calc(100vw - 20px)",
+                                            maxWidth: "320px",
+                                            backgroundColor: "#fff",
+                                            borderRadius: "12px",
+                                            zIndex: 1050,
+                                        }}
+                                    >
+                                        <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
+                                            <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
+                                            {notifications.length > 3 && (
+                                                <button
+                                                    className="btn btn-link p-0"
+                                                    style={{
+                                                        fontSize: "13px",
+                                                        fontWeight: 500,
+                                                        textDecoration: "none",
+                                                        color: "#007bff",
+                                                    }}
+                                                    onClick={handleMarkAllRead}
+                                                >
+                                                    Mark all as read
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
+                                            {notificationLoading ? <ButtonLoading /> :
+                                                notifications?.length > 0 ? (
+                                                    notifications?.map((note) => (
+                                                        <div
+                                                            key={note._id}
+                                                            className="d-flex gap-3 align-items-start justify-content-between p-3 mb-2 rounded"
+                                                            style={{
+                                                                borderBottom: "1px solid #f0f0f0",
+                                                                cursor: "pointer",
+                                                            }}
+                                                        >
+                                                            <div style={{ flex: 1 }}>
+                                                                <div style={{ fontWeight: 500, fontSize: "13px" }}>
+                                                                    {note?.adminId ? "Padel" : ''} – {note.title}
+                                                                </div>
+                                                                {note?.message && (
+                                                                    <p
+                                                                        className="text-muted mb-1"
+                                                                        style={{ fontSize: "12px", fontFamily: "Poppins" }}
+                                                                    >
+                                                                        {note.message}
+                                                                    </p>
+                                                                )}
+                                                                <p
+                                                                    className="text-muted text-nowrap mb-0"
+                                                                    style={{ fontSize: "12px", fontFamily: "Poppins" }}
+                                                                >
+                                                                    {dayjs(note.createdAt).fromNow()} <b>.</b>{" "}
+                                                                    <OverlayTrigger
+                                                                        placement="top"
+                                                                        overlay={
+                                                                            <Tooltip id={`tooltip-${note._id}`}>
+                                                                                {note?.notificationType}
+                                                                            </Tooltip>
+                                                                        }
+                                                                    >
+                                                                        <span style={{ cursor: "pointer" }}>
+                                                                            {note?.notificationType?.length > 15
+                                                                                ? note?.notificationType.slice(0, 15) + "..."
+                                                                                : note?.notificationType}
+                                                                        </span>
+                                                                    </OverlayTrigger>
+                                                                </p>
+
+                                                                {openNoteId === note._id && (
+                                                                    <div className="d-flex gap-2 mt-2">
+                                                                        <button
+                                                                            className="btn btn-dark btn-sm py-0 px-3"
+                                                                            style={{ fontSize: "13px" }}
+                                                                            onClick={() => handleViewNotification(note)}
+                                                                        >
+                                                                            View
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                className="mt-2"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setOpenNoteId(openNoteId === note._id ? null : note._id);
+                                                                }}
+                                                                style={{ cursor: "pointer" }}
+                                                            >
+                                                                {openNoteId === note._id ? (
+                                                                    <IoIosArrowUp size={20} color="#555" />
+                                                                ) : (
+                                                                    <IoIosArrowDown size={20} color="#555" />
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div
+                                                        className="text-center text-muted py-3"
+                                                        style={{
+                                                            fontWeight: 400,
+                                                            fontFamily: "Poppins",
+                                                        }}
+                                                    >
+                                                        No new notifications
+                                                    </div>
+                                                )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <button
-                            className="btn ps-5 pe-0 border-0 bg-transparent"
+                            className="btn ps-0 pe-0 border-0 bg-transparent"
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();

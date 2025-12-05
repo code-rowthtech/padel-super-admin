@@ -5,6 +5,7 @@ import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { padal } from "../../../assets/files";
 import { Tooltip } from "react-tooltip";
+import { showError } from "../../../helpers/Toast";
 import NewPlayers from "../VeiwMatch/NewPlayers";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
@@ -85,13 +86,27 @@ const MatchPlayer = ({
     const [selectedGender, setSelectedGender] = useState('');
     const [genderError, setGenderError] = useState('');
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
+
+    useEffect(() => {
+        if (userGender && userGender !== "") {
+            const genderMap = {
+                "Male": "Male Only",
+                "Female": "Female Only",
+                "Male Only": "Male Only",
+                "Female Only": "Female Only",
+                "Mixed Double": "Mixed Double",
+                "Other": "Mixed Double"
+            };
+            setSelectedGender(genderMap[userGender] || "Mixed Double");
+        }
+    }, [userGender]);
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
     const [defaultLevel, setDefaultLevel] = useState();
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
     const [profileFetched, setProfileFetched] = useState(false);
     const hasCalledProfile = useRef(false);
     const [profileLoading, setProfileLoading] = useState(true);
-console.log({localPlayers});
+    console.log({ localPlayers });
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
@@ -171,10 +186,8 @@ console.log({localPlayers});
     console.log({ selectedGender });
     const handleAddMeClick = (slot) => {
         if (!selectedGender) {
-            setGenderError("Please select game type.");
+            showError("Please select game type");
             return;
-        } else {
-            setGenderError("");
         }
         setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
         setActiveSlot((prev) => (prev === slot ? null : slot));
@@ -250,16 +263,9 @@ console.log({localPlayers});
         });
 
         if (formattedTimes.length === 0) return "";
+        if (formattedTimes.length === 1) return `${formattedTimes[0].hour}${formattedTimes[0].period}`;
 
-        const lastPeriod = formattedTimes[formattedTimes.length - 1].period;
-        const formatted = formattedTimes.map((time, index) => {
-            if (index === formattedTimes.length - 1) {
-                return `${time.hour}${time.period}`;
-            }
-            return time.hour;
-        });
-
-        return formatted.join("-");
+        return `${formattedTimes[0].hour}-${formattedTimes[formattedTimes.length - 1].hour}${formattedTimes[formattedTimes.length - 1].period}`;
     };
 
     const matchTime = selectedCourts.length
@@ -284,10 +290,8 @@ console.log({localPlayers});
 
     const handleBookNow = () => {
         if (!selectedGender || selectedGender === "") {
-            setGenderError("Please select  game type.");
+            showError("Please select game type");
             return;
-        } else {
-            setGenderError("");
         }
 
         const courtIds = selectedCourts.map((c) => c._id).join(",");
@@ -508,13 +512,15 @@ console.log({localPlayers});
                             </p>
                             <div className="d-flex justify-content-center">
                                 <select
-                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm border-0 shadow-none text-center px-3 ${selectedGender === '' ? 'pe-3' : 'pe-5'} py-1`}
+                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm shadow-none text-center px-3 ${selectedGender === '' ? 'pe-3' : 'pe-5'} py-1`}
                                     style={{
                                         fontSize: "15px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
-                                        color: "#000000",
-                                        backgroundColor: "transparent",
+                                        color: selectedGender === '' ? "#1F41BB" : "#000000",
+                                        backgroundColor: selectedGender === '' ? "#EEF2FF" : "transparent",
+                                        border: selectedGender === '' ? "1px solid #1F41BB" : "none",
+                                        borderRadius: "4px",
                                         width: "auto",
                                         minWidth: "auto",
                                         appearance: "none",
@@ -525,10 +531,7 @@ console.log({localPlayers});
                                         cursor: "pointer",
                                     }}
                                     value={selectedGender}
-                                    onChange={(e) => {
-                                        setSelectedGender(e.target.value);
-                                        setGenderError('');
-                                    }}
+                                    onChange={(e) => setSelectedGender(e.target.value)}
                                     required
                                 >
                                     <option className="add_font_mobile " value="">Select </option>
@@ -537,20 +540,7 @@ console.log({localPlayers});
                                     <option className="add_font_mobile" value="Mixed Double">Mixed Double</option>
                                 </select>
                             </div>
-                            {genderError && (
-                                <div
-                                    className="text-center d-none d-lg-block rounded mt-1"
-                                    style={{
-                                        backgroundColor: "#ffebee",
-                                        color: "#c62828",
-                                        border: "1px solid #ffcdd2",
-                                        fontWeight: 500,
-                                        fontSize: "14px",
-                                    }}
-                                >
-                                    {genderError}
-                                </div>
-                            )}
+
 
                         </div>
 
@@ -576,20 +566,7 @@ console.log({localPlayers});
 
                     </div>
                 </div>
-                {genderError && (
-                    <div
-                        className="text-center mb-2 w-100 d-lg-none rounded mt-1"
-                        style={{
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
-                            border: "1px solid #ffcdd2",
-                            fontWeight: 500,
-                            fontSize: "14px",
-                        }}
-                    >
-                        {genderError}
-                    </div>
-                )}
+
 
                 <div
                     className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border"
@@ -685,7 +662,7 @@ console.log({localPlayers});
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #3DBE64" }}
                                     >
-                                        <span className="fs-3" style={{ color: "#3DBE64" }}>+</span>
+                                        <span className="fs-3 pb-1" style={{ color: "#3DBE64" }}>+</span>
                                     </div>
                                     <p className="mb-0 mt-2 " style={{ color: "#3DBE64", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
@@ -731,7 +708,7 @@ console.log({localPlayers});
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
                                     >
-                                        <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
+                                        <span className="fs-3 pb-1" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
                                     <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
@@ -775,7 +752,7 @@ console.log({localPlayers});
                                         className="rounded-circle d-flex bg-white align-items-center justify-content-center"
                                         style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
                                     >
-                                        <span className="fs-3" style={{ color: "#1F41BB" }}>+</span>
+                                        <span className="fs-3 pb-1" style={{ color: "#1F41BB" }}>+</span>
                                     </div>
                                     <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
                                 </div>
@@ -875,60 +852,62 @@ console.log({localPlayers});
                         <div style={contentStyle}> Book Now</div>
                     </button>
                 </div>
+                <div className="col-md-9 col-12 mx-auto">
 
-                <h6
-                    className="mb-md-3 mb-2 mt-4 all-matches"
-                    style={{ fontSize: "18px", fontWeight: 600 }}
-                >
-                    Information
-                </h6>
-                <div className="d-lg-flex justify-content-evenly">
-                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
-                        <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "10px" }}>
-                                Type of Court
-                            </p>
-                            <p
-                                className="mb-0"
-                                style={{ fontSize: "13px", color: "#374151" }}
-                            >
-                                Doubles
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2">
-                        <i className="bi bi-calendar-check fs-2 text-dark"></i>
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "10px" }}>
-                                End registration
-                            </p>
-                            <p
-                                className="mb-0"
-                                style={{ fontSize: "13px", color: "#374151" }}
-                            >
-                                {calculateEndRegistrationTime()}
-                            </p>
-                        </div>
-                    </div>
-
-
-                </div>
-                {slotError && (
-                    <div
-                        className="text-center mb-3 p-2 rounded"
-                        style={{
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
-                            border: "1px solid #ffcdd2",
-                            fontWeight: 500,
-                            fontSize: "14px",
-                        }}
+                    <h6
+                        className="mb-md-3 mb-2 mt-4 all-matches"
+                        style={{ fontSize: "18px", fontWeight: 600 }}
                     >
-                        {slotError}
+                        Information
+                    </h6>
+                    <div className="d-lg-flex justify-content-between">
+                        <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "10px" }}>
+                                    Type of Court
+                                </p>
+                                <p
+                                    className="mb-0"
+                                    style={{ fontSize: "13px", color: "#374151" }}
+                                >
+                                    Doubles
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-calendar-check fs-2 text-dark"></i>
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "10px" }}>
+                                    End registration
+                                </p>
+                                <p
+                                    className="mb-0"
+                                    style={{ fontSize: "13px", color: "#374151" }}
+                                >
+                                    {calculateEndRegistrationTime()}
+                                </p>
+                            </div>
+                        </div>
+
+
                     </div>
-                )}
+                    {slotError && (
+                        <div
+                            className="text-center mb-3 p-2 rounded"
+                            style={{
+                                backgroundColor: "#ffebee",
+                                color: "#c62828",
+                                border: "1px solid #ffcdd2",
+                                fontWeight: 500,
+                                fontSize: "14px",
+                            }}
+                        >
+                            {slotError}
+                        </div>
+                    )}
+                </div>
             </div>
 
             <NewPlayers

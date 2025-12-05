@@ -1129,7 +1129,14 @@ const Home = () => {
                   .filter(Boolean)
                   .join(", ")}
               </p>
-              <div className="ratio ratio-16x9 rounded-4 overflow-hidden mt-4">
+              <div 
+                className="ratio ratio-16x9 rounded-4 overflow-hidden mt-4" 
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  const address = mapApiData?.address || `${clubData?.address}, ${clubData?.city}`;
+                  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, "_blank");
+                }}
+              >
                 <iframe
                   src={mapSrc}
                   width="600"
@@ -1138,6 +1145,7 @@ const Home = () => {
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   title="The Court Line Club Map"
+                  style={{ pointerEvents: "none" }}
                 ></iframe>
               </div>
             </div>
