@@ -2,7 +2,7 @@ name: PADEL CI
 
 on:
   push:
-    branches: [ "main"]
+    branches: [ "production"]
 
 jobs:
 
