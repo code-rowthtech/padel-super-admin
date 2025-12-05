@@ -30,8 +30,8 @@ export const sendOtp = createAsyncThunk(
         return rejectWithValue(res?.data?.message || "Failed to send OTP");
       }
     } catch (error) {
-      showError(error);
-      return rejectWithValue(error?.response?.data?.message || "Network error");
+      showError(error || error?.response?.data?.message);
+      // return rejectWithValue(error?.response?.data?.message || "Network error");
     }
   }
 );
@@ -44,8 +44,8 @@ export const verifyOtp = createAsyncThunk(
       showSuccess(res?.data?.message);
       return res?.data;
     } catch (error) {
-      showError(error?.message);
-      return rejectWithValue(error);
+      showError(error?.message || error);
+      // return rejectWithValue(error);
     }
   }
 );
