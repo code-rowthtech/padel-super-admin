@@ -1218,7 +1218,7 @@ const CreateMatches = () => {
                           }
                           @keyframes slideTextLeftToRight {
                             0% {
-                              transform: translateY(-50%) translateX(100%);
+                              transform: translateY(-50%) translateX(calc(100% + 50px));
                             }
                             100% {
                               transform: translateY(-50%) translateX(-100%);
@@ -1234,9 +1234,7 @@ const CreateMatches = () => {
                               !isPastTime(slot.time) &&
                               slot.amount > 0
                           );
-
                           if (filteredSlots?.length === 0) return null;
-
                           return (
                             <div key={court._id} className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0">
                               <div className="col-md-3 col-12 border-end mb-0 d-flex d-md-block align-items-center justify-content-start">
