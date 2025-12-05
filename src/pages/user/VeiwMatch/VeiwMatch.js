@@ -981,7 +981,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                     .unwrap()
                                     .then(() => {
                                         return Promise.all([
-                                            dispatch(getRequest()),
+                                            dispatch(getRequest(matchId)),
                                             dispatch(getMatchesView(matchId))
                                         ]);
                                     })
