@@ -172,7 +172,7 @@ const OpenmatchPayment = () => {
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
                 setUserName(result?.response?.name || User?.name || "");
-                setEmail(result?.response?.email );
+                setEmail(result?.response?.email);
             } catch (err) {
                 setUserName(User?.name || "");
             }
@@ -333,7 +333,7 @@ const OpenmatchPayment = () => {
                         : c
                 )
                 .filter((c) => c.time.length > 0);
-            
+
             // If no slots remain, navigate back to create matches
             if (updated.length === 0) {
                 setTimeout(() => {
@@ -342,7 +342,7 @@ const OpenmatchPayment = () => {
                     });
                 }, 100);
             }
-            
+
             return updated;
         });
     };
@@ -364,7 +364,7 @@ const OpenmatchPayment = () => {
         <div className="container mt-md-4 mt-0 mb-md-5 mb-0 d-flex gap-4 px-md-4 px-0 flex-wrap">
             {/* Mobile Back Button */}
             <div className="d-lg-none position-fixed" style={{ top: "20px", left: "20px", zIndex: 1001 }}>
-                <button 
+                <button
                     className="btn btn-light rounded-circle p-2"
                     onClick={() => navigate("/create-matches", { state: { selectedDate } })}
                     style={{ width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}
@@ -391,11 +391,11 @@ const OpenmatchPayment = () => {
                                     : "none",
                         }}
                     >
-                      
+
                         <div className="row d-flex justify-content-center align-tems-center">
-                              <h6 className="mb-md-3 mb-0 mt-0 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start ps-1">
-                            Information
-                        </h6>
+                            <h6 className="mb-md-3 mb-0 mt-0 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start ps-1">
+                                Information
+                            </h6>
                             <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
                                     className="form-label mb-0 ps-lg-0"
@@ -604,8 +604,8 @@ const OpenmatchPayment = () => {
                                     <div
                                         className="rounded-circle d-flex align-items-center justify-content-center"
                                         style={{
-                                            height: "60px",
-                                            width: "60px",
+                                            width: "120px",
+                                            height: "120px",
                                             backgroundColor: "#374151",
                                             border: "2px solid white",
                                             fontSize: "24px",
