@@ -45,7 +45,6 @@ const UpdatePlayers = ({
   const dispatch = useDispatch();
   const User = getUserFromSession();
   const store = useSelector((state) => state);
-  console.log('11111222', store?.requestData?.requestData?.message);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -53,6 +52,7 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
+  console.log({playerLevels});
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
@@ -373,17 +373,20 @@ const UpdatePlayers = ({
                       ...base,
                       zIndex: 9999,
                     }),
-                    // ← Yeh line sabse important hai
                     menu: (provided) => ({
                       ...provided,
-                      maxHeight: 120,              // maxMenuHeight ke barabar ya thoda zyada
-                      overflowY: 'auto',           // scroll enable
-                      position: 'relative',        // important for portal
+                      ...(window.innerWidth <= 768 && {
+                        maxHeight: 120,
+                        overflowY: 'auto',
+                      }),
+                      position: 'relative',
                     }),
                     menuList: (provided) => ({
                       ...provided,
-                      maxHeight: 120,              // menuList ko bhi height do
-                      overflowY: 'auto',           // yahan scroll aayega
+                      ...(window.innerWidth <= 768 && {
+                        maxHeight: 120,
+                        overflowY: 'auto',
+                      }),
                       paddingTop: 0,
                       paddingBottom: 0,
                     }),

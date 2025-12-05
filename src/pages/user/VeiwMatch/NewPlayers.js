@@ -408,19 +408,22 @@ const NewPlayers = ({
                     }),
                     menu: (provided) => ({
                       ...provided,
-                      maxHeight: 120,
-                      overflowY: 'auto',
+                      ...(window.innerWidth <= 768 && {
+                        maxHeight: 120,
+                        overflowY: 'auto',
+                      }),
                       position: 'relative',
                       zIndex: 9999,
                     }),
                     menuList: (provided) => ({
                       ...provided,
-                      maxHeight: 120,
-                      overflowY: 'auto',
+                      ...(window.innerWidth <= 768 && {
+                        maxHeight: 120,
+                        overflowY: 'auto',
+                      }),
                       paddingTop: 0,
                       paddingBottom: 0,
                       zIndex: 9999,
-
                     }),
                   }}
                   components={{

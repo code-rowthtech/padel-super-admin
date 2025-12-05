@@ -19,7 +19,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
   const bookingStatusData = useSelector((state) => state?.userBooking)
   const store = useSelector((state) => state)
   const clubData = store?.userClub?.clubData?.data?.courts[0] || []
-  const logo = JSON.parse(localStorage.getItem("logo"));
+  const logo = clubData?.logo;
   const User = getUserFromSession()
   const safeFormatDate = (dateValue, formatString = "dd/MM/yyyy", fallback = "N/A") => {
     if (!dateValue) return fallback;
