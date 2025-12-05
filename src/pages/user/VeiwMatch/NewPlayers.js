@@ -6,6 +6,8 @@ import { getUserProfile, Usersignup } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import Select from "react-select";
 import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
+import { searchUserByNumber } from "../../../redux/admin/searchUserbynumber/thunk";
+import { resetSearchData } from "../../../redux/admin/searchUserbynumber/slice";
 
 const modalStyle = {
   position: "absolute",
@@ -42,6 +44,12 @@ const NewPlayers = ({
   const dispatch = useDispatch();
   const userLoading = useSelector(
     (state) => state?.userAuth?.userSignUpLoading
+  );
+  const searchUserData = useSelector(
+    (state) => state.searchUserByNumber.getSearchData
+  );
+  const searchUserDataLoading = useSelector(
+    (state) => state.searchUserByNumber.getSearchLoading
   );
 
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
@@ -199,6 +207,23 @@ const NewPlayers = ({
     }
   }, [showAddMeForm, selectedGender]);
 
+  useEffect(() => {
+    const phoneLength = formData?.phoneNumber?.length || 0;
+
+    if (phoneLength) {
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
+    } else if (phoneLength < 9 || phoneLength === 0 || phoneLength ===9) {
+      setFormData(prev => ({ ...prev, name: "" }));
+      dispatch(resetSearchData());
+    }
+  }, [formData?.phoneNumber, dispatch]);
+
+  useEffect(() => {
+    if (searchUserData?.result?.name && formData?.phoneNumber?.length === 10) {
+      setFormData(prev => ({ ...prev, name: searchUserData.result.name }));
+    }
+  }, [searchUserData, formData?.phoneNumber]);
+
   return (
     <Modal
       open={showAddMeForm}
@@ -224,7 +249,7 @@ const NewPlayers = ({
             </label>
             <input
               type="text"
-              value={formData.name}
+              value={searchUserDataLoading ? "Loading...." : formData?.name}
               onChange={(e) => {
                 let v = e.target.value;
                 if (/^[A-Za-z\s]*$/.test(v)) {
@@ -241,12 +266,12 @@ const NewPlayers = ({
               placeholder="Enter your name"
               style={inputStyle("name")}
             />
-            {showErrors.name && errors.name && (
+            {showErrors?.name && errors?.name && (
               <small
                 className="text-danger d-block mt-1"
                 style={{ fontSize: "12px" }}
               >
-                {errors.name}
+                {errors?.name}
               </small>
             )}
           </div>
@@ -362,7 +387,7 @@ const NewPlayers = ({
                   onChange={(opt) => setFormData((prev) => ({ ...prev, level: opt?.value }))}
                   placeholder="Choose level"
                   classNamePrefix="select"
-                  maxMenuHeight={200}                    
+                  maxMenuHeight={200}
                   menuPortalTarget={document.body}
                   styles={{
                     control: (base) => ({
@@ -377,18 +402,18 @@ const NewPlayers = ({
                     }),
                     menu: (provided) => ({
                       ...provided,
-                      maxHeight: 120,              
-                      overflowY: 'auto',           
-                      position: 'relative', 
-                      zIndex: 9999,      
+                      maxHeight: 120,
+                      overflowY: 'auto',
+                      position: 'relative',
+                      zIndex: 9999,
                     }),
                     menuList: (provided) => ({
                       ...provided,
-                      maxHeight: 120,            
-                      overflowY: 'auto',           
+                      maxHeight: 120,
+                      overflowY: 'auto',
                       paddingTop: 0,
                       paddingBottom: 0,
-                                            zIndex: 9999,      
+                      zIndex: 9999,
 
                     }),
                   }}
