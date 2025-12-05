@@ -1418,7 +1418,8 @@ const Booking = ({ className = "" }) => {
                           className="d-flex justify-content-center align-items-center h-100 py-5 mt-5 text-danger"
                           style={{ fontFamily: "Poppins", fontWeight: "500" }}
                         >
-                          No Available Slot
+                          No slots are available for this date and time.
+                          Please choose another date
                         </div>
                       )}
                   </>
