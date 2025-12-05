@@ -507,8 +507,8 @@ const BookingHistory = () => {
                                                 <td className="table-data pt-2 py-1" >
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
-                                                <td className="table-data pt-2 py-1">
-                                                    {booking?.bookingType ? (booking.bookingType.charAt(0).toUpperCase() + booking.bookingType.slice(1)) : "N/A"}
+                                                <td className="table-data pt-2 py-1 d-flex align-items-center justify-content-center">
+                                                    <span className="px-2 rounded-pill d-flex align-items-center justify-content-center text-white  " style={{width:"7rem",background:"linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)"}} >{booking?.bookingType ? (booking.bookingType.charAt(0).toUpperCase() + booking.bookingType.slice(1)) : "N/A"}</span>
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
@@ -628,7 +628,7 @@ const BookingHistory = () => {
                                                                 ) : booking?.bookingStatus === "refunded" || booking?.bookingStatus === "cancelled" ? (
                                                                     <span
                                                                         style={{
-                                                                            color: booking?.bookingStatus === "cancelled" ? "red" : "darkcyan",
+                                                                            color: booking?.bookingStatus === "cancelled" ? "red" : "orange",
                                                                             fontSize: "12px",
                                                                             fontWeight: "600",
                                                                             fontFamily: "Poppins",
