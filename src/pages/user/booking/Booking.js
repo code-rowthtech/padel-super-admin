@@ -41,6 +41,8 @@ import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
 import { createBooking } from "../../../redux/user/booking/thunk";
+import { showError } from "../../../helpers/Toast";
+import { toast, Bounce } from "react-toastify";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -195,10 +197,10 @@ const Booking = ({ className = "" }) => {
       );
     } else {
       if (currentTotalSlots >= MAX_SLOTS) {
-        setErrorMessage(
-          `You can select up to ${MAX_SLOTS} slots only`
-        );
-        setErrorShow(true);
+        // Show toast for mobile only
+        if (window.innerWidth <= 768) {
+          showError(`You can select up to ${MAX_SLOTS} slots only`);
+        }
         return;
       }
 
@@ -1393,7 +1395,6 @@ const Booking = ({ className = "" }) => {
                             slot.status !== "booked" &&
                             !isPastTime(slot.time));
 
-                        // Apply tab filter for both mobile and desktop
                         const tabKey = tabs[activeTab]?.key;
                         return basicFilter && filterSlotsByTab(slot, tabKey);
                       });
@@ -1418,27 +1419,7 @@ const Booking = ({ className = "" }) => {
                 </div>
               )}
             </div>
-            {errorShow && errorMessage && (
-              <div className="d-lg-none px-3 mb-3">
-                <div
-                  className="text-center w-100 p-3 rounded"
-                  style={{
-                    fontWeight: 500,
-                    backgroundColor: "#ffebee",
-                    color: "#c62828",
-                    border: "1px solid #ffcdd2",
-                    fontSize: "14px",
-                    fontFamily: "Poppins",
-                    wordWrap: "break-word",
-                    lineHeight: "1.4",
-                    maxWidth: "100%",
-                    overflow: "visible",
-                  }}
-                >
-                  {errorMessage}
-                </div>
-              </div>
-            )}
+          
           </div>
           <div
             className={`col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-booking-summary ${totalSlots === 0 ? "d-lg-block d-none" : ""

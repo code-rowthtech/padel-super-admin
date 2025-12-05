@@ -39,6 +39,10 @@ const NewPlayers = ({
     gender: "",
     level: "",
   });
+  const [userEnteredData, setUserEnteredData] = useState({
+    name: "",
+    email: "",
+  });
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const dispatch = useDispatch();
@@ -153,6 +157,10 @@ const NewPlayers = ({
           gender: "",
           level: "",
         });
+        setUserEnteredData({
+          name: "",
+          email: "",
+        });
         setShowAddMeForm(false);
         setActiveSlot(null);
         showSuccess("Player Added Successfully");
@@ -215,20 +223,25 @@ const NewPlayers = ({
     if (phoneLength === 10) {
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
     } else if (phoneLength < 10) {
-      setFormData(prev => ({ ...prev, name: "", email: "" }));
+      // Show user-entered data when number length < 10
+      setFormData(prev => ({
+        ...prev,
+        name: userEnteredData.name,
+        email: userEnteredData.email
+      }));
       dispatch(resetSearchData());
     }
-  }, [formData?.phoneNumber, dispatch]);
+  }, [formData?.phoneNumber, dispatch, userEnteredData]);
 
   useEffect(() => {
     if (searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
       setFormData(prev => ({
         ...prev,
-        name: searchUserData.result[0].name || "",
-        email: searchUserData.result[0].email || ""
+        name: searchUserData.result[0].name || userEnteredData.name,
+        email: searchUserData.result[0].email || userEnteredData.email
       }));
     }
-  }, [searchUserData, formData?.phoneNumber]);
+  }, [searchUserData, formData?.phoneNumber, userEnteredData]);
 
   return (
     <Modal
@@ -266,6 +279,7 @@ const NewPlayers = ({
                     .toLowerCase()
                     .replace(/(^|\s)\w/g, (l) => l.toUpperCase());
                   handleInputChange("name", formatted);
+                  setUserEnteredData((prev) => ({ ...prev, name: formatted }));
                 }
               }}
               className="form-control p-2"
@@ -328,6 +342,7 @@ const NewPlayers = ({
                 if (v === "" || /^[A-Za-z0-9@.]*$/.test(v)) {
                   const formatted = v.replace(/\s+/g, "");
                   handleInputChange("email", formatted);
+                  setUserEnteredData((prev) => ({ ...prev, email: formatted }));
                 }
               }}
               className="form-control p-2"
