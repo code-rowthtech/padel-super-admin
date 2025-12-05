@@ -443,14 +443,14 @@ const MatchPlayer = ({
                             </p>
                             <div className="d-flex justify-content-center">
                                 <select
-                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm shadow-none text-center px-3 ${selectedGender === '' ? 'pe-3' : 'pe-5'} py-1`}
+                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm shadow-none text-center pe-md-5 pe-4  ${selectedGender === '' ? 'pe-3 ps-0' : 'pe-5 ps-md-0 ps-3'} py-1`}
                                     style={{
                                         fontSize: "15px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
                                         color: selectedGender === '' ? "#1F41BB" : "#000000",
                                         backgroundColor: selectedGender === '' ? "#EEF2FF" : "transparent",
-                                        border: selectedGender === '' ? "1px solid #1F41BB" : "none",
+                                        border: selectedGender === '' ? "0px solid #1F41BB" : "none",
                                         borderRadius: "4px",
                                         width: "auto",
                                         minWidth: "auto",

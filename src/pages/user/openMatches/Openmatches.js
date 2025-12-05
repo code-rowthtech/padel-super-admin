@@ -1559,7 +1559,8 @@ const Openmatches = () => {
                 <div
                   className="d-flex flex-column justify-content-center align-items-center text-muted fw-medium text-center"
                   style={{
-                    minHeight: "210px",
+                    minHeight: "25rem",
+                    height:"25rem",
                     fontSize: "16px",
                     fontFamily: "Poppins",
                   }}
