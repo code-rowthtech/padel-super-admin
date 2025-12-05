@@ -205,7 +205,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     }, [matchId, dispatch]);
 
 
-
     const formatDate = (dateString) => {
         if (!dateString) return { day: "Sun", formattedDate: "27 Aug" };
         const date = new Date(dateString);
@@ -793,7 +792,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
                         </div>
                         <div className="d-flex flex-column ">
-                            {RequestDataLoading ? <DataLoading/> : RequestData?.length > 0 ? (
+                            {RequestDataLoading ? <DataLoading /> : RequestData?.length > 0 ? (
                                 RequestData.map((player, index) => (
                                     <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
                                         <div className="d-flex align-items-center gap-3">
