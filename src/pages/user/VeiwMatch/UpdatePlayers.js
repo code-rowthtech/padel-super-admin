@@ -351,7 +351,7 @@ const UpdatePlayers = ({
               {getPlayerLevelsLoading === true ? (
                 <div className="text-center">
                   <ButtonLoading />
-                </div
+                </div>
               ) : (
                 <Select
                   options={levelOptions}
