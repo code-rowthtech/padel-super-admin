@@ -132,7 +132,7 @@ const Openmatches = () => {
     debounce((payload) => {
       dispatch(getMatchesUser(payload));
     }, 300),
-    [dispatch, user?.token,matchFilter]
+    [dispatch, user?.token, matchFilter]
   );
 
   useEffect(() => {
@@ -212,9 +212,10 @@ const Openmatches = () => {
       ...(selectedLevel && selectedLevel !== "All" && { skillLevel: selectedLevel }),
       clubId: localStorage.getItem("register_club_id"),
       userId: user?._id ? user._id : "",
+      type: matchFilter === "my" ? "myMatches" : "",
     };
     debouncedFetchMatches(payload);
-  }, [selectedTime, selectedLevel, debouncedFetchMatches]);
+  }, [selectedTime, selectedLevel, debouncedFetchMatches, matchFilter]);
 
   useEffect(() => {
     if (matchesData?.data && matchesData.data.length > 0) {
@@ -270,13 +271,6 @@ const Openmatches = () => {
     console.log('Raw matches data:', matches);
     console.log('Active tab:', activeTab);
 
-    if (matchFilter === "my") {
-      matches = matches.filter((match) => 
-        match?.teamA?.some(p => p?.userId?._id === user?._id) || 
-        match?.teamB?.some(p => p?.userId?._id === user?._id)
-      );
-    }
-
     if (showUnavailableOnly) {
       matches = matches.filter((match) => match?.players?.length >= 4);
     }
@@ -288,7 +282,7 @@ const Openmatches = () => {
     const filtered = getMatchesForTab(currentTab, matches);
     console.log('Filtered matches:', filtered);
     return filtered;
-  }, [showUnavailableOnly, matchesData, activeTab, matchFilter, user?._id]);
+  }, [showUnavailableOnly, matchesData, activeTab]);
 
   useEffect(() => {
     if (
@@ -755,6 +749,7 @@ const Openmatches = () => {
                               matchDate: d.fullDate,
                               clubId: localStorage.getItem("register_club_id") || "",
                               userId: user?._id ? user._id : "",
+                              type: matchFilter === "my" ? "myMatches" : "",
                             })
                           );
 
