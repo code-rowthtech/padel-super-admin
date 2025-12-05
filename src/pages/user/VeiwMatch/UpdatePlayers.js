@@ -13,6 +13,8 @@ import Select from "react-select";
 import { getPlayerLevel, getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { createRequest } from "../../../redux/user/playerrequest/thunk";
+import { searchUserByNumber } from "../../../redux/admin/searchUserbynumber/thunk";
+import { resetSearchData } from "../../../redux/admin/searchUserbynumber/slice";
 
 const modalStyle = {
   position: "absolute",
@@ -58,6 +60,12 @@ const UpdatePlayers = ({
   const getPlayerLevelsLoading = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
+  const searchUserData = useSelector(
+    (state) => state.searchUserByNumber.getSearchData
+  );
+  const searchUserDataLoading = useSelector(
+    (state) => state.searchUserByNumber.getSearchLoading
+  );
   const playererror = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
@@ -65,11 +73,6 @@ const UpdatePlayers = ({
     const matchGender = matchId?.gender?.toLowerCase();
     return matchGender && matchGender !== optionGender.toLowerCase();
   };
-
-
-
-
-
   const levelOptions = React.useMemo(() => {
     return playerLevels?.map((item) => ({
       value: item?.code,
@@ -140,7 +143,6 @@ const UpdatePlayers = ({
           )
             .unwrap()
             .then((requestRes) => {
-              showSuccess(requestRes?.message || "Player request sent successfully");
               setShowModal(false);
 
               dispatch(getMatchesView(matchId?._id))
@@ -199,6 +201,23 @@ const UpdatePlayers = ({
     setFormData((prev) => ({ ...prev, gender: matchId.gender }));
   }, [matchId?.gender]);
 
+  useEffect(() => {
+    const phoneLength = formData?.phoneNumber?.length || 0;
+
+    if (phoneLength) {
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
+    } else if (phoneLength < 9 || phoneLength === 0 || phoneLength === 9) {
+      setFormData(prev => ({ ...prev, name: "" }));
+      dispatch(resetSearchData());
+    }
+  }, [formData?.phoneNumber, dispatch]);
+
+  useEffect(() => {
+    if (searchUserData?.result?.name && formData?.phoneNumber?.length === 10) {
+      setFormData(prev => ({ ...prev, name: searchUserData.result.name }));
+    }
+  }, [searchUserData, formData?.phoneNumber]);
+
 
   return (
     <Modal
@@ -219,7 +238,7 @@ const UpdatePlayers = ({
               type="text"
               className="form-control p-2"
               placeholder="Enter name"
-              value={formData.name}
+              value={searchUserDataLoading ? "Loading...." : formData?.name}
               onChange={(e) => {
                 let v = e.target.value;
                 if (!v || /^[A-Za-z\s]*$/.test(v)) {

@@ -18,6 +18,7 @@ export const getRequest = createAsyncThunk(
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
+      showError(errorMessage || error.message);
       return rejectWithValue(errorMessage);
     }
   }
@@ -27,17 +28,17 @@ export const createRequest = createAsyncThunk(
   async (payload, { rejectWithValue }) => {
     try {
       const res = await userApi.post(Url.PLAYER_REQUEST, payload);
-      const { status, data, message } = res || {};
+      showSuccess(res?.data?.message );
+      const { status, data,message } = res || {};
       if (status === 200 || "200") {
         return data;
       }
-      showSuccess(message);
-      const errorMessage = message;
+      const errorMessage = res?.data?.message || message;
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      showError(errorMessage || error.message);
-      return rejectWithValue(errorMessage);
+      showError(error.message || error || errorMessage);
+      // return rejectWithValue(errorMessage);
     }
   }
 );
@@ -50,7 +51,7 @@ export const updateRequest = createAsyncThunk(
       if (status === 200 || "200") {
         return data;
       }
-      showSuccess(message);
+      showSuccess(message || res?.data?.message);
       const errorMessage = message;
       return rejectWithValue(errorMessage);
     } catch (error) {
