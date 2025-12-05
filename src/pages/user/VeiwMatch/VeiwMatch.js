@@ -150,6 +150,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const RequestData = useSelector((state) => state.requestData?.requestData?.requests);
+    const RequestDataLoading = useSelector((state) => state.requestData?.requestsLoading);
     const getPlayerLevelsData = useSelector(
         (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
     );
@@ -608,59 +609,59 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </div>
                 </div>
                 <div className="col-md-9 mx-auto col-12">
- <div className="d-flex justify-content-between align-items-center mt-4">
-                    <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
-                        Information
-                    </h6>
-                </div>
+                    <div className="d-flex justify-content-between align-items-center mt-4">
+                        <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
+                            Information
+                        </h6>
+                    </div>
 
-                <div className="d-lg-flex justify-content-lg-between gap-2 position-relative">
-                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
-                        <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
-                                Type of Court
-                            </p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                                {matchesData?.data?.courtType
-                                    ? matchesData.data.courtType.charAt(0).toUpperCase() +
-                                    matchesData.data.courtType.slice(1)
-                                    : "Unknown"}
-                            </p>
+                    <div className="d-lg-flex justify-content-lg-between gap-2 position-relative">
+                        <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
+                                    Type of Court
+                                </p>
+                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                                    {matchesData?.data?.courtType
+                                        ? matchesData.data.courtType.charAt(0).toUpperCase() +
+                                        matchesData.data.courtType.slice(1)
+                                        : "Unknown"}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="d-flex mb-md-4 mb-2  align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-calendar-check fs-2 text-dark" />
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
+                                    End registration
+                                </p>
+                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                                    {calculateEndRegistrationTime()}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
+                            <button
+                                className="d-flex align-items-center gap-2 border-0 py-1"
+                                style={{
+                                    background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
+                                    borderRadius: "25px",
+                                    padding: "8px 16px",
+                                    color: "#fff",
+                                    fontWeight: 600,
+                                }}
+                            // onClick={() => setShowChat(true)}
+                            >
+                                <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
+                                Chat
+                            </button>
+
                         </div>
                     </div>
-
-                    <div className="d-flex mb-md-4 mb-2  align-items-center gap-3 px-2 px-md-0">
-                        <i className="bi bi-calendar-check fs-2 text-dark" />
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
-                                End registration
-                            </p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                                {calculateEndRegistrationTime()}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
-                        <button
-                            className="d-flex align-items-center gap-2 border-0 py-1"
-                            style={{
-                                background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
-                                borderRadius: "25px",
-                                padding: "8px 16px",
-                                color: "#fff",
-                                fontWeight: 600,
-                            }}
-                        // onClick={() => setShowChat(true)}
-                        >
-                            <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
-                            Chat
-                        </button>
-
-                    </div>
                 </div>
-                </div>
-               
+
 
 
             </div>
@@ -801,7 +802,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             Player's Requests
                         </Offcanvas.Title>
                         <p className="mb-0 mt-1" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                            In order for the player to join the match, all enrolled players must accept the player's request.
+                            To allow the player to join this open match, you must accept their enrollment request.
                         </p>
                     </div>
                 </Offcanvas.Header>
@@ -812,58 +813,66 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
                         </div>
                         <div className="d-flex flex-column ">
-                            {RequestData?.map((player, index) => (
-                                <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
-                                    <div className="d-flex align-items-center gap-3">
-                                        <div
-                                            className="rounded-circle d-flex align-items-center justify-content-center"
-                                            style={{
-                                                width: 35,
-                                                height: 35,
-                                                backgroundColor: "#bb1f41ff",
-                                                color: "white",
-                                                fontWeight: 600,
-                                                fontSize: "12px"
-                                            }}
-                                        >
-                                            {player?.requesterId?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            {RequestDataLoading ? <DataLoading/> : RequestData?.length > 0 ? (
+                                RequestData.map((player, index) => (
+                                    <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
+                                        <div className="d-flex align-items-center gap-3">
+                                            <div
+                                                className="rounded-circle d-flex align-items-center justify-content-center"
+                                                style={{
+                                                    width: 35,
+                                                    height: 35,
+                                                    backgroundColor: "#bb1f41ff",
+                                                    color: "white",
+                                                    fontWeight: 600,
+                                                    fontSize: "12px"
+                                                }}
+                                            >
+                                                {player?.requesterId?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
+                                                    {player?.requesterId?.name}
+                                                </h6>
+                                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, fontFamily: "Poppins" }}>
+                                                    {player?.requesterId?.email}
+                                                </p>
+                                                <p className="mb-0 text-decoration-none" style={{ fontSize: "12px", color: "#007bff", fontFamily: "Poppins", cursor: "pointer", textDecoration: "underline" }}
+                                                    onClick={() => window.open(`tel:+91${player?.requesterId?.phoneNumber}`)}>
+                                                    +91 {player?.requesterId?.phoneNumber}
+                                                </p>
+                                                <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                                    Level: {player?.level}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
-                                                {player?.requesterId?.name}
-                                            </h6>
-                                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, fontFamily: "Poppins" }}>
-                                                {player?.requesterId?.email}
-                                            </p>
-                                            <p className="mb-0 text-decoration-none" style={{ fontSize: "12px", color: "#007bff", fontFamily: "Poppins", cursor: "pointer", textDecoration: "underline" }}
-                                                onClick={() => window.open(`tel:+91${player?.requesterId?.phoneNumber}`)}>
-                                                +91 {player?.requesterId?.phoneNumber}
-                                            </p>
-                                            <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                                                Level: {player?.level}
-                                            </p>
+                                        <div className="d-flex gap-2">
+                                            <i className="bi bi-check-circle-fill"
+                                                style={{ color: "#28a745", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
+                                                onClick={() => {
+                                                    if (player?.status === 'pending') {
+                                                        setSelectedPlayerForAction(player);
+                                                        setShowConfirmModal(true);
+                                                    }
+                                                }}></i>
+                                            <i className="bi bi-x-circle-fill"
+                                                style={{ color: "#dc3545", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
+                                                onClick={() => {
+                                                    if (player?.status === 'pending') {
+                                                        setSelectedPlayerForAction(player);
+                                                        setShowRejectModal(true);
+                                                    }
+                                                }}></i>
                                         </div>
                                     </div>
-                                    <div className="d-flex gap-2">
-                                        <i className="bi bi-check-circle-fill"
-                                            style={{ color: "#28a745", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
-                                            onClick={() => {
-                                                if (player?.status === 'pending') {
-                                                    setSelectedPlayerForAction(player);
-                                                    setShowConfirmModal(true);
-                                                }
-                                            }}></i>
-                                        <i className="bi bi-x-circle-fill"
-                                            style={{ color: "#dc3545", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
-                                            onClick={() => {
-                                                if (player?.status === 'pending') {
-                                                    setSelectedPlayerForAction(player);
-                                                    setShowRejectModal(true);
-                                                }
-                                            }}></i>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center p-4">
+                                    <p className="mb-0" style={{ fontSize: "14px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                        No requests found
+                                    </p>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 </Offcanvas.Body>
