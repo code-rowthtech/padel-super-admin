@@ -369,13 +369,14 @@ const OpenmatchPayment = () => {
                                     : "none",
                         }}
                     >
-                        <h6 className="mb-md-3 mb-0 mt-0 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start">
+                      
+                        <div className="row d-flex justify-content-center align-tems-center">
+                              <h6 className="mb-md-3 mb-0 mt-0 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start ps-1">
                             Information
                         </h6>
-                        <div className="row d-flex justify-content-center align-tems-center">
                             <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-0 ps-lg-2"
+                                    className="form-label mb-0 ps-lg-0"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
                                     Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
@@ -456,7 +457,7 @@ const OpenmatchPayment = () => {
 
                             <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-0 ps-lg-2"
+                                    className="form-label mb-0 ps-lg-0"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
                                     Email
