@@ -343,10 +343,10 @@ const OpenmatchPayment = () => {
     }, [error]);
 
     useEffect(() => {
-        if (createMatchesLoading) {
+        if (bookingLoading) {
             setIsLoading(false);
         }
-    }, [createMatchesLoading]);
+    }, [bookingLoading]);
 
     return (
         <div className="container mt-md-4 mt-0 mb-md-5 mb-0 d-flex gap-4 px-md-4 px-0 flex-wrap">

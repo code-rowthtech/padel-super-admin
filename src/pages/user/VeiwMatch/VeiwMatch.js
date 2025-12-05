@@ -150,6 +150,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const RequestData = useSelector((state) => state.requestData?.requestData?.requests);
+    const RequestDataLoading = useSelector((state) => state.requestData?.requestsLoading);
     const getPlayerLevelsData = useSelector(
         (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
     );
@@ -812,58 +813,66 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
                         </div>
                         <div className="d-flex flex-column ">
-                            {RequestData?.map((player, index) => (
-                                <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
-                                    <div className="d-flex align-items-center gap-3">
-                                        <div
-                                            className="rounded-circle d-flex align-items-center justify-content-center"
-                                            style={{
-                                                width: 35,
-                                                height: 35,
-                                                backgroundColor: "#bb1f41ff",
-                                                color: "white",
-                                                fontWeight: 600,
-                                                fontSize: "12px"
-                                            }}
-                                        >
-                                            {player?.requesterId?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            {RequestDataLoading ? <DataLoading/> : RequestData?.length > 0 ? (
+                                RequestData.map((player, index) => (
+                                    <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
+                                        <div className="d-flex align-items-center gap-3">
+                                            <div
+                                                className="rounded-circle d-flex align-items-center justify-content-center"
+                                                style={{
+                                                    width: 35,
+                                                    height: 35,
+                                                    backgroundColor: "#bb1f41ff",
+                                                    color: "white",
+                                                    fontWeight: 600,
+                                                    fontSize: "12px"
+                                                }}
+                                            >
+                                                {player?.requesterId?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
+                                                    {player?.requesterId?.name}
+                                                </h6>
+                                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, fontFamily: "Poppins" }}>
+                                                    {player?.requesterId?.email}
+                                                </p>
+                                                <p className="mb-0 text-decoration-none" style={{ fontSize: "12px", color: "#007bff", fontFamily: "Poppins", cursor: "pointer", textDecoration: "underline" }}
+                                                    onClick={() => window.open(`tel:+91${player?.requesterId?.phoneNumber}`)}>
+                                                    +91 {player?.requesterId?.phoneNumber}
+                                                </p>
+                                                <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                                    Level: {player?.level}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
-                                                {player?.requesterId?.name}
-                                            </h6>
-                                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, fontFamily: "Poppins" }}>
-                                                {player?.requesterId?.email}
-                                            </p>
-                                            <p className="mb-0 text-decoration-none" style={{ fontSize: "12px", color: "#007bff", fontFamily: "Poppins", cursor: "pointer", textDecoration: "underline" }}
-                                                onClick={() => window.open(`tel:+91${player?.requesterId?.phoneNumber}`)}>
-                                                +91 {player?.requesterId?.phoneNumber}
-                                            </p>
-                                            <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                                                Level: {player?.level}
-                                            </p>
+                                        <div className="d-flex gap-2">
+                                            <i className="bi bi-check-circle-fill"
+                                                style={{ color: "#28a745", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
+                                                onClick={() => {
+                                                    if (player?.status === 'pending') {
+                                                        setSelectedPlayerForAction(player);
+                                                        setShowConfirmModal(true);
+                                                    }
+                                                }}></i>
+                                            <i className="bi bi-x-circle-fill"
+                                                style={{ color: "#dc3545", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
+                                                onClick={() => {
+                                                    if (player?.status === 'pending') {
+                                                        setSelectedPlayerForAction(player);
+                                                        setShowRejectModal(true);
+                                                    }
+                                                }}></i>
                                         </div>
                                     </div>
-                                    <div className="d-flex gap-2">
-                                        <i className="bi bi-check-circle-fill"
-                                            style={{ color: "#28a745", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
-                                            onClick={() => {
-                                                if (player?.status === 'pending') {
-                                                    setSelectedPlayerForAction(player);
-                                                    setShowConfirmModal(true);
-                                                }
-                                            }}></i>
-                                        <i className="bi bi-x-circle-fill"
-                                            style={{ color: "#dc3545", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
-                                            onClick={() => {
-                                                if (player?.status === 'pending') {
-                                                    setSelectedPlayerForAction(player);
-                                                    setShowRejectModal(true);
-                                                }
-                                            }}></i>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center p-4">
+                                    <p className="mb-0" style={{ fontSize: "14px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                        No requests found
+                                    </p>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 </Offcanvas.Body>

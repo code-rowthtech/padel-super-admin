@@ -206,7 +206,8 @@ const Openmatches = () => {
       matchDate: selectedDate?.fullDate,
       ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
       ...(selectedLevel && selectedLevel !== "All" && { skillLevel: selectedLevel }),
-      clubId: localStorage.getItem("register_club_id")
+      clubId: localStorage.getItem("register_club_id"),
+      userId: user?._id ? user._id : "",
     };
     debouncedFetchMatches(payload);
   }, [selectedTime, selectedLevel, debouncedFetchMatches]);
@@ -749,6 +750,7 @@ const Openmatches = () => {
                             getMatchesUser({
                               matchDate: d.fullDate,
                               clubId: localStorage.getItem("register_club_id") || "",
+                              userId: user?._id ? user._id : "",
                             })
                           );
 
