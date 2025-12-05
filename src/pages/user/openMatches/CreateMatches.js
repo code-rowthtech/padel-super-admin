@@ -1234,7 +1234,6 @@ const CreateMatches = () => {
                               !isPastTime(slot.time) &&
                               slot.amount > 0
                           );
-
                           if (filteredSlots?.length === 0) return null;
                           return (
                             <div key={court._id} className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0">
