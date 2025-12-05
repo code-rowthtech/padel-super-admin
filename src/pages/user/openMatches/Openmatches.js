@@ -1567,8 +1567,8 @@ const Openmatches = () => {
                     fontFamily: "Poppins",
                   }}
                 >
-                  <p className="mb-2 label_font">No Open match are available for this date and {tabs[activeTab]?.label}{selectedLevel && selectedLevel !== "All" ? ` for ${selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} level` : ""}.</p>
-                  <p className="mb-0 label_font">Please choose another date</p>
+                  <p className="mb-2 label_font text-danger">No Open match are available for this date and {tabs[activeTab]?.label}{selectedLevel && selectedLevel !== "All" ? ` for ${selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} level` : ""}.</p>
+                  <p className="mb-0 label_font text-danger">Please choose another date</p>
                 </div>
               )}
             </div>
