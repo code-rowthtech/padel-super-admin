@@ -93,9 +93,6 @@ const Payment = ({ className = "" }) => {
   }, [errors]);
 
   const handleDeleteSlot = (courtIndex, slotIndex) => {
-    const removedSlotId = localSelectedCourts[courtIndex]?.time[slotIndex]?._id;
-    if (!removedSlotId) return;
-
     setLocalSelectedCourts((prev) => {
       let updated = [...prev];
       if (updated[courtIndex]?.time) {
@@ -104,6 +101,12 @@ const Payment = ({ className = "" }) => {
           updated = updated.filter((_, i) => i !== courtIndex);
         }
       }
+      
+      // If no courts remain, navigate back to booking
+      if (updated.length === 0) {
+        setTimeout(() => navigate("/booking"), 100);
+      }
+      
       return updated;
     });
   };
@@ -307,10 +310,11 @@ const Payment = ({ className = "" }) => {
                 // backgroundColor: "#F5F5F566",
                  border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none" }}
             >
-              <h6 className="mb-md-3 mb-0 mt-3 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start">Information</h6>
-              <div className="row d-flex justify-content-center align-tems-center">
+              <div className="row d-flex justify-content-center align-tems-center mx-auto">
+                              <h6 className="mb-md-3 mb-0 mt-3 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start ps-1">Information</h6>
+
                 <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
-                  <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                  <label className="form-label mb-0 ps-lg-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
                   </label>
                   <input
@@ -376,7 +380,7 @@ const Payment = ({ className = "" }) => {
                 </div>
 
                 <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0 ">
-                  <label className="form-label mb-0 ps-lg-2" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
+                  <label className="form-label mb-0 ps-lg-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
                     Email
                   </label>
                   <input
@@ -529,7 +533,7 @@ const Payment = ({ className = "" }) => {
             {/* Desktop Booking Summary Title */}
             <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
               <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
-                Booking Summary{totalSlots > 0 ? ` (${totalSlots} Slot selected)` : ''}
+                Booking Summary{localTotalSlots > 0 ? ` (${localTotalSlots} Slot selected)` : ''}
               </h6>
             </div>
 
@@ -546,8 +550,8 @@ const Payment = ({ className = "" }) => {
     `}</style>
 
               <div className="d-none d-lg-block">
-                {selectedCourts?.length > 0 ? (
-                  selectedCourts?.map((court, idx) =>
+                {localSelectedCourts?.length > 0 ? (
+                  localSelectedCourts?.map((court, idx) =>
                     court?.time?.map((slot, i) => (
                       <div key={`${idx}-${i}`} className="row mb-2">
                         <div className="col-12 d-flex justify-content-between align-items-center text-white">
@@ -574,7 +578,10 @@ const Payment = ({ className = "" }) => {
                             <MdOutlineDeleteOutline
                               className="ms-2 text-white"
                               style={{ cursor: "pointer" }}
-                              onClick={() => handleDeleteSlot(court._id, court.date, slot._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSlot(idx, i);
+                              }}
                             />
                           </div>
                         </div>
@@ -636,7 +643,10 @@ const Payment = ({ className = "" }) => {
                             <MdOutlineDeleteOutline
                               className="ms-1"
                               style={{ fontSize: "14px", cursor: "pointer" }}
-                              onClick={() => handleDeleteSlot(cIdx, sIdx)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSlot(cIdx, sIdx);
+                              }}
                             />
                           </div>
                         </div>
@@ -675,7 +685,7 @@ const Payment = ({ className = "" }) => {
                 </div>
               </>
             )} */}
-            {totalSlots > 0 && (
+            {localTotalSlots > 0 && (
               <>
                 <div className="d-lg-none py-0 pt-1">
                   <div
@@ -705,7 +715,7 @@ const Payment = ({ className = "" }) => {
                           fontFamily: "Poppins",
                         }}
                       >
-                        Total Slot: {totalSlots}
+                        Total Slot: {localTotalSlots}
                       </span>
                     </div>
 
@@ -718,7 +728,7 @@ const Payment = ({ className = "" }) => {
                           fontFamily: "Poppins",
                         }}
                       >
-                        ₹{Number(grandTotal).toLocaleString('en-IN')}
+                        ₹{Number(localGrandTotal).toLocaleString('en-IN')}
                       </span>
                     </div>
                   </div>
@@ -731,14 +741,14 @@ const Payment = ({ className = "" }) => {
                   >
                     Total to Pay{" "}
                     {/* <span style={{ fontSize: "13px", fontWeight: "500" }}>
-                        Total slots {totalSlots}
+                        Total slots {localTotalSlots}
                       </span> */}
                   </p>
                   <p
                     className="mb-0"
                     style={{ fontSize: "25px", fontWeight: "600" }}
                   >
-                    ₹{Number(grandTotal).toLocaleString('en-IN')}
+                    ₹{Number(localGrandTotal).toLocaleString('en-IN')}
                   </p>
                 </div>
               </>
@@ -749,12 +759,12 @@ const Payment = ({ className = "" }) => {
               <button
                 style={{
                   ...buttonStyle,
-                  opacity: totalSlots === 0 ? 0.5 : 1,
-                  cursor: totalSlots === 0 ? "not-allowed" : "pointer",
-                  pointerEvents: totalSlots === 0 ? "none" : "auto",
+                  opacity: localTotalSlots === 0 ? 0.5 : 1,
+                  cursor: localTotalSlots === 0 ? "not-allowed" : "pointer",
+                  pointerEvents: localTotalSlots === 0 ? "none" : "auto",
                 }}
                 className={`${className} `}
-                disabled={totalSlots === 0}
+                disabled={localTotalSlots === 0}
                 onClick={handlePayment}
               >
                 <svg

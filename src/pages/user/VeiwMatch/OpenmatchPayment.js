@@ -210,7 +210,7 @@ const OpenmatchPayment = () => {
                 : [];
 
             const formattedMatch = {
-                slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
+                slot: localSelectedCourts.flatMap(court => court.time.map(timeSlot => ({
                     slotId: timeSlot._id,
                     businessHours: clubData?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
                     slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
@@ -229,7 +229,7 @@ const OpenmatchPayment = () => {
                     })
                 }),
                 matchStatus: "open",
-                matchTime: selectedCourts.flatMap(c => c.time.map(t => t.time)).join(","),
+                matchTime: localSelectedCourts.flatMap(c => c.time.map(t => t.time)).join(","),
                 teamA,
                 teamB,
             };
@@ -311,8 +311,10 @@ const OpenmatchPayment = () => {
     };
 
 
+
+
     // Local state for mobile summary
-    const localSelectedCourts = selectedCourts || [];
+    const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
     const localTotalSlots = localSelectedCourts.reduce(
         (sum, c) => sum + (c.time?.length || 0),
         0
@@ -323,15 +325,25 @@ const OpenmatchPayment = () => {
     );
 
     const handleDeleteSlot = (courtId, slotId) => {
-        const updated = selectedCourts
-            .map((c) =>
-                c._id === courtId
-                    ? { ...c, time: c.time.filter((s) => s._id !== slotId) }
-                    : c
-            )
-            .filter((c) => c.time.length > 0);
-        navigate("/match-payment", {
-            state: { ...state, selectedCourts: updated },
+        setLocalSelectedCourts(prev => {
+            const updated = prev
+                .map((c) =>
+                    c._id === courtId
+                        ? { ...c, time: c.time.filter((s) => s._id !== slotId) }
+                        : c
+                )
+                .filter((c) => c.time.length > 0);
+            
+            // If no slots remain, navigate back to create matches
+            if (updated.length === 0) {
+                setTimeout(() => {
+                    navigate("/create-matches", {
+                        state: { selectedDate },
+                    });
+                }, 100);
+            }
+            
+            return updated;
         });
     };
 
@@ -350,6 +362,16 @@ const OpenmatchPayment = () => {
 
     return (
         <div className="container mt-md-4 mt-0 mb-md-5 mb-0 d-flex gap-4 px-md-4 px-0 flex-wrap">
+            {/* Mobile Back Button */}
+            <div className="d-lg-none position-fixed" style={{ top: "20px", left: "20px", zIndex: 1001 }}>
+                <button 
+                    className="btn btn-light rounded-circle p-2"
+                    onClick={() => navigate("/create-matches", { state: { selectedDate } })}
+                    style={{ width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                >
+                    <i className="bi bi-arrow-left" style={{ fontSize: "18px" }}></i>
+                </button>
+            </div>
             <div className="row  mx-auto d-flex align-items-center justify-content-center">
                 {/* Left: Contact + Payment */}
                 <div
@@ -369,13 +391,14 @@ const OpenmatchPayment = () => {
                                     : "none",
                         }}
                     >
-                        <h6 className="mb-md-3 mb-0 mt-0 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start">
+                      
+                        <div className="row d-flex justify-content-center align-tems-center">
+                              <h6 className="mb-md-3 mb-0 mt-0 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start ps-1">
                             Information
                         </h6>
-                        <div className="row d-flex justify-content-center align-tems-center">
                             <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-0 ps-lg-2"
+                                    className="form-label mb-0 ps-lg-0"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
                                     Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
@@ -456,7 +479,7 @@ const OpenmatchPayment = () => {
 
                             <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-0 ps-lg-2"
+                                    className="form-label mb-0 ps-lg-0"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
                                     Email

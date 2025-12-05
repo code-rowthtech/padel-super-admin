@@ -411,7 +411,7 @@ const MatchPlayer = ({
                     className="rounded-4 border row mx-auto pt-2 pb-0 mb-2"
                     style={{ backgroundColor: "#CBD6FF1A" }}
                 >
-                    <div className="d-flex d-block justify-content-between align-items-start py-2 border-bottom">
+                    <div className="d-flex d-block justify-content-between align-items-start py-2 border-bottom px-md-4 px-2">
                         <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
                             <span className="ms-2 all-matches" style={{ color: "#374151" }}>
@@ -437,20 +437,20 @@ const MatchPlayer = ({
                     </div>
 
                     <div className="col-12 ps-0 text-center d-flex">
-                        <div className="col-md-4 col-5 py-2">
+                        <div className="col-md-5 col-5 py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Game Type
                             </p>
                             <div className="d-flex justify-content-center">
                                 <select
-                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm shadow-none text-center px-3 ${selectedGender === '' ? 'pe-3' : 'pe-5'} py-1`}
+                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm shadow-none text-center pe-md-5 pe-4  ${selectedGender === '' ? 'pe-3 ps-0' : 'pe-5 ps-md-0 ps-3'} py-1`}
                                     style={{
                                         fontSize: "15px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
                                         color: selectedGender === '' ? "#1F41BB" : "#000000",
                                         backgroundColor: selectedGender === '' ? "#EEF2FF" : "transparent",
-                                        border: selectedGender === '' ? "1px solid #1F41BB" : "none",
+                                        border: selectedGender === '' ? "0px solid #1F41BB" : "none",
                                         borderRadius: "4px",
                                         width: "auto",
                                         minWidth: "auto",
@@ -486,7 +486,7 @@ const MatchPlayer = ({
                             </p>
                         </div>
 
-                        <div className="col-md-4 col-3 py-2">
+                        <div className="col-md-3 col-3 py-2">
                             <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
                                 Your share
                             </p>
