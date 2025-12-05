@@ -267,8 +267,8 @@ const Openmatches = () => {
     console.log('Active tab:', activeTab);
 
     if (matchFilter === "my") {
-      matches = matches.filter((match) => 
-        match?.teamA?.some(p => p?.userId?._id === user?._id) || 
+      matches = matches.filter((match) =>
+        match?.teamA?.some(p => p?.userId?._id === user?._id) ||
         match?.teamB?.some(p => p?.userId?._id === user?._id)
       );
     }
@@ -835,39 +835,94 @@ const Openmatches = () => {
           </div>
 
           <div className="pb-0">
-            <div className="d-flex gap-2 mb-3">
-              <button
-                className={`btn rounded-pill px-3 py-1 ${matchFilter === "all" ? "text-white" : "bg-white"}`}
-                style={{
-                  background: matchFilter === "all" ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#fff",
-                  border: matchFilter === "all" ? "none" : "1px solid #E5E7EB",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins"
-                }}
-                onClick={() => setMatchFilter("all")}
-              >
-                See All
-              </button>
-              <button
-                className={`btn rounded-pill px-3 py-1 ${matchFilter === "my" ? "text-white" : "bg-white"}`}
-                style={{
-                  background: matchFilter === "my" ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#fff",
-                  border: matchFilter === "my" ? "none" : "1px solid #E5E7EB",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins"
-                }}
-                onClick={() => setMatchFilter("my")}
-              >
-                My Open Matches
-              </button>
-            </div>
-            <div className="d-flex flex-md-row justify-content-between align-items-center gap-3 mb-md-2 mb-2">
-              <h5 className="mb-0 custom-heading-use">Available Matches</h5>
+
+            <div className="d-flex flex-md-row flex-column justify-content-between align-items-center mb-md-2 mb-2">
+              <div className="col-md-4 col-12">
+              <h5 className="mb-md-0 mb-2 custom-heading-use text-center text-md-start  ">Available Matches</h5>
+
+              </div>
+              <div className="col-md-8 col-12 d-flex align-items-center justify-content-md-end justify-content-between gap-3">
+ <div className="d-flex align-items-center mb-0">
+
+                {/* SWITCH BUTTON */}
+                <div
+                  className="position-relative d-flex align-items-center"
+                  style={{
+                    background: "#F3F4F6",
+                    // padding: "4px",
+                    borderRadius: "50px",
+                    width: "fit-content",
+                    gap: "0",
+                    position: "relative",
+                  }}
+                >
+                  {/* Slider Background */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "4px",
+                      bottom: "4px",
+                      width: "calc(50% - 4px)", // slider = half width
+                      left: matchFilter === "all" ? "4px" : "calc(50% + 0px)",
+                      background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                      borderRadius: "50px",
+                      transition: "all 0.3s ease",
+                      zIndex: 0,
+                    }}
+                  />
+
+                  {/* ALL BUTTON */}
+                  <button
+                    className="btn rounded-pill px-3 py-1 border-0"
+                    onClick={() => setMatchFilter("all")}
+                    style={{
+                      position: "relative",
+                      zIndex: 1,
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      fontFamily: "Poppins",
+                      color: matchFilter === "all" ? "#fff" : "#000",
+                    }}
+                  >
+                    All
+                  </button>
+
+                  {/* MY BUTTON */}
+                  <button
+                    className="btn rounded-pill px-3 py-1 border-0"
+                    onClick={() => setMatchFilter("my")}
+                    style={{
+                      position: "relative",
+                      zIndex: 1,
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      fontFamily: "Poppins",
+                      color: matchFilter === "my" ? "#fff" : "#000",
+                    }}
+                  >
+                    My
+                  </button>
+                </div>
+
+                {/* OPEN MATCHES outside the switch */}
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    fontFamily: "Poppins",
+                    marginLeft: "8px",
+                    whiteSpace: "nowrap",
+                  }}
+                  className="d-md-block d-none"
+                >
+                  Open Matches
+                </span>
+              </div>
+
+
               <div className="dropdown">
                 <button
-                  className="btn btn-light text-nowrap rounded-3 border py-1 px-3 d-flex align-items-center gap-2"
+                  className="btn btn-light text-nowrap rounded-3 border py-1 px-2 d-flex align-items-center gap-2 justify-content-between"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
@@ -891,6 +946,7 @@ const Openmatches = () => {
                   {["All", "beginner", "intermediate", "advanced", "professional"].map(
                     (level) => (
                       <li key={level}>
+
                         <button
                           className="dropdown-item mb-1"
                           style={{
@@ -907,6 +963,8 @@ const Openmatches = () => {
                   )}
                 </ul>
               </div>
+              </div>
+             
             </div>
 
             <div
