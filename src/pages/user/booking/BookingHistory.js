@@ -628,7 +628,7 @@ const BookingHistory = () => {
                                                                 ) : booking?.bookingStatus === "refunded" || booking?.bookingStatus === "cancelled" ? (
                                                                     <span
                                                                         style={{
-                                                                            color: booking?.bookingStatus === "cancelled" ? "red" : "darkcyan",
+                                                                            color: booking?.bookingStatus === "cancelled" ? "red" : "orange",
                                                                             fontSize: "12px",
                                                                             fontWeight: "600",
                                                                             fontFamily: "Poppins",
