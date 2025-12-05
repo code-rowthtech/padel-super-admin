@@ -3,8 +3,110 @@ import { showSuccess, showError } from '../helpers/Toast';
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isSafari = () => /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
+// Create and show preview modal
+const showScreenshotPreview = (canvas, matchText, onCopy) => {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+  `;
+
+  const content = document.createElement('div');
+  content.style.cssText = `
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: auto;
+    text-align: center;
+  `;
+
+  const img = document.createElement('img');
+  img.src = canvas.toDataURL();
+  img.style.cssText = `
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  `;
+
+  const title = document.createElement('h3');
+  title.textContent = 'Screenshot Preview';
+  title.style.cssText = `
+    margin: 0 0 15px 0;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+  `;
+
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.cssText = `
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  `;
+
+  const copyBtn = document.createElement('button');
+  copyBtn.textContent = 'Copy Screenshot';
+  copyBtn.style.cssText = `
+    background: linear-gradient(180deg, #0034E4 0%, #001B76 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+  `;
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = `
+    background: #f5f5f5;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+  `;
+
+  copyBtn.onclick = () => {
+    document.body.removeChild(modal);
+    onCopy();
+  };
+
+  cancelBtn.onclick = () => {
+    document.body.removeChild(modal);
+  };
+
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  };
+
+  buttonContainer.appendChild(copyBtn);
+  buttonContainer.appendChild(cancelBtn);
+  content.appendChild(title);
+  content.appendChild(img);
+  content.appendChild(buttonContainer);
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+};
+
 /**
- * Captures a screenshot of a match card and copies it along with the page URL
+ * Captures a screenshot of a match card and shows preview before copying
  * @param {HTMLElement} matchCardElement - The match card DOM element to capture
  * @param {Object} matchData - Match data for fallback text
  * @returns {Promise<void>}
@@ -38,50 +140,18 @@ export const copyMatchCardWithScreenshot = async (matchCardElement, matchData) =
           canvas.toBlob(resolve, 'image/png', 0.95);
         });
 
-        // iOS Safari: Copy image only, then text separately
-        if (isIOS() || isSafari()) {
+        // Show preview modal before copying text only
+        showScreenshotPreview(canvas, matchText, async () => {
           try {
-            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-            showSuccess('Screenshot copied! Tap to copy link.');
-            
-            // Offer to copy text after a delay
-            setTimeout(async () => {
-              try {
-                await navigator.clipboard.writeText(pageUrl);
-              } catch (e) {
-                console.warn('Could not copy URL:', e);
-              }
-            }, 100);
-            return;
-          } catch (iosError) {
-            console.warn('iOS clipboard failed:', iosError);
-            // Fall through to text-only
+            await navigator.clipboard.writeText(matchText);
+            showSuccess('Match details copied!');
+          } catch (error) {
+            fallbackCopyText(matchText);
+            showSuccess('Match details copied!');
           }
-        }
-
-        // Desktop browsers: Try image + text together
-        if (window.ClipboardItem) {
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({
-                'image/png': blob,
-                'text/plain': new Blob([matchText], { type: 'text/plain' })
-              })
-            ]);
-            showSuccess('Screenshot and details copied!');
-            return;
-          } catch (multiError) {
-            // Try image only
-            try {
-              await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-              await navigator.clipboard.writeText(matchText);
-              showSuccess('Screenshot copied!');
-              return;
-            } catch (imageError) {
-              console.warn('Image copy failed:', imageError);
-            }
-          }
-        }
+        });
+        
+        return;
       } catch (canvasError) {
         console.warn('Screenshot capture failed:', canvasError);
       }

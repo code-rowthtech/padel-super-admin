@@ -12,7 +12,6 @@ import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thunk";
-import { copyMatchCardWithScreenshot } from "../../../utils/matchCopy";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
 const PlayerSlot = memo(function PlayerSlot({
@@ -397,25 +396,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         <button
                             className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center border shadow-sm"
                             style={{ width: 36, height: 36 }}
-                            onClick={async () => {
-                                if (matchDetailsRef.current && matchesData?.data) {
-                                    await copyMatchCardWithScreenshot(matchDetailsRef.current, matchesData.data);
-                                } else {
-                                    const matchData = `Match Details:\nDate: ${matchDate.day}, ${matchDate.formattedDate}\nTime: ${matchTime}\nClub: ${clubData?.clubName || 'Unknown Club'}\nLevel: ${matchesData?.data?.skillLevel || 'N/A'}\nLink: ${window.location.href}`;
-                                    try {
-                                        await navigator.clipboard.writeText(matchData);
-                                        showSuccess('Match details copied to clipboard!');
-                                    } catch (error) {
-                                        showError('Could not copy to clipboard');
-                                    }
-                                }
-                            }}
-                        >
-                            <i className="bi bi-copy" />
-                        </button>
-                        <button
-                            className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center border shadow-sm"
-                            style={{ width: 36, height: 36 }}
                             onClick={() => setShowShareDropdown(!showShareDropdown)}
                         >
                             <i className="bi bi-share" />
@@ -752,7 +732,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Level:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            {selectedPlayer.level}
+                                            {selectedPlayer?.level}
                                         </p>
                                     </div>
                                 )}

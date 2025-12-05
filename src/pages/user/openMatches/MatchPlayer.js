@@ -122,7 +122,7 @@ const MatchPlayer = ({
                 const result = await dispatch(getUserProfile()).unwrap();
                 const firstAnswer = result?.response?.level;
                 console.log({ result });
-                setDefaultSkillLevel(result?.response?.skillLevel || "Open Match");
+                setDefaultSkillLevel(result?.response?.skillLevel || "");
                 setDefaultLevel(firstAnswer);
                 setUserName(result?.response?.name || User?.name || "");
                 setProfileFetched(true);
@@ -183,7 +183,6 @@ const MatchPlayer = ({
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
-    console.log({ selectedGender });
     const handleAddMeClick = (slot) => {
         if (!selectedGender) {
             showError("Please select game type");
@@ -404,75 +403,7 @@ const MatchPlayer = ({
                             <i className="bi bi-chat-left-text d-flex justify-content-center align-items-center"></i>
                         </button>
 
-                        {/* {showShareDropdown && (
-                            <div
-                                className="position-absolute bg-white border rounded shadow-sm"
-                                style={{ top: "40px", right: 0, zIndex: 1000, minWidth: "120px" }}
-                            >
-                                <button
-                                    className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
-                                    onClick={() => {
-                                        const url = window.location.href;
-                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
-                                        window.open(
-                                            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                                                url
-                                            )}&quote=${encodeURIComponent(text)}`,
-                                            "_blank"
-                                        );
-                                        setShowShareDropdown(false);
-                                    }}
-                                >
-                                    <i className="bi bi-facebook" style={{ color: "#1877F2" }} />
-                                    Facebook
-                                </button>
-                                <button
-                                    className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
-                                    onClick={() => {
-                                        const url = window.location.href;
-                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
-                                        window.open(
-                                            `https://twitter.com/intent/tweet?url=${encodeURIComponent(
-                                                url
-                                            )}&text=${encodeURIComponent(text)}`,
-                                            "_blank"
-                                        );
-                                        setShowShareDropdown(false);
-                                    }}
-                                >
-                                    <i className="bi bi-twitter-x" style={{ color: "#000000" }} />
-                                    X
-                                </button>
-                                <button
-                                    className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
-                                    onClick={() => {
-                                        const url = window.location.href;
-                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
-                                        navigator.share ? navigator.share({ url, text }) : window.open(
-                                            "_blank"
-                                        );
-                                        setShowShareDropdown(false);
-                                    }}
-                                >
-                                    <i className="bi bi-instagram" style={{ color: "#E4405F" }} />
-                                    Instagram
-                                </button>
-                                <button
-                                    className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0"
-                                    onClick={() => {
-                                        const url = window.location.href;
-                                        const text = `Check out this Padel match on ${matchDate.day}, ${matchDate.formattedDate} at ${matchTime}`;
-                                        window.open(
-                                            "_blank"
-                                        );
-                                        setShowShareDropdown(false);
-                                    }}
-                                >
-                                    <i className="bi bi-whatsapp" style={{ color: "#25D366" }} />
-                                    WhatsApp
-                                </button>
-                            </div>
-                        )} */}
+                      
                     </div>
                 </div>
 
