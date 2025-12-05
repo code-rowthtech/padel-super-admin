@@ -63,6 +63,7 @@ const UpdatePlayers = ({
   const searchUserData = useSelector(
     (state) => state.searchUserByNumber.getSearchData
   );
+  console.log({ searchUserData });
   const searchUserDataLoading = useSelector(
     (state) => state.searchUserByNumber.getSearchLoading
   );
@@ -162,6 +163,8 @@ const UpdatePlayers = ({
                   };
 
                   dispatch(getMatchesUser(payload));
+                  dispatch(resetSearchData());
+
                 });
 
 
@@ -204,17 +207,21 @@ const UpdatePlayers = ({
   useEffect(() => {
     const phoneLength = formData?.phoneNumber?.length || 0;
 
-    if (phoneLength) {
+    if (phoneLength === 10) {
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
-    } else if (phoneLength < 9 || phoneLength === 0 || phoneLength === 9) {
-      setFormData(prev => ({ ...prev, name: "" }));
+    } else if (phoneLength < 10) {
+      setFormData(prev => ({ ...prev, name: "", email: "" }));
       dispatch(resetSearchData());
     }
   }, [formData?.phoneNumber, dispatch]);
 
   useEffect(() => {
-    if (searchUserData?.result?.name && formData?.phoneNumber?.length === 10) {
-      setFormData(prev => ({ ...prev, name: searchUserData.result.name }));
+    if (searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
+      setFormData(prev => ({
+        ...prev,
+        name: searchUserData.result[0].name || "",
+        email: searchUserData.result[0].email || ""
+      }));
     }
   }, [searchUserData, formData?.phoneNumber]);
 
@@ -293,7 +300,7 @@ const UpdatePlayers = ({
               type="email"
               className="form-control p-2"
               placeholder="Enter email"
-              value={formData.email}
+              value={searchUserDataLoading ? "Loading...." : formData?.email}
               onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
               style={inputStyle("email")}
             />
