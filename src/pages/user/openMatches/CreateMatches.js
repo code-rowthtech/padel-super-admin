@@ -1212,6 +1212,7 @@ const CreateMatches = () => {
                             content: 'Game levels are self-assessed at the moment. AI assessment will start from Jan 2026.';
                             position: absolute;
                             top: 50%;
+                            right: 0;
                             transform: translateY(-50%);
                             animation: slideTextLeftToRight 16s infinite linear;
                             white-space: nowrap;
@@ -1320,7 +1321,7 @@ const CreateMatches = () => {
                     ) && (
                         <div
                           className="text-center py-4 d-flex flex-column justify-content-center align-items-center"
-                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" }}
+                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280",height:"23rem" }}
                         >
                           <p className="mb-1">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
                           <p className="mb-0">Please choose another date</p>
@@ -1329,7 +1330,7 @@ const CreateMatches = () => {
                   </>
                 )
               ) : (
-                <div className="text-center py-4 d-flex flex-column justify-content-center align-items-center" style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" }}>
+                <div className="text-center py-4 d-flex flex-column justify-content-center align-items-center" style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280",height:"23rem" }}>
                   <p className="mb-1">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
                   <p className="mb-0">Please choose another date</p>
                 </div>

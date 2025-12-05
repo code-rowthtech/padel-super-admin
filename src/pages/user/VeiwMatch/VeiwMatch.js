@@ -480,7 +480,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 </div>
 
                 <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <div className="d-flex  justify-content-between align-items-start py-2">
+                    <div className="d-flex  justify-content-between align-items-start py-2 px-2">
                         <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
                             <img src={padal} alt="padel" width={24} />
                             <span className="ms-2 all-matches" style={{ color: "#374151" }}>

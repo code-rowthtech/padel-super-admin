@@ -103,7 +103,7 @@ const Booking = ({ className = "" }) => {
   const [errorShow, setErrorShow] = useState(false);
   const logo = clubData?.logo;
   const dateRefs = useRef({});
-  const [key, setKey] = useState("morning");
+
   const [key2, setKey2] = useState("padel");
   const [expireModal, setExpireModal] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState({});
@@ -646,14 +646,14 @@ const Booking = ({ className = "" }) => {
       });
     });
 
-    let defaultTab = "morning";
+    let defaultTabIndex = 0;
     if (counts[0] === 0) {
       const firstAvailableIndex = counts.findIndex((count) => count > 0);
       if (firstAvailableIndex !== -1) {
-        defaultTab = tabData[firstAvailableIndex].key;
+        defaultTabIndex = firstAvailableIndex;
       }
     }
-    setKey(defaultTab);
+    setActiveTab(defaultTabIndex);
   }, [slotData, showUnavailable]);
 
   const formatTime = (timeStr) => {
@@ -1104,40 +1104,39 @@ const Booking = ({ className = "" }) => {
               </div>
             </div>
 
-            {/* Global Tabs above courts - COMMENTED OUT */}
-            {/* <div className="row mb-2 mx-xs-auto">
-                            <div className="col-12 d-flex p-0 justify-content-center align-items-center">
-                                <div className="weather-tabs-wrapper w-100">
-                                    <div className="weather-tabs-wrapper w-100">
-                                        <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                                            {tabData.map((tab, index) => {
-                                                const Icon = tab.Icon;
-                                                const active = key === tab.key;
-                                                return (
-                                                    <div
-                                                        key={index}
-                                                        className={`tab-item rounded-3 ${key === tab.key ? 'active' : ''}`}
-                                                        onClick={() => setKey(tab.key)}
-                                                    >
-                                                        <Icon
-                                                            size={24}
-                                                            className={active ? 'text-primary' : 'text-dark'}
-                                                        />
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                        <div className="tab-labels d-flex justify-content-between">
-                                            {tabData.map((tab, index) => (
-                                                <p key={index} className={`tab-label ${key === tab.key ? 'active text-primary' : 'text-muted'}`}>
-                                                    {tab.label}
-                                                </p>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> */}
+            {/* Unified Tabs for both mobile and desktop */}
+            <div className="row mb-2 mx-xs-auto d-none d-md-block">
+              <div className="col-12 d-flex p-0 justify-content-center align-items-center">
+                <div className="weather-tabs-wrapper w-100">
+                  <div className="weather-tabs-wrapper w-100">
+                    <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
+                      {tabs.map((tab, index) => {
+                        const Icon = tab.Icon;
+                        return (
+                          <div
+                            key={index}
+                            className={`tab-item rounded-3 ${activeTab === index ? 'active' : ''}`}
+                            onClick={() => setActiveTab(index)}
+                          >
+                            <Icon
+                              size={24}
+                              className={activeTab === index ? 'text-primary' : 'text-dark'}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="tab-labels d-flex justify-content-between">
+                      {tabs.map((tab, index) => (
+                        <p key={index} className={`tab-label ${activeTab === index ? 'active text-primary' : 'text-muted'}`}>
+                          {tab.label}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               className={`mb-md-0 mb-3 overflow-slot border-0 rounded-3 ${slotData?.data?.some((court) => {
                 const filteredSlots = court?.slots?.filter((slot) => {
@@ -1148,13 +1147,9 @@ const Booking = ({ className = "" }) => {
                     !isPastTime(slot.time) &&
                     slot.amount > 0;
 
-                  // Apply mobile tab filter only on mobile screens
-                  if (window.innerWidth <= 768) {
-                    const tabKey = tabs[activeTab]?.key;
-                    return basicFilter && filterSlotsByTab(slot, tabKey);
-                  }
-
-                  return basicFilter;
+                  // Apply tab filter for both mobile and desktop
+                  const tabKey = tabs[activeTab]?.key;
+                  return basicFilter && filterSlotsByTab(slot, tabKey);
                 });
                 return filteredSlots?.length > 0;
               })
@@ -1256,15 +1251,9 @@ const Booking = ({ className = "" }) => {
                               !isPastTime(slot.time) &&
                               slot.amount > 0;
 
-                            // Apply mobile tab filter only on mobile screens
-                            if (window.innerWidth <= 768) {
-                              const tabKey = tabs[activeTab]?.key;
-                              return (
-                                basicFilter && filterSlotsByTab(slot, tabKey)
-                              );
-                            }
-
-                            return basicFilter;
+                            // Apply tab filter for both mobile and desktop
+                            const tabKey = tabs[activeTab]?.key;
+                            return basicFilter && filterSlotsByTab(slot, tabKey);
                           });
 
                           if (filteredSlots?.length === 0) return null;
@@ -1404,18 +1393,14 @@ const Booking = ({ className = "" }) => {
                             slot.status !== "booked" &&
                             !isPastTime(slot.time));
 
-                        // Apply mobile tab filter only on mobile screens
-                        if (window.innerWidth <= 768) {
-                          const tabKey = tabs[activeTab]?.key;
-                          return basicFilter && filterSlotsByTab(slot, tabKey);
-                        }
-
-                        return basicFilter;
+                        // Apply tab filter for both mobile and desktop
+                        const tabKey = tabs[activeTab]?.key;
+                        return basicFilter && filterSlotsByTab(slot, tabKey);
                       });
                       return !hasAvailableSlots;
                     }) && (
                         <div
-                          className="d-flex justify-content-center align-items-center h-100 py-5 mt-5 text-danger"
+                          className="d-flex justify-content-center align-items-center text-center h-100 py-5 mt-5 text-danger"
                           style={{ fontFamily: "Poppins", fontWeight: "500" }}
                         >
                           No slots are available for this date and time.
@@ -1966,13 +1951,14 @@ const Booking = ({ className = "" }) => {
                               <MdOutlineDeleteOutline
                                 className="ms-2 mb-2 text-white"
                                 style={{ cursor: "pointer" }}
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleDeleteSlot(
                                     court._id,
                                     court.date,
                                     timeSlot._id
-                                  )
-                                }
+                                  );
+                                }}
                               />
                             </div>
                           </div>
@@ -2110,13 +2096,14 @@ const Booking = ({ className = "" }) => {
                                     cursor: "pointer",
                                     fontSize: "14px",
                                   }}
-                                  onClick={() =>
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     handleDeleteSlot(
                                       court._id,
                                       court.date,
                                       timeSlot._id
-                                    )
-                                  }
+                                    );
+                                  }}
                                 />
                               </div>
                             </div>

@@ -32,7 +32,7 @@ export const GET_NOTIFICATION_USER_COUNT = "/api/userNotification/ureadCount";
 export const READ_ALL_NOTIFICATION_USER =
   "/api/userNotification/markAsAllAsRead";
 export const PLAYER_LEVEL = "/api/questions/getQuestionsBySkillLevel"
-export const PLAYER_LEVEL_BY_SKILL_LEVEL = "/api/playerLevel/getPlayerLevelBySKillLevel";
+export const PLAYER_LEVEL_BY_SKILL_LEVEL = "/api/questions/getPlayerLevelBySKillLevel";
 
 export const GET_QUESTION_LIST = "/api/questions/getSurveySteps";
 

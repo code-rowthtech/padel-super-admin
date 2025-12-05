@@ -800,7 +800,10 @@ h1.display-5 {
   font-weight: 600;
   font-family: "Poppins";
 }
-
+.label_font {
+    font-size: 16px;
+    line-height: 18px;
+}
 .averageRating-count {
   font-weight: 600;
   font-family: "Poppins";
@@ -940,11 +943,14 @@ h1.display-5 {
     font-size: 20px !important;
   }
 
-  .height_mention {
-    height: auto !important;
-    min-height: auto !important;
-  }
-
+  /* .height_mention {
+    height: 200px !important;
+    min-height: 200px !important;
+  } */
+.label_font {
+    font-size: 12px;
+    line-height: 15px;
+}
   .home-upcoming-heading {
     font-size: 12px !important;
   }
