@@ -608,59 +608,59 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     </div>
                 </div>
                 <div className="col-md-9 mx-auto col-12">
- <div className="d-flex justify-content-between align-items-center mt-4">
-                    <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
-                        Information
-                    </h6>
-                </div>
+                    <div className="d-flex justify-content-between align-items-center mt-4">
+                        <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
+                            Information
+                        </h6>
+                    </div>
 
-                <div className="d-lg-flex justify-content-lg-between gap-2 position-relative">
-                    <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
-                        <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
-                                Type of Court
-                            </p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                                {matchesData?.data?.courtType
-                                    ? matchesData.data.courtType.charAt(0).toUpperCase() +
-                                    matchesData.data.courtType.slice(1)
-                                    : "Unknown"}
-                            </p>
+                    <div className="d-lg-flex justify-content-lg-between gap-2 position-relative">
+                        <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
+                                    Type of Court
+                                </p>
+                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                                    {matchesData?.data?.courtType
+                                        ? matchesData.data.courtType.charAt(0).toUpperCase() +
+                                        matchesData.data.courtType.slice(1)
+                                        : "Unknown"}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="d-flex mb-md-4 mb-2  align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-calendar-check fs-2 text-dark" />
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
+                                    End registration
+                                </p>
+                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                                    {calculateEndRegistrationTime()}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
+                            <button
+                                className="d-flex align-items-center gap-2 border-0 py-1"
+                                style={{
+                                    background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
+                                    borderRadius: "25px",
+                                    padding: "8px 16px",
+                                    color: "#fff",
+                                    fontWeight: 600,
+                                }}
+                            // onClick={() => setShowChat(true)}
+                            >
+                                <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
+                                Chat
+                            </button>
+
                         </div>
                     </div>
-
-                    <div className="d-flex mb-md-4 mb-2  align-items-center gap-3 px-2 px-md-0">
-                        <i className="bi bi-calendar-check fs-2 text-dark" />
-                        <div>
-                            <p className="mb-0" style={{ fontSize: "12px", fontWeight: 400 }}>
-                                End registration
-                            </p>
-                            <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-                                {calculateEndRegistrationTime()}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
-                        <button
-                            className="d-flex align-items-center gap-2 border-0 py-1"
-                            style={{
-                                background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
-                                borderRadius: "25px",
-                                padding: "8px 16px",
-                                color: "#fff",
-                                fontWeight: 600,
-                            }}
-                        // onClick={() => setShowChat(true)}
-                        >
-                            <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
-                            Chat
-                        </button>
-
-                    </div>
                 </div>
-                </div>
-               
+
 
 
             </div>
@@ -801,7 +801,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             Player's Requests
                         </Offcanvas.Title>
                         <p className="mb-0 mt-1" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                            In order for the player to join the match, all enrolled players must accept the player's request.
+                            To allow the player to join this open match, you must accept their enrollment request.
                         </p>
                     </div>
                 </Offcanvas.Header>
