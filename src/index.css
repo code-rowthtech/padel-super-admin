@@ -940,10 +940,10 @@ h1.display-5 {
     font-size: 20px !important;
   }
 
-  .height_mention {
-    height: auto !important;
-    min-height: auto !important;
-  }
+  /* .height_mention {
+    height: 200px !important;
+    min-height: 200px !important;
+  } */
 
   .home-upcoming-heading {
     font-size: 12px !important;
