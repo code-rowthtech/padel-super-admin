@@ -1321,7 +1321,7 @@ const CreateMatches = () => {
                     ) && (
                         <div
                           className="text-center py-4 d-flex flex-column justify-content-center align-items-center"
-                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" }}
+                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280",height:"23rem" }}
                         >
                           <p className="mb-1">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
                           <p className="mb-0">Please choose another date</p>
@@ -1330,7 +1330,7 @@ const CreateMatches = () => {
                   </>
                 )
               ) : (
-                <div className="text-center py-4 d-flex flex-column justify-content-center align-items-center" style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" }}>
+                <div className="text-center py-4 d-flex flex-column justify-content-center align-items-center" style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280",height:"23rem" }}>
                   <p className="mb-1">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
                   <p className="mb-0">Please choose another date</p>
                 </div>
