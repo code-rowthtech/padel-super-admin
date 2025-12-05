@@ -150,6 +150,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const RequestData = useSelector((state) => state.requestData?.requestData?.requests);
     const RequestDataLoading = useSelector((state) => state.requestData?.requestsLoading);
+    const UpdateDataLoading = useSelector((state) => state.requestData?.requestUpdateLoading);
+
     const getPlayerLevelsData = useSelector(
         (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
     );
@@ -793,7 +795,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
                         </div>
                         <div className="d-flex flex-column ">
-                            {RequestDataLoading ? <DataLoading/> : RequestData?.length > 0 ? (
+                            {RequestDataLoading ? <DataLoading /> : RequestData?.length > 0 ? (
                                 RequestData.map((player, index) => (
                                     <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
                                         <div className="d-flex align-items-center gap-3">
@@ -914,9 +916,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </Button>
                         <Button
                             onClick={() => {
-                                setShowRejectModal(false);
-                                setShowRequestModal(false);
-                                setFullScreenLoading(true);
                                 dispatch(updateRequest({
                                     requestId: selectedPlayerForAction?._id, action: 'reject', rejectedReason: rejectReason
                                 }))
@@ -924,7 +923,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                     .then(() => {
                                         return Promise.all([
                                             dispatch(getRequest(matchId)),
-                                            dispatch(getMatchesView(matchId))
+                                            dispatch(getMatchesView(matchId)),
+                                            setShowRejectModal(false),
+                                            setShowRequestModal(false)
                                         ]);
                                     })
                                     .finally(() => {
@@ -940,7 +941,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                 "&:hover": { background: "#a71d2a" },
                             }}
                         >
-                            Reject
+                            {UpdateDataLoading ? <ButtonLoading color={'white'} /> : 'Reject'}
                         </Button>
                     </div>
                 </Box>
@@ -974,15 +975,14 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         </Button>
                         <Button
                             onClick={() => {
-                                setShowConfirmModal(false);
-                                setShowRequestModal(false);
-                                setFullScreenLoading(true);
                                 dispatch(updateRequest({ requestId: selectedPlayerForAction?._id, action: 'accept' }))
                                     .unwrap()
                                     .then(() => {
                                         return Promise.all([
-                                            dispatch(getRequest()),
-                                            dispatch(getMatchesView(matchId))
+                                            dispatch(getRequest(matchId)),
+                                            dispatch(getMatchesView(matchId)),
+                                            setShowConfirmModal(false),
+                                            setShowRequestModal(false)
                                         ]);
                                     })
                                     .finally(() => {
@@ -996,11 +996,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                 "&:hover": { background: "#001B76" },
                             }}
                         >
-                            Confirm
+                            {UpdateDataLoading ? <ButtonLoading color={'white'} /> : 'Confirm'}
                         </Button>
                     </div>
                 </Box>
-            </Modal>
+            </Modal >
 
         </>
     );
