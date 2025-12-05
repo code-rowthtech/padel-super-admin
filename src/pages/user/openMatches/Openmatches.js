@@ -50,6 +50,10 @@ import { registerClub } from "../../../redux/thunks";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { showError, showSuccess } from "../../../helpers/Toast";
 import { copyMatchCardWithScreenshot } from "../../../utils/matchCopy";
+import html2canvas from "html2canvas";
+
+// Make html2canvas available globally for the utility function
+window.html2canvas = html2canvas;
 
 const normalizeTime = (time) => {
   if (!time) return null;
@@ -128,7 +132,7 @@ const Openmatches = () => {
     debounce((payload) => {
       dispatch(getMatchesUser(payload));
     }, 300),
-    [dispatch, user?.token]
+    [dispatch, user?.token,matchFilter]
   );
 
   useEffect(() => {
@@ -952,7 +956,8 @@ const Openmatches = () => {
                             }}
                           >
                             <div className="position-absolute top-0 end-0 p-2 pb-2 pt-0  d-flex gap-1 position-relative" ref={showShareDropdown === `desktop-${index}` ? shareDropdownRef : null}>
-                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }} onClick={async (e) => { e.stopPropagation(); const matchCardElement = matchCardRefs.current[`desktop-${index}`]; if (matchCardElement) { await copyMatchCardWithScreenshot(matchCardElement, match); } else { const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showError("Could not copy to clipboard")); } else { showError("Clipboard not supported on this device"); } } }}>
+                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }}
+                               onClick={async (e) => { e.stopPropagation(); const matchCardElement = matchCardRefs.current[`desktop-${index}`]; if (matchCardElement) { await copyMatchCardWithScreenshot(matchCardElement, match); } else { const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showError("Could not copy to clipboard")); } else { showError("Clipboard not supported on this device"); } } }}>
                                 <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
                               </button>
                               {showShareDropdown === `desktop-${index}` && (
