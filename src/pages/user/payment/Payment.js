@@ -94,7 +94,7 @@ const Payment = ({ className = "" }) => {
 
   const handleDeleteSlot = (e, courtId, date, timeId) => {
     e.stopPropagation();
-    setLocalSelectedCourts((prev) => 
+    setLocalSelectedCourts((prev) =>
       prev
         .map((court) =>
           court._id === courtId && court.date === date
@@ -103,7 +103,7 @@ const Payment = ({ className = "" }) => {
         )
         .filter((court) => court.time.length > 0)
     );
-    
+
     // If no courts remain, navigate back to booking
     if (localSelectedCourts.length === 1 && localSelectedCourts[0].time.length === 1) {
       setTimeout(() => navigate("/booking"), 100);
@@ -305,12 +305,13 @@ const Payment = ({ className = "" }) => {
             {/* Info Section */}
             <div
               className="rounded-4 py-md-4 py-2 pb-3 pb-lg-1 px-3 px-md-5 h-100 mb-md-4 mb-3"
-              style={{ 
+              style={{
                 // backgroundColor: "#F5F5F566",
-                 border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none" }}
+                border: errors.name || errors.email || errors.phoneNumber ? "2px solid red" : "none"
+              }}
             >
               <div className="row d-flex justify-content-center align-tems-center mx-auto">
-                              <h6 className="mb-md-3 mb-0 mt-3 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start ps-1">Information</h6>
+                <h6 className="mb-md-3 mb-0 mt-3 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start ps-1">Information</h6>
 
                 <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                   <label className="form-label mb-0 ps-lg-0" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
@@ -514,8 +515,8 @@ const Payment = ({ className = "" }) => {
                   <div
                     className="rounded-circle d-flex align-items-center justify-content-center"
                     style={{
-                      height: "60px",
-                      width: "60px",
+                      width: "120px",
+                      height: "120px",
                       backgroundColor: "#374151",
                       border: "2px solid white",
                       fontSize: "24px",

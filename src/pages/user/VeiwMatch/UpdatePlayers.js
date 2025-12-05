@@ -52,6 +52,15 @@ const UpdatePlayers = ({
     gender: "",
     level: "",
   });
+  const [userEnteredData, setUserEnteredData] = useState({
+    name: "",
+    email: "",
+  });
+  const [originalUserData, setOriginalUserData] = useState({
+    name: "",
+    email: "",
+  });
+  const [lastSearchedNumber, setLastSearchedNumber] = useState("");
   console.log({playerLevels});
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
@@ -175,6 +184,14 @@ const UpdatePlayers = ({
                 gender: "",
                 level: "",
               });
+              setUserEnteredData({
+                name: "",
+                email: "",
+              });
+              setOriginalUserData({
+                name: "",
+                email: "",
+              });
             });
         }
       })
@@ -207,10 +224,23 @@ const UpdatePlayers = ({
   useEffect(() => {
     const phoneLength = formData?.phoneNumber?.length || 0;
 
-    if (phoneLength === 10) {
+    if (phoneLength === 10 && formData.phoneNumber !== lastSearchedNumber) {
+      // Save original user data before API call
+      setOriginalUserData({
+        name: userEnteredData.name,
+        email: userEnteredData.email
+      });
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
-    } else if (phoneLength < 10) {
-      setFormData(prev => ({ ...prev, name: "", email: "" }));
+      setLastSearchedNumber(formData.phoneNumber);
+    } else if (phoneLength < 10 && lastSearchedNumber) {
+      // Only restore when coming from a 10-digit number
+      setFormData(prev => ({
+        ...prev,
+        name: originalUserData.name,
+        email: originalUserData.email
+      }));
+      setUserEnteredData(originalUserData);
+      setLastSearchedNumber("");
       dispatch(resetSearchData());
     }
   }, [formData?.phoneNumber, dispatch]);
@@ -219,9 +249,14 @@ const UpdatePlayers = ({
     if (searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
       setFormData(prev => ({
         ...prev,
-        name: searchUserData.result[0].name || "",
-        email: searchUserData.result[0].email || ""
+        name: searchUserData.result[0].name || userEnteredData.name,
+        email: searchUserData.result[0].email || userEnteredData.email
       }));
+      // Update userEnteredData with API data so user can modify it
+      setUserEnteredData({
+        name: searchUserData.result[0].name || userEnteredData.name,
+        email: searchUserData.result[0].email || userEnteredData.email
+      });
     }
   }, [searchUserData, formData?.phoneNumber]);
 
@@ -229,14 +264,14 @@ const UpdatePlayers = ({
   return (
     <Modal
       open={showModal}
-      onClose={() => setShowModal(false)}
+      onClose={() => setShowModal(false)} className="border-0"
     >
-      <Box sx={modalStyle} onClick={(e) => e.stopPropagation()} className="p-md-3 px-2 py-3">
+      <Box sx={modalStyle} onClick={(e) => e.stopPropagation()} className="border-0   p-md-3 px-2 py-3">
         <h6 className="text-center mb-2" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
           Add Player
         </h6>
 
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form className="border-0" onSubmit={(e) => e.preventDefault()}>
           <div className="mb-md-2 mb-1">
             <label className="form-label label_font mb-1">
               Name <span className="text-danger">*</span>
@@ -252,6 +287,7 @@ const UpdatePlayers = ({
                   v = v.trimStart().replace(/\s+/g, " ");
                   const formatted = v.replace(/\b\w/g, (l) => l.toUpperCase());
                   setFormData((prev) => ({ ...prev, name: formatted }));
+                  setUserEnteredData((prev) => ({ ...prev, name: formatted }));
                 }
               }}
               style={inputStyle("name")}
@@ -301,7 +337,10 @@ const UpdatePlayers = ({
               className="form-control p-2"
               placeholder="Enter email"
               value={searchUserDataLoading ? "Loading...." : formData?.email}
-              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+              onChange={(e) => {
+                setFormData((prev) => ({ ...prev, email: e.target.value }));
+                setUserEnteredData((prev) => ({ ...prev, email: e.target.value }));
+              }}
               style={inputStyle("email")}
             />
             {/* {showErrors.email && errors.email && (
@@ -376,7 +415,7 @@ const UpdatePlayers = ({
                     menu: (provided) => ({
                       ...provided,
                       ...(window.innerWidth <= 768 && {
-                        maxHeight: 'auto',
+                        maxHeight: 150,
                         overflowY: 'auto',
                       }),
                       position: 'relative',
@@ -384,7 +423,7 @@ const UpdatePlayers = ({
                     menuList: (provided) => ({
                       ...provided,
                       ...(window.innerWidth <= 768 && {
-                        maxHeight: 'auto',
+                        maxHeight: 150,
                         overflowY: 'auto',
                       }),
                       paddingTop: 0,
@@ -408,7 +447,25 @@ const UpdatePlayers = ({
           <div className="d-flex gap-3 justify-content-end">
             <Button
               variant="outlined"
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setFormData({
+                  name: "",
+                  email: "",
+                  phoneNumber: "",
+                  gender: "",
+                  level: "",
+                });
+                setUserEnteredData({
+                  name: "",
+                  email: "",
+                });
+                setOriginalUserData({
+                  name: "",
+                  email: "",
+                });
+                dispatch(resetSearchData());
+              }}
               sx={{ borderColor: "#001B76", color: "#001B76", width: "25%" }}
               className="py-1 font_size_mobile_button"
             >

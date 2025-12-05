@@ -1559,16 +1559,16 @@ const Openmatches = () => {
                 </div>
               ) : (
                 <div
-                  className="d-flex flex-column justify-content-center align-items-center text-muted fw-medium text-center"
+                  className="d-flex flex-column justify-content-center align-items-center text-muted fw-medium text-center mt-5"
                   style={{
-                    minHeight: "25rem",
-                    height:"25rem",
+                    // minHeight: "250px",
+                    // height:"250px",
                     fontSize: "16px",
                     fontFamily: "Poppins",
                   }}
                 >
-                  <p className="mb-2">No Open match are available for this date and {tabs[activeTab]?.label}{selectedLevel && selectedLevel !== "All" ? ` for ${selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} level` : ""}.</p>
-                  <p className="mb-0">Please choose another date</p>
+                  <p className="mb-2 label_font text-danger">No Open match are available for this date and {tabs[activeTab]?.label}{selectedLevel && selectedLevel !== "All" ? ` for ${selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1)} level` : ""}.</p>
+                  <p className="mb-0 label_font text-danger">Please choose another date</p>
                 </div>
               )}
             </div>
