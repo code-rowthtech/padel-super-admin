@@ -1401,8 +1401,8 @@ const Booking = ({ className = "" }) => {
                       return !hasAvailableSlots;
                     }) && (
                         <div
-                          className="d-flex justify-content-center align-items-center text-center h-100 py-5 mt-5 text-danger label_font" 
-                          style={{ fontFamily: "Poppins", fontWeight: "500" }}
+                          className="d-flex justify-content-center align-items-center text-center h-100 py-5 mt-5 text-danger label_font text-danger" 
+                          style={{ fontFamily: "Poppins", fontWeight: "500", }}
                         >
                           No slots are available for this date and time.
                           Please choose another date
