@@ -376,7 +376,7 @@ const UpdatePlayers = ({
                     menu: (provided) => ({
                       ...provided,
                       ...(window.innerWidth <= 768 && {
-                        maxHeight: 'auto',
+                        maxHeight: 150,
                         overflowY: 'auto',
                       }),
                       position: 'relative',
@@ -384,7 +384,7 @@ const UpdatePlayers = ({
                     menuList: (provided) => ({
                       ...provided,
                       ...(window.innerWidth <= 768 && {
-                        maxHeight: 'auto',
+                        maxHeight: 150,
                         overflowY: 'auto',
                       }),
                       paddingTop: 0,
