@@ -136,7 +136,8 @@ const NewPlayers = ({
     dispatch(Usersignup(formData))
       .unwrap()
       .then((res) => {
-        if (res?.status !== "200") throw new Error("Signup failed");
+        console.log(res,'resresresresres');
+        if (res?.status !== "200" && res?.message == "User already exists") throw new Error("Signup failed");
 
         const playerData = {
           ...res.response,

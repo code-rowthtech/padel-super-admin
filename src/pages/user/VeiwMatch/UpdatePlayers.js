@@ -61,7 +61,6 @@ const UpdatePlayers = ({
     email: "",
   });
   const [lastSearchedNumber, setLastSearchedNumber] = useState("");
-  console.log({playerLevels});
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
