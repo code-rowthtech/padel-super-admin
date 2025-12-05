@@ -61,18 +61,20 @@ export const ReviewCard = ({ review, reviews = [] }) => {
 
     return (
         <Card
-            className="p-md-4 p-4 mx-md-3 mx-0 shadow-sm d-flex flex-column  justify-content-between height_mention"
+            className="p-md-4 p-4 mx-md-2 h-100 mx-0 shadow-sm d-flex flex-column  justify-content-between height_mention"
             style={{
                 borderRadius: "27px",
                 backgroundColor: "#012FCF26",
                 border: "none",
                 fontFamily: "Poppins",
-                height: "300px",
+                // height: "230px",
                 width: "auto",
                 margin: "0"
             }}
         >
-            <div className="flex-grow-1 d-flex flex-column padding_top_none" style={{ paddingTop: "30px" }}>
+            <div className="flex-grow-1 d-flex flex-column padding_top_none"
+            //  style={{ paddingTop: "30px" }}
+             >
                 {isLongText ? (
                     <OverlayTrigger
                         placement="top"
@@ -82,7 +84,7 @@ export const ReviewCard = ({ review, reviews = [] }) => {
                             </Tooltip>
                         }
                     >
-                        <p className="text-start d-flex align-items-center justify-content-start mb-md-0 mb-4 flex-grow-1 height_mention home-upcoming-heading-mobile"
+                        <p className="text-start d-flex align-items-start justify-content-start mb-md-3 mb-2 flex-grow-1 home-upcoming-heading-mobile"
                             style={{
                                 fontSize: "19px",
                                 color: "#000000",
@@ -90,7 +92,7 @@ export const ReviewCard = ({ review, reviews = [] }) => {
                                 fontFamily: "Inter",
                                 margin: "0",
                                 cursor: "pointer",
-                                minHeight: "150px",
+                                minHeight: "120px",
                                 overflow: "hidden",
                                 textAlign: "center",
                                 display: "flex",
@@ -101,14 +103,14 @@ export const ReviewCard = ({ review, reviews = [] }) => {
                         </p>
                     </OverlayTrigger>
                 ) : (
-                    <p className="text-start d-flex align-items-center justify-content-start mb-md-0 mb-4 flex-grow-1 height_mention home-upcoming-heading-mobile"
+                    <p className="text-start d-flex align-items-start justify-content-start mb-md-3 mb-2 flex-grow-1 home-upcoming-heading-mobile"
                         style={{
                             fontSize: "19px",
                             color: "#000000",
                             fontWeight: "500",
                             fontFamily: "Inter",
                             margin: "0",
-                            minHeight: "150px",
+                            minHeight: "74px",
                             overflow: "hidden",
                             textAlign: "center",
                             display: "flex",
@@ -120,8 +122,8 @@ export const ReviewCard = ({ review, reviews = [] }) => {
                 )}
             </div>
 
-            <div className="d-flex align-items-center mb-lg-4 mb-3 justify-content-between gap-3" style={{ marginTop: "5px" }}>
-                <div className="d-flex align-items-center gap-3">
+            <div className="d-flex align-items-center mb-lg-0 mb-0 justify-content-between gap-3" style={{ marginTop: "5px" }}>
+                <div className="d-flex align-items-center gap-2">
                     <img
                         src={
                             currentReview?.avatar ||
