@@ -43,6 +43,11 @@ const NewPlayers = ({
     name: "",
     email: "",
   });
+  const [originalUserData, setOriginalUserData] = useState({
+    name: "",
+    email: "",
+  });
+  const [lastSearchedNumber, setLastSearchedNumber] = useState("");
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState({});
   const dispatch = useDispatch();
@@ -161,6 +166,10 @@ const NewPlayers = ({
           name: "",
           email: "",
         });
+        setOriginalUserData({
+          name: "",
+          email: "",
+        });
         setShowAddMeForm(false);
         setActiveSlot(null);
         showSuccess("Player Added Successfully");
@@ -220,18 +229,26 @@ const NewPlayers = ({
   useEffect(() => {
     const phoneLength = formData?.phoneNumber?.length || 0;
 
-    if (phoneLength === 10) {
-      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
-    } else if (phoneLength < 10) {
-      // Show user-entered data when number length < 10
-      setFormData(prev => ({
-        ...prev,
+    if (phoneLength === 10 && formData.phoneNumber !== lastSearchedNumber) {
+      // Save original user data before API call
+      setOriginalUserData({
         name: userEnteredData.name,
         email: userEnteredData.email
+      });
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
+      setLastSearchedNumber(formData.phoneNumber);
+    } else if (phoneLength < 10 && lastSearchedNumber) {
+      // Only restore when coming from a 10-digit number
+      setFormData(prev => ({
+        ...prev,
+        name: originalUserData.name,
+        email: originalUserData.email
       }));
+      setUserEnteredData(originalUserData);
+      setLastSearchedNumber("");
       dispatch(resetSearchData());
     }
-  }, [formData?.phoneNumber, dispatch, userEnteredData]);
+  }, [formData?.phoneNumber, dispatch]);
 
   useEffect(() => {
     if (searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
@@ -240,8 +257,13 @@ const NewPlayers = ({
         name: searchUserData.result[0].name || userEnteredData.name,
         email: searchUserData.result[0].email || userEnteredData.email
       }));
+      // Update userEnteredData with API data so user can modify it
+      setUserEnteredData({
+        name: searchUserData.result[0].name || userEnteredData.name,
+        email: searchUserData.result[0].email || userEnteredData.email
+      });
     }
-  }, [searchUserData, formData?.phoneNumber, userEnteredData]);
+  }, [searchUserData, formData?.phoneNumber]);
 
   return (
     <Modal
@@ -251,6 +273,22 @@ const NewPlayers = ({
         setActiveSlot(null);
         setErrors({});
         setShowErrors({});
+        setFormData({
+          name: "",
+          email: "",
+          phoneNumber: "",
+          gender: "",
+          level: "",
+        });
+        setUserEnteredData({
+          name: "",
+          email: "",
+        });
+        setOriginalUserData({
+          name: "",
+          email: "",
+        });
+        dispatch(resetSearchData());
       }}
     >
       <Box sx={modalStyle} style={{ overflowY: "visible" }} className="p-md-3 px-2 py-3">
@@ -479,6 +517,18 @@ const NewPlayers = ({
                 setActiveSlot(null);
                 setErrors({});
                 setShowErrors({});
+                setFormData({
+                  name: "",
+                  email: "",
+                  phoneNumber: "",
+                  gender: "",
+                  level: "",
+                });
+                setUserEnteredData({
+                  name: "",
+                  email: "",
+                });
+                dispatch(resetSearchData());
               }}
               sx={{ width: { xs: "25%", sm: "25%", border: "1px solid #001b76", color: "#001B76" } }}
               className="py-1 font_size_mobile_button"

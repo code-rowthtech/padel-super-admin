@@ -1401,8 +1401,8 @@ const Booking = ({ className = "" }) => {
                       return !hasAvailableSlots;
                     }) && (
                         <div
-                          className="d-flex justify-content-center align-items-center text-center h-100 py-5 mt-5 text-danger label_font text-danger" 
-                          style={{ fontFamily: "Poppins", fontWeight: "500", }}
+                          className="d-flex justify-content-center align-items-center text-center h-100 py-5 mt-5 text-danger label_font"
+                          style={{ fontFamily: "Poppins", fontWeight: "500" }}
                         >
                           No slots are available for this date and time.
                           Please choose another date
@@ -1419,7 +1419,7 @@ const Booking = ({ className = "" }) => {
                 </div>
               )}
             </div>
-          
+
           </div>
           <div
             className={`col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-booking-summary ${totalSlots === 0 ? "d-lg-block d-none" : ""
@@ -1798,8 +1798,8 @@ const Booking = ({ className = "" }) => {
                     <div
                       className="rounded-circle d-flex align-items-center justify-content-center"
                       style={{
-                        height: "60px",
-                        width: "60px",
+                        width: "120px",
+                        height: "120px",
                         backgroundColor: "#374151",
                         border: "2px solid white",
                         boxShadow: "0px 4px 11.4px 0px #0000002E",
