@@ -1212,19 +1212,16 @@ const CreateMatches = () => {
                             content: 'Game levels are self-assessed at the moment. AI assessment will start from Jan 2026.';
                             position: absolute;
                             top: 50%;
-                            right: 0;
                             transform: translateY(-50%);
                             animation: slideTextLeftToRight 16s infinite linear;
                             white-space: nowrap;
                           }
                           @keyframes slideTextLeftToRight {
                             0% {
-                              right: 0;
-                              transform: translateY(-50%);
+                              transform: translateY(-50%) translateX(100%);
                             }
                             100% {
-                              right: 100%;
-                              transform: translateY(-50%);
+                              transform: translateY(-50%) translateX(-100%);
                             }
                           }
                         `}</style>
