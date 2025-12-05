@@ -92,23 +92,22 @@ const Payment = ({ className = "" }) => {
     return () => clearTimeout(timer);
   }, [errors]);
 
-  const handleDeleteSlot = (courtIndex, slotIndex) => {
-    setLocalSelectedCourts((prev) => {
-      let updated = [...prev];
-      if (updated[courtIndex]?.time) {
-        updated[courtIndex].time = updated[courtIndex].time.filter((_, i) => i !== slotIndex);
-        if (updated[courtIndex].time.length === 0) {
-          updated = updated.filter((_, i) => i !== courtIndex);
-        }
-      }
-      
-      // If no courts remain, navigate back to booking
-      if (updated.length === 0) {
-        setTimeout(() => navigate("/booking"), 100);
-      }
-      
-      return updated;
-    });
+  const handleDeleteSlot = (e, courtId, date, timeId) => {
+    e.stopPropagation();
+    setLocalSelectedCourts((prev) => 
+      prev
+        .map((court) =>
+          court._id === courtId && court.date === date
+            ? { ...court, time: court.time.filter((t) => t._id !== timeId) }
+            : court
+        )
+        .filter((court) => court.time.length > 0)
+    );
+    
+    // If no courts remain, navigate back to booking
+    if (localSelectedCourts.length === 1 && localSelectedCourts[0].time.length === 1) {
+      setTimeout(() => navigate("/booking"), 100);
+    }
   };
 
   useEffect(() => {
@@ -578,10 +577,7 @@ const Payment = ({ className = "" }) => {
                             <MdOutlineDeleteOutline
                               className="ms-2 text-white"
                               style={{ cursor: "pointer" }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteSlot(idx, i);
-                              }}
+                              onClick={(e) => handleDeleteSlot(e, court._id, court.date, slot._id)}
                             />
                           </div>
                         </div>
@@ -643,10 +639,7 @@ const Payment = ({ className = "" }) => {
                             <MdOutlineDeleteOutline
                               className="ms-1"
                               style={{ fontSize: "14px", cursor: "pointer" }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteSlot(cIdx, sIdx);
-                              }}
+                              onClick={(e) => handleDeleteSlot(e, court._id, court.date, slot._id)}
                             />
                           </div>
                         </div>
