@@ -438,7 +438,7 @@ const OpenmatchPayment = () => {
 
                             <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
                                 <label
-                                    className="form-label mb-0 ps-lg-1"
+                                    className="form-label mb-0 ps-lg-0"
                                     style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
                                 >
                                     Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>

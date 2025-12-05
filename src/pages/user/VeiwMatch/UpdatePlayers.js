@@ -231,14 +231,14 @@ const UpdatePlayers = ({
       open={showModal}
       onClose={() => setShowModal(false)}
     >
-      <Box sx={modalStyle} onClick={(e) => e.stopPropagation()} className="p-3">
+      <Box sx={modalStyle} onClick={(e) => e.stopPropagation()} className="p-md-3 px-2 py-3">
         <h6 className="text-center mb-2" style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
           Add Player
         </h6>
 
         <form onSubmit={(e) => e.preventDefault()}>
-          <div className="mb-2">
-            <label className="form-label">
+          <div className="mb-md-2 mb-1">
+            <label className="form-label label_font mb-1">
               Name <span className="text-danger">*</span>
             </label>
             <input
@@ -261,8 +261,8 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          <div className="mb-2">
-            <label className="form-label">
+          <div className="mb-md-2 mb-1">
+            <label className="form-label label_font mb-1">
               Phone No {matchId?.teamA?.[0]?.userId?._id !== User?._id && <span className="text-danger">*</span>}
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
@@ -292,8 +292,8 @@ const UpdatePlayers = ({
             )}
           </div>
 
-          <div className="mb-2">
-            <label className="form-label">
+          <div className="mb-md-2 mb-1">
+            <label className="form-label label_font mb-1">
               Email
             </label>
             <input
@@ -309,8 +309,8 @@ const UpdatePlayers = ({
             )} */}
           </div>
 
-          <div className="mb-2">
-            <label className="form-label">Game Type</label>
+          <div className="mb-md-2 mb-1">
+            <label className="form-label label_font mb-1">Game Type</label>
             <div className="d-flex gap-3">
               {[
                 { value: "Male Only", label: "Male Only" },
@@ -343,8 +343,8 @@ const UpdatePlayers = ({
 
 
 
-          <div className="mb-4">
-            <label className="form-label">
+          <div className="mb-md-4 mb-3">
+            <label className="form-label label_font mb-1">
               Select Level <span className="text-danger">*</span>
             </label>
             <div style={inputStyle("level")}>
@@ -376,7 +376,7 @@ const UpdatePlayers = ({
                     menu: (provided) => ({
                       ...provided,
                       ...(window.innerWidth <= 768 && {
-                        maxHeight: 120,
+                        maxHeight: 'auto',
                         overflowY: 'auto',
                       }),
                       position: 'relative',
@@ -384,7 +384,7 @@ const UpdatePlayers = ({
                     menuList: (provided) => ({
                       ...provided,
                       ...(window.innerWidth <= 768 && {
-                        maxHeight: 120,
+                        maxHeight: 'auto',
                         overflowY: 'auto',
                       }),
                       paddingTop: 0,
