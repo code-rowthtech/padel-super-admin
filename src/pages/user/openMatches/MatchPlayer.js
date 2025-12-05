@@ -196,7 +196,7 @@ const MatchPlayer = ({
         if (!dateString) return { day: "Fri", formattedDate: "29 Aug" };
         const date = new Date(dateString);
         const day = date.toLocaleDateString("en-US", { weekday: "short" });
-        const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })}, ${date.toLocaleDateString("en-US", { month: "short" })}`;
+        const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })} ${date.toLocaleDateString("en-US", { month: "short" })}`;
         return { day, formattedDate };
     };
 
