@@ -192,66 +192,45 @@ const Home = () => {
     }
   }, [clubData?.address, clubData?.city]);
 
-  // Auto-play carousel - DISABLED
-  // useEffect(() => {
-  //   if (windowWidth < 992 && clubData?.courtImage?.length > 1) {
-  //     const interval = setInterval(() => {
-  //       setCurrentSlide((prev) => {
-  //         const isLastImage = prev >= clubData.courtImage.length - 1;
-  //         if (isLastImage) {
-  //           // Fast loop back to start
-  //           setTimeout(() => setCurrentSlide(0), 100);
-  //           return prev;
-  //         }
-  //         return prev + 1;
-  //       });
-  //     }, 2500);
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [clubData?.courtImage?.length, windowWidth, currentSlide]);
+  // Auto-play carousel
+  useEffect(() => {
+    if (clubData?.courtImage?.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => prev + 1);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [clubData?.courtImage?.length]);
 
   // Handle seamless loop reset
   useEffect(() => {
-    if (
-      windowWidth >= 992 &&
-      currentSlide === clubData?.courtImage?.length &&
-      clubData?.courtImage?.length > 4
-    ) {
-      const timer = setTimeout(() => {
-        setCurrentSlide(0);
-      }, 500);
-      return () => clearTimeout(timer);
+    const imagesLength = clubData?.courtImage?.length || 0;
+    if (windowWidth >= 992 && currentSlide >= imagesLength && imagesLength > 4) {
+      setTimeout(() => setCurrentSlide(0), 500);
+    } else if (windowWidth < 992 && currentSlide >= imagesLength && imagesLength > 1) {
+      setTimeout(() => setCurrentSlide(0), 500);
     }
   }, [currentSlide, clubData?.courtImage?.length, windowWidth]);
 
-  // Auto-play review carousel - DISABLED
-  // useEffect(() => {
-  //   if (windowWidth < 992 && getReviewData?.reviews?.length > 1) {
-  //     const interval = setInterval(() => {
-  //       setReviewSlide((prev) => {
-  //         if (prev >= getReviewData.reviews.length - 1) {
-  //           return 0;
-  //         }
-  //         return prev + 1;
-  //       });
-  //     }, 3000);
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [getReviewData?.reviews?.length, windowWidth]);
-
-  // Handle seamless review loop reset
+  // Auto-play review carousel
   useEffect(() => {
-    if (
-      windowWidth >= 992 &&
-      reviewSlide === getReviewData?.reviews?.length &&
-      getReviewData?.reviews?.length > 3
-    ) {
-      const timer = setTimeout(() => {
-        setReviewSlide(0);
-      }, 500);
-      return () => clearTimeout(timer);
+    if (enhancedReviewData?.reviews?.length > 1) {
+      const interval = setInterval(() => {
+        setReviewSlide((prev) => prev + 1);
+      }, 3000);
+      return () => clearInterval(interval);
     }
-  }, [reviewSlide, getReviewData?.reviews?.length, windowWidth]);
+  }, [enhancedReviewData?.reviews?.length]);
+
+  // Handle seamless loop reset
+  useEffect(() => {
+    const reviewsLength = enhancedReviewData?.reviews?.length || 0;
+    if (windowWidth >= 992 && reviewSlide >= reviewsLength && reviewsLength > 3) {
+      setTimeout(() => setReviewSlide(0), 500);
+    } else if (windowWidth < 992 && reviewSlide >= reviewsLength && reviewsLength > 1) {
+      setTimeout(() => setReviewSlide(0), 500);
+    }
+  }, [reviewSlide, enhancedReviewData?.reviews?.length, windowWidth]);
 
   return (
     <>
@@ -751,7 +730,11 @@ const Home = () => {
               : clubData?.courtImage?.length > 1
               ? `translateX(-${currentSlide * 100}%)`
               : "translateX(0%)",
-          transition: "transform 0.5s ease",
+          transition:
+            (windowWidth >= 992 && currentSlide === clubData?.courtImage?.length) ||
+            (windowWidth < 992 && currentSlide === clubData?.courtImage?.length)
+              ? "none"
+              : "transform 0.5s ease",
           justifyContent:
             windowWidth >= 992 && clubData?.courtImage?.length <= 4
               ? "center"
@@ -760,11 +743,11 @@ const Home = () => {
       >
         {/* Desktop Images */}
         {(clubData?.courtImage?.length > 4
-          ? clubData?.courtImage?.concat(clubData?.courtImage?.slice(0, 4))
+          ? [...clubData.courtImage, ...clubData.courtImage.slice(0, 4)]
           : clubData?.courtImage
         )?.map((image, index) => (
           <div
-            key={index}
+            key={`desktop-${index}`}
             className="flex-shrink-0 d-lg-block d-none"
             style={{
               width: clubData?.courtImage?.length > 4 ? "24%" : "22%",
@@ -807,7 +790,10 @@ const Home = () => {
         ))}
 
         {/* Mobile Images */}
-        {clubData?.courtImage?.map((image, index) => (
+        {(clubData?.courtImage?.length > 1
+          ? [...clubData.courtImage, clubData.courtImage[0]]
+          : clubData?.courtImage
+        )?.map((image, index) => (
           <div
             key={`mobile-${index}`}
             className="flex-shrink-0 d-lg-none d-block"
@@ -1003,26 +989,31 @@ const Home = () => {
               ? `translateX(-${reviewSlide * 33.333}%)`
               : `translateX(-${reviewSlide * 100}%)`,
           transition:
-            (windowWidth >= 992 &&
-              reviewSlide === getReviewData?.reviews?.length) ||
-            (windowWidth < 992 && reviewSlide === 0)
+            (windowWidth >= 992 && reviewSlide === enhancedReviewData?.reviews?.length) ||
+            (windowWidth < 992 && reviewSlide === enhancedReviewData?.reviews?.length)
               ? "none"
               : "transform 0.5s ease",
         }}
       >
         {windowWidth >= 992
-          ? enhancedReviewData?.reviews?.map((review, index) => (
+          ? (enhancedReviewData?.reviews?.length > 3
+              ? [...enhancedReviewData.reviews, ...enhancedReviewData.reviews.slice(0, 3)]
+              : enhancedReviewData?.reviews
+            )?.map((review, index) => (
               <div
-                key={review._id || index}
+                key={`${review._id}-${index}`}
                 className="flex-shrink-0 d-lg-block d-none"
                 style={{ width: "33.333%" }}
               >
                 <ReviewCard review={review} />
               </div>
             ))
-          : enhancedReviewData?.reviews?.map((review, index) => (
+          : (enhancedReviewData?.reviews?.length > 1
+              ? [...enhancedReviewData.reviews, enhancedReviewData.reviews[0]]
+              : enhancedReviewData?.reviews
+            )?.map((review, index) => (
               <div
-                key={`mobile-${review._id || index}`}
+                key={`mobile-${review._id}-${index}`}
                 className="flex-shrink-0 d-lg-none d-block"
                 style={{ width: "100%" }}
               >
