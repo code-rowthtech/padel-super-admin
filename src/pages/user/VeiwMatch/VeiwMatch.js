@@ -7,7 +7,7 @@ import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk
 import { DataLoading, ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar, Tooltip, Modal, Box, Button } from "@mui/material";
 import { Offcanvas } from "react-bootstrap";
-import { FaTrash } from "react-icons/fa";
+import { FaArrowLeft, FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
@@ -1004,26 +1004,22 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 </Box>
             </Modal >
 
-            <Modal 
-                open={showChat} 
-                onClose={() => setShowChat(false)}
-                sx={{
-                    display: 'flex',
-                    alignItems: { xs: 'flex-end', md: 'center' },
-                    justifyContent: 'center'
-                }}
-            >
-                <Box sx={{
-                    position: 'relative',
-                    width: { xs: '100%', md: '450px' },
-                    height: { xs: '100vh', md: '600px' },
-                    bgcolor: 'background.paper',
-                    borderRadius: { xs: 0, md: 2 },
-                    boxShadow: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    outline: 'none'
-                }}>
+            {showChat && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: window.innerWidth >= 768 ? '20px' : 0,
+                        right: window.innerWidth >= 768 ? '20px' : 0,
+                        width: window.innerWidth >= 768 ? '400px' : '100%',
+                        height: window.innerWidth >= 768 ? '600px' : '100vh',
+                        backgroundColor: '#fff',
+                        borderRadius: window.innerWidth >= 768 ? '12px' : 0,
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                        zIndex: 1300,
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}
+                >
                     {/* Header */}
                     <div className="d-flex align-items-center justify-content-between p-3 border-bottom" style={{ backgroundColor: '#F5F5F5' }}>
                         <div className="d-flex align-items-center gap-2">
@@ -1032,10 +1028,13 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                 style={{ width: 36, height: 36 }}
                                 onClick={() => setShowChat(false)}
                             >
-                                <i className="bi bi-arrow-left" />
+                                <FaArrowLeft />
                             </button>
+                            <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, backgroundColor: '#57bce4ff', minWidth: 40 }}>
+                                <i className="bi bi-people-fill" style={{ fontSize: '20px', color: '#fff' }} />
+                            </div>
                             <div>
-                                <h6 className="mb-0" style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'Poppins' }}>Match Chat</h6>
+                                <h6 className="mb-0 custom-heading-use" style={{ fontFamily: 'Poppins' }}>Padel Squad - Open Match</h6>
                                 <p className="mb-0" style={{ fontSize: '12px', color: '#6B7280' }}>4 Players</p>
                             </div>
                         </div>
@@ -1072,23 +1071,40 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     {/* Input Area */}
                     <div className="p-3 border-top" style={{ backgroundColor: '#fff' }}>
                         <div className="d-flex gap-2 align-items-center">
-                            <input
-                                type="text"
+                            <textarea
                                 className="form-control"
                                 placeholder="Type a message..."
                                 value={chatMessage}
-                                onChange={(e) => setChatMessage(e.target.value)}
+                                onChange={(e) => {
+                                    let v = e.target.value;
+                                    v = v.trimStart().replace(/\s+/g, ' ');
+                                    if (v.length > 0) {
+                                        v = v.charAt(0).toUpperCase() + v.slice(1);
+                                    }
+                                    setChatMessage(v);
+                                }}
                                 onKeyPress={(e) => {
-                                    if (e.key === 'Enter' && chatMessage.trim()) {
-                                        // Handle send message
+                                    if (e.key === 'Enter' && !e.shiftKey && chatMessage.trim()) {
+                                        e.preventDefault();
                                         setChatMessage('');
                                     }
                                 }}
+                                rows={1}
                                 style={{
                                     borderRadius: '20px',
                                     border: '1px solid #E5E7EB',
                                     padding: '10px 16px',
-                                    fontSize: '14px'
+                                    fontSize: '14px',
+                                    fontFamily: 'Poppins',
+                                    boxShadow: 'none',
+                                    resize: 'none',
+                                    overflow: 'hidden',
+                                    minHeight: '40px',
+                                    maxHeight: '120px'
+                                }}
+                                onInput={(e) => {
+                                    e.target.style.height = 'auto';
+                                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
                                 }}
                             />
                             <button
@@ -1103,7 +1119,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                 disabled={!chatMessage.trim()}
                                 onClick={() => {
                                     if (chatMessage.trim()) {
-                                        // Handle send message
                                         setChatMessage('');
                                     }
                                 }}
@@ -1112,8 +1127,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             </button>
                         </div>
                     </div>
-                </Box>
-            </Modal>
+                </div>
+            )}
 
         </>
     );

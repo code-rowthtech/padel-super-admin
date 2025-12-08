@@ -167,6 +167,24 @@ const MatchPlayer = ({
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
+
+    useEffect(() => {
+        const players = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+        const playerKeys = Object.keys(players).filter(k => k !== 'gameType');
+        if (players.gameType && typeof players.gameType === 'string' && playerKeys.length > 0) {
+            setSelectedGender(players.gameType);
+        } else {
+        }
+    }, []);
+
+    useEffect(() => {
+        const playerKeys = Object.keys(localPlayers).filter(k => k !== 'gameType');
+        if (selectedGender && typeof selectedGender === 'string' && playerKeys.length > 0) {
+            const current = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+            current.gameType = selectedGender;
+            localStorage.setItem("addedPlayers", JSON.stringify(current));
+        } 
+    }, [selectedGender, localPlayers]);
     const handleAddMeClick = (slot) => {
         if (!selectedGender) {
             showError("Please select game type");
@@ -430,7 +448,7 @@ const MatchPlayer = ({
                                         fontSize: "15px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
-                                        color: (profileLoading || Object.keys(localPlayers).length > 0) ? "#9CA3AF" : (selectedGender === '' ? "#1F41BB" : "#000000"),
+                                        color: (profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0) ? "#9CA3AF" : (selectedGender === '' ? "#1F41BB" : "#000000"),
                                         backgroundColor: selectedGender === '' ? "#EEF2FF" : "transparent",
                                         border: selectedGender === '' ? "0px solid #1F41BB" : "none",
                                         borderRadius: "4px",
@@ -441,12 +459,12 @@ const MatchPlayer = ({
                                         backgroundPosition: "right 15px center",
                                         backgroundSize: "15px",
                                         paddingRight: "0px",
-                                        cursor: (profileLoading || Object.keys(localPlayers).length > 0) ? "not-allowed" : "pointer",
+                                        cursor: (profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0) ? "not-allowed" : "pointer",
                                     }}
                                     value={selectedGender}
                                     onChange={(e) => setSelectedGender(e.target.value)}
                                     required
-                                    disabled={profileLoading || Object.keys(localPlayers).length > 0}
+                                    disabled={profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0}
                                 >
                                     <option className="add_font_mobile " value="">Select </option>
                                     <option className="add_font_mobile" value="Male Only">Male Only</option>

@@ -42,6 +42,7 @@ const UpdatePlayers = ({
   selectedLevel, matchesData,
   playerLevels,
 }) => {
+  console.log({matchId});
   const dispatch = useDispatch();
   const User = getUserFromSession();
   const store = useSelector((state) => state);
@@ -224,9 +225,17 @@ const UpdatePlayers = ({
   });
 
   useEffect(() => {
-    if (!matchId?.gender) return;
-    setFormData((prev) => ({ ...prev, type: matchId.gender }));
-  }, [matchId?.gender]);
+    if (!showModal || !matchId?.gender) return;
+    let autoGender = '';
+    if (matchId.gender === 'Male Only') {
+      autoGender = 'Male';
+    } else if (matchId.gender === 'Female Only') {
+      autoGender = 'Female';
+    } else if (matchId.gender === 'Mixed Double') {
+      autoGender = 'Other';
+    }
+    setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
+  }, [showModal, matchId?.gender]);
 
   useEffect(() => {
     const phoneLength = formData?.phoneNumber?.length || 0;
@@ -238,7 +247,7 @@ const UpdatePlayers = ({
         email: userEnteredData.email,
         gender: userEnteredData.gender
       });
-      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData.type }));
       setLastSearchedNumber(formData.phoneNumber);
     } else if (phoneLength < 10 && lastSearchedNumber) {
       // Only restore when coming from a 10-digit number
@@ -401,31 +410,38 @@ const UpdatePlayers = ({
                 { value: "Male", label: "Male" },
                 { value: "Female", label: "Female" },
                 { value: "Other", label: "Other" },
-              ].map((g) => (
-                <div key={g.value} className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="gender"
-                    id={g.value}
-                    value={g.value}
-                    disabled={searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value}
-                    checked={formData.gender?.trim() === g.value}
-                    onChange={(e) => {
-                      setFormData((prev) => ({ ...prev, gender: e.target.value }));
-                      setErrors((prev) => ({ ...prev, gender: "" }));
-                      setShowErrors((prev) => ({ ...prev, gender: false }));
-                    }}
-                    style={{boxShadow:"none"}}
-                  />
-                  <label
-                    className={`form-check-label ${searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value ? "text-muted" : ""}`}
-                    htmlFor={g.value}
-                  >
-                    {g.label}
-                  </label>
-                </div>
-              ))}
+              ].map((g) => {
+                const isAutoSelected = matchId?.gender === 'Male Only' || matchId?.gender === 'Female Only' || matchId?.gender === 'Mixed Double';
+                const isApiDisabled = searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value;
+                const isAutoDisabled = isAutoSelected && formData.gender && formData.gender !== g.value;
+                const isDisabled = isApiDisabled || isAutoDisabled;
+                
+                return (
+                  <div key={g.value} className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="gender"
+                      id={g.value}
+                      value={g.value}
+                      disabled={isDisabled}
+                      checked={formData.gender?.trim() === g.value}
+                      onChange={(e) => {
+                        setFormData((prev) => ({ ...prev, gender: e.target.value }));
+                        setErrors((prev) => ({ ...prev, gender: "" }));
+                        setShowErrors((prev) => ({ ...prev, gender: false }));
+                      }}
+                      style={{boxShadow:"none"}}
+                    />
+                    <label
+                      className={`form-check-label ${isDisabled ? "text-muted" : ""}`}
+                      htmlFor={g.value}
+                    >
+                      {g.label}
+                    </label>
+                  </div>
+                );
+              })}
             </div>
             {showErrors.gender && errors.gender && (
               <small className="text-danger d-block mt-1">{errors.gender}</small>
