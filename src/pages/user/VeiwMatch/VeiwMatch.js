@@ -270,6 +270,10 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
             }
             return { hour, period };
+        }).sort((a, b) => {
+            const aValue = a.period === 'AM' ? a.hour : a.hour + 12;
+            const bValue = b.period === 'AM' ? b.hour : b.hour + 12;
+            return aValue - bValue;
         });
 
         if (formattedTimes.length === 0) return "";
@@ -282,7 +286,6 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         ? formatDate(matchesData.data.matchDate)
         : { day: "Sun", formattedDate: "27 Aug" };
     const matchTime = matchesData?.data?.slot ? formatMatchTimes(matchesData.data.slot) : "5-6AM";
-
     const handleRemove = useCallback(
         (playerId, team) => {
             const teamKey = team === "A" ? "teamA" : "teamB";
