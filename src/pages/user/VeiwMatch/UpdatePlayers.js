@@ -225,16 +225,37 @@ const UpdatePlayers = ({
   });
 
   useEffect(() => {
-    if (!showModal || !matchId?.gender) return;
-    let autoGender = '';
-    if (matchId.gender === 'Male Only') {
-      autoGender = 'Male';
-    } else if (matchId.gender === 'Female Only') {
-      autoGender = 'Female';
-    } else if (matchId.gender === 'Mixed Double') {
-      autoGender = 'Other';
+    if (showModal && matchId?.gender) {
+      let autoGender = '';
+      if (matchId.gender === 'Male Only') {
+        autoGender = 'Male';
+      } else if (matchId.gender === 'Female Only') {
+        autoGender = 'Female';
+      } else if (matchId.gender === 'Mixed Double') {
+        autoGender = 'Other';
+      }
+      setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
+    } else if (!showModal) {
+      setFormData({
+        name: "",
+        email: "",
+        phoneNumber: "",
+        gender: "",
+        level: "",
+        type: "",
+      });
+      setUserEnteredData({
+        name: "",
+        email: "",
+        gender: "",
+      });
+      setOriginalUserData({
+        name: "",
+        email: "",
+        gender: "",
+      });
+      setLastSearchedNumber("");
     }
-    setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
   }, [showModal, matchId?.gender]);
 
   useEffect(() => {
@@ -269,14 +290,14 @@ const UpdatePlayers = ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
         email: searchUserData.result[0].email || userEnteredData.email,
-        gender: searchUserData.result[0].gender || userEnteredData.gender
+        // gender: searchUserData.result[0].gender || userEnteredData.gender
 
       }));
       // Update userEnteredData with API data so user can modify it
       setUserEnteredData({
         name: searchUserData.result[0].name || userEnteredData.name,
         email: searchUserData.result[0].email || userEnteredData.email,
-        gender: searchUserData.result[0].gender || userEnteredData.gender
+        // gender: searchUserData.result[0].gender || userEnteredData.gender
 
       });
     }
@@ -306,6 +327,7 @@ const UpdatePlayers = ({
               onChange={(e) => {
                 let v = e.target.value;
                 if (!v || /^[A-Za-z\s]*$/.test(v)) {
+                  if (v.length > 20) v = v.slice(0, 20);
                   v = v.trimStart().replace(/\s+/g, " ");
                   const formatted = v.replace(/\b\w/g, (l) => l.toUpperCase());
                   setFormData((prev) => ({ ...prev, name: formatted }));
@@ -412,9 +434,8 @@ const UpdatePlayers = ({
                 { value: "Other", label: "Other" },
               ].map((g) => {
                 const isAutoSelected = matchId?.gender === 'Male Only' || matchId?.gender === 'Female Only' || matchId?.gender === 'Mixed Double';
-                const isApiDisabled = searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value;
                 const isAutoDisabled = isAutoSelected && formData.gender && formData.gender !== g.value;
-                const isDisabled = isApiDisabled || isAutoDisabled;
+                const isDisabled = isAutoDisabled;
                 
                 return (
                   <div key={g.value} className="form-check">
