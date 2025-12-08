@@ -30,7 +30,8 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender, defaultSkillLevel, profileLoading
+  userSkillLevel, selectedGender, defaultSkillLevel, profileLoading,
+  editPlayerData
 }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -232,18 +233,54 @@ const NewPlayers = ({
   };
 
   useEffect(() => {
-    if (showAddMeForm && selectedGender) {
-      let autoGender = '';
-      if (selectedGender === 'Male Only') {
-        autoGender = 'Male';
-      } else if (selectedGender === 'Female Only') {
-        autoGender = 'Female';
-      } else if (selectedGender === 'Mixed Double') {
-        autoGender = 'Other';
+    if (showAddMeForm) {
+      if (editPlayerData) {
+        setFormData({
+          name: editPlayerData.name || "",
+          email: editPlayerData.email || "",
+          phoneNumber: editPlayerData.phoneNumber || "",
+          gender: editPlayerData.type || "",
+          level: editPlayerData.level || "",
+          type: selectedGender || "",
+        });
+        setUserEnteredData({
+          name: editPlayerData.name || "",
+          email: editPlayerData.email || "",
+          gender: editPlayerData.type || "",
+        });
+      } else if (selectedGender) {
+        let autoGender = '';
+        if (selectedGender === 'Male Only') {
+          autoGender = 'Male';
+        } else if (selectedGender === 'Female Only') {
+          autoGender = 'Female';
+        } else if (selectedGender === 'Mixed Double') {
+          autoGender = 'Other';
+        }
+        setFormData((prev) => ({ ...prev, type: selectedGender, gender: autoGender }));
       }
-      setFormData((prev) => ({ ...prev, type: selectedGender, gender: autoGender }));
+    } else {
+      setFormData({
+        name: "",
+        email: "",
+        phoneNumber: "",
+        gender: "",
+        level: "",
+        type: "",
+      });
+      setUserEnteredData({
+        name: "",
+        email: "",
+        gender: "",
+      });
+      setOriginalUserData({
+        name: "",
+        email: "",
+        gender: "",
+      });
+      setLastSearchedNumber("");
     }
-  }, [showAddMeForm, selectedGender]);
+  }, [showAddMeForm, selectedGender, editPlayerData]);
 
   useEffect(() => {
     const phoneLength = formData?.phoneNumber?.length || 0;
@@ -276,14 +313,11 @@ const NewPlayers = ({
       setFormData(prev => ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email,
-        gender: searchUserData.result[0].gender || userEnteredData.gender
+        email: searchUserData.result[0].email || userEnteredData.email
       }));
-      // Update userEnteredData with API data so user can modify it
       setUserEnteredData({
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email,
-        gender: searchUserData.result[0].gender || userEnteredData.gender
+        email: searchUserData.result[0].email || userEnteredData.email
       });
     }
   }, [searchUserData, formData?.phoneNumber]);
@@ -336,7 +370,7 @@ const NewPlayers = ({
               onChange={(e) => {
                 let v = e.target.value;
                 if (/^[A-Za-z\s]*$/.test(v)) {
-                  if (v.length > 30) v = v.slice(0, 30);
+                  if (v.length > 20) v = v.slice(0, 20);
                   const formatted = v
                     .trimStart()
                     .replace(/\s+/g, " ")
@@ -464,9 +498,8 @@ const NewPlayers = ({
                 { value: "Other", label: "Other" },
               ].map((g) => {
                 const isAutoSelected = selectedGender === 'Male Only' || selectedGender === 'Female Only' || selectedGender === 'Mixed Double';
-                const isApiDisabled = searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value;
                 const isAutoDisabled = isAutoSelected && formData.gender && formData.gender !== g.value;
-                const isDisabled = isApiDisabled || isAutoDisabled;
+                const isDisabled = isAutoDisabled;
                 
                 return (
                   <div key={g.value} className="form-check">
