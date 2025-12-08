@@ -68,6 +68,9 @@ const UpdatePlayers = ({
   const getPlayerLevelsLoading = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
+  const requestLoading = useSelector((state) => state?.userPlayerRequest?.requestCreateLoading || false
+  );
+  console.log({ requestLoading });
   const searchUserData = useSelector(
     (state) => state.searchUserByNumber.getSearchData
   );
@@ -472,7 +475,7 @@ const UpdatePlayers = ({
             </Button>
             <Button
               onClick={handleAddPlayer}
-              disabled={loading}
+              disabled={loading }
               sx={{
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 color: "white",
@@ -481,7 +484,7 @@ const UpdatePlayers = ({
               }}
               className="py-1 font_size_mobile_button"
             >
-              {loading ? <ButtonLoading color="white" /> : "Add "}
+              {loading || requestLoading ? <ButtonLoading color="white" /> : "Add "}
             </Button>
           </div>
         </form>

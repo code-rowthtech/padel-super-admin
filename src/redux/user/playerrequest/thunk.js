@@ -18,7 +18,7 @@ export const getRequest = createAsyncThunk(
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      showError(errorMessage || error.message);
+      showError(error || errorMessage || error.message);
       return rejectWithValue(errorMessage);
     }
   }
