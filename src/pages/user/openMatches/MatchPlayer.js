@@ -86,27 +86,12 @@ const MatchPlayer = ({
     const [selectedGender, setSelectedGender] = useState('');
     const [genderError, setGenderError] = useState('');
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
-
-    useEffect(() => {
-        if (userGender && userGender !== "") {
-            const genderMap = {
-                "Male": "Male Only",
-                "Female": "Female Only",
-                "Male Only": "Male Only",
-                "Female Only": "Female Only",
-                "Mixed Double": "Mixed Double",
-                "Other": "Mixed Double"
-            };
-            setSelectedGender(genderMap[userGender] || "Mixed Double");
-        }
-    }, [userGender]);
     const updateName = JSON.parse(localStorage.getItem("updateprofile"));
     const [defaultLevel, setDefaultLevel] = useState();
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
     const [profileFetched, setProfileFetched] = useState(false);
     const hasCalledProfile = useRef(false);
     const [profileLoading, setProfileLoading] = useState(true);
-    console.log({ localPlayers });
     useEffect(() => {
         setLocalPlayers(parentAddedPlayers || {});
     }, [parentAddedPlayers]);
@@ -121,7 +106,6 @@ const MatchPlayer = ({
             try {
                 const result = await dispatch(getUserProfile()).unwrap();
                 const firstAnswer = result?.response?.level;
-                console.log({ result });
                 setDefaultSkillLevel(result?.response?.skillLevel || "");
                 setDefaultLevel(firstAnswer);
                 setUserName(result?.response?.name || User?.name || "");
@@ -285,8 +269,6 @@ const MatchPlayer = ({
         ? finalSkillDetails[Object.keys(finalSkillDetails)[0]]
         : "Intermediate";
 
-    console.log({ displayUserSkillLevel });
-
     const handleBookNow = () => {
         if (!selectedGender || selectedGender === "") {
             showError("Please select game type");
@@ -448,7 +430,7 @@ const MatchPlayer = ({
                                         fontSize: "15px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
-                                        color: selectedGender === '' ? "#1F41BB" : "#000000",
+                                        color: (profileLoading || Object.keys(localPlayers).length > 0) ? "#9CA3AF" : (selectedGender === '' ? "#1F41BB" : "#000000"),
                                         backgroundColor: selectedGender === '' ? "#EEF2FF" : "transparent",
                                         border: selectedGender === '' ? "0px solid #1F41BB" : "none",
                                         borderRadius: "4px",
@@ -459,11 +441,12 @@ const MatchPlayer = ({
                                         backgroundPosition: "right 15px center",
                                         backgroundSize: "15px",
                                         paddingRight: "0px",
-                                        cursor: "pointer",
+                                        cursor: (profileLoading || Object.keys(localPlayers).length > 0) ? "not-allowed" : "pointer",
                                     }}
                                     value={selectedGender}
                                     onChange={(e) => setSelectedGender(e.target.value)}
                                     required
+                                    disabled={profileLoading || Object.keys(localPlayers).length > 0}
                                 >
                                     <option className="add_font_mobile " value="">Select </option>
                                     <option className="add_font_mobile" value="Male Only">Male Only</option>

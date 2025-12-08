@@ -449,7 +449,6 @@ const Navbar = () => {
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                console.log('Hamburger clicked');
                                 setShowOffcanvas(true);
                             }}
                             style={{

@@ -1089,7 +1089,6 @@ const CreateMatches = () => {
                     const slotCount = selectedCourts
                       .filter(court => court.date === d.fullDate)
                       .reduce((acc, court) => acc + court.time.length, 0);
-                    console.log(selectedCourts, d.fullDate, 'pankajm');
                     return (
                       <button
                         key={i}

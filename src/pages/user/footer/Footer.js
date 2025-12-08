@@ -31,10 +31,6 @@ const Footer = () => {
     twitter: club?.xlink || "https://twitter.com",
   };
 
-  console.log("Club data:", club);
-  console.log("Social links:", social);
-
-
   useEffect(() => {
     dispatch(getUserClub({ limit: "" }));
     window.scrollTo(0, 0);
