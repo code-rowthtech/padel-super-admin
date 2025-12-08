@@ -167,6 +167,24 @@ const MatchPlayer = ({
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
     }, [dispatch]);
+
+    useEffect(() => {
+        const players = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+        const playerKeys = Object.keys(players).filter(k => k !== 'gameType');
+        if (players.gameType && typeof players.gameType === 'string' && playerKeys.length > 0) {
+            setSelectedGender(players.gameType);
+        } else {
+        }
+    }, []);
+
+    useEffect(() => {
+        const playerKeys = Object.keys(localPlayers).filter(k => k !== 'gameType');
+        if (selectedGender && typeof selectedGender === 'string' && playerKeys.length > 0) {
+            const current = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+            current.gameType = selectedGender;
+            localStorage.setItem("addedPlayers", JSON.stringify(current));
+        } 
+    }, [selectedGender, localPlayers]);
     const handleAddMeClick = (slot) => {
         if (!selectedGender) {
             showError("Please select game type");
@@ -174,6 +192,10 @@ const MatchPlayer = ({
         }
         setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
         setActiveSlot((prev) => (prev === slot ? null : slot));
+    };
+
+    const getEditPlayerData = (slot) => {
+        return localPlayers[slot] || null;
     };
 
     const formatMatchDate = (dateString) => {
@@ -430,7 +452,7 @@ const MatchPlayer = ({
                                         fontSize: "15px",
                                         fontWeight: "500",
                                         fontFamily: "Poppins",
-                                        color: (profileLoading || Object.keys(localPlayers).length > 0) ? "#9CA3AF" : (selectedGender === '' ? "#1F41BB" : "#000000"),
+                                        color: (profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0) ? "#9CA3AF" : (selectedGender === '' ? "#1F41BB" : "#000000"),
                                         backgroundColor: selectedGender === '' ? "#EEF2FF" : "transparent",
                                         border: selectedGender === '' ? "0px solid #1F41BB" : "none",
                                         borderRadius: "4px",
@@ -441,12 +463,12 @@ const MatchPlayer = ({
                                         backgroundPosition: "right 15px center",
                                         backgroundSize: "15px",
                                         paddingRight: "0px",
-                                        cursor: (profileLoading || Object.keys(localPlayers).length > 0) ? "not-allowed" : "pointer",
+                                        cursor: (profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0) ? "not-allowed" : "pointer",
                                     }}
                                     value={selectedGender}
                                     onChange={(e) => setSelectedGender(e.target.value)}
                                     required
-                                    disabled={profileLoading || Object.keys(localPlayers).length > 0}
+                                    disabled={profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0}
                                 >
                                     <option className="add_font_mobile " value="">Select </option>
                                     <option className="add_font_mobile" value="Male Only">Male Only</option>
@@ -514,7 +536,11 @@ const MatchPlayer = ({
                                             <img src={User.profilePic || updateName?.profile} alt="you" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {userName?.[0]?.toUpperCase() || User?.name?.[0]?.toUpperCase() || "U"}
+                                                {(() => {
+                                                    const name = userName || User?.name || "U";
+                                                    const parts = name.trim().split(/\s+/);
+                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+                                                })()}
                                             </span>
                                         )}
                                     </div>
@@ -539,7 +565,12 @@ const MatchPlayer = ({
                             )}
 
                             {localPlayers.slot2 ? (
-                                <div className="d-flex flex-column align-items-center me-auto mb-3">
+                                <div className="d-flex flex-column align-items-center me-auto mb-3 position-relative">
+                                    <i 
+                                        className="bi bi-pencil-fill position-absolute " 
+                                        style={{ top: 0, right: 10, fontSize: "14px", color: "#181a16ff", cursor: "pointer", zIndex: 10 }}
+                                        onClick={() => handleAddMeClick("slot2")}
+                                    />
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -553,7 +584,11 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot2.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers?.slot2.name?.[0].toUpperCase()}
+                                                {(() => {
+                                                    const name = localPlayers?.slot2?.name || "U";
+                                                    const parts = name.trim().split(/\s+/);
+                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+                                                })()}
                                             </span>
                                         )}
                                     </div>
@@ -585,7 +620,12 @@ const MatchPlayer = ({
 
                         <div className="col-6 d-flex flex-lg-row pe-0 border-start">
                             {localPlayers.slot3 ? (
-                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
+                                <div className="d-flex flex-column align-items-center ms-auto mb-3 position-relative">
+                                    <i 
+                                        className="bi bi-pencil-fill position-absolute" 
+                                        style={{ top: 0, right: 10, fontSize: "14px", color: "green", cursor: "pointer", zIndex: 10 }}
+                                        onClick={() => handleAddMeClick("slot3")}
+                                    />
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -599,7 +639,11 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot3.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers?.slot3?.name?.[0].toUpperCase()}
+                                                {(() => {
+                                                    const name = localPlayers?.slot3?.name || "U";
+                                                    const parts = name.trim().split(/\s+/);
+                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+                                                })()}
                                             </span>
                                         )}
                                     </div>
@@ -629,7 +673,12 @@ const MatchPlayer = ({
                             )}
 
                             {localPlayers.slot4 ? (
-                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
+                                <div className="d-flex flex-column align-items-center ms-auto mb-3 position-relative">
+                                    <i 
+                                        className="bi bi-pencil-fill position-absolute" 
+                                        style={{ top: 0, right: 10, fontSize: "14px", color: "green", cursor: "pointer", zIndex: 10 }}
+                                        onClick={() => handleAddMeClick("slot4")}
+                                    />
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -643,7 +692,11 @@ const MatchPlayer = ({
                                             <img src={localPlayers.slot4.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                         ) : (
                                             <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {localPlayers?.slot4?.name?.[0].toUpperCase()}
+                                                {(() => {
+                                                    const name = localPlayers?.slot4?.name || "U";
+                                                    const parts = name.trim().split(/\s+/);
+                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+                                                })()}
                                             </span>
                                         )}
                                     </div>
@@ -835,6 +888,7 @@ const MatchPlayer = ({
                 defaultSkillLevel={defaultSkillLevel}
                 selectedGender={selectedGender}
                 profileLoading={profileLoading}
+                editPlayerData={getEditPlayerData(activeSlot)}
             />
         </>
     );

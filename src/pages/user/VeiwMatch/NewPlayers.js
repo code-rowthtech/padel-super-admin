@@ -30,7 +30,8 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender, defaultSkillLevel, profileLoading
+  userSkillLevel, selectedGender, defaultSkillLevel, profileLoading,
+  editPlayerData
 }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -153,8 +154,11 @@ const NewPlayers = ({
         };
 
         const current = getAddedPlayers();
-        const updated = { ...current, [activeSlot]: playerData };
-        localStorage.setItem("addedPlayers", JSON.stringify(updated));
+        current[activeSlot] = playerData;
+        if (selectedGender && typeof selectedGender === 'string') {
+          current.gameType = selectedGender;
+        }
+        localStorage.setItem("addedPlayers", JSON.stringify(current));
 
         window.dispatchEvent(new Event("playersUpdated"));
 
@@ -223,15 +227,60 @@ const NewPlayers = ({
   });
 
   const isGenderDisabled = (optionGender) => {
-    const matchGender = selectedGender?.toLowerCase();
+    if (!selectedGender || typeof selectedGender !== 'string') return false;
+    const matchGender = selectedGender.toLowerCase();
     return matchGender && matchGender !== optionGender.toLowerCase();
   };
 
   useEffect(() => {
-    if (showAddMeForm && selectedGender) {
-      setFormData((prev) => ({ ...prev, type: selectedGender }));
+    if (showAddMeForm) {
+      if (editPlayerData) {
+        setFormData({
+          name: editPlayerData.name || "",
+          email: editPlayerData.email || "",
+          phoneNumber: editPlayerData.phoneNumber || "",
+          gender: editPlayerData.type || "",
+          level: editPlayerData.level || "",
+          type: selectedGender || "",
+        });
+        setUserEnteredData({
+          name: editPlayerData.name || "",
+          email: editPlayerData.email || "",
+          gender: editPlayerData.type || "",
+        });
+      } else if (selectedGender) {
+        let autoGender = '';
+        if (selectedGender === 'Male Only') {
+          autoGender = 'Male';
+        } else if (selectedGender === 'Female Only') {
+          autoGender = 'Female';
+        } else if (selectedGender === 'Mixed Double') {
+          autoGender = 'Other';
+        }
+        setFormData((prev) => ({ ...prev, type: selectedGender, gender: autoGender }));
+      }
+    } else {
+      setFormData({
+        name: "",
+        email: "",
+        phoneNumber: "",
+        gender: "",
+        level: "",
+        type: "",
+      });
+      setUserEnteredData({
+        name: "",
+        email: "",
+        gender: "",
+      });
+      setOriginalUserData({
+        name: "",
+        email: "",
+        gender: "",
+      });
+      setLastSearchedNumber("");
     }
-  }, [showAddMeForm, selectedGender]);
+  }, [showAddMeForm, selectedGender, editPlayerData]);
 
   useEffect(() => {
     const phoneLength = formData?.phoneNumber?.length || 0;
@@ -264,14 +313,11 @@ const NewPlayers = ({
       setFormData(prev => ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email,
-        gender: searchUserData.result[0].gender || userEnteredData.gender
+        email: searchUserData.result[0].email || userEnteredData.email
       }));
-      // Update userEnteredData with API data so user can modify it
       setUserEnteredData({
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email,
-        gender: searchUserData.result[0].gender || userEnteredData.gender
+        email: searchUserData.result[0].email || userEnteredData.email
       });
     }
   }, [searchUserData, formData?.phoneNumber]);
@@ -324,7 +370,7 @@ const NewPlayers = ({
               onChange={(e) => {
                 let v = e.target.value;
                 if (/^[A-Za-z\s]*$/.test(v)) {
-                  if (v.length > 30) v = v.slice(0, 30);
+                  if (v.length > 20) v = v.slice(0, 20);
                   const formatted = v
                     .trimStart()
                     .replace(/\s+/g, " ")
@@ -450,31 +496,37 @@ const NewPlayers = ({
                 { value: "Male", label: "Male" },
                 { value: "Female", label: "Female" },
                 { value: "Other", label: "Other" },
-              ].map((g) => (
-                <div key={g.value} className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="gender"
-                    id={g.value}
-                    value={g.value}
-                    disabled={searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value}
-                    checked={formData.gender?.trim() === g.value}
-                    onChange={(e) => {
-                      setFormData((prev) => ({ ...prev, gender: e.target.value }));
-                      setErrors((prev) => ({ ...prev, gender: "" }));
-                      setShowErrors((prev) => ({ ...prev, gender: false }));
-                    }}
-                    style={{ boxShadow: "none" }}
-                  />
-                  <label
-                    className={`form-check-label ${searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value ? "text-muted" : ""}`}
-                    htmlFor={g.value}
-                  >
-                    {g.label}
-                  </label>
-                </div>
-              ))}
+              ].map((g) => {
+                const isAutoSelected = selectedGender === 'Male Only' || selectedGender === 'Female Only' || selectedGender === 'Mixed Double';
+                const isAutoDisabled = isAutoSelected && formData.gender && formData.gender !== g.value;
+                const isDisabled = isAutoDisabled;
+                
+                return (
+                  <div key={g.value} className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="gender"
+                      id={g.value}
+                      value={g.value}
+                      disabled={isDisabled}
+                      checked={formData.gender?.trim() === g.value}
+                      onChange={(e) => {
+                        setFormData((prev) => ({ ...prev, gender: e.target.value }));
+                        setErrors((prev) => ({ ...prev, gender: "" }));
+                        setShowErrors((prev) => ({ ...prev, gender: false }));
+                      }}
+                      style={{ boxShadow: "none" }}
+                    />
+                    <label
+                      className={`form-check-label ${isDisabled ? "text-muted" : ""}`}
+                      htmlFor={g.value}
+                    >
+                      {g.label}
+                    </label>
+                  </div>
+                );
+              })}
             </div>
             {showErrors.gender && errors.gender && (
               <small

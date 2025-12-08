@@ -5,14 +5,16 @@ import { padal, club, player } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
 import { DataLoading, ButtonLoading } from "../../../helpers/loading/Loaders";
-import { Avatar, Tooltip, Modal, Box, Button } from "@mui/material";
+import { Avatar, Modal, Box, Button } from "@mui/material";
+import { Tooltip } from 'react-tooltip';
 import { Offcanvas } from "react-bootstrap";
-import { FaTrash } from "react-icons/fa";
+import { FaArrowLeft, FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thunk";
 import { showSuccess, showError } from "../../../helpers/Toast";
+import ChatPopup from "./ChatPopup";
 
 const PlayerSlot = memo(function PlayerSlot({
     player,
@@ -98,33 +100,28 @@ const PlayerSlot = memo(function PlayerSlot({
                 )}
             </div>
 
-            {user.name && user.name.length > 12 ? (
-                <>
-                    <span
-                        data-tooltip-id={tooltipId}
-                        data-tooltip-content={user.name}
-                        className="mb-0 mt-2"
-                        style={{
-                            maxWidth: 150,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            display: "inline-block",
-                            cursor: "pointer", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins"
-                        }}
-                    >
-                        {user.name.slice(0, 12)}...
-                    </span>
-                    <Tooltip id={tooltipId} place="top" effect="solid" />
-                </>
-            ) : (
-                <p className="mb-0 mt-2 fw-semibold text-center"
-                    style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                    {user.name
+            <p 
+                className="mb-0 mt-2 fw-semibold text-center"
+                data-tooltip-id={user.name && user.name.length > 12 ? tooltipId : undefined}
+                data-tooltip-content={user.name && user.name.length > 12 ? user.name : undefined}
+                style={{ 
+                    maxWidth: 150, 
+                    overflow: "hidden", 
+                    textOverflow: "ellipsis", 
+                    whiteSpace: "nowrap", 
+                    fontSize: "12px", 
+                    fontWeight: "500", 
+                    fontFamily: "Poppins",
+                    cursor: user.name && user.name.length > 12 ? "pointer" : "default"
+                }}
+            >
+                {user.name && user.name.length > 12
+                    ? user.name.slice(0, 12) + "..."
+                    : user.name
                         ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
                         : "Unknown"}
-                </p>
-            )}
+            </p>
+            {user.name && user.name.length > 12 && <Tooltip id={tooltipId} />}
             <span
                 className="badge text-white"
                 style={{ backgroundColor: team === "A" ? "#3DBE64" : "#1F41BB" }}
@@ -814,11 +811,11 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                             >
                                                 {player?.requesterId?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                                             </div>
-                                            <div>
-                                                <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins" }}>
+                                            <div style={{ maxWidth: "200px" }}>
+                                                <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", wordBreak: "break-word" }}>
                                                     {player?.requesterId?.name}
                                                 </h6>
-                                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, fontFamily: "Poppins" }}>
+                                                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, fontFamily: "Poppins", wordBreak: "break-word" }}>
                                                     {player?.requesterId?.email}
                                                 </p>
                                                 <p className="mb-0 text-decoration-none" style={{ fontSize: "12px", color: "#007bff", fontFamily: "Poppins", cursor: "pointer", textDecoration: "underline" }}
@@ -937,6 +934,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                     });
                             }}
                             disabled={!rejectReason.trim()}
+                            className="text-white"
                             sx={{
                                 background: "linear-gradient(180deg, #dc3545 0%, #a71d2a 100%)",
                                 color: "white",
@@ -1004,116 +1002,12 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 </Box>
             </Modal >
 
-            <Modal 
-                open={showChat} 
-                onClose={() => setShowChat(false)}
-                sx={{
-                    display: 'flex',
-                    alignItems: { xs: 'flex-end', md: 'center' },
-                    justifyContent: 'center'
-                }}
-            >
-                <Box sx={{
-                    position: 'relative',
-                    width: { xs: '100%', md: '450px' },
-                    height: { xs: '100vh', md: '600px' },
-                    bgcolor: 'background.paper',
-                    borderRadius: { xs: 0, md: 2 },
-                    boxShadow: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    outline: 'none'
-                }}>
-                    {/* Header */}
-                    <div className="d-flex align-items-center justify-content-between p-3 border-bottom" style={{ backgroundColor: '#F5F5F5' }}>
-                        <div className="d-flex align-items-center gap-2">
-                            <button
-                                className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center d-md-none"
-                                style={{ width: 36, height: 36 }}
-                                onClick={() => setShowChat(false)}
-                            >
-                                <i className="bi bi-arrow-left" />
-                            </button>
-                            <div>
-                                <h6 className="mb-0" style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'Poppins' }}>Match Chat</h6>
-                                <p className="mb-0" style={{ fontSize: '12px', color: '#6B7280' }}>4 Players</p>
-                            </div>
-                        </div>
-                        <button
-                            className="btn btn-light rounded-circle p-2 d-none d-md-flex align-items-center justify-content-center"
-                            style={{ width: 36, height: 36 }}
-                            onClick={() => setShowChat(false)}
-                        >
-                            <i className="bi bi-x-lg" />
-                        </button>
-                    </div>
-
-                    {/* Team Names */}
-                    <div className="d-flex justify-content-between p-2 border-bottom" style={{ backgroundColor: '#FAFAFA' }}>
-                        <div className="d-flex align-items-center gap-2">
-                            <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#3DBE64' }} />
-                            <span style={{ fontSize: '12px', fontWeight: 500, color: '#3DBE64' }}>Team A</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1F41BB' }} />
-                            <span style={{ fontSize: '12px', fontWeight: 500, color: '#1F41BB' }}>Team B</span>
-                        </div>
-                    </div>
-
-                    {/* Chat Messages Area */}
-                    <div className="flex-grow-1 p-3" style={{ overflowY: 'auto', backgroundColor: '#FAFAFA' }}>
-                        <div className="text-center text-muted" style={{ fontSize: '14px', marginTop: '50%' }}>
-                            <i className="bi bi-chat-dots" style={{ fontSize: '48px', opacity: 0.3 }} />
-                            <p className="mt-2">No messages yet</p>
-                            <p style={{ fontSize: '12px' }}>Start the conversation!</p>
-                        </div>
-                    </div>
-
-                    {/* Input Area */}
-                    <div className="p-3 border-top" style={{ backgroundColor: '#fff' }}>
-                        <div className="d-flex gap-2 align-items-center">
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Type a message..."
-                                value={chatMessage}
-                                onChange={(e) => setChatMessage(e.target.value)}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' && chatMessage.trim()) {
-                                        // Handle send message
-                                        setChatMessage('');
-                                    }
-                                }}
-                                style={{
-                                    borderRadius: '20px',
-                                    border: '1px solid #E5E7EB',
-                                    padding: '10px 16px',
-                                    fontSize: '14px'
-                                }}
-                            />
-                            <button
-                                className="btn rounded-circle d-flex align-items-center justify-content-center"
-                                style={{
-                                    width: 40,
-                                    height: 40,
-                                    background: chatMessage.trim() ? 'linear-gradient(180deg, #0034E4 0%, #001B76 100%)' : '#E5E7EB',
-                                    border: 'none',
-                                    color: 'white'
-                                }}
-                                disabled={!chatMessage.trim()}
-                                onClick={() => {
-                                    if (chatMessage.trim()) {
-                                        // Handle send message
-                                        setChatMessage('');
-                                    }
-                                }}
-                            >
-                                <i className="bi bi-send-fill" />
-                            </button>
-                        </div>
-                    </div>
-                </Box>
-            </Modal>
+            <ChatPopup 
+                showChat={showChat}
+                setShowChat={setShowChat}
+                chatMessage={chatMessage}
+                setChatMessage={setChatMessage}
+            />
 
         </>
     );

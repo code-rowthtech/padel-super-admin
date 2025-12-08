@@ -42,6 +42,7 @@ const UpdatePlayers = ({
   selectedLevel, matchesData,
   playerLevels,
 }) => {
+  console.log({matchId});
   const dispatch = useDispatch();
   const User = getUserFromSession();
   const store = useSelector((state) => state);
@@ -224,9 +225,38 @@ const UpdatePlayers = ({
   });
 
   useEffect(() => {
-    if (!matchId?.gender) return;
-    setFormData((prev) => ({ ...prev, type: matchId.gender }));
-  }, [matchId?.gender]);
+    if (showModal && matchId?.gender) {
+      let autoGender = '';
+      if (matchId.gender === 'Male Only') {
+        autoGender = 'Male';
+      } else if (matchId.gender === 'Female Only') {
+        autoGender = 'Female';
+      } else if (matchId.gender === 'Mixed Double') {
+        autoGender = 'Other';
+      }
+      setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
+    } else if (!showModal) {
+      setFormData({
+        name: "",
+        email: "",
+        phoneNumber: "",
+        gender: "",
+        level: "",
+        type: "",
+      });
+      setUserEnteredData({
+        name: "",
+        email: "",
+        gender: "",
+      });
+      setOriginalUserData({
+        name: "",
+        email: "",
+        gender: "",
+      });
+      setLastSearchedNumber("");
+    }
+  }, [showModal, matchId?.gender]);
 
   useEffect(() => {
     const phoneLength = formData?.phoneNumber?.length || 0;
@@ -238,7 +268,7 @@ const UpdatePlayers = ({
         email: userEnteredData.email,
         gender: userEnteredData.gender
       });
-      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData.type }));
       setLastSearchedNumber(formData.phoneNumber);
     } else if (phoneLength < 10 && lastSearchedNumber) {
       // Only restore when coming from a 10-digit number
@@ -260,14 +290,14 @@ const UpdatePlayers = ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
         email: searchUserData.result[0].email || userEnteredData.email,
-        gender: searchUserData.result[0].gender || userEnteredData.gender
+        // gender: searchUserData.result[0].gender || userEnteredData.gender
 
       }));
       // Update userEnteredData with API data so user can modify it
       setUserEnteredData({
         name: searchUserData.result[0].name || userEnteredData.name,
         email: searchUserData.result[0].email || userEnteredData.email,
-        gender: searchUserData.result[0].gender || userEnteredData.gender
+        // gender: searchUserData.result[0].gender || userEnteredData.gender
 
       });
     }
@@ -297,6 +327,7 @@ const UpdatePlayers = ({
               onChange={(e) => {
                 let v = e.target.value;
                 if (!v || /^[A-Za-z\s]*$/.test(v)) {
+                  if (v.length > 20) v = v.slice(0, 20);
                   v = v.trimStart().replace(/\s+/g, " ");
                   const formatted = v.replace(/\b\w/g, (l) => l.toUpperCase());
                   setFormData((prev) => ({ ...prev, name: formatted }));
@@ -401,31 +432,37 @@ const UpdatePlayers = ({
                 { value: "Male", label: "Male" },
                 { value: "Female", label: "Female" },
                 { value: "Other", label: "Other" },
-              ].map((g) => (
-                <div key={g.value} className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="gender"
-                    id={g.value}
-                    value={g.value}
-                    disabled={searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value}
-                    checked={formData.gender?.trim() === g.value}
-                    onChange={(e) => {
-                      setFormData((prev) => ({ ...prev, gender: e.target.value }));
-                      setErrors((prev) => ({ ...prev, gender: "" }));
-                      setShowErrors((prev) => ({ ...prev, gender: false }));
-                    }}
-                    style={{boxShadow:"none"}}
-                  />
-                  <label
-                    className={`form-check-label ${searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value ? "text-muted" : ""}`}
-                    htmlFor={g.value}
-                  >
-                    {g.label}
-                  </label>
-                </div>
-              ))}
+              ].map((g) => {
+                const isAutoSelected = matchId?.gender === 'Male Only' || matchId?.gender === 'Female Only' || matchId?.gender === 'Mixed Double';
+                const isAutoDisabled = isAutoSelected && formData.gender && formData.gender !== g.value;
+                const isDisabled = isAutoDisabled;
+                
+                return (
+                  <div key={g.value} className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="gender"
+                      id={g.value}
+                      value={g.value}
+                      disabled={isDisabled}
+                      checked={formData.gender?.trim() === g.value}
+                      onChange={(e) => {
+                        setFormData((prev) => ({ ...prev, gender: e.target.value }));
+                        setErrors((prev) => ({ ...prev, gender: "" }));
+                        setShowErrors((prev) => ({ ...prev, gender: false }));
+                      }}
+                      style={{boxShadow:"none"}}
+                    />
+                    <label
+                      className={`form-check-label ${isDisabled ? "text-muted" : ""}`}
+                      htmlFor={g.value}
+                    >
+                      {g.label}
+                    </label>
+                  </div>
+                );
+              })}
             </div>
             {showErrors.gender && errors.gender && (
               <small className="text-danger d-block mt-1">{errors.gender}</small>
