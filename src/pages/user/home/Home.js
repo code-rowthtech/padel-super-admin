@@ -90,7 +90,6 @@ const Home = () => {
     averageRating: 4.8 // Updated average with fake reviews
   };
 
-  console.log({ getReviewData });
   const handleImageLoad = (index) => {
     setLoadedImages((prev) => ({ ...prev, [index]: true }));
   };

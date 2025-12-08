@@ -436,7 +436,6 @@ const Booking = ({ className = "" }) => {
 
     const bookingResponse = await dispatch(createBooking(payload)).unwrap();
 
-    console.log({ bookingResponse });
     if (bookingResponse?.success === true) {
 
       if (totalSlots === 0) {

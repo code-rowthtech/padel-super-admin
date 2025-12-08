@@ -18,7 +18,6 @@ export const getOwnerRegisteredClub = createAsyncThunk(
 
       const { status, data, message } = res?.data || {};
       if (status === 200 || "200") {
-        console.log("Registered Club Data:", data);
         return data;
       }
 

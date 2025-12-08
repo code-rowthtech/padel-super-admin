@@ -21,7 +21,6 @@ const Profile = () => {
     (state) => state?.manualBooking
   );
 
-  console.log("ownerClubLoading", ownerClubLoading);
   const statedate = useSelector(
     (state) => state.manualBooking?.ownerClubData?.[0]?.logo
   );
@@ -87,7 +86,6 @@ const Profile = () => {
         dispatch(updateRegisteredClub(formData))
           .unwrap()
           .then((res) => {
-            console.log({ res });
             if (res?.message === "res") {
               dispatch(getOwnerRegisteredClub({ ownerId }));
             }

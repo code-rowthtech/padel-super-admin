@@ -368,8 +368,6 @@ const Booking = () => {
                     </thead>
                     <tbody>
                       {bookings.map((item, idx) => (
-                        console.log(item?.bookingType, 'itemitem'),
-
                         <tr
                           key={item?._id}
                           className="table-data border-bottom align-middle text-center"
