@@ -475,7 +475,7 @@ const UpdatePlayers = ({
             </Button>
             <Button
               onClick={handleAddPlayer}
-              disabled={loading }
+              disabled={loading}
               sx={{
                 background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                 color: "white",
