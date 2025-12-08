@@ -98,17 +98,15 @@ const OpenmatchPayment = () => {
         const saved = localStorage.getItem("addedPlayers");
         if (saved) {
             const players = JSON.parse(saved);
-            const updatedPlayers = {};
             Object.keys(players).forEach(slot => {
-                if (players[slot]) {
-                    updatedPlayers[slot] = {
-                        ...players[slot],
-                        _id: players[slot]._id?.includes('_') ? players[slot]._id : `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                    };
+                if (slot !== 'gameType' && players[slot] && typeof players[slot] === 'object') {
+                    if (!players[slot]?._id) {
+                        players[slot]._id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    }
                 }
             });
-            localStorage.setItem("addedPlayers", JSON.stringify(updatedPlayers));
-            return updatedPlayers;
+            localStorage.setItem("addedPlayers", JSON.stringify(players));
+            return players;
         }
         return {};
     });
