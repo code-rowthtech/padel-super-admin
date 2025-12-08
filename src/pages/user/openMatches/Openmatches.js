@@ -268,9 +268,6 @@ const Openmatches = () => {
 
   const filteredMatches = useMemo(() => {
     let matches = matchesData?.data || [];
-    console.log('Raw matches data:', matches);
-    console.log('Active tab:', activeTab);
-
     if (matchFilter === "my") {
       matches = matches.filter((match) =>
         match?.teamA?.some(p => p?.userId?._id === user?._id) ||
@@ -284,10 +281,7 @@ const Openmatches = () => {
 
     const tabLabels = ["morning", "noon", "night"];
     const currentTab = tabLabels[activeTab];
-    console.log('Current tab:', currentTab);
-
     const filtered = getMatchesForTab(currentTab, matches);
-    console.log('Filtered matches:', filtered);
     return filtered;
   }, [showUnavailableOnly, matchesData, activeTab]);
 

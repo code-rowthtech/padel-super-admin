@@ -24,10 +24,10 @@ const modalStyle = {
   width: { xs: "90%", sm: "80%", md: 500 },
   maxWidth: "500px",
   bgcolor: "background.paper",
-  p: { xs: 2, md: 4 },
+  p: { xs: 2, md: 3 },
   borderRadius: 2,
   border: "none",
-  maxHeight: "90vh",
+  maxHeight: "85vh",
   overflowY: "auto",
   boxShadow: 24,
 };
@@ -51,14 +51,17 @@ const UpdatePlayers = ({
     phoneNumber: "",
     gender: "",
     level: "",
+    type: "",
   });
   const [userEnteredData, setUserEnteredData] = useState({
     name: "",
     email: "",
+    gender: "",
   });
   const [originalUserData, setOriginalUserData] = useState({
     name: "",
     email: "",
+    gender: "",
   });
   const [lastSearchedNumber, setLastSearchedNumber] = useState("");
   const [errors, setErrors] = useState({});
@@ -70,11 +73,9 @@ const UpdatePlayers = ({
   );
   const requestLoading = useSelector((state) => state?.userPlayerRequest?.requestCreateLoading || false
   );
-  console.log({ requestLoading });
   const searchUserData = useSelector(
     (state) => state.searchUserByNumber.getSearchData
   );
-  console.log({ searchUserData });
   const searchUserDataLoading = useSelector(
     (state) => state.searchUserByNumber.getSearchLoading
   );
@@ -106,6 +107,7 @@ const UpdatePlayers = ({
       if (!isMatchCreator && !value) return "Phone number is required";
       if (value && !/^[6-9]\d{9}$/.test(value)) return "Invalid phone number";
     }
+    if (name === "gender" && !value) return "Gender is required";
     if (name === "level" && !value) return "Please select a level";
     return "";
   };
@@ -120,7 +122,7 @@ const UpdatePlayers = ({
 
   const handleAddPlayer = () => {
     const newErrors = {};
-    ["name", "phoneNumber", "level"].forEach((field) => {
+    ["name", "phoneNumber", "gender", "level"].forEach((field) => {
       newErrors[field] = validateField(field, formData[field]);
     });
     // Only validate email if it's provided
@@ -185,21 +187,24 @@ const UpdatePlayers = ({
                 phoneNumber: "",
                 gender: "",
                 level: "",
+                type: "",
               });
               setUserEnteredData({
                 name: "",
                 email: "",
+                gender: "",
               });
               setOriginalUserData({
                 name: "",
                 email: "",
+                gender: "",
               });
             });
         }
       })
       .catch((err) => {
         const errorMsg = err?.message || err?.error || "Failed to send request";
-        showError(errorMsg);
+        // showError(errorMsg);
       });
   };
 
@@ -220,7 +225,7 @@ const UpdatePlayers = ({
 
   useEffect(() => {
     if (!matchId?.gender) return;
-    setFormData((prev) => ({ ...prev, gender: matchId.gender }));
+    setFormData((prev) => ({ ...prev, type: matchId.gender }));
   }, [matchId?.gender]);
 
   useEffect(() => {
@@ -230,7 +235,8 @@ const UpdatePlayers = ({
       // Save original user data before API call
       setOriginalUserData({
         name: userEnteredData.name,
-        email: userEnteredData.email
+        email: userEnteredData.email,
+        gender: userEnteredData.gender
       });
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
       setLastSearchedNumber(formData.phoneNumber);
@@ -239,7 +245,8 @@ const UpdatePlayers = ({
       setFormData(prev => ({
         ...prev,
         name: originalUserData.name,
-        email: originalUserData.email
+        email: originalUserData.email,
+        gender: originalUserData.gender
       }));
       setUserEnteredData(originalUserData);
       setLastSearchedNumber("");
@@ -252,12 +259,16 @@ const UpdatePlayers = ({
       setFormData(prev => ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email
+        email: searchUserData.result[0].email || userEnteredData.email,
+        gender: searchUserData.result[0].gender || userEnteredData.gender
+
       }));
       // Update userEnteredData with API data so user can modify it
       setUserEnteredData({
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email
+        email: searchUserData.result[0].email || userEnteredData.email,
+        gender: searchUserData.result[0].gender || userEnteredData.gender
+
       });
     }
   }, [searchUserData, formData?.phoneNumber]);
@@ -304,13 +315,14 @@ const UpdatePlayers = ({
               Phone No {matchId?.teamA?.[0]?.userId?._id !== User?._id && <span className="text-danger">*</span>}
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
-              <span className="input-group-text border-0 border-end bg-white" style={{ fontSize: "11px" }}>
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" /> +91
+              <span className="input-group-text border-0 bg-white d-flex mt-1 align-items-center" style={{ fontSize: "11px"}}>
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" />
+                +91
               </span>
               <input
                 type="text"
                 maxLength={10}
-                className="form-control border-0 p-2"
+                className="form-control border-0"
                 placeholder="Enter phone"
                 value={formData.phoneNumber}
                 onChange={(e) => {
@@ -322,7 +334,7 @@ const UpdatePlayers = ({
                     setFormData((prev) => ({ ...prev, phoneNumber: v }));
                   }
                 }}
-                style={{ boxShadow: "none" }}
+                style={{ boxShadow: "none", padding: "0.5rem" }}
               />
             </div>
             {showErrors.phoneNumber && errors.phoneNumber && (
@@ -362,13 +374,13 @@ const UpdatePlayers = ({
                   <input
                     className="form-check-input"
                     type="radio"
-                    name="gender"
+                    name="type"
                     id={g.value}
                     value={g.value}
                     disabled={isGenderDisabled(g.value)}
-                    checked={formData.gender === g.value}
+                    checked={formData.type === g.value}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, gender: e.target.value }))
+                      setFormData((prev) => ({ ...prev, type: e.target.value }))
                     }
                   />
                   <label
@@ -382,6 +394,43 @@ const UpdatePlayers = ({
             </div>
           </div>
 
+          <div className="mb-md-2 mb-1">
+            <label className="form-label label_font mb-1">Gender <span className="text-danger">*</span></label>
+            <div className="d-flex gap-3">
+              {[
+                { value: "Male", label: "Male" },
+                { value: "Female", label: "Female" },
+                { value: "Other", label: "Other" },
+              ].map((g) => (
+                <div key={g.value} className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="gender"
+                    id={g.value}
+                    value={g.value}
+                    disabled={searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value}
+                    checked={formData.gender?.trim() === g.value}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, gender: e.target.value }));
+                      setErrors((prev) => ({ ...prev, gender: "" }));
+                      setShowErrors((prev) => ({ ...prev, gender: false }));
+                    }}
+                    style={{boxShadow:"none"}}
+                  />
+                  <label
+                    className={`form-check-label ${searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value ? "text-muted" : ""}`}
+                    htmlFor={g.value}
+                  >
+                    {g.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+            {showErrors.gender && errors.gender && (
+              <small className="text-danger d-block mt-1">{errors.gender}</small>
+            )}
+          </div>
 
 
           <div className="mb-md-4 mb-3">

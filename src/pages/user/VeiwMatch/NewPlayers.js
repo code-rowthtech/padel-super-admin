@@ -17,11 +17,11 @@ const modalStyle = {
   width: { xs: "90%", sm: "80%", md: 500 },
   maxWidth: "500px",
   bgcolor: "background.paper",
-  p: { xs: 2, md: 4 },
+  p: { xs: 2, md: 3 },
   borderRadius: 2,
   border: "none",
   zIndex: 1300,
-  maxHeight: "90vh",
+  maxHeight: "85vh",
   overflowY: "auto",
 };
 
@@ -38,14 +38,17 @@ const NewPlayers = ({
     phoneNumber: "",
     gender: "",
     level: "",
+    type: "",
   });
   const [userEnteredData, setUserEnteredData] = useState({
     name: "",
     email: "",
+    gender: "",
   });
   const [originalUserData, setOriginalUserData] = useState({
     name: "",
     email: "",
+    gender: "",
   });
   const [lastSearchedNumber, setLastSearchedNumber] = useState("");
   const [errors, setErrors] = useState({});
@@ -113,6 +116,8 @@ const NewPlayers = ({
       newErrors.phoneNumber = "Must be 10 digits, start with 6-9";
     }
 
+    if (!formData.gender) newErrors.gender = "Gender is required";
+
     if (!formData.level) newErrors.level = "Please select a level";
 
     const added = getAddedPlayers();
@@ -136,16 +141,14 @@ const NewPlayers = ({
     dispatch(Usersignup(formData))
       .unwrap()
       .then((res) => {
-        console.log(res,'resresresresres');
         if (res?.status !== "200" && res?.message == "User already exists") throw new Error("Signup failed");
-
         const playerData = {
           ...res.response,
           _id: res?.response?._id,
           name: formData.name,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
-          gender: formData.gender,
+          type: formData.gender,
           level: formData.level,
         };
 
@@ -162,14 +165,17 @@ const NewPlayers = ({
           phoneNumber: "",
           gender: "",
           level: "",
+          type: "",
         });
         setUserEnteredData({
           name: "",
           email: "",
+          gender: "",
         });
         setOriginalUserData({
           name: "",
           email: "",
+          gender: "",
         });
         setShowAddMeForm(false);
         setActiveSlot(null);
@@ -223,7 +229,7 @@ const NewPlayers = ({
 
   useEffect(() => {
     if (showAddMeForm && selectedGender) {
-      setFormData((prev) => ({ ...prev, gender: selectedGender }));
+      setFormData((prev) => ({ ...prev, type: selectedGender }));
     }
   }, [showAddMeForm, selectedGender]);
 
@@ -234,7 +240,8 @@ const NewPlayers = ({
       // Save original user data before API call
       setOriginalUserData({
         name: userEnteredData.name,
-        email: userEnteredData.email
+        email: userEnteredData.email,
+        gender: userEnteredData.gender
       });
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
       setLastSearchedNumber(formData.phoneNumber);
@@ -243,7 +250,8 @@ const NewPlayers = ({
       setFormData(prev => ({
         ...prev,
         name: originalUserData.name,
-        email: originalUserData.email
+        email: originalUserData.email,
+        gender: originalUserData.gender
       }));
       setUserEnteredData(originalUserData);
       setLastSearchedNumber("");
@@ -256,12 +264,14 @@ const NewPlayers = ({
       setFormData(prev => ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email
+        email: searchUserData.result[0].email || userEnteredData.email,
+        gender: searchUserData.result[0].gender || userEnteredData.gender
       }));
       // Update userEnteredData with API data so user can modify it
       setUserEnteredData({
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email
+        email: searchUserData.result[0].email || userEnteredData.email,
+        gender: searchUserData.result[0].gender || userEnteredData.gender
       });
     }
   }, [searchUserData, formData?.phoneNumber]);
@@ -280,19 +290,22 @@ const NewPlayers = ({
           phoneNumber: "",
           gender: "",
           level: "",
+          type: "",
         });
         setUserEnteredData({
           name: "",
           email: "",
+          gender: "",
         });
         setOriginalUserData({
           name: "",
           email: "",
+          gender: "",
         });
         dispatch(resetSearchData());
       }}
     >
-      <Box sx={modalStyle} style={{ overflowY: "visible" }} className="p-md-3 px-2 py-3">
+      <Box sx={modalStyle} className="p-md-3 px-2 py-3">
         <h6
           className="mb-2 text-center"
           style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}
@@ -339,9 +352,9 @@ const NewPlayers = ({
             <label className="form-label label_font mb-1">
               Phone No
             </label>
-            <div className="input-group border rounded">
-              <span className="input-group-text border-0 p-2 bg-white" style={{ fontSize: "11px" }}>
-                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" />{" "}
+            <div className="input-group" style={inputStyle("phoneNumber")}>
+              <span className="input-group-text border-0 mt-1 bg-white d-flex align-items-center" style={{ fontSize: "11px",}}>
+                <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" />
                 +91
               </span>
               <input
@@ -354,9 +367,9 @@ const NewPlayers = ({
                     handleInputChange("phoneNumber", v);
                   }
                 }}
-                style={inputStyle("phoneNumber")}
-                className="form-control border-0 p-2"
+                className="form-control border-0"
                 placeholder="Enter phone number"
+                style={{ boxShadow: "none", padding: "0.5rem" }}
               />
             </div>
             {showErrors.phoneNumber && errors.phoneNumber && (
@@ -410,13 +423,13 @@ const NewPlayers = ({
                   <input
                     className="form-check-input"
                     type="radio"
-                    name="gender"
+                    name="type"
                     id={g.value}
                     value={g.value}
                     disabled={isGenderDisabled(g.value)}
-                    checked={formData.gender === g.value}
+                    checked={formData.type === g.value}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, gender: e.target.value }))
+                      setFormData((prev) => ({ ...prev, type: e.target.value }))
                     }
                   />
                   <label
@@ -428,6 +441,49 @@ const NewPlayers = ({
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="mb-md-2 mb-1">
+            <label className="form-label label_font mb-1">Gender <span className="text-danger">*</span></label>
+            <div className="d-flex gap-3">
+              {[
+                { value: "Male", label: "Male" },
+                { value: "Female", label: "Female" },
+                { value: "Other", label: "Other" },
+              ].map((g) => (
+                <div key={g.value} className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="gender"
+                    id={g.value}
+                    value={g.value}
+                    disabled={searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value}
+                    checked={formData.gender?.trim() === g.value}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, gender: e.target.value }));
+                      setErrors((prev) => ({ ...prev, gender: "" }));
+                      setShowErrors((prev) => ({ ...prev, gender: false }));
+                    }}
+                    style={{ boxShadow: "none" }}
+                  />
+                  <label
+                    className={`form-check-label ${searchUserData?.result?.[0]?.gender && searchUserData.result[0].gender.trim() !== g.value ? "text-muted" : ""}`}
+                    htmlFor={g.value}
+                  >
+                    {g.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+            {showErrors.gender && errors.gender && (
+              <small
+                className="text-danger d-block mt-1"
+                style={{ fontSize: "12px" }}
+              >
+                {errors.gender}
+              </small>
+            )}
           </div>
 
           <div className="mb-md-3 mb-2">
