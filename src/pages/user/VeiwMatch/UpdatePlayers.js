@@ -198,7 +198,7 @@ const UpdatePlayers = ({
         }
       })
       .catch((err) => {
-        const errorMsg = err?.message || err?.error;
+        const errorMsg = err?.message || err?.error;//|| "Failed to send request";
         showError(errorMsg);
       });
   };
