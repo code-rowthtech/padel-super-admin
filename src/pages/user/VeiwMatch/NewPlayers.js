@@ -259,7 +259,11 @@ const NewPlayers = ({
         }
         setFormData((prev) => ({ ...prev, type: selectedGender, gender: autoGender }));
       }
-    } else {
+    }
+  }, [showAddMeForm, selectedGender, editPlayerData]);
+
+  useEffect(() => {
+    if (!showAddMeForm) {
       setFormData({
         name: "",
         email: "",
@@ -279,14 +283,14 @@ const NewPlayers = ({
         gender: "",
       });
       setLastSearchedNumber("");
+      dispatch(resetSearchData());
     }
-  }, [showAddMeForm, selectedGender, editPlayerData]);
+  }, [showAddMeForm, dispatch]);
 
   useEffect(() => {
     const phoneLength = formData?.phoneNumber?.length || 0;
 
     if (phoneLength === 10 && formData.phoneNumber !== lastSearchedNumber) {
-      // Save original user data before API call
       setOriginalUserData({
         name: userEnteredData.name,
         email: userEnteredData.email,
@@ -309,7 +313,7 @@ const NewPlayers = ({
   }, [formData?.phoneNumber, dispatch]);
 
   useEffect(() => {
-    if (searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
+    if (showAddMeForm && searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
       setFormData(prev => ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
@@ -320,7 +324,7 @@ const NewPlayers = ({
         email: searchUserData.result[0].email || userEnteredData.email
       });
     }
-  }, [searchUserData, formData?.phoneNumber]);
+  }, [searchUserData, formData?.phoneNumber, showAddMeForm]);
 
   return (
     <Modal
