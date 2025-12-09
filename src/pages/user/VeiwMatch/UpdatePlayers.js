@@ -42,7 +42,6 @@ const UpdatePlayers = ({
   selectedLevel, matchesData,
   playerLevels,
 }) => {
-  console.log({matchId});
   const dispatch = useDispatch();
   const User = getUserFromSession();
   const store = useSelector((state) => state);
@@ -235,6 +234,7 @@ const UpdatePlayers = ({
         autoGender = 'Other';
       }
       setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
+      setUserEnteredData((prev) => ({ ...prev, gender: autoGender }));
     } else if (!showModal) {
       setFormData({
         name: "",
@@ -262,7 +262,6 @@ const UpdatePlayers = ({
     const phoneLength = formData?.phoneNumber?.length || 0;
 
     if (phoneLength === 10 && formData.phoneNumber !== lastSearchedNumber) {
-      // Save original user data before API call
       setOriginalUserData({
         name: userEnteredData.name,
         email: userEnteredData.email,
@@ -271,37 +270,59 @@ const UpdatePlayers = ({
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData.type }));
       setLastSearchedNumber(formData.phoneNumber);
     } else if (phoneLength < 10 && lastSearchedNumber) {
-      // Only restore when coming from a 10-digit number
+      let gameTypeGender = '';
+      if (matchId?.gender === 'Male Only') {
+        gameTypeGender = 'Male';
+      } else if (matchId?.gender === 'Female Only') {
+        gameTypeGender = 'Female';
+      } else if (matchId?.gender === 'Mixed Double') {
+        gameTypeGender = 'Other';
+      }
+      
       setFormData(prev => ({
         ...prev,
         name: originalUserData.name,
         email: originalUserData.email,
-        gender: originalUserData.gender
+        gender: gameTypeGender
       }));
-      setUserEnteredData(originalUserData);
+      setUserEnteredData({
+        name: originalUserData.name,
+        email: originalUserData.email,
+        gender: gameTypeGender
+      });
       setLastSearchedNumber("");
       dispatch(resetSearchData());
     }
-  }, [formData?.phoneNumber, dispatch]);
+  }, [formData?.phoneNumber, dispatch, matchId?.gender]);
 
   useEffect(() => {
     if (searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
+      const apiGender = searchUserData.result[0].gender;
+      let finalGender = apiGender || userEnteredData.gender;
+      
+      if (!apiGender) {
+        if (matchId?.gender === 'Male Only') {
+          finalGender = 'Male';
+        } else if (matchId?.gender === 'Female Only') {
+          finalGender = 'Female';
+        } else if (matchId?.gender === 'Mixed Double') {
+          finalGender = 'Other';
+        }
+      }
+
       setFormData(prev => ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
         email: searchUserData.result[0].email || userEnteredData.email,
-        // gender: searchUserData.result[0].gender || userEnteredData.gender
-
+        gender: finalGender
       }));
-      // Update userEnteredData with API data so user can modify it
       setUserEnteredData({
         name: searchUserData.result[0].name || userEnteredData.name,
         email: searchUserData.result[0].email || userEnteredData.email,
-        // gender: searchUserData.result[0].gender || userEnteredData.gender
-
+        gender: finalGender
       });
     }
-  }, [searchUserData, formData?.phoneNumber]);
+  }, [searchUserData, formData?.phoneNumber, matchId?.gender]);
 
 
   return (
@@ -433,9 +454,7 @@ const UpdatePlayers = ({
                 { value: "Female", label: "Female" },
                 { value: "Other", label: "Other" },
               ].map((g) => {
-                const isAutoSelected = matchId?.gender === 'Male Only' || matchId?.gender === 'Female Only' || matchId?.gender === 'Mixed Double';
-                const isAutoDisabled = isAutoSelected && formData.gender && formData.gender !== g.value;
-                const isDisabled = isAutoDisabled;
+                const isDisabled = formData.gender && formData.gender !== g.value;
                 
                 return (
                   <div key={g.value} className="form-check">

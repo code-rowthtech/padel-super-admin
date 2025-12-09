@@ -1,7 +1,67 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
+import { getUserFromSession } from '../../../helpers/api/apiCore';
+import config from '../../../config';
+import io from 'socket.io-client';
 
-const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
+const SOCKET_URL = 'http://192.168.0.129:7600/match';
+
+const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId }) => {
+    const User = getUserFromSession();
+    const [messages, setMessages] = useState([]);
+    const socketRef = useRef(null);
+    const messagesEndRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    useEffect(() => {
+        if (showChat && User?._id && matchId) {
+            socketRef.current = io(SOCKET_URL, {
+                auth: { userId: User._id,  },
+                transports: ['websocket'],
+                reconnection: true
+            });
+            
+            socketRef.current.on('connect', () => {
+                console.log('✅ Match socket connected');
+            });
+
+            socketRef.current.on('connectionSuccess', (data) => {
+                console.log('Match socket authenticated:', data);
+            });
+
+            socketRef.current.on('getMessages', (data) => {
+                console.log('Received getMessages:', data);
+                setMessages(data);
+            });
+
+            return () => {
+                if (socketRef.current) {
+                    console.log('Disconnecting socket');
+                    socketRef.current.disconnect();
+                }
+            };
+        }
+    }, [showChat, User?._id, matchId]);
+
+    const handleSendMessage = () => {
+        if (chatMessage.trim() && socketRef.current) {
+            const messageData = {
+                matchId,
+                message: chatMessage.trim(),
+            };
+            console.log('Emitting sendMessage:', messageData);
+            socketRef.current.emit('sendMessage', messageData);
+            setChatMessage('');
+        }
+    };
+
     if (!showChat) return null;
 
     return (
@@ -28,7 +88,7 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
                         style={{ width: 36, height: 36 }}
                         onClick={() => setShowChat(false)}
                     >
-                        <FaArrowLeft />
+                        <FaArrowLeft size={16} />
                     </button>
                     <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, backgroundColor: '#4b94f3ff', minWidth: 40 }}>
                         <i className="bi bi-people-fill" style={{ fontSize: '20px', color: '#fff' }} />
@@ -49,77 +109,47 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
 
             {/* Chat Messages Area */}
             <div className="flex-grow-1 p-3" style={{ overflowY: 'auto', backgroundColor: '#FAFAFA' }}>
-                {/* Sanjay Message */}
-                <div className="mb-3">
-                    <div className="d-flex align-items-start gap-2">
-                        <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#3DBE64', color: '#fff', fontSize: '12px', fontWeight: 600, minWidth: 32 }}>S</div>
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                                <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Sanjay</p>
-                                <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#3DBE64', color: '#fff' }}>Team A</span>
+                {messages.map((msg, index) => {
+                    const isCurrentUser = msg.userId === User._id;
+                    const nameParts = msg.userName?.trim().split(/\s+/) || [];
+                    const initials = nameParts.length > 1 ? nameParts[0][0] + nameParts[1][0] : nameParts[0]?.[0] || '?';
+                    
+                    return (
+                        <div key={index} className="mb-3">
+                            <div className={`d-flex align-items-start gap-2 ${isCurrentUser ? 'justify-content-end' : ''}`}>
+                                {!isCurrentUser && (
+                                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#3DBE64', color: '#fff', fontSize: '12px', fontWeight: 600, minWidth: 32 }}>
+                                        {initials.toUpperCase()}
+                                    </div>
+                                )}
+                                <div>
+                                    <div className={`d-flex align-items-center gap-2 mb-1 ${isCurrentUser ? 'justify-content-end' : ''}`}>
+                                        {isCurrentUser && <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#1F41BB', color: '#fff' }}>You</span>}
+                                        <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>{isCurrentUser ? 'You' : msg.userName}</p>
+                                        {!isCurrentUser && <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#3DBE64', color: '#fff' }}>Team</span>}
+                                    </div>
+                                    <div style={{ backgroundColor: isCurrentUser ? '#1F41BB' : '#fff', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+                                        <p className="mb-0" style={{ fontSize: '13px', color: isCurrentUser ? '#fff' : '#374151' }}>{msg.message}</p>
+                                    </div>
+                                    <p className="mb-0 mt-1" style={{ fontSize: '10px', color: '#9CA3AF' }}>
+                                        {new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                    </p>
+                                </div>
+                                {isCurrentUser && (
+                                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#1F41BB', color: '#fff', fontSize: '12px', fontWeight: 600, minWidth: 32 }}>
+                                        {initials.toUpperCase()}
+                                    </div>
+                                )}
                             </div>
-                            <div style={{ backgroundColor: '#fff', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-                                <p className="mb-0" style={{ fontSize: '13px', color: '#374151' }}>Hey everyone! Ready for the match?</p>
-                            </div>
-                            <p className="mb-0 mt-1" style={{ fontSize: '10px', color: '#9CA3AF' }}>10:30 AM</p>
                         </div>
-                    </div>
-                </div>
-
-                {/* Shubham Message */}
-                <div className="mb-3">
-                    <div className="d-flex align-items-start gap-2">
-                        <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#1F41BB', color: '#fff', fontSize: '12px', fontWeight: 600, minWidth: 32 }}>S</div>
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                                <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Shubham</p>
-                                <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#1F41BB', color: '#fff' }}>Team B</span>
-                            </div>
-                            <div style={{ backgroundColor: '#fff', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-                                <p className="mb-0" style={{ fontSize: '13px', color: '#374151' }}>Yes! Can't wait. What time should we reach?</p>
-                            </div>
-                            <p className="mb-0 mt-1" style={{ fontSize: '10px', color: '#9CA3AF' }}>10:32 AM</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mohit Message */}
-                <div className="mb-3">
-                    <div className="d-flex align-items-start gap-2">
-                        <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#3DBE64', color: '#fff', fontSize: '12px', fontWeight: 600, minWidth: 32 }}>M</div>
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                                <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Mohit</p>
-                                <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#3DBE64', color: '#fff' }}>Team A</span>
-                            </div>
-                            <div style={{ backgroundColor: '#fff', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-                                <p className="mb-0" style={{ fontSize: '13px', color: '#374151' }}>I'll be there 15 mins early. See you all!</p>
-                            </div>
-                            <p className="mb-0 mt-1" style={{ fontSize: '10px', color: '#9CA3AF' }}>10:35 AM</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Your Message */}
-                <div className="mb-3">
-                    <div className="d-flex align-items-start gap-2 justify-content-end">
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-1 justify-content-end">
-                                <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#1F41BB', color: '#fff' }}>Team B</span>
-                                <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>You</p>
-                            </div>
-                            <div style={{ backgroundColor: '#0034E4', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px' }}>
-                                <p className="mb-0" style={{ fontSize: '13px', color: '#fff' }}>Perfect! Let's give our best today 💪</p>
-                            </div>
-                            <p className="mb-0 mt-1 text-end" style={{ fontSize: '10px', color: '#9CA3AF' }}>10:36 AM</p>
-                        </div>
-                    </div>
-                </div>
+                    );
+                })}
+                <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
             <div className="p-3 border-top" style={{ backgroundColor: '#fff' }}>
-                <div className="d-flex gap-2 align-items-center">
+                <div className="d-flex gap-2">
                     <textarea
                         className="form-control"
                         placeholder="Type a message..."
@@ -135,7 +165,7 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
                         onKeyPress={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey && chatMessage.trim()) {
                                 e.preventDefault();
-                                setChatMessage('');
+                                handleSendMessage();
                             }
                         }}
                         rows={1}
@@ -165,12 +195,8 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
                             border: 'none',
                             color: 'white'
                         }}
-                        // disabled={!chatMessage.trim()}
-                        onClick={() => {
-                            if (chatMessage.trim()) {
-                                setChatMessage('');
-                            }
-                        }}
+                        disabled={!chatMessage.trim()}
+                        onClick={handleSendMessage}
                     >
                         <i className="bi bi-send-fill" />
                     </button>
