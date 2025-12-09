@@ -83,11 +83,12 @@ const Home = () => {
 
   // Combine real reviews with fake ones
   const allReviews = [...(getReviewData?.reviews || []), ...fakeReviews];
+  console.log({getReviewData});
   const enhancedReviewData = {
     ...getReviewData,
     reviews: allReviews,
     totalReviews: allReviews.length,
-    averageRating: 4.8 // Updated average with fake reviews
+    averageRating: getReviewData?.averageRating || 0
   };
 
   const handleImageLoad = (index) => {
