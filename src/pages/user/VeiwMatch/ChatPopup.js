@@ -15,6 +15,12 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
 
     const messagesEndRef = useRef(null);
 
+    const playMessageSound = () => {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OihUBELTKXh8bllHAU2jdXvzn0pBSh+zPDajzsKElyx6OyrWBQLSKDf8sFuIwUug8/y2Ik2CBhku+zooVARC0yl4fG5ZRwFNo3V7859KQUofsz=');
+        audio.volume = 0.5;
+        audio.play().catch(err => console.log('Sound play failed:', err));
+    };
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -34,6 +40,10 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
     useEffect(() => {
         if (showChat && User?._id && matchId) {
             setLoading(true);
+            const loadingTimeout = setTimeout(() => {
+                setLoading(false);
+            }, 3000);
+
             socketRef.current = io(SOCKET_URL, {
                 auth: { userId: User._id },
                 transports: ['websocket'],
@@ -51,6 +61,7 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
             socketRef.current.on('messagesReceived', (data) => {
                 console.log(data, 'pankajjjjj');
                 setMessages(data.messages || []);
+                clearTimeout(loadingTimeout);
                 setLoading(false);
                 socketRef.current.emit('markMessageRead', { matchId });
                 setTimeout(() => scrollToBottom(), 100);
@@ -58,16 +69,16 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
             socketRef.current.on('newMessage', (data) => {
                 console.log(data, 'shubhamrwt');
                 setMessages((prev) => [...prev, data]);
+                playMessageSound();
                 socketRef.current.emit('markMessageRead', { matchId });
                 socketRef.current.emit('getMessages', { matchId, isChatOpen: true });
-
-
             });
 
             socketRef.current.on('error', (error) => {
                 console.error('❌ Socket error:', error);
             });
             return () => {
+                clearTimeout(loadingTimeout);
                 if (socketRef.current) {
                     socketRef.current.emit('markMessageRead', { matchId });
                     socketRef.current.disconnect();
@@ -91,6 +102,7 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
             };
             console.log('Emitting sendMessage:', messageData);
             socketRef.current.emit('sendMessage', messageData);
+            playMessageSound();
             setChatMessage('');
         }
     };
@@ -128,17 +140,19 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
                 left: window.innerWidth >= 768 ? 'auto' : 0,
                 right: window.innerWidth >= 768 ? '20px' : 0,
                 width: window.innerWidth >= 768 ? '400px' : '100%',
-                height: window.innerWidth >= 768 ? '600px' : '100vh',
+                height: window.innerWidth >= 768 ? '600px' : '100dvh',
+                maxHeight: window.innerWidth >= 768 ? '600px' : '100dvh',
                 backgroundColor: '#fff',
                 borderRadius: window.innerWidth >= 768 ? '12px' : 0,
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
                 zIndex: 1300,
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                overflow: 'hidden'
             }}
         >
             {/* Header */}
-            <div className="d-flex align-items-center justify-content-between p-3 border-bottom" style={{ backgroundColor: '#F5F5F5' }}>
+            <div className="d-flex align-items-center justify-content-between p-3 border-bottom" style={{ backgroundColor: '#F5F5F5', flexShrink: 0 }}>
                 <div className="d-flex align-items-center gap-2">
                     <button
                         className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center d-md-none"
@@ -165,10 +179,14 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
             </div>
 
             {/* Chat Messages Area */}
-            <div className="flex-grow-1 p-3" style={{ overflowY: 'auto', backgroundColor: '#FAFAFA', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ flex: '1 1 auto', overflowY: 'auto', backgroundColor: '#FAFAFA', WebkitOverflowScrolling: 'touch', padding: '12px' }}>
                 {loading ? (
                     <div className="d-flex justify-content-center align-items-center h-100">
                         <ButtonLoading />
+                    </div>
+                ) : messages.length === 0 ? (
+                    <div className="d-flex justify-content-center align-items-center h-100">
+                        <p style={{ color: '#6B7280', fontSize: '14px', fontFamily: 'Poppins' }}>No messages yet. Start the conversation!</p>
                     </div>
                 ) : messages?.map((msg, index) => {
                     const isCurrentUser = msg.senderId?._id === User._id;

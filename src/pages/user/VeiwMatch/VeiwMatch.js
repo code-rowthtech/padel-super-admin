@@ -162,7 +162,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
     const totalPlayers = [...teamAData, ...teamBData].filter(p => p).length;
-    const isChatEnabled = totalPlayers >= 2;
+    const isUserInMatch = [...teamAData, ...teamBData].some(p => (p?.userId?._id || p?._id) === user?._id);
+    const isChatEnabled = totalPlayers >= 2 && isUserInMatch;
     const clubData = matchesData?.data?.clubId || {};
     const [showModal, setShowModal] = useState(false);
     const [teamName, setTeamName] = useState('teamA');
@@ -473,19 +474,21 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         >
                             <i className="bi bi-share" />
                         </button>
-                        <button
-                            className="btn rounded-circle p-2 align-items-center justify-content-center text-white d-none d-md-flex position-relative"
-                            style={{ width: 36, height: 36, backgroundColor: "#1F41BB", opacity: isChatEnabled ? 1 : 0.5, cursor: isChatEnabled ? "pointer" : "not-allowed" }}
-                            onClick={handleChat}
-                            disabled={!isChatEnabled}
-                        >
-                            <i className="bi bi-chat-left-text" />
-                            {!showChat && unreadCount > 0 && (
-                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '12px', padding: '5px 7px' }}>
-                                    {unreadCount > 99 ? '99+' : unreadCount}
-                                </span>
-                            )}
-                        </button>
+                        {isUserInMatch && (
+                            <button
+                                className="btn rounded-circle p-2 align-items-center justify-content-center text-white d-none d-md-flex position-relative"
+                                style={{ width: 36, height: 36, backgroundColor: "#1F41BB", opacity: isChatEnabled ? 1 : 0.5, cursor: isChatEnabled ? "pointer" : "not-allowed" }}
+                                onClick={handleChat}
+                                disabled={!isChatEnabled}
+                            >
+                                <i className="bi bi-chat-left-text" />
+                                {!showChat && unreadCount > 0 && (
+                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '12px', padding: '5px 7px' }}>
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>
+                        )}
 
                         {showShareDropdown && (
                             <div
@@ -702,31 +705,33 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                 </p>
                             </div>
                         </div>
-                        <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
-                            <button
-                                className="d-flex align-items-center gap-2 border-0 py-1 position-relative"
-                                style={{
-                                    background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
-                                    borderRadius: "25px",
-                                    padding: "8px 16px",
-                                    color: "#fff",
-                                    fontWeight: 600,
-                                    opacity: isChatEnabled ? 1 : 0.5,
-                                    cursor: isChatEnabled ? "pointer" : "not-allowed"
-                                }}
-                                onClick={handleChat}
-                                disabled={!isChatEnabled}
-                            >
-                                <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
-                                Chat
-                                {!showChat && unreadCount > 0 && (
-                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '12px', padding: '5px 8px' }}>
-                                        {unreadCount > 99 ? '99+' : unreadCount}
-                                    </span>
-                                )}
-                            </button>
+                        {isUserInMatch && (
+                            <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
+                                <button
+                                    className="d-flex align-items-center gap-2 border-0 py-1 position-relative"
+                                    style={{
+                                        background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
+                                        borderRadius: "25px",
+                                        padding: "8px 16px",
+                                        color: "#fff",
+                                        fontWeight: 600,
+                                        opacity: isChatEnabled ? 1 : 0.5,
+                                        cursor: isChatEnabled ? "pointer" : "not-allowed"
+                                    }}
+                                    onClick={handleChat}
+                                    disabled={!isChatEnabled}
+                                >
+                                    <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
+                                    Chat
+                                    {!showChat && unreadCount > 0 && (
+                                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '12px', padding: '5px 8px' }}>
+                                            {unreadCount > 99 ? '99+' : unreadCount}
+                                        </span>
+                                    )}
+                                </button>
 
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
