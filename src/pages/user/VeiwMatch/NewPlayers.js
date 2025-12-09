@@ -258,6 +258,7 @@ const NewPlayers = ({
           autoGender = 'Other';
         }
         setFormData((prev) => ({ ...prev, type: selectedGender, gender: autoGender }));
+        setUserEnteredData((prev) => ({ ...prev, gender: autoGender }));
       }
     }
   }, [showAddMeForm, selectedGender, editPlayerData]);
@@ -299,32 +300,59 @@ const NewPlayers = ({
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
       setLastSearchedNumber(formData.phoneNumber);
     } else if (phoneLength < 10 && lastSearchedNumber) {
-      // Only restore when coming from a 10-digit number
+      let gameTypeGender = '';
+      if (selectedGender === 'Male Only') {
+        gameTypeGender = 'Male';
+      } else if (selectedGender === 'Female Only') {
+        gameTypeGender = 'Female';
+      } else if (selectedGender === 'Mixed Double') {
+        gameTypeGender = 'Other';
+      }
+      
       setFormData(prev => ({
         ...prev,
         name: originalUserData.name,
         email: originalUserData.email,
-        gender: originalUserData.gender
+        gender: gameTypeGender
       }));
-      setUserEnteredData(originalUserData);
+      setUserEnteredData({
+        name: originalUserData.name,
+        email: originalUserData.email,
+        gender: gameTypeGender
+      });
       setLastSearchedNumber("");
       dispatch(resetSearchData());
     }
-  }, [formData?.phoneNumber, dispatch]);
+  }, [formData?.phoneNumber, dispatch, selectedGender]);
 
   useEffect(() => {
     if (showAddMeForm && searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
+      const apiGender = searchUserData.result[0].gender;
+      let finalGender = apiGender || userEnteredData.gender;
+      
+      if (!apiGender) {
+        if (selectedGender === 'Male Only') {
+          finalGender = 'Male';
+        } else if (selectedGender === 'Female Only') {
+          finalGender = 'Female';
+        } else if (selectedGender === 'Mixed Double') {
+          finalGender = 'Other';
+        }
+      }
+
       setFormData(prev => ({
         ...prev,
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email
+        email: searchUserData.result[0].email || userEnteredData.email,
+        gender: finalGender
       }));
       setUserEnteredData({
         name: searchUserData.result[0].name || userEnteredData.name,
-        email: searchUserData.result[0].email || userEnteredData.email
+        email: searchUserData.result[0].email || userEnteredData.email,
+        gender: finalGender
       });
     }
-  }, [searchUserData, formData?.phoneNumber, showAddMeForm]);
+  }, [searchUserData, formData?.phoneNumber, showAddMeForm, selectedGender]);
 
   return (
     <Modal
@@ -403,7 +431,7 @@ const NewPlayers = ({
               Phone No
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
-              <span className="input-group-text border-0 mt-1 bg-white d-flex align-items-center" style={{ fontSize: "11px",}}>
+              <span className="input-group-text border-0 mt-1 bg-white d-flex align-items-center" style={{ fontSize: "11px", }}>
                 <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" />
                 +91
               </span>
@@ -501,10 +529,8 @@ const NewPlayers = ({
                 { value: "Female", label: "Female" },
                 { value: "Other", label: "Other" },
               ].map((g) => {
-                const isAutoSelected = selectedGender === 'Male Only' || selectedGender === 'Female Only' || selectedGender === 'Mixed Double';
-                const isAutoDisabled = isAutoSelected && formData.gender && formData.gender !== g.value;
-                const isDisabled = isAutoDisabled;
-                
+                const isDisabled = formData.gender && formData.gender !== g.value;
+
                 return (
                   <div key={g.value} className="form-check">
                     <input

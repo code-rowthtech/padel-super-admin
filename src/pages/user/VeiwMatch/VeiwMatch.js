@@ -1010,6 +1010,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 setShowChat={setShowChat}
                 chatMessage={chatMessage}
                 setChatMessage={setChatMessage}
+                matchId={matchId}
             />
 
         </>
