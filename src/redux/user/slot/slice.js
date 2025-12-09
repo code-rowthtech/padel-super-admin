@@ -19,11 +19,12 @@ const slotSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(getUserSlot.pending, (state) => {
+            .addCase(getUserSlot.pending, (state, action) => {
                 state.slotLoading = true;
                 state.slotError = null;
             })
             .addCase(getUserSlot.fulfilled, (state, action) => {
+
                 state.slotLoading = false;
                 state.slotData = action.payload;
             })
@@ -32,11 +33,15 @@ const slotSlice = createSlice({
                 state.slotError = action.payload;
             })
 
-            .addCase(getUserSlotBooking.pending, (state) => {
-                state.slotLoading = true;
+            .addCase(getUserSlotBooking.pending, (state,action) => {
+                console.log("getUserSlot pending action:", action);
+
+                state.slotLoading = action?.meta?.arg?.socket ? false : true;
                 state.slotError = null;
             })
             .addCase(getUserSlotBooking.fulfilled, (state, action) => {
+                console.log("getUserSlot pending action:", action);
+
                 state.slotLoading = false;
                 state.slotData = action.payload;
             })

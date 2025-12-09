@@ -5,7 +5,7 @@ import * as Url from "../../../helpers/api/apiEndpoint";
 
 export const getUserSlotBooking = createAsyncThunk(
   "club/getUserSlotBooking",
-  async ({ register_club_id, day, date, time ,type}, { rejectWithValue }) => {
+  async ({ register_club_id, day, date, time ,type, socket}, { rejectWithValue }) => {
     try {
       if (!register_club_id || !day || !date) {
         throw new Error("Missing required parameters: register_club_id, day, or date");

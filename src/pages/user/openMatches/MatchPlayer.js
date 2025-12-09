@@ -265,6 +265,10 @@ const MatchPlayer = ({
                 hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
             }
             return { hour, period };
+        }).sort((a, b) => {
+            const aValue = a.period === 'AM' ? a.hour : a.hour + 12;
+            const bValue = b.period === 'AM' ? b.hour : b.hour + 12;
+            return aValue - bValue;
         });
 
         if (formattedTimes.length === 0) return "";
@@ -565,12 +569,7 @@ const MatchPlayer = ({
                             )}
 
                             {localPlayers.slot2 ? (
-                                <div className="d-flex flex-column align-items-center me-auto mb-3 position-relative">
-                                    <i 
-                                        className="bi bi-pencil-fill position-absolute " 
-                                        style={{ top: 0, right: 10, fontSize: "14px", color: "#181a16ff", cursor: "pointer", zIndex: 10 }}
-                                        onClick={() => handleAddMeClick("slot2")}
-                                    />
+                                <div className="d-flex flex-column align-items-center me-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -592,14 +591,21 @@ const MatchPlayer = ({
                                             </span>
                                         )}
                                     </div>
-                                    <p
-                                        className="mb-0 mt-2 fw-semibold text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
-                                        data-tooltip-id="you"
-                                        data-tooltip-content={localPlayers.slot2.name}
-                                    >
-                                        {localPlayers.slot2.name?.length > 12 ? `${localPlayers.slot2.name.substring(0, 12)}...` : localPlayers.slot2.name}
-                                    </p>
+                                    <div className="d-flex align-items-center gap-1">
+                                        <p
+                                            className="mb-0 mt-2 fw-semibold text-center"
+                                            style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                                            data-tooltip-id="you"
+                                            data-tooltip-content={localPlayers.slot2.name}
+                                        >
+                                            {localPlayers.slot2.name?.length > 12 ? `${localPlayers.slot2.name.substring(0, 12)}...` : localPlayers.slot2.name}
+                                        </p>
+                                        <i 
+                                            className="bi bi-pencil-fill mt-2" 
+                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
+                                            onClick={() => handleAddMeClick("slot2")}
+                                        />
+                                    </div>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
                                         {localPlayers.slot2.level}
@@ -620,12 +626,7 @@ const MatchPlayer = ({
 
                         <div className="col-6 d-flex flex-lg-row pe-0 border-start">
                             {localPlayers.slot3 ? (
-                                <div className="d-flex flex-column align-items-center ms-auto mb-3 position-relative">
-                                    <i 
-                                        className="bi bi-pencil-fill position-absolute" 
-                                        style={{ top: 0, right: 10, fontSize: "14px", color: "green", cursor: "pointer", zIndex: 10 }}
-                                        onClick={() => handleAddMeClick("slot3")}
-                                    />
+                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -647,14 +648,21 @@ const MatchPlayer = ({
                                             </span>
                                         )}
                                     </div>
-                                    <p
-                                        className="mb-0 mt-2 fw-semibold text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
-                                        data-tooltip-id="you"
-                                        data-tooltip-content={localPlayers.slot3.name}
-                                    >
-                                        {localPlayers.slot3.name?.length > 12 ? `${localPlayers.slot3.name.substring(0, 12)}...` : localPlayers.slot3.name}
-                                    </p>
+                                    <div className="d-flex align-items-center gap-1">
+                                        <p
+                                            className="mb-0 mt-2 fw-semibold text-center"
+                                            style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                                            data-tooltip-id="you"
+                                            data-tooltip-content={localPlayers.slot3.name}
+                                        >
+                                            {localPlayers.slot3.name?.length > 12 ? `${localPlayers.slot3.name.substring(0, 12)}...` : localPlayers.slot3.name}
+                                        </p>
+                                        <i 
+                                            className="bi bi-pencil-fill mt-2" 
+                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
+                                            onClick={() => handleAddMeClick("slot3")}
+                                        />
+                                    </div>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#1F41BB" }}>
                                         {localPlayers.slot3.level}
@@ -673,12 +681,7 @@ const MatchPlayer = ({
                             )}
 
                             {localPlayers.slot4 ? (
-                                <div className="d-flex flex-column align-items-center ms-auto mb-3 position-relative">
-                                    <i 
-                                        className="bi bi-pencil-fill position-absolute" 
-                                        style={{ top: 0, right: 10, fontSize: "14px", color: "green", cursor: "pointer", zIndex: 10 }}
-                                        onClick={() => handleAddMeClick("slot4")}
-                                    />
+                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
                                     <div
                                         className="rounded-circle border d-flex justify-content-center align-items-center"
                                         style={{
@@ -700,14 +703,21 @@ const MatchPlayer = ({
                                             </span>
                                         )}
                                     </div>
-                                    <p
-                                        className="mb-0 mt-2 fw-semibold text-center"
-                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
-                                        data-tooltip-id="you"
-                                        data-tooltip-content={localPlayers.slot4.name}
-                                    >
-                                        {localPlayers.slot4.name?.length > 12 ? `${localPlayers.slot4.name.substring(0, 12)}...` : localPlayers.slot4.name}
-                                    </p>
+                                    <div className="d-flex align-items-center gap-1">
+                                        <p
+                                            className="mb-0 mt-2 fw-semibold text-center"
+                                            style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                                            data-tooltip-id="you"
+                                            data-tooltip-content={localPlayers.slot4.name}
+                                        >
+                                            {localPlayers.slot4.name?.length > 12 ? `${localPlayers.slot4.name.substring(0, 12)}...` : localPlayers.slot4.name}
+                                        </p>
+                                        <i 
+                                            className="bi bi-pencil-fill mt-2" 
+                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
+                                            onClick={() => handleAddMeClick("slot4")}
+                                        />
+                                    </div>
                                     <Tooltip id="you" />
                                     <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#1F41BB" }}>
                                         {localPlayers.slot4.level}

@@ -1,14 +1,131 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
+import { getUserFromSession } from '../../../helpers/api/apiCore';
+import config from '../../../config';
+import io from 'socket.io-client';
+import { ButtonLoading } from '../../../helpers/loading/Loaders';
 
-const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
-    if (!showChat) return null;
+const SOCKET_URL = 'http://103.142.118.40:7600/match'; // Use the same URL as API_URL
+
+const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId, playerNames, setUnreadCount }) => {
+    const User = getUserFromSession();
+    const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const socketRef = useRef(null);
+
+    const messagesEndRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        if (showChat && messages.length > 0) {
+            scrollToBottom();
+        }
+    }, [showChat]);
+
+    useEffect(() => {
+        if (showChat && messages.length > 0) {
+            scrollToBottom();
+        }
+    }, [messages.length, showChat]);
+
+    useEffect(() => {
+        if (showChat && User?._id && matchId) {
+            setLoading(true);
+            socketRef.current = io(SOCKET_URL, {
+                auth: { userId: User._id },
+                transports: ['websocket'],
+                reconnection: true
+            });
+            socketRef.current.on('connect', () => {
+            });
+            socketRef.current.on('connectionSuccess', (data) => {
+                socketRef.current.emit('joinMatch', matchId);
+            });
+            socketRef.current.on('joinedMatch', (data) => {
+                socketRef.current.emit('getMessages', { matchId, isChatOpen: true });
+                socketRef.current.emit('getUnreadCount', { matchId });
+            });
+            socketRef.current.on('messagesReceived', (data) => {
+                console.log(data, 'pankajjjjj');
+                setMessages(data.messages || []);
+                setLoading(false);
+                socketRef.current.emit('markMessageRead', { matchId });
+                setTimeout(() => scrollToBottom(), 100);
+            });
+            socketRef.current.on('newMessage', (data) => {
+                console.log(data, 'shubhamrwt');
+                setMessages((prev) => [...prev, data]);
+                socketRef.current.emit('markMessageRead', { matchId });
+                socketRef.current.emit('getMessages', { matchId, isChatOpen: true });
+
+
+            });
+
+            socketRef.current.on('error', (error) => {
+                console.error('❌ Socket error:', error);
+            });
+            return () => {
+                if (socketRef.current) {
+                    socketRef.current.emit('markMessageRead', { matchId });
+                    socketRef.current.disconnect();
+                }
+            };
+        }
+    }, [showChat, User?._id, matchId]);
+
+    useEffect(() => {
+        if (socketRef.current && !showChat) {
+            socketRef.current.emit('getMessages', { matchId, isChatOpen: false });
+            socketRef.current.emit('getUnreadCount', { matchId });
+        }
+    }, [!showChat, matchId])
+
+    const handleSendMessage = () => {
+        if (chatMessage.trim() && socketRef.current) {
+            const messageData = {
+                matchId,
+                message: chatMessage.trim(),
+            };
+            console.log('Emitting sendMessage:', messageData);
+            socketRef.current.emit('sendMessage', messageData);
+            setChatMessage('');
+        }
+    };
+
+    const getDateLabel = (dateString) => {
+        const msgDate = new Date(dateString);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        msgDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        yesterday.setHours(0, 0, 0, 0);
+
+        if (msgDate.getTime() === today.getTime()) return 'Today';
+        if (msgDate.getTime() === yesterday.getTime()) return 'Yesterday';
+        return msgDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const shouldShowDateSeparator = (currentMsg, prevMsg) => {
+        if (!prevMsg) return true;
+        const currentDate = new Date(currentMsg.createdAt).toDateString();
+        const prevDate = new Date(prevMsg.createdAt).toDateString();
+        return currentDate !== prevDate;
+    };
+
+    if (!showChat) return;
 
     return (
         <div
             style={{
                 position: 'fixed',
+                top: window.innerWidth >= 768 ? 'auto' : 0,
                 bottom: window.innerWidth >= 768 ? '20px' : 0,
+                left: window.innerWidth >= 768 ? 'auto' : 0,
                 right: window.innerWidth >= 768 ? '20px' : 0,
                 width: window.innerWidth >= 768 ? '400px' : '100%',
                 height: window.innerWidth >= 768 ? '600px' : '100vh',
@@ -28,14 +145,14 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
                         style={{ width: 36, height: 36 }}
                         onClick={() => setShowChat(false)}
                     >
-                        <FaArrowLeft />
+                        <FaArrowLeft size={16} />
                     </button>
                     <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, backgroundColor: '#4b94f3ff', minWidth: 40 }}>
                         <i className="bi bi-people-fill" style={{ fontSize: '20px', color: '#fff' }} />
                     </div>
                     <div>
                         <h6 className="mb-0 custom-heading-use" style={{ fontFamily: 'Poppins' }}>Padel Squad - Open Match</h6>
-                        <p className="mb-0 text-muted" style={{ fontSize: '12px' }}>You,Sanjay,Shubham,Mohit</p>
+                        <p className="mb-0 text-muted" style={{ fontSize: '12px' }}>{playerNames || 'Loading...'}</p>
                     </div>
                 </div>
                 <button
@@ -48,78 +165,151 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
             </div>
 
             {/* Chat Messages Area */}
-            <div className="flex-grow-1 p-3" style={{ overflowY: 'auto', backgroundColor: '#FAFAFA' }}>
-                {/* Sanjay Message */}
-                <div className="mb-3">
-                    <div className="d-flex align-items-start gap-2">
-                        <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#3DBE64', color: '#fff', fontSize: '12px', fontWeight: 600, minWidth: 32 }}>S</div>
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                                <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Sanjay</p>
-                                <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#3DBE64', color: '#fff' }}>Team A</span>
-                            </div>
-                            <div style={{ backgroundColor: '#fff', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-                                <p className="mb-0" style={{ fontSize: '13px', color: '#374151' }}>Hey everyone! Ready for the match?</p>
-                            </div>
-                            <p className="mb-0 mt-1" style={{ fontSize: '10px', color: '#9CA3AF' }}>10:30 AM</p>
-                        </div>
+            <div className="flex-grow-1 p-3" style={{ overflowY: 'auto', backgroundColor: '#FAFAFA', WebkitOverflowScrolling: 'touch' }}>
+                {loading ? (
+                    <div className="d-flex justify-content-center align-items-center h-100">
+                        <ButtonLoading />
                     </div>
-                </div>
+                ) : messages?.map((msg, index) => {
+                    const isCurrentUser = msg.senderId?._id === User._id;
+                    const userName = msg.senderId?.name || 'Unknown';
+                    const nameParts = userName.trim().split(/\s+/);
+                    const initials = nameParts.length > 1 ? nameParts[0][0] + nameParts[1][0] : nameParts[0]?.[0] || '?';
+                    const teamColor = msg.senderTeam === 'teamA' ? '#3DBE64' : '#1F41BB';
+                    const teamLabel = msg.senderTeam === 'teamA' ? 'Team A' : 'Team B';
+                    const showDateSeparator = shouldShowDateSeparator(msg, messages[index - 1]);
 
-                {/* Shubham Message */}
-                <div className="mb-3">
-                    <div className="d-flex align-items-start gap-2">
-                        <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#1F41BB', color: '#fff', fontSize: '12px', fontWeight: 600, minWidth: 32 }}>S</div>
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                                <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Shubham</p>
-                                <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#1F41BB', color: '#fff' }}>Team B</span>
-                            </div>
-                            <div style={{ backgroundColor: '#fff', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-                                <p className="mb-0" style={{ fontSize: '13px', color: '#374151' }}>Yes! Can't wait. What time should we reach?</p>
-                            </div>
-                            <p className="mb-0 mt-1" style={{ fontSize: '10px', color: '#9CA3AF' }}>10:32 AM</p>
-                        </div>
-                    </div>
-                </div>
+                    return (
+                        <React.Fragment key={msg._id || index}>
+                            {showDateSeparator && (
+                                <div className="d-flex justify-content-center mb-3 mt-2">
+                                    <span style={{
+                                        backgroundColor: '#E5E7EB',
+                                        color: '#6B7280',
+                                        padding: '4px 12px',
+                                        borderRadius: '12px',
+                                        fontSize: '11px',
+                                        fontWeight: 500
+                                    }}>
+                                        {getDateLabel(msg.createdAt)}
+                                    </span>
+                                </div>
+                            )}
+                            <div className="mb-3">
 
-                {/* Mohit Message */}
-                <div className="mb-3">
-                    <div className="d-flex align-items-start gap-2">
-                        <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#3DBE64', color: '#fff', fontSize: '12px', fontWeight: 600, minWidth: 32 }}>M</div>
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                                <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>Mohit</p>
-                                <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#3DBE64', color: '#fff' }}>Team A</span>
-                            </div>
-                            <div style={{ backgroundColor: '#fff', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-                                <p className="mb-0" style={{ fontSize: '13px', color: '#374151' }}>I'll be there 15 mins early. See you all!</p>
-                            </div>
-                            <p className="mb-0 mt-1" style={{ fontSize: '10px', color: '#9CA3AF' }}>10:35 AM</p>
-                        </div>
-                    </div>
-                </div>
+                                <div className={`d-flex align-items-start gap-2 ${isCurrentUser ? 'justify-content-end' : ''}`}>
 
-                {/* Your Message */}
-                <div className="mb-3">
-                    <div className="d-flex align-items-start gap-2 justify-content-end">
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-1 justify-content-end">
-                                <span className="badge" style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#1F41BB', color: '#fff' }}>Team B</span>
-                                <p className="mb-0" style={{ fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>You</p>
+                                    {/* Avatar - Only for other users */}
+                                    {!isCurrentUser && (
+                                        <div
+                                            className="rounded-circle d-flex align-items-center justify-content-center"
+                                            style={{
+                                                width: 32,
+                                                height: 32,
+                                                minWidth: 32,
+                                                maxWidth: 32,
+                                                maxHeight: 32,
+                                                backgroundColor: msg.senderId?.profilePic ? 'transparent' : teamColor,
+                                                color: '#fff',
+                                                fontSize: 12,
+                                                fontWeight: 600,
+                                                overflow: 'hidden',
+                                                flexShrink: 0
+                                            }}
+                                        >
+                                            {msg.senderId?.profilePic ? (
+                                                <img src={msg.senderId.profilePic} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                            ) : (
+                                                initials.toUpperCase()
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* RIGHT / LEFT bubble wrapper */}
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            width: '100%',
+                                            alignItems: isCurrentUser ? 'flex-end' : 'flex-start'
+                                        }}
+                                    >
+
+                                        {/* Username + Team */}
+                                        <div
+                                            className={`d-flex align-items-center gap-2 mb-1 ${isCurrentUser ? 'justify-content-end' : ''}`}
+                                            style={{ width: '100%' }}
+                                        >
+                                            <p
+                                                className="mb-0"
+                                                style={{
+                                                    fontSize: '11px',
+                                                    color: '#6B7280',
+                                                    fontWeight: 500
+                                                }}
+                                            >
+                                                {isCurrentUser ? 'You' : userName}
+                                            </p>
+
+                                        </div>
+
+                                        {/* MESSAGE BUBBLE */}
+                                        <div
+                                            style={{
+                                                backgroundColor: isCurrentUser ? teamColor : '#fff',
+                                                padding: '8px 12px',
+                                                borderRadius: isCurrentUser
+                                                    ? '10px 0px 10px 10px'
+                                                    : '0px 10px 10px 10px',
+                                                display: 'inline-block',
+                                                maxWidth: '250px',
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word'
+                                            }}
+                                        >
+                                            <p
+                                                style={{
+                                                    margin: 0,
+                                                    fontSize: '13px',
+                                                    color: isCurrentUser ? '#fff' : '#374151'
+                                                }}
+                                            >
+                                                {msg.message}
+                                            </p>
+                                        </div>
+
+                                        {/* Seen + Time */}
+                                        <div
+                                            className={`d-flex align-items-center gap-1 mt-1 ${isCurrentUser ? 'justify-content-end' : ''}`}
+                                            style={{ width: '100%' }}
+                                        >
+                                            {isCurrentUser && msg.readBy && msg.readBy.length > 0 && (
+                                                <p className="mb-0" style={{ fontSize: '10px', color: '#9CA3AF' }}>
+                                                    Seen by {msg.readBy.map(r => r.name).join(', ')}
+                                                </p>
+                                            )}
+
+                                            <p className="mb-0 text-nowrap" style={{ fontSize: '10px', color: '#9CA3AF' }}>
+                                                {new Date(msg.createdAt).toLocaleTimeString('en-US', {
+                                                    hour: 'numeric',
+                                                    minute: '2-digit'
+                                                })}
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                </div>
                             </div>
-                            <div style={{ backgroundColor: '#0034E4', padding: '8px 12px', borderRadius: '12px', maxWidth: '250px' }}>
-                                <p className="mb-0" style={{ fontSize: '13px', color: '#fff' }}>Perfect! Let's give our best today 💪</p>
-                            </div>
-                            <p className="mb-0 mt-1 text-end" style={{ fontSize: '10px', color: '#9CA3AF' }}>10:36 AM</p>
-                        </div>
-                    </div>
-                </div>
+
+                        </React.Fragment>
+                    );
+                })}
+                {!loading && <div ref={messagesEndRef} />}
             </div>
 
             {/* Input Area */}
-            <div className="p-3 border-top" style={{ backgroundColor: '#fff' }}>
-                <div className="d-flex gap-2 align-items-center">
+            <div className="p-3 border-top" style={{ backgroundColor: '#fff', flexShrink: 0 }}>
+                <div className="d-flex gap-2">
                     <textarea
                         className="form-control"
                         placeholder="Type a message..."
@@ -135,7 +325,7 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
                         onKeyPress={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey && chatMessage.trim()) {
                                 e.preventDefault();
-                                setChatMessage('');
+                                handleSendMessage();
                             }
                         }}
                         rows={1}
@@ -165,12 +355,8 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage }) => {
                             border: 'none',
                             color: 'white'
                         }}
-                        // disabled={!chatMessage.trim()}
-                        onClick={() => {
-                            if (chatMessage.trim()) {
-                                setChatMessage('');
-                            }
-                        }}
+                        disabled={!chatMessage.trim()}
+                        onClick={handleSendMessage}
                     >
                         <i className="bi bi-send-fill" />
                     </button>
