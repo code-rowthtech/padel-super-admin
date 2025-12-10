@@ -43,6 +43,7 @@ const Navbar = () => {
     const { user, } = useSelector((state) => state?.userAuth);
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const mobileDropdownRef = useRef(null);
     const [notifications, setNotifications] = useState([]);
     const userId = getUserFromSession()?._id;
     const [notificationCount, setNotificationCount] = useState();
@@ -175,7 +176,8 @@ const Navbar = () => {
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target) && 
+                mobileDropdownRef.current && !mobileDropdownRef.current.contains(e.target)) {
                 setOpen(false);
             }
         };
@@ -190,7 +192,18 @@ const Navbar = () => {
         dispatch(getNotificationView({ noteId: note._id })).unwrap()
             .then(() => {
                 if (note?.notificationType === 'match_message' && note?.matchId) {
-                    navigate('/open-matches', { state: { matchId: note.matchId, selectedDate: { fullDate: note?.matchCreateDate, day: new Date(note?.matchCreateDate).toLocaleDateString("en-US", { weekday: "long" }) } } });
+                    const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
+                    const dateObj = new Date(matchDate);
+                    navigate('/open-matches', { 
+                        state: { 
+                            matchId: note.matchId, 
+                            selectedDate: { 
+                                fullDate: matchDate,
+                                day: dateObj.toLocaleDateString("en-US", { weekday: "long" })
+                            } 
+                        } 
+                    });
+                    setOpen(false)
                 } else {
                     navigate(note?.notificationUrl);
                 }
@@ -326,12 +339,15 @@ const Navbar = () => {
                         {(store?.user?.status === '200' || token || store?.user?.status === 200) && (
                             <div className="position-relative" ref={dropdownRef}>
                                 <div
-                                    className="d-flex rounded-circle justify-content-center notification-bg align-items-center"
-                                    style={{ cursor: "pointer" }}
+                                    className="d-flex rounded-circle justify-content-center mt-1 notification-bg align-items-center"
+                                    style={{
+                                        cursor: "pointer",
+                                        position: "relative",
+                                    }}
                                     onClick={() => setOpen(!open)}
                                 >
-                                    <Badge badgeContent={notificationCount?.unreadCount || notifications?.filter(n => !n.isRead)?.length || 0} color="error">
-                                        <NotificationsIcon size={24} className="text-dark" />
+                                    <Badge badgeContent={notificationCount?.unreadCount || notifications?.length} color="error">
+                                        <NotificationsIcon size={30} className={`text-dark`} />
                                     </Badge>
                                 </div>
 
@@ -340,10 +356,10 @@ const Navbar = () => {
                                         className="shadow-sm p-2"
                                         style={{
                                             position: "fixed",
-                                            top: "60px",
-                                            right: "10px",
-                                            width: "calc(100vw - 20px)",
-                                            maxWidth: "320px",
+                                            top: "57px",
+                                            right: "40%",
+                                            width: "300",
+                                            margin: "0 auto",
                                             backgroundColor: "#fff",
                                             borderRadius: "12px",
                                             zIndex: 1050,
@@ -379,6 +395,8 @@ const Navbar = () => {
                                                                 cursor: "pointer",
                                                             }}
                                                         >
+
+
                                                             <div style={{ flex: 1 }}>
                                                                 <div style={{ fontWeight: 500, fontSize: "13px" }}>
                                                                     {note?.adminId ? "Padel" : ''} – {note.title}
@@ -412,12 +430,14 @@ const Navbar = () => {
                                                                     </OverlayTrigger>
                                                                 </p>
 
+
                                                                 {openNoteId === note._id && (
                                                                     <div className="d-flex gap-2 mt-2">
                                                                         <button
                                                                             className="btn btn-dark btn-sm py-0 px-3"
                                                                             style={{ fontSize: "13px" }}
-                                                                            onClick={() => handleViewNotification(note)}
+                                                                            onClick={() => handleViewNotification(note)
+                                                                            }
                                                                         >
                                                                             View
                                                                         </button>
@@ -428,9 +448,10 @@ const Navbar = () => {
                                                                 className="mt-2"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
+                                                                    e.preventDefault();
                                                                     setOpenNoteId(openNoteId === note._id ? null : note._id);
                                                                 }}
-                                                                style={{ cursor: "pointer" }}
+                                                                style={{ cursor: "pointer", minWidth: "24px", display: "flex", justifyContent: "center", alignItems: "center", padding: "4px" }}
                                                             >
                                                                 {openNoteId === note._id ? (
                                                                     <IoIosArrowUp size={20} color="#555" />
