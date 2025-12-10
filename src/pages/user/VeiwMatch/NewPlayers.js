@@ -297,7 +297,7 @@ const NewPlayers = ({
         email: userEnteredData.email,
         gender: userEnteredData.gender
       });
-      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber }));
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData?.type }));
       setLastSearchedNumber(formData.phoneNumber);
     } else if (phoneLength < 10 && lastSearchedNumber) {
       let gameTypeGender = '';

@@ -4,8 +4,9 @@ import { getUserFromSession } from '../../../helpers/api/apiCore';
 import config from '../../../config';
 import io from 'socket.io-client';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
+import sendSound from '../../../assets/images/pixel_10_notification.mp3';
 
-const SOCKET_URL = 'http://103.142.118.40:7600/match'; // Use the same URL as API_URL
+const SOCKET_URL = `${config.API_URL}/match`;
 
 const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId, playerNames, setUnreadCount }) => {
     const User = getUserFromSession();
@@ -14,12 +15,20 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
     const socketRef = useRef(null);
 
     const messagesEndRef = useRef(null);
+    const textareaRef = useRef(null);
+    const chatContainerRef = useRef(null);
+    const [stickyDate, setStickyDate] = useState('');
+    const [showStickyDate, setShowStickyDate] = useState(false);
+    const stickyDateTimeoutRef = useRef(null);
 
-    const playMessageSound = () => {
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OihUBELTKXh8bllHAU2jdXvzn0pBSh+zPDajzsKElyx6OyrWBQLSKDf8sFuIwUug8/y2Ik2CBhku+zooVARC0yl4fG5ZRwFNo3V7859KQUofsz=');
+
+
+    const playSendSound = () => {
+        const audio = new Audio(sendSound);
         audio.volume = 0.5;
-        audio.play().catch(err => console.log('Sound play failed:', err));
+        audio.play().catch(err => console.log("Send sound failed:", err));
     };
+
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,7 +68,6 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
                 socketRef.current.emit('getUnreadCount', { matchId });
             });
             socketRef.current.on('messagesReceived', (data) => {
-                console.log(data, 'pankajjjjj');
                 setMessages(data.messages || []);
                 clearTimeout(loadingTimeout);
                 setLoading(false);
@@ -67,9 +75,11 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
                 setTimeout(() => scrollToBottom(), 100);
             });
             socketRef.current.on('newMessage', (data) => {
-                console.log(data, 'shubhamrwt');
                 setMessages((prev) => [...prev, data]);
-                playMessageSound();
+                console.log(data.senderId?._id === User._id, 'data.senderId?._id === User._id');
+                if (data.senderId?._id === User._id) {
+                    playSendSound();
+                }
                 socketRef.current.emit('markMessageRead', { matchId });
                 socketRef.current.emit('getMessages', { matchId, isChatOpen: true });
             });
@@ -85,7 +95,7 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
                 }
             };
         }
-    }, [showChat, User?._id, matchId]);
+    }, [showChat, User?._id, matchId, SOCKET_URL]);
 
     useEffect(() => {
         if (socketRef.current && !showChat) {
@@ -100,10 +110,13 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
                 matchId,
                 message: chatMessage.trim(),
             };
-            console.log('Emitting sendMessage:', messageData);
             socketRef.current.emit('sendMessage', messageData);
-            playMessageSound();
             setChatMessage('');
+            if (textareaRef.current) {
+                textareaRef.current.style.height = '40px';
+                textareaRef.current.blur();
+                setTimeout(() => textareaRef.current?.focus(), 50);
+            }
         }
     };
 
@@ -178,8 +191,63 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
                 </button>
             </div>
 
+            {/* Sticky Date Header */}
+            {showStickyDate && (
+                <div style={{
+                    position: 'absolute',
+                    top: '75px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 10,
+                    backgroundColor: '#E5E7EB',
+                    color: '#6B7280',
+                    padding: '6px 12px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    pointerEvents: 'none'
+                }}>
+                    {stickyDate}
+                </div>
+            )}
+
             {/* Chat Messages Area */}
-            <div style={{ flex: '1 1 auto', overflowY: 'auto', backgroundColor: '#FAFAFA', WebkitOverflowScrolling: 'touch', padding: '12px' }}>
+            <div
+                ref={chatContainerRef}
+                style={{ flex: '1 1 auto', overflowY: 'auto', backgroundColor: '#FAFAFA', WebkitOverflowScrolling: 'touch', padding: '12px' }}
+                onScroll={(e) => {
+                    const container = e.target;
+                    if (container.scrollTop > 50) {
+                        const visibleMessages = messages.filter((msg, index) => {
+                            const msgElement = container.children[index];
+                            if (msgElement) {
+                                const rect = msgElement.getBoundingClientRect();
+                                const containerRect = container.getBoundingClientRect();
+                                return rect.top >= containerRect.top && rect.top <= containerRect.top + 100;
+                            }
+                            return false;
+                        });
+
+                        if (visibleMessages.length > 0) {
+                            const currentDate = getDateLabel(visibleMessages[0].createdAt);
+                            setStickyDate(currentDate);
+                            setShowStickyDate(true);
+
+                            if (stickyDateTimeoutRef.current) {
+                                clearTimeout(stickyDateTimeoutRef.current);
+                            }
+                            stickyDateTimeoutRef.current = setTimeout(() => {
+                                setShowStickyDate(false);
+                            }, 2000);
+                        }
+                    } else {
+                        setShowStickyDate(false);
+                        if (stickyDateTimeoutRef.current) {
+                            clearTimeout(stickyDateTimeoutRef.current);
+                        }
+                    }
+                }}
+            >
                 {loading ? (
                     <div className="d-flex justify-content-center align-items-center h-100">
                         <ButtonLoading />
@@ -329,6 +397,7 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
             <div className="p-3 border-top" style={{ backgroundColor: '#fff', flexShrink: 0 }}>
                 <div className="d-flex gap-2">
                     <textarea
+                        ref={textareaRef}
                         className="form-control"
                         placeholder="Type a message..."
                         value={chatMessage}
@@ -351,13 +420,17 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
                             borderRadius: '20px',
                             border: '1px solid #E5E7EB',
                             padding: '10px 16px',
-                            fontSize: '14px',
+                            fontSize: '16px',
                             fontFamily: 'Poppins',
                             boxShadow: 'none',
                             resize: 'none',
                             overflow: 'hidden',
                             minHeight: '40px',
-                            maxHeight: '120px'
+                            maxHeight: '120px',
+                            WebkitAppearance: 'none',
+                            WebkitUserSelect: 'text',
+                            userSelect: 'text',
+                            touchAction: 'manipulation'
                         }}
                         onInput={(e) => {
                             e.target.style.height = 'auto';

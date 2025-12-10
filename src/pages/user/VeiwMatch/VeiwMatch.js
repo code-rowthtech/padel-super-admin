@@ -13,8 +13,9 @@ import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thun
 import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thunk";
 import ChatPopup from "./ChatPopup";
 import io from 'socket.io-client';
+import config from "../../../config";
 
-const SOCKET_URL = 'http://103.142.118.40:7600/match';
+const SOCKET_URL = `${config.API_URL}/match`;;
 
 const PlayerSlot = memo(function PlayerSlot({
     player,
@@ -181,6 +182,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [showChat, setShowChat] = useState(false);
     const [chatMessage, setChatMessage] = useState("");
     const [unreadCount, setUnreadCount] = useState();
+    console.log({ unreadCount });
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
     const shareDropdownRef = useRef(null);
@@ -232,6 +234,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             });
 
             socketRef.current.on('joinedMatch', () => {
+                socketRef.current.emit('getMessages', { matchId, isChatOpen: false });
                 socketRef.current.emit('getUnreadCount', { matchId });
             });
 
@@ -240,11 +243,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     setUnreadCount((prev) => (prev || 0) + 1);
                 }
             });
-
             socketRef.current.on('unreadCount', (data) => {
-                if (!showChat) {
-                    setUnreadCount(data.unreadCount || 0);
-                }
+                console.log(data, 'datadatadatadata');
+                setUnreadCount(data?.count || 0);
             });
 
             return () => {
@@ -435,7 +436,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             socketRef.current.emit('getUnreadCount', { matchId });
             setUnreadCount(0);
         }
-    }, [showChat,, matchId])
+    }, [showChat, , matchId])
 
 
     useEffect(() => {
@@ -443,7 +444,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             socketRef.current.emit('getMessages', { matchId, isChatOpen: false });
             socketRef.current.emit('getUnreadCount', { matchId });
         }
-    }, [ !showChat, matchId])
+    }, [!showChat, matchId])
 
 
 
@@ -1110,13 +1111,13 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             return { id: playerId, name: playerName };
                         })
                         .filter(p => p.name);
-                    
+
                     const currentUserIndex = allPlayers.findIndex(p => p.id === user?._id);
                     if (currentUserIndex > -1) {
                         const currentUser = allPlayers.splice(currentUserIndex, 1)[0];
                         allPlayers.unshift({ ...currentUser, name: 'You' });
                     }
-                    
+
                     return allPlayers.map(p => p.name).slice(0, 4).join(', ');
                 })()}
             />

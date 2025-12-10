@@ -158,7 +158,6 @@ const UpdatePlayers = ({
             .unwrap()
             .then((requestRes) => {
               setShowModal(false);
-
               dispatch(getMatchesView(matchId?._id))
                 .unwrap()
                 .then((matchRes) => {
@@ -231,7 +230,7 @@ const UpdatePlayers = ({
       } else if (matchId.gender === 'Female Only') {
         autoGender = 'Female';
       } else if (matchId.gender === 'Mixed Double') {
-        autoGender = 'Other';
+        autoGender = '';
       }
       setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
       setUserEnteredData((prev) => ({ ...prev, gender: autoGender }));
@@ -267,7 +266,7 @@ const UpdatePlayers = ({
         email: userEnteredData.email,
         gender: userEnteredData.gender
       });
-      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData.type }));
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData.gender }));
       setLastSearchedNumber(formData.phoneNumber);
     } else if (phoneLength < 10 && lastSearchedNumber) {
       let gameTypeGender = '';
@@ -276,7 +275,7 @@ const UpdatePlayers = ({
       } else if (matchId?.gender === 'Female Only') {
         gameTypeGender = 'Female';
       } else if (matchId?.gender === 'Mixed Double') {
-        gameTypeGender = 'Other';
+        gameTypeGender = '';
       }
       
       setFormData(prev => ({
@@ -298,15 +297,22 @@ const UpdatePlayers = ({
   useEffect(() => {
     if (searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
       const apiGender = searchUserData.result[0].gender;
-      let finalGender = apiGender || userEnteredData.gender;
+      let finalGender = '';
       
-      if (!apiGender) {
+      if (apiGender) {
+        const genderLower = apiGender.toLowerCase();
+        if (genderLower === 'male' || genderLower === 'male only') {
+          finalGender = 'Male';
+        } else if (genderLower === 'female' || genderLower === 'female only') {
+          finalGender = 'Female';
+        } else {
+          finalGender = 'Other';
+        }
+      } else {
         if (matchId?.gender === 'Male Only') {
           finalGender = 'Male';
         } else if (matchId?.gender === 'Female Only') {
           finalGender = 'Female';
-        } else if (matchId?.gender === 'Mixed Double') {
-          finalGender = 'Other';
         }
       }
 
@@ -454,7 +460,8 @@ const UpdatePlayers = ({
                 { value: "Female", label: "Female" },
                 { value: "Other", label: "Other" },
               ].map((g) => {
-                const isDisabled = formData.gender && formData.gender !== g.value;
+                const isDisabled = matchId?.gender === 'Male Only' && g.value !== 'Male' || 
+                                   matchId?.gender === 'Female Only' && g.value !== 'Female';
                 
                 return (
                   <div key={g.value} className="form-check">

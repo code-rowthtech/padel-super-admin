@@ -11,7 +11,7 @@ import { getUserFromSession, isUserAuthenticated } from '../../../helpers/api/ap
 import { MdOutlineDateRange, MdSportsTennis } from "react-icons/md";
 import { IoIosArrowDown, IoIosArrowUp, IoIosLogOut } from 'react-icons/io';
 import { PiRanking } from "react-icons/pi";
-import {  getUserProfile } from '../../../redux/user/auth/authThunk';
+import { getUserProfile } from '../../../redux/user/auth/authThunk';
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { io } from 'socket.io-client';
@@ -93,14 +93,22 @@ const Navbar = () => {
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
+                console.log(data, 'pankaj1');
                 setNotificationCount(data);
             });
+            socket.on('matchNotification', (notification) => {
+                console.log(notification, 'pankaj2');
+                setNotifications((prevNotifications) => [notification, ...prevNotifications]);
+
+            })
 
             socket.on("approved_request", (data) => {
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
+                console.log(data, 'pankaj3');
+
                 setNotificationCount(data);
             });
 
@@ -176,11 +184,16 @@ const Navbar = () => {
     }, []);
 
     const handleViewNotification = (note) => {
+        console.log({ note });
         const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
         dispatch(getNotificationView({ noteId: note._id })).unwrap()
             .then(() => {
-                navigate(note?.notificationUrl)
+                if (note?.notificationType === 'match_message' && note?.matchId) {
+                    navigate('/open-matches', { state: { matchId: note.matchId, selectedDate: { fullDate: note?.matchCreateDate, day: new Date(note?.matchCreateDate).toLocaleDateString("en-US", { weekday: "long" }) } } });
+                } else {
+                    navigate(note?.notificationUrl);
+                }
                 socket.on("userNotificationCountUpdate", (data) => {
                     setNotificationCount(data);
                 });
