@@ -43,6 +43,8 @@ import { PiSunHorizonFill } from "react-icons/pi";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import { showError } from "../../../helpers/Toast";
 import { toast, Bounce } from "react-toastify";
+import io from 'socket.io-client';
+import config from '../../../config';
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -362,19 +364,42 @@ const Booking = ({ className = "" }) => {
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
   const clubId = localStorage.getItem("register_club_id");
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    dispatch(getUserClub({ search: "" }));
+  const fetchSlots = (socket=null) => {
     dispatch(
       getUserSlotBooking({
         day: selectedDate.day,
         date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
         register_club_id: clubId || "",
+        socket: socket,
       })
     );
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    dispatch(getUserClub({ search: "" }));
+    fetchSlots();
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [selectedDate]);
+
+  useEffect(() => {
+    const socket = io(config.API_URL);
+    socket.on("connect", () => {
+      socket.emit("registerUser", user?._id);
+    });
+    socket.on('slotUpdated', (data) => {
+      console.log('Slot updated event received:', data);
+      const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
+      if (data.clubId === clubId && data.date === currentDate) {
+        fetchSlots("socket");
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [clubId, selectedDate.fullDate]);
 
   const scrollLeft = () =>
     scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
@@ -400,81 +425,20 @@ const Booking = ({ className = "" }) => {
   }, [totalSlots]);
 
   const handleBookNow = async () => {
-    const register_club_id = localStorage.getItem("register_club_id");
-    const owner_id = localStorage.getItem("owner_id");
-
-    if (!register_club_id || !owner_id) {
-      throw new Error("Club information missing.");
+    if (totalSlots === 0) {
+      setErrorMessage("Select a slot to enable booking");
+      setErrorShow(true);
+      return;
     }
-
-    const slotArray = selectedCourts.flatMap((court) =>
-      court.time.map((timeSlot) => ({
-        slotId: timeSlot._id,
-        businessHours: slotData?.data?.[0]?.slots?.[0]?.businessHours?.map((t) => ({
-          time: t?.time,
-          day: t?.day,
-        })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
-        slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount ?? 2000 }],
-        courtName: court.courtName,
-        courtId: court._id,
-        bookingDate: court.date,
-      }))
-    );
-
-    const payload = {
-      name: 'testing',
-      phoneNumber: 9999999999,
-      email: 'testing@gmail.com',
-      register_club_id,
-      bookingStatus: "upcoming",
-      bookingType: "regular",
-      ownerId: owner_id,
-      slot: slotArray,
-      paymentMethod: 'gpay',
-      isSlotCheck: true
-    };
-
-    const bookingResponse = await dispatch(createBooking(payload)).unwrap();
-
-    if (bookingResponse?.success === true) {
-
-      if (totalSlots === 0) {
-        setErrorMessage("Select a slot to enable booking");
-        setErrorShow(true);
-        return;
-      }
-      if (!user?.token) {
-        const courtIds = selectedCourts
-          .map((court) => court._id)
-          .filter((id) => id)
-          .join(",");
-        navigate("/login", {
-          state: {
-            redirectTo: "/payment",
-            paymentState: {
-              courtData: {
-                day: selectedDate?.day,
-                date: selectedDate?.fullDate,
-                time: selectedBuisness,
-                courtId: courtIds,
-                court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
-                slot: slotData?.data?.[0]?.slots,
-              },
-              clubData,
-              selectedCourts,
-              selectedDate,
-              grandTotal,
-              totalSlots,
-            },
-          },
-        });
-      } else {
-        const courtIds = selectedCourts
-          .map((court) => court._id)
-          .filter((id) => id)
-          .join(",");
-        navigate("/payment", {
-          state: {
+    if (!user?.token) {
+      const courtIds = selectedCourts
+        .map((court) => court._id)
+        .filter((id) => id)
+        .join(",");
+      navigate("/login", {
+        state: {
+          redirectTo: "/payment",
+          paymentState: {
             courtData: {
               day: selectedDate?.day,
               date: selectedDate?.fullDate,
@@ -489,11 +453,32 @@ const Booking = ({ className = "" }) => {
             grandTotal,
             totalSlots,
           },
-        });
-      }
+        },
+      });
     } else {
-      window.location.reload();
+      const courtIds = selectedCourts
+        .map((court) => court._id)
+        .filter((id) => id)
+        .join(",");
+      navigate("/payment", {
+        state: {
+          courtData: {
+            day: selectedDate?.day,
+            date: selectedDate?.fullDate,
+            time: selectedBuisness,
+            courtId: courtIds,
+            court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
+            slot: slotData?.data?.[0]?.slots,
+          },
+          clubData,
+          selectedCourts,
+          selectedDate,
+          grandTotal,
+          totalSlots,
+        },
+      });
     }
+
   };
 
   const handleSwitchChange = () => setShowUnavailable(!showUnavailable);
@@ -2251,7 +2236,7 @@ const Booking = ({ className = "" }) => {
                       />
                     </g>
                   </svg>
-                  <div style={contentStyle}>  {bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Book Now"}</div>
+                  <div style={contentStyle}>Book Now</div>
                 </button>
               </div>
 

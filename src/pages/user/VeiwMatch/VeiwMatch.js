@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, memo, useRef } from "react";
-import DirectionsIcon from "@mui/icons-material/Directions";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { padal, club, player } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,22 +7,20 @@ import { DataLoading, ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar, Modal, Box, Button } from "@mui/material";
 import { Tooltip } from 'react-tooltip';
 import { Offcanvas } from "react-bootstrap";
-import { FaArrowLeft, FaTrash } from "react-icons/fa";
 import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thunk";
-import { showSuccess, showError } from "../../../helpers/Toast";
 import ChatPopup from "./ChatPopup";
+import io from 'socket.io-client';
+
+const SOCKET_URL = 'http://103.142.118.40:7600/match';
 
 const PlayerSlot = memo(function PlayerSlot({
     player,
     index,
-    isRemovable,
     team,
-    onRemove,
     onAdd,
-    openMatches,
     isFromBookingHistory = false,
     onPlayerClick
 }) {
@@ -70,6 +67,15 @@ const PlayerSlot = memo(function PlayerSlot({
         return <div style={{ width: 64, height: 64 }} />;
     }
 
+    const getInitials = (name) => {
+        if (!name) return "U";
+        const words = name.trim().split(/\s+/);
+        if (words.length >= 2) {
+            return (words[0][0] + words[1][0]).toUpperCase();
+        }
+        return name[0].toUpperCase();
+    };
+
     return (
         <div className="text-center d-flex justify-content-center align-items-center flex-column  mb-md-3 mb-0 position-relative col-6">
             <div
@@ -94,23 +100,23 @@ const PlayerSlot = memo(function PlayerSlot({
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                 ) : (
-                    <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                        {user?.name?.[0]?.toUpperCase() ?? "U"}
+                    <span style={{ color: "white", fontWeight: 600, fontSize: "20px" }}>
+                        {getInitials(user?.name)}
                     </span>
                 )}
             </div>
 
-            <p 
+            <p
                 className="mb-0 mt-2 fw-semibold text-center"
                 data-tooltip-id={user.name && user.name.length > 12 ? tooltipId : undefined}
                 data-tooltip-content={user.name && user.name.length > 12 ? user.name : undefined}
-                style={{ 
-                    maxWidth: 150, 
-                    overflow: "hidden", 
-                    textOverflow: "ellipsis", 
-                    whiteSpace: "nowrap", 
-                    fontSize: "12px", 
-                    fontWeight: "500", 
+                style={{
+                    maxWidth: 150,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    fontSize: "12px",
+                    fontWeight: "500",
                     fontFamily: "Poppins",
                     cursor: user.name && user.name.length > 12 ? "pointer" : "default"
                 }}
@@ -155,6 +161,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
+    const totalPlayers = [...teamAData, ...teamBData].filter(p => p).length;
+    const isUserInMatch = [...teamAData, ...teamBData].some(p => (p?.userId?._id || p?._id) === user?._id);
+    const isChatEnabled = totalPlayers >= 2 && isUserInMatch;
     const clubData = matchesData?.data?.clubId || {};
     const [showModal, setShowModal] = useState(false);
     const [teamName, setTeamName] = useState('teamA');
@@ -171,11 +180,12 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [rejectReason, setRejectReason] = useState("");
     const [showChat, setShowChat] = useState(false);
     const [chatMessage, setChatMessage] = useState("");
+    const [unreadCount, setUnreadCount] = useState();
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
     const shareDropdownRef = useRef(null);
     const matchDetailsRef = useRef(null);
-
+    const socketRef = useRef(null);
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
@@ -204,6 +214,46 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             dispatch(getRequest(matchId));
         }
     }, [matchId, dispatch]);
+
+    useEffect(() => {
+        if (user?._id && matchId) {
+            socketRef.current = io(SOCKET_URL, {
+                auth: { userId: user._id },
+                transports: ['websocket'],
+                reconnection: true
+            });
+
+            socketRef.current.on('connect', () => {
+                socketRef.current.emit('joinMatch', matchId);
+            });
+
+            socketRef.current.on('connectionSuccess', () => {
+                socketRef.current.emit('joinMatch', matchId);
+            });
+
+            socketRef.current.on('joinedMatch', () => {
+                socketRef.current.emit('getUnreadCount', { matchId });
+            });
+
+            socketRef.current.on('newMessage', (data) => {
+                if (!showChat && data.senderId?._id !== user._id) {
+                    setUnreadCount((prev) => (prev || 0) + 1);
+                }
+            });
+
+            socketRef.current.on('unreadCount', (data) => {
+                if (!showChat) {
+                    setUnreadCount(data.unreadCount || 0);
+                }
+            });
+
+            return () => {
+                if (socketRef.current) {
+                    socketRef.current.disconnect();
+                }
+            };
+        }
+    }, [user?._id, matchId]);
 
 
     const formatDate = (dateString) => {
@@ -374,6 +424,27 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
         };
     }, [showRequestModal, windowWidth]);
 
+    const handleChat = () => {
+        setShowChat(true);
+    }
+
+    useEffect(() => {
+        if (socketRef.current && showChat) {
+            socketRef.current.emit('markMessageRead', { matchId });
+            socketRef.current.emit('getMessages', { matchId, isChatOpen: false });
+            socketRef.current.emit('getUnreadCount', { matchId });
+            setUnreadCount(0);
+        }
+    }, [showChat,, matchId])
+
+
+    useEffect(() => {
+        if (socketRef.current && !showChat) {
+            socketRef.current.emit('getMessages', { matchId, isChatOpen: false });
+            socketRef.current.emit('getUnreadCount', { matchId });
+        }
+    }, [ !showChat, matchId])
+
 
 
     return (
@@ -403,13 +474,21 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                         >
                             <i className="bi bi-share" />
                         </button>
-                        <button
-                            className="btn rounded-circle p-2 align-items-center justify-content-center text-white d-none d-md-flex"
-                            style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
-                            onClick={() => setShowChat(true)}
-                        >
-                            <i className="bi bi-chat-left-text" />
-                        </button>
+                        {isUserInMatch && (
+                            <button
+                                className="btn rounded-circle p-2 align-items-center justify-content-center text-white d-none d-md-flex position-relative"
+                                style={{ width: 36, height: 36, backgroundColor: "#1F41BB", opacity: isChatEnabled ? 1 : 0.5, cursor: isChatEnabled ? "pointer" : "not-allowed" }}
+                                onClick={handleChat}
+                                disabled={!isChatEnabled}
+                            >
+                                <i className="bi bi-chat-left-text" />
+                                {!showChat && unreadCount > 0 && (
+                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '12px', padding: '5px 7px' }}>
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>
+                        )}
 
                         {showShareDropdown && (
                             <div
@@ -626,23 +705,33 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                 </p>
                             </div>
                         </div>
-                        <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
-                            <button
-                                className="d-flex align-items-center gap-2 border-0 py-1"
-                                style={{
-                                    background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
-                                    borderRadius: "25px",
-                                    padding: "8px 16px",
-                                    color: "#fff",
-                                    fontWeight: 600,
-                                }}
-                                onClick={() => setShowChat(true)}
-                            >
-                                <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
-                                Chat
-                            </button>
+                        {isUserInMatch && (
+                            <div className="col-12 d-flex justify-content-end align-item-center d-md-none view_match_data">
+                                <button
+                                    className="d-flex align-items-center gap-2 border-0 py-1 position-relative"
+                                    style={{
+                                        background: "linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)",
+                                        borderRadius: "25px",
+                                        padding: "8px 16px",
+                                        color: "#fff",
+                                        fontWeight: 600,
+                                        opacity: isChatEnabled ? 1 : 0.5,
+                                        cursor: isChatEnabled ? "pointer" : "not-allowed"
+                                    }}
+                                    onClick={handleChat}
+                                    disabled={!isChatEnabled}
+                                >
+                                    <i className="bi bi-chat-left-text" style={{ fontSize: "18px" }}></i>
+                                    Chat
+                                    {!showChat && unreadCount > 0 && (
+                                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '12px', padding: '5px 8px' }}>
+                                            {unreadCount > 99 ? '99+' : unreadCount}
+                                        </span>
+                                    )}
+                                </button>
 
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -1005,12 +1094,31 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 </Box>
             </Modal >
 
-            <ChatPopup 
+            <ChatPopup
                 showChat={showChat}
                 setShowChat={setShowChat}
                 chatMessage={chatMessage}
                 setChatMessage={setChatMessage}
                 matchId={matchId}
+                setUnreadCount={setUnreadCount}
+                playerNames={(() => {
+                    const allPlayers = [...teamAData, ...teamBData]
+                        .filter(p => p)
+                        .map(p => {
+                            const playerId = p?.userId?._id || p?._id;
+                            const playerName = p?.userId?.name || p?.name;
+                            return { id: playerId, name: playerName };
+                        })
+                        .filter(p => p.name);
+                    
+                    const currentUserIndex = allPlayers.findIndex(p => p.id === user?._id);
+                    if (currentUserIndex > -1) {
+                        const currentUser = allPlayers.splice(currentUserIndex, 1)[0];
+                        allPlayers.unshift({ ...currentUser, name: 'You' });
+                    }
+                    
+                    return allPlayers.map(p => p.name).slice(0, 4).join(', ');
+                })()}
             />
 
         </>
