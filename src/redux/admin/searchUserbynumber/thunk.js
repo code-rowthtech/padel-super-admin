@@ -8,7 +8,7 @@ export const searchUserByNumber = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
     
-      const res = await ownerApi.get(`${Url.SEARCH_USER_BY_PHONE_NUMBER}?phoneNumber=${params.phoneNumber}&type=${params.type}`);
+      const res = await ownerApi.get(`${Url.SEARCH_USER_BY_PHONE_NUMBER}?phoneNumber=${params.phoneNumber}&type=${params.type || ''}`);
       rejectWithValue(res?.data?.message);
 
       return res?.data;
