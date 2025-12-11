@@ -1010,7 +1010,7 @@ const Openmatches = () => {
                         <div className="col">
                           <div
                             ref={(el) => (matchCardRefs.current[`desktop-${index}`] = el)}
-                            className="card  mb-2 py-3 p-0 shadow-0 rounded-2 d-md-block d-none"
+                            className="card  mb-2 py-3 p-0 pb-2 shadow-0 rounded-2 d-md-block d-none"
                             style={{
                               backgroundColor: "#CBD6FF1A",
                               border: "0.45px solid #0000001A",
