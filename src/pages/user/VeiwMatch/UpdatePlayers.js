@@ -137,9 +137,25 @@ const UpdatePlayers = ({
     }
 
 
-    dispatch(Usersignup(formData))
+    // Convert match gender to API format for Usersignup
+    let apiType = '';
+    if (matchId?.gender === 'Male Only') {
+      apiType = 'Male';
+    } else if (matchId?.gender === 'Female Only') {
+      apiType = 'Female';
+    } else if (matchId?.gender === 'Mixed Double') {
+      apiType = 'Mixed';
+    }
+    
+    const signupData = {
+      
+      ...formData,
+      type: apiType
+    };
+    
+    dispatch(Usersignup(signupData))
       .unwrap()
-      .then((res) => {
+      .then((res) => {  
         if (res?.status === "200") {
 
           dispatch(
@@ -266,7 +282,17 @@ const UpdatePlayers = ({
         email: userEnteredData.email,
         gender: userEnteredData.gender
       });
-      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData.gender }));
+      // Convert match gender to API format
+      let apiGenderType = '';
+      if (matchId?.gender === 'Male Only') {
+        apiGenderType = 'Male';
+      } else if (matchId?.gender === 'Female Only') {
+        apiGenderType = 'Female';
+      } else if (matchId?.gender === 'Mixed Double') {
+        apiGenderType = 'Mixed';
+      }
+      
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber, type: apiGenderType }));
       setLastSearchedNumber(formData.phoneNumber);
       
     } else if (phoneLength < 10 && lastSearchedNumber) {
