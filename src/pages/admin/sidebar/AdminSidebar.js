@@ -19,7 +19,7 @@ import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import { IoTennisballOutline } from "react-icons/io5";
 import { getOwnerRegisteredClub } from "../../../redux/thunks";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
-import { DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 
 const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dispatch = useDispatch();
@@ -93,7 +93,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
       >
         <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
           {ownerClubLoading ? (
-            <DataLoading
+            <ButtonLoading
               height={isCollapsed ? "40px" : "100px"}
               color="white"
             />
