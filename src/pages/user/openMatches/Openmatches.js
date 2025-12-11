@@ -84,13 +84,26 @@ const getTimeCategory = (time) => {
 const Openmatches = () => {
   const { state } = useLocation();
 
-  const initialDate = state?.selectedDate || {
+  const initialDate = state?.selectedDate ? {
+    fullDate: typeof state.selectedDate === 'string' 
+      ? state.selectedDate.split("T")[0] 
+      : state.selectedDate.fullDate || new Date().toISOString().split("T")[0],
+    day: typeof state.selectedDate === 'string'
+      ? new Date(state.selectedDate.split("T")[0]).toLocaleDateString("en-US", { weekday: "long" })
+      : state.selectedDate.day || new Date().toLocaleDateString("en-US", { weekday: "long" }),
+  } : {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   };
 
   const [startDate, setStartDate] = useState(() => {
-    return state?.selectedDate ? new Date(state.selectedDate.fullDate) : new Date();
+    if (state?.selectedDate) {
+      const dateStr = typeof state.selectedDate === 'string' 
+        ? state.selectedDate.split("T")[0] 
+        : state.selectedDate.fullDate;
+      return new Date(dateStr);
+    }
+    return new Date();
   });
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -218,7 +231,7 @@ const Openmatches = () => {
   }, [selectedDate?.fullDate]);
   useEffect(() => {
     const payload = {
-      matchDate: selectedDate?.fullDate,
+      matchDate: selectedDate?.fullDate?.split("T")[0] || selectedDate?.fullDate,
       ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
       ...(selectedLevel && selectedLevel !== "All" && { skillLevel: selectedLevel }),
       clubId: localStorage.getItem("register_club_id"),
@@ -230,7 +243,7 @@ const Openmatches = () => {
 
   useEffect(() => {
     if (matchesData?.data && matchesData.data.length > 0 && !state?.selectedDate) {
-      const matchDates = matchesData.data.map(match => match.matchDate);
+      const matchDates = matchesData.data.map(match => match.matchDate?.split("T")[0] || match.matchDate);
       const latestDateStr = matchDates.sort().reverse()[0];
       const latestDate = {
         fullDate: latestDateStr,
@@ -768,7 +781,7 @@ const Openmatches = () => {
                           setStartDate(new Date(d.fullDate));
                           dispatch(
                             getMatchesUser({
-                              matchDate: d.fullDate,
+                              matchDate: d.fullDate?.split("T")[0] || d.fullDate,
                               clubId: localStorage.getItem("register_club_id") || "",
                               userId: user?._id ? user._id : "",
                               type: matchFilter === "my" ? "myMatches" : "",
@@ -1031,10 +1044,34 @@ const Openmatches = () => {
                             }}
                           >
                             <div className="position-absolute top-0 end-0 p-2 pb-2 pt-0  d-flex gap-1 position-relative" ref={showShareDropdown === `desktop-${index}` ? shareDropdownRef : null}>
-                              <button className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center" style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }}
-                                onClick={async (e) => { e.stopPropagation(); const matchCardElement = matchCardRefs.current[`desktop-${index}`]; if (matchCardElement) { await copyMatchCardWithScreenshot(matchCardElement, match); } else { const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}\nClub: ${match?.clubId?.clubName}\nLevel: ${match?.skillLevel}\nPrice: ₹${calculateMatchPrice(match?.slot)}`; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(matchData).then(() => showSuccess("Match details copied to clipboard!")).catch(() => showError("Could not copy to clipboard")); } else { showError("Clipboard not supported on this device"); } } }}>
+                              <button
+                                className="btn rounded-circle p-1 mb-2 d-flex align-items-center justify-content-center"
+                                style={{ width: 24, height: 24, backgroundColor: "transparent", border: "none" }}
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const matchCardElement = matchCardRefs.current[`desktop-${index}`];
+
+                                  if (matchCardElement) {
+                                    await copyMatchCardWithScreenshot(matchCardElement, match);
+                                  } else {
+                                    const matchData = `Match: ${formatMatchDate(match.matchDate)} | ${formatTimes(match.slot)}
+                                    Club: ${match?.clubId?.clubName}
+                                    Level: ${match?.skillLevel}
+                                    Price: ₹${calculateMatchPrice(match?.slot)}`;
+
+                                    if (navigator.clipboard?.writeText) {
+                                      navigator.clipboard.writeText(matchData)
+                                        .then(() => showSuccess("Match details copied to clipboard!"))
+                                        .catch(() => showError("Could not copy to clipboard"));
+                                    } else {
+                                      showError("Clipboard not supported on this device");
+                                    }
+                                  }
+                                }}
+                              >
                                 <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
                               </button>
+
                               {showShareDropdown === `desktop-${index}` && (
                                 <div className="position-absolute bg-white border rounded shadow-sm" style={{ top: "30px", right: 0, zIndex: 1000, minWidth: "120px" }}>
                                   <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, "_blank"); setShowShareDropdown(null); }}>

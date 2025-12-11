@@ -143,14 +143,26 @@ export const copyMatchCardWithScreenshot = async (matchCardElement, matchData) =
         // Show preview modal before copying text only
         showScreenshotPreview(canvas, matchText, async () => {
           try {
-            await navigator.clipboard.writeText(matchText);
-            showSuccess('Match details copied!');
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.95));
+
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                "image/png": blob,
+                "text/plain": new Blob([matchText], { type: "text/plain" })
+              })
+            ]);
+
+            showSuccess("Screenshot + Details Copied!");
           } catch (error) {
-            fallbackCopyText(matchText);
-            showSuccess('Match details copied!');
+            console.error("Clipboard image copy failed:", error);
+
+            // fallback: text only
+            await navigator.clipboard.writeText(matchText);
+            showSuccess("Only text copied (image not supported on this browser)");
           }
         });
-        
+
+
         return;
       } catch (canvasError) {
         console.warn('Screenshot capture failed:', canvasError);
@@ -165,7 +177,7 @@ export const copyMatchCardWithScreenshot = async (matchCardElement, matchData) =
       fallbackCopyText(matchText);
       showSuccess('Match details copied!');
     }
-    
+
   } catch (error) {
     console.error('Copy failed:', error);
     showError('Could not copy. Please try again.');

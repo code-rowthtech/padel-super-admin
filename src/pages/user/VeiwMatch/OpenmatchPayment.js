@@ -215,7 +215,7 @@ const OpenmatchPayment = () => {
                     bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
                 }))),
                 clubId: savedClubId,
-                gender: selectedGender || "Mixed Double",
+                gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
                 matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
                 ...(answersArray?.length > 0 && {
                     skillLevel: answersArray[0] || "Open Match",
@@ -243,6 +243,12 @@ const OpenmatchPayment = () => {
 
                 handler: async function (response) {
                     try {
+                        // Step 1: Create match first
+                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                        const matchId = matchResponse?.match?._id;
+                        if (!matchId) throw new Error("Failed to create match");
+
+                        // Step 2: Create booking with openMatchId
                         const bookingPayload = {
                             name,
                             phoneNumber: cleanPhone,
@@ -252,6 +258,7 @@ const OpenmatchPayment = () => {
                             paymentMethod: 'Gpay',
                             bookingType: "open Match",
                             bookingStatus: "upcoming",
+                            openMatchId: matchId,
                             slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
                                 slotId: timeSlot._id,
                                 businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
@@ -264,10 +271,6 @@ const OpenmatchPayment = () => {
 
                         const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
                         if (!bookingResponse?.success) throw new Error("Booking creation failed");
-
-                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
-                        const matchId = matchResponse?.match?._id;
-                        if (!matchId) throw new Error("Failed to create match");
 
                         localStorage.removeItem("addedPlayers");
                         window.dispatchEvent(new Event("playersUpdated"));

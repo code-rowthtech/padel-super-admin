@@ -104,6 +104,7 @@ const Navbar = () => {
             })
 
             socket.on("approved_request", (data) => {
+                console.log(data,'datahdata');
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
             });
 
@@ -165,14 +166,14 @@ const Navbar = () => {
     };
 
     useEffect(() => {
-        if (User?.token) {
+        if (User?.token || token) {
             dispatch(getUserProfile());
         }
-    }, [User?.token])
+    }, [User?.token, token, dispatch])
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -191,7 +192,7 @@ const Navbar = () => {
 
         dispatch(getNotificationView({ noteId: note._id })).unwrap()
             .then(() => {
-                if (note?.notificationType === 'match_message' && note?.matchId) {
+                if (note?.notificationType === 'match_message' || note?.notificationType === 'join_match_request' && note?.matchId) {
                     const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
                     const dateObj = new Date(matchDate);
                     navigate('/open-matches', { 
