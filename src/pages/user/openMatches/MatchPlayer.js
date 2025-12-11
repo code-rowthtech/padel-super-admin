@@ -475,9 +475,9 @@ const MatchPlayer = ({
                                     disabled={profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0}
                                 >
                                     <option className="add_font_mobile " value="">Select </option>
-                                    <option className="add_font_mobile" value="Male Only">Male Only</option>
-                                    <option className="add_font_mobile" value="Female Only">Female Only</option>
-                                    <option className="add_font_mobile" value="Mixed Double">Mixed Double</option>
+                                    <option className="add_font_mobile" value="Male">Male Only</option>
+                                    <option className="add_font_mobile" value="Female">Female Only</option>
+                                    <option className="add_font_mobile" value="Mixed">Mixed Double</option>
                                 </select>
                             </div>
 

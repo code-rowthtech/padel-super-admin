@@ -78,7 +78,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
 
   return (
     <>
-      <Modal show={show && !showSuccessModal && !showConfirmationModal} onHide={handleClose} centered backdrop="static">
+      <Modal show={show && !showSuccessModal && !showConfirmationModal} onHide={handleClose} centered>
         <div className="d-flex pt-2 justify-content-center align-items-center position-relative  pb-2">
           <h4
             className="text-center tabel-title mb-0"
@@ -308,7 +308,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
 
 export const BookingHistorySuccessModal = ({ show, onHide, safeFormatDate, bookingStatusData, onContinue }) => {
   return (
-    <Modal show={show} onHide={onHide} centered backdrop="static">
+    <Modal show={show} onHide={onHide} centered>
       <Modal.Body className="text-center p-4">
         <div className="d-flex justify-content-end">
           <button
@@ -356,7 +356,7 @@ export const CancellationConfirmationModal = ({ tableData, show, onHide, selecte
     return isValid(date) ? format(date, formatString) : fallback;
   };
   return (
-    <Modal show={show} onHide={onHide} centered backdrop="static">
+    <Modal show={show} onHide={onHide} centered>
       <Modal.Body className="text-center p-4">
         <div className="d-flex justify-content-end">
           <button
@@ -443,7 +443,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
     return isValid(date) ? format(date, formatString) : fallback;
   };
   return (
-    <Modal show={show} onHide={onHide} centered backdrop="static">
+    <Modal show={show} onHide={onHide} centered>
       <div className="d-flex justify-content-between align-items-center m-0 p-2">
         <h4
           className="flex-grow-1 tabel-title text-center mb-0"
