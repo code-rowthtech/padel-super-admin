@@ -13,8 +13,9 @@ import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thun
 import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thunk";
 import ChatPopup from "./ChatPopup";
 import io from 'socket.io-client';
+import config from "../../../config";
 
-const SOCKET_URL = 'http://103.142.118.40:7600/match';
+const SOCKET_URL = `${config.API_URL}/match`;;
 
 const PlayerSlot = memo(function PlayerSlot({
     player,
@@ -144,7 +145,7 @@ const PlayerSlot = memo(function PlayerSlot({
     );
 });
 
-const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, isFromBookingHistory = false }) => {
+const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatches, isFromBookingHistory = false }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
@@ -181,8 +182,16 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     const [showChat, setShowChat] = useState(false);
     const [chatMessage, setChatMessage] = useState("");
     const [unreadCount, setUnreadCount] = useState();
+    console.log({ unreadCount });
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
+    
+    // Ensure matchId is always a string
+    const getMatchIdString = (id) => {
+        if (typeof id === 'string') return id;
+        if (typeof id === 'object' && id?._id) return id._id;
+        return id?.toString() || null;
+    };
     const shareDropdownRef = useRef(null);
     const matchDetailsRef = useRef(null);
     const socketRef = useRef(null);
@@ -209,14 +218,16 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
     }, [showShareDropdown]);
 
     useEffect(() => {
-        if (matchId) {
-            dispatch(getMatchesView(matchId));
-            dispatch(getRequest(matchId));
+        const idToUse = getMatchIdString(matchId) || getMatchIdString(matchBookingId);
+        if (idToUse) {
+            dispatch(getMatchesView(idToUse));
+            dispatch(getRequest(idToUse));
         }
-    }, [matchId, dispatch]);
+    }, [matchId, matchBookingId, dispatch]);
 
     useEffect(() => {
-        if (user?._id && matchId) {
+        const matchIdString = getMatchIdString(matchId);
+        if (user?._id && matchIdString) {
             socketRef.current = io(SOCKET_URL, {
                 auth: { userId: user._id },
                 transports: ['websocket'],
@@ -224,15 +235,16 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             });
 
             socketRef.current.on('connect', () => {
-                socketRef.current.emit('joinMatch', matchId);
+                socketRef.current.emit('joinMatch', matchIdString);
             });
 
             socketRef.current.on('connectionSuccess', () => {
-                socketRef.current.emit('joinMatch', matchId);
+                socketRef.current.emit('joinMatch', matchIdString);
             });
 
             socketRef.current.on('joinedMatch', () => {
-                socketRef.current.emit('getUnreadCount', { matchId });
+                socketRef.current.emit('getMessages', { matchId: matchIdString, isChatOpen: false });
+                socketRef.current.emit('getUnreadCount', { matchId: matchIdString });
             });
 
             socketRef.current.on('newMessage', (data) => {
@@ -240,11 +252,9 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                     setUnreadCount((prev) => (prev || 0) + 1);
                 }
             });
-
             socketRef.current.on('unreadCount', (data) => {
-                if (!showChat) {
-                    setUnreadCount(data.unreadCount || 0);
-                }
+                console.log(data, 'datadatadatadata');
+                setUnreadCount(data?.count || 0);
             });
 
             return () => {
@@ -435,7 +445,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             socketRef.current.emit('getUnreadCount', { matchId });
             setUnreadCount(0);
         }
-    }, [showChat,, matchId])
+    }, [showChat, , matchId])
 
 
     useEffect(() => {
@@ -443,7 +453,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
             socketRef.current.emit('getMessages', { matchId, isChatOpen: false });
             socketRef.current.emit('getUnreadCount', { matchId });
         }
-    }, [ !showChat, matchId])
+    }, [!showChat, matchId])
 
 
 
@@ -1013,8 +1023,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                     .unwrap()
                                     .then(() => {
                                         return Promise.all([
-                                            dispatch(getRequest(matchId)),
-                                            dispatch(getMatchesView(matchId)),
+                                            dispatch(getRequest(getMatchIdString(matchId))),
+                                            dispatch(getMatchesView(getMatchIdString(matchId))),
                                             setShowRejectModal(false),
                                             setShowRequestModal(false)
                                         ]);
@@ -1071,8 +1081,8 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                                     .unwrap()
                                     .then(() => {
                                         return Promise.all([
-                                            dispatch(getRequest(matchId)),
-                                            dispatch(getMatchesView(matchId)),
+                                            dispatch(getRequest(getMatchIdString(matchId))),
+                                            dispatch(getMatchesView(getMatchIdString(matchId))),
                                             setShowConfirmModal(false),
                                             setShowRequestModal(false)
                                         ]);
@@ -1099,7 +1109,7 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                 setShowChat={setShowChat}
                 chatMessage={chatMessage}
                 setChatMessage={setChatMessage}
-                matchId={matchId}
+                matchId={getMatchIdString(matchId)}
                 setUnreadCount={setUnreadCount}
                 playerNames={(() => {
                     const allPlayers = [...teamAData, ...teamBData]
@@ -1110,13 +1120,13 @@ const ViewMatch = ({ match, onBack, updateName, selectedDate, filteredMatches, i
                             return { id: playerId, name: playerName };
                         })
                         .filter(p => p.name);
-                    
+
                     const currentUserIndex = allPlayers.findIndex(p => p.id === user?._id);
                     if (currentUserIndex > -1) {
                         const currentUser = allPlayers.splice(currentUserIndex, 1)[0];
                         allPlayers.unshift({ ...currentUser, name: 'You' });
                     }
-                    
+
                     return allPlayers.map(p => p.name).slice(0, 4).join(', ');
                 })()}
             />

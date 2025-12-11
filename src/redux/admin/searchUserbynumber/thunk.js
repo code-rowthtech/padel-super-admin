@@ -8,14 +8,15 @@ export const searchUserByNumber = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
     
-      const res = await ownerApi.get(`${Url.SEARCH_USER_BY_PHONE_NUMBER}?phoneNumber=${params.phoneNumber}`);
+      const res = await ownerApi.get(`${Url.SEARCH_USER_BY_PHONE_NUMBER}?phoneNumber=${params.phoneNumber}&type=${params.type}`);
       rejectWithValue(res?.data?.message);
 
       return res?.data;
 
     } catch (error) {
       const errorMessage = error?.response?.data?.message;
-      return rejectWithValue(errorMessage);
+      showError(errorMessage || error);
+      // return rejectWithValue(errorMessage);
     }
   }
 );
