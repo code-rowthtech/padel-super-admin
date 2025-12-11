@@ -394,18 +394,18 @@ const ManualBooking = () => {
       dispatch(searchUserByNumber({ phoneNumber: phone,type:'' }));
     }
   }, [phone, dispatch]);
-
+console.log({searchUserData});
   useEffect(() => {
-    if (searchUserData?.result?.name && phone.length === 10) {
+    if (searchUserData?.result[0]?.name && phone.length === 10) {
       if (!name || name.trim() === "") {
-        setName(searchUserData.result.name);
+        setName(searchUserData.result[0].name);
       }
     }
   }, [searchUserData, phone]);
 
   useEffect(() => {
-    if (phone.length === 10 && searchUserData?.result?.name) {
-      setName(searchUserData.result.name);
+    if (phone.length === 10 && searchUserData?.result[0]?.name) {
+      setName(searchUserData.result[0].name);
     } else if (phone.length === 9 || phone.length === 9 || phone.length === 0) {
       dispatch(resetSearchData());
     }
