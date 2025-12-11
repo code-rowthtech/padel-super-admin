@@ -29,8 +29,8 @@ const NewPlayers = ({
   showAddMeForm,
   activeSlot,
   setShowAddMeForm,
-  setActiveSlot, skillDetails,
-  userSkillLevel, selectedGender, defaultSkillLevel, profileLoading,
+  setActiveSlot,
+   selectedGender, profileLoading,
   editPlayerData
 }) => {
   const [formData, setFormData] = useState({
@@ -248,17 +248,34 @@ const NewPlayers = ({
           email: editPlayerData.email || "",
           gender: editPlayerData.type || "",
         });
-      } else if (selectedGender) {
-        let autoGender = '';
+      } else {
+        // For new players, set gender based on selectedGender
+        let autoGender = "";
         if (selectedGender === 'Male') {
           autoGender = 'Male';
         } else if (selectedGender === 'Female') {
           autoGender = 'Female';
-        } else if (selectedGender === 'Mixed') {
-          autoGender = 'Other';
         }
-        setFormData((prev) => ({ ...prev, type: selectedGender, gender: autoGender }));
-        setUserEnteredData((prev) => ({ ...prev, gender: autoGender }));
+        
+        setFormData({
+          name: "",
+          email: "",
+          phoneNumber: "",
+          gender: autoGender,
+          level: "",
+          type: selectedGender || "",
+        });
+        setUserEnteredData({
+          name: "",
+          email: "",
+          gender: autoGender,
+        });
+        setOriginalUserData({
+          name: "",
+          email: "",
+          gender: autoGender,
+        });
+        setLastSearchedNumber("");
       }
     }
   }, [showAddMeForm, selectedGender, editPlayerData]);
