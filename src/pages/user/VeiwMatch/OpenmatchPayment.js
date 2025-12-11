@@ -215,7 +215,7 @@ const OpenmatchPayment = () => {
                     bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
                 }))),
                 clubId: savedClubId,
-                gender: selectedGender || "Mixed Double",
+                gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
                 matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
                 ...(answersArray?.length > 0 && {
                     skillLevel: answersArray[0] || "Open Match",

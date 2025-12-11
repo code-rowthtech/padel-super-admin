@@ -484,7 +484,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                         >
                             <i className="bi bi-share" />
                         </button>
-                        {isUserInMatch && (
+                        {isUserInMatch && !isFromBookingHistory && (
                             <button
                                 className="btn rounded-circle p-2 align-items-center justify-content-center text-white d-none d-md-flex position-relative"
                                 style={{ width: 36, height: 36, backgroundColor: "#1F41BB", opacity: isChatEnabled ? 1 : 0.5, cursor: isChatEnabled ? "pointer" : "not-allowed" }}
@@ -609,7 +609,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                         </div>
                     </div>
                 </div>
-                {user?._id === matchesData?.data?.createdBy && (<div
+                {user?._id === matchesData?.data?.createdBy && !isFromBookingHistory && (<div
                     className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
                     style={{ backgroundColor: "#CBD6FF1A", cursor: "pointer" }}
                     onClick={() => setShowRequestModal(true)}

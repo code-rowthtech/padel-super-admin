@@ -137,7 +137,7 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered backdrop="static">
+        <Modal show={show} onHide={onHide} centered>
             <div className="d-flex justify-content-between align-items-center m-0 p-2">
                 <h4
                     className="flex-grow-1 tabel-title text-center mb-0"

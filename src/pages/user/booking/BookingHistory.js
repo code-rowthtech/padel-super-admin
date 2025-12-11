@@ -243,6 +243,40 @@ const BookingHistory = () => {
         }
     }, [isOpen]);
 
+    // Outside click handlers for modals
+    useEffect(() => {
+        const handleOutsideClick = (event) => {
+            // Close dropdown if clicking outside
+            if (isOpen && headerRef.current && !headerRef.current.contains(event.target)) {
+                const dropdownElement = document.querySelector('.dropdown-list');
+                if (dropdownElement && !dropdownElement.contains(event.target)) {
+                    setIsOpen(false);
+                }
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleOutsideClick);
+            return () => document.removeEventListener('mousedown', handleOutsideClick);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        const handleModalOutsideClick = (event) => {
+            // Check if click is on modal backdrop
+            if (event.target.classList.contains('modal') || event.target.classList.contains('modal-backdrop')) {
+                // Close all modals
+                if (modalCancel) setModalCancel(false);
+                if (showRatingModal) setShowRatingModal(false);
+                if (acceptedRejected) setAcceptedRejected(false);
+                if (showViewMatchModal) setShowViewMatchModal(false);
+            }
+        };
+
+        document.addEventListener('click', handleModalOutsideClick);
+        return () => document.removeEventListener('click', handleModalOutsideClick);
+    }, [modalCancel, showRatingModal, acceptedRejected, showViewMatchModal]);
+
     const getReasonText = (booking, full = false) => {
         let text = "No Message";
 

@@ -268,6 +268,7 @@ const UpdatePlayers = ({
       });
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData.gender }));
       setLastSearchedNumber(formData.phoneNumber);
+      
     } else if (phoneLength < 10 && lastSearchedNumber) {
       let gameTypeGender = '';
       if (matchId?.gender === 'Male Only') {

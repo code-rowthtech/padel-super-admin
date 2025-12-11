@@ -250,11 +250,11 @@ const NewPlayers = ({
         });
       } else if (selectedGender) {
         let autoGender = '';
-        if (selectedGender === 'Male Only') {
+        if (selectedGender === 'Male') {
           autoGender = 'Male';
-        } else if (selectedGender === 'Female Only') {
+        } else if (selectedGender === 'Female') {
           autoGender = 'Female';
-        } else if (selectedGender === 'Mixed Double') {
+        } else if (selectedGender === 'Mixed') {
           autoGender = 'Other';
         }
         setFormData((prev) => ({ ...prev, type: selectedGender, gender: autoGender }));
@@ -301,11 +301,11 @@ const NewPlayers = ({
       setLastSearchedNumber(formData.phoneNumber);
     } else if (phoneLength < 10 && lastSearchedNumber) {
       let gameTypeGender = '';
-      if (selectedGender === 'Male Only') {
+      if (selectedGender === 'Male') {
         gameTypeGender = 'Male';
-      } else if (selectedGender === 'Female Only') {
+      } else if (selectedGender === 'Female') {
         gameTypeGender = 'Female';
-      } else if (selectedGender === 'Mixed Double') {
+      } else if (selectedGender === 'Mixed') {
         gameTypeGender = 'Other';
       }
       
@@ -331,11 +331,11 @@ const NewPlayers = ({
       let finalGender = apiGender || userEnteredData.gender;
       
       if (!apiGender) {
-        if (selectedGender === 'Male Only') {
+        if (selectedGender === 'Male') {
           finalGender = 'Male';
-        } else if (selectedGender === 'Female Only') {
+        } else if (selectedGender === 'Female') {
           finalGender = 'Female';
-        } else if (selectedGender === 'Mixed Double') {
+        } else if (selectedGender === 'Mixed') {
           finalGender = 'Other';
         }
       }
@@ -493,9 +493,9 @@ const NewPlayers = ({
             <label className="form-label label_font mb-1">Game Type</label>
             <div className="d-flex gap-3">
               {[
-                { value: "Male Only", label: "Male Only" },
-                { value: "Female Only", label: "Female Only" },
-                { value: "Mixed Double", label: "Mixed Double" },
+                { value: "Male", label: "Male Only" },
+                { value: "Female", label: "Female Only" },
+                { value: "Mixed", label: "Mixed Double" },
               ].map((g) => (
                 <div key={g.value} className="form-check">
                   <input
@@ -529,7 +529,7 @@ const NewPlayers = ({
                 { value: "Female", label: "Female" },
                 { value: "Other", label: "Other" },
               ].map((g) => {
-                const isDisabled = formData.gender && formData.gender !== g.value;
+                const isDisabled = formData.type === "Mixed" ? false : formData.gender && formData.gender !== g.value;
 
                 return (
                   <div key={g.value} className="form-check">

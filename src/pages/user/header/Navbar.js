@@ -165,14 +165,14 @@ const Navbar = () => {
     };
 
     useEffect(() => {
-        if (User?.token) {
+        if (User?.token || token) {
             dispatch(getUserProfile());
         }
-    }, [User?.token])
+    }, [User?.token, token, dispatch])
 
     useEffect(() => {
         dispatch(getUserClub({ search: "" }));
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
