@@ -146,16 +146,16 @@ const UpdatePlayers = ({
     } else if (matchId?.gender === 'Mixed Double') {
       apiType = 'Mixed';
     }
-    
+
     const signupData = {
-      
+
       ...formData,
       type: apiType
     };
-    
+
     dispatch(Usersignup(signupData))
       .unwrap()
-      .then((res) => {  
+      .then((res) => {
         if (res?.status === "200") {
 
           dispatch(
@@ -291,10 +291,10 @@ const UpdatePlayers = ({
       } else if (matchId?.gender === 'Mixed Double') {
         apiGenderType = 'Mixed';
       }
-      
+
       dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber, type: apiGenderType }));
       setLastSearchedNumber(formData.phoneNumber);
-      
+
     } else if (phoneLength < 10 && lastSearchedNumber) {
       let gameTypeGender = '';
       if (matchId?.gender === 'Male Only') {
@@ -304,7 +304,7 @@ const UpdatePlayers = ({
       } else if (matchId?.gender === 'Mixed Double') {
         gameTypeGender = '';
       }
-      
+
       setFormData(prev => ({
         ...prev,
         name: originalUserData.name,
@@ -325,7 +325,7 @@ const UpdatePlayers = ({
     if (searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
       const apiGender = searchUserData.result[0].gender;
       let finalGender = '';
-      
+
       if (apiGender) {
         const genderLower = apiGender.toLowerCase();
         if (genderLower === 'male' || genderLower === 'male only') {
@@ -371,36 +371,10 @@ const UpdatePlayers = ({
         <form className="border-0" onSubmit={(e) => e.preventDefault()}>
           <div className="mb-md-2 mb-1">
             <label className="form-label label_font mb-1">
-              Name <span className="text-danger">*</span>
-            </label>
-            <input
-              type="text"
-              className="form-control p-2"
-              placeholder="Enter name"
-              value={searchUserDataLoading ? "Loading...." : formData?.name}
-              onChange={(e) => {
-                let v = e.target.value;
-                if (!v || /^[A-Za-z\s]*$/.test(v)) {
-                  if (v.length > 20) v = v.slice(0, 20);
-                  v = v.trimStart().replace(/\s+/g, " ");
-                  const formatted = v.replace(/\b\w/g, (l) => l.toUpperCase());
-                  setFormData((prev) => ({ ...prev, name: formatted }));
-                  setUserEnteredData((prev) => ({ ...prev, name: formatted }));
-                }
-              }}
-              style={inputStyle("name")}
-            />
-            {showErrors.name && errors.name && (
-              <small className="text-danger d-block mt-1">{errors.name}</small>
-            )}
-          </div>
-
-          <div className="mb-md-2 mb-1">
-            <label className="form-label label_font mb-1">
               Phone No {matchId?.teamA?.[0]?.userId?._id !== User?._id && <span className="text-danger">*</span>}
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
-              <span className="input-group-text border-0 bg-white d-flex mt-1 align-items-center" style={{ fontSize: "11px"}}>
+              <span className="input-group-text border-0 bg-white d-flex mt-1 align-items-center" style={{ fontSize: "11px" }}>
                 <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} className="me-2" />
                 +91
               </span>
@@ -424,6 +398,31 @@ const UpdatePlayers = ({
             </div>
             {showErrors.phoneNumber && errors.phoneNumber && (
               <small className="text-danger d-block mt-1">{errors.phoneNumber}</small>
+            )}
+          </div>
+          <div className="mb-md-2 mb-1">
+            <label className="form-label label_font mb-1">
+              Name <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-control p-2"
+              placeholder="Enter name"
+              value={searchUserDataLoading ? "Loading...." : formData?.name}
+              onChange={(e) => {
+                let v = e.target.value;
+                if (!v || /^[A-Za-z\s]*$/.test(v)) {
+                  if (v.length > 20) v = v.slice(0, 20);
+                  v = v.trimStart().replace(/\s+/g, " ");
+                  const formatted = v.replace(/\b\w/g, (l) => l.toUpperCase());
+                  setFormData((prev) => ({ ...prev, name: formatted }));
+                  setUserEnteredData((prev) => ({ ...prev, name: formatted }));
+                }
+              }}
+              style={inputStyle("name")}
+            />
+            {showErrors.name && errors.name && (
+              <small className="text-danger d-block mt-1">{errors.name}</small>
             )}
           </div>
 
@@ -487,9 +486,9 @@ const UpdatePlayers = ({
                 { value: "Female", label: "Female" },
                 { value: "Other", label: "Other" },
               ].map((g) => {
-                const isDisabled = matchId?.gender === 'Male Only' && g.value !== 'Male' || 
-                                   matchId?.gender === 'Female Only' && g.value !== 'Female';
-                
+                const isDisabled = matchId?.gender === 'Male Only' && g.value !== 'Male' ||
+                  matchId?.gender === 'Female Only' && g.value !== 'Female';
+
                 return (
                   <div key={g.value} className="form-check">
                     <input
@@ -505,7 +504,7 @@ const UpdatePlayers = ({
                         setErrors((prev) => ({ ...prev, gender: "" }));
                         setShowErrors((prev) => ({ ...prev, gender: false }));
                       }}
-                      style={{boxShadow:"none"}}
+                      style={{ boxShadow: "none" }}
                     />
                     <label
                       className={`form-check-label ${isDisabled ? "text-muted" : ""}`}
