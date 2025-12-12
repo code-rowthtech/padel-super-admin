@@ -80,10 +80,10 @@ const getInitialFormState = (club = {}) => ({
     const bh = (club?.businessHours || []).find((x) => x.day === day);
     acc[day] = bh
       ? {
-          start: (bh.time || "").split(" - ")[0] || "06:00 AM",
-          end: (bh.time || "").split(" - ")[1] || "11:00 PM",
-          _id: bh._id,
-        }
+        start: (bh.time || "").split(" - ")[0] || "06:00 AM",
+        end: (bh.time || "").split(" - ")[1] || "11:00 PM",
+        _id: bh._id,
+      }
       : BUSINESS_HOURS_TEMPLATE[day];
     return acc;
   }, {}),
@@ -248,9 +248,8 @@ const AddImageTile = ({ onFiles, hidden }) => {
         e.dataTransfer.dropEffect = "copy";
       }}
       onDrop={onDrop}
-      className={`d-flex align-items-center justify-content-center border border-secondary-subtle rounded bg-white text-muted cursor-pointer ${
-        hidden ? "d-none" : ""
-      }`}
+      className={`d-flex align-items-center justify-content-center border border-secondary-subtle rounded bg-white text-muted cursor-pointer ${hidden ? "d-none" : ""
+        }`}
       style={{ width: 60, height: 60, cursor: "pointer" }}
     >
       <input
@@ -305,8 +304,8 @@ const Input = React.memo(
           {field === "zip"
             ? "Zip code must be 4-6 digits and cannot start with 0"
             : field === "courtCount"
-            ? "Please enter a valid number"
-            : "This field is required"}
+              ? "Please enter a valid number"
+              : "This field is required"}
         </Form.Control.Feedback>
       )}
     </Form.Group>
@@ -344,13 +343,19 @@ const ClubUpdateForm = () => {
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef(0);
   const startHeightRef = useRef(130);
-
+  const [pricingData, setPricingData] = useState(0);
   const [initialFormData, setInitialFormData] = useState(() =>
     getInitialFormState(clubDetails)
   );
   const [initialPreviews, setInitialPreviews] = useState(() =>
     getInitialPreviews(clubDetails?.images || clubDetails?.courtImage)
   );
+
+  const handlePriceDataFromChild = useCallback((price) => {
+    console.log("Received price from child:", price);
+    setPricingData(price);
+    setHasChanged(true);
+  }, []);
 
   useEffect(() => {
     if (!selectAllDays) {
@@ -406,7 +411,7 @@ const ClubUpdateForm = () => {
         if (!p.isRemote && p.preview) {
           try {
             URL.revokeObjectURL(p.preview);
-          } catch {}
+          } catch { }
         }
       });
     },
@@ -522,7 +527,7 @@ const ClubUpdateForm = () => {
       if (img && !img.isRemote && img.preview) {
         try {
           URL.revokeObjectURL(img.preview);
-        } catch {}
+        } catch { }
       }
       next.splice(index, 1);
       return next;
@@ -598,9 +603,9 @@ const ClubUpdateForm = () => {
     for (const day of Object.keys(formData.businessHours)) {
       if (
         formData.businessHours[day].start !==
-          initialFormData.businessHours[day].start ||
+        initialFormData.businessHours[day].start ||
         formData.businessHours[day].end !==
-          initialFormData.businessHours[day].end
+        initialFormData.businessHours[day].end
       )
         return true;
     }
@@ -656,8 +661,7 @@ const ClubUpdateForm = () => {
     fd.append("clubName", formData.courtName);
     fd.append(
       "courtType",
-      `${formData.courtTypes.indoor ? "Indoor" : ""}${
-        formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
+      `${formData.courtTypes.indoor ? "Indoor" : ""}${formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
       }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
     );
     fd.append("courtCount", formData.courtCount);
@@ -694,6 +698,7 @@ const ClubUpdateForm = () => {
 
     // Always include pricing data
     fd.append("includePricing", "true");
+    fd.append("hourlyRate", pricingData);
 
     try {
       await dispatch(updateRegisteredClub(fd)).unwrap();
@@ -824,9 +829,8 @@ const ClubUpdateForm = () => {
                         }}
                         style={{
                           height: `${editorHeight}px`,
-                          border: `1px solid ${
-                            visibleErrors.description ? "#dc3545" : "#ced4da"
-                          }`,
+                          border: `1px solid ${visibleErrors.description ? "#dc3545" : "#ced4da"
+                            }`,
                           borderRadius: "4px",
                           backgroundColor: "#fff",
                         }}
@@ -1183,6 +1187,7 @@ const ClubUpdateForm = () => {
                 selectAllDays={selectAllDays}
                 onSelectAllChange={setSelectAllDays}
                 setSelectAllDays={setSelectAllDays}
+                onPriceDataChange={handlePriceDataFromChild}
               />
             </Col>
           </Row>
