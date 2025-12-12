@@ -784,7 +784,7 @@ const ClubUpdateForm = () => {
                 <Col md={6}>
                   <Input
                     as="textArea"
-                    label="Full Address"
+                    label="Landmark / Address"
                     field="address"
                     placeholder="Street, Area"
                     formData={formData}
