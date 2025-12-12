@@ -176,6 +176,13 @@ const Navbar = () => {
     }, [dispatch]);
 
     useEffect(() => {
+        if (clubData && clubData._id) {
+            localStorage.setItem("register_club_id", clubData._id);
+            localStorage.setItem("owner_id", clubData?.ownerId?._id);
+        }
+    }, [clubData]);
+
+    useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpen(false);

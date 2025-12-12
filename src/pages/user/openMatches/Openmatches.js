@@ -215,11 +215,14 @@ const Openmatches = () => {
     }
   }, [selectedDate?.fullDate]);
   useEffect(() => {
+    const clubId = localStorage.getItem("register_club_id");
+    if (!clubId) return;
+    
     const payload = {
       matchDate: selectedDate?.fullDate?.split("T")[0] || selectedDate?.fullDate,
       ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
       ...(selectedLevel && selectedLevel !== "All" && { skillLevel: selectedLevel }),
-      clubId: localStorage.getItem("register_club_id"),
+      clubId,
       userId: user?._id ? user._id : "",
       type: matchFilter === "my" ? "myMatches" : "",
     };
