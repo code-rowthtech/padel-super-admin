@@ -85,8 +85,8 @@ const Openmatches = () => {
   const { state } = useLocation();
 
   const initialDate = state?.selectedDate ? {
-    fullDate: typeof state.selectedDate === 'string' 
-      ? state.selectedDate.split("T")[0] 
+    fullDate: typeof state.selectedDate === 'string'
+      ? state.selectedDate.split("T")[0]
       : state.selectedDate.fullDate || new Date().toISOString().split("T")[0],
     day: typeof state.selectedDate === 'string'
       ? new Date(state.selectedDate.split("T")[0]).toLocaleDateString("en-US", { weekday: "long" })
@@ -98,8 +98,8 @@ const Openmatches = () => {
 
   const [startDate, setStartDate] = useState(() => {
     if (state?.selectedDate) {
-      const dateStr = typeof state.selectedDate === 'string' 
-        ? state.selectedDate.split("T")[0] 
+      const dateStr = typeof state.selectedDate === 'string'
+        ? state.selectedDate.split("T")[0]
         : state.selectedDate.fullDate;
       return new Date(dateStr);
     }
