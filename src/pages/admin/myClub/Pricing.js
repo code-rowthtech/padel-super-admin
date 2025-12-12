@@ -130,14 +130,15 @@ const Pricing = ({
       PricingData[0]?.slot?.length &&
       formData.selectedSlots
     ) {
+      onPriceDataChange(PricingData[0]?.slot[0]?.slotTimes[0]?.amount || 0);
+
       const allSlotTimes = PricingData[0]?.slot?.flatMap(s => s.slotTimes || []) || [];
       if (allSlotTimes.length) {
         const allPrices = {};
         const amounts = [];
-        
+
         // Get existing pricing data to preserve
         const existingPrices = formData.prices.All || {};
-        
         allSlotTimes.forEach((slot) => {
           const display = formatTo12HourDisplay(slot?.time);
           if (display) {
@@ -156,11 +157,11 @@ const Pricing = ({
             }
           }
         });
-        
+
         // Auto-select all slots and set common price by default
         const existingValues = Object.values(existingPrices).filter(v => v && v !== "");
         const apiValues = amounts.filter(a => a && a > 0);
-        
+
         let commonPrice = "";
         if (existingValues.length > 0 && existingValues.every(v => v === existingValues[0])) {
           commonPrice = existingValues[0];
@@ -169,7 +170,7 @@ const Pricing = ({
         } else if (apiValues.length > 0) {
           commonPrice = String(apiValues[0]); // Use first available price
         }
-        
+
         // Auto-select all slots with common price
         if (commonPrice) {
           Object.keys(allPrices).forEach(key => {
@@ -186,7 +187,7 @@ const Pricing = ({
         }));
       }
     }
-  }, [PricingData, formData.selectedSlots]);
+  }, [PricingData, formData.selectedSlots, onPriceDataChange]);
   const selectedDaysList = useMemo(
     () => Object.keys(formData.days).filter((d) => formData.days[d]),
     [formData.days]
@@ -241,7 +242,7 @@ const Pricing = ({
     if (value !== "" && (numericValue > 4000 || numericValue < 0)) {
       return;
     }
-
+    onPriceDataChange(value)
     setFormData((prev) => ({
       ...prev,
       prices: {
@@ -538,9 +539,8 @@ const Pricing = ({
             }}
           >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${
-                  selectedTimes.length > 1 ? "s" : ""
-                }`
+              ? `Set Price for ${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""
+              }`
               : "Set Price (select slots first)"}
           </h5>
           <InputGroup>
@@ -575,7 +575,7 @@ const Pricing = ({
       : Object.keys(formData.days).filter((day) => formData.days[day]);
     const selectedSlotType = selectAllChecked ? "All" : formData.selectedSlots;
     const slotPrices = formData.prices[selectedSlotType];
-    
+
     // Skip validation when called from updateRegisteredClub
     if (!slotPrices || Object.keys(slotPrices).length === 0) {
       return; // Silently return if no pricing data
@@ -595,8 +595,8 @@ const Pricing = ({
     const selectedDisplayTimes = Object.keys(slotPrices);
     const targetedSlotTimes = selectAllChecked
       ? slotTimes.filter((slot) =>
-          selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
-        )
+        selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
+      )
       : slotTimes;
     if (targetedSlotTimes.length === 0) {
       return; // Silently return if no targeted slots
