@@ -8,7 +8,7 @@ import sendSound from '../../../assets/images/pixel_10_notification.mp3';
 
 const SOCKET_URL = `${config.API_URL}/match`;
 
-const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId, playerNames, setUnreadCount }) => {
+const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessage, matchId, playerNames, setUnreadCount }) => {
     const User = getUserFromSession();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -179,7 +179,7 @@ const ChatPopup = ({ showChat, setShowChat, chatMessage, setChatMessage, matchId
                     </div>
                     <div>
                         <h6 className="mb-0 custom-heading-use" style={{ fontFamily: 'Poppins' }}>Padel Squad - Open Match</h6>
-                        <p className="mb-0 text-muted" style={{ fontSize: '12px' }}>{playerNames || 'Loading...'}</p>
+                        <p className="mb-0 text-muted" style={{ fontSize: '12px' }}>{playerNames || 'Loading...'} | {matchTime}</p>
                     </div>
                 </div>
                 <button

@@ -95,6 +95,7 @@ const Pricing = ({
   selectAllDays,
   onSelectAllChange,
   setSelectAllDays,
+  onPriceDataChange,
 }) => {
   const dispatch = useDispatch();
   const { ownerClubData } = useSelector((state) => state.manualBooking);
@@ -106,6 +107,7 @@ const Pricing = ({
   const [formData, setFormData] = useState({
     selectedSlots: "Morning",
     days: DAYS_OF_WEEK.reduce((acc, day) => {
+      acc[day] = true; // All days selected by default
       return acc;
     }, {}),
     prices: { Morning: {}, Afternoon: {}, Evening: {}, All: {} },
@@ -132,19 +134,48 @@ const Pricing = ({
       if (allSlotTimes.length) {
         const allPrices = {};
         const amounts = [];
+        
+        // Get existing pricing data to preserve
+        const existingPrices = formData.prices.All || {};
+        
         allSlotTimes.forEach((slot) => {
           const display = formatTo12HourDisplay(slot?.time);
-          if (display && !allPrices[display]) {
-            allPrices[display] = slot?.amount || "";
-            if (slot?.amount) amounts.push(slot.amount);
+          if (display) {
+            // First check if we have existing price for this time slot
+            const existingPrice = existingPrices[display];
+            if (existingPrice) {
+              allPrices[display] = existingPrice;
+              amounts.push(parseFloat(existingPrice));
+            } else if (slot?.amount) {
+              // Auto-populate from API data and auto-select slot
+              allPrices[display] = String(slot.amount);
+              amounts.push(slot.amount);
+            } else {
+              // Set empty but still include in allPrices to show slot exists
+              allPrices[display] = "";
+            }
           }
         });
-        const allSame = amounts.length > 0 && amounts.every(a => a === amounts[0]);
-        const commonAmount = allSame ? String(amounts[0]) : "";
         
-        Object.keys(allPrices).forEach(key => {
-          allPrices[key] = commonAmount;
-        });
+        // Auto-select all slots and set common price by default
+        const existingValues = Object.values(existingPrices).filter(v => v && v !== "");
+        const apiValues = amounts.filter(a => a && a > 0);
+        
+        let commonPrice = "";
+        if (existingValues.length > 0 && existingValues.every(v => v === existingValues[0])) {
+          commonPrice = existingValues[0];
+        } else if (apiValues.length > 0 && apiValues.every(a => a === apiValues[0])) {
+          commonPrice = String(apiValues[0]);
+        } else if (apiValues.length > 0) {
+          commonPrice = String(apiValues[0]); // Use first available price
+        }
+        
+        // Auto-select all slots with common price
+        if (commonPrice) {
+          Object.keys(allPrices).forEach(key => {
+            allPrices[key] = commonPrice;
+          });
+        }
 
         setFormData((prev) => ({
           ...prev,
@@ -384,7 +415,14 @@ const Pricing = ({
       setFormData((prev) => {
         const newPrices = { ...(prev.prices.All || {}) };
         if (!allSelected) {
-          const common = getCommonPrice() || "";
+          // Get existing common price or use first available price from API
+          let common = getCommonPrice();
+          if (!common) {
+            // Find first slot with amount from API data
+            const firstSlotWithAmount = PricingData?.[0]?.slot?.flatMap(s => s.slotTimes || [])
+              .find(slot => slot?.amount);
+            common = firstSlotWithAmount?.amount ? String(firstSlotWithAmount.amount) : "";
+          }
           allTimesRaw.forEach((t) => {
             const display = formatTo12HourDisplay(t);
             newPrices[display] = common;
@@ -532,22 +570,15 @@ const Pricing = ({
     );
   };
   const handleSubmit = () => {
-    if (!formData.changesConfirmed) {
-      showInfo("Please confirm that you have completed all changes.");
-      return;
-    }
     const chosenDays = selectAllChecked
       ? DAYS_OF_WEEK
       : Object.keys(formData.days).filter((day) => formData.days[day]);
     const selectedSlotType = selectAllChecked ? "All" : formData.selectedSlots;
     const slotPrices = formData.prices[selectedSlotType];
+    
+    // Skip validation when called from updateRegisteredClub
     if (!slotPrices || Object.keys(slotPrices).length === 0) {
-      if (selectAllChecked) {
-        showWarning("No slots selected to update prices.");
-      } else {
-        showWarning("No prices entered for the selected slot.");
-      }
-      return;
+      return; // Silently return if no pricing data
     }
     const allSlots = PricingData?.[0]?.slot || [];
     const selectedSlotData = allSlots.filter((slot) => {
@@ -559,8 +590,7 @@ const Pricing = ({
       (slot) => slot?.businessHours || []
     );
     if (!slotTimes.length || !businessHours.length) {
-      showWarning("Slot times or business hours not found in response.");
-      return;
+      return; // Silently return if no slot data
     }
     const selectedDisplayTimes = Object.keys(slotPrices);
     const targetedSlotTimes = selectAllChecked
@@ -569,8 +599,7 @@ const Pricing = ({
         )
       : slotTimes;
     if (targetedSlotTimes.length === 0) {
-      showWarning("No targeted slots to update.");
-      return;
+      return; // Silently return if no targeted slots
     }
     const filledSlotTimes = targetedSlotTimes
       .map((slot) => {
@@ -585,9 +614,8 @@ const Pricing = ({
         };
       })
       .filter(Boolean);
-    if (filledSlotTimes.length !== targetedSlotTimes.length) {
-      showWarning("All targeted prices must be filled and greater than 0.");
-      return;
+    if (filledSlotTimes.length === 0) {
+      return; // Silently return if no valid prices
     }
     const completeBusinessHours = chosenDays.map((dayName) => {
       const existing = businessHours.find((bh) => bh?.day === dayName);
@@ -605,8 +633,7 @@ const Pricing = ({
     }));
     const courtId = PricingData?.[0]?._id;
     if (!courtId) {
-      showWarning("Court ID is missing.");
-      return;
+      return; // Silently return if no court ID
     }
     const payload = {
       _id: courtId,
@@ -632,12 +659,12 @@ const Pricing = ({
   };
   useEffect(() => {
     if (hitApi) {
-      if (hasPriceChanges) {
-        handleSubmit();
-      }
+      // Always call updateCourt API when updateRegisteredClub is called
+      // This ensures pricing data is updated with current input values
+      handleSubmit();
       setHitUpdateApi(false);
     }
-  }, [hitApi, hasPriceChanges]);
+  }, [hitApi]);
 
   useEffect(() => {
     if (selectAllDays !== undefined) {

@@ -684,6 +684,9 @@ const ClubUpdateForm = () => {
     const remote = previews.filter((x) => x.isRemote).map((x) => x.preview);
     if (remote.length) fd.append("images", JSON.stringify(remote));
 
+    // Always include pricing data
+    fd.append("includePricing", "true");
+
     try {
       await dispatch(updateRegisteredClub(fd)).unwrap();
       dispatch(getOwnerRegisteredClub({ ownerId }));

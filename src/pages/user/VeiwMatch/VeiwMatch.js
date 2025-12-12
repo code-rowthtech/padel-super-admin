@@ -1111,6 +1111,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                 setChatMessage={setChatMessage}
                 matchId={getMatchIdString(matchId)}
                 setUnreadCount={setUnreadCount}
+                matchTime={matchTime}
                 playerNames={(() => {
                     const allPlayers = [...teamAData, ...teamBData]
                         .filter(p => p)

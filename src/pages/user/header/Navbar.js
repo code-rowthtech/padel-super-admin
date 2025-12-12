@@ -192,7 +192,7 @@ const Navbar = () => {
 
         dispatch(getNotificationView({ noteId: note._id })).unwrap()
             .then(() => {
-                if (note?.notificationType === 'match_message' || note?.notificationType === 'join_match_request' && note?.matchId) {
+                if (note?.notificationType === 'match_message' || note?.notificationType === "match_request_accept" || note?.notificationType === "match_request_reject" || note?.notificationType === 'join_match_request' && note?.matchId) {
                     const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
                     const dateObj = new Date(matchDate);
                     navigate('/open-matches', { 
@@ -209,6 +209,7 @@ const Navbar = () => {
                     navigate(note?.notificationUrl);
                 }
                 socket.on("userNotificationCountUpdate", (data) => {
+                    console.log(data,'pankaj4');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -225,6 +226,7 @@ const Navbar = () => {
         dispatch(readAllNotification()).unwrap()
             .then(() => {
                 socket.on("userNotificationCountUpdate", (data) => {
+                    console.log(data,'pankaj5');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -358,8 +360,8 @@ const Navbar = () => {
                                         style={{
                                             position: "fixed",
                                             top: "57px",
-                                            right: "40%",
-                                            width: "300",
+                                            right: "30%",
+                                            width: "320px",
                                             margin: "0 auto",
                                             backgroundColor: "#fff",
                                             borderRadius: "12px",
@@ -367,7 +369,7 @@ const Navbar = () => {
                                         }}
                                     >
                                         <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
-                                            <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
+                                            <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications pankaj</h6>
                                             {notifications.length > 3 && (
                                                 <button
                                                     className="btn btn-link p-0"
@@ -384,7 +386,7 @@ const Navbar = () => {
                                             )}
                                         </div>
 
-                                        <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
+                                        <div style={{ maxHeight: "320px", overflowY: "auto" }} className="hide-notification-scrollbar">
                                             {notificationLoading ? <ButtonLoading /> :
                                                 notifications?.length > 0 ? (
                                                     notifications?.map((note) => (
@@ -467,6 +469,7 @@ const Navbar = () => {
                                                         className="text-center text-muted py-3"
                                                         style={{
                                                             fontWeight: 400,
+                                                            width:"300px",
                                                             fontFamily: "Poppins",
                                                         }}
                                                     >

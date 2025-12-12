@@ -424,6 +424,51 @@ const Booking = ({ className = "" }) => {
     }
   }, [totalSlots]);
 
+  // Clean up selected slots when courts are removed from API
+  useEffect(() => {
+    if (slotData?.data && Object.keys(selectedTimes).length > 0) {
+      const availableCourtIds = slotData.data.map(court => court._id);
+      const updatedSelectedTimes = {};
+      const updatedSelectedCourts = [];
+      const updatedSelectedBusiness = [];
+
+      // Filter out slots from courts that no longer exist
+      Object.keys(selectedTimes).forEach(courtId => {
+        if (availableCourtIds.includes(courtId)) {
+          updatedSelectedTimes[courtId] = selectedTimes[courtId];
+        }
+      });
+
+      // Update selectedCourts to only include existing courts
+      selectedCourts.forEach(court => {
+        if (availableCourtIds.includes(court._id)) {
+          updatedSelectedCourts.push(court);
+        }
+      });
+
+      // Update selectedBusiness to only include slots from existing courts
+      selectedBuisness.forEach(slot => {
+        const courtExists = slotData.data.some(court => 
+          court.slots?.some(courtSlot => courtSlot._id === slot._id)
+        );
+        if (courtExists) {
+          updatedSelectedBusiness.push(slot);
+        }
+      });
+
+      // Only update state if there are changes
+      if (JSON.stringify(selectedTimes) !== JSON.stringify(updatedSelectedTimes)) {
+        setSelectedTimes(updatedSelectedTimes);
+      }
+      if (JSON.stringify(selectedCourts) !== JSON.stringify(updatedSelectedCourts)) {
+        setSelectedCourts(updatedSelectedCourts);
+      }
+      if (JSON.stringify(selectedBuisness) !== JSON.stringify(updatedSelectedBusiness)) {
+        setSelectedBuisness(updatedSelectedBusiness);
+      }
+    }
+  }, [slotData?.data]);
+
   const handleBookNow = async () => {
     if (totalSlots === 0) {
       setErrorMessage("Select a slot to enable booking");

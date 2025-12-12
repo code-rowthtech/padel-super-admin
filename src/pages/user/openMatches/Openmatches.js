@@ -171,12 +171,10 @@ const Openmatches = () => {
       const shouldShowViewMatch = localStorage.getItem('mobileViewMatch') === 'true';
       const savedMatch = localStorage.getItem('mobileSelectedMatch');
 
-      // Only restore ViewMatch state if user explicitly navigated to it
       if (shouldShowViewMatch && savedMatch && window.location.hash === '#viewmatch') {
         setShowViewMatch(true);
         setSelectedMatch(JSON.parse(savedMatch));
       } else {
-        // Clear any stale mobile state on fresh page load
         localStorage.removeItem('mobileViewMatch');
         localStorage.removeItem('mobileSelectedMatch');
       }
@@ -198,20 +196,7 @@ const Openmatches = () => {
     }
   }, [matchId?.skillLevel, dispatch]);
 
-  const handleClickOutside = (e) => {
-    if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-      setIsOpen(false);
-    }
 
-    if (shareDropdownRef.current && !shareDropdownRef.current.contains(e.target)) {
-      setShowShareDropdown(null);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showModal, showShareDropdown]);
 
   useEffect(() => {
     const savedClubId = localStorage.getItem("register_club_id");
@@ -1025,7 +1010,7 @@ const Openmatches = () => {
                         <div className="col">
                           <div
                             ref={(el) => (matchCardRefs.current[`desktop-${index}`] = el)}
-                            className="card  mb-2 py-3 p-0 shadow-0 rounded-2 d-md-block d-none"
+                            className="card  mb-2 py-3 p-0 pb-2 shadow-0 rounded-2 d-md-block d-none"
                             style={{
                               backgroundColor: "#CBD6FF1A",
                               border: "0.45px solid #0000001A",
