@@ -1081,7 +1081,8 @@ const Openmatches = () => {
                                   style={{ fontWeight: "600" }}
                                 >
                                   {formatMatchDate(match.matchDate)} |{" "}
-                                  {formatTimes(match.slot)}
+                                  {match?.formattedMatchTime}
+                                  {/* {formatTimes(match.slot)} */}
                                   <i className="bi bi-share ms-2" onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `desktop-${index}` ? null : `desktop-${index}`); }} style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }} />
                                 </p>
                                 <span className="text-muted all-match-name-level ms-0 d-none d-md-inline">
