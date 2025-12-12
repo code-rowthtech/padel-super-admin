@@ -5,7 +5,7 @@ import { Box, Button, Modal } from "@mui/material";
 import { getUserProfile, Usersignup } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import Select from "react-select";
-import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
+import { getPlayerLevel, getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { searchUserByNumber } from "../../../redux/admin/searchUserbynumber/thunk";
 import { resetSearchData } from "../../../redux/admin/searchUserbynumber/slice";
 
@@ -31,7 +31,7 @@ const NewPlayers = ({
   setShowAddMeForm,
   setActiveSlot,
   selectedGender, profileLoading,
-  editPlayerData
+  editPlayerData, skillDetails
 }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -66,9 +66,10 @@ const NewPlayers = ({
   );
 
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
+  const getPlayerLevelsBySkillLevel = useSelector((state) => state?.userNotificationData?.getPlayerLevelBySkillLevel?.data?.[0]?.levelIds) || [];
+  const getPlayerLevelsBySkillLevelLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelBySkillLevelLoading) || false;
 
-
-  const lavel = getPlayerLevels.map(level => ({
+  const lavel = (getPlayerLevelsBySkillLevel.length > 0 ? getPlayerLevelsBySkillLevel : getPlayerLevels).map(level => ({
     code: level.code,
     title: level.question
   }));
@@ -205,8 +206,10 @@ const NewPlayers = ({
     if (showAddMeForm) {
       setErrors({});
       setShowErrors({});
+      dispatch(getPlayerLevelBySkillLevel(skillDetails?.[0]));
     }
-  }, [showAddMeForm]);
+  }, [showAddMeForm, dispatch]);
+  console.log(skillDetails, 'skillDetails');
 
   useEffect(() => {
     const timers = Object.keys(showErrors)
@@ -588,7 +591,7 @@ const NewPlayers = ({
               Select Level <span className="text-danger">*</span>
             </label>
             <div style={inputStyle("level")}>
-              {profileLoading ? (
+              {getPlayerLevelsBySkillLevelLoading ? (
                 <div className="text-center p-2">
                   <ButtonLoading />
                 </div>
