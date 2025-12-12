@@ -30,7 +30,7 @@ const NewPlayers = ({
   activeSlot,
   setShowAddMeForm,
   setActiveSlot,
-   selectedGender, profileLoading,
+  selectedGender, profileLoading,
   editPlayerData
 }) => {
   const [formData, setFormData] = useState({
@@ -256,7 +256,7 @@ const NewPlayers = ({
         } else if (selectedGender === 'Female') {
           autoGender = 'Female';
         }
-        
+
         setFormData({
           name: "",
           email: "",
@@ -314,7 +314,7 @@ const NewPlayers = ({
         email: userEnteredData.email,
         gender: userEnteredData.gender
       });
-      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber,type:formData?.type }));
+      dispatch(searchUserByNumber({ phoneNumber: formData?.phoneNumber, type: formData?.type }));
       setLastSearchedNumber(formData.phoneNumber);
     } else if (phoneLength < 10 && lastSearchedNumber) {
       let gameTypeGender = '';
@@ -325,7 +325,7 @@ const NewPlayers = ({
       } else if (selectedGender === 'Mixed') {
         gameTypeGender = 'Other';
       }
-      
+
       setFormData(prev => ({
         ...prev,
         name: originalUserData.name,
@@ -346,7 +346,7 @@ const NewPlayers = ({
     if (showAddMeForm && searchUserData?.result?.[0] && formData?.phoneNumber?.length === 10) {
       const apiGender = searchUserData.result[0].gender;
       let finalGender = apiGender || userEnteredData.gender;
-      
+
       if (!apiGender) {
         if (selectedGender === 'Male') {
           finalGender = 'Male';
@@ -411,40 +411,6 @@ const NewPlayers = ({
         <form onSubmit={handleSubmit}>
           <div className="mb-md-2 mb-1">
             <label className="form-label label_font mb-1">
-              Name <span className="text-danger">*</span>
-            </label>
-            <input
-              type="text"
-              value={searchUserDataLoading ? "Loading...." : formData?.name}
-              onChange={(e) => {
-                let v = e.target.value;
-                if (/^[A-Za-z\s]*$/.test(v)) {
-                  if (v.length > 20) v = v.slice(0, 20);
-                  const formatted = v
-                    .trimStart()
-                    .replace(/\s+/g, " ")
-                    .toLowerCase()
-                    .replace(/(^|\s)\w/g, (l) => l.toUpperCase());
-                  handleInputChange("name", formatted);
-                  setUserEnteredData((prev) => ({ ...prev, name: formatted }));
-                }
-              }}
-              className="form-control p-2"
-              placeholder="Enter your name"
-              style={inputStyle("name")}
-            />
-            {showErrors?.name && errors?.name && (
-              <small
-                className="text-danger d-block mt-1"
-                style={{ fontSize: "12px" }}
-              >
-                {errors?.name}
-              </small>
-            )}
-          </div>
-
-          <div className="mb-md-2 mb-1">
-            <label className="form-label label_font mb-1">
               Phone No
             </label>
             <div className="input-group" style={inputStyle("phoneNumber")}>
@@ -476,7 +442,39 @@ const NewPlayers = ({
               </small>
             )}
           </div>
-
+          <div className="mb-md-2 mb-1">
+            <label className="form-label label_font mb-1">
+              Name <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              value={searchUserDataLoading ? "Loading...." : formData?.name}
+              onChange={(e) => {
+                let v = e.target.value;
+                if (/^[A-Za-z\s]*$/.test(v)) {
+                  if (v.length > 20) v = v.slice(0, 20);
+                  const formatted = v
+                    .trimStart()
+                    .replace(/\s+/g, " ")
+                    .toLowerCase()
+                    .replace(/(^|\s)\w/g, (l) => l.toUpperCase());
+                  handleInputChange("name", formatted);
+                  setUserEnteredData((prev) => ({ ...prev, name: formatted }));
+                }
+              }}
+              className="form-control p-2"
+              placeholder="Enter your name"
+              style={inputStyle("name")}
+            />
+            {showErrors?.name && errors?.name && (
+              <small
+                className="text-danger d-block mt-1"
+                style={{ fontSize: "12px" }}
+              >
+                {errors?.name}
+              </small>
+            )}
+          </div>
           <div className="mb-md-2 mb-1">
             <label className="form-label label_font mb-1">
               Email
