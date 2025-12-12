@@ -133,12 +133,20 @@ const formatAmPm = (hour, meridian) =>
 const TimeSelect = ({ value, onChange, idPrefix }) => {
   const { hour, meridian } = useMemo(() => {
     if (!value) return { hour: 6, meridian: "AM" };
-    const [time, mod] = value.split(" ");
-    const h = Number((time || "06:00").split(":")[0]) || 6;
-    return { hour: h, meridian: (mod || "AM").toUpperCase() };
+    const trimmedValue = String(value).trim();
+    const parts = trimmedValue.split(" ").filter(p => p);
+    const time = parts[0] || "06:00";
+    const mod = parts[1] || "AM";
+    const h = Number(time.split(":")[0]) || 6;
+    return { hour: h, meridian: mod.toUpperCase() };
   }, [value]);
 
-  const hours = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), []);
+  const hours = useMemo(() => {
+    const allHours = [];
+    for (let i = 5; i <= 12; i++) allHours.push(i);
+    for (let i = 1; i <= 4; i++) allHours.push(i);
+    return allHours;
+  }, []);
 
   return (
     <div className="d-flex gap-2">
