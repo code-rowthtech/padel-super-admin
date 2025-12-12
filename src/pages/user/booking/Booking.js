@@ -364,7 +364,7 @@ const Booking = ({ className = "" }) => {
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
   const clubId = localStorage.getItem("register_club_id");
 
-  const fetchSlots = (socket=null) => {
+  const fetchSlots = (socket = null) => {
     dispatch(
       getUserSlotBooking({
         day: selectedDate.day,
@@ -448,7 +448,7 @@ const Booking = ({ className = "" }) => {
 
       // Update selectedBusiness to only include slots from existing courts
       selectedBuisness.forEach(slot => {
-        const courtExists = slotData.data.some(court => 
+        const courtExists = slotData.data.some(court =>
           court.slots?.some(courtSlot => courtSlot._id === slot._id)
         );
         if (courtExists) {
