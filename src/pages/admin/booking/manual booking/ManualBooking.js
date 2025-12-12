@@ -345,7 +345,7 @@ const ManualBooking = () => {
       setPhone("");
       setSelectedSlots({});
       sessionStorage.removeItem(KEY);
-    } catch (error) {}
+    } catch (error) { }
   };
 
   useEffect(() => {
@@ -391,21 +391,21 @@ const ManualBooking = () => {
 
   useEffect(() => {
     if (phone.length === 10) {
-      dispatch(searchUserByNumber({ phoneNumber: phone,type:'' }));
+      dispatch(searchUserByNumber({ phoneNumber: phone, type: '' }));
     }
   }, [phone, dispatch]);
-console.log({searchUserData});
+  console.log({ searchUserData });
   useEffect(() => {
-    if (searchUserData?.result[0]?.name && phone.length === 10) {
+    if (searchUserData?.result?.[0]?.name && phone.length === 10) {
       if (!name || name.trim() === "") {
-        setName(searchUserData.result[0].name);
+        setName(searchUserData.result?.[0]?.name);
       }
     }
   }, [searchUserData, phone]);
 
   useEffect(() => {
-    if (phone.length === 10 && searchUserData?.result[0]?.name) {
-      setName(searchUserData.result[0].name);
+    if (phone.length === 10 && searchUserData?.result?.[0]?.name) {
+      setName(searchUserData.result?.[0]?.name);
     } else if (phone.length === 9 || phone.length === 9 || phone.length === 0) {
       dispatch(resetSearchData());
     }
@@ -610,9 +610,8 @@ console.log({searchUserData});
                           <button
                             key={i}
                             ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                            className={`calendar-day-btn mb-3 me-2 position-relative ${
-                              isSelected ? "text-white" : "bg-white"
-                            }`}
+                            className={`calendar-day-btn mb-3 me-2 position-relative ${isSelected ? "text-white" : "bg-white"
+                              }`}
                             style={{
                               backgroundColor: isSelected
                                 ? "#374151"
@@ -637,8 +636,8 @@ console.log({searchUserData});
                                 "1px solid #3DBE64")
                             }
                             onMouseLeave={(e) =>
-                              (e.currentTarget.style.border =
-                                "1px solid #4949491A")
+                            (e.currentTarget.style.border =
+                              "1px solid #4949491A")
                             }
                           >
                             <div className="text-center">
@@ -839,9 +838,8 @@ console.log({searchUserData});
                               const buttonEl = (
                                 <span className="d-inline-block">
                                   <button
-                                    className={`border rounded-3 slot-time-btn text-nowrap py-1 ${
-                                      isBooked ? "bg-danger text-white" : ""
-                                    }`}
+                                    className={`border rounded-3 slot-time-btn text-nowrap py-1 ${isBooked ? "bg-danger text-white" : ""
+                                      }`}
                                     onClick={() => toggleTime(slot)}
                                     disabled={
                                       isPast ||
@@ -854,17 +852,17 @@ console.log({searchUserData});
                                         slot.status === "booked" || isPast
                                           ? "#c9cfcfff"
                                           : isSelected
-                                          ? "#374151"
-                                          : slot.availabilityStatus !==
-                                            "available"
-                                          ? "#c9cfcfff"
-                                          : "#FFFFFF",
+                                            ? "#374151"
+                                            : slot.availabilityStatus !==
+                                              "available"
+                                              ? "#c9cfcfff"
+                                              : "#FFFFFF",
                                       border: "2px solid #4949491A",
                                       cursor:
                                         !hasAmount ||
-                                        !isAvailable ||
-                                        isBooked ||
-                                        isPast
+                                          !isAvailable ||
+                                          isBooked ||
+                                          isPast
                                           ? "not-allowed"
                                           : "pointer",
                                       fontFamily: "Poppins",
@@ -874,16 +872,16 @@ console.log({searchUserData});
                                         slot.status === "booked" || isPast
                                           ? "#000000"
                                           : isSelected
-                                          ? "white"
-                                          : "#000000",
+                                            ? "white"
+                                            : "#000000",
                                     }}
                                     onMouseEnter={(e) =>
-                                      (e.currentTarget.style.border =
-                                        "1px solid #3DBE64")
+                                    (e.currentTarget.style.border =
+                                      "1px solid #3DBE64")
                                     }
                                     onMouseLeave={(e) =>
-                                      (e.currentTarget.style.border =
-                                        "2px solid #4949491A")
+                                    (e.currentTarget.style.border =
+                                      "2px solid #4949491A")
                                     }
                                   >
                                     {isBooked
@@ -930,20 +928,19 @@ console.log({searchUserData});
                       ),
                     0
                   ) >= 4 && (
-                    <Button
-                      size="sm"
-                      className="rounded-pill border-0 text-primary bg-white"
-                      onClick={clearSessionStorage}
-                      style={{ fontSize: "12px", padding: "4px 10px" }}
-                    >
-                      Clear All
-                    </Button>
-                  )}
+                      <Button
+                        size="sm"
+                        className="rounded-pill border-0 text-primary bg-white"
+                        onClick={clearSessionStorage}
+                        style={{ fontSize: "12px", padding: "4px 10px" }}
+                      >
+                        Clear All
+                      </Button>
+                    )}
                 </div>
                 <div
-                  className={`${
-                    Object.keys(selectedSlots)?.length === 0 ? "" : "bg-light"
-                  }`}
+                  className={`${Object.keys(selectedSlots)?.length === 0 ? "" : "bg-light"
+                    }`}
                   style={{
                     height: "26vh",
                     overflowY: "auto",
@@ -1083,166 +1080,183 @@ console.log({searchUserData});
                 {Object.values(selectedSlots).some((ds) =>
                   Object.values(ds).some(({ slots }) => slots.length > 0)
                 ) && (
-                  <div className="mt-2 p-2 rounded ">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <span
-                        style={{
-                          fontWeight: "600",
-                          fontFamily: "Poppins",
-                          fontSize: "15px",
-                        }}
-                      >
-                        Total Amount
-                      </span>
-                      <span
-                        style={{
-                          fontWeight: "700",
-                          fontSize: "16px",
-                          color: "#1F41BB",
-                        }}
-                      >
-                        ₹
-                        {Object.values(selectedSlots).reduce(
-                          (acc, dateSlots) =>
-                            acc +
-                            Object.values(dateSlots).reduce(
-                              (acc2, { slots }) =>
-                                acc2 +
-                                slots.reduce(
-                                  (acc3, s) => acc3 + (s.amount || 0),
-                                  0
-                                ),
-                              0
-                            ),
-                          0
-                        )}
-                      </span>
-                      <span style={{ fontSize: "14px", color: "#374151" }}>
-                        {Object.values(selectedSlots).reduce(
-                          (acc, dateSlots) =>
-                            acc +
-                            Object.values(dateSlots).reduce(
-                              (acc2, { slots }) => acc2 + slots.length,
-                              0
-                            ),
-                          0
-                        )}{" "}
-                        Slots
-                      </span>
-                    </div>
-                    <div className="mt-2">
-                      <p
-                        className="mb-2 tabel-title"
-                        style={{
-                          fontFamily: "Poppins",
-                          fontWeight: "600",
-                          color: "#374151",
-                        }}
-                      >
-                        User Information
-                      </p>
-                      <div className="d-flex gap-3 mb-3">
-                        <input
-                          type="text"
-                          className="form-control rounded-3 py-2 shadow-sm"
-                          placeholder="Name"
+                    <div className="mt-2 p-2 rounded ">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span
                           style={{
-                            backgroundColor: "#CBD6FF7A",
+                            fontWeight: "600",
                             fontFamily: "Poppins",
-                            fontSize: "14px",
-                          }}
-                          value={searchUserDataLoading ? "Loading...." : name}
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            value = value.replace(/[^a-zA-Z\s]/g, "");
-                            if (value.length > 0) {
-                              value =
-                                value.charAt(0).toUpperCase() + value.slice(1);
-                            }
-                            setName(value);
-                          }}
-                        />
-                        <input
-                          type="tel"
-                          className="form-control rounded-3 py-2 shadow-sm"
-                          style={{
-                            backgroundColor: "#CBD6FF7A",
-                            fontFamily: "Poppins",
-                            fontSize: "14px",
-                          }}
-                          value={phone ? `+91 ${phone}` : ""}
-                          placeholder="+91 Phone Number"
-                          onChange={(e) => {
-                            const value = e.target.value
-                              .replace("+91", "")
-                              .replace(/\s/g, "");
-                            if (
-                              value === "" ||
-                              /^[6-9][0-9]{0,9}$/.test(value)
-                            ) {
-                              setPhone(value);
-                            }
-                          }}
-                          maxLength={14}
-                          onKeyDown={(e) => {
-                            const allowedKeys = [
-                              "Backspace",
-                              "Tab",
-                              "ArrowLeft",
-                              "ArrowRight",
-                              "Delete",
-                            ];
-                            if (
-                              !allowedKeys.includes(e.key) &&
-                              !/^\d$/.test(e.key)
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="d-flex justify-content-end gap-3 align-items-end">
-                        <button
-                          className="btn btn-secondary rounded-pill p-2 shadow-sm"
-                          style={{
-                            minWidth: "120px",
-                            fontWeight: "500",
-                            fontFamily: "Poppins",
-                            fontSize: "14px",
-                          }}
-                          disabled={manualBookingLoading}
-                          onClick={() => {
-                            setName("");
-                            setPhone("");
-                            setSelectedSlots({});
-                            clearSessionStorage();
-                            setShowSuccess(false);
+                            fontSize: "15px",
                           }}
                         >
-                          Cancel
-                        </button>
-                        <button
-                          className="btn text-white rounded-pill p-2 shadow-sm"
+                          Total Amount
+                        </span>
+                        <span
                           style={{
-                            minWidth: "120px",
-                            fontWeight: "500",
-                            backgroundColor: "#22c55e",
-                            fontFamily: "Poppins",
-                            fontSize: "14px",
+                            fontWeight: "700",
+                            fontSize: "16px",
+                            color: "#1F41BB",
                           }}
-                          onClick={handleConfirm}
-                          disabled={!name || !phone || manualBookingLoading}
                         >
-                          {manualBookingLoading ? (
-                            <ButtonLoading color="white" size={12} />
-                          ) : (
-                            "Confirm"
+                          ₹
+                          {Object.values(selectedSlots).reduce(
+                            (acc, dateSlots) =>
+                              acc +
+                              Object.values(dateSlots).reduce(
+                                (acc2, { slots }) =>
+                                  acc2 +
+                                  slots.reduce(
+                                    (acc3, s) => acc3 + (s.amount || 0),
+                                    0
+                                  ),
+                                0
+                              ),
+                            0
                           )}
-                        </button>
+                        </span>
+                        <span style={{ fontSize: "14px", color: "#374151" }}>
+                          {Object.values(selectedSlots).reduce(
+                            (acc, dateSlots) =>
+                              acc +
+                              Object.values(dateSlots).reduce(
+                                (acc2, { slots }) => acc2 + slots.length,
+                                0
+                              ),
+                            0
+                          )}{" "}
+                          Slots
+                        </span>
+                      </div>
+                      <div className="mt-2">
+                        <p
+                          className="mb-2 tabel-title"
+                          style={{
+                            fontFamily: "Poppins",
+                            fontWeight: "600",
+                            color: "#374151",
+                          }}
+                        >
+                          User Information
+                        </p>
+                        <div className="d-flex gap-3 mb-3">
+                          <input
+                            type="text"
+                            className="form-control rounded-3 py-2 shadow-sm"
+                            placeholder="Name"
+                            style={{
+                              backgroundColor: "#CBD6FF7A",
+                              fontFamily: "Poppins",
+                              fontSize: "14px",
+                            }}
+                            value={searchUserDataLoading ? "Loading...." : name}
+                            onChange={(e) => {
+                              let value = e.target.value;
+                              value = value.replace(/[^a-zA-Z\s]/g, "");
+                              if (value.length > 0) {
+                                value =
+                                  value.charAt(0).toUpperCase() + value.slice(1);
+                              }
+                              setName(value);
+                            }}
+                          />
+                          <input
+                            type="tel"
+                            className="form-control rounded-3 py-2 shadow-sm"
+                            style={{
+                              backgroundColor: "#CBD6FF7A",
+                              fontFamily: "Poppins",
+                              fontSize: "14px",
+                            }}
+                            value={phone ? `+91 ${phone}` : "+91 "}
+                            placeholder="+91 Phone Number"
+                            onChange={(e) => {
+                              let v = e.target.value;
+
+                              // Remove +91 and spaces
+                              v = v.replace("+91", "").replace(/\s/g, "");
+
+                              // Allow only digits
+                              v = v.replace(/\D/g, "");
+
+                              // Enforce Indian mobile format (start with 6–9)
+                              if (v.length === 1 && !/[6-9]/.test(v)) return;
+
+                              // Limit to 10 digits max
+                              if (v.length > 10) return;
+
+                              setPhone(v);
+                            }}
+                            onKeyDown={(e) => {
+                              const allowedKeys = [
+                                "Backspace",
+                                "Tab",
+                                "ArrowLeft",
+                                "ArrowRight",
+                                "Delete",
+                              ];
+
+                              // Allow paste (Ctrl+V / Cmd+V)
+                              if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+                                return;
+                              }
+
+                              // Block typing before +91 
+                              const cursorPos = e.target.selectionStart;
+                              if (cursorPos <= 4 && !["ArrowLeft", "ArrowRight"].includes(e.key)) {
+                                e.preventDefault();
+                                return;
+                              }
+
+                              // Allow only digits + allowedKeys
+                              if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
+                                e.preventDefault();
+                              }
+                            }}
+                          />
+
+                        </div>
+                        <div className="d-flex justify-content-end gap-3 align-items-end">
+                          <button
+                            className="btn btn-secondary rounded-pill p-2 shadow-sm"
+                            style={{
+                              minWidth: "120px",
+                              fontWeight: "500",
+                              fontFamily: "Poppins",
+                              fontSize: "14px",
+                            }}
+                            disabled={manualBookingLoading}
+                            onClick={() => {
+                              setName("");
+                              setPhone("");
+                              setSelectedSlots({});
+                              clearSessionStorage();
+                              setShowSuccess(false);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="btn text-white rounded-pill p-2 shadow-sm"
+                            style={{
+                              minWidth: "120px",
+                              fontWeight: "500",
+                              backgroundColor: "#22c55e",
+                              fontFamily: "Poppins",
+                              fontSize: "14px",
+                            }}
+                            onClick={handleConfirm}
+                            disabled={!name || !phone || manualBookingLoading}
+                          >
+                            {manualBookingLoading ? (
+                              <ButtonLoading color="white" size={12} />
+                            ) : (
+                              "Confirm"
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             </Col>
           </Row>
