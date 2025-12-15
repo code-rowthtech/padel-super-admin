@@ -8,7 +8,7 @@ import { ButtonLoading } from '../../../../helpers/loading/Loaders';
 import { getUserFromSession } from '../../../../helpers/api/apiCore';
 import { Avatar } from '@mui/material';
 import { format, isValid } from 'date-fns';
-import { showInfo } from '../../../../helpers/Toast';
+import { showError, showInfo } from '../../../../helpers/Toast';
 
 export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, setChangeCancelShow, changeCancelShow, show, onHide, booking }) => {
   const [changeContent, setChangeContent] = useState(false);
@@ -59,7 +59,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
 
   const handleSubmit = () => {
     if (!selectedReason || (selectedReason === 'other' && !otherReason.trim())) {
-      showInfo('Please select a reason or provide a custom reason.');
+      showError('Please select a reason or provide a custom reason.');
       return;
     } else {
       handleContinue();

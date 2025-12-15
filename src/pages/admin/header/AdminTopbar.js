@@ -75,6 +75,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     });
 
     dispatch(getNotificationCount()).unwrap().then((res) => {
+
       if (res?.unreadCount) {
         setNotificationCount(res);
       }
@@ -98,9 +99,12 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
         if (exists) return prev;
         return [data, ...prev];
       });
-    });
-    socket.on("notificationCountUpdate", (data) => {
-      setNotificationCount(data);
+      // Update notification count when cancellation request is received
+      dispatch(getNotificationCount()).unwrap().then((res) => {
+        if (res?.unreadCount) {
+          setNotificationCount(res);
+        }
+      });
     });
 
     socket.on("notificationCountUpdate", (data) => {
