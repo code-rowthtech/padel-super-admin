@@ -289,6 +289,7 @@ const CourtAvailability = () => {
             _id: st._id,
             availabilityStatus: st.status,
             courtId: slot?.courtId,
+            date: selectedDate,
           }))
         ),
         ownerId: Owner?._id,
