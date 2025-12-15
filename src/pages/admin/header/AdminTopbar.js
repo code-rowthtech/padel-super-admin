@@ -135,6 +135,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             setNotifications(res.notifications);
           }
         });
+        setOpen(false)
       });
   };
 
@@ -277,6 +278,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                           borderBottom: "1px solid #f0f0f0",
                           cursor: "pointer",
                         }}
+                        onClick={() => handleViewNotification(note)}
                       >
                         {note?.userId?.profilePic ? (
                           <img
@@ -339,34 +341,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                               </span>
                             </OverlayTrigger>
                           </p>
-
-
-                          {openNoteId === note._id && (
-                            <div className="d-flex gap-2 mt-2">
-                              <button
-                                className="btn btn-dark btn-sm py-0 px-3"
-                                style={{ fontSize: "13px" }}
-                                onClick={() => handleViewNotification(note)
-                                }
-                              >
-                                View
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        <div
-                          className="mt-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenNoteId(openNoteId === note._id ? null : note._id);
-                          }}
-                          style={{ cursor: "pointer" }}
-                        >
-                          {openNoteId === note._id ? (
-                            <IoIosArrowUp size={20} color="#555" />
-                          ) : (
-                            <IoIosArrowDown size={20} color="#555" />
-                          )}
                         </div>
                       </div>
                     ))

@@ -104,7 +104,7 @@ const Navbar = () => {
             })
 
             socket.on("approved_request", (data) => {
-                console.log(data,'datahdata');
+                console.log(data, 'datahdata');
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
             });
 
@@ -184,7 +184,8 @@ const Navbar = () => {
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+            // Only close on desktop, not mobile
+            if (window.innerWidth >= 992 && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpen(false);
             }
         };
@@ -203,21 +204,21 @@ const Navbar = () => {
                 if (note?.notificationType === 'match_message' || note?.notificationType === "match_request_accept" || note?.notificationType === "match_request_reject" || note?.notificationType === 'join_match_request' && note?.matchId) {
                     const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
                     const dateObj = new Date(matchDate);
-                    navigate('/open-matches', { 
-                        state: { 
-                            matchId: note.matchId, 
-                            selectedDate: { 
+                    navigate('/open-matches', {
+                        state: {
+                            matchId: note.matchId,
+                            selectedDate: {
                                 fullDate: matchDate,
                                 day: dateObj.toLocaleDateString("en-US", { weekday: "long" })
-                            } 
-                        } 
+                            }
+                        }
                     });
                     setOpen(false)
                 } else {
                     navigate(note?.notificationUrl);
                 }
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log(data,'pankaj4');
+                    console.log(data, 'pankaj4');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -234,7 +235,7 @@ const Navbar = () => {
         dispatch(readAllNotification()).unwrap()
             .then(() => {
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log(data,'pankaj5');
+                    console.log(data, 'pankaj5');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -405,6 +406,7 @@ const Navbar = () => {
                                                                 borderBottom: "1px solid #f0f0f0",
                                                                 cursor: "pointer",
                                                             }}
+                                                            onClick={() => handleViewNotification(note)}
                                                         >
 
 
@@ -440,35 +442,6 @@ const Navbar = () => {
                                                                         </span>
                                                                     </OverlayTrigger>
                                                                 </p>
-
-
-                                                                {openNoteId === note._id && (
-                                                                    <div className="d-flex gap-2 mt-2">
-                                                                        <button
-                                                                            className="btn btn-dark btn-sm py-0 px-3"
-                                                                            style={{ fontSize: "13px" }}
-                                                                            onClick={() => handleViewNotification(note)
-                                                                            }
-                                                                        >
-                                                                            View
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <div
-                                                                className="mt-2"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    e.preventDefault();
-                                                                    setOpenNoteId(openNoteId === note._id ? null : note._id);
-                                                                }}
-                                                                style={{ cursor: "pointer", minWidth: "24px", display: "flex", justifyContent: "center", alignItems: "center", padding: "4px" }}
-                                                            >
-                                                                {openNoteId === note._id ? (
-                                                                    <IoIosArrowUp size={20} color="#555" />
-                                                                ) : (
-                                                                    <IoIosArrowDown size={20} color="#555" />
-                                                                )}
                                                             </div>
                                                         </div>
                                                     ))
@@ -477,7 +450,7 @@ const Navbar = () => {
                                                         className="text-center text-muted py-3"
                                                         style={{
                                                             fontWeight: 400,
-                                                            width:"300px",
+                                                            width: "300px",
                                                             fontFamily: "Poppins",
                                                         }}
                                                     >
@@ -575,6 +548,7 @@ const Navbar = () => {
                                                                     borderBottom: "1px solid #f0f0f0",
                                                                     cursor: "pointer",
                                                                 }}
+                                                                onClick={() => handleViewNotification(note)}
                                                             >
 
 
@@ -610,34 +584,6 @@ const Navbar = () => {
                                                                             </span>
                                                                         </OverlayTrigger>
                                                                     </p>
-
-
-                                                                    {openNoteId === note._id && (
-                                                                        <div className="d-flex gap-2 mt-2">
-                                                                            <button
-                                                                                className="btn btn-dark btn-sm py-0 px-3"
-                                                                                style={{ fontSize: "13px" }}
-                                                                                onClick={() => handleViewNotification(note)
-                                                                                }
-                                                                            >
-                                                                                View
-                                                                            </button>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                <div
-                                                                    className="mt-2"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setOpenNoteId(openNoteId === note._id ? null : note._id);
-                                                                    }}
-                                                                    style={{ cursor: "pointer" }}
-                                                                >
-                                                                    {openNoteId === note._id ? (
-                                                                        <IoIosArrowUp size={20} color="#555" />
-                                                                    ) : (
-                                                                        <IoIosArrowDown size={20} color="#555" />
-                                                                    )}
                                                                 </div>
                                                             </div>
                                                         ))
