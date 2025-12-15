@@ -130,7 +130,7 @@ const validateForm = (data) => {
 const formatAmPm = (hour, meridian) =>
   `${String(hour).padStart(2, "0")}:00 ${meridian}`;
 
-const TimeSelect = ({ value, onChange, idPrefix }) => {
+const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
   const { hour, meridian } = useMemo(() => {
     if (!value) return { hour: 6, meridian: "AM" };
     const trimmedValue = String(value).trim();
@@ -142,11 +142,60 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
   }, [value]);
 
   const hours = useMemo(() => {
-    const allHours = [];
-    for (let i = 5; i <= 12; i++) allHours.push(i);
-    for (let i = 1; i <= 4; i++) allHours.push(i);
-    return allHours;
-  }, []);
+    if (!isEndTime) {
+      // For start time: 5 AM to 5 AM (next day)
+      const allHours = [];
+      for (let i = 5; i <= 12; i++) allHours.push(i);
+      for (let i = 1; i <= 4; i++) allHours.push(i);
+      return allHours;
+    } else {
+      // For end time: filter based on start time
+      if (!startTime) return [];
+      
+      const startParts = startTime.split(" ");
+      const startHour = Number(startParts[0].split(":")[0]);
+      const startMeridian = startParts[1];
+      
+      const allHours = [];
+      
+      if (startMeridian === "AM") {
+        // If start is AM, end can be from (start+1) AM to 11 PM
+        // Add remaining AM hours
+        for (let i = startHour + 1; i <= 12; i++) {
+          allHours.push({ hour: i, period: "AM" });
+        }
+        // Add all PM hours from 1 to 11
+        for (let i = 1; i <= 11; i++) {
+          allHours.push({ hour: i, period: "PM" });
+        }
+      } else {
+        // If start is PM, end can be from (start+1) PM to 11 PM
+        for (let i = startHour + 1; i <= 11; i++) {
+          allHours.push({ hour: i, period: "PM" });
+        }
+      }
+      
+      return allHours.map(item => item.hour);
+    }
+  }, [isEndTime, startTime]);
+
+  const meridianOptions = useMemo(() => {
+    if (!isEndTime) {
+      return ["AM", "PM"];
+    } else {
+      if (!startTime) return [];
+      
+      const startParts = startTime.split(" ");
+      const startHour = Number(startParts[0].split(":")[0]);
+      const startMeridian = startParts[1];
+      
+      if (startMeridian === "AM") {
+        return ["AM", "PM"];
+      } else {
+        return ["PM"];
+      }
+    }
+  }, [isEndTime, startTime]);
 
   return (
     <div className="d-flex gap-2">
@@ -166,8 +215,8 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
           maxWidth: 110,
         }}
       >
-        {hours.map((h) => (
-          <option key={h} value={h}>
+        {hours.map((h, index) => (
+          <option key={`${h}-${index}`} value={h}>
             {`${String(h).padStart(2, "0")}:00`}
           </option>
         ))}
@@ -188,8 +237,9 @@ const TimeSelect = ({ value, onChange, idPrefix }) => {
           maxWidth: 110,
         }}
       >
-        <option value="AM">AM</option>
-        <option value="PM">PM</option>
+        {meridianOptions.map((option) => (
+          <option key={option} value={option}>{option}</option>
+        ))}
       </Form.Select>
     </div>
   );
@@ -995,14 +1045,7 @@ const ClubUpdateForm = () => {
                         setTouched((p) => ({ ...p, courtTypes: true }))
                       }
                     />
-                    <style jsx>{`
-                      input[type="checkbox"] {
-                        width: 20px !important;
-                        height: 20px !important;
-                        transform: scale(1.2);
-                        box-shadow: none !important;
-                      }
-                    `}</style>
+
                   </div>
                 </Col>
 
@@ -1155,6 +1198,7 @@ const ClubUpdateForm = () => {
                         idPrefix={`${day}-start`}
                         value={val.start}
                         onChange={(v) => handleHoursChange(day, "start", v)}
+                        isEndTime={false}
                       />
                     </Col>
                     <Col
@@ -1174,6 +1218,8 @@ const ClubUpdateForm = () => {
                         idPrefix={`${day}-end`}
                         value={val.end}
                         onChange={(v) => handleHoursChange(day, "end", v)}
+                        startTime={val.start}
+                        isEndTime={true}
                       />
                     </Col>
                   </Row>
