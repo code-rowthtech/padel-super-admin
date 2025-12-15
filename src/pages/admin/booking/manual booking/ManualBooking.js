@@ -1200,9 +1200,9 @@ const ManualBooking = () => {
                                 return;
                               }
 
-                              // Block typing before +91 
+                              // Block typing before +91 (including space, so position should be < 4)
                               const cursorPos = e.target.selectionStart;
-                              if (cursorPos <= 4 && !["ArrowLeft", "ArrowRight"].includes(e.key)) {
+                              if (cursorPos < 4 && !["ArrowLeft", "ArrowRight"].includes(e.key)) {
                                 e.preventDefault();
                                 return;
                               }

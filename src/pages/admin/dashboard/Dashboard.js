@@ -744,7 +744,7 @@ const AdminDashboard = () => {
           <Row>
             <Col>
               <Card className="shadow-sm border-0">
-                <Card.Body>
+                <Card.Body className="pb-2">
                   <div className="d-flex justify-content-between mb-2">
                     <h6
                       className="mb-3"
@@ -758,12 +758,13 @@ const AdminDashboard = () => {
                   </div>
                   {dashboardRecentBookings?.length > 0 ? (
                     <>
-                      <div className="custom-scroll-container d-none d-md-block">
+                      <div className=" d-none d-md-block" style={{height:"auto"}}>
                         <Table
                           responsive
                           borderless
                           size="sm"
                           className="custom-table"
+                          
                         >
                           <thead>
                             <tr className="text-center">
