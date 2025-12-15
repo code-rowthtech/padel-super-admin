@@ -113,6 +113,7 @@ const Pricing = ({
     prices: { Morning: {}, Afternoon: {}, Evening: {}, All: {} },
     changesConfirmed: true,
   });
+  console.log({formData})
   const [hasPriceChanges, setHasPriceChanges] = useState(false);
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedSlotData, setSelectedSlotData] = useState(null);
@@ -178,13 +179,21 @@ const Pricing = ({
           });
         }
 
-        setFormData((prev) => ({
-          ...prev,
-          prices: {
-            ...prev.prices,
-            All: allPrices,
-          },
-        }));
+        setFormData((prev) => {
+          // Clean up any direct time keys to avoid conflicts
+          const cleanPrices = { ...prev.prices };
+          Object.keys(allPrices).forEach(timeKey => {
+            delete cleanPrices[timeKey];
+          });
+          
+          return {
+            ...prev,
+            prices: {
+              ...cleanPrices,
+              All: allPrices,
+            },
+          };
+        });
       }
     }
   }, [PricingData, formData.selectedSlots, onPriceDataChange]);
@@ -199,18 +208,17 @@ const Pricing = ({
       getSlots({
         register_club_id: registerId,
         day: isAllDays ? "" : selectedDaysList,
-        time: isAllDays ? "" : formData.selectedSlots,
+        time: "", // Always fetch all time slots regardless of dropdown selection
       })
     );
   }, [
     dispatch,
-    formData.selectedSlots,
     isAllDays,
     registerId,
     selectedDaysList,
   ]);
   const updateForm = useCallback(
-    (field, value) => setFormData((prev) => ({ ...prev, [field]: value })),
+    (field, value) => setFormData((prev) =>  ({ ...prev, [field]: value })),
     []
   );
   const handleDayChange = useCallback((day) => {
@@ -573,18 +581,40 @@ const Pricing = ({
     const chosenDays = selectAllChecked
       ? DAYS_OF_WEEK
       : Object.keys(formData.days).filter((day) => formData.days[day]);
-    const selectedSlotType = selectAllChecked ? "All" : formData.selectedSlots;
-    const slotPrices = formData.prices[selectedSlotType];
+    
+    // Collect all pricing data from all periods
+    const morningPrices = formData.prices.Morning || {};
+    const afternoonPrices = formData.prices.Afternoon || {};
+    const eveningPrices = formData.prices.Evening || {};
+    const allPrices = formData.prices.All || {};
+    
+    // Only use 'All' prices if no period-specific prices exist
+    const hasPeriodPrices = Object.keys(morningPrices).length > 0 || 
+                           Object.keys(afternoonPrices).length > 0 || 
+                           Object.keys(eveningPrices).length > 0;
+    
+    const allSlotPrices = hasPeriodPrices ? {
+      ...morningPrices,
+      ...afternoonPrices,
+      ...eveningPrices
+    } : allPrices;
+    
+    console.log('Morning prices:', morningPrices);
+    console.log('Afternoon prices:', afternoonPrices);
+    console.log('Evening prices:', eveningPrices);
+    console.log('All prices:', allPrices);
+    console.log('Combined slot prices:', allSlotPrices);
+    console.log('Morning slots in combined prices:', Object.keys(morningPrices));
+    console.log('Afternoon slots in combined prices:', Object.keys(afternoonPrices));
 
     // Skip validation when called from updateRegisteredClub
-    if (!slotPrices || Object.keys(slotPrices).length === 0) {
+    if (!allSlotPrices || Object.keys(allSlotPrices).length === 0) {
       return; // Silently return if no pricing data
     }
     const allSlots = PricingData?.[0]?.slot || [];
-    const selectedSlotData = allSlots.filter((slot) => {
-      const slotDay = slot?.businessHours?.[0]?.day;
-      return slotDay && chosenDays.includes(slotDay);
-    });
+    // When updating pricing, include all slots regardless of selected days
+    // The pricing should apply to all available slots that match the time
+    const selectedSlotData = allSlots;
     const slotTimes = selectedSlotData.flatMap((slot) => slot?.slotTimes || []);
     const businessHours = selectedSlotData.flatMap(
       (slot) => slot?.businessHours || []
@@ -592,19 +622,51 @@ const Pricing = ({
     if (!slotTimes.length || !businessHours.length) {
       return; // Silently return if no slot data
     }
-    const selectedDisplayTimes = Object.keys(slotPrices);
-    const targetedSlotTimes = selectAllChecked
-      ? slotTimes.filter((slot) =>
-        selectedDisplayTimes.includes(formatTo12HourDisplay(slot.time))
-      )
-      : slotTimes;
+    const selectedDisplayTimes = Object.keys(allSlotPrices).filter(key => {
+      const price = allSlotPrices[key];
+      return price && price.toString().trim() !== '' && !isNaN(parseFloat(price)) && parseFloat(price) > 0;
+    });
+    
+    console.log('Selected display times with valid prices:', selectedDisplayTimes);
+    console.log('Morning times in selected:', selectedDisplayTimes.filter(t => {
+      const [time, period] = t.split(' ');
+      const [hour] = time.split(':').map(Number);
+      let hour24 = hour;
+      if (period === 'PM' && hour !== 12) hour24 += 12;
+      if (period === 'AM' && hour === 12) hour24 = 0;
+      return hour24 >= 5 && hour24 < 12;
+    }));
+    console.log('Afternoon times in selected:', selectedDisplayTimes.filter(t => {
+      const [time, period] = t.split(' ');
+      const [hour] = time.split(':').map(Number);
+      let hour24 = hour;
+      if (period === 'PM' && hour !== 12) hour24 += 12;
+      if (period === 'AM' && hour === 12) hour24 = 0;
+      return hour24 >= 12 && hour24 < 17;
+    }));
+    console.log('Total slot times from API:', slotTimes.length);
+    
+    // Log all API slot times for comparison
+    slotTimes.forEach((slot, index) => {
+      const displayTime = formatTo12HourDisplay(slot.time);
+      console.log(`API Slot ${index}: ${slot.time} -> ${displayTime}`);
+    });
+    
+    const targetedSlotTimes = slotTimes.filter((slot) => {
+      const displayTime = formatTo12HourDisplay(slot.time);
+      const isIncluded = selectedDisplayTimes.includes(displayTime);
+      console.log(`Slot ${displayTime} (${slot.time}) - included: ${isIncluded}`);
+      return isIncluded;
+    });
+    
+    console.log('Targeted slot times:', targetedSlotTimes.length, 'out of', slotTimes.length);
     if (targetedSlotTimes.length === 0) {
       return; // Silently return if no targeted slots
     }
     const filledSlotTimes = targetedSlotTimes
       .map((slot) => {
         const displayTime = formatTo12HourDisplay(slot.time);
-        const price = slotPrices[displayTime];
+        const price = allSlotPrices[displayTime];
         if (price == null || String(price).trim() === "") return null;
         const amount = parseFloat(price);
         if (Number.isNaN(amount) || amount <= 0) return null;
@@ -614,6 +676,7 @@ const Pricing = ({
         };
       })
       .filter(Boolean);
+      console.log({filledSlotTimes});
     if (filledSlotTimes.length === 0) {
       return; // Silently return if no valid prices
     }
@@ -648,7 +711,7 @@ const Pricing = ({
           getSlots({
             register_club_id: registerId,
             day: isAllDays ? "" : selectedDaysList,
-            time: isAllDays ? "" : formData.selectedSlots,
+            time: "", // Always fetch all time slots regardless of dropdown selection
           })
         );
         setHasPriceChanges(false);
@@ -657,6 +720,24 @@ const Pricing = ({
         showError("Failed to update prices. Please try again.");
       });
   };
+  // Clean up direct time keys from pricing data
+  useEffect(() => {
+    const timeKeyPattern = /^\d{1,2}:\d{2}\s[AP]M$/;
+    const hasDirectTimeKeys = Object.keys(formData.prices).some(key => timeKeyPattern.test(key));
+    
+    if (hasDirectTimeKeys) {
+      setFormData(prev => {
+        const cleanPrices = { ...prev.prices };
+        Object.keys(cleanPrices).forEach(key => {
+          if (timeKeyPattern.test(key)) {
+            delete cleanPrices[key];
+          }
+        });
+        return { ...prev, prices: cleanPrices };
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (hitApi) {
       // Always call updateCourt API when updateRegisteredClub is called

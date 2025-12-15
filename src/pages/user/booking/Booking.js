@@ -424,39 +424,70 @@ const Booking = ({ className = "" }) => {
     }
   }, [totalSlots]);
 
-  // Clean up selected slots when courts are removed from API
+  // Clean up selected slots when courts are removed from API or slots are no longer available
   useEffect(() => {
-    if (slotData?.data && Object.keys(selectedTimes).length > 0) {
-      const availableCourtIds = slotData.data.map(court => court._id);
+    if (slotData?.data && (Object.keys(selectedTimes).length > 0 || selectedCourts.length > 0)) {
       const updatedSelectedTimes = {};
       const updatedSelectedCourts = [];
       const updatedSelectedBusiness = [];
 
-      // Filter out slots from courts that no longer exist
+      // Check each selected slot to see if it's still available
       Object.keys(selectedTimes).forEach(courtId => {
-        if (availableCourtIds.includes(courtId)) {
-          updatedSelectedTimes[courtId] = selectedTimes[courtId];
+        const court = slotData.data.find(c => c._id === courtId);
+        if (court) {
+          Object.keys(selectedTimes[courtId]).forEach(dateKey => {
+            const validSlots = selectedTimes[courtId][dateKey].filter(selectedSlot => {
+              return court.slots?.some(availableSlot => 
+                availableSlot._id === selectedSlot._id && 
+                availableSlot.availabilityStatus === "available" && 
+                availableSlot.status !== "booked"
+              );
+            });
+            
+            if (validSlots.length > 0) {
+              if (!updatedSelectedTimes[courtId]) {
+                updatedSelectedTimes[courtId] = {};
+              }
+              updatedSelectedTimes[courtId][dateKey] = validSlots;
+            }
+          });
         }
       });
 
-      // Update selectedCourts to only include existing courts
+      // Update selectedCourts based on valid slots
       selectedCourts.forEach(court => {
-        if (availableCourtIds.includes(court._id)) {
-          updatedSelectedCourts.push(court);
+        const validTimeSlots = court.time.filter(timeSlot => {
+          const courtData = slotData.data.find(c => c._id === court._id);
+          return courtData?.slots?.some(availableSlot => 
+            availableSlot._id === timeSlot._id && 
+            availableSlot.availabilityStatus === "available" && 
+            availableSlot.status !== "booked"
+          );
+        });
+        
+        if (validTimeSlots.length > 0) {
+          updatedSelectedCourts.push({
+            ...court,
+            time: validTimeSlots
+          });
         }
       });
 
-      // Update selectedBusiness to only include slots from existing courts
+      // Update selectedBusiness based on valid slots
       selectedBuisness.forEach(slot => {
         const courtExists = slotData.data.some(court =>
-          court.slots?.some(courtSlot => courtSlot._id === slot._id)
+          court.slots?.some(courtSlot => 
+            courtSlot._id === slot._id && 
+            courtSlot.availabilityStatus === "available" && 
+            courtSlot.status !== "booked"
+          )
         );
         if (courtExists) {
           updatedSelectedBusiness.push(slot);
         }
       });
 
-      // Only update state if there are changes
+      // Update state if there are changes
       if (JSON.stringify(selectedTimes) !== JSON.stringify(updatedSelectedTimes)) {
         setSelectedTimes(updatedSelectedTimes);
       }
