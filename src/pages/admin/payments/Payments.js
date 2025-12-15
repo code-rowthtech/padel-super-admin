@@ -428,7 +428,7 @@ const Payments = () => {
         <Col className="d-flex justify-content-center">
           <Pagination
             totalRecords={totalRecords}
-            defaultLimit={10}
+            defaultLimit={15}
             handlePageChange={handlePageChange}
             currentPage={currentPage}
           />

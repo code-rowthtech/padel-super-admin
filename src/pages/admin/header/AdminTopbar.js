@@ -67,18 +67,29 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   });
   useEffect(() => {
     const socket = io(SOCKET_URL, { transports: ["websocket"] });
+    
+    socket.on('connect_error', (error) => {
+      console.error('❌ Socket Connection Error:', error);
+    });
+    
+    socket.on('disconnect', (reason) => {
+      console.log('🔌 Socket Disconnected:', reason);
+    });
 
     dispatch(getNotificationData()).unwrap().then((res) => {
       if (res?.notifications) {
         setNotifications(res.notifications);
       }
+    }).catch((error) => {
+      console.error('❌ getNotificationData API Error:', error);
     });
 
     dispatch(getNotificationCount()).unwrap().then((res) => {
-
       if (res?.unreadCount) {
         setNotificationCount(res);
       }
+    }).catch((error) => {
+      console.error('❌ getNotificationCount API Error:', error);
     });
 
     socket.on("connect", () => {

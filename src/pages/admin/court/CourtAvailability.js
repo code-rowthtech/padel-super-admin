@@ -55,7 +55,7 @@ const CourtAvailability = () => {
 
   const [selectedSlots, setSelectedSlots] = useState({});
   const [selectedCourt, setSelectedCourt] = useState("all");
-
+console.log({selectedSlots});
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -146,7 +146,7 @@ const CourtAvailability = () => {
       }
     }
 
-    const slotStatus = "available";
+    const slotStatus = slot?.availabilityStatus || "available";
 
     let newCourtSlots = exists
       ? courtSlots.filter((s) => s.slot._id !== slot._id)
@@ -804,7 +804,7 @@ const CourtAvailability = () => {
                                             const exists = courtSlots.some(
                                               (s) => s.slot._id === slot._id
                                             );
-                                            const slotStatus = "available";
+                                            const slotStatus = slot?.availabilityStatus || "available";
                                             let newCourtSlots = exists
                                               ? courtSlots.filter(
                                                   (s) => s.slot._id !== slot._id
@@ -1134,8 +1134,9 @@ const CourtAvailability = () => {
                         No slots selected
                       </div>
                     ) : (
-                      allSelectedSlots.map(
+                      allSelectedSlots?.map(
                         ({ slot, status, date, courtId }, idx) => {
+                          console.log({status});
                           const court = courts.find((c) => c._id === courtId);
                           const dayName = new Date(date).toLocaleDateString(
                             "en-US",
@@ -1182,18 +1183,6 @@ const CourtAvailability = () => {
                                 >
                                   {status}
                                 </span>
-                                {/* <Badge
-                              pill
-                              className="border-0 text-white"
-                              style={{
-                                "--bs-badge-bg": statusColorMap[status] || "#6c757d",
-                                fontSize: "11px",
-                                textTransform: "capitalize",
-                              }}
-                            >
-                              {status}
-                            </Badge> */}
-
                                 <Button
                                   size="sm"
                                   className="p-1 border-0 bg-transparent"

@@ -340,7 +340,7 @@ const Pricing = ({
     return slotData.map((slot) => {
       const display = formatTo12HourDisplay(slot?.time);
       const key = slot?._id || `${display}-${slot?.time}`;
-      const value = formData.prices[slotType]?.[display] ?? "";
+      const value = formData.prices[slotType]?.[display] ?? (slot?.amount ? String(slot.amount) : "");
       const invalid =
         !value || parseFloat(value) <= 0 || isNaN(parseFloat(value));
       return (
@@ -459,9 +459,27 @@ const Pricing = ({
         selectedTimes.forEach((t) => {
           newPrices[t] = price;
         });
+        
+        const updatedPrices = { ...prev.prices };
+        Object.keys(newPrices).forEach(timeKey => {
+          const [time, meridian] = timeKey.split(" ");
+          const [hour] = time.split(":").map(Number);
+          let hour24 = hour;
+          if (meridian === "PM" && hour !== 12) hour24 += 12;
+          if (meridian === "AM" && hour === 12) hour24 = 0;
+          
+          if (hour24 >= 0 && hour24 < 12) {
+            updatedPrices.Morning = { ...updatedPrices.Morning, [timeKey]: price };
+          } else if (hour24 >= 12 && hour24 < 17) {
+            updatedPrices.Afternoon = { ...updatedPrices.Afternoon, [timeKey]: price };
+          } else if (hour24 >= 17 && hour24 <= 23) {
+            updatedPrices.Evening = { ...updatedPrices.Evening, [timeKey]: price };
+          }
+        });
+        
         return {
           ...prev,
-          prices: { ...prev.prices, All: newPrices },
+          prices: { ...updatedPrices, All: newPrices },
         };
       });
       setHasPriceChanges(true);

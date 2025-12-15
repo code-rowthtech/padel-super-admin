@@ -494,7 +494,7 @@ const Payment = ({ className = "" }) => {
                 </p>
               </div>
 
-              <div className="position-absolute" style={{ top: "11px", left: "17.5%" }}>
+              <div className="position-absolute" style={{ top: "11px", left: "17.1%" }}>
                 {logo ? (
                   <div
                     style={{

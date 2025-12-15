@@ -424,19 +424,21 @@ const Booking = ({ className = "" }) => {
     }
   }, [totalSlots]);
 
-  // Clean up selected slots when courts are removed from API or slots are no longer available
+  // Clean up selected slots only for current date when slots are no longer available
   useEffect(() => {
     if (slotData?.data && (Object.keys(selectedTimes).length > 0 || selectedCourts.length > 0)) {
-      const updatedSelectedTimes = {};
-      const updatedSelectedCourts = [];
-      const updatedSelectedBusiness = [];
+      const currentDate = selectedDate.fullDate;
+      const updatedSelectedTimes = { ...selectedTimes };
+      const updatedSelectedCourts = [...selectedCourts];
+      const updatedSelectedBusiness = [...selectedBuisness];
+      let hasChanges = false;
 
-      // Check each selected slot to see if it's still available
+      // Only validate slots for current date
       Object.keys(selectedTimes).forEach(courtId => {
-        const court = slotData.data.find(c => c._id === courtId);
-        if (court) {
-          Object.keys(selectedTimes[courtId]).forEach(dateKey => {
-            const validSlots = selectedTimes[courtId][dateKey].filter(selectedSlot => {
+        if (selectedTimes[courtId][currentDate]) {
+          const court = slotData.data.find(c => c._id === courtId);
+          if (court) {
+            const validSlots = selectedTimes[courtId][currentDate].filter(selectedSlot => {
               return court.slots?.some(availableSlot => 
                 availableSlot._id === selectedSlot._id && 
                 availableSlot.availabilityStatus === "available" && 
@@ -444,61 +446,71 @@ const Booking = ({ className = "" }) => {
               );
             });
             
-            if (validSlots.length > 0) {
-              if (!updatedSelectedTimes[courtId]) {
-                updatedSelectedTimes[courtId] = {};
+            if (validSlots.length !== selectedTimes[courtId][currentDate].length) {
+              hasChanges = true;
+              if (validSlots.length > 0) {
+                updatedSelectedTimes[courtId][currentDate] = validSlots;
+              } else {
+                delete updatedSelectedTimes[courtId][currentDate];
+                if (Object.keys(updatedSelectedTimes[courtId]).length === 0) {
+                  delete updatedSelectedTimes[courtId];
+                }
               }
-              updatedSelectedTimes[courtId][dateKey] = validSlots;
             }
-          });
+          }
         }
       });
 
-      // Update selectedCourts based on valid slots
-      selectedCourts.forEach(court => {
-        const validTimeSlots = court.time.filter(timeSlot => {
-          const courtData = slotData.data.find(c => c._id === court._id);
-          return courtData?.slots?.some(availableSlot => 
-            availableSlot._id === timeSlot._id && 
-            availableSlot.availabilityStatus === "available" && 
-            availableSlot.status !== "booked"
+      // Update selectedCourts only for current date
+      for (let i = updatedSelectedCourts.length - 1; i >= 0; i--) {
+        const court = updatedSelectedCourts[i];
+        if (court.date === currentDate) {
+          const validTimeSlots = court.time.filter(timeSlot => {
+            const courtData = slotData.data.find(c => c._id === court._id);
+            return courtData?.slots?.some(availableSlot => 
+              availableSlot._id === timeSlot._id && 
+              availableSlot.availabilityStatus === "available" && 
+              availableSlot.status !== "booked"
+            );
+          });
+          
+          if (validTimeSlots.length !== court.time.length) {
+            hasChanges = true;
+            if (validTimeSlots.length > 0) {
+              updatedSelectedCourts[i] = { ...court, time: validTimeSlots };
+            } else {
+              updatedSelectedCourts.splice(i, 1);
+            }
+          }
+        }
+      }
+
+      // Update selectedBusiness only for current date
+      for (let i = updatedSelectedBusiness.length - 1; i >= 0; i--) {
+        const slot = updatedSelectedBusiness[i];
+        if (slot.date === currentDate) {
+          const courtExists = slotData.data.some(court =>
+            court.slots?.some(courtSlot => 
+              courtSlot._id === slot._id && 
+              courtSlot.availabilityStatus === "available" && 
+              courtSlot.status !== "booked"
+            )
           );
-        });
-        
-        if (validTimeSlots.length > 0) {
-          updatedSelectedCourts.push({
-            ...court,
-            time: validTimeSlots
-          });
+          if (!courtExists) {
+            hasChanges = true;
+            updatedSelectedBusiness.splice(i, 1);
+          }
         }
-      });
+      }
 
-      // Update selectedBusiness based on valid slots
-      selectedBuisness.forEach(slot => {
-        const courtExists = slotData.data.some(court =>
-          court.slots?.some(courtSlot => 
-            courtSlot._id === slot._id && 
-            courtSlot.availabilityStatus === "available" && 
-            courtSlot.status !== "booked"
-          )
-        );
-        if (courtExists) {
-          updatedSelectedBusiness.push(slot);
-        }
-      });
-
-      // Update state if there are changes
-      if (JSON.stringify(selectedTimes) !== JSON.stringify(updatedSelectedTimes)) {
+      // Update state only if there are changes
+      if (hasChanges) {
         setSelectedTimes(updatedSelectedTimes);
-      }
-      if (JSON.stringify(selectedCourts) !== JSON.stringify(updatedSelectedCourts)) {
         setSelectedCourts(updatedSelectedCourts);
-      }
-      if (JSON.stringify(selectedBuisness) !== JSON.stringify(updatedSelectedBusiness)) {
         setSelectedBuisness(updatedSelectedBusiness);
       }
     }
-  }, [slotData?.data]);
+  }, [slotData?.data, selectedDate.fullDate]);
 
   const handleBookNow = async () => {
     if (totalSlots === 0) {
@@ -869,7 +881,6 @@ const Booking = ({ className = "" }) => {
                               weekday: "long",
                             });
                             setSelectedDate({ fullDate: formattedDate, day });
-                            setSelectedTimes({});
                             setShowBanner(false);
                             dispatch(
                               getUserSlotBooking({
@@ -1375,7 +1386,7 @@ const Booking = ({ className = "" }) => {
                                           className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""
                                             } slot-time-btn`}
                                           onClick={() =>
-                                            toggleTime(slot, court._id)
+                                            toggleTime(slot, court._id, selectedDate.fullDate)
                                           }
                                           disabled={isDisabled}
                                           // title={totalSlots >= MAX_SLOTS && !isSelected ? `You can select up to ${MAX_SLOTS} slots only` : ''}
@@ -1828,7 +1839,7 @@ const Booking = ({ className = "" }) => {
                 </div>
                 <div
                   className="position-absolute"
-                  style={{ top: "11px", left: "17.5%" }}
+                  style={{ top: "13px", left: "17.5%" }}
                 >
                   {logo ? (
                     <div
