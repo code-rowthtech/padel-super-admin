@@ -1006,19 +1006,19 @@ const Openmatches = () => {
                 <div className="row mx-auto">
                   {filteredMatches?.map((match, index) => (
                     <div
-                      className="col-lg-6 col-12 ps-0 pe-0 gap-2"
+                      className="col-lg-6 col-12 ps-0  pe-0 gap-2"
                       key={index}
                     >
                       <div className="row px-1">
                         <div className="col">
                           <div
                             ref={(el) => (matchCardRefs.current[`desktop-${index}`] = el)}
-                            className="card  mb-2 py-3 p-0 pb-2 shadow-0 rounded-2 d-md-block d-none"
+                            className="card  mb-2 py-3 p-0 pb-3 shadow-0 rounded-2 d-md-block d-none"
                             style={{
                               backgroundColor: "#CBD6FF1A",
                               border: "0.45px solid #0000001A",
                               boxShadow: "none",
-                              height: "10rem",
+                              height: "11rem",
                               cursor: "pointer"
                             }}
                             onClick={() => {
