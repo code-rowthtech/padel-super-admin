@@ -176,15 +176,23 @@ const Navbar = () => {
     }, [dispatch]);
 
     useEffect(() => {
+        if (clubData && clubData._id) {
+            localStorage.setItem("register_club_id", clubData._id);
+            localStorage.setItem("owner_id", clubData?.ownerId?._id);
+        }
+    }, [clubData]);
+
+    useEffect(() => {
         const handleClickOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target) && 
-                mobileDropdownRef.current && !mobileDropdownRef.current.contains(e.target)) {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpen(false);
             }
         };
-        document.addEventListener("mousedown", handleClickOutside);
+        if (open) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    }, [open]);
 
     const handleViewNotification = (note) => {
         console.log({ note });

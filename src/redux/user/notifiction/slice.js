@@ -11,7 +11,10 @@ const initialState = {
   getQuestionError: null,
   getPlayerLevel: null,
   getPlayerLevelLoading: false,
-  getPlayerLevelError: null
+  getPlayerLevelError: null,
+  getPlayerLevelBySkillLevel: null,
+  getPlayerLevelBySkillLevelLoading: false,
+  getPlayerLevelBySkillLevelError: null
 };
 
 const UserNotificationSlice = createSlice({
@@ -29,6 +32,9 @@ const UserNotificationSlice = createSlice({
       state.getPlayerLevel = null;
       state.getPlayerLevelLoading = false;
       state.getPlayerLevelError = null;
+      state.getPlayerLevelBySkillLevel = null;
+      state.getPlayerLevelBySkillLevelLoading = false;
+      state.getPlayerLevelBySkillLevelError = null;
     },
   },
   extraReducers: (builder) => {
@@ -114,16 +120,16 @@ const UserNotificationSlice = createSlice({
       })
 
       .addCase(getPlayerLevelBySkillLevel.pending, (state) => {
-        state.getPlayerLevelLoading = true;
-        state.getPlayerLevelError = null;
+        state.getPlayerLevelBySkillLevelLoading = true;
+        state.getPlayerLevelBySkillLevelError = null;
       })
       .addCase(getPlayerLevelBySkillLevel.fulfilled, (state, action) => {
-        state.getPlayerLevelLoading = false;
-        state.getPlayerLevel = action.payload;
+        state.getPlayerLevelBySkillLevelLoading = false;
+        state.getPlayerLevelBySkillLevel = action.payload;
       })
       .addCase(getPlayerLevelBySkillLevel.rejected, (state, action) => {
-        state.getPlayerLevelLoading = false;
-        state.getPlayerLevelError = action.payload;
+        state.getPlayerLevelBySkillLevelLoading = false;
+        state.getPlayerLevelBySkillLevelError = action.payload;
       })
 
   },

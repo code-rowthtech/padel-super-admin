@@ -67,6 +67,9 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                 socketRef.current.emit('getMessages', { matchId, isChatOpen: true });
                 socketRef.current.emit('getUnreadCount', { matchId });
             });
+            socketRef.current.on('userJoined', (data) => {
+                setMessages((prev) => [...prev, { ...data, isSystemMessage: true }]);
+            });
             socketRef.current.on('messagesReceived', (data) => {
                 setMessages(data.messages || []);
                 clearTimeout(loadingTimeout);
@@ -257,6 +260,23 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                         <p style={{ color: '#6B7280', fontSize: '14px', fontFamily: 'Poppins' }}>No messages yet. Start the conversation!</p>
                     </div>
                 ) : messages?.map((msg, index) => {
+                    if (msg.isSystemMessage) {
+                        return (
+                            <div key={msg._id || index} className="d-flex justify-content-center mb-2">
+                                <span style={{
+                                    backgroundColor: '#E8F4FD',
+                                    color: '#1F41BB',
+                                    padding: '6px 12px',
+                                    borderRadius: '12px',
+                                    fontSize: '12px',
+                                    fontWeight: 500
+                                }}>
+                                    {msg.message}
+                                </span>
+                            </div>
+                        );
+                    }
+
                     const isCurrentUser = msg.senderId?._id === User._id;
                     const userName = msg.senderId?.name || 'Unknown';
                     const nameParts = userName.trim().split(/\s+/);

@@ -85,8 +85,8 @@ const Openmatches = () => {
   const { state } = useLocation();
 
   const initialDate = state?.selectedDate ? {
-    fullDate: typeof state.selectedDate === 'string' 
-      ? state.selectedDate.split("T")[0] 
+    fullDate: typeof state.selectedDate === 'string'
+      ? state.selectedDate.split("T")[0]
       : state.selectedDate.fullDate || new Date().toISOString().split("T")[0],
     day: typeof state.selectedDate === 'string'
       ? new Date(state.selectedDate.split("T")[0]).toLocaleDateString("en-US", { weekday: "long" })
@@ -98,8 +98,8 @@ const Openmatches = () => {
 
   const [startDate, setStartDate] = useState(() => {
     if (state?.selectedDate) {
-      const dateStr = typeof state.selectedDate === 'string' 
-        ? state.selectedDate.split("T")[0] 
+      const dateStr = typeof state.selectedDate === 'string'
+        ? state.selectedDate.split("T")[0]
         : state.selectedDate.fullDate;
       return new Date(dateStr);
     }
@@ -215,11 +215,14 @@ const Openmatches = () => {
     }
   }, [selectedDate?.fullDate]);
   useEffect(() => {
+    const clubId = localStorage.getItem("register_club_id");
+    if (!clubId) return;
+    
     const payload = {
       matchDate: selectedDate?.fullDate?.split("T")[0] || selectedDate?.fullDate,
       ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
       ...(selectedLevel && selectedLevel !== "All" && { skillLevel: selectedLevel }),
-      clubId: localStorage.getItem("register_club_id"),
+      clubId,
       userId: user?._id ? user._id : "",
       type: matchFilter === "my" ? "myMatches" : "",
     };
@@ -1081,7 +1084,8 @@ const Openmatches = () => {
                                   style={{ fontWeight: "600" }}
                                 >
                                   {formatMatchDate(match.matchDate)} |{" "}
-                                  {formatTimes(match.slot)}
+                                  {match?.formattedMatchTime}
+                                  {/* {formatTimes(match.slot)} */}
                                   <i className="bi bi-share ms-2" onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `desktop-${index}` ? null : `desktop-${index}`); }} style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }} />
                                 </p>
                                 <span className="text-muted all-match-name-level ms-0 d-none d-md-inline">
