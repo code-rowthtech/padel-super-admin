@@ -192,7 +192,7 @@ const VerifyOTP = () => {
                 <strong>+91*****{phone?.slice(5)}</strong>
               </div>
 
-              {timer > 0 &&
+              {/* {timer > 0 &&
                 (otpData?.response || localStorage.getItem("otp")) && (
                   <Alert
                     variant="info"
@@ -202,7 +202,7 @@ const VerifyOTP = () => {
                     Your OTP is:{" "}
                     {otpData?.response || localStorage.getItem("otp")}
                   </Alert>
-                )}
+                )} */}
 
               <div
                 className="mb-3"
