@@ -205,7 +205,6 @@ const OpenmatchPayment = () => {
                     .map(key => finalSkillDetails[key])
                 : [];
 
-            // Step 1: Initial booking call with initiatePayment: true (no openMatchId yet)
             const baseBookingPayload = {
                 name,
                 phoneNumber: cleanPhone,
