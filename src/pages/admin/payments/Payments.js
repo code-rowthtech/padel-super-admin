@@ -128,14 +128,14 @@ const Payments = () => {
                   <div
                     className={`d-flex align-items-center gap-1 text-${card.color} fw-semibold`}
                   >
-                    <span
+                    {/* <span
                       style={{
                         display: "inline-block",
                       }}
                     >
                       {card.icon}
-                    </span>
-                    <span className="small">{card.percent}</span>
+                    </span> */}
+                    {/* <span className="small">{card.percent}</span> */}
                   </div>
                 </div>
                 <div className=" mb-2 text-end">
@@ -292,15 +292,16 @@ const Payments = () => {
                               <td>
                                 <div
                                   style={{
-                                    display: "inline-grid",
-                                    gridTemplateColumns: "140px auto",
-                                    textAlign: "left",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "2px",
                                   }}
                                 >
                                   <span className="fw-medium text-nowrap">
                                     {formatDate(item?.bookingDate)}
                                   </span>
-                                  <span className="text-muted ms-1">
+                                  <span className="text-muted small">
                                     {formatTime(
                                       renderSlotTimes(
                                         item?.slot?.[0]?.slotTimes

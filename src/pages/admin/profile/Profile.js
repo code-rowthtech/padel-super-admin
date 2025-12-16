@@ -9,6 +9,7 @@ import {
   getOwnerRegisteredClub,
   createLogo,
 } from "../../../redux/thunks";
+import { showError } from "../../../helpers/Toast";
 import { useDispatch, useSelector } from "react-redux";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 
@@ -61,6 +62,13 @@ const Profile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        showError('Only image files are allowed');
+        e.target.value = ''; // Clear the input
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData((prev) => ({ ...prev, profileImage: reader.result }));
@@ -72,6 +80,13 @@ const Profile = () => {
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      showError('Only image files are allowed');
+      e.target.value = ''; // Clear the input
+      return;
+    }
 
     const reader = new FileReader();
     reader.onloadend = () => {
