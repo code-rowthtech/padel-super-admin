@@ -140,7 +140,7 @@ const AllRoutes = () => {
         },
         {
           path: "booking",
-          element: LoadComponent(Booking),
+          element: LoadComponent(BookingSlots),
         },
         {
           path: "booking-history",
@@ -149,6 +149,10 @@ const AllRoutes = () => {
         {
           path: "payment",
           element: LoadComponent(PaymentWrapper),
+        },
+        {
+          path: "booking-payment",
+          element: LoadComponent(Booking),
         },
         {
           path: "open-matches",

@@ -12,12 +12,6 @@ import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "
 import { MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown } from "react-icons/md";
 import { showError } from "../../../helpers/Toast";
 
-const loadPayPal = (callback) => {
-  const script = document.createElement("script");
-  script.src = "https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID";
-  script.onload = () => callback(window.paypal);
-  document.body.appendChild(script);
-};
 
 const Payment = ({ className = "" }) => {
   const location = useLocation();

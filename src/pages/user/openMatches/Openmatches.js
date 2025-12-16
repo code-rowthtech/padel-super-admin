@@ -1079,6 +1079,7 @@ const Openmatches = () => {
                             </div>
                             <div className="row px-2 mx-auto px-md-0 py-2 d-flex justify-content-between align-items- flex-wrap">
                               <div className="col-lg-7 pb-0 col-6">
+                                {console.log({match})}
                                 <p
                                   className="mb-0 all-match-time text-nowrap"
                                   style={{ fontWeight: "600" }}

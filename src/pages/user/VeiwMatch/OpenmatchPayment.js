@@ -205,103 +205,122 @@ const OpenmatchPayment = () => {
                     .map(key => finalSkillDetails[key])
                 : [];
 
-            const formattedMatch = {
-                slot: localSelectedCourts.flatMap(court => court.time.map(timeSlot => ({
+            // Step 1: Initial booking call with initiatePayment: true (no openMatchId yet)
+            const baseBookingPayload = {
+                name,
+                phoneNumber: cleanPhone,
+                email,
+                register_club_id: savedClubId,
+                ownerId: owner_id,
+                paymentMethod: 'Gpay',
+                bookingType: "open Match",
+                bookingStatus: "upcoming",
+                slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
                     slotId: timeSlot._id,
-                    businessHours: clubData?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
+                    businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
                     slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
-                    courtName: court.courtName,
+                    courtName: court.courtName || "Court",
                     courtId: court._id,
                     bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
                 }))),
-                clubId: savedClubId,
-                gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
-                matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
-                ...(answersArray?.length > 0 && {
-                    skillLevel: answersArray[0] || "Open Match",
-                    skillDetails: answersArray?.slice(1)?.map((answer, i) => {
-                        if (i === 0 && Array.isArray(answer)) return answer.join(", ");
-                        return answer;
-                    })
-                }),
-                matchStatus: "open",
-                matchTime: localSelectedCourts.flatMap(c => c.time.map(t => t.time)).join(","),
-                teamA,
-                teamB,
             };
 
-            // Step 3: Open Razorpay — Payment First
-            const options = {
-                key: "rzp_test_1DP5mmOlF5G5ag",
-                amount: localGrandTotal * 100,
-                currency: "INR",
-                name: clubData?.clubName || "Open Match",
-                description: "Open Match Booking",
-                image: logo || undefined,
-                prefill: { name, email, contact: cleanPhone },
-                theme: { color: "#001B76" },
+            const initialBookingResponse = await dispatch(createBooking({
+                ...baseBookingPayload,
+                initiatePayment: true
+            })).unwrap();
 
-                handler: async function (response) {
-                    try {
-                        // Step 1: Create match first
-                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
-                        const matchId = matchResponse?.match?._id;
-                        if (!matchId) throw new Error("Failed to create match");
+            if (initialBookingResponse?.paymentDetails?.key || initialBookingResponse?.paymentDetails?.orderId) {
+                const options = {
+                    key: initialBookingResponse?.paymentDetails?.key || "rzp_test_RqcQk54KN54oc3",
+                    order_id: initialBookingResponse?.paymentDetails?.orderId,
+                    amount: localGrandTotal * 100,
+                    currency: "INR",
+                    name: clubData?.clubName || "Open Match",
+                    description: "Open Match Booking",
+                    image: logo || undefined,
+                    prefill: { name, email, contact: cleanPhone },
+                    theme: { color: "#001B76" },
 
-                        // Step 2: Create booking with openMatchId
-                        const bookingPayload = {
-                            name,
-                            phoneNumber: cleanPhone,
-                            email,
-                            register_club_id: savedClubId,
-                            ownerId: owner_id,
-                            paymentMethod: 'Gpay',
-                            bookingType: "open Match",
-                            bookingStatus: "upcoming",
-                            openMatchId: matchId,
-                            slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
-                                slotId: timeSlot._id,
-                                businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
-                                slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
-                                courtName: court.courtName || "Court",
-                                courtId: court._id,
-                                bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
-                            }))),
-                        };
+                    handler: async function (response) {
+                        try {
+                            // Step 2: Create match after payment success
+                            const formattedMatch = {
+                                slot: localSelectedCourts.flatMap(court => court.time.map(timeSlot => ({
+                                    slotId: timeSlot._id,
+                                    businessHours: clubData?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
+                                    slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
+                                    courtName: court.courtName,
+                                    courtId: court._id,
+                                    bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
+                                }))),
+                                clubId: savedClubId,
+                                gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
+                                matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
+                                ...(answersArray?.length > 0 && {
+                                    skillLevel: answersArray[0] || "Open Match",
+                                    skillDetails: answersArray?.slice(1)?.map((answer, i) => {
+                                        if (i === 0 && Array.isArray(answer)) return answer.join(", ");
+                                        return answer;
+                                    })
+                                }),
+                                matchStatus: "open",
+                                matchTime: localSelectedCourts.flatMap(c => c.time.map(t => t.time)).join(","),
+                                teamA,
+                                teamB,
+                            };
 
-                        const bookingResponse = await dispatch(createBooking(bookingPayload)).unwrap();
-                        if (!bookingResponse?.success) throw new Error("Booking creation failed");
+                            const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                            const matchId = matchResponse?.match?._id;
+                            if (!matchId) throw new Error("Failed to create match");
 
-                        localStorage.removeItem("addedPlayers");
-                        window.dispatchEvent(new Event("playersUpdated"));
-                        navigate("/open-matches", {
-                            replace: true,
-                            state: { selectedDate }
-                        });
-                        dispatch(getUserProfile());
+                            // Step 3: Final booking confirmation with payment details and openMatchId
+                            const finalBookingResponse = await dispatch(createBooking({
+                                ...baseBookingPayload,
+                                initiatePayment: false,
+                                openMatchId: matchId,
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpayPaymentId: response.razorpay_payment_id
+                            })).unwrap();
 
-                    } catch (err) {
-                        console.error("Post-payment error:", err);
-                        // showError(`Payment successful but booking failed!\nPayment ID: ${response.razorpay_payment_id}\nError: ${err.message}\nPlease contact support.`);
+                            if (finalBookingResponse?.success || finalBookingResponse?.message?.includes("created")) {
+                                localStorage.removeItem("addedPlayers");
+                                window.dispatchEvent(new Event("playersUpdated"));
+                                navigate("/open-matches", {
+                                    replace: true,
+                                    state: { selectedDate }
+                                });
+                                dispatch(getUserProfile());
+                            } else {
+                                throw new Error("Booking confirmation failed");
+                            }
+                        } catch (err) {
+                            console.error("Post-payment error:", err);
+                            setError({ general: "Booking confirmation failed" });
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    },
+
+                    modal: {
+                        ondismiss: () => {
+                            setIsLoading(false);
+                            setError({ general: "Payment cancelled by user" });
+                        }
                     }
-                },
+                };
 
-                modal: {
-                    ondismiss: () => {
-                        setIsLoading(false);
-                        setError({ general: "Payment cancelled by user" });
-                    }
-                }
-            };
+                const razorpay = new window.Razorpay(options);
 
-            const razorpay = new window.Razorpay(options);
+                razorpay.on("payment.failed", (response) => {
+                    setError({ general: response.error?.description || "Payment failed. Try again." });
+                    setIsLoading(false);
+                });
 
-            razorpay.on("payment.failed", (response) => {
-                setError({ general: response.error?.description || "Payment failed. Try again." });
-                setIsLoading(false);
-            });
-
-            razorpay.open();
+                razorpay.open();
+            } else {
+                throw new Error("Payment initialization failed");
+            }
 
         } catch (err) {
             setError({ general: err.message || "Something went wrong" });

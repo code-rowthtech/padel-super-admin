@@ -226,6 +226,7 @@ const Navbar = () => {
                         setNotifications(res.notifications);
                     }
                 });
+                setOpen(false);
             });
     };
 
