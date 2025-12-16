@@ -12,12 +12,6 @@ import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "
 import { MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown } from "react-icons/md";
 import { showError } from "../../../helpers/Toast";
 
-const loadPayPal = (callback) => {
-  const script = document.createElement("script");
-  script.src = "https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID";
-  script.onload = () => callback(window.paypal);
-  document.body.appendChild(script);
-};
 
 const Payment = ({ className = "" }) => {
   const location = useLocation();
@@ -44,9 +38,7 @@ const Payment = ({ className = "" }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [modal, setModal] = useState(false);
-  const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
-  const paypalRef = useRef(null);
   const dispatch = useDispatch();
   const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
   const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
@@ -134,7 +126,6 @@ const Payment = ({ className = "" }) => {
         : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
           ? "Invalid phone number"
           : "",
-
     };
 
     setErrors(newErrors);
@@ -169,7 +160,7 @@ const Payment = ({ className = "" }) => {
         }))
       );
 
-      const payload = {
+      const basePayload = {
         name: name.trim(),
         phoneNumber: rawPhoneNumber,
         email: email.trim(),
@@ -178,7 +169,7 @@ const Payment = ({ className = "" }) => {
         bookingType: "regular",
         ownerId: owner_id,
         slot: slotArray,
-        paymentMethod: 'Gpay',
+        paymentMethod: 'razorpay',
       };
 
       // First: Login if needed
@@ -192,55 +183,71 @@ const Payment = ({ className = "" }) => {
         ).unwrap();
       }
 
-      // Razorpay Options
-      const options = {
-        key: "rzp_test_1DP5mmOlF5G5ag",
-        amount: localGrandTotal * 100,
-        currency: "INR",
-        name: clubData?.clubName || "Court Booking",
-        description: localTotalSlots > 1 ? `${localTotalSlots} Slots` : "1 Slot",
-        image: logo || undefined,
-        prefill: { name: name.trim(), email: email.trim(), contact: rawPhoneNumber },
-        theme: { color: "#001B76" },
+      const initialBookingResponse = await dispatch(createBooking({
+        ...basePayload,
+        initiatePayment: true
+      })).unwrap();
 
-        // Payment Success → Ab yahan API call karo
-        handler: async function (response) {
-          try {
-            // Ab booking create karo (payment successful hone ke baad)
-            const bookingResponse = await dispatch(createBooking(payload)).unwrap();
+      if (initialBookingResponse?.paymentDetails?.key || initialBookingResponse?.paymentDetails?.orderId) {
+        const options = {
+          key: initialBookingResponse?.paymentDetails?.key || "rzp_test_RqcQk54KN54oc3",
+          order_id: initialBookingResponse?.paymentDetails?.orderId,
+          amount: localGrandTotal * 100,
+          currency: "INR",
+          name: clubData?.clubName || "Court Booking",
+          description: localTotalSlots > 1 ? `${localTotalSlots} Slots` : "1 Slot",
+          image: logo || undefined,
+          prefill: { name: name.trim(), email: email.trim(), contact: rawPhoneNumber },
+          theme: { color: "#001B76" },
 
-            if (bookingResponse?.success || bookingResponse?.message?.includes("created")) {
-              setLocalSelectedCourts([]);
-              setModal(true); // Success modal 
-              dispatch(getUserProfile());
-            } else {
-              throw new Error(bookingResponse?.message || "Booking failed");
+          handler: async function (response) {
+            console.log(response, 'singature');
+            try {
+              const finalBookingResponse = await dispatch(createBooking({
+                ...basePayload,
+                initiatePayment: false,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
+              })).unwrap();
+
+              if (finalBookingResponse?.success || finalBookingResponse?.message?.includes("created")) {
+                setLocalSelectedCourts([]);
+                setModal(true);
+                dispatch(getUserProfile());
+              } else {
+                throw new Error(finalBookingResponse?.message || "Booking confirmation failed");
+              }
+            } catch (err) {
+              console.error(err);
+              setErrors((prev) => ({ ...prev, general: "Booking confirmation failed" }));
+            } finally {
+              setIsLoading(false);
             }
-          } catch (err) {
-            // showError("Booking failed after payment: " + (err.message || "Please contact support"));
-            console.error(err);
-          }
-        },
-
-        modal: {
-          ondismiss: () => {
-            setIsLoading(false);
-            setErrors((prev) => ({ ...prev, general: "Payment cancelled by user" }));
           },
-        },
-      };
 
-      const razorpay = new window.Razorpay(options);
+          modal: {
+            ondismiss: () => {
+              setIsLoading(false);
+              setErrors((prev) => ({ ...prev, general: "Payment cancelled by user" }));
+            },
+          },
+        };
 
-      razorpay.on("payment.failed", function (response) {
-        setErrors((prev) => ({
-          ...prev,
-          general: response.error?.description || "Payment failed",
-        }));
-        setIsLoading(false);
-      });
+        const razorpay = new window.Razorpay(options);
 
-      razorpay.open();
+        razorpay.on("payment.failed", function (response) {
+          setErrors((prev) => ({
+            ...prev,
+            general: response.error?.description || "Payment failed",
+          }));
+          setIsLoading(false);
+        });
+
+        razorpay.open();
+      } else {
+        throw new Error("Payment initialization failed");
+      }
 
     } catch (err) {
       setErrors((prev) => ({ ...prev, general: err.message || "Something went wrong" }));
@@ -413,8 +420,6 @@ const Payment = ({ className = "" }) => {
                 </div>
               </div>
             </div>
-
-
           </div>
         </div>
 
@@ -610,11 +615,9 @@ const Payment = ({ className = "" }) => {
                       Order Summary :
                     </h6>
                   )}
-                  <style>{`
-                                 .mobile-expanded-slots.expanded::-webkit-scrollbar {
-                                width: 6px;
-                            }
-                            `}</style>
+                  <style>{` .mobile-expanded-slots.expanded::-webkit-scrollbar {
+                                width: 6px;} `}
+                  </style>
 
                   {isExpanded && localSelectedCourts?.map((court, cIdx) =>
                     court.time.map((slot, sIdx) => (
@@ -872,7 +875,6 @@ const Payment = ({ className = "" }) => {
         </div>
       </Modal>
 
-      {/* PayPal Container (hidden unless PayPal selected) */}
     </div>
   );
 };

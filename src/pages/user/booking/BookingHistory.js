@@ -143,10 +143,10 @@ const BookingHistory = () => {
             if (!getBookingData?.bookingData?.data || !Array.isArray(getBookingData.bookingData.data)) {
                 return [];
             }
-            
+
             return getBookingData.bookingData.data.filter((booking) => {
                 if (!booking) return false;
-                
+
                 const status = booking?.bookingStatus?.toLowerCase() || '';
                 let statusMatch = false;
 
@@ -303,8 +303,8 @@ const BookingHistory = () => {
                 <Row className="justify-content-center mt-5">
                     <Col md={6} className="text-center">
                         <p className="text-danger">Something went wrong loading booking history.</p>
-                        <button 
-                            className="btn btn-primary" 
+                        <button
+                            className="btn btn-primary"
                             onClick={() => window.location.reload()}
                         >
                             Reload Page
@@ -542,7 +542,7 @@ const BookingHistory = () => {
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
                                                 <td className="table-data pt-2 py-1 d-flex align-items-center justify-content-center">
-                                                    <span className="px-2 rounded-pill d-flex align-items-center justify-content-center text-white  " style={{width:"7rem",background:booking?.bookingType === 'regular' ?  'linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)': "linear-gradient(rgba(0, 228, 76, 1) 0%, rgba(174, 190, 25, 1) 100%)"}} >{booking?.bookingType ? (booking.bookingType.charAt(0).toUpperCase() + booking.bookingType.slice(1)) : "N/A"}</span>
+                                                    <span className="px-2 rounded-pill d-flex align-items-center justify-content-center text-white  " style={{ width: "7rem", background: booking?.bookingType === 'regular' ? 'linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)' : "linear-gradient(rgba(0, 228, 76, 1) 0%, rgba(174, 190, 25, 1) 100%)" }} >{booking?.bookingType ? (booking.bookingType.charAt(0).toUpperCase() + booking.bookingType.slice(1)) : "N/A"}</span>
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
@@ -662,7 +662,7 @@ const BookingHistory = () => {
                                                                 ) : booking?.bookingStatus === "refunded" || booking?.bookingStatus === "cancelled" ? (
                                                                     <span
                                                                         style={{
-                                                                            color: booking?.bookingStatus === "cancelled" ? "red" : "orange",
+                                                                            color: booking?.bookingStatus === "cancelled" || booking?.bookingStatus === "refunded" ? "red" : "orange",
                                                                             fontSize: "12px",
                                                                             fontWeight: "600",
                                                                             fontFamily: "Poppins",

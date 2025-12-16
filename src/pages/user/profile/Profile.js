@@ -9,6 +9,7 @@ import {
   updateUser,
   getStates,
 } from "../../../redux/user/auth/authThunk";
+import { showError } from "../../../helpers/Toast";
 
 const Profile = () => {
   const User = getUserFromSession();
@@ -123,6 +124,12 @@ const Profile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        showError('Only image files are allowed');
+        e.target.value = ''; 
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData((prev) => ({ ...prev, profileImage: reader.result }));
@@ -405,7 +412,7 @@ const Profile = () => {
           </div>
           <div className="col-12 col-md-4 mb-3">
             <label className="label d-block">
-              Gender <span className="text-danger">*</span>
+              Gender 
             </label>
             {["Female", "Male", "Other"].map((g) => {
               const id = `gender-${g}`;
