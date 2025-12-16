@@ -27,7 +27,7 @@ const AmericanoUser = React.lazy(() =>
   import("../pages/user/americano/Americano")
 );
 const UserProfile = React.lazy(() => import("../pages/user/profile/Profile"));
-const PaymentWrapper = React.lazy(() => import("../components/PaymentWrapper"));
+const PaymentWrapper = React.lazy(() => import("../pages/user/payment/Payment"));
 const BookingHistory = React.lazy(() =>
   import("../pages/user/booking/BookingHistory")
 );

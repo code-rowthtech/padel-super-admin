@@ -482,55 +482,6 @@ const CreateMatches = () => {
     }
   }, [dispatch, matchPlayer, existsOpenMatchData]);
 
-  const steps = [
-    {
-      question:
-        "On the following scale, where would you place yourself?",
-      options: ["Beginner", "Intermediate", "Advanced", "Professional"],
-    },
-    {
-      question: "Select the racket sport you have played before?",
-      options: ["Tennis", "Badminton", "Squash", "Others"],
-    },
-    {
-      question:
-        "Have you received or are you receiving training in padel?",
-      options: ["No", "Yes, in the past", "Yes, currently"],
-    },
-    {
-      question: "How old are you?",
-      options: [
-        "Between 18 and 30 years",
-        "Between 31 and 40 years",
-        "Between 41 and 50 years",
-        "Over 50",
-      ],
-    },
-    {
-      question: "On the volley?",
-      options: [
-        "I hardly get to the net",
-        "I don't feel safe at the net, I make too many mistakes",
-        "I can volley forehand and backhand with some difficulties",
-        "I have good positioning at the net and I volley confidently",
-        "I don't know",
-      ],
-    },
-    {
-      question: "Which Padel Player Are You?",
-      options: [
-        { code: "A", title: "Top Player" },
-        { code: "B1", title: "Experienced Player" },
-        { code: "B2", title: "Advanced Player" },
-        { code: "C1", title: "Confident Player" },
-        { code: "C2", title: "Intermediate Player" },
-        { code: "D1", title: "Amateur Player" },
-        { code: "D2", title: "Novice Player" },
-        { code: "E", title: "Entry Level" },
-      ],
-    },
-  ];
-
   const handleAnswerSelect = (stepIndex, value) => {
     const step = dynamicSteps[stepIndex];
     if (!step) return;

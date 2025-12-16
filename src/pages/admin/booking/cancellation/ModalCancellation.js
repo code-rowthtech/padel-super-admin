@@ -564,6 +564,7 @@ export const BookingRefundModal = ({
                 type="date"
                 value={refundDate}
                 onChange={(e) => setRefundDate(e.target.value)}
+                min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
                 className="form-control w-100"
                 style={{
                   fontFamily: "Poppins",
