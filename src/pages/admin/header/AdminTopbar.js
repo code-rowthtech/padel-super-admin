@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   FaSearch,
   FaTimes,
@@ -18,14 +18,12 @@ import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { io } from "socket.io-client";
 import config from "../../../config";
-import { get } from "react-hook-form";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from "../../../redux/admin/notifiction/thunk";
-import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import updateLocale from "dayjs/plugin/updateLocale";
-import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
-
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import sendSound from '../../../assets/images/pixel_10_notification.mp3';
 
 const SOCKET_URL = config.API_URL;
 
@@ -37,16 +35,21 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   const handleClearSearch = () => setSearchValue("");
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const socketRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
   const [notificationCount, setNotificationCount] = useState();
-  const [openNoteId, setOpenNoteId] = useState(null);
   const userId = getOwnerFromSession()?._id;
-  const notificationData = useSelector((state) => state.notificationData?.getNotificationData);
   const notificationLoading = useSelector((state) => state.notificationData?.getCountLoading);
 
   const navigate = useNavigate();
   dayjs.extend(relativeTime);
   dayjs.extend(updateLocale);
+
+  const playNotificationSound = () => {
+    const audio = new Audio(sendSound);
+    audio.volume = 0.5;
+    audio.play().catch(err => console.log("Notification sound failed:", err));
+  };
 
   dayjs.updateLocale("en", {
     relativeTime: {
@@ -65,8 +68,36 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
       yy: "%d years",
     },
   });
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      const [notificationRes, countRes] = await Promise.all([
+        dispatch(getNotificationData()).unwrap(),
+        dispatch(getNotificationCount()).unwrap()
+      ]);
+      
+      if (notificationRes?.notifications) {
+        setNotifications(notificationRes.notifications);
+      }
+      if (countRes?.unreadCount !== undefined) {
+        setNotificationCount(countRes);
+      }
+    } catch (error) {
+      console.error('❌ Error loading notifications:', error);
+    }
+  }, [dispatch]);
+
   useEffect(() => {
-    const socket = io(SOCKET_URL, { transports: ["websocket"] });
+    if (!userId) return;
+
+    const socket = io(SOCKET_URL, { 
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
+    });
+    
+    socketRef.current = socket;
     
     socket.on('connect_error', (error) => {
       console.error('❌ Socket Connection Error:', error);
@@ -76,54 +107,48 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
       console.log('🔌 Socket Disconnected:', reason);
     });
 
-    dispatch(getNotificationData()).unwrap().then((res) => {
-      if (res?.notifications) {
-        setNotifications(res.notifications);
-      }
-    }).catch((error) => {
-      console.error('❌ getNotificationData API Error:', error);
-    });
-
-    dispatch(getNotificationCount()).unwrap().then((res) => {
-      if (res?.unreadCount) {
-        setNotificationCount(res);
-      }
-    }).catch((error) => {
-      console.error('❌ getNotificationCount API Error:', error);
-    });
-
     socket.on("connect", () => {
       socket.emit("registerAdmin", userId);
     });
 
     socket.on("adminNotification", (data) => {
-      setNotifications((prev) => {
-        const exists = prev.some((n) => n._id === data._id);
-        if (exists) return prev;
-        return [data, ...prev];
-      });
+      if (data?._id) {
+        setNotifications((prev) => {
+          const exists = prev.some((n) => n._id === data._id);
+          if (exists) return prev;
+          playNotificationSound();
+          return [data, ...prev];
+        });
+      }
     });
 
     socket.on("cancellationRequest", (data) => {
-      setNotifications((prev) => {
-        const exists = prev.some((n) => n._id === data._id);
-        if (exists) return prev;
-        return [data, ...prev];
-      });
-      // Update notification count when cancellation request is received
-      dispatch(getNotificationCount()).unwrap().then((res) => {
-        if (res?.unreadCount) {
-          setNotificationCount(res);
-        }
-      });
+      if (data?._id) {
+        setNotifications((prev) => {
+          const exists = prev.some((n) => n._id === data._id);
+          if (exists) return prev;
+          playNotificationSound();
+          return [data, ...prev];
+        });
+        loadNotifications();
+      }
     });
 
     socket.on("notificationCountUpdate", (data) => {
-      setNotificationCount(data);
+      if (data) {
+        setNotificationCount(data);
+      }
     });
 
-    return () => socket.disconnect();
-  }, [userId, open, dispatch, SOCKET_URL]);
+    loadNotifications();
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, [userId, loadNotifications]);
 
 
   useEffect(() => {
@@ -136,39 +161,31 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleViewNotification = (note) => {
-    const socket = io(SOCKET_URL, { transports: ["websocket"] });
+  const handleViewNotification = useCallback(async (note) => {
+    if (!note?._id) return;
+    
+    try {
+      await dispatch(getNotificationView({ noteId: note._id })).unwrap();
+      
+      if (note?.notificationUrl) {
+        navigate(note.notificationUrl);
+      }
+      
+      await loadNotifications();
+      setOpen(false);
+    } catch (error) {
+      console.error('❌ Error viewing notification:', error);
+    }
+  }, [dispatch, navigate, loadNotifications]);
 
-    dispatch(getNotificationView({ noteId: note._id })).unwrap()
-      .then(() => {
-        navigate(note?.notificationUrl)
-        socket.on("notificationCountUpdate", (data) => {
-          setNotificationCount(data);
-        });
-        dispatch(getNotificationData()).unwrap().then((res) => {
-          if (res?.notifications) {
-            setNotifications(res.notifications);
-          }
-        });
-        setOpen(false)
-      });
-  };
-
-  const handleMarkAllRead = () => {
-    const socket = io(SOCKET_URL, { transports: ["websocket"] });
-
-    dispatch(readAllNotification()).unwrap()
-      .then(() => {
-        socket.on("notificationCountUpdate", (data) => {
-          setNotificationCount(data);
-        });
-        dispatch(getNotificationData()).unwrap().then((res) => {
-          if (res?.notifications) {
-            setNotifications(res.notifications);
-          }
-        });
-      });
-  };
+  const handleMarkAllRead = useCallback(async () => {
+    try {
+      await dispatch(readAllNotification()).unwrap();
+      await loadNotifications();
+    } catch (error) {
+      console.error('❌ Error marking all as read:', error);
+    }
+  }, [dispatch, loadNotifications]);
 
   return (
     <header
@@ -266,7 +283,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             >
               <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
                 <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
-                {notifications.length > 3 && (
+                {notifications.length > 0 && (
                   <button
                     className="btn btn-link p-0"
                     style={{
