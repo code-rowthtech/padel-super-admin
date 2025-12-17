@@ -13,7 +13,6 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const socketRef = useRef(null);
-
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
     const chatContainerRef = useRef(null);
@@ -21,12 +20,10 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
     const [showStickyDate, setShowStickyDate] = useState(false);
     const stickyDateTimeoutRef = useRef(null);
 
-
-
-    const playSendSound = () => {
+    const playNotificationSound = () => {
         const audio = new Audio(sendSound);
         audio.volume = 0.5;
-        audio.play().catch(err => console.log("Send sound failed:", err));
+        audio.play().catch(err => console.log("Notification sound failed:", err));
     };
 
 
@@ -51,7 +48,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
             setLoading(true);
             const loadingTimeout = setTimeout(() => {
                 setLoading(false);
-            }, 3000);
+            }, 2000);
 
             socketRef.current = io(SOCKET_URL, {
                 auth: { userId: User._id },
@@ -79,9 +76,8 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
             });
             socketRef.current.on('newMessage', (data) => {
                 setMessages((prev) => [...prev, data]);
-                console.log(data.senderId?._id === User._id, 'data.senderId?._id === User._id');
-                if (data.senderId?._id === User._id) {
-                    playSendSound();
+                if (data.senderId?._id !== User._id) {
+                    playNotificationSound();
                 }
                 socketRef.current.emit('markMessageRead', { matchId });
                 socketRef.current.emit('getMessages', { matchId, isChatOpen: true });

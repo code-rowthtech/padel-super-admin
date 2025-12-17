@@ -4,13 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../../../redux/user/booking/thunk";
 import { getUserProfile, loginUserNumber, updateUser } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
-import { Avatar } from "@mui/material";
 import { Button, Modal } from "react-bootstrap";
 import { booking_logo_img, success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "react-icons/md";
-import { MdKeyboardDoubleArrowUp, MdKeyboardDoubleArrowDown } from "react-icons/md";
-import { showError } from "../../../helpers/Toast";
 
 
 const Payment = ({ className = "" }) => {

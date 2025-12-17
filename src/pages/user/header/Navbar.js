@@ -23,6 +23,7 @@ import updateLocale from "dayjs/plugin/updateLocale";
 import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from '../../../redux/user/notifiction/thunk';
 import { clearall } from '../../../assets/files'
 import { getUserClub } from '../../../redux/thunks';
+import sendSound from '../../../assets/images/pixel_10_notification.mp3';
 const SOCKET_URL = config.API_URL;
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -66,6 +67,12 @@ const Navbar = () => {
             yy: "%d years",
         },
     });
+
+    const playNotificationSound = () => {
+        const audio = new Audio(sendSound);
+        audio.volume = 0.5;
+        audio.play().catch(err => console.log("Notification sound failed:", err));
+    };
     useEffect(() => {
         if (userId) {
 
@@ -90,6 +97,7 @@ const Navbar = () => {
 
             socket.on("user_request", (data) => {
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
+                playNotificationSound();
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
@@ -99,12 +107,13 @@ const Navbar = () => {
             socket.on('matchNotification', (notification) => {
                 console.log(notification, 'pankaj2');
                 setNotifications((prevNotifications) => [notification, ...prevNotifications]);
-
+                playNotificationSound();
             })
 
             socket.on("approved_request", (data) => {
                 console.log(data, 'datahdata');
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
+                playNotificationSound();
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
