@@ -104,7 +104,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     });
     
     socket.on('disconnect', (reason) => {
-      console.log('🔌 Socket Disconnected:', reason);
     });
 
     socket.on("connect", () => {
@@ -123,7 +122,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     });
 
     socket.on("cancellationRequest", (data) => {
-      console.log({data});
       if (data?._id) {
         setNotifications((prev) => {
           const exists = prev.some((n) => n._id === data._id);

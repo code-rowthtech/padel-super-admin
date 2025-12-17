@@ -83,7 +83,6 @@ const Home = () => {
 
   // Combine real reviews with fake ones
   const allReviews = [...(getReviewData?.reviews || []), ...fakeReviews];
-  console.log({getReviewData});
   const enhancedReviewData = {
     ...getReviewData,
     reviews: allReviews,

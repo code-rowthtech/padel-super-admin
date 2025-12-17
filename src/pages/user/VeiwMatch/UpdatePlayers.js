@@ -250,7 +250,10 @@ const UpdatePlayers = ({
       }
       setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
       setUserEnteredData((prev) => ({ ...prev, gender: autoGender }));
+      setErrors({});
+      setShowErrors({});
     } else if (!showModal) {
+      // Complete form reset when modal closes
       setFormData({
         name: "",
         email: "",
@@ -270,6 +273,8 @@ const UpdatePlayers = ({
         gender: "",
       });
       setLastSearchedNumber("");
+      setErrors({});
+      setShowErrors({});
     }
   }, [showModal, matchId?.gender]);
 

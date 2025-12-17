@@ -394,7 +394,6 @@ const ManualBooking = () => {
       dispatch(searchUserByNumber({ phoneNumber: phone, type: '' }));
     }
   }, [phone, dispatch]);
-  console.log({ searchUserData });
   useEffect(() => {
     if (searchUserData?.result?.[0]?.name && phone.length === 10) {
       if (!name || name.trim() === "") {

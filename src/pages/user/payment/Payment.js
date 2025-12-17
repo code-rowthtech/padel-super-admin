@@ -198,7 +198,6 @@ const Payment = ({ className = "" }) => {
           theme: { color: "#001B76" },
 
           handler: async function (response) {
-            console.log(response, 'singature');
             try {
               const finalBookingResponse = await dispatch(createBooking({
                 ...basePayload,
