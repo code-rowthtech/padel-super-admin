@@ -199,10 +199,8 @@
         );
       } else {
         if (currentTotalSlots >= MAX_SLOTS) {
-          // Show toast for mobile only
-          if (window.innerWidth <= 768) {
-            showError(`You can select up to ${MAX_SLOTS} slots only`);
-          }
+          setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
+          setErrorShow(true);
           return;
         }
 
@@ -389,7 +387,6 @@
         socket.emit("registerUser", user?._id);
       });
       socket.on('slotUpdated', (data) => {
-        console.log('Slot updated event received:', data);
         const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
         if (data.clubId === clubId && data.date === currentDate) {
           fetchSlots("socket");
@@ -2233,6 +2230,22 @@
                       </p>
                     </div>
                   </>
+                )}
+
+                {errorShow && errorMessage && (
+                  <div
+                    className="text-center mx-3 mb-2 p-2 rounded"
+                    style={{
+                      fontWeight: 500,
+                      backgroundColor: "rgba(255, 235, 238, 0.9)",
+                      color: "#c62828",
+                      border: "1px solid #ffcdd2",
+                      fontSize: "12px",
+                      fontFamily: "Poppins"
+                    }}
+                  >
+                    {errorMessage}
+                  </div>
                 )}
 
                 <div className="d-flex justify-content-center align-items-center px-3">

@@ -402,7 +402,6 @@ const ClubUpdateForm = () => {
   );
 
   const handlePriceDataFromChild = useCallback((price) => {
-    console.log("Received price from child:", price);
     setPricingData(price);
     setHasChanged(true);
   }, []);

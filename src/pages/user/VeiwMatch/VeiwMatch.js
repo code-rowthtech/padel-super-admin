@@ -182,7 +182,6 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
     const [showChat, setShowChat] = useState(false);
     const [chatMessage, setChatMessage] = useState("");
     const [unreadCount, setUnreadCount] = useState();
-    console.log({ unreadCount });
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
     
@@ -253,7 +252,6 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                 }
             });
             socketRef.current.on('unreadCount', (data) => {
-                console.log(data, 'datadatadatadata');
                 setUnreadCount(data?.count || 0);
             });
 

@@ -55,7 +55,6 @@ const CourtAvailability = () => {
 
   const [selectedSlots, setSelectedSlots] = useState({});
   const [selectedCourt, setSelectedCourt] = useState("all");
-console.log({selectedSlots});
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -1136,7 +1135,6 @@ console.log({selectedSlots});
                     ) : (
                       allSelectedSlots?.map(
                         ({ slot, status, date, courtId }, idx) => {
-                          console.log({status});
                           const court = courts.find((c) => c._id === courtId);
                           const dayName = new Date(date).toLocaleDateString(
                             "en-US",

@@ -34,14 +34,10 @@ const slotSlice = createSlice({
             })
 
             .addCase(getUserSlotBooking.pending, (state,action) => {
-                console.log("getUserSlot pending action:", action);
-
                 state.slotLoading = action?.meta?.arg?.socket ? false : true;
                 state.slotError = null;
             })
             .addCase(getUserSlotBooking.fulfilled, (state, action) => {
-                console.log("getUserSlot pending action:", action);
-
                 state.slotLoading = false;
                 state.slotData = action.payload;
             })

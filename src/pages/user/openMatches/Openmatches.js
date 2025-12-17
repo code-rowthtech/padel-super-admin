@@ -86,10 +86,10 @@ const Openmatches = () => {
 
   const initialDate = state?.selectedDate ? {
     fullDate: typeof state.selectedDate === 'string'
-      ? state.selectedDate.split("T")[0]
+      ? state.selectedDate.includes('T') ? state.selectedDate.split("T")[0] : state.selectedDate
       : state.selectedDate.fullDate || new Date().toISOString().split("T")[0],
     day: typeof state.selectedDate === 'string'
-      ? new Date(state.selectedDate.split("T")[0]).toLocaleDateString("en-US", { weekday: "long" })
+      ? new Date(state.selectedDate.includes('T') ? state.selectedDate.split("T")[0] : state.selectedDate).toLocaleDateString("en-US", { weekday: "long" })
       : state.selectedDate.day || new Date().toLocaleDateString("en-US", { weekday: "long" }),
   } : {
     fullDate: new Date().toISOString().split("T")[0],
@@ -99,7 +99,7 @@ const Openmatches = () => {
   const [startDate, setStartDate] = useState(() => {
     if (state?.selectedDate) {
       const dateStr = typeof state.selectedDate === 'string'
-        ? state.selectedDate.split("T")[0]
+        ? state.selectedDate.includes('T') ? state.selectedDate.split("T")[0] : state.selectedDate
         : state.selectedDate.fullDate;
       return new Date(dateStr);
     }
@@ -143,7 +143,9 @@ const Openmatches = () => {
 
   const debouncedFetchMatches = useCallback(
     debounce((payload) => {
-      dispatch(getMatchesUser(payload));
+      dispatch(getMatchesUser(payload)).catch(err => {
+        console.error('Failed to fetch matches:', err);
+      });
     }, 300),
     [dispatch, user?.token, matchFilter]
   );
@@ -1079,14 +1081,12 @@ const Openmatches = () => {
                             </div>
                             <div className="row px-2 mx-auto px-md-0 py-2 d-flex justify-content-between align-items- flex-wrap">
                               <div className="col-lg-7 pb-0 col-6">
-                                {console.log({match})}
                                 <p
                                   className="mb-0 all-match-time text-nowrap"
                                   style={{ fontWeight: "600" }}
                                 >
                                   {formatMatchDate(match.matchDate)} |{" "}
-                                  {match?.formattedMatchTime}
-                                  {/* {formatTimes(match.slot)} */}
+                                  {match?.formattedMatchTime || formatTimes(match.slot)}
                                   <i className="bi bi-share ms-2" onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `desktop-${index}` ? null : `desktop-${index}`); }} style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }} />
                                 </p>
                                 <span className="text-muted all-match-name-level ms-0 d-none d-md-inline">

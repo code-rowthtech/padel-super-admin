@@ -75,57 +75,60 @@ const Navbar = () => {
     };
     useEffect(() => {
         if (userId) {
+            const socket = io(SOCKET_URL, {
+                transports: ["websocket"],
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
+            });
 
-
-            const socket = io(SOCKET_URL, { transports: ["websocket"] });
-
+            // Load initial notifications
             dispatch(getNotificationData()).unwrap().then((res) => {
                 if (res?.notifications) {
                     setNotifications(res.notifications);
                 }
-            });
+            }).catch(err => console.error('Failed to load notifications:', err));
+
             dispatch(getNotificationCount()).unwrap().then((res) => {
-                if (res?.notifications) {
-                    setNotificationCount(res);
-                }
-            });
+                setNotificationCount(res);
+            }).catch(err => console.error('Failed to load notification count:', err));
+
             socket.on("connect", () => {
                 socket.emit("registerUser", userId);
             });
-
-
 
             socket.on("user_request", (data) => {
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
                 playNotificationSound();
             });
 
-            socket.on("userNotificationCountUpdate", (data) => {
-                console.log(data, 'pankaj1');
-                setNotificationCount(data);
-            });
             socket.on('matchNotification', (notification) => {
-                console.log(notification, 'pankaj2');
                 setNotifications((prevNotifications) => [notification, ...prevNotifications]);
                 playNotificationSound();
-            })
+            });
 
             socket.on("approved_request", (data) => {
-                console.log(data, 'datahdata');
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
                 playNotificationSound();
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
-                console.log(data, 'pankaj3');
-
                 setNotificationCount(data);
             });
 
+            socket.on("disconnect", () => {
+            });
 
-            return () => socket.disconnect();
+            socket.on("connect_error", (error) => {
+                console.error("Socket connection error:", error);
+            });
+
+            return () => {
+                socket.off();
+                socket.disconnect();
+            };
         }
-    }, [userId, dispatch, open, SOCKET_URL]);
+    }, [userId, dispatch]);
 
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
@@ -197,14 +200,13 @@ const Navbar = () => {
                 setOpen(false);
             }
         };
-        if (open) {
+        if (open && window.innerWidth >= 992) {
             document.addEventListener("mousedown", handleClickOutside);
         }
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [open]);
 
     const handleViewNotification = (note) => {
-        console.log({ note });
         const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
         dispatch(getNotificationView({ noteId: note._id })).unwrap()
@@ -226,7 +228,6 @@ const Navbar = () => {
                     navigate(note?.notificationUrl);
                 }
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log(data, 'pankaj4');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -243,7 +244,6 @@ const Navbar = () => {
         dispatch(readAllNotification()).unwrap()
             .then(() => {
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log(data, 'pankaj5');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -427,7 +427,7 @@ const Navbar = () => {
                                                                         className="text-muted mb-1"
                                                                         style={{ fontSize: "12px", fontFamily: "Poppins" }}
                                                                     >
-                                                                        {note.message}
+                                                                        {note?.message?.length < 40 ? note?.message : note?.message?.slice(0, 40) + "..."}
                                                                     </p>
                                                                 )}
                                                                 <p
@@ -569,7 +569,7 @@ const Navbar = () => {
                                                                             className="text-muted mb-1"
                                                                             style={{ fontSize: "12px", fontFamily: "Poppins" }}
                                                                         >
-                                                                            {note.message}
+                                                                            {note?.message?.length < 40 ? note?.message : note?.message?.slice(0, 40) + "..."}
                                                                         </p>
                                                                     )}
                                                                     <p

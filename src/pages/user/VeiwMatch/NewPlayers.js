@@ -209,7 +209,6 @@ const NewPlayers = ({
       dispatch(getPlayerLevelBySkillLevel(skillDetails?.[0]));
     }
   }, [showAddMeForm, dispatch]);
-  console.log(skillDetails, 'skillDetails');
 
   useEffect(() => {
     const timers = Object.keys(showErrors)
