@@ -113,7 +113,6 @@ const Pricing = ({
     prices: { Morning: {}, Afternoon: {}, Evening: {}, All: {} },
     changesConfirmed: true,
   });
-  console.log({formData})
   const [hasPriceChanges, setHasPriceChanges] = useState(false);
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedSlotData, setSelectedSlotData] = useState(null);
@@ -617,13 +616,6 @@ const Pricing = ({
       ...eveningPrices
     } : allPrices;
     
-    console.log('Morning prices:', morningPrices);
-    console.log('Afternoon prices:', afternoonPrices);
-    console.log('Evening prices:', eveningPrices);
-    console.log('All prices:', allPrices);
-    console.log('Combined slot prices:', allSlotPrices);
-    console.log('Morning slots in combined prices:', Object.keys(morningPrices));
-    console.log('Afternoon slots in combined prices:', Object.keys(afternoonPrices));
 
     // Skip validation when called from updateRegisteredClub
     if (!allSlotPrices || Object.keys(allSlotPrices).length === 0) {
@@ -645,7 +637,6 @@ const Pricing = ({
       return price && price.toString().trim() !== '' && !isNaN(parseFloat(price)) && parseFloat(price) > 0;
     });
     
-    console.log('Selected display times with valid prices:', selectedDisplayTimes);
     console.log('Morning times in selected:', selectedDisplayTimes.filter(t => {
       const [time, period] = t.split(' ');
       const [hour] = time.split(':').map(Number);
@@ -662,22 +653,18 @@ const Pricing = ({
       if (period === 'AM' && hour === 12) hour24 = 0;
       return hour24 >= 12 && hour24 < 17;
     }));
-    console.log('Total slot times from API:', slotTimes.length);
     
     // Log all API slot times for comparison
     slotTimes.forEach((slot, index) => {
       const displayTime = formatTo12HourDisplay(slot.time);
-      console.log(`API Slot ${index}: ${slot.time} -> ${displayTime}`);
     });
     
     const targetedSlotTimes = slotTimes.filter((slot) => {
       const displayTime = formatTo12HourDisplay(slot.time);
       const isIncluded = selectedDisplayTimes.includes(displayTime);
-      console.log(`Slot ${displayTime} (${slot.time}) - included: ${isIncluded}`);
       return isIncluded;
     });
     
-    console.log('Targeted slot times:', targetedSlotTimes.length, 'out of', slotTimes.length);
     if (targetedSlotTimes.length === 0) {
       return; // Silently return if no targeted slots
     }
