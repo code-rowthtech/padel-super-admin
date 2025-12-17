@@ -35,7 +35,6 @@ const Navbar = () => {
 
     const User = useSelector((state) => state?.userAuth)
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
-
     const notificationData = useSelector((state) => state.notificationData?.getNotificationData);
     const notificationLoading = useSelector((state) => state.notificationData?.getCountLoading);
     let token = isUserAuthenticated()

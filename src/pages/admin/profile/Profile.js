@@ -206,7 +206,7 @@ const Profile = () => {
                       style={{
                         width: "100%",
                         height: "100%",
-                        backgroundSize: "contain",
+                        // backgroundSize: "cover",
                       }}
                     />
                   </div>
