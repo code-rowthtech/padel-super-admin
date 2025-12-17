@@ -230,7 +230,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             className="d-flex rounded-circle  align-items-center"
             style={{
               cursor: "pointer",
-              backgroundColor: open ? "black" : "#CBD6FF54",
+              // backgroundColor: open ? "black" : "white",
               padding: "8px",
               position: "relative",
             }}
@@ -245,7 +245,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
               color="error"
             >
               <NotificationsIcon
-                className={`${open ? 'text-white' : 'text-dark'}`}
+                className={`${open ? 'text-dark' : 'text-dark'}`}
                 size={18}
               />
             </Badge>
@@ -253,7 +253,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
 
           {open && (
             <div
-              className="shadow-sm p-2"
+              className="shadow-sm p-2 add_position_notification"
               style={{
                 position: "absolute",
                 top: "50px",
@@ -401,8 +401,8 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                 loading="lazy"
               />
             ) : (
-              <div className="bg-secondary rounded-circle">
-                <FaUserCircle size={40} />
+              <div className="bg-secondary rounded-pill" style={{width:"40px!important",height:"40px!important"}}>
+                <FaUserCircle size={30} />
               </div>
             )}
             {isOpen ? (
