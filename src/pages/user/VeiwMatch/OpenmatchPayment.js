@@ -643,7 +643,7 @@ const OpenmatchPayment = () => {
                                                         </div>
                                                         <div className="text-white">
                                                             ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}</span>
-                                                            <MdOutlineDeleteOutline className="ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, timeSlot._id)} />
+                                                            <MdOutlineDeleteOutline className="mt-1 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, timeSlot._id)} />
                                                         </div>
                                                     </div>
                                                 </div>

@@ -534,7 +534,7 @@ export const BookingRefundModal = ({
                   fontWeight: "500",
                 }}
               >
-                Payment recieve
+                Payment Recieve
               </h2>
               <h2
                 className="tabel-title py-1 text-start"
