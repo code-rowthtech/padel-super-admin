@@ -416,8 +416,6 @@ const Navbar = () => {
                                                             }}
                                                             onClick={() => handleViewNotification(note)}
                                                         >
-
-
                                                             <div style={{ flex: 1 }}>
                                                                 <div style={{ fontWeight: 500, fontSize: "13px" }}>
                                                                     {note?.adminId ? "Padel" : ''} – {note.title}
