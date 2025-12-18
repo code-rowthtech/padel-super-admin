@@ -71,8 +71,10 @@ const UpdatePlayers = ({
   const getPlayerLevelsLoading = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
-  const requestLoading = useSelector((state) => state?.userPlayerRequest?.requestCreateLoading || false
+  const requestLoading = useSelector((state) => state?.requestData?.requestCreateLoading
   );
+  console.log({loading});
+  console.log({requestLoading});
   const searchUserData = useSelector(
     (state) => state.searchUserByNumber.getSearchData
   );

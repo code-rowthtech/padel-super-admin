@@ -219,6 +219,24 @@ const Navbar = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [open]);
 
+    const getTimeSlot = (matchTime) => {
+        if (!matchTime) return null;
+        const firstTime = matchTime.split(',')[0].trim();
+        const timeMatch = firstTime.match(/(\d+)\s*(am|pm)/i);
+        if (!timeMatch) return null;
+        
+        let hour = parseInt(timeMatch[1]);
+        const period = timeMatch[2].toLowerCase();
+        
+        if (period === 'pm' && hour !== 12) hour += 12;
+        if (period === 'am' && hour === 12) hour = 0;
+        
+        if (hour >= 5 && hour <= 11) return 'morning';
+        if (hour >= 12 && hour <= 16) return 'afternoon';
+        if (hour >= 17 && hour <= 23) return 'evening';
+        return null;
+    };
+
     const handleViewNotification = (note) => {
         console.log({ note });
         const socket = io(SOCKET_URL, { transports: ["websocket"] });
@@ -229,13 +247,15 @@ const Navbar = () => {
                     const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
                     const formattedDate = dayjs(matchDate).format('YYYY-MM-DD');
                     const dateObj = new Date(matchDate);
+                    const timeSlot = getTimeSlot(note?.matchTime);
                     navigate('/open-matches', {
                         state: {
                             matchId: note.matchId,
                             selectedDate: {
                                 fullDate: formattedDate,
                                 day: dateObj.toLocaleDateString("en-US", { weekday: "long" })
-                            }
+                            },
+                            selectedTimeSlot: timeSlot
                         }
                     });
                     setOpen(false)
