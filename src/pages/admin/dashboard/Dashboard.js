@@ -317,7 +317,7 @@ const AdminDashboard = () => {
         <DataLoading height="80vh" />
       ) : (
         <>
-          <Row className="mb-4">
+          <Row className="mb-md-4 mb-0">
             {summaryCards.map((card, index) => (
               <Col key={index} xs={12} sm={6} lg={3} className="mb-3">
                 <Card className="shadow border-0 rounded-0 h-100">
@@ -872,7 +872,7 @@ const AdminDashboard = () => {
 
                       <div className="mobile-card-table d-block d-md-none">
                         {dashboardRecentBookings?.map((item) => (
-                          <div key={item._id} className="card">
+                          <div key={item._id} className="card mb-2">
                             <div className="card-body">
                               <div className="mobile-card-item">
                                 <span className="mobile-card-label">User:</span>

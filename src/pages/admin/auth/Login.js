@@ -96,12 +96,12 @@ const LoginPage = () => {
 
   return (
     <Layout>
-      <div className="w-75 w-sm-100">
+      <div className="w-75 w-sm-100 responsive-width">
         <style>
           {`
             @media (max-width: 768px) {
               .login-container {
-                width: 90% !important;
+                width: 100% !important;
                 max-width: 400px !important;
               }
               .form-control {
@@ -112,6 +112,9 @@ const LoginPage = () => {
                 padding: 14px 12px !important;
                 min-height: 48px !important;
               }
+                 .responsive-width {
+    width: 100%!important;
+  }
             }
           `}
         </style>
