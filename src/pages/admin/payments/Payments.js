@@ -116,8 +116,8 @@ const Payments = () => {
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
-    <Container fluid className=" px-4">
-      <Row className="mb-4">
+    <Container fluid className=" px-0 px-md-4  mt-md-0 mt-2">
+      <Row className="mb-0">
         {summaryCards.map((card, index) => (
           <Col key={index} md={4} className="mb-3">
             <Card className="shadow-sm border-0 rounded-4 h-100">
@@ -178,7 +178,7 @@ const Payments = () => {
               </AppBar>
             </Box>
 
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center col-md-6 col-12 justify-content-end">
               {!showDatePicker && !startDate && !endDate ? (
                 <div
                   className="d-flex align-items-center justify-content-center rounded p-2"
@@ -245,7 +245,7 @@ const Payments = () => {
 
       <Row>
         <Col md={12}>
-          <div className="bg-white rounded shadow-sm p-3">
+          <div className="bg-white rounded shadow-sm p-md-3 p-2">
             <h6 className="mb-3 tabel-title">
               {tab === 0 ? "Recent" : "Refund"} Transactions
             </h6>
@@ -336,7 +336,7 @@ const Payments = () => {
 
                     <div className="mobile-card-table d-block d-md-none">
                       {payments?.map((item) => (
-                        <div key={item?._id} className="card">
+                        <div key={item?._id} className="card mb-2">
                           <div className="card-body">
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">User:</span>

@@ -124,6 +124,7 @@ const Packages = () => {
         fontFamily: "Inter, sans-serif",
         minHeight: "100vh",
       }}
+      className="px-0"
     >
       <Modal
         show={showDeleteModal}
@@ -147,7 +148,7 @@ const Packages = () => {
         </Modal.Footer>
       </Modal>
 
-      <Row className="mb-4 justify-content-end align-items-center">
+      <Row className="mb-md-4 mb-2 justify-content-end align-items-center">
         <Col xs="auto">
           <button
             className="d-flex align-items-center position-relative p-0 border-0"
@@ -169,7 +170,7 @@ const Packages = () => {
             }}
           >
             <div
-              className="p-1 rounded-circle bg-light"
+              className="p-md-1 p-2 rounded-circle bg-light"
               style={{ position: "relative", left: "10px" }}
             >
               <div
@@ -204,11 +205,11 @@ const Packages = () => {
 
       <Row className="g-4">
         <Col sm={5}>
-          <Stack gap={3} className="d-flex flex-row">
+          <Stack gap={3} className="d-flex flex-md-row flex-column">
             {plans.map((plan) => (
               <Card
                 key={plan.id}
-                className={`border-0 shadow-sm ${
+                className={`border-0 shadow-sm col-md-6 col-12 ${
                   selectedPlan === plan.title ? "border-2 border-primary" : ""
                 }`}
                 style={{
@@ -222,17 +223,19 @@ const Packages = () => {
                 }}
                 onClick={() => setSelectedPlan(plan.title)}
               >
-                <Card.Body className="p-4">
+                <Card.Body className="p-md-3 p-2">
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <i
-                      className={`bi ${
+                      className={`bi d-flex align-items-center justify-content-center ${
                         plan.title === "Business" ? "bi-gem" : "bi-gear-fill"
-                      } text-primary`}
+                      } text-primary d-flex align-items-center justify-content-center`}
                       style={{
                         fontSize: "20px",
                         padding: "6px",
                         backgroundColor: "#eef2ff",
                         borderRadius: "50%",
+                        width:"40px",
+                        height:"40px"
                       }}
                     ></i>
                     <Form.Check

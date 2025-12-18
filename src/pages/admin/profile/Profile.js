@@ -163,7 +163,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="container p-5">
+    <div className="container p-md-5 p-0">
       <div
         style={{
           background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
@@ -171,12 +171,12 @@ const Profile = () => {
           borderTopLeftRadius: "12px",
           borderTopRightRadius: "12px",
         }}
-        className="mt-5"
+        className="mt-md-5 mt-3"
       ></div>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-bottom shadow p-4"
+        className="bg-white rounded-bottom shadow p-2 px-md-4 py-3"
       >
         <div
           className="d-flex align-items-center"
@@ -221,7 +221,7 @@ const Profile = () => {
 
                 <label
                   htmlFor="logoUpload"
-                  className="position-absolute bottom-0 end-0 rounded-circle p-1"
+                  className="position-absolute bottom-0 end-0 rounded-pill p-1"
                   style={{
                     width: "30px",
                     height: "30px",
