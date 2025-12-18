@@ -345,17 +345,25 @@ const Home = () => {
                         ? clubData.clubName.charAt(0).toUpperCase()
                         : "User"}
                     </Avatar> */}
-                    <div className="logo_add_star bg-white py-1" style={{ borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}>
+                    <div className="logo_add_star bg-white rounded-circle  py-1" style={{
+                      width: "50px",
+                      height: "50px",
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#f9f9f9",
+                      borderBottomRightRadius: "38px", borderTopRightRadius: "38px"
+                    }}>
                       <img
-                        src={logo || 'Courtline'}
-                        alt="Courtline"
+                        src={logo}
+                        alt="User Profile"
                         style={{
-                          width: "45px",
-                          height: "45px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
+                          width: "100%",
+                          height: "auto",
+                          backgroundSize: "cover",
                         }}
-                        className="me-1"
                       />
                     </div>
                   </div>
@@ -414,17 +422,25 @@ const Home = () => {
                   className="d-flex d-md-none align-items-center bg-black text-white px-3 py-0 ps-0 mb-2 mt-3"
                   style={{ width: "fit-content", gap: "12px", borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}
                 >
-                  <div className="logo_add_star bg-white py-1" style={{ borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}>
+                  <div className="logo_add_star rounded-circle bg-white py-1" style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#f9f9f9",
+                    borderBottomRightRadius: "38px", borderTopRightRadius: "38px"
+                  }}>
                     <img
-                      src={logo || 'Courtline'}
-                      alt="Courtline"
+                      src={logo}
+                      alt="User Profile"
                       style={{
-                        width: "45px",
-                        height: "45px",
-                        borderRadius: "50%",
-                        objectFit: "cover",
+                        width: "100%",
+                        height: "auto",
+                        backgroundSize: "cover",
                       }}
-                      className="me-1"
                     />
                   </div>
 
@@ -715,195 +731,195 @@ const Home = () => {
       </div>
 
       {/* Photos Gallery Section */}
-    <div className="mt-md-5 mb-md-5 my-4 px-2 px-md-5">
-  <div className="position-relative">
-    <div className="overflow-hidden rounded-3">
-      <div
-        className={`d-flex align-items-center ${windowWidth >= 992 ? "gap-4" : ""}`}
-        style={{
-          transform:
-            windowWidth >= 992
-              ? clubData?.courtImage?.length > 4
-                ? `translateX(-${currentSlide * 25}%)`
-                : "translateX(0%)"
-              : clubData?.courtImage?.length > 1
-              ? `translateX(-${currentSlide * 100}%)`
-              : "translateX(0%)",
-          transition:
-            (windowWidth >= 992 && currentSlide === clubData?.courtImage?.length) ||
-            (windowWidth < 992 && currentSlide === clubData?.courtImage?.length)
-              ? "none"
-              : "transform 0.5s ease",
-          justifyContent:
-            windowWidth >= 992 && clubData?.courtImage?.length <= 4
-              ? "center"
-              : "flex-start",
-        }}
-      >
-        {/* Desktop Images */}
-        {(clubData?.courtImage?.length > 4
-          ? [...clubData.courtImage, ...clubData.courtImage.slice(0, 4)]
-          : clubData?.courtImage
-        )?.map((image, index) => (
-          <div
-            key={`desktop-${index}`}
-            className="flex-shrink-0 d-lg-block d-none"
-            style={{
-              width: clubData?.courtImage?.length > 4 ? "24%" : "22%",
-              padding: "0 6px",
-            }}
-          >
+      <div className="mt-md-5 mb-md-5 my-4 px-2 px-md-5">
+        <div className="position-relative">
+          <div className="overflow-hidden rounded-3">
             <div
-              className="position-relative overflow-hidden rounded-3"
+              className={`d-flex align-items-center ${windowWidth >= 992 ? "gap-4" : ""}`}
               style={{
-                height: "400px",
-                width: "100%",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                setPhotoIndex(index % clubData?.courtImage?.length);
-                setIsOpen(true);
+                transform:
+                  windowWidth >= 992
+                    ? clubData?.courtImage?.length > 4
+                      ? `translateX(-${currentSlide * 25}%)`
+                      : "translateX(0%)"
+                    : clubData?.courtImage?.length > 1
+                      ? `translateX(-${currentSlide * 100}%)`
+                      : "translateX(0%)",
+                transition:
+                  (windowWidth >= 992 && currentSlide === clubData?.courtImage?.length) ||
+                    (windowWidth < 992 && currentSlide === clubData?.courtImage?.length)
+                    ? "none"
+                    : "transform 0.5s ease",
+                justifyContent:
+                  windowWidth >= 992 && clubData?.courtImage?.length <= 4
+                    ? "center"
+                    : "flex-start",
               }}
             >
-              {!loadedImages[index] && (
-                <div className="image-loader youtube-style">
-                  <div className="youtube-spinner"></div>
-                </div>
-              )}
+              {/* Desktop Images */}
+              {(clubData?.courtImage?.length > 4
+                ? [...clubData.courtImage, ...clubData.courtImage.slice(0, 4)]
+                : clubData?.courtImage
+              )?.map((image, index) => (
+                <div
+                  key={`desktop-${index}`}
+                  className="flex-shrink-0 d-lg-block d-none"
+                  style={{
+                    width: clubData?.courtImage?.length > 4 ? "24%" : "22%",
+                    padding: "0 6px",
+                  }}
+                >
+                  <div
+                    className="position-relative overflow-hidden rounded-3"
+                    style={{
+                      height: "400px",
+                      width: "100%",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setPhotoIndex(index % clubData?.courtImage?.length);
+                      setIsOpen(true);
+                    }}
+                  >
+                    {!loadedImages[index] && (
+                      <div className="image-loader youtube-style">
+                        <div className="youtube-spinner"></div>
+                      </div>
+                    )}
 
-              <img
-                src={image}
-                alt={`Gallery ${(index % clubData?.courtImage?.length) + 1}`}
-                className="w-100 h-100 object-fit-cover"
-                onLoad={() => handleImageLoad(index)}
-                onError={() => handleImageLoad(index)}
-                style={{
-                  display: loadedImages[index] ? "block" : "none",
-                  transition: "transform 0.3s ease",
-                }}
-                onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
-                onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
-              />
+                    <img
+                      src={image}
+                      alt={`Gallery ${(index % clubData?.courtImage?.length) + 1}`}
+                      className="w-100 h-100 object-fit-cover"
+                      onLoad={() => handleImageLoad(index)}
+                      onError={() => handleImageLoad(index)}
+                      style={{
+                        display: loadedImages[index] ? "block" : "none",
+                        transition: "transform 0.3s ease",
+                      }}
+                      onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
+                      onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {/* Mobile Images */}
+              {(clubData?.courtImage?.length > 1
+                ? [...clubData.courtImage, clubData.courtImage[0]]
+                : clubData?.courtImage
+              )?.map((image, index) => (
+                <div
+                  key={`mobile-${index}`}
+                  className="flex-shrink-0 d-lg-none d-block"
+                  style={{ width: "100%", minWidth: "100%" }}
+                >
+                  <div
+                    className="position-relative overflow-hidden rounded-3 mx-auto"
+                    style={{
+                      height: "200px",
+                      width: "98%",
+                      maxWidth: "350px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setPhotoIndex(index % clubData?.courtImage?.length);
+                      setIsOpen(true);
+                    }}
+                  >
+                    {!loadedImages[index] && (
+                      <div className="image-loader youtube-style">
+                        <div className="youtube-spinner"></div>
+                      </div>
+                    )}
+
+                    <img
+                      src={image}
+                      alt={`Gallery ${(index % clubData?.courtImage?.length) + 1}`}
+                      className="w-100 h-100 object-fit-cover"
+                      onLoad={() => handleImageLoad(index)}
+                      onError={() => handleImageLoad(index)}
+                      style={{
+                        display: loadedImages[index] ? "block" : "none",
+                        transition: "transform 0.3s ease",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
 
-        {/* Mobile Images */}
-        {(clubData?.courtImage?.length > 1
-          ? [...clubData.courtImage, clubData.courtImage[0]]
-          : clubData?.courtImage
-        )?.map((image, index) => (
-          <div
-            key={`mobile-${index}`}
-            className="flex-shrink-0 d-lg-none d-block"
-            style={{ width: "100%", minWidth: "100%" }}
-          >
-            <div
-              className="position-relative overflow-hidden rounded-3 mx-auto"
-              style={{
-                height: "200px",
-                width: "98%",
-                maxWidth: "350px",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                setPhotoIndex(index % clubData?.courtImage?.length);
-                setIsOpen(true);
-              }}
-            >
-              {!loadedImages[index] && (
-                <div className="image-loader youtube-style">
-                  <div className="youtube-spinner"></div>
-                </div>
-              )}
-
-              <img
-                src={image}
-                alt={`Gallery ${(index % clubData?.courtImage?.length) + 1}`}
-                className="w-100 h-100 object-fit-cover"
-                onLoad={() => handleImageLoad(index)}
-                onError={() => handleImageLoad(index)}
+          {/* DESKTOP BUTTONS (LEFT / RIGHT MIDDLE) */}
+          {windowWidth >= 992 && clubData?.courtImage?.length > 4 && (
+            <>
+              <button
+                className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-none d-lg-flex align-items-center justify-content-center"
                 style={{
-                  display: loadedImages[index] ? "block" : "none",
-                  transition: "transform 0.3s ease",
+                  width: "30px",
+                  height: "30px",
+                  marginLeft: "-35px",
+                  zIndex: 10,
+                  backgroundColor: "#011E84",
                 }}
-              />
+                onClick={() => currentSlide > 0 && setCurrentSlide(currentSlide - 1)}
+              >
+                <ArrowBackIosIcon style={{ fontSize: "20px", paddingLeft: "5px" }} />
+              </button>
+
+              <button
+                className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle d-none d-lg-flex align-items-center justify-content-center"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  marginRight: "-35px",
+                  zIndex: 10,
+                  backgroundColor: "#011E84",
+                }}
+                onClick={() => setCurrentSlide(currentSlide + 1)}
+              >
+                <ArrowForwardIosIcon style={{ fontSize: "18px", paddingLeft: "3px" }} />
+              </button>
+            </>
+          )}
+
+          {/* MOBILE BUTTONS (BOTTOM CENTER) */}
+          {windowWidth < 992 && clubData?.courtImage?.length > 1 && (
+            <div className="d-flex justify-content-center gap-3 mt-2 d-lg-none">
+
+              <button
+                className="btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{
+                  width: "35px",
+                  height: "35px",
+                  backgroundColor: "#011E84",
+                }}
+                onClick={() => {
+                  if (currentSlide > 0) setCurrentSlide(currentSlide - 1);
+                }}
+              >
+                <ArrowBackIosIcon style={{ fontSize: "18px", paddingLeft: "4px" }} />
+              </button>
+
+              <button
+                className="btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                style={{
+                  width: "35px",
+                  height: "35px",
+                  backgroundColor: "#011E84",
+                }}
+                onClick={() => {
+                  if (currentSlide >= clubData?.courtImage?.length - 1)
+                    setCurrentSlide(0);
+                  else setCurrentSlide(currentSlide + 1);
+                }}
+              >
+                <ArrowForwardIosIcon style={{ fontSize: "18px", paddingLeft: "3px" }} />
+              </button>
             </div>
-          </div>
-        ))}
+          )}
+        </div>
       </div>
-    </div>
-
-    {/* DESKTOP BUTTONS (LEFT / RIGHT MIDDLE) */}
-    {windowWidth >= 992 && clubData?.courtImage?.length > 4 && (
-      <>
-        <button
-          className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle d-none d-lg-flex align-items-center justify-content-center"
-          style={{
-            width: "30px",
-            height: "30px",
-            marginLeft: "-35px",
-            zIndex: 10,
-            backgroundColor: "#011E84",
-          }}
-          onClick={() => currentSlide > 0 && setCurrentSlide(currentSlide - 1)}
-        >
-          <ArrowBackIosIcon style={{ fontSize: "20px", paddingLeft: "5px" }} />
-        </button>
-
-        <button
-          className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle d-none d-lg-flex align-items-center justify-content-center"
-          style={{
-            width: "30px",
-            height: "30px",
-            marginRight: "-35px",
-            zIndex: 10,
-            backgroundColor: "#011E84",
-          }}
-          onClick={() => setCurrentSlide(currentSlide + 1)}
-        >
-          <ArrowForwardIosIcon style={{ fontSize: "18px", paddingLeft: "3px" }} />
-        </button>
-      </>
-    )}
-
-    {/* MOBILE BUTTONS (BOTTOM CENTER) */}
-    {windowWidth < 992 && clubData?.courtImage?.length > 1 && (
-      <div className="d-flex justify-content-center gap-3 mt-2 d-lg-none">
-
-        <button
-          className="btn text-white rounded-circle d-flex align-items-center justify-content-center"
-          style={{
-            width: "35px",
-            height: "35px",
-            backgroundColor: "#011E84",
-          }}
-          onClick={() => {
-            if (currentSlide > 0) setCurrentSlide(currentSlide - 1);
-          }}
-        >
-          <ArrowBackIosIcon style={{ fontSize: "18px", paddingLeft: "4px" }} />
-        </button>
-
-        <button
-          className="btn text-white rounded-circle d-flex align-items-center justify-content-center"
-          style={{
-            width: "35px",
-            height: "35px",
-            backgroundColor: "#011E84",
-          }}
-          onClick={() => {
-            if (currentSlide >= clubData?.courtImage?.length - 1)
-              setCurrentSlide(0);
-            else setCurrentSlide(currentSlide + 1);
-          }}
-        >
-          <ArrowForwardIosIcon style={{ fontSize: "18px", paddingLeft: "3px" }} />
-        </button>
-      </div>
-    )}
-  </div>
-</div>
 
       <div className="col-lg-4 p-0  mt-3 mt-lg-0 pe-lg-2 d-md-none d-block px-2">
         <div
@@ -962,168 +978,168 @@ const Home = () => {
         </div>
       </div>
       {/* Reviews Section */}
-   <div className="container my-md-5 mt-4 mb-0">
-  {enhancedReviewData?.reviews?.length > 0 && (
-    <h4
-      className="reviews-heading"
-      style={{
-        fontWeight: "500",
-        fontFamily: "Poppins",
-        fontSize: "34px",
-        marginBottom: "25px",
-        color: "#000000",
-      }}
-    >
-      Here’s what our previous players <br /> have to say!
-    </h4>
-  )}
-
-  <div className="position-relative">
-    <div className="overflow-hidden">
-      <div
-        className="d-flex"
-        style={{
-          transform:
-            windowWidth >= 992
-              ? `translateX(-${reviewSlide * 33.333}%)`
-              : `translateX(-${reviewSlide * 100}%)`,
-          transition:
-            (windowWidth >= 992 && reviewSlide === enhancedReviewData?.reviews?.length) ||
-            (windowWidth < 992 && reviewSlide === enhancedReviewData?.reviews?.length)
-              ? "none"
-              : "transform 0.5s ease",
-        }}
-      >
-        {windowWidth >= 992
-          ? (enhancedReviewData?.reviews?.length > 3
-              ? [...enhancedReviewData.reviews, ...enhancedReviewData.reviews.slice(0, 3)]
-              : enhancedReviewData?.reviews
-            )?.map((review, index) => (
-              <div
-                key={`${review._id}-${index}`}
-                className="flex-shrink-0 d-lg-block d-none"
-                style={{ width: "33.333%" }}
-              >
-                <ReviewCard review={review} />
-              </div>
-            ))
-          : (enhancedReviewData?.reviews?.length > 1
-              ? [...enhancedReviewData.reviews, enhancedReviewData.reviews[0]]
-              : enhancedReviewData?.reviews
-            )?.map((review, index) => (
-              <div
-                key={`mobile-${review._id}-${index}`}
-                className="flex-shrink-0 d-lg-none d-block"
-                style={{ width: "100%" }}
-              >
-                <ReviewCard review={review} />
-              </div>
-            ))}
-      </div>
-    </div>
-
-    {/* DESKTOP BUTTONS (LEFT/RIGHT MIDDLE) */}
-    {(windowWidth >= 992 &&
-      enhancedReviewData?.reviews?.length > 3) && (
-      <>
-        <button
-          className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle 
-                     d-none d-lg-flex align-items-center justify-content-center"
-          style={{
-            width: "30px",
-            height: "30px",
-            marginLeft: "-35px",
-            zIndex: 10,
-            backgroundColor: "#011E84",
-          }}
-          onClick={() => {
-            if (reviewSlide === 0) {
-              setReviewSlide(enhancedReviewData?.reviews?.length - 1);
-            } else {
-              setReviewSlide(reviewSlide - 1);
-            }
-          }}
-        >
-          <ArrowBackIosIcon style={{ fontSize: "20px", paddingLeft: "5px" }} />
-        </button>
-
-        <button
-          className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle 
-                     d-none d-lg-flex align-items-center justify-content-center"
-          style={{
-            width: "30px",
-            height: "30px",
-            marginRight: "-35px",
-            zIndex: 10,
-            backgroundColor: "#011E84",
-          }}
-          onClick={() => {
-            if (reviewSlide >= enhancedReviewData?.reviews?.length - 1) {
-              setReviewSlide(0);
-            } else {
-              setReviewSlide(reviewSlide + 1);
-            }
-          }}
-        >
-          <ArrowForwardIosIcon
-            style={{ fontSize: "18px", paddingLeft: "3px" }}
-          />
-        </button>
-      </>
-    )}
-
-    {/* MOBILE BUTTONS (BOTTOM CENTER) */}
-    {windowWidth < 992 &&
-      enhancedReviewData?.reviews?.length > 1 && (
-        <div className="d-flex justify-content-center gap-3 mt-2 d-lg-none">
-
-          <button
-            className="btn text-white rounded-circle d-flex align-items-center justify-content-center"
+      <div className="container my-md-5 mt-4 mb-0">
+        {enhancedReviewData?.reviews?.length > 0 && (
+          <h4
+            className="reviews-heading"
             style={{
-              width: "35px",
-              height: "35px",
-              backgroundColor: "#011E84",
-            }}
-            onClick={() => {
-              if (reviewSlide === 0) {
-                setReviewSlide(enhancedReviewData?.reviews?.length - 1);
-              } else {
-                setReviewSlide(reviewSlide - 1);
-              }
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              fontSize: "34px",
+              marginBottom: "25px",
+              color: "#000000",
             }}
           >
-            <ArrowBackIosIcon
-              style={{ fontSize: "18px", paddingLeft: "4px" }}
-            />
-          </button>
+            Here’s what our previous players <br /> have to say!
+          </h4>
+        )}
 
-          <button
-            className="btn text-white rounded-circle d-flex align-items-center justify-content-center"
-            style={{
-              width: "35px",
-              height: "35px",
-              backgroundColor: "#011E84",
-            }}
-            onClick={() => {
-              if (
-                reviewSlide >=
-                enhancedReviewData?.reviews?.length - 1
-              ) {
-                setReviewSlide(0);
-              } else {
-                setReviewSlide(reviewSlide + 1);
-              }
-            }}
-          >
-            <ArrowForwardIosIcon
-              style={{ fontSize: "18px", paddingLeft: "4px" }}
-            />
-          </button>
+        <div className="position-relative">
+          <div className="overflow-hidden">
+            <div
+              className="d-flex"
+              style={{
+                transform:
+                  windowWidth >= 992
+                    ? `translateX(-${reviewSlide * 33.333}%)`
+                    : `translateX(-${reviewSlide * 100}%)`,
+                transition:
+                  (windowWidth >= 992 && reviewSlide === enhancedReviewData?.reviews?.length) ||
+                    (windowWidth < 992 && reviewSlide === enhancedReviewData?.reviews?.length)
+                    ? "none"
+                    : "transform 0.5s ease",
+              }}
+            >
+              {windowWidth >= 992
+                ? (enhancedReviewData?.reviews?.length > 3
+                  ? [...enhancedReviewData.reviews, ...enhancedReviewData.reviews.slice(0, 3)]
+                  : enhancedReviewData?.reviews
+                )?.map((review, index) => (
+                  <div
+                    key={`${review._id}-${index}`}
+                    className="flex-shrink-0 d-lg-block d-none"
+                    style={{ width: "33.333%" }}
+                  >
+                    <ReviewCard review={review} />
+                  </div>
+                ))
+                : (enhancedReviewData?.reviews?.length > 1
+                  ? [...enhancedReviewData.reviews, enhancedReviewData.reviews[0]]
+                  : enhancedReviewData?.reviews
+                )?.map((review, index) => (
+                  <div
+                    key={`mobile-${review._id}-${index}`}
+                    className="flex-shrink-0 d-lg-none d-block"
+                    style={{ width: "100%" }}
+                  >
+                    <ReviewCard review={review} />
+                  </div>
+                ))}
+            </div>
+          </div>
 
+          {/* DESKTOP BUTTONS (LEFT/RIGHT MIDDLE) */}
+          {(windowWidth >= 992 &&
+            enhancedReviewData?.reviews?.length > 3) && (
+              <>
+                <button
+                  className="position-absolute top-50 start-0 translate-middle-y btn text-white rounded-circle 
+                     d-none d-lg-flex align-items-center justify-content-center"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    marginLeft: "-35px",
+                    zIndex: 10,
+                    backgroundColor: "#011E84",
+                  }}
+                  onClick={() => {
+                    if (reviewSlide === 0) {
+                      setReviewSlide(enhancedReviewData?.reviews?.length - 1);
+                    } else {
+                      setReviewSlide(reviewSlide - 1);
+                    }
+                  }}
+                >
+                  <ArrowBackIosIcon style={{ fontSize: "20px", paddingLeft: "5px" }} />
+                </button>
+
+                <button
+                  className="position-absolute top-50 end-0 translate-middle-y btn text-white rounded-circle 
+                     d-none d-lg-flex align-items-center justify-content-center"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    marginRight: "-35px",
+                    zIndex: 10,
+                    backgroundColor: "#011E84",
+                  }}
+                  onClick={() => {
+                    if (reviewSlide >= enhancedReviewData?.reviews?.length - 1) {
+                      setReviewSlide(0);
+                    } else {
+                      setReviewSlide(reviewSlide + 1);
+                    }
+                  }}
+                >
+                  <ArrowForwardIosIcon
+                    style={{ fontSize: "18px", paddingLeft: "3px" }}
+                  />
+                </button>
+              </>
+            )}
+
+          {/* MOBILE BUTTONS (BOTTOM CENTER) */}
+          {windowWidth < 992 &&
+            enhancedReviewData?.reviews?.length > 1 && (
+              <div className="d-flex justify-content-center gap-3 mt-2 d-lg-none">
+
+                <button
+                  className="btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                  style={{
+                    width: "35px",
+                    height: "35px",
+                    backgroundColor: "#011E84",
+                  }}
+                  onClick={() => {
+                    if (reviewSlide === 0) {
+                      setReviewSlide(enhancedReviewData?.reviews?.length - 1);
+                    } else {
+                      setReviewSlide(reviewSlide - 1);
+                    }
+                  }}
+                >
+                  <ArrowBackIosIcon
+                    style={{ fontSize: "18px", paddingLeft: "4px" }}
+                  />
+                </button>
+
+                <button
+                  className="btn text-white rounded-circle d-flex align-items-center justify-content-center"
+                  style={{
+                    width: "35px",
+                    height: "35px",
+                    backgroundColor: "#011E84",
+                  }}
+                  onClick={() => {
+                    if (
+                      reviewSlide >=
+                      enhancedReviewData?.reviews?.length - 1
+                    ) {
+                      setReviewSlide(0);
+                    } else {
+                      setReviewSlide(reviewSlide + 1);
+                    }
+                  }}
+                >
+                  <ArrowForwardIosIcon
+                    style={{ fontSize: "18px", paddingLeft: "4px" }}
+                  />
+                </button>
+
+              </div>
+            )}
         </div>
-      )}
-  </div>
-</div>
+      </div>
 
 
       {/* Map Section */}
@@ -1168,8 +1184,8 @@ const Home = () => {
                   .filter(Boolean)
                   .join(", ")}
               </p>
-              <div 
-                className="ratio ratio-16x9 rounded-4 overflow-hidden mt-4" 
+              <div
+                className="ratio ratio-16x9 rounded-4 overflow-hidden mt-4"
                 style={{ cursor: "pointer" }}
                 onClick={() => {
                   const address = mapApiData?.address || `${clubData?.address}, ${clubData?.city}`;

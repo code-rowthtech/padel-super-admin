@@ -100,16 +100,19 @@ const Navbar = () => {
 
             socket.on("user_request", (data) => {
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
+                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
                 playNotificationSound();
             });
 
             socket.on('matchNotification', (notification) => {
                 setNotifications((prevNotifications) => [notification, ...prevNotifications]);
+                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
                 playNotificationSound();
             });
 
             socket.on("approved_request", (data) => {
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
+                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
                 playNotificationSound();
             });
 
