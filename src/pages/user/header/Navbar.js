@@ -76,10 +76,12 @@ const Navbar = () => {
     useEffect(() => {
         if (userId) {
             const socket = io(SOCKET_URL, {
-                transports: ["websocket"],
+                transports: ["websocket", "polling"],
                 reconnection: true,
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000
+                reconnectionAttempts: 3,
+                reconnectionDelay: 2000,
+                timeout: 10000,
+                forceNew: true
             });
 
             // Load initial notifications
@@ -95,24 +97,35 @@ const Navbar = () => {
 
             socket.on("connect", () => {
                 socket.emit("registerUser", userId);
+                dispatch(getNotificationCount()).unwrap().then((res) => {
+                    setNotificationCount(res);
+                }).catch(err => console.error('Failed to load notification count:', err));
+
             });
 
             socket.on("user_request", (data) => {
+                console.log(data, "datat3");
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
+                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
                 playNotificationSound();
             });
 
             socket.on('matchNotification', (notification) => {
-                setNotifications((prevNotifications) => [notification, ...prevNotifications]);
+                console.log(notification, 'data2');
                 playNotificationSound();
+                setNotifications((prevNotifications) => [notification, ...prevNotifications]);
+                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
             });
 
             socket.on("approved_request", (data) => {
+                console.log(data, 'data1');
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
+                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
                 playNotificationSound();
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
+                console.log(data, 'data0');
                 setNotificationCount(data);
             });
 
@@ -128,7 +141,7 @@ const Navbar = () => {
                 socket.disconnect();
             };
         }
-    }, [userId, dispatch]);
+    }, [userId, dispatch, open, SOCKET_URL]);
 
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
@@ -206,21 +219,43 @@ const Navbar = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [open]);
 
+    const getTimeSlot = (matchTime) => {
+        if (!matchTime) return null;
+        const firstTime = matchTime.split(',')[0].trim();
+        const timeMatch = firstTime.match(/(\d+)\s*(am|pm)/i);
+        if (!timeMatch) return null;
+        
+        let hour = parseInt(timeMatch[1]);
+        const period = timeMatch[2].toLowerCase();
+        
+        if (period === 'pm' && hour !== 12) hour += 12;
+        if (period === 'am' && hour === 12) hour = 0;
+        
+        if (hour >= 5 && hour <= 11) return 'morning';
+        if (hour >= 12 && hour <= 16) return 'afternoon';
+        if (hour >= 17 && hour <= 23) return 'evening';
+        return null;
+    };
+
     const handleViewNotification = (note) => {
+        console.log({ note });
         const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
-        dispatch(getNotificationView({ noteId: note._id })).unwrap()
+        dispatch(getNotificationView({ noteId: note?._id })).unwrap()
             .then(() => {
-                if (note?.notificationType === 'match_message' || note?.notificationType === "match_request_accept" || note?.notificationType === "match_request_reject" || note?.notificationType === 'join_match_request' && note?.matchId) {
+                if (note?.notificationType === 'match_message' || note?.type === "match_message" || note?.notificationType === "match_request_accept" || note?.type === "match_request_accept" || note?.type === "match_request_rejected" || note?.notificationType === "match_request_rejected" || note?.notificationType === 'join_match_request' || note?.type === "join_match_request" && note?.matchId) {
                     const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
+                    const formattedDate = dayjs(matchDate).format('YYYY-MM-DD');
                     const dateObj = new Date(matchDate);
+                    const timeSlot = getTimeSlot(note?.matchTime);
                     navigate('/open-matches', {
                         state: {
                             matchId: note.matchId,
                             selectedDate: {
-                                fullDate: matchDate,
+                                fullDate: formattedDate,
                                 day: dateObj.toLocaleDateString("en-US", { weekday: "long" })
-                            }
+                            },
+                            selectedTimeSlot: timeSlot
                         }
                     });
                     setOpen(false)
@@ -228,6 +263,7 @@ const Navbar = () => {
                     navigate(note?.notificationUrl);
                 }
                 socket.on("userNotificationCountUpdate", (data) => {
+                    console.log(data, 'pankaj4');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -244,6 +280,7 @@ const Navbar = () => {
         dispatch(readAllNotification()).unwrap()
             .then(() => {
                 socket.on("userNotificationCountUpdate", (data) => {
+                    console.log(data, 'pankaj5');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -416,8 +453,6 @@ const Navbar = () => {
                                                             }}
                                                             onClick={() => handleViewNotification(note)}
                                                         >
-
-
                                                             <div style={{ flex: 1 }}>
                                                                 <div style={{ fontWeight: 500, fontSize: "13px" }}>
                                                                     {note?.adminId ? "Padel" : ''} – {note.title}

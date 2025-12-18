@@ -326,9 +326,25 @@ const Openmatches = () => {
     }
   }, [filteredMatches, matchesData, activeTab, matchLoading]);
 
+  // Handle selectedTimeSlot from navigation state
+  useEffect(() => {
+    if (state?.selectedTimeSlot) {
+      const tabLabels = ["morning", "noon", "night"];
+      const timeSlotMap = {
+        'morning': 0,
+        'afternoon': 1, // maps to noon
+        'evening': 2    // maps to night
+      };
+      const tabIndex = timeSlotMap[state.selectedTimeSlot];
+      if (tabIndex !== undefined) {
+        setActiveTab(tabIndex);
+      }
+    }
+  }, [state?.selectedTimeSlot]);
+
   // Set default tab based on available data
   useEffect(() => {
-    if (!matchLoading && matchesData?.data?.length > 0) {
+    if (!matchLoading && matchesData?.data?.length > 0 && !state?.selectedTimeSlot) {
       const tabLabels = ["morning", "noon", "night"];
 
       // Find first tab with data
@@ -343,7 +359,7 @@ const Openmatches = () => {
 
       setActiveTab(defaultTabIndex);
     }
-  }, [matchesData?.data, matchLoading, selectedDate.fullDate]);
+  }, [matchesData?.data, matchLoading, selectedDate.fullDate, state?.selectedTimeSlot]);
 
   const toggleTime = (time) => {
     setSelectedTime(selectedTime === time ? null : time);
