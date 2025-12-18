@@ -198,6 +198,23 @@ const Openmatches = () => {
     }
   }, [matchId?.skillLevel, dispatch]);
 
+  // Handle outside click for mobile share dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (window.innerWidth <= 768 && showShareDropdown && shareDropdownRef.current && !shareDropdownRef.current.contains(event.target)) {
+        setShowShareDropdown(null);
+      }
+    };
+
+    if (showShareDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showShareDropdown]);
+
 
 
   useEffect(() => {
@@ -1278,7 +1295,7 @@ const Openmatches = () => {
                             <i className="bi bi-copy" style={{ fontSize: "12px", color: "#1F41BB" }} />
                           </button>
                           {showShareDropdown === `mobile-${index}` && (
-                            <div className="position-absolute bg-white border rounded shadow-sm" style={{ top: "30px", right: 0, zIndex: 1000, minWidth: "120px" }}>
+                            <div className="position-absolute mt-3 bg-white border rounded shadow-sm" style={{ top: "30px", right: 0, zIndex: 1000, minWidth: "120px" }}>
                               <button className="btn btn-light w-100 d-flex align-items-center gap-2 border-0 rounded-0" onClick={(e) => { e.stopPropagation(); const url = window.location.href; const text = `Check out this Padel match on ${formatMatchDate(match.matchDate)} at ${formatTimes(match.slot)}`; window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`, "_blank"); setShowShareDropdown(null); }}>
                                 <i className="bi bi-facebook" style={{ color: "#1877F2" }} />Facebook
                               </button>
