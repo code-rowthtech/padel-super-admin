@@ -420,19 +420,20 @@ const Home = () => {
                 </div>
                 <div
                   className="d-flex d-md-none align-items-center bg-black text-white px-3 py-0 ps-0 mb-2 mt-3"
-                  style={{ width: "fit-content", gap: "12px", borderBottomRightRadius: "38px", borderTopRightRadius: "38px" }}
+                  style={{ width: "fit-content", gap: "12px",borderRadius:"50px 38px 38px 50px" }}
                 >
-                  <div className="logo_add_star rounded-circle bg-white py-1" style={{
-                    width: "50px",
-                    height: "50px",
-                    borderRadius: "50%",
-                    overflow: "hidden",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#f9f9f9",
-                    borderBottomRightRadius: "38px", borderTopRightRadius: "38px"
-                  }}>
+                  <div className='ogo_add_star border-0 rounded-circle p-1'
+                    style={{
+                      width: "50px",
+                      height: "50px",
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#f9f9f9",
+                    }}
+                  >
                     <img
                       src={logo}
                       alt="User Profile"
@@ -444,9 +445,8 @@ const Home = () => {
                     />
                   </div>
 
-
                   {/* Club Name + Green Stars */}
-                  <div className="d-flex flex-column" style={{ lineHeight: "1.5" }}>
+                  <div className="d-flex flex-column" style={{ lineHeight: "1.2" }}>
                     <span style={{ fontSize: "14px", fontWeight: 600, }}>
                       {clubData?.clubName || "Swoot"}
                     </span>
@@ -1199,7 +1199,7 @@ const Home = () => {
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="The Court Line Club Map"
+                  title="The Swoot Club Map"
                   style={{ pointerEvents: "none" }}
                 ></iframe>
               </div>

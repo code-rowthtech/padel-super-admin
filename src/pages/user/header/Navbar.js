@@ -68,6 +68,8 @@ const Navbar = () => {
         },
     });
 
+    
+
     const playNotificationSound = () => {
         const audio = new Audio(sendSound);
         audio.volume = 0.5;
@@ -115,6 +117,13 @@ const Navbar = () => {
                 playNotificationSound();
                 setNotifications((prevNotifications) => [notification, ...prevNotifications]);
                 setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
+            });
+
+            socket.on('slotUpdated', (data) => {
+                const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
+                if (data.clubId === clubId && data.date === currentDate) {
+                    fetchSlots("socket");
+                }
             });
 
             socket.on("approved_request", (data) => {
@@ -224,13 +233,13 @@ const Navbar = () => {
         const firstTime = matchTime.split(',')[0].trim();
         const timeMatch = firstTime.match(/(\d+)\s*(am|pm)/i);
         if (!timeMatch) return null;
-        
+
         let hour = parseInt(timeMatch[1]);
         const period = timeMatch[2].toLowerCase();
-        
+
         if (period === 'pm' && hour !== 12) hour += 12;
         if (period === 'am' && hour === 12) hour = 0;
-        
+
         if (hour >= 5 && hour <= 11) return 'morning';
         if (hour >= 12 && hour <= 16) return 'afternoon';
         if (hour >= 17 && hour <= 23) return 'evening';
@@ -263,7 +272,6 @@ const Navbar = () => {
                     navigate(note?.notificationUrl);
                 }
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log(data, 'pankaj4');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -280,7 +288,6 @@ const Navbar = () => {
         dispatch(readAllNotification()).unwrap()
             .then(() => {
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log(data, 'pankaj5');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -336,7 +343,7 @@ const Navbar = () => {
                             </Avatar>
                         )}
 
-                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Courtline"}</h4>
+                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Swoot"}</h4>
                     </Link>
 
                     <div className="mx-auto d-none d-lg-flex col-6 align-items-center justify-content-center">
@@ -423,8 +430,8 @@ const Navbar = () => {
                                         }}
                                     >
                                         <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
-                                            <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications pankaj</h6>
-                                            {notifications.length > 3 && (
+                                            {notifications?.length > 1 && (<h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>)}
+                                            {notifications?.length > 3 && (
                                                 <button
                                                     className="btn btn-link p-0"
                                                     style={{

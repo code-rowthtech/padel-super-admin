@@ -573,11 +573,11 @@ const Payment = ({ className = "" }) => {
 
                           <div>
                             ₹
-                            <span className="ps-1" style={{ fontWeight: "600", fontSize: "14px" }}>
+                            <span className="ps-0" style={{ fontWeight: "600", fontSize: "14px" }}>
                               {slot?.amount ? Number(slot?.amount).toLocaleString("en-IN") : 0}
                             </span>
                             <MdOutlineDeleteOutline
-                              className="ms-2 text-white"
+                              className="ms-2 mt-1 mb-2"
                               style={{ cursor: "pointer" }}
                               onClick={(e) => handleDeleteSlot(e, court._id, court.date, slot._id)}
                             />
