@@ -383,21 +383,29 @@ const Booking = ({ className = "" }) => {
   }, [selectedDate]);
 
   useEffect(() => {
-    const socket = io(config.API_URL);
-    socket.on("connect", () => {
-      socket.emit("registerUser", user?._id);
+    if (!user?._id || !clubId) return;
+    
+    const bookingSocket = io(config.API_URL, {
+      transports: ['websocket'],
+      forceNew: true
     });
-    socket.on('slotUpdated', (data) => {
+    
+    bookingSocket.on("connect", () => {
+      bookingSocket.emit("joinRoom", { userId: user._id, clubId });
+    });
+    
+    bookingSocket.on('slotUpdated', (data) => {
+      console.log(data,'datadatadata');
       const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
       if (data.clubId === clubId && data.date === currentDate) {
-        fetchSlots("socket");
+        fetchSlots(bookingSocket);
       }
     });
 
     return () => {
-      socket.disconnect();
+      bookingSocket.disconnect();
     };
-  }, [clubId, selectedDate.fullDate]);
+  }, [clubId, selectedDate.fullDate, user?._id]);
 
   const scrollLeft = () =>
     scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });

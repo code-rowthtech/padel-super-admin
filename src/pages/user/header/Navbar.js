@@ -119,12 +119,7 @@ const Navbar = () => {
                 setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
             });
 
-            socket.on('slotUpdated', (data) => {
-                const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
-                if (data.clubId === clubId && data.date === currentDate) {
-                    fetchSlots("socket");
-                }
-            });
+
 
             socket.on("approved_request", (data) => {
                 console.log(data, 'data1');
