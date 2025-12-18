@@ -45,7 +45,6 @@ const Navbar = () => {
     const dropdownRef = useRef(null);
     const mobileDropdownRef = useRef(null);
     const [notifications, setNotifications] = useState([]);
-    console.log({notifications});
     const userId = getUserFromSession()?._id;
     const [notificationCount, setNotificationCount] = useState();
     dayjs.extend(relativeTime);
@@ -77,10 +76,12 @@ const Navbar = () => {
     useEffect(() => {
         if (userId) {
             const socket = io(SOCKET_URL, {
-                transports: ["websocket"],
+                transports: ["websocket", "polling"],
                 reconnection: true,
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000
+                reconnectionAttempts: 3,
+                reconnectionDelay: 2000,
+                timeout: 10000,
+                forceNew: true
             });
 
             // Load initial notifications
@@ -96,27 +97,35 @@ const Navbar = () => {
 
             socket.on("connect", () => {
                 socket.emit("registerUser", userId);
+                dispatch(getNotificationCount()).unwrap().then((res) => {
+                    setNotificationCount(res);
+                }).catch(err => console.error('Failed to load notification count:', err));
+
             });
 
             socket.on("user_request", (data) => {
+                console.log(data, "datat3");
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
                 setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
                 playNotificationSound();
             });
 
             socket.on('matchNotification', (notification) => {
+                console.log(notification, 'data2');
+                playNotificationSound();
                 setNotifications((prevNotifications) => [notification, ...prevNotifications]);
                 setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
-                playNotificationSound();
             });
 
             socket.on("approved_request", (data) => {
+                console.log(data, 'data1');
                 setNotifications((prevNotifications) => [data, ...prevNotifications]);
                 setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
                 playNotificationSound();
             });
 
             socket.on("userNotificationCountUpdate", (data) => {
+                console.log(data, 'data0');
                 setNotificationCount(data);
             });
 
@@ -132,7 +141,7 @@ const Navbar = () => {
                 socket.disconnect();
             };
         }
-    }, [userId, dispatch]);
+    }, [userId, dispatch, open, SOCKET_URL]);
 
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
@@ -216,14 +225,15 @@ const Navbar = () => {
 
         dispatch(getNotificationView({ noteId: note?._id })).unwrap()
             .then(() => {
-                if (note?.notificationType === 'match_message' || note?.type === "match_message" || note?.notificationType === "match_request_accept" || note?.type === "match_request_accept" ||note?.type === "match_request_reject" || note?.notificationType === "match_request_reject" || note?.notificationType === 'join_match_request' || note?.type === "join_match_request" && note?.matchId) {
-                    const matchDate = note?.createdAt || note?.matchCreateDate  || new Date().toISOString();
+                if (note?.notificationType === 'match_message' || note?.type === "match_message" || note?.notificationType === "match_request_accept" || note?.type === "match_request_accept" || note?.type === "match_request_rejected" || note?.notificationType === "match_request_rejected" || note?.notificationType === 'join_match_request' || note?.type === "join_match_request" && note?.matchId) {
+                    const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
+                    const formattedDate = dayjs(matchDate).format('YYYY-MM-DD');
                     const dateObj = new Date(matchDate);
                     navigate('/open-matches', {
                         state: {
                             matchId: note.matchId,
                             selectedDate: {
-                                fullDate: matchDate || note?.createdAt,
+                                fullDate: formattedDate,
                                 day: dateObj.toLocaleDateString("en-US", { weekday: "long" })
                             }
                         }

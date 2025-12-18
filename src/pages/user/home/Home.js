@@ -376,7 +376,7 @@ const Home = () => {
                         fontFamily: "Poppins",
                       }}
                     >
-                      {clubData?.clubName || "The Court Line Club"}
+                      {clubData?.clubName || "The SwootClub"}
                     </h5>
                     <div className="d-flex align-items-center justify-content-start text-nowrap">
                       <p className="text-success mb-0">
@@ -448,7 +448,7 @@ const Home = () => {
                   {/* Club Name + Green Stars */}
                   <div className="d-flex flex-column" style={{ lineHeight: "1.5" }}>
                     <span style={{ fontSize: "14px", fontWeight: 600, }}>
-                      {clubData?.clubName || "Club Name"}
+                      {clubData?.clubName || "Swoot"}
                     </span>
 
                     <div className="d-flex align-items-center" style={{ marginTop: "2px" }}>
@@ -494,7 +494,7 @@ const Home = () => {
                       textAlign: "justify"
                     }}
                   >
-                    <span>{clubData?.clubName || "The Court Line Club"} </span>
+                    <span>{clubData?.clubName || "The Swoot Club"} </span>
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
