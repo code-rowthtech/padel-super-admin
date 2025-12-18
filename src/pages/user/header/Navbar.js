@@ -213,7 +213,7 @@ const Navbar = () => {
 
         dispatch(getNotificationView({ noteId: note?._id })).unwrap()
             .then(() => {
-                if (note?.notificationType === 'match_message' || note?.notificationType === "match_request_accept" || note?.notificationType === "match_request_reject" || note?.notificationType === 'join_match_request' && note?.matchId) {
+                if (note?.notificationType === 'match_message' || note?.type === "match_message" || note?.notificationType === "match_request_accept" || note?.type === "match_request_accept" ||note?.type === "match_request_reject" || note?.notificationType === "match_request_reject" || note?.notificationType === 'join_match_request' || note?.type === "join_match_request" && note?.matchId) {
                     const matchDate = note?.createdAt || note?.matchCreateDate  || new Date().toISOString();
                     const dateObj = new Date(matchDate);
                     navigate('/open-matches', {
