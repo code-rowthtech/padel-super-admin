@@ -69,12 +69,12 @@ const PlayerSlot = memo(function PlayerSlot({
     }
 
     const getInitials = (name) => {
-        if (!name) return "U";
+        if (!name || typeof name !== 'string') return "U";
         const words = name.trim().split(/\s+/);
-        if (words.length >= 2) {
+        if (words.length >= 2 && words[0] && words[1]) {
             return (words[0][0] + words[1][0]).toUpperCase();
         }
-        return name[0].toUpperCase();
+        return name[0] ? name[0].toUpperCase() : "U";
     };
 
     return (
@@ -134,7 +134,7 @@ const PlayerSlot = memo(function PlayerSlot({
                 style={{ backgroundColor: team === "A" ? "#3DBE64" : "#1F41BB" }}
             >
                 {
-                    user?.level?.split(' - ')[0] || user?.level || "A"
+                    user?.level ? (user.level.includes(' - ') ? user.level.split(' - ')[0] : user.level) : "A"
                 }
             </span>
 
@@ -280,14 +280,18 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
         );
 
         const timesInMinutes = allTimes.map((t) => {
-            const [timePart, period] = t.split(" ");
-            const [hourStr, minuteStr = "0"] = timePart.split(":");
+            if (!t || typeof t !== 'string') return 0;
+            const parts = t.split(" ");
+            if (parts.length < 2) return 0;
+            const [timePart, period] = parts;
+            const timeParts = timePart.split(":");
+            const [hourStr, minuteStr = "0"] = timeParts;
 
-            let hour = parseInt(hourStr);
-            let minute = parseInt(minuteStr);
+            let hour = parseInt(hourStr) || 0;
+            let minute = parseInt(minuteStr) || 0;
 
-            if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
-            if (period.toLowerCase() === "am" && hour === 12) hour = 0;
+            if (period && period.toLowerCase() === "pm" && hour !== 12) hour += 12;
+            if (period && period.toLowerCase() === "am" && hour === 12) hour = 0;
 
             return hour * 60 + minute;
         });
@@ -312,6 +316,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
         const times = slots.flatMap((slot) => slot.slotTimes.map((slotTime) => slotTime.time));
 
         const formattedTimes = times.map(time => {
+            if (!time || typeof time !== 'string') return { hour: 0, period: 'AM' };
             let hour, period;
             if (/am|pm/i.test(time)) {
                 const match = time.match(/(\d+)\s*(am|pm)/i);
@@ -319,11 +324,13 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                     hour = parseInt(match[1], 10);
                     period = match[2].toUpperCase();
                 } else {
-                    return time;
+                    return { hour: 0, period: 'AM' };
                 }
             } else {
-                const [hours, minutes] = time.split(":");
-                const hourNum = parseInt(hours, 10);
+                const timeParts = time.split(":");
+                if (timeParts.length < 2) return { hour: 0, period: 'AM' };
+                const [hours, minutes] = timeParts;
+                const hourNum = parseInt(hours, 10) || 0;
                 period = hourNum >= 12 ? "PM" : "AM";
                 hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
             }
@@ -909,7 +916,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                                     fontSize: "12px"
                                                 }}
                                             >
-                                                {player?.requesterId?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                {player?.requesterId?.name ? player.requesterId.name.split(' ').map(n => n?.[0] || '').join('').toUpperCase() : 'U'}
                                             </div>
                                             <div style={{ maxWidth: "200px" }}>
                                                 <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", wordBreak: "break-word" }}>

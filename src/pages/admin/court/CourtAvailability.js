@@ -1109,7 +1109,7 @@ const CourtAvailability = () => {
                       paddingRight: "8px",
                     }}
                   >
-                    <style jsx>{`
+                    <style>{`
                       .custom-scrollbar::-webkit-scrollbar {
                         width: 8px;
                         border-radius: 3px;

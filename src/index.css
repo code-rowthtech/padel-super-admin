@@ -875,7 +875,9 @@ h1.display-5 {
     border-image-slice: 1 !important;
 
   }
-
+.add_position_notification{
+  right: -40px!important;
+}
   .add_font_heading_mobile {
     font-size: 13px;
     line-height: 16px;

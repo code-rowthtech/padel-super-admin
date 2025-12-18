@@ -45,6 +45,7 @@ const Navbar = () => {
     const dropdownRef = useRef(null);
     const mobileDropdownRef = useRef(null);
     const [notifications, setNotifications] = useState([]);
+    console.log({notifications});
     const userId = getUserFromSession()?._id;
     const [notificationCount, setNotificationCount] = useState();
     dayjs.extend(relativeTime);
@@ -207,18 +208,19 @@ const Navbar = () => {
     }, [open]);
 
     const handleViewNotification = (note) => {
+        console.log({ note });
         const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
-        dispatch(getNotificationView({ noteId: note._id })).unwrap()
+        dispatch(getNotificationView({ noteId: note?._id })).unwrap()
             .then(() => {
                 if (note?.notificationType === 'match_message' || note?.notificationType === "match_request_accept" || note?.notificationType === "match_request_reject" || note?.notificationType === 'join_match_request' && note?.matchId) {
-                    const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
+                    const matchDate = note?.createdAt || note?.matchCreateDate  || new Date().toISOString();
                     const dateObj = new Date(matchDate);
                     navigate('/open-matches', {
                         state: {
                             matchId: note.matchId,
                             selectedDate: {
-                                fullDate: matchDate,
+                                fullDate: matchDate || note?.createdAt,
                                 day: dateObj.toLocaleDateString("en-US", { weekday: "long" })
                             }
                         }
@@ -228,6 +230,7 @@ const Navbar = () => {
                     navigate(note?.notificationUrl);
                 }
                 socket.on("userNotificationCountUpdate", (data) => {
+                    console.log(data, 'pankaj4');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -244,6 +247,7 @@ const Navbar = () => {
         dispatch(readAllNotification()).unwrap()
             .then(() => {
                 socket.on("userNotificationCountUpdate", (data) => {
+                    console.log(data, 'pankaj5');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -416,8 +420,6 @@ const Navbar = () => {
                                                             }}
                                                             onClick={() => handleViewNotification(note)}
                                                         >
-
-
                                                             <div style={{ flex: 1 }}>
                                                                 <div style={{ fontWeight: 500, fontSize: "13px" }}>
                                                                     {note?.adminId ? "Padel" : ''} – {note.title}
