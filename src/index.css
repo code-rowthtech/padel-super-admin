@@ -2546,6 +2546,14 @@ h1.display-5 {
       padding: .375rem 1.7rem .375rem .35rem!important;
 
   }
+  .add_font_slot {
+    font-size: 11px!important;
+    width: 72px!important;
+    height: 30px!important;
+  }
+  .left_chnage_num{
+    left: -85px!important;
+  }
 }
 
 /* Border end for all screens */

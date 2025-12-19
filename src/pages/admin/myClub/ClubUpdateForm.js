@@ -1051,7 +1051,7 @@ const ClubUpdateForm = () => {
                   </div>
                 </Col>
 
-                <Col md={10} className="mb-3">
+                <Col md={10} className="mb-md-3 mb-0">
                   <h6
                     className="mb-2"
                     style={{
@@ -1099,7 +1099,7 @@ const ClubUpdateForm = () => {
                   </Row>
                 </Col>
               </Row>
-              <Row className="mb-3">
+              <Row className="mb-md-3 mb-0">
                 <Col md={3}>
                   <Input
                     label="Instagram Link"

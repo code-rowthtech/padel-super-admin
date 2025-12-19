@@ -437,8 +437,8 @@ const ManualBooking = () => {
             className="mx-auto  bg-white shadow-sm rounded-3"
             style={{ height: "83vh" }}
           >
-            <Col xs={12} lg={8} className="p-2 p-md-4">
-              <div className="mb-3 mb-md-4">
+            <Col xs={12} lg={8} className="p-0 p-md-4 pt-2">
+              <div className="mb-0 mb-md-2 px-2 px-md-0">
                 <div
                   className="all-matches mb-2"
                   style={{
@@ -447,16 +447,16 @@ const ManualBooking = () => {
                 >
                   Select Court
                 </div>
-                <div className="d-flex flex-wrap gap-2 mb-3">
+                <div className="d-flex flex-wrap gap-2 mb-md-2 mb-2 ">
                   {allCourtsList?.map((court) => (
                     <button
                       key={court._id}
                       type="button"
                       onClick={() => handleCourtSelect(court._id)}
-                      className="btn py-2 shadow-sm"
+                      className="btn py-2 shadow-sm align-items-center justify-content-center d-flex"
                       style={{
                         borderRadius: "12px",
-                        minWidth: "90px",
+                        minWidth: "72px",
                         transition: "all 0.2s ease-in-out",
                         backgroundColor: selectedCourts?.includes(court._id)
                           ? "#374151"
@@ -471,7 +471,8 @@ const ManualBooking = () => {
                           ? "2px solid #374151"
                           : "1px solid #ccd2d9ff",
                         fontFamily: "Poppins",
-                        fontSize: "12px",
+                        fontSize: "11px",
+                        height:"30px"
                       }}
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.border = "1px solid #3DBE64")
@@ -486,9 +487,9 @@ const ManualBooking = () => {
                 </div>
               </div>
 
-              <div className="calendar-strip">
+              <div className="calendar-strip px-2 px-md-0">
                 <div
-                  className="all-matches mb-3"
+                  className="all-matches mb-2"
                   style={{
                     color: "#374151",
                   }}
@@ -515,7 +516,7 @@ const ManualBooking = () => {
 
                     {isOpen && (
                       <div
-                        className="position-absolute mt-2 z-3 bg-white border rounded shadow"
+                        className="position-absolute mt-2 z-3 bg-white border rounded shadow left_chnage_num"
                         style={{ top: "100%", left: "0", minWidth: "100%" }}
                       >
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -548,7 +549,7 @@ const ManualBooking = () => {
                     className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill"
                     style={{
                       backgroundColor: "#f3f3f5",
-                      width: "30px",
+                      width: "20px",
                       height: "58px",
                     }}
                   >
@@ -571,7 +572,7 @@ const ManualBooking = () => {
                     style={{ position: "relative", maxWidth: "95%" }}
                   >
                     <button
-                      className="btn p-2 border-0"
+                      className="btn p-2 border-0 d-md-block d-none"
                       style={{
                         position: "absolute",
                         left: -65,
@@ -609,7 +610,7 @@ const ManualBooking = () => {
                           <button
                             key={i}
                             ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                            className={`calendar-day-btn mb-3 me-2 position-relative ${isSelected ? "text-white" : "bg-white"
+                            className={` mb-3 me-1 position-relative add_width_low ${isSelected ? "text-white" : "bg-white"
                               }`}
                             style={{
                               backgroundColor: isSelected
@@ -672,7 +673,7 @@ const ManualBooking = () => {
                       })}
                     </div>
                     <button
-                      className="btn border-0 p-2"
+                      className="btn border-0 p-2 d-md-block d-none"
                       style={{
                         position: "absolute",
                         right: -26,
@@ -688,7 +689,7 @@ const ManualBooking = () => {
                 <hr />
               </div>
 
-              <div className="mb-3">
+              <div className="mb-3 px-2 px-md-0">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <p
                     className="mb-0 all-matches"
@@ -734,7 +735,7 @@ const ManualBooking = () => {
                 {activeCourtsLoading ? (
                   <DataLoading height="10vh" />
                 ) : (
-                  <div className="d-flex flex-wrap gap-2 mb-4">
+                  <div className="d-flex flex-wrap gap-2 mb-md-4 mb-0">
                     {slotTimes?.length === 0 ? (
                       <div
                         className="d-flex text-danger justify-content-center align-items-center w-100"
@@ -837,7 +838,7 @@ const ManualBooking = () => {
                               const buttonEl = (
                                 <span className="d-inline-block">
                                   <button
-                                    className={`border rounded-3 slot-time-btn text-nowrap py-1 ${isBooked ? "bg-danger text-white" : ""
+                                    className={`border rounded-3 slot-time-btn text-nowrap py-1 add_font_slot m-0${isBooked ? "bg-danger text-white" : ""
                                       }`}
                                     onClick={() => toggleTime(slot)}
                                     disabled={
@@ -865,7 +866,7 @@ const ManualBooking = () => {
                                           ? "not-allowed"
                                           : "pointer",
                                       fontFamily: "Poppins",
-                                      fontSize: "14px",
+                                      fontSize: "11px",
                                       transition: "all 0.2s ease",
                                       color:
                                         slot.status === "booked" || isPast
@@ -873,6 +874,8 @@ const ManualBooking = () => {
                                           : isSelected
                                             ? "white"
                                             : "#000000",
+                                            width:"72px",
+                                            height:"30px",
                                     }}
                                     onMouseEnter={(e) =>
                                     (e.currentTarget.style.border =
@@ -908,9 +911,9 @@ const ManualBooking = () => {
                 )}
               </div>
             </Col>
-            <Col xs={12} lg={4} className="py-2  py-md-4 px-2 mt-lg-4  px-md-3">
+            <Col xs={12} lg={4} className="py-2  py-md-4 px-0 mt-lg-4  px-md-3">
               <div
-                className=" rounded-3 p-2 p-md-3  "
+                className=" rounded-3 p-2 p-md-3 bg-white "
                 style={{ minHeight: "40vh" }}
               >
                 <div
@@ -992,7 +995,7 @@ const ManualBooking = () => {
                                   {slots?.map((slot) => (
                                     <div
                                       key={slot?._id}
-                                      className="row mb-2 pt-2 ps-2 "
+                                      className="row mb-md-2 mb-0 pt-2 ps-2 "
                                     >
                                       <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                         <div
@@ -1137,7 +1140,7 @@ const ManualBooking = () => {
                         >
                           User Information
                         </p>
-                        <div className="d-flex gap-3 mb-3">
+                        <div className="d-flex flex-column gap-3 mb-3">
                           <input
                             type="text"
                             className="form-control rounded-3 py-2 shadow-sm"
@@ -1216,7 +1219,7 @@ const ManualBooking = () => {
                         </div>
                         <div className="d-flex justify-content-end gap-3 align-items-end">
                           <button
-                            className="btn btn-secondary rounded-pill p-2 shadow-sm"
+                            className="btn btn-secondary rounded-pill p-md-2 p-1 shadow-sm"
                             style={{
                               minWidth: "120px",
                               fontWeight: "500",
@@ -1235,7 +1238,7 @@ const ManualBooking = () => {
                             Cancel
                           </button>
                           <button
-                            className="btn text-white rounded-pill p-2 shadow-sm"
+                            className="btn text-white rounded-pill p-md-2 p-1 shadow-sm"
                             style={{
                               minWidth: "120px",
                               fontWeight: "500",
