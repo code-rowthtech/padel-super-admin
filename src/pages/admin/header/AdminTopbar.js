@@ -136,6 +136,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     socket.on("notificationCountUpdate", (data) => {
       if (data) {
         setNotificationCount(data);
+        playNotificationSound();
       }
     });
 
