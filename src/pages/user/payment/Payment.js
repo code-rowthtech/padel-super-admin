@@ -111,30 +111,44 @@ const Payment = ({ className = "" }) => {
     };
   }, []);
 
-  // payent handle function
+  // Payment handle function with comprehensive error handling
   const handlePayment = async () => {
-    const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "").trim();
-
-    // Validation
-    const newErrors = {
-      name: !name.trim() ? "Name is required" : "",
-      phoneNumber: !rawPhoneNumber
-        ? "Phone number is required"
-        : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
-          ? "Invalid phone number"
-          : "",
-    };
-
-    setErrors(newErrors);
-    if (Object.values(newErrors).some((e) => e)) return;
-    if (localTotalSlots === 0) {
-      setErrors((prev) => ({ ...prev, general: "Please select at least one slot" }));
-      return;
-    }
-
-    setIsLoading(true);
-
     try {
+      const rawPhoneNumber = phoneNumber.replace(/^\+91\s/, "").trim();
+
+      // Enhanced validation
+      const newErrors = {
+        name: !name.trim() 
+          ? "Name is required" 
+          : name.trim().length < 2 
+            ? "Name must be at least 2 characters" 
+            : "",
+        phoneNumber: !rawPhoneNumber
+          ? "Phone number is required"
+          : !/^[6-9]\d{9}$/.test(rawPhoneNumber)
+            ? "Invalid phone number format"
+            : "",
+        email: email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+          ? "Invalid email format"
+          : "",
+      };
+
+      setErrors(newErrors);
+      if (Object.values(newErrors).some((e) => e)) return;
+      
+      if (localTotalSlots === 0) {
+        setErrors((prev) => ({ ...prev, general: "Please select at least one slot" }));
+        return;
+      }
+
+      if (localGrandTotal <= 0) {
+        setErrors((prev) => ({ ...prev, general: "Invalid payment amount" }));
+        return;
+      }
+
+      setIsLoading(true);
+      setErrors({ name: "", phoneNumber: "", email: "", paymentMethod: "", general: "" });
+
       const register_club_id = localStorage.getItem("register_club_id");
       const owner_id = localStorage.getItem("owner_id");
 
@@ -246,7 +260,12 @@ const Payment = ({ className = "" }) => {
       }
 
     } catch (err) {
-      setErrors((prev) => ({ ...prev, general: err.message || "Something went wrong" }));
+      console.error('Payment error:', err);
+      const errorMessage = err?.response?.data?.message || 
+                          err?.message || 
+                          "Payment failed. Please try again.";
+      setErrors((prev) => ({ ...prev, general: errorMessage }));
+    } finally {
       setIsLoading(false);
     }
   };
@@ -577,7 +596,8 @@ const Payment = ({ className = "" }) => {
                               {slot?.amount ? Number(slot?.amount).toLocaleString("en-IN") : 0}
                             </span>
                             <MdOutlineDeleteOutline
-                              className="ms-2 mt-1 mb-2"
+                              className="ms-1 mt-1 mb-1"
+                              size={15}
                               style={{ cursor: "pointer" }}
                               onClick={(e) => handleDeleteSlot(e, court._id, court.date, slot._id)}
                             />

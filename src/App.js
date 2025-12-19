@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import Routes from "./routes/Routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ErrorBoundary from "./components/ErrorBoundary";
+import "./utils/errorHandler"; // Initialize global error handler
 
 function App() {
   const [centerButton, setCenterButton] = useState(false);
@@ -24,7 +26,7 @@ function App() {
   }, []);
 
   return (
-    <>
+    <ErrorBoundary>
       <Routes />
       
       {/* <button
@@ -59,7 +61,7 @@ function App() {
         pauseOnHover
         theme="colored"
       />
-    </>
+    </ErrorBoundary>
   );
 }
 
