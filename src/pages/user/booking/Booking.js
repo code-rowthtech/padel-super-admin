@@ -395,7 +395,6 @@ const Booking = ({ className = "" }) => {
     });
     
     bookingSocket.on('slotUpdated', (data) => {
-      console.log(data,'datadatadata');
       const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
       if (data.clubId === clubId && data.date === currentDate) {
         fetchSlots(bookingSocket);
