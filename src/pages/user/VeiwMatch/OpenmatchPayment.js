@@ -354,10 +354,6 @@ const OpenmatchPayment = () => {
             });
         }
     };
-
-
-
-
     // Local state for mobile summary
     const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
     const localTotalSlots = localSelectedCourts.reduce(

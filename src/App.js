@@ -3,7 +3,7 @@ import Routes from "./routes/Routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ErrorBoundary from "./components/ErrorBoundary";
-import "./utils/errorHandler"; // Initialize global error handler
+import "./utils/errorHandler"; 
 
 function App() {
   const [centerButton, setCenterButton] = useState(false);
