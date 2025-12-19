@@ -109,7 +109,6 @@ const Booking = ({ className = "" }) => {
   const logo = clubData?.logo;
   const dateRefs = useRef({});
 
-  const [key2, setKey2] = useState("padel");
   const [expireModal, setExpireModal] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedBuisness, setSelectedBuisness] = useState([]);
