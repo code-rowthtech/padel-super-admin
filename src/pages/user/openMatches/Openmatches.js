@@ -55,6 +55,15 @@ import html2canvas from "html2canvas";
 // Make html2canvas available globally for the utility function
 window.html2canvas = html2canvas;
 
+const getInitials = (name) => {
+  if (!name || typeof name !== 'string') return "U";
+  const words = name.trim().split(/\s+/);
+  if (words.length >= 2 && words[0] && words[1]) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return name[0] ? name[0].toUpperCase() : "U";
+};
+
 const normalizeTime = (time) => {
   if (!time) return null;
   const match = time.match(/^(\d{1,2}):00\s*(AM|PM)$/i);
@@ -537,7 +546,7 @@ const Openmatches = () => {
           <span
             style={{ color: "#F1F1F1", fontWeight: "600", fontSize: "16px" }}
           >
-            {player?.name ? player?.name.charAt(0).toUpperCase() : "P"}
+            {getInitials(player?.name) || "P"}
           </span>
         )}
       </div>
@@ -604,9 +613,7 @@ const Openmatches = () => {
             fontSize: "16px",
           }}
         >
-          {player?.userId?.name
-            ? player?.userId?.name.charAt(0).toUpperCase()
-            : "U"}
+          {getInitials(player?.userId?.name) || "U"}
         </span>
       )}
     </div>
@@ -1338,43 +1345,8 @@ const Openmatches = () => {
                                 : "N/A"}
                             </p>
                           </div>
-                          {/* <div className="col-12 d-flex justify-content-end align-items-center">
-                                                        <div className="d-flex flex-column align-items-end">
-                                                            <div className="d-flex align-items-center mb-3">
-                                                                {match?.teamA?.length === 1 || match?.teamA?.length === 0 ? (
-                                                                    <AvailableTag team="Team A" match={match} name="teamA" />
-                                                                ) : match?.teamB?.length === 1 || match?.teamB?.length === 0 ? (
-                                                                    <AvailableTag team="Team B" match={match} name="teamB" />
-                                                                ) : match?.teamA?.length === 2 && match?.teamB?.length === 2 ? (
-                                                                    <FirstPlayerTag player={match?.teamA[0]?.userId} />
-                                                                ) : null}
-
-                                                                <div className="d-flex align-items-center ms-2">
-                                                                    {[
-                                                                        ...(match?.teamA?.filter((_, idx) =>
-                                                                            match?.teamA?.length === 2 && match?.teamB?.length === 2
-                                                                                ? idx !== 0
-                                                                                : true
-                                                                        ) || []),
-                                                                        ...(match?.teamB || []),
-                                                                    ].map((player, idx, arr) => (
-                                                                        <PlayerAvatar
-                                                                            key={`player-${idx}`}
-                                                                            player={player}
-                                                                            idx={idx}
-                                                                            total={arr.length}
-                                                                        />
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-
-
-                                                        </div>
-
-                                                    </div> */}
-
                           <div className="row mx-auto">
-                            <div className="col-6 px-0 d-flex justify-content-between align-items-center flex-wrap">
+                            <div className="col-6 px-0 d-flex justify-content-between align-items-start flex-wrap d-md-flex d-md-align-items-center">
                               {[0, 1].map((playerIndex) => {
                                 const player = match?.teamA?.[playerIndex];
                                 const isAvailable = !player;
@@ -1432,9 +1404,7 @@ const Openmatches = () => {
                                             fontSize: "24px",
                                           }}
                                         >
-                                          {player?.userId?.name
-                                            ?.charAt(0)
-                                            ?.toUpperCase() || "A"}
+                                          {getInitials(player?.userId?.name) || "A"}
                                         </span>
                                       )}
                                     </div>
@@ -1443,13 +1413,15 @@ const Openmatches = () => {
                                       style={{
                                         maxWidth: "60px",
                                         overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap",
+                                        textOverflow: "clip",
+                                        whiteSpace: "normal",
                                         display: "inline-block",
                                         fontSize: "10px",
-                                        fontWeight: 500,
+                                        fontWeight: 600,
                                         fontFamily: "Poppins",
                                         color: isAvailable ? "#1F41BB" : "#000",
+                                        wordBreak: "break-word",
+                                        lineHeight: "1.2",
                                       }}
                                     >
                                       {isAvailable
@@ -1461,7 +1433,7 @@ const Openmatches = () => {
                               })}
                             </div>
 
-                            <div className="col-6 px-0 d-flex justify-content-between align-items-center flex-wrap border-start border-0 border-lg-start">
+                            <div className="col-6 px-0 d-flex justify-content-between align-items-start flex-wrap border-start border-0 border-lg-start d-md-flex d-md-align-items-center">
                               {[0, 1].map((playerIndex) => {
                                 const player = match?.teamB?.[playerIndex];
                                 const isAvailable = !player;
@@ -1519,9 +1491,7 @@ const Openmatches = () => {
                                             fontSize: "24px",
                                           }}
                                         >
-                                          {player?.userId?.name
-                                            ?.charAt(0)
-                                            ?.toUpperCase() || "B"}
+                                          {getInitials(player?.userId?.name) || "B"}
                                         </span>
                                       )}
                                     </div>
@@ -1530,13 +1500,15 @@ const Openmatches = () => {
                                       style={{
                                         maxWidth: "60px",
                                         overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap",
+                                        textOverflow: "clip",
+                                        whiteSpace: "normal",
                                         display: "inline-block",
                                         fontSize: "10px",
-                                        fontWeight: 500,
+                                        fontWeight: 600,
                                         fontFamily: "Poppins",
                                         color: isAvailable ? "#1F41BB" : "#000",
+                                        wordBreak: "break-word",
+                                        lineHeight: "1.2",
                                       }}
                                     >
                                       {isAvailable

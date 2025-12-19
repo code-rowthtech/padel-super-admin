@@ -648,8 +648,8 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                     </h6>
 
                     <div className="row mx-auto">
-                        <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 ">
-                            {slots.slice(0, 2).map((s) => (
+                        <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 d-md-flex d-md-align-items-center">
+                            {slots?.slice(0, 2)?.map((s) => (
                                 <PlayerSlot
                                     key={s.index}
                                     player={s.player}
@@ -665,8 +665,8 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                             ))}
                         </div>
 
-                        <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 border-start border-0 border-lg-start">
-                            {slots.slice(2, 4).map((s) => (
+                        <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 border-start border-0 border-lg-start d-md-flex d-md-align-items-center">
+                            {slots?.slice(2, 4)?.map((s) => (
                                 <PlayerSlot
                                     key={s.index}
                                     player={s.player}
