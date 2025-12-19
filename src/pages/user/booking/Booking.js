@@ -378,12 +378,11 @@ const Booking = ({ className = "" }) => {
   }, [dispatch, selectedDate.day, selectedDate.fullDate, clubId]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
     dispatch(getUserClub({ search: "" }));
     fetchSlots();
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [selectedDate]);
+  }, [selectedDate, fetchSlots]);
 
   useEffect(() => {
     if (!user?._id || !clubId) return;
@@ -1102,13 +1101,13 @@ const Booking = ({ className = "" }) => {
                       date.toISOString().split("T")[0];
                     const isSelected =
                       formatDate(new Date(selectedDate?.fullDate)) ===
-                      d.fullDate;
+                      d?.fullDate;
 
                     // Calculate slot count for this specific date
                     const slotCount = Object.values(selectedTimes).reduce(
                       (acc, courtDates) => {
-                        const dateSlots = courtDates[d.fullDate] || [];
-                        return acc + dateSlots.length;
+                        const dateSlots = courtDates[d?.fullDate] || [];
+                        return acc + dateSlots?.length;
                       },
                       0
                     );
@@ -1130,13 +1129,13 @@ const Booking = ({ className = "" }) => {
                           color: isSelected ? "#FFFFFF" : "#374151",
                         }}
                         onClick={() => {
-                          setSelectedDate({ fullDate: d.fullDate, day: d.day });
+                          setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                           setStartDate(new Date(d.fullDate));
                           setShowBanner(false);
                           dispatch(
                             getUserSlotBooking({
-                              day: d.day,
-                              date: d.fullDate,
+                              day: d?.day,
+                              date: d?.fullDate,
                               register_club_id:
                                 localStorage.getItem("register_club_id") || "",
                             })
@@ -1151,9 +1150,9 @@ const Booking = ({ className = "" }) => {
                         }
                       >
                         <div className="text-center">
-                          <div className="date-center-date">{d.date}</div>
+                          <div className="date-center-date">{d?.date}</div>
                           <div className="date-center-day">
-                            {dayShortMap[d.day]}
+                            {dayShortMap[d?.day]}
                           </div>
                         </div>
                         {slotCount > 0 && (
