@@ -76,76 +76,94 @@ const Navbar = () => {
         audio.play().catch(err => console.log("Notification sound failed:", err));
     };
     useEffect(() => {
-        if (userId) {
-            const socket = io(SOCKET_URL, {
-                transports: ["websocket", "polling"],
-                reconnection: true,
-                reconnectionAttempts: 3,
-                reconnectionDelay: 2000,
-                timeout: 10000,
-                forceNew: true
-            });
+        if (!userId) return;
+        
+        let isMounted = true;
+        const socket = io(SOCKET_URL, {
+            transports: ["websocket", "polling"],
+            reconnection: true,
+            reconnectionAttempts: 3,
+            reconnectionDelay: 2000,
+            timeout: 10000,
+            forceNew: true
+        });
 
-            // Load initial notifications
-            dispatch(getNotificationData()).unwrap().then((res) => {
-                if (res?.notifications) {
-                    setNotifications(res.notifications);
+        // Load initial notifications
+        const loadNotifications = async () => {
+            try {
+                const [notificationRes, countRes] = await Promise.all([
+                    dispatch(getNotificationData()).unwrap(),
+                    dispatch(getNotificationCount()).unwrap()
+                ]);
+                
+                if (isMounted) {
+                    if (notificationRes?.notifications) {
+                        setNotifications(notificationRes.notifications);
+                    }
+                    setNotificationCount(countRes);
                 }
-            }).catch(err => console.error('Failed to load notifications:', err));
+            } catch (err) {
+                console.error('Failed to load notifications:', err);
+            }
+        };
+        
+        loadNotifications();
 
+        const handleConnect = () => {
+            socket.emit("registerUser", userId);
             dispatch(getNotificationCount()).unwrap().then((res) => {
-                setNotificationCount(res);
+                if (isMounted) setNotificationCount(res);
             }).catch(err => console.error('Failed to load notification count:', err));
+        };
 
-            socket.on("connect", () => {
-                socket.emit("registerUser", userId);
-                dispatch(getNotificationCount()).unwrap().then((res) => {
-                    setNotificationCount(res);
-                }).catch(err => console.error('Failed to load notification count:', err));
+        const handleUserRequest = (data) => {
+            if (!isMounted) return;
+            setNotifications((prev) => [data, ...prev.slice(0, 49)]); // Limit to 50 notifications
+            setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
+            playNotificationSound();
+        };
 
-            });
+        const handleMatchNotification = (notification) => {
+            if (!isMounted) return;
+            playNotificationSound();
+            setNotifications((prev) => [notification, ...prev.slice(0, 49)]);
+            setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
+        };
 
-            socket.on("user_request", (data) => {
-                console.log(data, "datat3");
-                setNotifications((prevNotifications) => [data, ...prevNotifications]);
-                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
-                playNotificationSound();
-            });
+        const handleApprovedRequest = (data) => {
+            if (!isMounted) return;
+            setNotifications((prev) => [data, ...prev.slice(0, 49)]);
+            setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
+            playNotificationSound();
+        };
 
-            socket.on('matchNotification', (notification) => {
-                console.log(notification, 'data2');
-                playNotificationSound();
-                setNotifications((prevNotifications) => [notification, ...prevNotifications]);
-                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
-            });
+        const handleNotificationCountUpdate = (data) => {
+            if (!isMounted) return;
+            setNotificationCount(data);
+        };
 
+        const handleConnectError = (error) => {
+            console.error("Socket connection error:", error);
+        };
 
+        socket.on("connect", handleConnect);
+        socket.on("user_request", handleUserRequest);
+        socket.on('matchNotification', handleMatchNotification);
+        socket.on("approved_request", handleApprovedRequest);
+        socket.on("userNotificationCountUpdate", handleNotificationCountUpdate);
+        socket.on("connect_error", handleConnectError);
 
-            socket.on("approved_request", (data) => {
-                console.log(data, 'data1');
-                setNotifications((prevNotifications) => [data, ...prevNotifications]);
-                setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
-                playNotificationSound();
-            });
-
-            socket.on("userNotificationCountUpdate", (data) => {
-                console.log(data, 'data0');
-                setNotificationCount(data);
-            });
-
-            socket.on("disconnect", () => {
-            });
-
-            socket.on("connect_error", (error) => {
-                console.error("Socket connection error:", error);
-            });
-
-            return () => {
-                socket.off();
-                socket.disconnect();
-            };
-        }
-    }, [userId, dispatch, open, SOCKET_URL]);
+        return () => {
+            isMounted = false;
+            socket.off("connect", handleConnect);
+            socket.off("user_request", handleUserRequest);
+            socket.off('matchNotification', handleMatchNotification);
+            socket.off("approved_request", handleApprovedRequest);
+            socket.off("userNotificationCountUpdate", handleNotificationCountUpdate);
+            socket.off("connect_error", handleConnectError);
+            socket.disconnect();
+        };
+    }, [userId, dispatch]);
 
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {

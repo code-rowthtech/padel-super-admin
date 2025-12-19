@@ -93,11 +93,11 @@ const CreateMatches = () => {
   const store = useSelector((state) => state);
   const getToken = getUserFromSession();
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedCourts, setSelectedCourts] = useState([]);
+  const [selectedCourts, setSelectedCourts] = useState(location?.state?.selectedCourts || []);
   const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
   const [errorShow, setErrorShow] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(location?.state?.paymentError || "");
   const [selectedBuisness, setSelectedBuisness] = useState([]);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState([]);
@@ -108,7 +108,7 @@ const CreateMatches = () => {
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
   const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
   const [dynamicSteps, setDynamicSteps] = useState([]);
-  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [selectedAnswers, setSelectedAnswers] = useState(location?.state?.finalSkillDetails || {});
   const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
   const [slotError, setSlotError] = useState("");
   const [key, setKey] = useState("morning");
@@ -116,17 +116,50 @@ const CreateMatches = () => {
   const [isFinalLevelStepLoaded, setIsFinalLevelStepLoaded] = useState(false);
   const [finalLevelStep, setFinalLevelStep] = useState(null);
   const [addedPlayers, setAddedPlayers] = useState(() => {
+    // First check if players are passed from navigation state (payment failure)
+    if (location?.state?.addedPlayers) {
+      return location.state.addedPlayers;
+    }
+    // Then check localStorage
     const saved = localStorage.getItem("addedPlayers");
     return saved ? JSON.parse(saved) : {};
   });
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
   const [existsOpenMatchData, setExistsOpenMatchData] = useState(false);
-  const [userGender, setUserGender] = useState("");
+  const [userGender, setUserGender] = useState(location?.state?.selectedGender || "");
   const [profileLoading, setProfileLoading] = useState(true);
   useEffect(() => {
     localStorage.setItem("addedPlayers", JSON.stringify(addedPlayers));
   }, [addedPlayers]);
+
+  // Handle payment error from navigation state
+  useEffect(() => {
+    if (location?.state?.paymentError) {
+      setErrorMessage(location.state.paymentError);
+      setErrorShow(true);
+      // Clear the error after 5 seconds
+      const timer = setTimeout(() => {
+        setErrorShow(false);
+        setErrorMessage("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location?.state?.paymentError]);
+
+  // Restore selectedTimes state from selectedCourts when navigating back from payment
+  useEffect(() => {
+    if (location?.state?.selectedCourts && location.state.selectedCourts.length > 0) {
+      const restoredTimes = {};
+      location.state.selectedCourts.forEach(court => {
+        if (court.time && court.time.length > 0) {
+          restoredTimes[court._id] = court.time;
+        }
+      });
+      setSelectedTimes(restoredTimes);
+      setSelectedBuisness(location.state.selectedCourts.flatMap(c => c.time));
+    }
+  }, [location?.state?.selectedCourts]);
 
   const tabData = [
     { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
@@ -1567,7 +1600,7 @@ const CreateMatches = () => {
                   </>
                 )}
 
-                {slotError && (
+                {(slotError || errorMessage) && (
                   <div
                     className="text-center mb-3 p-2 rounded"
                     style={{
@@ -1578,7 +1611,7 @@ const CreateMatches = () => {
                       fontSize: "14px",
                     }}
                   >
-                    {slotError}
+                    {slotError || errorMessage}
                   </div>
                 )}
 
@@ -1671,10 +1704,10 @@ const CreateMatches = () => {
                   </div>
                 </div>
 
-                {slotError && (
+                {(slotError || errorMessage) && (
                   <div className="text-center p-3">
                     <div style={{ backgroundColor: "#ffebee", color: "#c62828", padding: "10px", borderRadius: "8px" }}>
-                      {slotError}
+                      {slotError || errorMessage}
                     </div>
                   </div>
                 )}

@@ -303,7 +303,16 @@ const OpenmatchPayment = () => {
                     modal: {
                         ondismiss: () => {
                             setIsLoading(false);
-                            setError({ general: "Payment cancelled by user" });
+                            // Don't clear slots on payment cancellation, just navigate back
+                            navigate("/create-matches", {
+                                state: { 
+                                    selectedDate,
+                                    selectedCourts: localSelectedCourts,
+                                    addedPlayers: finalAddedPlayers,
+                                    finalSkillDetails,
+                                    selectedGender
+                                }
+                            });
                         }
                     }
                 };
@@ -311,8 +320,18 @@ const OpenmatchPayment = () => {
                 const razorpay = new window.Razorpay(options);
 
                 razorpay.on("payment.failed", (response) => {
-                    setError({ general: response.error?.description || "Payment failed. Try again." });
                     setIsLoading(false);
+                    // Don't clear slots on payment failure, navigate back with slots preserved
+                    navigate("/create-matches", {
+                        state: { 
+                            selectedDate,
+                            selectedCourts: localSelectedCourts,
+                            addedPlayers: finalAddedPlayers,
+                            finalSkillDetails,
+                            selectedGender,
+                            paymentError: response.error?.description || "Payment failed. Please try again."
+                        }
+                    });
                 });
 
                 razorpay.open();
@@ -321,8 +340,18 @@ const OpenmatchPayment = () => {
             }
 
         } catch (err) {
-            setError({ general: err.message || "Something went wrong" });
             setIsLoading(false);
+            // On any error, preserve slots and navigate back
+            navigate("/create-matches", {
+                state: { 
+                    selectedDate,
+                    selectedCourts: localSelectedCourts,
+                    addedPlayers: finalAddedPlayers,
+                    finalSkillDetails,
+                    selectedGender,
+                    paymentError: err.message || "Something went wrong. Please try again."
+                }
+            });
         }
     };
 
@@ -643,7 +672,7 @@ const OpenmatchPayment = () => {
                                                         </div>
                                                         <div className="text-white">
                                                             ₹<span className="ps-0 pt-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}</span>
-                                                            <MdOutlineDeleteOutline className="mt-1 ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, timeSlot._id)} />
+                                                            <MdOutlineDeleteOutline className="mt-1 ms-1 mb-1 text-white" style={{ cursor: "pointer" }} size={15} onClick={() => handleDeleteSlot(court._id, timeSlot._id)} />
                                                         </div>
                                                     </div>
                                                 </div>

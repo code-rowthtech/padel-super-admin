@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
   booking_dropdown_img,
   booking_dropdown_img2,
@@ -312,67 +312,70 @@ const Booking = ({ className = "" }) => {
     );
   };
 
-  const width = 370;
-  const height = 75;
-  const circleRadius = height * 0.3;
-  const curvedSectionStart = width * 0.76;
-  const curvedSectionEnd = width * 0.996;
-  const circleX =
-    curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
-  const circleY = height * 0.5;
-  const arrowSize = circleRadius * 0.6;
-  const arrowX = circleX;
-  const arrowY = circleY;
+  // Memoize constants to avoid recalculation
+  const buttonConfig = useMemo(() => {
+    const width = 370;
+    const height = 75;
+    const circleRadius = height * 0.3;
+    return {
+      width,
+      height,
+      circleRadius,
+      buttonStyle: {
+        position: "relative",
+        width: `${width}px`,
+        height: `${height}px`,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        padding: 0,
+        overflow: "visible",
+      },
+      svgStyle: {
+        width: "100%",
+        height: "100%",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: 1,
+      },
+      contentStyle: {
+        position: "relative",
+        zIndex: 2,
+        color: "#001B76",
+        fontWeight: "600",
+        fontSize: "16px",
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        paddingRight: `${circleRadius * 2}px`,
+        fontFamily: "Poppins",
+      },
+    };
+  }, []);
 
-  const buttonStyle = {
-    position: "relative",
-    width: `${width}px`,
-    height: `${height}px`,
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-    padding: 0,
-    overflow: "visible",
-  };
+  const maxSelectableDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 15);
+    return date;
+  }, []);
+  
+  const clubId = useMemo(() => localStorage.getItem("register_club_id"), []);
 
-  const svgStyle = {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    zIndex: 1,
-  };
-
-  const contentStyle = {
-    position: "relative",
-    zIndex: 2,
-    color: "#001B76",
-    fontWeight: "600",
-    fontSize: "16px",
-    textAlign: "center",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "100%",
-    paddingRight: `${circleRadius * 2}px`,
-    fontFamily: "Poppins",
-  };
-
-  const maxSelectableDate = new Date();
-  maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
-  const clubId = localStorage.getItem("register_club_id");
-
-  const fetchSlots = (socket = null) => {
+  const fetchSlots = useCallback((socket = null) => {
+    if (!clubId) return;
+    
     dispatch(
       getUserSlotBooking({
         day: selectedDate.day,
         date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
-        register_club_id: clubId || "",
+        register_club_id: clubId,
         socket: socket,
       })
     );
-  };
+  }, [dispatch, selectedDate.day, selectedDate.fullDate, clubId]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -390,38 +393,47 @@ const Booking = ({ className = "" }) => {
       forceNew: true
     });
     
-    bookingSocket.on("connect", () => {
+    const handleConnect = () => {
       bookingSocket.emit("joinRoom", { userId: user._id, clubId });
-    });
+    };
     
-    bookingSocket.on('slotUpdated', (data) => {
+    const handleSlotUpdate = (data) => {
       const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
       if (data.clubId === clubId && data.date === currentDate) {
         fetchSlots(bookingSocket);
       }
-    });
+    };
+    
+    bookingSocket.on("connect", handleConnect);
+    bookingSocket.on('slotUpdated', handleSlotUpdate);
 
     return () => {
+      bookingSocket.off("connect", handleConnect);
+      bookingSocket.off('slotUpdated', handleSlotUpdate);
       bookingSocket.disconnect();
     };
-  }, [clubId, selectedDate.fullDate, user?._id]);
+  }, [clubId, selectedDate.fullDate, user?._id, fetchSlots]);
 
   const scrollLeft = () =>
     scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
   const scrollRight = () =>
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
-  const grandTotal = selectedCourts.reduce(
-    (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
-    0
-  );
+  // Memoize expensive calculations
+  const grandTotal = useMemo(() => {
+    return selectedCourts.reduce(
+      (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
+      0
+    );
+  }, [selectedCourts]);
 
-  // Calculate total slots across all dates and courts
-  const totalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
-    return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
-      return dateTotal + timeSlots.length;
+  const totalSlots = useMemo(() => {
+    return Object.values(selectedTimes).reduce((total, courtDates) => {
+      return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+        return dateTotal + timeSlots.length;
+      }, 0);
     }, 0);
-  }, 0);
+  }, [selectedTimes]);
 
   useEffect(() => {
     if (totalSlots === 0) {
@@ -1992,7 +2004,7 @@ const Booking = ({ className = "" }) => {
                                 {court.courtName}
                               </span>
                             </div>
-                            <div className="text-white">
+                            <div className="text-white align-items-center">
                               ₹
                               <span
                                 className="ps-0"
@@ -2006,7 +2018,8 @@ const Booking = ({ className = "" }) => {
                                 {timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}
                               </span>
                               <MdOutlineDeleteOutline
-                                className="ms-2 mb-2 mt-1 text-white"
+                                className="ms-1 mb-1 mt-1 text-white"
+                                size={15}
                                 style={{ cursor: "pointer" }}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -2259,7 +2272,7 @@ const Booking = ({ className = "" }) => {
               <div className="d-flex justify-content-center align-items-center px-3">
                 <button
                   style={{
-                    ...buttonStyle,
+                    ...buttonConfig.buttonStyle,
                     opacity: totalSlots === 0 ? 0.5 : 1,
                     cursor: totalSlots === 0 ? "not-allowed" : "pointer",
                     pointerEvents: totalSlots === 0 ? "none" : "auto",
@@ -2269,13 +2282,13 @@ const Booking = ({ className = "" }) => {
                   onClick={handleBookNow}
                 >
                   <svg
-                    style={svgStyle}
-                    viewBox={`0 0 ${width} ${height}`}
+                    style={buttonConfig.svgStyle}
+                    viewBox={`0 0 ${buttonConfig.width} ${buttonConfig.height}`}
                     preserveAspectRatio="none"
                   >
                     <defs>
                       <linearGradient
-                        id={`buttonGradient-${width}-${height}`}
+                        id={`buttonGradient-${buttonConfig.width}-${buttonConfig.height}`}
                         x1="0%"
                         y1="0%"
                         x2="100%"
@@ -2287,64 +2300,60 @@ const Booking = ({ className = "" }) => {
                       </linearGradient>
                     </defs>
                     <path
-                      d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79
-                        } ${height * 0.15} ${width * 0.81} ${height * 0.2} ${width * 0.83
-                        } ${height * 0.3} C ${width * 0.83} ${height * 0.32} ${width * 0.84
-                        } ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85
-                        } ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86
-                        } ${height * 0.3} C ${width * 0.88} ${height * 0.2} ${width * 0.9
-                        } ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97
-                        } ${height * 0.15} ${width * 0.996} ${height * 0.3} ${width * 0.996
-                        } ${height * 0.5} C ${width * 0.996} ${height * 0.7} ${width * 0.97
-                        } ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.9
-                        } ${height * 0.85} ${width * 0.88} ${height * 0.8} ${width * 0.86
-                        } ${height * 0.7} C ${width * 0.86} ${height * 0.68} ${width * 0.85
-                        } ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84
-                        } ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83
-                        } ${height * 0.7} C ${width * 0.81} ${height * 0.8} ${width * 0.79
-                        } ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08
-                        } ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004
-                        } ${height * 0.7} ${width * 0.004} ${height * 0.5} C ${width * 0.004
-                        } ${height * 0.3} ${width * 0.04} ${height * 0.15} ${width * 0.08
-                        } ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`}
-                      fill={`url(#buttonGradient-${width}-${height})`}
+                      d={`M ${buttonConfig.width * 0.76} ${buttonConfig.height * 0.15} C ${buttonConfig.width * 0.79
+                        } ${buttonConfig.height * 0.15} ${buttonConfig.width * 0.81} ${buttonConfig.height * 0.2} ${buttonConfig.width * 0.83
+                        } ${buttonConfig.height * 0.3} C ${buttonConfig.width * 0.83} ${buttonConfig.height * 0.32} ${buttonConfig.width * 0.84
+                        } ${buttonConfig.height * 0.34} ${buttonConfig.width * 0.84} ${buttonConfig.height * 0.34} C ${buttonConfig.width * 0.85
+                        } ${buttonConfig.height * 0.34} ${buttonConfig.width * 0.86} ${buttonConfig.height * 0.32} ${buttonConfig.width * 0.86
+                        } ${buttonConfig.height * 0.3} C ${buttonConfig.width * 0.88} ${buttonConfig.height * 0.2} ${buttonConfig.width * 0.9
+                        } ${buttonConfig.height * 0.15} ${buttonConfig.width * 0.92} ${buttonConfig.height * 0.15} C ${buttonConfig.width * 0.97
+                        } ${buttonConfig.height * 0.15} ${buttonConfig.width * 0.996} ${buttonConfig.height * 0.3} ${buttonConfig.width * 0.996
+                        } ${buttonConfig.height * 0.5} C ${buttonConfig.width * 0.996} ${buttonConfig.height * 0.7} ${buttonConfig.width * 0.97
+                        } ${buttonConfig.height * 0.85} ${buttonConfig.width * 0.92} ${buttonConfig.height * 0.85} C ${buttonConfig.width * 0.9
+                        } ${buttonConfig.height * 0.85} ${buttonConfig.width * 0.88} ${buttonConfig.height * 0.8} ${buttonConfig.width * 0.86
+                        } ${buttonConfig.height * 0.7} C ${buttonConfig.width * 0.86} ${buttonConfig.height * 0.68} ${buttonConfig.width * 0.85
+                        } ${buttonConfig.height * 0.66} ${buttonConfig.width * 0.84} ${buttonConfig.height * 0.66} C ${buttonConfig.width * 0.84
+                        } ${buttonConfig.height * 0.66} ${buttonConfig.width * 0.83} ${buttonConfig.height * 0.68} ${buttonConfig.width * 0.83
+                        } ${buttonConfig.height * 0.7} C ${buttonConfig.width * 0.81} ${buttonConfig.height * 0.8} ${buttonConfig.width * 0.79
+                        } ${buttonConfig.height * 0.85} ${buttonConfig.width * 0.76} ${buttonConfig.height * 0.85} L ${buttonConfig.width * 0.08
+                        } ${buttonConfig.height * 0.85} C ${buttonConfig.width * 0.04} ${buttonConfig.height * 0.85} ${buttonConfig.width * 0.004
+                        } ${buttonConfig.height * 0.7} ${buttonConfig.width * 0.004} ${buttonConfig.height * 0.5} C ${buttonConfig.width * 0.004
+                        } ${buttonConfig.height * 0.3} ${buttonConfig.width * 0.04} ${buttonConfig.height * 0.15} ${buttonConfig.width * 0.08
+                        } ${buttonConfig.height * 0.15} L ${buttonConfig.width * 0.76} ${buttonConfig.height * 0.15} Z`}
+                      fill={`url(#buttonGradient-${buttonConfig.width}-${buttonConfig.height})`}
                     />
                     <circle
-                      cx={circleX}
-                      cy={circleY}
-                      r={circleRadius}
+                      cx={buttonConfig.width * 0.76 + (buttonConfig.width * 0.996 - buttonConfig.width * 0.76) * 0.68 + 1}
+                      cy={buttonConfig.height * 0.5}
+                      r={buttonConfig.circleRadius}
                       fill="#001B76"
                     />
                     <g
                       stroke="white"
-                      strokeWidth={height * 0.03}
+                      strokeWidth={buttonConfig.height * 0.03}
                       fill="none"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       className="book-now-arrow"
-                      style={{
-                        transformOrigin: `${arrowX}px ${arrowY}px`,
-                        transition: "transform 0.3s ease"
-                      }}
                     >
                       <path
-                        d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
-                          } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                        d={`M ${buttonConfig.width * 0.76 + (buttonConfig.width * 0.996 - buttonConfig.width * 0.76) * 0.68 + 1 - buttonConfig.circleRadius * 0.6 * 0.3} ${buttonConfig.height * 0.5 + buttonConfig.circleRadius * 0.6 * 0.4
+                          } L ${buttonConfig.width * 0.76 + (buttonConfig.width * 0.996 - buttonConfig.width * 0.76) * 0.68 + 1 + buttonConfig.circleRadius * 0.6 * 0.4} ${buttonConfig.height * 0.5 - buttonConfig.circleRadius * 0.6 * 0.4
                           }`}
                       />
                       <path
-                        d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
-                          } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
+                        d={`M ${buttonConfig.width * 0.76 + (buttonConfig.width * 0.996 - buttonConfig.width * 0.76) * 0.68 + 1 + buttonConfig.circleRadius * 0.6 * 0.4} ${buttonConfig.height * 0.5 - buttonConfig.circleRadius * 0.6 * 0.4
+                          } L ${buttonConfig.width * 0.76 + (buttonConfig.width * 0.996 - buttonConfig.width * 0.76) * 0.68 + 1 - buttonConfig.circleRadius * 0.6 * 0.1} ${buttonConfig.height * 0.5 - buttonConfig.circleRadius * 0.6 * 0.4
                           }`}
                       />
                       <path
-                        d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
-                          } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
+                        d={`M ${buttonConfig.width * 0.76 + (buttonConfig.width * 0.996 - buttonConfig.width * 0.76) * 0.68 + 1 + buttonConfig.circleRadius * 0.6 * 0.4} ${buttonConfig.height * 0.5 - buttonConfig.circleRadius * 0.6 * 0.4
+                          } L ${buttonConfig.width * 0.76 + (buttonConfig.width * 0.996 - buttonConfig.width * 0.76) * 0.68 + 1 + buttonConfig.circleRadius * 0.6 * 0.4} ${buttonConfig.height * 0.5 + buttonConfig.circleRadius * 0.6 * 0.1
                           }`}
                       />
                     </g>
                   </svg>
-                  <div style={contentStyle}>Book Now</div>
+                  <div style={buttonConfig.contentStyle}>Book Now</div>
                 </button>
               </div>
 
