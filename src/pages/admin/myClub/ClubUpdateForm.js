@@ -151,13 +151,13 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
     } else {
       // For end time: filter based on start time
       if (!startTime) return [];
-      
+
       const startParts = startTime.split(" ");
       const startHour = Number(startParts[0].split(":")[0]);
       const startMeridian = startParts[1];
-      
+
       const allHours = [];
-      
+
       if (startMeridian === "AM") {
         // If start is AM, end can be from (start+1) AM to 11 PM
         // Add remaining AM hours
@@ -174,7 +174,7 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
           allHours.push({ hour: i, period: "PM" });
         }
       }
-      
+
       return allHours.map(item => item.hour);
     }
   }, [isEndTime, startTime]);
@@ -184,11 +184,11 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
       return ["AM", "PM"];
     } else {
       if (!startTime) return [];
-      
+
       const startParts = startTime.split(" ");
       const startHour = Number(startParts[0].split(":")[0]);
       const startMeridian = startParts[1];
-      
+
       if (startMeridian === "AM") {
         return ["AM", "PM"];
       } else {
@@ -204,16 +204,18 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
         id={`${idPrefix}-hour`}
         value={hour}
         onChange={(e) => onChange(formatAmPm(Number(e.target.value), meridian))}
-        style={{
-          height: "32px",
-          borderRadius: "8px",
-          fontSize: "11px",
-          textAlign: "center",
-          boxShadow: "none",
-          fontWeight: "500",
-          fontFamily: "Poppins",
-          maxWidth: 110,
-        }}
+       style={{
+  height: "32px",
+  borderRadius: "8px",
+  fontSize: "11px",        // ✔ correct
+  textAlign: "center",
+  boxShadow: "none",
+  fontWeight: 500,
+  fontFamily: "Poppins",
+  maxWidth: "110px",
+}}
+        className="custom_small_font_admin"
+
       >
         {hours.map((h, index) => (
           <option key={`${h}-${index}`} value={h}>
@@ -236,6 +238,7 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
           fontFamily: "Poppins",
           maxWidth: 110,
         }}
+        className="custom_small_font_admin"
       >
         {meridianOptions.map((option) => (
           <option key={option} value={option}>{option}</option>
@@ -762,7 +765,7 @@ const ClubUpdateForm = () => {
   };
 
   return (
-    <Card className="p-4 pt-2 shadow-sm border-0">
+    <Card className="p-md-4 px-3 pt-2 shadow-sm border-0">
       {ownerClubLoading ? (
         <DataLoading height="80vh" />
       ) : (
@@ -1149,9 +1152,9 @@ const ClubUpdateForm = () => {
 
           <Row>
             <Col md={7}>
-              <div className="d-flex align-items-center justify-content-between mb-3">
+              <div className="d-flex align-items-center justify-content-between mb-md-3 mb-1 ">
                 <h6
-                  className=" mb-0"
+                  className=" mb-0 add_font_small_admin"
                   style={{
                     fontSize: "20px",
                     fontWeight: "600",
@@ -1168,6 +1171,7 @@ const ClubUpdateForm = () => {
                     variant={hasChanged ? "success" : "secondary"}
                     disabled={!hasChanged}
                     onClick={applyToAll}
+                    className="py-1"
                   >
                     Apply last change to all days
                   </Button>
@@ -1192,7 +1196,7 @@ const ClubUpdateForm = () => {
                         {day}
                       </span>
                     </Col>
-                    <Col md={4}>
+                    <Col xs sm={4} md={4}>
                       <TimeSelect
                         idPrefix={`${day}-start`}
                         value={val.start}
@@ -1200,8 +1204,7 @@ const ClubUpdateForm = () => {
                         isEndTime={false}
                       />
                     </Col>
-                    <Col
-                      md={1}
+                    <Col xs="auto" md={1}
                       style={{
                         textAlign: "center",
                         fontSize: "12px",
@@ -1212,7 +1215,7 @@ const ClubUpdateForm = () => {
                     >
                       To
                     </Col>
-                    <Col md={4}>
+                    <Col xs sm={4} md={4}>
                       <TimeSelect
                         idPrefix={`${day}-end`}
                         value={val.end}
@@ -1236,19 +1239,19 @@ const ClubUpdateForm = () => {
               />
             </Col>
           </Row>
-          <div className="d-flex justify-content-end gap-2 ">
+          <div className="d-flex justify-content-end gap-2 my-2">
             <Button
               type="button"
               variant="secondary"
               onClick={() => navigate("/admin/dashboard")}
-              className="rounded-pill px-4"
+              className="rounded-pill px-4 py-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="success"
-              className="rounded-pill px-4"
+              className="rounded-pill px-4 py-1"
               disabled={!isSubmitEnabled}
               style={{
                 backgroundColor: "#22c55e",

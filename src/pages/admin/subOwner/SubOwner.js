@@ -42,7 +42,7 @@ const SubOwner = () => {
     setSelectedUser(item);
   };
   return (
-    <Container fluid className="px-4">
+    <Container fluid className="px-md-4 px-0">
       <Row className="mb-3">
         <Col
           md={12}
@@ -69,7 +69,7 @@ const SubOwner = () => {
               }}
             >
               <div
-                className="p-1 rounded-circle bg-light"
+                className="p-md-1 p-2 rounded-circle bg-light"
                 style={{ position: "relative", left: "10px" }}
               >
                 <div
