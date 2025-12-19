@@ -131,11 +131,11 @@ const Booking = () => {
   };
 
   return (
-    <Container fluid className="px-2 px-md-4">
+    <Container fluid className="px-0 px-md-4">
 
-      <Row className="mb-3">
+      <Row className="mb-md-3 mb-2">
         <Col xs={12}>
-          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
+          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-2">
             <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto" } }}>
               <AppBar
                 position="static"
@@ -169,7 +169,7 @@ const Booking = () => {
                         </span>
                       </>
                     }
-                    className="fw-medium table-data d-flex text-nowrap"
+                    className="fw-medium table-data px-1 d-flex text-nowrap"
                   />
 
                   <Tab
@@ -182,7 +182,7 @@ const Booking = () => {
                         </span>
                       </>
                     }
-                    className="fw-medium text-nowrap table-data"
+                    className="fw-medium text-nowrap table-data px-1"
                   />
 
                   <Tab
@@ -194,13 +194,13 @@ const Booking = () => {
                         </span>
                       </>
                     }
-                    className="fw-medium text-nowrap table-data"
+                    className="fw-medium text-nowrap table-data px-1"
                   />
                 </Tabs>
               </AppBar>
             </Box>
 
-            <div className="d-flex align-items-center gap-2">
+            <div className="d-flex align-items-center gap-2 col-md-6 col-12 d-flex align-items-center justify-content-end">
               {!showDatePicker && !startDate && !endDate ? (
                 <div
                   className="d-flex align-items-center justify-content-center rounded p-2"
@@ -286,7 +286,7 @@ const Booking = () => {
                 }}
               >
                 <div
-                  className="p-1 rounded-circle bg-light"
+                  className="p-md-1 p-2 rounded-circle bg-light"
                   style={{ position: "relative", left: "10px" }}
                 >
                   <div
@@ -326,7 +326,7 @@ const Booking = () => {
             className="bg-white rounded shadow-sm p-2 p-md-3 d-flex flex-column"
             style={{ minHeight: "75vh" }}
           >
-            <h6 className="mb-3 tabel-title fs-6">
+            <h6 className="mb-md-3 mb-2 tabel-title fs-6">
               {tab === 0
                 ? "All Bookings"
                 : tab === 1
@@ -339,7 +339,7 @@ const Booking = () => {
             ) : bookings.length > 0 ? (
               <>
                 <div
-                  className="custom-scroll-container flex-grow-1"
+                  className=" flex-grow-1"
                   style={{
                     overflowY: "auto",
                     overflowX: "auto",
@@ -475,7 +475,7 @@ const Booking = () => {
 
                 <div className="mobile-card-table d-block d-md-none">
                   {bookings.map((item) => (
-                    <div key={item?._id} className="card">
+                    <div key={item?._id} className="card mb-2">
                       <div className="card-body">
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">User:</span>

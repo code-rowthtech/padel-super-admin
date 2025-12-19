@@ -2452,6 +2452,10 @@ h1.display-5 {
     padding: 1px 6px !important;
     border-radius: 5px !important;
   }
+  .add_height_data{
+  height: auto!important;
+  overflow-y: scroll;
+}
 
   .d-flex.justify-content-start.border img {
     width: 34px !important;
@@ -2494,7 +2498,10 @@ h1.display-5 {
     top: 3px !important;
     left: 8% !important;
   }
-
+.add_width_low{
+  width: 38px!important;
+  min-width: 38px!important;
+}
   .position-absolute[style*="top: 11px"]>div {
     width: 40px !important;
     height: 40px !important;
@@ -2636,7 +2643,16 @@ button:focus .book-now-arrow {
 .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb:hover {
   background: #cccccc;
 }
-
+.add_width_low {
+    /* flex: 0 0 91px !important; */
+    height: 58px !important;
+    max-width: 48px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1px 19px !important;
+    border: 1px solid #4949491A;
+}
 /* Firefox scrollbar */
 .mobile-expanded-slots {
   scrollbar-color: #ffffff rgba(255, 255, 255, 0.2);
@@ -2799,4 +2815,8 @@ button:focus .book-now-arrow {
 .view-match-btn:hover {
   background: #1F41BB;
   color: white;
+}
+.add_height_data{
+  height: 36rem;
+  overflow-y: scroll;
 }
