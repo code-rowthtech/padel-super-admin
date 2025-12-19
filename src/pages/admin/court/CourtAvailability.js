@@ -432,7 +432,7 @@ const CourtAvailability = () => {
                       </span>
                       {isOpen && (
                         <div
-                          className="position-absolute mt-2 z-3 bg-white border rounded shadow"
+                          className="position-absolute mt-2 z-3 bg-white border rounded shadow left_chnage_num"
                           style={{ top: "100%", left: "0", minWidth: "100%" }}
                         >
                           <LocalizationProvider dateAdapter={AdapterDateFns}>

@@ -569,7 +569,7 @@ const AdminDashboard = () => {
                       overflowY:
                         dashboardCancelledBookings?.length > 9
                           ? "auto"
-                          : "hidden",
+                          : "scroll",
                     }}
                   >
                     {dashboardCancelledBookings?.length > 0 ? (
@@ -664,7 +664,7 @@ const AdminDashboard = () => {
 
                         <div className="mobile-card-table d-block d-md-none">
                           {dashboardCancelledBookings?.map((item) => (
-                            <div key={item?._id} className="card">
+                            <div key={item?._id} className="card mb-2">
                               <div className="card-body">
                                 <div className="mobile-card-item">
                                   <span className="mobile-card-label">

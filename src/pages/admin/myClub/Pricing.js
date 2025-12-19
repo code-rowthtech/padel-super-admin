@@ -26,7 +26,7 @@ const DAYS_OF_WEEK = [
 ];
 const containerStyle = {
   borderRadius: "8px",
-  padding: "3px 10px",
+  padding: "3px 0px",
 };
 function normalizeTimeKey(timeStr) {
   if (!timeStr) return null;
@@ -270,7 +270,7 @@ const Pricing = ({
         key={day}
         type="checkbox"
         id={`day-${day}`}
-        className="mb-3 d-flex justify-content-between align-items-center"
+        className="mb-md-3 mb-0 d-flex justify-content-between align-items-center"
       >
         <div className="d-flex align-items-center w-100">
           <Form.Check.Input
@@ -278,6 +278,7 @@ const Pricing = ({
             type="checkbox"
             checked={!!formData.days[day]}
             onChange={() => handleDayChange(day)}
+            className="mt-0"
             style={{
               width: "20px",
               height: "20px",
@@ -285,7 +286,7 @@ const Pricing = ({
               border: "2px solid #1F2937",
               backgroundColor: formData.days[day] ? "#1F2937" : "transparent",
               cursor: "pointer",
-              transform: "scale(1.2)",
+              // transform: "scale(1.2)",
             }}
           />
           <label
@@ -521,10 +522,11 @@ const Pricing = ({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            // gridTemplateColumns: "repeat(4, 1fr)",
             gap: "8px",
             marginBottom: "16px",
-          }}
+          }} 
+          className="grid-container"
         >
           {allTimesRaw.map((timeRaw) => {
             const display = formatTo12HourDisplay(timeRaw);
@@ -781,15 +783,16 @@ const Pricing = ({
     <div className="">
       <Row>
         <Col xs={12} md={2}>
-          <div style={containerStyle} className="mb-3 mb-md-0">
+          <div style={containerStyle} className="my-2 mt-md-0 gap-3 mb-md-3 d-flex d-md-block overflow-scroll">
             <Form.Check
               type="checkbox"
-              className="d-flex mb-3 align-items-start"
+              className="d-flex mb-md-3 mb-0 align-items-start"
               id="select-all-days"
             >
               <Form.Check.Input
                 type="checkbox"
                 id="select-all-days"
+                className="mt-0"
                 checked={selectAllDays}
                 onChange={(e) => {
                   const checked = e.target.checked;
@@ -831,7 +834,7 @@ const Pricing = ({
           </div>
         </Col>
         <Col xs={12} md={8} className="position-relative">
-          <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
+          <div className="d-flex justify-content-end align-items-center mb-0 d-md-none">
             <Dropdown className="">
               <Dropdown.Toggle
                 variant="secondary"
@@ -846,6 +849,7 @@ const Pricing = ({
                   alignItems: "center",
                   gap: "8px",
                 }}
+                className="py-1"
               >
                 {formData.selectedSlots}
                 <IoChevronDown style={{ fontSize: "10px" }} />
