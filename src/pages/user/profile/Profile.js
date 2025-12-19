@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { FaCamera, FaUserCircle } from "react-icons/fa";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
@@ -105,38 +105,52 @@ const Profile = () => {
   localStorage.setItem("updateprofile", JSON.stringify(updateProfileData));
 
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
 
-    const formatted = name === 'email' 
-      ? value
-      : value.length > 0
-        ? value.charAt(0).toUpperCase() + value.slice(1)
-        : "";
+    // Prevent unnecessary updates
+    if (formData[name] === value) return;
+
+    let formatted = value;
+    if (name !== 'email' && value.length > 0) {
+      formatted = value.charAt(0).toUpperCase() + value.slice(1);
+    }
 
     setFormData((prev) => ({
       ...prev,
       [name]: formatted,
     }));
-  };
+  }, [formData]);
 
 
-  const handleImageChange = (e) => {
+  const handleImageChange = useCallback((e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        showError('Only image files are allowed');
-        e.target.value = ''; 
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, profileImage: reader.result }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showError('Only image files are allowed');
+      e.target.value = ''; 
+      return;
     }
-  };
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Image size must be less than 5MB');
+      e.target.value = '';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, profileImage: reader.result }));
+    };
+    reader.onerror = () => {
+      showError('Failed to read image file');
+      e.target.value = '';
+    };
+    reader.readAsDataURL(file);
+  }, []);
 
   const dataURLtoBlob = (dataURL) => {
     const [header, base64] = dataURL.split(",");
