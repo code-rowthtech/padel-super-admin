@@ -642,8 +642,8 @@ const OpenmatchPayment = () => {
                                                             <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
                                                         </div>
                                                         <div className="text-white">
-                                                            ₹<span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}</span>
-                                                            <MdOutlineDeleteOutline className="mt-1 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, timeSlot._id)} />
+                                                            ₹<span className="ps-0 pt-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}</span>
+                                                            <MdOutlineDeleteOutline className="mt-1 ms-2 mb-2 text-white" style={{ cursor: "pointer" }} onClick={() => handleDeleteSlot(court._id, timeSlot._id)} />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -857,7 +857,7 @@ const OpenmatchPayment = () => {
                                             </div>
 
                                             <span
-                                                className="text-white"
+                                                className="text-white gap-0"
                                                 style={{ fontSize: "20px", fontWeight: "600" }}
                                             >
                                                 ₹{Number(localGrandTotal || 0).toLocaleString("en-IN")}
@@ -986,7 +986,7 @@ const OpenmatchPayment = () => {
                                     className="mb-0"
                                     style={{ fontSize: "25px", fontWeight: "600" }}
                                 >
-                                    ₹ {Number(localGrandTotal || 0).toLocaleString("en-IN")}
+                                    ₹{Number(localGrandTotal || 0).toLocaleString("en-IN")}
                                 </p>
                             </div>
                         )}

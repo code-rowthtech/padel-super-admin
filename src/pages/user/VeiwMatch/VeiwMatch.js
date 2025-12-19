@@ -109,26 +109,29 @@ const PlayerSlot = memo(function PlayerSlot({
 
             <p
                 className="mb-0 mt-2 fw-semibold text-center"
-                data-tooltip-id={user.name && user.name.length > 12 ? tooltipId : undefined}
-                data-tooltip-content={user.name && user.name.length > 12 ? user.name : undefined}
+                data-tooltip-id={user.name && window.innerWidth > 768 && user.name.length > 12 ? tooltipId : undefined}
+                data-tooltip-content={user.name && window.innerWidth > 768 && user.name.length > 12 ? user.name : undefined}
                 style={{
                     maxWidth: 150,
                     overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    textOverflow: window.innerWidth <= 768 ? "clip" : "ellipsis",
+                    whiteSpace: window.innerWidth <= 768 ? "normal" : "nowrap",
                     fontSize: "12px",
                     fontWeight: "500",
                     fontFamily: "Poppins",
-                    cursor: user.name && user.name.length > 12 ? "pointer" : "default"
+                    wordBreak: window.innerWidth <= 768 ? "break-word" : "normal",
+                    cursor: user.name && window.innerWidth > 768 && user.name.length > 12 ? "pointer" : "default"
                 }}
             >
-                {user.name && user.name.length > 12
-                    ? user.name.slice(0, 12) + "..."
-                    : user.name
+                {user.name
+                    ? window.innerWidth <= 768
                         ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-                        : "Unknown"}
+                        : user.name.length > 12
+                            ? user.name.slice(0, 12) + "..."
+                            : user.name.charAt(0).toUpperCase() + user.name.slice(1)
+                    : "Unknown"}
             </p>
-            {user.name && user.name.length > 12 && <Tooltip id={tooltipId} />}
+            {user.name && window.innerWidth > 768 && user.name.length > 12 && <Tooltip id={tooltipId} />}
             <span
                 className="badge text-white"
                 style={{ backgroundColor: team === "A" ? "#3DBE64" : "#1F41BB" }}
@@ -645,8 +648,8 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                     </h6>
 
                     <div className="row mx-auto">
-                        <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 ">
-                            {slots.slice(0, 2).map((s) => (
+                        <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 d-md-flex d-md-align-items-center">
+                            {slots?.slice(0, 2)?.map((s) => (
                                 <PlayerSlot
                                     key={s.index}
                                     player={s.player}
@@ -662,8 +665,8 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                             ))}
                         </div>
 
-                        <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 border-start border-0 border-lg-start">
-                            {slots.slice(2, 4).map((s) => (
+                        <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 border-start border-0 border-lg-start d-md-flex d-md-align-items-center">
+                            {slots?.slice(2, 4)?.map((s) => (
                                 <PlayerSlot
                                     key={s.index}
                                     player={s.player}
