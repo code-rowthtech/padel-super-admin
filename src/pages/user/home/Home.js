@@ -103,7 +103,7 @@ const Home = () => {
     return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
   }, []);
 
-  const mapSrc = useMemo(() => 
+  const mapSrc = useMemo(() =>
     mapApiData?.address ? createEmbedUrl(mapApiData.address) : defaultMapSrc,
     [mapApiData?.address, createEmbedUrl]
   );
@@ -367,7 +367,8 @@ const Home = () => {
                         style={{
                           width: "100%",
                           height: "auto",
-                          backgroundSize: "cover",
+                          objectFit: "cover",
+                          objectPosition: "center"
                         }}
                       />
                     </div>
@@ -425,7 +426,7 @@ const Home = () => {
                 </div>
                 <div
                   className="d-flex d-md-none align-items-center bg-black text-white px-3 py-0 ps-0 mb-2 mt-3"
-                  style={{ width: "fit-content", gap: "12px",borderRadius:"50px 38px 38px 50px" }}
+                  style={{ width: "fit-content", gap: "12px", borderRadius: "50px 38px 38px 50px" }}
                 >
                   <div className='ogo_add_star border-0 rounded-circle p-1'
                     style={{
@@ -445,7 +446,8 @@ const Home = () => {
                       style={{
                         width: "100%",
                         height: "auto",
-                        backgroundSize: "cover",
+                        objectFit: "cover",
+                        objectPosition: "center"
                       }}
                     />
                   </div>

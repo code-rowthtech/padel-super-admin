@@ -68,7 +68,7 @@ const Navbar = () => {
         },
     });
 
-    
+
 
     const playNotificationSound = () => {
         const audio = new Audio(sendSound);
@@ -77,7 +77,7 @@ const Navbar = () => {
     };
     useEffect(() => {
         if (!userId) return;
-        
+
         let isMounted = true;
         const socket = io(SOCKET_URL, {
             transports: ["websocket", "polling"],
@@ -95,7 +95,7 @@ const Navbar = () => {
                     dispatch(getNotificationData()).unwrap(),
                     dispatch(getNotificationCount()).unwrap()
                 ]);
-                
+
                 if (isMounted) {
                     if (notificationRes?.notifications) {
                         setNotifications(notificationRes.notifications);
@@ -106,7 +106,7 @@ const Navbar = () => {
                 console.error('Failed to load notifications:', err);
             }
         };
-        
+
         loadNotifications();
 
         const handleConnect = () => {
@@ -334,7 +334,8 @@ const Navbar = () => {
                                     style={{
                                         width: "100%",
                                         height: "auto",
-                                        backgroundSize: "cover",
+                                        objectFit: "cover",
+                                        objectPosition: "center"
                                     }}
                                 />
                             </div>
@@ -764,6 +765,7 @@ const Navbar = () => {
                                         width: "40px",
                                         height: "40px",
                                         objectFit: "cover",
+                                        objectPosition: "center"
                                     }}
                                 />
                             ) : (
