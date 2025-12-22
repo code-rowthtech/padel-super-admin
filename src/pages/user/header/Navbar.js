@@ -182,8 +182,6 @@ const Navbar = () => {
             }
         }
 
-
-
         const updateUserData = () => {
             const userLocal = localStorage.getItem('padel_user');
             if (userLocal) {
@@ -283,6 +281,7 @@ const Navbar = () => {
                     setOpen(false)
                 } else {
                     navigate(note?.notificationUrl);
+                    setOpen(false)
                 }
                 socket.on("userNotificationCountUpdate", (data) => {
                     setNotificationCount(data);

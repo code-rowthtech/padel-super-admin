@@ -5,128 +5,135 @@ import { SESSION_KEYS } from "../../constants";
 
 const { USER, OWNER } = SESSION_KEYS;
 
-export const getUserFromSession = () => {
-  const stored = localStorage.getItem(USER);
-  if (!stored) return null;
+/* =========================
+   SESSION HELPERS
+========================= */
+
+const safeParse = (value) => {
   try {
-    return JSON.parse(stored);
+    return JSON.parse(value);
   } catch {
     return null;
   }
 };
+
+export const getUserFromSession = () =>
+  safeParse(localStorage.getItem(USER));
+
+export const getOwnerFromSession = () =>
+  safeParse(localStorage.getItem(OWNER));
 
 export const setLoggedInUser = (session) => {
-  if (session?.token) {
-    localStorage.setItem(USER, JSON.stringify(session));
-  } else {
-    localStorage.removeItem(USER);
-  }
-};
-
-export const getOwnerFromSession = () => {
-  const stored = localStorage.getItem(OWNER);
-  if (!stored) return null;
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return null;
-  }
+  session?.token
+    ? localStorage.setItem(USER, JSON.stringify(session))
+    : localStorage.removeItem(USER);
 };
 
 export const setLoggedInOwner = (session) => {
-  if (session) {
-    localStorage.setItem(OWNER, JSON.stringify(session));
-  } else {
-    localStorage.removeItem(OWNER);
-  }
+  session
+    ? localStorage.setItem(OWNER, JSON.stringify(session))
+    : localStorage.removeItem(OWNER);
 };
 
-const validateToken = (token, userType) => {
+/* =========================
+   TOKEN VALIDATION (PURE)
+========================= */
+
+const isTokenValid = (token) => {
   if (!token) return false;
   try {
-    const decoded = jwtDecode(token);
-    const now = Date.now() / 1000;
-    if (decoded.exp < now) {
-      handleExpiredSession(userType);
-      return false;
-    }
-    return true;
+    const { exp } = jwtDecode(token);
+    return exp > Date.now() / 1000;
   } catch {
     return false;
   }
 };
 
+export const isUserAuthenticated = () =>
+  isTokenValid(getUserFromSession()?.token);
 
-
-export const isUserAuthenticated = () => {
-  const user = getUserFromSession();
-  return validateToken(user?.token, "user");
-};
-
-export const isOwnerAuthenticated = () => {
-  const owner = getOwnerFromSession();
-  return validateToken(owner?.token, "owner");
-};
+export const isOwnerAuthenticated = () =>
+  isTokenValid(getOwnerFromSession()?.token);
 
 export const isAuthenticated = () =>
   isUserAuthenticated() || isOwnerAuthenticated();
 
-const userAxios = axios.create({ baseURL: config.API_URL });
-const ownerAxios = axios.create({ baseURL: config.API_URL });
+/* =========================
+   AXIOS INSTANCES
+========================= */
+
+const createAxiosInstance = (getToken) => {
+  const instance = axios.create({
+    baseURL: config.API_URL,
+  });
+
+  instance.interceptors.request.use((config) => {
+    const token = getToken()?.token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
+  return instance;
+};
+
+export const userAxios = createAxiosInstance(getUserFromSession);
+export const ownerAxios = createAxiosInstance(getOwnerFromSession);
+
+/* =========================
+   SESSION EXPIRY HANDLER
+========================= */
 
 let sessionHandled = false;
 
-const handleExpiredSession = (userType) => {
+const handleExpiredSession = (type) => {
   if (sessionHandled) return;
   sessionHandled = true;
 
-  if (userType === "user") {
-    setLoggedInUser(null);
-  } else {
-    setLoggedInOwner(null);
-  }
-
+  type === "owner"
+    ? setLoggedInOwner(null)
+    : setLoggedInUser(null);
 
   setTimeout(() => {
-    if (window.location.pathname.toLowerCase().startsWith("/admin")) {
-      window.location.href = "/admin/login";
-    } else {
-      window.location.href = "/";
-    }
-  }, 2000);
+    const isAdmin = window.location.pathname
+      .toLowerCase()
+      .startsWith("/admin");
 
-  alert("Please Login");
-
+    window.location.href = isAdmin ? "/admin/login" : "/";
+  }, 500);
 };
 
+/* =========================
+   ERROR INTERCEPTOR
+========================= */
 
-const errorInterceptor = (err) => {
+const errorInterceptor = (error) => {
   if (!navigator.onLine) {
     window.location.href = "/no-internet";
     return Promise.reject("No internet connection");
   }
 
-  const { response } = err;
-  const status = response?.status;
+  const status = error?.response?.status;
 
   if (status === 401) {
-    const path = window.location.pathname.toLowerCase();
-    if (path.startsWith("/admin")) {
-      handleExpiredSession("owner");
-    } else {
-      handleExpiredSession("user");
-    }
-    return Promise.reject("Session expired. Please log in again.");
+    const isAdmin = window.location.pathname
+      .toLowerCase()
+      .startsWith("/admin");
+
+    handleExpiredSession(isAdmin ? "owner" : "user");
+    return Promise.reject("Session expired");
   }
 
   const message =
-    response?.data?.message ||
+    error?.response?.data?.message ||
     {
-      400: "Error",
+      400: "Bad Request",
       403: "Access Forbidden",
-      404: "Sorry! the data you are looking for could not be found",
+      404: "Data not found",
+      500: "Server error",
     }[status] ||
-    err.message;
+    error.message;
 
   return Promise.reject(message);
 };
@@ -134,76 +141,58 @@ const errorInterceptor = (err) => {
 userAxios.interceptors.response.use((res) => res, errorInterceptor);
 ownerAxios.interceptors.response.use((res) => res, errorInterceptor);
 
-userAxios.interceptors.request.use((config) => {
-  const token = getUserFromSession()?.token;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+/* =========================
+   FILE UPLOAD HELPER
+========================= */
 
-ownerAxios.interceptors.request.use((config) => {
-  const token = getOwnerFromSession()?.token;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-const buildFormData = (data) => {
+const buildFormData = (data = {}) => {
   const formData = new FormData();
-  for (const key in data) {
+  Object.keys(data).forEach((key) => {
     if (data[key] !== undefined) {
       formData.append(key, data[key]);
     }
-  }
+  });
   return formData;
 };
 
-export const userApi = {
-  get: (url, params = {}) => userAxios.get(url, { params }),
-  post: (url, data) => userAxios.post(url, data),
-  put: (url, data) => userAxios.put(url, data),
-  patch: (url, data) => userAxios.patch(url, data),
-  delete: (url, params = {}) => userAxios.delete(url, { params }),
-  postFile: (url, data) =>
-    userAxios.post(url, buildFormData(data), {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
-  patchFile: (url, data) =>
-    userAxios.patch(url, buildFormData(data), {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
-};
+/* =========================
+   API WRAPPERS
+========================= */
 
-export const ownerApi = {
-  get: (url, params = {}) => ownerAxios.get(url, { params }),
-  post: (url, data) => ownerAxios.post(url, data),
-  put: (url, data) => ownerAxios.put(url, data),
-  patch: (url, data) => ownerAxios.patch(url, data),
-  delete: (url, params = {}) => ownerAxios.delete(url, { params }),
+const createApi = (axiosInstance) => ({
+  get: (url, params = {}) => axiosInstance.get(url, { params }),
+  post: (url, data) => axiosInstance.post(url, data),
+  put: (url, data) => axiosInstance.put(url, data),
+  patch: (url, data) => axiosInstance.patch(url, data),
+  delete: (url, params = {}) =>
+    axiosInstance.delete(url, { params }),
+
   postFile: (url, data) =>
-    ownerAxios.post(url, buildFormData(data), {
+    axiosInstance.post(url, buildFormData(data), {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+
   patchFile: (url, data) =>
-    ownerAxios.patch(url, buildFormData(data), {
+    axiosInstance.patch(url, buildFormData(data), {
       headers: { "Content-Type": "multipart/form-data" },
     }),
-};
+});
+
+export const userApi = createApi(userAxios);
+export const ownerApi = createApi(ownerAxios);
+
+/* =========================
+   SESSION UPDATE HELPER
+========================= */
 
 export const updateSessionData = (updatedData, type = "user") => {
   if (!updatedData || typeof updatedData !== "object") return;
 
-  if (type === "user") {
-    const user = getUserFromSession();
-    if (user) {
-      const updatedUser = { ...user, ...updatedData };
-      setLoggedInUser(updatedUser);
-    }
-  }
-
   if (type === "owner") {
     const owner = getOwnerFromSession();
-    if (owner) {
-      const updatedOwner = { ...owner, ...updatedData };
-      setLoggedInOwner(updatedOwner);
-    }
+    owner && setLoggedInOwner({ ...owner, ...updatedData });
+  } else {
+    const user = getUserFromSession();
+    user && setLoggedInUser({ ...user, ...updatedData });
   }
 };

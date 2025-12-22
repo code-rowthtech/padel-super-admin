@@ -183,7 +183,7 @@ const MatchPlayer = ({
             const current = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
             current.gameType = selectedGender;
             localStorage.setItem("addedPlayers", JSON.stringify(current));
-        } 
+        }
     }, [selectedGender, localPlayers]);
     const handleAddMeClick = (slot) => {
         if (!selectedGender) {
@@ -411,7 +411,7 @@ const MatchPlayer = ({
                             <i className="bi bi-chat-left-text d-flex justify-content-center align-items-center"></i>
                         </button>
 
-                      
+
                     </div>
                 </div>
 
@@ -600,8 +600,8 @@ const MatchPlayer = ({
                                         >
                                             {localPlayers.slot2.name?.length > 12 ? `${localPlayers.slot2.name.substring(0, 12)}...` : localPlayers.slot2.name}
                                         </p>
-                                        <i 
-                                            className="bi bi-pencil-fill mt-2" 
+                                        <i
+                                            className="bi bi-pencil-fill mt-2"
                                             style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
                                             onClick={() => handleAddMeClick("slot2")}
                                         />
@@ -657,8 +657,8 @@ const MatchPlayer = ({
                                         >
                                             {localPlayers.slot3.name?.length > 12 ? `${localPlayers.slot3.name.substring(0, 12)}...` : localPlayers.slot3.name}
                                         </p>
-                                        <i 
-                                            className="bi bi-pencil-fill mt-2" 
+                                        <i
+                                            className="bi bi-pencil-fill mt-2"
                                             style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
                                             onClick={() => handleAddMeClick("slot3")}
                                         />
@@ -712,8 +712,8 @@ const MatchPlayer = ({
                                         >
                                             {localPlayers.slot4.name?.length > 12 ? `${localPlayers.slot4.name.substring(0, 12)}...` : localPlayers.slot4.name}
                                         </p>
-                                        <i 
-                                            className="bi bi-pencil-fill mt-2" 
+                                        <i
+                                            className="bi bi-pencil-fill mt-2"
                                             style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
                                             onClick={() => handleAddMeClick("slot4")}
                                         />
@@ -808,6 +808,11 @@ const MatchPlayer = ({
                                 fill="none"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
+                                className="book-now-arrow"
+                                style={{
+                                    transformOrigin: `${arrowX}px ${arrowY}px`,
+                                    transition: "transform 0.3s ease"
+                                }}
                             >
                                 <path
                                     d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4

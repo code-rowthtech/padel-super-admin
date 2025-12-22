@@ -3,6 +3,7 @@ import * as Url from "../../../helpers/api/apiEndpoint";
 import { userApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
+// create booking thunk
 export const createBooking = createAsyncThunk(
   "booking/createBooking",
   async (data, { rejectWithValue }) => {
@@ -16,6 +17,7 @@ export const createBooking = createAsyncThunk(
   }
 );
 
+// get booking thunk
 export const getBooking = createAsyncThunk(
   "booking/getBooking",
   async (data, { rejectWithValue }) => {
@@ -29,6 +31,7 @@ export const getBooking = createAsyncThunk(
   }
 );
 
+// update status booking thunk
 export const bookingStatus = createAsyncThunk(
   "booking/bookingStatus",
   async (data, { rejectWithValue }) => {

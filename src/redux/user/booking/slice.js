@@ -24,6 +24,7 @@ const bookingSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+        // create booking slice
             .addCase(createBooking.pending, (state) => {
                 state.bookingLoading = true;
                 state.bookingError = null;
@@ -36,6 +37,7 @@ const bookingSlice = createSlice({
                 state.bookingLoading = false;
                 state.bookingError = action.payload;
             })
+            // get booking slice
             .addCase(getBooking.pending, (state) => {
                 state.bookingLoading = true;
                 state.bookingError = null;
@@ -48,6 +50,7 @@ const bookingSlice = createSlice({
                 state.bookingLoading = false;
                 state.bookingError = action.payload;
             })
+            // update status booking slice
             .addCase(bookingStatus.pending, (state) => {
                 state.bookingStatusLoading = true;
                 state.bookingError = null
