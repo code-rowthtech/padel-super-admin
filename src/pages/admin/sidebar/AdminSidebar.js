@@ -118,7 +118,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                     style={{
                       width: "100%",
                       height: "100%",
-                      // backgroundSize: "cover",
+                      objectFit: "cover",
+                      objectPosition: "center"
                     }}
                     onClick={() => handleNavigation("/admin/dashboard")}
                   />

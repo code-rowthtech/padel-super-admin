@@ -126,21 +126,21 @@ const Profile = () => {
   const handleImageChange = useCallback((e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
       showError('Only image files are allowed');
-      e.target.value = ''; 
+      e.target.value = '';
       return;
     }
-    
+
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       showError('Image size must be less than 5MB');
       e.target.value = '';
       return;
     }
-    
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setFormData((prev) => ({ ...prev, profileImage: reader.result }));
@@ -290,6 +290,7 @@ const Profile = () => {
                 className="border bg-secondary"
                 style={{
                   objectFit: "cover",
+                  objectPosition: "center",
                   width: "100%",
                   height: "100%",
                   borderRadius: "50%",
@@ -302,10 +303,10 @@ const Profile = () => {
                 style={{
                   width: "100%",
                   height: "100%",
-                  borderRadius:"50px"
+                  borderRadius: "50px"
                 }}
               >
-                <FaUserCircle style={{ width: "80px", height: "80px"}} />
+                <FaUserCircle style={{ width: "80px", height: "80px" }} />
               </div>
             )}
 
@@ -426,7 +427,7 @@ const Profile = () => {
           </div>
           <div className="col-12 col-md-4 mb-3">
             <label className="label d-block">
-              Gender 
+              Gender
             </label>
             {["Female", "Male", "Other"].map((g) => {
               const id = `gender-${g}`;
