@@ -421,7 +421,7 @@ const NewPlayers = ({
                 +91
               </span>
               <input
-                type="text"
+                type="tel"
                 maxLength={10}
                 value={formData.phoneNumber}
                 onChange={(e) => {
