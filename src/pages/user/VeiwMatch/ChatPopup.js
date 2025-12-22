@@ -65,9 +65,11 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                 socketRef.current.emit('getUnreadCount', { matchId });
             });
             socketRef.current.on('userJoined', (data) => {
+                console.log(data,'data3');
                 setMessages((prev) => [...prev, { ...data, isSystemMessage: true }]);
             });
             socketRef.current.on('messagesReceived', (data) => {
+                console.log(data,'data1');
                 setMessages(data.messages || []);
                 clearTimeout(loadingTimeout);
                 setLoading(false);
@@ -75,6 +77,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                 setTimeout(() => scrollToBottom(), 100);
             });
             socketRef.current.on('newMessage', (data) => {
+                console.log(data,'data2');
                 setMessages((prev) => [...prev, data]);
                 if (data.senderId?._id !== User._id) {
                     playNotificationSound();
@@ -251,12 +254,12 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                     <div className="d-flex justify-content-center align-items-center h-100">
                         <ButtonLoading />
                     </div>
-                ) : messages.length === 0 ? (
+                ) : messages?.length === 0 ? (
                     <div className="d-flex justify-content-center align-items-center h-100">
                         <p style={{ color: '#6B7280', fontSize: '14px', fontFamily: 'Poppins' }}>No messages yet. Start the conversation!</p>
                     </div>
                 ) : messages?.map((msg, index) => {
-                    if (msg.isSystemMessage) {
+                    if (msg?.isSystemMessage) {
                         return (
                             <div key={msg._id || index} className="d-flex justify-content-center mb-2">
                                 <span style={{
@@ -267,22 +270,22 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                                     fontSize: '12px',
                                     fontWeight: 500
                                 }}>
-                                    {msg.message}
+                                    {msg?.message}
                                 </span>
                             </div>
                         );
                     }
 
-                    const isCurrentUser = msg.senderId?._id === User._id;
-                    const userName = msg.senderId?.name || 'Unknown';
+                    const isCurrentUser = msg?.senderId?._id === User?._id;
+                    const userName = msg?.senderId?.name || 'Unknown';
                     const nameParts = userName.trim().split(/\s+/);
-                    const initials = nameParts.length > 1 ? nameParts[0][0] + nameParts[1][0] : nameParts[0]?.[0] || '?';
-                    const teamColor = msg.senderTeam === 'teamA' ? '#3DBE64' : '#1F41BB';
-                    const teamLabel = msg.senderTeam === 'teamA' ? 'Team A' : 'Team B';
+                    const initials = nameParts?.length > 1 ? nameParts[0][0] + nameParts[1][0] : nameParts[0]?.[0] || '?';
+                    const teamColor = msg?.senderTeam === 'teamA' ? '#3DBE64' : '#1F41BB';
+                    const teamLabel = msg?.senderTeam === 'teamA' ? 'Team A' : 'Team B';
                     const showDateSeparator = shouldShowDateSeparator(msg, messages[index - 1]);
 
                     return (
-                        <React.Fragment key={msg._id || index}>
+                        <React.Fragment key={msg?._id || index}>
                             {showDateSeparator && (
                                 <div className="d-flex justify-content-center mb-3 mt-2">
                                     <span style={{
@@ -293,7 +296,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                                         fontSize: '11px',
                                         fontWeight: 500
                                     }}>
-                                        {getDateLabel(msg.createdAt)}
+                                        {getDateLabel(msg?.createdAt)}
                                     </span>
                                 </div>
                             )}
@@ -319,7 +322,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                                                 flexShrink: 0
                                             }}
                                         >
-                                            {msg.senderId?.profilePic ? (
+                                            {msg?.senderId?.profilePic ? (
                                                 <img src={msg.senderId.profilePic} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                             ) : (
                                                 initials.toUpperCase()
@@ -376,7 +379,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                                                     color: isCurrentUser ? '#fff' : '#374151'
                                                 }}
                                             >
-                                                {msg.message}
+                                                {msg?.message}
                                             </p>
                                         </div>
 
@@ -385,14 +388,14 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                                             className={`d-flex align-items-center gap-1 mt-1 ${isCurrentUser ? 'justify-content-end' : ''}`}
                                             style={{ width: '100%' }}
                                         >
-                                            {isCurrentUser && msg.readBy && msg.readBy.length > 0 && (
+                                            {isCurrentUser && msg?.readBy && msg?.readBy?.length > 0 && (
                                                 <p className="mb-0" style={{ fontSize: '10px', color: '#9CA3AF' }}>
-                                                    Seen by {msg.readBy.map(r => r.name).join(', ')}
+                                                    Seen by {msg?.readBy?.map(r => r?.name).join(', ')}
                                                 </p>
                                             )}
 
                                             <p className="mb-0 text-nowrap" style={{ fontSize: '10px', color: '#9CA3AF' }}>
-                                                {new Date(msg.createdAt).toLocaleTimeString('en-US', {
+                                                {new Date(msg?.createdAt).toLocaleTimeString('en-US', {
                                                     hour: 'numeric',
                                                     minute: '2-digit'
                                                 })}
