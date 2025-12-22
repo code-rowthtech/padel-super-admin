@@ -316,10 +316,26 @@ const Booking = ({ className = "" }) => {
     const width = 370;
     const height = 75;
     const circleRadius = height * 0.3;
+
+    // ये दो lines जोड़ें – यही missing थीं
+    const curvedSectionStart = width * 0.76;
+    const curvedSectionEnd = width * 0.996;
+
+    // अब circle और arrow की position सही calculate होगी
+    const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
+    const circleY = height * 0.5;
+
+    const arrowSize = circleRadius * 0.6;
+    const arrowX = circleX;
+    const arrowY = circleY;
+
     return {
       width,
       height,
       circleRadius,
+      arrowX,        // अगर बाहर use करना हो तो return करें
+      arrowY,        // (optional, लेकिन safe side के लिए)
+      arrowSize,     // (optional)
       buttonStyle: {
         position: "relative",
         width: `${width}px`,
@@ -360,12 +376,12 @@ const Booking = ({ className = "" }) => {
     date.setDate(date.getDate() + 15);
     return date;
   }, []);
-  
+
   const clubId = useMemo(() => localStorage.getItem("register_club_id"), []);
 
   const fetchSlots = useCallback((socket = null) => {
     if (!clubId) return;
-    
+
     dispatch(
       getUserSlotBooking({
         day: selectedDate.day,
@@ -385,23 +401,23 @@ const Booking = ({ className = "" }) => {
 
   useEffect(() => {
     if (!user?._id || !clubId) return;
-    
+
     const bookingSocket = io(config.API_URL, {
       transports: ['websocket'],
       forceNew: true
     });
-    
+
     const handleConnect = () => {
       bookingSocket.emit("joinRoom", { userId: user._id, clubId });
     };
-    
+
     const handleSlotUpdate = (data) => {
       const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
       if (data.clubId === clubId && data.date === currentDate) {
         fetchSlots(bookingSocket);
       }
     };
-    
+
     bookingSocket.on("connect", handleConnect);
     bookingSocket.on('slotUpdated', handleSlotUpdate);
 
@@ -525,7 +541,7 @@ const Booking = ({ className = "" }) => {
         setSelectedBuisness(updatedSelectedBusiness);
       }
     }
-  }, [slotData?.data, selectedDate.fullDate]);
+  }, [slotData?.data,]);
 
   const handleBookNow = async () => {
     if (totalSlots === 0) {
@@ -2071,7 +2087,7 @@ const Booking = ({ className = "" }) => {
                         className="mb-0 pb-1 text-white fw-semibold pt-2"
                         style={{ fontSize: "15px" }}
                       >
-                        Order Summary :
+                        Booking Summary 
                       </h6>
                     )}
 
@@ -2326,6 +2342,7 @@ const Booking = ({ className = "" }) => {
                       r={buttonConfig.circleRadius}
                       fill="#001B76"
                     />
+
                     <g
                       stroke="white"
                       strokeWidth={buttonConfig.height * 0.03}
@@ -2333,6 +2350,10 @@ const Booking = ({ className = "" }) => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       className="book-now-arrow"
+                      style={{
+                        transformOrigin: `${buttonConfig.arrowX}px ${buttonConfig.arrowY}px`,
+                        transition: "transform 0.4s cubic-bezier(0.2, 0.8, 0.4, 1)"
+                      }}
                     >
                       <path
                         d={`M ${buttonConfig.width * 0.76 + (buttonConfig.width * 0.996 - buttonConfig.width * 0.76) * 0.68 + 1 - buttonConfig.circleRadius * 0.6 * 0.3} ${buttonConfig.height * 0.5 + buttonConfig.circleRadius * 0.6 * 0.4
