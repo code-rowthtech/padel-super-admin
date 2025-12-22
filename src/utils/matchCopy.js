@@ -32,12 +32,13 @@ const showScreenshotPreview = (canvas, matchText, onCopy) => {
   `;
 
   const img = document.createElement('img');
-  img.src = canvas.toDataURL();
+  img.src = canvas.toDataURL('image/png', 0.95);
   img.style.cssText = `
     max-width: 100%;
     height: auto;
     border-radius: 8px;
     margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   `;
 
   const title = document.createElement('h3');
@@ -46,39 +47,57 @@ const showScreenshotPreview = (canvas, matchText, onCopy) => {
     margin: 0 0 15px 0;
     color: #333;
     font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+  `;
+
+  const textPreview = document.createElement('pre');
+  textPreview.textContent = matchText;
+  textPreview.style.cssText = `
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 14px;
+    white-space: pre-wrap;
+    margin: 15px 0;
+    max-height: 200px;
+    overflow: auto;
   `;
 
   const buttonContainer = document.createElement('div');
   buttonContainer.style.cssText = `
     display: flex;
-    gap: 10px;
+    gap: 12px;
     justify-content: center;
+    margin-top: 10px;
   `;
 
   const copyBtn = document.createElement('button');
-  copyBtn.textContent = 'Copy Screenshot';
+  copyBtn.textContent = 'Copy Image + Details';
   copyBtn.style.cssText = `
     background: linear-gradient(180deg, #0034E4 0%, #001B76 100%);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 12px 24px;
+    border-radius: 8px;
     cursor: pointer;
     font-family: 'Poppins', sans-serif;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 15px;
   `;
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
   cancelBtn.style.cssText = `
-    background: #f5f5f5;
+    background: #f0f0f0;
     color: #333;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 12px 24px;
+    border-radius: 8px;
     cursor: pointer;
     font-family: 'Poppins', sans-serif;
     font-weight: 500;
+    font-size: 15px;
   `;
 
   copyBtn.onclick = () => {
@@ -98,93 +117,89 @@ const showScreenshotPreview = (canvas, matchText, onCopy) => {
 
   buttonContainer.appendChild(copyBtn);
   buttonContainer.appendChild(cancelBtn);
+
   content.appendChild(title);
   content.appendChild(img);
+  content.appendChild(textPreview);
   content.appendChild(buttonContainer);
   modal.appendChild(content);
   document.body.appendChild(modal);
 };
 
 /**
- * Captures a screenshot of a match card and shows preview before copying
- * @param {HTMLElement} matchCardElement - The match card DOM element to capture
- * @param {Object} matchData - Match data for fallback text
- * @returns {Promise<void>}
+ * Captures a screenshot of a match card and copies both image + text in rich format
  */
 export const copyMatchCardWithScreenshot = async (matchCardElement, matchData) => {
   try {
     const pageUrl = window.location.href;
     const matchText = `Match Details:\nDate: ${formatMatchDate(matchData.matchDate)}\nTime: ${formatTimes(matchData.slot)}\nClub: ${matchData?.clubId?.clubName || 'Unknown Club'}\nLevel: ${matchData?.skillLevel || 'N/A'}\nPrice: ₹${calculateMatchPrice(matchData?.slot)}\nLink: ${pageUrl}`;
 
-    // Check if clipboard API is available
+    // If clipboard not supported
     if (!navigator.clipboard) {
       fallbackCopyText(matchText);
-      showSuccess('Match details copied!');
+      showSuccess('Match details copied (text only)');
       return;
     }
 
-    // Try screenshot capture
-    if (window.html2canvas && matchCardElement) {
-      try {
-        const canvas = await window.html2canvas(matchCardElement, {
-          backgroundColor: '#ffffff',
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          logging: false,
-          width: matchCardElement.offsetWidth,
-          height: matchCardElement.offsetHeight
-        });
-
-        const blob = await new Promise(resolve => {
-          canvas.toBlob(resolve, 'image/png', 0.95);
-        });
-
-        // Show preview modal before copying text only
-        showScreenshotPreview(canvas, matchText, async () => {
-          try {
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.95));
-
-            await navigator.clipboard.write([
-              new ClipboardItem({
-                "image/png": blob,
-                "text/plain": new Blob([matchText], { type: "text/plain" })
-              })
-            ]);
-
-            showSuccess("Screenshot + Details Copied!");
-          } catch (error) {
-            console.error("Clipboard image copy failed:", error);
-
-            // fallback: text only
-            await navigator.clipboard.writeText(matchText);
-            showSuccess("Only text copied (image not supported on this browser)");
-          }
-        });
-
-
-        return;
-      } catch (canvasError) {
-        console.warn('Screenshot capture failed:', canvasError);
-      }
-    }
-
-    // Final fallback: text only
-    try {
+    // If no html2canvas or element
+    if (!window.html2canvas || !matchCardElement) {
       await navigator.clipboard.writeText(matchText);
-      showSuccess('Match details copied!');
-    } catch (textError) {
-      fallbackCopyText(matchText);
-      showSuccess('Match details copied!');
+      showSuccess('Match details copied (text only)');
+      return;
     }
 
+    // Capture screenshot
+    const canvas = await window.html2canvas(matchCardElement, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: matchCardElement.offsetWidth,
+      height: matchCardElement.offsetHeight,
+    });
+
+    // Show preview and handle copy
+    showScreenshotPreview(canvas, matchText, async () => {
+      try {
+        const dataUrl = canvas.toDataURL('image/png', 0.95);
+
+        const fullPlainText = `${matchText}\n\nClick this link to view/join: ${pageUrl}`;
+
+        const htmlContent = `
+      <div style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 600px;">
+        <img src="${dataUrl}" alt="Match Screenshot" style="max-width: 100%; height: auto; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+        <pre style="background: #f8f9fa; padding: 16px; border-radius: 10px; white-space: pre-wrap; font-size: 15px; margin: 0 0 16px 0;">${matchText}</pre>
+        <p style="margin:0; font-size:15px; color:#0066cc; font-weight:bold;">
+        Link : <a href="${pageUrl}">${pageUrl}</a>
+        </p>
+      </div>
+    `;
+
+        const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+        const textBlob = new Blob([fullPlainText], { type: 'text/plain' });
+
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': htmlBlob,
+            'text/plain': textBlob,
+          }),
+        ]);
+
+        showSuccess('Screenshot + Details + Clickable Link Copied!');
+      } catch (err) {
+        console.error('Copy failed:', err);
+        await navigator.clipboard.writeText(`${matchText}\n\nLink: ${pageUrl}`);
+        showSuccess('Text + Link copied (rich format not supported)');
+      }
+    });
   } catch (error) {
     console.error('Copy failed:', error);
-    showError('Could not copy. Please try again.');
+    showError('Failed to copy. Please try again.');
   }
 };
 
-// Legacy fallback for older browsers
+// Legacy fallback for very old browsers
 const fallbackCopyText = (text) => {
   const textArea = document.createElement('textarea');
   textArea.value = text;
@@ -202,7 +217,7 @@ const fallbackCopyText = (text) => {
   document.body.removeChild(textArea);
 };
 
-// Helper functions (extracted from the component)
+// Helper functions
 const formatMatchDate = (dateString) => {
   const date = new Date(dateString);
   const day = date.toLocaleDateString("en-US", { day: "2-digit" });
@@ -261,5 +276,5 @@ const calculateMatchPrice = (slots) => {
         )
       );
     }, 0)
-    .toFixed(0);
+    .toFixed(0) || '0';
 };
