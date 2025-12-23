@@ -872,8 +872,6 @@ const MatchPlayer = ({
                                 </p>
                             </div>
                         </div>
-
-
                     </div>
                     {slotError && (
                         <div

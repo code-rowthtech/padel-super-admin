@@ -1,11 +1,10 @@
-// src/components/ViewmatchShimmer.js
 import React from 'react';
 
 export const ViewmatchShimmer = () => {
     return (
         <>
             {/* Match Card Shimmer */}
-            <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+            <div className="rounded-4 border h-25 px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
                 <div className="d-flex justify-content-between align-items-start py-2 px-2">
                     <div className="d-flex align-items-center gap-2">
                         <div className="shimmer" style={{ width: 24, height: 24, borderRadius: 4 }} />
@@ -32,7 +31,7 @@ export const ViewmatchShimmer = () => {
             </div>
 
             {/* Players Section Shimmer */}
-            <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
+            <div className="p-md-3 px-3  pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
                 <div className="shimmer mb-3" style={{ width: 80, height: 20, borderRadius: 6 }} />
 
                 <div className="row mx-auto">
@@ -66,12 +65,10 @@ export const ViewmatchShimmer = () => {
     );
 };
 
-
-
 export const MatchplayerShimmer = () => {
     return (
         <>
-            <div className="rounded-4 border h-50 px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+            <div className="rounded-4 border h-50 px-3 pt-2 mt-lg-4 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
                 <div className="d-flex justify-content-between align-items-start py-2 px-2">
                     <div className="d-flex align-items-center gap-2">
                         <div className="shimmer" style={{ width: 24, height: 24, borderRadius: 4 }} />
