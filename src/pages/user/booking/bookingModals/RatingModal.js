@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { booking_success_img, complete_img, modalSuccess } from "../../../../assets/files";
 import { addReviewClub } from "../../../../redux/user/club/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
@@ -67,8 +66,6 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
                 dispatch(getBooking({ type: activeTab === 'all' ? '' : activeTab, page: currentPage, limit: 15 }));
             });
     };
-
-
     const handleClick = (value) => {
         if (!hasReview) setRating(value);
     };
@@ -90,10 +87,10 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
                     const halfValue = i + 0.5;
 
                     return (
-                        <span key={i} style={{ position: "relative", cursor: hasReview ? "default" : "pointer" }}>
+                        <div key={i} style={{ position: "relative", cursor: hasReview ? "default" : "pointer" }}>
                             {!hasReview && (
                                 <>
-                                    <span
+                                    <div
                                         onClick={() => handleClick(halfValue)}
                                         onMouseEnter={() => setHover(halfValue)}
                                         onMouseLeave={() => setHover(null)}
@@ -105,7 +102,7 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
                                             zIndex: 2,
                                         }}
                                     />
-                                    <span
+                                    <div
                                         onClick={() => handleClick(fullValue)}
                                         onMouseEnter={() => setHover(fullValue)}
                                         onMouseLeave={() => setHover(null)}
@@ -126,12 +123,12 @@ export const BookingRatingModal = ({ show, activeTab, currentPage, tableData, on
                             ) : (
                                 <StarBorderIcon style={{ color: "#ccc" }} />
                             )}
-                        </span>
+                        </div>
                     );
                 })}
-                <span className="ms-2 mt-3 mb-2" style={{ fontFamily: "Poppins", fontWeight: "500", fontSize: "15px" }}>
+                <div className="ms-2 mt-3 mb-2" style={{ fontFamily: "Poppins", fontWeight: "500", fontSize: "15px" }}>
                     {rating} {getRatingLabel(rating)}
-                </span>
+                </div>
             </div>
         );
     };
