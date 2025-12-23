@@ -812,7 +812,7 @@ const MatchPlayer = ({
                                 style={{
                                     transformOrigin: `${arrowX}px ${arrowY}px`,
                                     transition: "transform 0.3s ease"
-                                }}
+                                }}      
                             >
                                 <path
                                     d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4

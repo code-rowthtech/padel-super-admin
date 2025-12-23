@@ -37,6 +37,7 @@ import {
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { getPlayerLevel, getQuestionData } from "../../../redux/user/notifiction/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { MatchplayerShimmer } from "../../../helpers/loading/ShimmerLoading";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -1304,7 +1305,7 @@ const CreateMatches = () => {
                     ) && (
                         <div
                           className="text-center py-4 d-flex flex-column justify-content-center align-items-center mt-5"
-                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" ,}}
+                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280", }}
                         >
                           <p className="mb-1 label_font text-danger">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
                           <p className="mb-0 label_font text-danger">Please choose another date</p>
@@ -1740,7 +1741,9 @@ const CreateMatches = () => {
             </div>
           )}
 
-          {!profileLoading && matchPlayer && (
+          {profileLoading ? (<>
+            <MatchplayerShimmer />
+          </>) : matchPlayer && (
             <MatchPlayer
               addedPlayers={addedPlayers}
               setAddedPlayers={setAddedPlayers}
