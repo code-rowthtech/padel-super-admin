@@ -20,6 +20,7 @@ import {
 } from "../../../redux/user/auth/authThunk";
 import { booking_logo_img } from "../../../assets/files";
 import { showError } from "../../../helpers/Toast";
+import config from "../../../config";
 
 const formatTime = (timeStr) =>
     timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
@@ -71,6 +72,9 @@ const contentStyle = {
     paddingRight: `${circleRadius * 2}px`,
     fontFamily: "Poppins",
 };
+
+const RAZORPAY_KEY = `${config.RAZORPAY_KEY}`;
+
 
 const OpenmatchPayment = () => {
     const [error, setError] = useState({});
@@ -231,7 +235,7 @@ const OpenmatchPayment = () => {
 
             if (initialBookingResponse?.paymentDetails?.key || initialBookingResponse?.paymentDetails?.orderId) {
                 const options = {
-                    key: initialBookingResponse?.paymentDetails?.key || "rzp_test_RqcQk54KN54oc3",
+                    key: initialBookingResponse?.paymentDetails?.key || RAZORPAY_KEY,
                     order_id: initialBookingResponse?.paymentDetails?.orderId,
                     amount: localGrandTotal * 100,
                     currency: "INR",
