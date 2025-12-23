@@ -14,6 +14,7 @@ import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thu
 import ChatPopup from "./ChatPopup";
 import io from 'socket.io-client';
 import config from "../../../config";
+import { ViewmatchShimmer } from "../../../helpers/loading/ShimmerLoading";
 
 const SOCKET_URL = `${config.API_URL}/match`;;
 
@@ -187,7 +188,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
     const [unreadCount, setUnreadCount] = useState();
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
-    
+
     // Ensure matchId is always a string
     const getMatchIdString = (id) => {
         if (typeof id === 'string') return id;
@@ -579,116 +580,119 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                         )}
                     </div>
                 </div>
+                {userLoading ? (
+                    <>
+                        <ViewmatchShimmer />
+                    </>
+                ) : (<>
 
-                <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <div className="d-flex  justify-content-between align-items-start py-2 px-2">
-                        <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
-                            <img src={padal} alt="padel" width={24} />
-                            <span className="ms-2 all-matches" style={{ color: "#374151" }}>
-                                Open Match
-                            </span>
+                    <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <div className="d-flex  justify-content-between align-items-start py-2 px-2">
+                            <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
+                                <img src={padal} alt="padel" width={24} />
+                                <span className="ms-2 all-matches" style={{ color: "#374151" }}>
+                                    Open Match
+                                </span>
+                            </div>
+                            <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
+                                {matchDate.day}, {matchDate.formattedDate} | {matchTime}
+                            </small>
+                            <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
+                                {matchDate.day}, {matchDate.formattedDate} {matchTime}
+                            </small>
                         </div>
-                        <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
-                            {matchDate.day}, {matchDate.formattedDate} | {matchTime}
-                        </small>
-                        <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
-                            {matchDate.day}, {matchDate.formattedDate} {matchTime}
-                        </small>
-                    </div>
-                    <div className="row text-center border-top">
-                        <div className="col py-2">
-                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Game Type</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.gender || "Any"}</p>
-                        </div>
-                        <div className="col border-start border-end py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.skillLevel || "Intermediate"}</p>
-                        </div>
-                        <div className="col py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
-                            <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
-                                ₹{" "}
-                                {Math.round(
-                                    (matchesData?.data?.slot?.reduce((total, court) => {
-                                        return total + court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0);
-                                    }, 0) || 0) / 4
-                                ).toLocaleString("en-IN")}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                {user?._id === matchesData?.data?.createdBy && !isFromBookingHistory && (<div
-                    className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
-                    style={{ backgroundColor: "#CBD6FF1A", cursor: "pointer" }}
-                    onClick={() => setShowRequestModal(true)}
-                >
-                    <div className="d-flex align-items-center gap-3">
-                        <i className="bi bi-people fs-4" style={{ color: "#1F41BB" }} />
-                        <div>
-                            <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", color: "#374151" }}>
-                                Player's Requests
-                            </h6>
-                            <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                                View the status of player's requests <br /> to join.
-                            </p>
+                        <div className="row text-center border-top">
+                            <div className="col py-2">
+                                <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Game Type</p>
+                                <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.gender || "Any"}</p>
+                            </div>
+                            <div className="col border-start border-end py-2">
+                                <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
+                                <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.skillLevel || "Intermediate"}</p>
+                            </div>
+                            <div className="col py-2">
+                                <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
+                                <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
+                                    ₹{" "}
+                                    {Math.round(
+                                        (matchesData?.data?.slot?.reduce((total, court) => {
+                                            return total + court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0);
+                                        }, 0) || 0) / 4
+                                    ).toLocaleString("en-IN")}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    <div className="d-flex align-items-center">
-                        <span className="badge bg-primary rounded-pill d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "20px", height: "20px", }}>{RequestData?.length}</span>
-                        <i className="bi bi-chevron-right ms-2" style={{ color: "#6B7280" }} />
-                    </div>
-                </div>)}
+                    {user?._id === matchesData?.data?.createdBy && !isFromBookingHistory && (<div
+                        className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
+                        style={{ backgroundColor: "#CBD6FF1A", cursor: "pointer" }}
+                        onClick={() => setShowRequestModal(true)}
+                    >
+                        <div className="d-flex align-items-center gap-3">
+                            <i className="bi bi-people fs-4" style={{ color: "#1F41BB" }} />
+                            <div>
+                                <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", color: "#374151" }}>
+                                    Player's Requests
+                                </h6>
+                                <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                    View the status of player's requests <br /> to join.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="d-flex align-items-center">
+                            <span className="badge bg-primary rounded-pill d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "20px", height: "20px", }}>{RequestData?.length}</span>
+                            <i className="bi bi-chevron-right ms-2" style={{ color: "#6B7280" }} />
+                        </div>
+                    </div>)}
 
+                    <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
+                            Players
+                        </h6>
 
+                        <div className="row mx-auto">
+                            <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 d-md-flex d-md-align-items-center">
+                                {slots?.slice(0, 2)?.map((s) => (
+                                    <PlayerSlot
+                                        key={s.index}
+                                        player={s.player}
+                                        index={s.index}
+                                        isRemovable={s.removable}
+                                        team={s.team}
+                                        onRemove={handleRemove}
+                                        onAdd={() => handleAdd(s.team)}
+                                        openMatches={matchesData?.data}
+                                        isFromBookingHistory={isFromBookingHistory}
+                                        onPlayerClick={handlePlayerClick}
+                                    />
+                                ))}
+                            </div>
 
+                            <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 border-start border-0 border-lg-start d-md-flex d-md-align-items-center">
+                                {slots?.slice(2, 4)?.map((s) => (
+                                    <PlayerSlot
+                                        key={s.index}
+                                        player={s.player}
+                                        index={s.index}
+                                        isRemovable={s.removable}
+                                        team={s.team}
+                                        onRemove={handleRemove}
+                                        onAdd={() => handleAdd(s.team)}
+                                        openMatches={matchesData?.data}
+                                        isFromBookingHistory={isFromBookingHistory}
+                                        onPlayerClick={handlePlayerClick}
+                                    />
+                                ))}
+                            </div>
 
-                <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
-                        Players
-                    </h6>
-
-                    <div className="row mx-auto">
-                        <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 d-md-flex d-md-align-items-center">
-                            {slots?.slice(0, 2)?.map((s) => (
-                                <PlayerSlot
-                                    key={s.index}
-                                    player={s.player}
-                                    index={s.index}
-                                    isRemovable={s.removable}
-                                    team={s.team}
-                                    onRemove={handleRemove}
-                                    onAdd={() => handleAdd(s.team)}
-                                    openMatches={matchesData?.data}
-                                    isFromBookingHistory={isFromBookingHistory}
-                                    onPlayerClick={handlePlayerClick}
-                                />
-                            ))}
                         </div>
 
-                        <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 border-start border-0 border-lg-start d-md-flex d-md-align-items-center">
-                            {slots?.slice(2, 4)?.map((s) => (
-                                <PlayerSlot
-                                    key={s.index}
-                                    player={s.player}
-                                    index={s.index}
-                                    isRemovable={s.removable}
-                                    team={s.team}
-                                    onRemove={handleRemove}
-                                    onAdd={() => handleAdd(s.team)}
-                                    openMatches={matchesData?.data}
-                                    isFromBookingHistory={isFromBookingHistory}
-                                    onPlayerClick={handlePlayerClick}
-                                />
-                            ))}
+                        <div className="d-flex justify-content-between mt-2">
+                            <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
+                            <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                         </div>
-
                     </div>
-
-                    <div className="d-flex justify-content-between mt-2">
-                        <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
-                        <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
-                    </div>
-                </div>
+                </>)}
                 <div className="col-md-9 mx-auto col-12">
                     <div className="d-flex justify-content-between align-items-center mt-4">
                         <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>

@@ -39,8 +39,8 @@ const Home = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
+  const clubDataLoading = store?.userClub?.clubLoading || [];
   const User = useSelector((state) => state?.userAuth)
-
   const getReviewData = store?.userClub?.getReviewData?.data;
   const mapApiData = store?.userClub?.mapData?.data;
   const logo = clubData?.logo;
@@ -328,39 +328,173 @@ const Home = () => {
         style={{ backgroundColor: "#F5F5F569" }}
       >
         <div className="row position-relative align-items-stretch px-0 px-md-0 mx-auto">
-          {/* Left Column: Club Name, About, Address, and Timings */}
-          <div className="col-lg-8 col-12  d-md-flex d-block px-0 ps-md-0">
-            <div
-              className=" row mx-0 ms-lg-0 me-lg-2  pe-lg-3 bg-white  p-lg-2 flex-fill"
-              style={{ border: "0.3px solid #858080ff", borderRadius: "20px" }}
-            >
+          {clubDataLoading === true ? (<>
+            <div className="col-lg-8 col-12 d-md-flex d-block px-0 ps-md-0">
               <div
-                className="col-lg-8 col-12 "
-                style={{
-                  borderRight: "1px solid transparent",
-                  borderImage:
-                    "linear-gradient(180deg,  rgba(255, 255, 255, 0) 0%, #002DC7 46.63%, rgba(255, 255, 255, 0) 94.23%)",
-                  borderImageSlice: 1,
-                }}
+                className="row mx-0 ms-lg-0 me-lg-2 pe-lg-3 bg-white p-lg-2 flex-fill"
+                style={{ border: "0.3px solid #e0e0e0", borderRadius: "20px" }}
               >
-                <div className="mb-md-4 mb-2 pt-md-1 pt-3   d-md-flex d-none flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-md-3 gap-1">
-                  <div className="mb-2 mt-lg-4 mb-lg-0 flex-shrink-0">
-                    {/* <Avatar>
+                <div className="col-lg-8 col-12">
+                  <div className="mb-4 pt-3 d-md-flex d-none align-items-center gap-3">
+                    <div className="shimmer" style={{ width: 50, height: 50, borderRadius: "50%" }} />
+                    <div>
+                      <div className="shimmer mb-2" style={{ width: 200, height: 24, borderRadius: 8 }} />
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="shimmer" style={{ width: 120, height: 20, borderRadius: 6 }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile Header */}
+                  <div className="d-flex d-md-none align-items-center bg-dark text-white px-3 py-2 mb-3" style={{ borderRadius: "50px 38px 38px 50px", gap: "12px" }}>
+                    <div className="shimmer" style={{ width: 50, height: 50, borderRadius: "50%" }} />
+                    <div>
+                      <div className="shimmer mb-2" style={{ width: 140, height: 18, borderRadius: 6 }} />
+                      <div className="shimmer" style={{ width: 100, height: 16, borderRadius: 6 }} />
+                    </div>
+                  </div>
+
+                  {/* Description Area */}
+                  <div className="pe-lg-5">
+                    <div className="mb-3">
+                      <div className="shimmer mb-2" style={{ width: "100%", height: 16, borderRadius: 6 }} />
+                      <div className="shimmer mb-2" style={{ width: "95%", height: 16, borderRadius: 6 }} />
+                      <div className="shimmer mb-2" style={{ width: "98%", height: 16, borderRadius: 6 }} />
+                      <div className="shimmer mb-2" style={{ width: "80%", height: 16, borderRadius: 6 }} />
+                      <div className="shimmer mb-2" style={{ width: "90%", height: 16, borderRadius: 6 }} />
+                      <div className="shimmer" style={{ width: "70%", height: 16, borderRadius: 6 }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-lg-4 col-12 ps-md-3">
+                  <div className="pt-md-4 pt-2">
+                    <div className="shimmer mb-4" style={{ width: 160, height: 20, borderRadius: 8, margin: "0 auto" }} />
+
+                    {[...Array(7)].map((_, i) => (
+                      <div key={i} className="d-flex justify-content-between mb-3">
+                        <div className="shimmer" style={{ width: 80, height: 18, borderRadius: 6 }} />
+                        <div className="shimmer" style={{ width: 120, height: 18, borderRadius: 6 }} />
+                      </div>
+                    ))}
+
+                    <div className="shimmer mt-4" style={{ width: 180, height: 14, borderRadius: 6, margin: "0 auto" }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>) : (<>
+            <div className="col-lg-8 col-12  d-md-flex d-block px-0 ps-md-0">
+              <div
+                className=" row mx-0 ms-lg-0 me-lg-2  pe-lg-3 bg-white  p-lg-2 flex-fill"
+                style={{ border: "0.3px solid #858080ff", borderRadius: "20px" }}
+              >
+                <div
+                  className="col-lg-8 col-12 "
+                  style={{
+                    borderRight: "1px solid transparent",
+                    borderImage:
+                      "linear-gradient(180deg,  rgba(255, 255, 255, 0) 0%, #002DC7 46.63%, rgba(255, 255, 255, 0) 94.23%)",
+                    borderImageSlice: 1,
+                  }}
+                >
+                  <div className="mb-md-4 mb-2 pt-md-1 pt-3   d-md-flex d-none flex-column flex-lg-row align-items-start align-lg-center justify-content-start gap-md-3 gap-1">
+                    <div className="mb-2 mt-lg-4 mb-lg-0 flex-shrink-0">
+                      {/* <Avatar>
                       {clubData?.clubName
                         ? clubData.clubName.charAt(0).toUpperCase()
                         : "User"}
                     </Avatar> */}
-                    <div className="logo_add_star bg-white rounded-circle  py-1" style={{
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "#f9f9f9",
-                      borderBottomRightRadius: "38px", borderTopRightRadius: "38px"
-                    }}>
+                      <div className="logo_add_star bg-white rounded-circle  py-1" style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#f9f9f9",
+                        borderBottomRightRadius: "38px", borderTopRightRadius: "38px"
+                      }}>
+                        <img
+                          src={logo}
+                          alt="User Profile"
+                          style={{
+                            width: "100%",
+                            height: "auto",
+                            objectFit: "cover",
+                            objectPosition: "center"
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0 mt-lg-3">
+                      <h5
+                        className="mb-0 mt-lg-2"
+                        style={{
+                          fontSize: "17px",
+                          fontWeight: "600",
+                          fontFamily: "Poppins",
+                        }}
+                      >
+                        {clubData?.clubName || "The SwootClub"}
+                      </h5>
+                      <div className="d-flex align-items-center justify-content-start text-nowrap">
+                        <p className="text-success mb-0">
+                          {[...Array(5)].map((_, i) => {
+                            const rating = enhancedReviewData?.averageRating || "";
+                            if (i < Math.floor(rating)) {
+                              return (
+                                <StarIcon key={i} style={{ color: "#32B768" }} />
+                              );
+                            } else if (i < rating && rating % 1 >= 0.5) {
+                              return (
+                                <StarHalfIcon
+                                  key={i}
+                                  style={{ color: "#32B768" }}
+                                />
+                              );
+                            } else {
+                              return (
+                                <StarBorderIcon
+                                  key={i}
+                                  style={{ color: "#ccc" }}
+                                />
+                              );
+                            }
+                          })}
+                        </p>
+                        <p
+                          className="ms-2 pt-1 mb-0"
+                          style={{
+                            fontSize: "17.5px",
+                            color: "#374151",
+                            fontWeight: "500",
+                            fontFamily: "Poppins",
+                          }}
+                        >
+                          {enhancedReviewData?.averageRating || ""}
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+                  <div
+                    className="d-flex d-md-none align-items-center bg-black text-white px-3 py-0 ps-0 mb-2 mt-3"
+                    style={{ width: "fit-content", gap: "12px", borderRadius: "50px 38px 38px 50px" }}
+                  >
+                    <div className='ogo_add_star border-0 rounded-circle p-1'
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    >
                       <img
                         src={logo}
                         alt="User Profile"
@@ -372,20 +506,14 @@ const Home = () => {
                         }}
                       />
                     </div>
-                  </div>
-                  <div className="flex-shrink-0 mt-lg-3">
-                    <h5
-                      className="mb-0 mt-lg-2"
-                      style={{
-                        fontSize: "17px",
-                        fontWeight: "600",
-                        fontFamily: "Poppins",
-                      }}
-                    >
-                      {clubData?.clubName || "The SwootClub"}
-                    </h5>
-                    <div className="d-flex align-items-center justify-content-start text-nowrap">
-                      <p className="text-success mb-0">
+
+                    {/* Club Name + Green Stars */}
+                    <div className="d-flex flex-column" style={{ lineHeight: "1.2" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 600, }}>
+                        {clubData?.clubName || "Swoot"}
+                      </span>
+
+                      <div className="d-flex align-items-center" style={{ marginTop: "2px" }}>
                         {[...Array(5)].map((_, i) => {
                           const rating = enhancedReviewData?.averageRating || "";
                           if (i < Math.floor(rating)) {
@@ -408,119 +536,46 @@ const Home = () => {
                             );
                           }
                         })}
-                      </p>
-                      <p
-                        className="ms-2 pt-1 mb-0"
-                        style={{
-                          fontSize: "17.5px",
-                          color: "#374151",
-                          fontWeight: "500",
-                          fontFamily: "Poppins",
-                        }}
-                      >
-                        {enhancedReviewData?.averageRating || ""}
-                      </p>
+                        <span style={{ fontSize: "13px" }} className="ms-3">{enhancedReviewData?.averageRating || ""}</span>
+                      </div>
                     </div>
+
+                    {/* Rating */}
+
                   </div>
 
-                </div>
-                <div
-                  className="d-flex d-md-none align-items-center bg-black text-white px-3 py-0 ps-0 mb-2 mt-3"
-                  style={{ width: "fit-content", gap: "12px", borderRadius: "50px 38px 38px 50px" }}
-                >
-                  <div className='ogo_add_star border-0 rounded-circle p-1'
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "#f9f9f9",
-                    }}
-                  >
-                    <img
-                      src={logo}
-                      alt="User Profile"
+
+                  <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
+                    {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
+                    <div
+                      className="mb-2 mb-md-3 add_font_small_mobile"
                       style={{
-                        width: "100%",
-                        height: "auto",
-                        objectFit: "cover",
-                        objectPosition: "center"
-                      }}
-                    />
-                  </div>
-
-                  {/* Club Name + Green Stars */}
-                  <div className="d-flex flex-column" style={{ lineHeight: "1.2" }}>
-                    <span style={{ fontSize: "14px", fontWeight: 600, }}>
-                      {clubData?.clubName || "Swoot"}
-                    </span>
-
-                    <div className="d-flex align-items-center" style={{ marginTop: "2px" }}>
-                      {[...Array(5)].map((_, i) => {
-                        const rating = enhancedReviewData?.averageRating || "";
-                        if (i < Math.floor(rating)) {
-                          return (
-                            <StarIcon key={i} style={{ color: "#32B768" }} />
-                          );
-                        } else if (i < rating && rating % 1 >= 0.5) {
-                          return (
-                            <StarHalfIcon
-                              key={i}
-                              style={{ color: "#32B768" }}
-                            />
-                          );
-                        } else {
-                          return (
-                            <StarBorderIcon
-                              key={i}
-                              style={{ color: "#ccc" }}
-                            />
-                          );
-                        }
-                      })}
-                      <span style={{ fontSize: "13px" }} className="ms-3">{enhancedReviewData?.averageRating || ""}</span>
-                    </div>
-                  </div>
-
-                  {/* Rating */}
-
-                </div>
-
-
-                <div className="flex-grow-1 pe-lg-5 custom-scroll-dec">
-                  {/* <h4 style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "24px" }}>About</h4> */}
-                  <div
-                    className="mb-2 mb-md-3 add_font_small_mobile"
-                    style={{
-                      fontSize: "13px",
-                      fontFamily: "Poppins",
-                      fontWeight: "400",
-                      textAlign: "justify"
-                    }}
-                  >
-                    <span>{clubData?.clubName || "The Swoot Club"} </span>
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        h1: ({ ...props }) => <h1 style={{ fontSize: 20, fontWeight: 700 }} {...props} />,
-                        h2: ({ ...props }) => <h2 style={{ fontSize: 18, fontWeight: 600 }} {...props} />,
-                        h3: ({ ...props }) => <h3 style={{ fontSize: 16, fontWeight: 600 }} {...props} />,
-                        p: ({ ...props }) => <p style={{ fontSize: 14, marginBottom: 6 }} {...props} />,
-                        li: ({ ...props }) => <li style={{ marginLeft: 18, fontSize: 14 }} {...props} />,
-                        strong: ({ ...props }) => <strong style={{ fontWeight: 700 }} {...props} />,
-                        em: ({ ...props }) => <em style={{ fontStyle: "italic" }} {...props} />,
+                        fontSize: "13px",
+                        fontFamily: "Poppins",
+                        fontWeight: "400",
+                        textAlign: "justify"
                       }}
                     >
-                      {clubData?.description
-                        ?.replace(/\\r\\n/g, "\n")
-                        ?.replace(/\r\n/g, "\n")
-                        ?.replace(/\\n/g, "\n")}
-                    </ReactMarkdown>
-                  </div>
-                  {/* <p
+                      <span>{clubData?.clubName || "The Swoot Club"} </span>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({ ...props }) => <h1 style={{ fontSize: 20, fontWeight: 700 }} {...props} />,
+                          h2: ({ ...props }) => <h2 style={{ fontSize: 18, fontWeight: 600 }} {...props} />,
+                          h3: ({ ...props }) => <h3 style={{ fontSize: 16, fontWeight: 600 }} {...props} />,
+                          p: ({ ...props }) => <p style={{ fontSize: 14, marginBottom: 6 }} {...props} />,
+                          li: ({ ...props }) => <li style={{ marginLeft: 18, fontSize: 14 }} {...props} />,
+                          strong: ({ ...props }) => <strong style={{ fontWeight: 700 }} {...props} />,
+                          em: ({ ...props }) => <em style={{ fontStyle: "italic" }} {...props} />,
+                        }}
+                      >
+                        {clubData?.description
+                          ?.replace(/\\r\\n/g, "\n")
+                          ?.replace(/\r\n/g, "\n")
+                          ?.replace(/\\n/g, "\n")}
+                      </ReactMarkdown>
+                    </div>
+                    {/* <p
                     className="add_font_small_mobile"
                     style={{
                       fontSize: "13px",
@@ -539,56 +594,57 @@ const Home = () => {
                       https://maps.app.goo.gl/hLmCundx4GsjbaiB7?g_st=ic
                     </a>
                   </p> */}
-                </div>
-              </div>
-
-              <div className=" col-lg-4 col-12 ps-md-3 ">
-                <div className="pt-md-4 pt-2 px-md-0">
-                  <div className="col-12 d-none d-flex align-items-center justify-content-center border_right_bottom">
-                    <h6 className="mb-2 add_font_heading_mobile">
-                      Open now   6 AM - 11 PM
-                    </h6>
                   </div>
-                  {clubData?.businessHours?.length < 0 ? (
-                    <div
-                      className="text-center py-5"
-                      style={{ fontFamily: "Poppins" }}
-                    >
-                      No Timing
+                </div>
+
+                <div className=" col-lg-4 col-12 ps-md-3 ">
+                  <div className="pt-md-4 pt-2 px-md-0">
+                    <div className="col-12 d-none d-flex align-items-center justify-content-center border_right_bottom">
+                      <h6 className="mb-2 add_font_heading_mobile">
+                        Open now   6 AM - 11 PM
+                      </h6>
                     </div>
-                  ) : (
-                    clubData?.businessHours?.map((day, idx) => (
+                    {clubData?.businessHours?.length < 0 ? (
                       <div
-                        key={idx}
-                        className={`d-flex justify-content-between open-now-time mb-3`}
-                        style={{
-                          fontWeight: idx === adjustedIndex ? "600" : "400",
-                        }}
+                        className="text-center py-5"
+                        style={{ fontFamily: "Poppins" }}
                       >
-                        <span>{day?.day}</span>
-                        <span>
-                          {day?.time ||
-                            (idx === 2
-                              ? "6:00 AM - 11:00 PM"
-                              : "6:00 AM - 10:00 PM")}
-                        </span>
+                        No Timing
                       </div>
-                    ))
-                  )}
-                  <p
-                    className="mt-3 mb-2 mb-md-0 text-center add_font_small_mobile"
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "12px",
-                      fontFamily: "Poppins",
-                    }}
-                  >
-                    Time zone (India Standard Time)
-                  </p>
+                    ) : (
+                      clubData?.businessHours?.map((day, idx) => (
+                        <div
+                          key={idx}
+                          className={`d-flex justify-content-between open-now-time mb-3`}
+                          style={{
+                            fontWeight: idx === adjustedIndex ? "600" : "400",
+                          }}
+                        >
+                          <span>{day?.day}</span>
+                          <span>
+                            {day?.time ||
+                              (idx === 2
+                                ? "6:00 AM - 11:00 PM"
+                                : "6:00 AM - 10:00 PM")}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                    <p
+                      className="mt-3 mb-2 mb-md-0 text-center add_font_small_mobile"
+                      style={{
+                        fontWeight: "500",
+                        fontSize: "12px",
+                        fontFamily: "Poppins",
+                      }}
+                    >
+                      Time zone (India Standard Time)
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </>)}
           <div className="row p-2 mt-3 add_shadow_rounded mx-auto d-block d-md-none">
             <div className="d-flex justify-content-center align-items-center px-0 ">
               <button
