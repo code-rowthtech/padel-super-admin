@@ -8,7 +8,9 @@ import { Button, Modal } from "react-bootstrap";
 import { booking_logo_img, success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "react-icons/md";
+import config from "../../../config";
 
+const RAZORPAY_KEY = `${config.RAZORPAY_KEY}`;
 
 const Payment = ({ className = "" }) => {
   const location = useLocation();
@@ -201,7 +203,7 @@ const Payment = ({ className = "" }) => {
 
       if (initialBookingResponse?.paymentDetails?.key || initialBookingResponse?.paymentDetails?.orderId) {
         const options = {
-          key: initialBookingResponse?.paymentDetails?.key || "rzp_test_RqcQk54KN54oc3",
+          key: initialBookingResponse?.paymentDetails?.key || RAZORPAY_KEY,
           order_id: initialBookingResponse?.paymentDetails?.orderId,
           amount: localGrandTotal * 100,
           currency: "INR",
