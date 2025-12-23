@@ -132,7 +132,6 @@ const Openmatches = () => {
   const reviewData = useSelector(
     (state) => state.userClub?.getReviewData?.data
   );
-  const User = useSelector((state) => state?.userAuth);
 
   const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
   const [showModal, setShowModal] = useState(false);
@@ -158,7 +157,6 @@ const Openmatches = () => {
     }, 300),
     [dispatch, user?.token, matchFilter]
   );
-
   useEffect(() => {
     if (user?.token) {
       dispatch(getUserProfile())
