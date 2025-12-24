@@ -14,22 +14,18 @@ import {
 } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import {  DataLoading } from "../../../helpers/loading/Loaders";
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
 import {
   MdKeyboardArrowDown,
   MdKeyboardArrowUp,
-  MdKeyboardDoubleArrowDown,
-  MdKeyboardDoubleArrowUp,
   MdOutlineDateRange,
   MdOutlineDeleteOutline,
 } from "react-icons/md";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
-import { FaArrowRight, FaArrowUp, FaArrowDown } from "react-icons/fa";
-import { Avatar } from "@mui/material";
 import { Button, Dropdown } from "react-bootstrap";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -40,12 +36,8 @@ import {
 import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
-import { createBooking } from "../../../redux/user/booking/thunk";
-import { showError } from "../../../helpers/Toast";
-import { toast, Bounce } from "react-toastify";
 import io from 'socket.io-client';
 import config from '../../../config';
-import { getUserProfile } from "../../../redux/user/auth/authThunk";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -59,7 +51,7 @@ const parseTimeToHour = (timeStr) => {
       hour = timeStrLower.slice(0, -2).trim();
     } else {
       const timeParts = timeStrLower.split(" ");
-      if (timeParts.length > 1) {
+      if (timeParts?.length > 1) {
         hour = timeParts[0];
         period = timeParts[1];
       } else {
@@ -99,8 +91,7 @@ const Booking = ({ className = "" }) => {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const dispatch = useDispatch();
-  const clubData =
-    useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
+  const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const bookingStatus = useSelector((state) => state?.userBooking);
@@ -144,8 +135,8 @@ const Booking = ({ className = "" }) => {
   });
 
   const getCurrentMonth = (selectedDate) => {
-    if (!selectedDate || !selectedDate.fullDate) return "MONTH";
-    const dateObj = new Date(selectedDate.fullDate);
+    if (!selectedDate || !selectedDate?.fullDate) return "MONTH";
+    const dateObj = new Date(selectedDate?.fullDate);
     const month = dateObj
       .toLocaleDateString("en-US", { month: "short" })
       .toUpperCase();
@@ -166,18 +157,18 @@ const Booking = ({ className = "" }) => {
     // Calculate total slots across all dates and courts
     const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
       return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
-        return dateTotal + timeSlots.length;
+        return dateTotal + timeSlots?.length;
       }, 0);
     }, 0);
 
-    const dateKey = date || selectedDate.fullDate;
-    const uniqueKey = `${courtId}-${time._id}-${dateKey}`;
+    const dateKey = date || selectedDate?.fullDate;
+    const uniqueKey = `${courtId}-${time?._id}-${dateKey}`;
 
     const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
-    const isAlreadySelected = currentCourtTimes.some((t) => t._id === time._id);
+    const isAlreadySelected = currentCourtTimes.some((t) => t?._id === time?._id);
 
     if (isAlreadySelected) {
-      const filteredTimes = currentCourtTimes.filter((t) => t._id !== time._id);
+      const filteredTimes = currentCourtTimes.filter((t) => t?._id !== time?._id);
       setSelectedTimes((prev) => ({
         ...prev,
         [courtId]: {
@@ -186,16 +177,16 @@ const Booking = ({ className = "" }) => {
         },
       }));
       setSelectedBuisness((prev) =>
-        prev.filter((t) => t._id !== time._id || t.date !== dateKey)
+        prev.filter((t) => t?._id !== time?._id || t?.date !== dateKey)
       );
       setSelectedCourts((prev) =>
         prev
           .map((court) =>
-            court._id === courtId && court.date === dateKey
-              ? { ...court, time: court.time.filter((t) => t._id !== time._id) }
+            court?._id === courtId && court?.date === dateKey
+              ? { ...court, time: court?.time.filter((t) => t?._id !== time?._id) }
               : court
           )
-          .filter((court) => court.time.length > 0)
+          .filter((court) => court?.time?.length > 0)
       );
     } else {
       if (currentTotalSlots >= MAX_SLOTS) {
@@ -214,30 +205,30 @@ const Booking = ({ className = "" }) => {
       }));
       setSelectedBuisness((prev) => [...prev, { ...time, date: dateKey }]);
 
-      const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+      const currentCourt = slotData?.data?.find((c) => c?._id === courtId);
       if (currentCourt) {
         setSelectedCourts((prev) => {
           const existingCourt = prev.find(
-            (c) => c._id === courtId && c.date === dateKey
+            (c) => c?._id === courtId && c?.date === dateKey
           );
           const newTimeEntry = {
-            _id: time._id,
-            time: time.time,
-            amount: time.amount,
+            _id: time?._id,
+            time: time?.time,
+            amount: time?.amount,
           };
           return existingCourt
-            ? prev.map((court) =>
-              court._id === courtId && court.date === dateKey
-                ? { ...court, time: [...court.time, newTimeEntry] }
+            ? prev?.map((court) =>
+              court?._id === courtId && court?.date === dateKey
+                ? { ...court, time: [...court?.time, newTimeEntry] }
                 : court
             )
             : [
               ...prev,
               {
-                _id: currentCourt._id,
-                courtName: currentCourt.courtName,
+                _id: currentCourt?._id,
+                courtName: currentCourt?.courtName,
                 date: dateKey,
-                day: selectedDate.day,
+                day: selectedDate?.day,
                 time: [newTimeEntry],
               },
             ];
@@ -256,7 +247,7 @@ const Booking = ({ className = "" }) => {
       if (!prev[courtId] || !prev[courtId][date]) return prev;
 
       const courtTimes = prev[courtId][date];
-      const filtered = courtTimes.filter((t) => t._id !== timeId);
+      const filtered = courtTimes.filter((t) => t?._id !== timeId);
 
       if (filtered.length === 0) {
         const { [date]: _, ...restDates } = prev[courtId];
@@ -284,17 +275,17 @@ const Booking = ({ className = "" }) => {
     });
 
     setSelectedBuisness((prev) =>
-      prev.filter((t) => !(t._id === timeId && t.date === date))
+      prev.filter((t) => !(t?._id === timeId && t?.date === date))
     );
 
     setSelectedCourts((prev) =>
       prev
-        .map((c) =>
-          c._id === courtId && c.date === date
-            ? { ...c, time: c.time.filter((t) => t._id !== timeId) }
+        ?.map((c) =>
+          c?._id === courtId && c?.date === date
+            ? { ...c, time: c?.time.filter((t) => t?._id !== timeId) }
             : c
         )
-        .filter((c) => c.time.length > 0)
+        .filter((c) => c?.time?.length > 0)
     );
   };
 
@@ -304,24 +295,21 @@ const Booking = ({ className = "" }) => {
     setSelectedBuisness([]);
     dispatch(
       getUserSlotBooking({
-        day: selectedDate.day,
-        date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
+        day: selectedDate?.day,
+        date: format(new Date(selectedDate?.fullDate), "yyyy-MM-dd"),
         register_club_id: localStorage.getItem("register_club_id") || "",
       })
     );
   };
 
-  // Memoize constants to avoid recalculation
   const buttonConfig = useMemo(() => {
     const width = 370;
     const height = 75;
     const circleRadius = height * 0.3;
 
-    // ये दो lines जोड़ें – यही missing थीं
     const curvedSectionStart = width * 0.76;
     const curvedSectionEnd = width * 0.996;
 
-    // अब circle और arrow की position सही calculate होगी
     const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
     const circleY = height * 0.5;
 
@@ -333,9 +321,9 @@ const Booking = ({ className = "" }) => {
       width,
       height,
       circleRadius,
-      arrowX,        // अगर बाहर use करना हो तो return करें
-      arrowY,        // (optional, लेकिन safe side के लिए)
-      arrowSize,     // (optional)
+      arrowX,        
+      arrowY,        
+      arrowSize,    
       buttonStyle: {
         position: "relative",
         width: `${width}px`,
@@ -384,13 +372,13 @@ const Booking = ({ className = "" }) => {
 
     dispatch(
       getUserSlotBooking({
-        day: selectedDate.day,
-        date: format(new Date(selectedDate.fullDate), "yyyy-MM-dd"),
+        day: selectedDate?.day,
+        date: format(new Date(selectedDate?.fullDate), "yyyy-MM-dd"),
         register_club_id: clubId,
         socket: socket,
       })
     );
-  }, [dispatch, selectedDate.day, selectedDate.fullDate, clubId]);
+  }, [dispatch, selectedDate?.day, selectedDate?.fullDate, clubId]);
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
@@ -408,11 +396,11 @@ const Booking = ({ className = "" }) => {
     });
 
     const handleConnect = () => {
-      bookingSocket.emit("joinRoom", { userId: user._id, clubId });
+      bookingSocket.emit("joinRoom", { userId: user?._id, clubId });
     };
 
     const handleSlotUpdate = (data) => {
-      const currentDate = format(new Date(selectedDate.fullDate), "yyyy-MM-dd");
+      const currentDate = format(new Date(selectedDate?.fullDate), "yyyy-MM-dd");
       if (data.clubId === clubId && data.date === currentDate) {
         fetchSlots(bookingSocket);
       }
@@ -426,7 +414,7 @@ const Booking = ({ className = "" }) => {
       bookingSocket.off('slotUpdated', handleSlotUpdate);
       bookingSocket.disconnect();
     };
-  }, [clubId, selectedDate.fullDate, user?._id, fetchSlots]);
+  }, [clubId, selectedDate?.fullDate, user?._id, fetchSlots]);
 
   const scrollLeft = () =>
     scrollRef.current?.scrollBy({ left: -200, behavior: "smooth" });
@@ -436,7 +424,7 @@ const Booking = ({ className = "" }) => {
   // Memoize expensive calculations
   const grandTotal = useMemo(() => {
     return selectedCourts.reduce(
-      (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
+      (sum, c) => sum + c?.time.reduce((s, t) => s + Number(t?.amount || 0), 0),
       0
     );
   }, [selectedCourts]);
@@ -444,7 +432,7 @@ const Booking = ({ className = "" }) => {
   const totalSlots = useMemo(() => {
     return Object.values(selectedTimes).reduce((total, courtDates) => {
       return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
-        return dateTotal + timeSlots.length;
+        return dateTotal + timeSlots?.length;
       }, 0);
     }, 0);
   }, [selectedTimes]);
@@ -457,7 +445,7 @@ const Booking = ({ className = "" }) => {
 
   // Clean up selected slots only for current date when slots are no longer available
   useEffect(() => {
-    if (slotData?.data && (Object.keys(selectedTimes).length > 0 || selectedCourts.length > 0)) {
+    if (slotData?.data && (Object.keys(selectedTimes)?.length > 0 || selectedCourts?.length > 0)) {
       const currentDate = selectedDate.fullDate;
       const updatedSelectedTimes = { ...selectedTimes };
       const updatedSelectedCourts = [...selectedCourts];
@@ -467,23 +455,23 @@ const Booking = ({ className = "" }) => {
       // Only validate slots for current date
       Object.keys(selectedTimes).forEach(courtId => {
         if (selectedTimes[courtId][currentDate]) {
-          const court = slotData.data.find(c => c._id === courtId);
+          const court = slotData?.data.find(c => c?._id === courtId);
           if (court) {
             const validSlots = selectedTimes[courtId][currentDate].filter(selectedSlot => {
               return court.slots?.some(availableSlot =>
-                availableSlot._id === selectedSlot._id &&
-                availableSlot.availabilityStatus === "available" &&
-                availableSlot.status !== "booked"
+                availableSlot?._id === selectedSlot?._id &&
+                availableSlot?.availabilityStatus === "available" &&
+                availableSlot?.status !== "booked"
               );
             });
 
-            if (validSlots.length !== selectedTimes[courtId][currentDate].length) {
+            if (validSlots?.length !== selectedTimes[courtId][currentDate]?.length) {
               hasChanges = true;
-              if (validSlots.length > 0) {
+              if (validSlots?.length > 0) {
                 updatedSelectedTimes[courtId][currentDate] = validSlots;
               } else {
                 delete updatedSelectedTimes[courtId][currentDate];
-                if (Object.keys(updatedSelectedTimes[courtId]).length === 0) {
+                if (Object.keys(updatedSelectedTimes[courtId])?.length === 0) {
                   delete updatedSelectedTimes[courtId];
                 }
               }
@@ -493,21 +481,21 @@ const Booking = ({ className = "" }) => {
       });
 
       // Update selectedCourts only for current date
-      for (let i = updatedSelectedCourts.length - 1; i >= 0; i--) {
+      for (let i = updatedSelectedCourts?.length - 1; i >= 0; i--) {
         const court = updatedSelectedCourts[i];
-        if (court.date === currentDate) {
-          const validTimeSlots = court.time.filter(timeSlot => {
-            const courtData = slotData.data.find(c => c._id === court._id);
+        if (court?.date === currentDate) {
+          const validTimeSlots = court?.time.filter(timeSlot => {
+            const courtData = slotData?.data.find(c => c?._id === court?._id);
             return courtData?.slots?.some(availableSlot =>
-              availableSlot._id === timeSlot._id &&
-              availableSlot.availabilityStatus === "available" &&
-              availableSlot.status !== "booked"
+              availableSlot?._id === timeSlot?._id &&
+              availableSlot?.availabilityStatus === "available" &&
+              availableSlot?.status !== "booked"
             );
           });
 
-          if (validTimeSlots.length !== court.time.length) {
+          if (validTimeSlots?.length !== court?.time?.length) {
             hasChanges = true;
-            if (validTimeSlots.length > 0) {
+            if (validTimeSlots?.length > 0) {
               updatedSelectedCourts[i] = { ...court, time: validTimeSlots };
             } else {
               updatedSelectedCourts.splice(i, 1);
@@ -517,19 +505,19 @@ const Booking = ({ className = "" }) => {
       }
 
       // Update selectedBusiness only for current date
-      for (let i = updatedSelectedBusiness.length - 1; i >= 0; i--) {
+      for (let i = updatedSelectedBusiness?.length - 1; i >= 0; i--) {
         const slot = updatedSelectedBusiness[i];
-        if (slot.date === currentDate) {
-          const courtExists = slotData.data.some(court =>
-            court.slots?.some(courtSlot =>
-              courtSlot._id === slot._id &&
-              courtSlot.availabilityStatus === "available" &&
-              courtSlot.status !== "booked"
+        if (slot?.date === currentDate) {
+          const courtExists = slotData?.data.some(court =>
+            court?.slots?.some(courtSlot =>
+              courtSlot?._id === slot?._id &&
+              courtSlot?.availabilityStatus === "available" &&
+              courtSlot?.status !== "booked"
             )
           );
           if (!courtExists) {
             hasChanges = true;
-            updatedSelectedBusiness.splice(i, 1);
+            updatedSelectedBusiness?.splice(i, 1);
           }
         }
       }
@@ -551,7 +539,7 @@ const Booking = ({ className = "" }) => {
     }
     if (!user?.token) {
       const courtIds = selectedCourts
-        .map((court) => court._id)
+        ?.map((court) => court?._id)
         .filter((id) => id)
         .join(",");
       navigate("/login", {
@@ -563,7 +551,7 @@ const Booking = ({ className = "" }) => {
               date: selectedDate?.fullDate,
               time: selectedBuisness,
               courtId: courtIds,
-              court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
+              court: selectedCourts.map((c) => ({ _id: c?._id || c?.id, ...c })),
               slot: slotData?.data?.[0]?.slots,
             },
             clubData,
@@ -576,7 +564,7 @@ const Booking = ({ className = "" }) => {
       });
     } else {
       const courtIds = selectedCourts
-        .map((court) => court._id)
+        .map((court) => court?._id)
         .filter((id) => id)
         .join(",");
       navigate("/payment", {
@@ -666,13 +654,11 @@ const Booking = ({ className = "" }) => {
     })();
 
     const handleMouseEnter = (e) => {
-      // Don't show tooltip on mobile devices
       if (window.innerWidth <= 768) return;
 
-      // Calculate current total slots for tooltip
       const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
         return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
-          return dateTotal + timeSlots.length;
+          return dateTotal + timeSlots?.length;
         }, 0);
       }, 0);
 
@@ -695,7 +681,7 @@ const Booking = ({ className = "" }) => {
       // Calculate current total slots for tooltip movement
       const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
         return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
-          return dateTotal + timeSlots.length;
+          return dateTotal + timeSlots?.length;
         }, 0);
       }, 0);
 
@@ -725,23 +711,17 @@ const Booking = ({ className = "" }) => {
     };
   }, [selectedTimes, slotData]);
 
-  const tabData = [
-    { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
-    { Icon: BsSunFill, label: "Noon", key: "noon" },
-    { Icon: HiMoon, label: "Evening", key: "night" },
-  ];
-
   useEffect(() => {
     const counts = [0, 0, 0];
     slotData?.data?.forEach((court) => {
       court?.slots?.forEach((slot) => {
         if (
           showUnavailable ||
-          (slot.availabilityStatus === "available" &&
-            slot.status !== "booked" &&
-            !isPastTime(slot.time))
+          (slot?.availabilityStatus === "available" &&
+            slot?.status !== "booked" &&
+            !isPastTime(slot?.time))
         ) {
-          const slotHour = parseTimeToHour(slot.time);
+          const slotHour = parseTimeToHour(slot?.time);
           if (slotHour !== null) {
             if (slotHour >= 0 && slotHour < 12) counts[0]++;
             else if (slotHour >= 12 && slotHour < 17) counts[1]++;
@@ -917,9 +897,7 @@ const Booking = ({ className = "" }) => {
                               getUserSlotBooking({
                                 day,
                                 date: formattedDate,
-                                register_club_id:
-                                  localStorage.getItem("register_club_id") ||
-                                  "",
+                                register_club_id:localStorage.getItem("register_club_id") || "",
                               })
                             );
                           }}
@@ -1111,7 +1089,7 @@ const Booking = ({ className = "" }) => {
                     maxWidth: "100%",
                   }}
                 >
-                  {dates.map((d, i) => {
+                  {dates?.map((d, i) => {
                     const formatDate = (date) =>
                       date.toISOString().split("T")[0];
                     const isSelected =
@@ -1130,7 +1108,7 @@ const Booking = ({ className = "" }) => {
                     return (
                       <button
                         key={i}
-                        ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                        ref={(el) => (dateRefs.current[d?.fullDate] = el)}
                         className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"
                           }`}
                         style={{
@@ -1145,14 +1123,13 @@ const Booking = ({ className = "" }) => {
                         }}
                         onClick={() => {
                           setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
-                          setStartDate(new Date(d.fullDate));
+                          setStartDate(new Date(d?.fullDate));
                           setShowBanner(false);
                           dispatch(
                             getUserSlotBooking({
                               day: d?.day,
                               date: d?.fullDate,
-                              register_club_id:
-                                localStorage.getItem("register_club_id") || "",
+                              register_club_id:localStorage.getItem("register_club_id") || "",
                             })
                           );
                         }}
@@ -1214,7 +1191,7 @@ const Booking = ({ className = "" }) => {
                 <div className="weather-tabs-wrapper w-100">
                   <div className="weather-tabs-wrapper w-100">
                     <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                      {tabs.map((tab, index) => {
+                      {tabs?.map((tab, index) => {
                         const Icon = tab.Icon;
                         return (
                           <div
@@ -1231,9 +1208,9 @@ const Booking = ({ className = "" }) => {
                       })}
                     </div>
                     <div className="tab-labels d-flex justify-content-between">
-                      {tabs.map((tab, index) => (
+                      {tabs?.map((tab, index) => (
                         <p key={index} className={`tab-label ${activeTab === index ? 'active text-primary' : 'text-muted'}`}>
-                          {tab.label}
+                          {tab?.label}
                         </p>
                       ))}
                     </div>
@@ -1246,10 +1223,10 @@ const Booking = ({ className = "" }) => {
                 const filteredSlots = court?.slots?.filter((slot) => {
                   const basicFilter = showUnavailable
                     ? true
-                    : slot.availabilityStatus === "available" &&
-                    slot.status !== "booked" &&
-                    !isPastTime(slot.time) &&
-                    slot.amount > 0;
+                    : slot?.availabilityStatus === "available" &&
+                    slot?.status !== "booked" &&
+                    !isPastTime(slot?.time) &&
+                    slot?.amount > 0;
 
                   // Apply tab filter for both mobile and desktop
                   const tabKey = tabs[activeTab]?.key;
@@ -1308,7 +1285,7 @@ const Booking = ({ className = "" }) => {
                               })}
                             </div>
                             <div className="tab-labels d-flex justify-content-between">
-                              {tabs.map((tab, index) => (
+                              {tabs?.map((tab, index) => (
                                 <p
                                   key={index}
                                   className={`tab-label ${activeTab === index
@@ -1316,7 +1293,7 @@ const Booking = ({ className = "" }) => {
                                     : "text-muted mb-0"
                                     }`}
                                 >
-                                  {tab.label}
+                                  {tab?.label}
                                 </p>
                               ))}
                             </div>
@@ -1346,14 +1323,14 @@ const Booking = ({ className = "" }) => {
                               scrollbar-width: none; /* Firefox */
                             }
                           `}</style>
-                        {slotData?.data.map((court, courtIndex) => {
+                        {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
                             const basicFilter = showUnavailable
                               ? true
-                              : slot.availabilityStatus === "available" &&
-                              slot.status !== "booked" &&
-                              !isPastTime(slot.time) &&
-                              slot.amount > 0;
+                              : slot?.availabilityStatus === "available" &&
+                              slot?.status !== "booked" &&
+                              !isPastTime(slot?.time) &&
+                              slot?.amount > 0;
 
                             // Apply tab filter for both mobile and desktop
                             const tabKey = tabs[activeTab]?.key;
@@ -1364,7 +1341,7 @@ const Booking = ({ className = "" }) => {
 
                           return (
                             <div
-                              key={court._id}
+                              key={court?._id}
                               className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0"
                             >
                               <div className="col-md-3 col-12 border-end mb-0 mb-md-0 d-flex d-md-block align-items-center justify-content-start ">
@@ -1396,17 +1373,17 @@ const Booking = ({ className = "" }) => {
                               </div>
                               <div className="col-md-9 col-12">
                                 <div className="row g-1">
-                                  {filteredSlots.map((slot, i) => {
+                                  {filteredSlots?.map((slot, i) => {
                                     const isSelected = selectedTimes[
-                                      court._id
-                                    ]?.[selectedDate.fullDate]?.some(
-                                      (t) => t._id === slot._id
+                                      court?._id
+                                    ]?.[selectedDate?.fullDate]?.some(
+                                      (t) => t?._id === slot?._id
                                     );
                                     const isDisabled =
-                                      slot.status === "booked" ||
-                                      slot.availabilityStatus !== "available" ||
-                                      isPastTime(slot.time) ||
-                                      slot.amount <= 0;
+                                      slot?.status === "booked" ||
+                                      slot?.availabilityStatus !== "available" ||
+                                      isPastTime(slot?.time) ||
+                                      slot?.amount <= 0;
 
                                     return (
                                       <div
@@ -1417,7 +1394,7 @@ const Booking = ({ className = "" }) => {
                                           className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""
                                             } slot-time-btn`}
                                           onClick={() =>
-                                            toggleTime(slot, court._id, selectedDate.fullDate)
+                                            toggleTime(slot, court?._id, selectedDate?.fullDate)
                                           }
                                           disabled={isDisabled}
                                           // title={totalSlots >= MAX_SLOTS && !isSelected ? `You can select up to ${MAX_SLOTS} slots only` : ''}
@@ -1425,17 +1402,17 @@ const Booking = ({ className = "" }) => {
                                           style={{
                                             background:
                                               isDisabled ||
-                                                slot.status === "booked" ||
-                                                isPastTime(slot.time) ||
-                                                slot.amount <= 0
+                                                slot?.status === "booked" ||
+                                                isPastTime(slot?.time) ||
+                                                slot?.amount <= 0
                                                 ? "#c9cfcfff"
                                                 : isSelected
                                                   ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
                                                   : "#FFFFFF",
                                             color:
                                               isDisabled ||
-                                                slot.status === "booked" ||
-                                                isPastTime(slot.time)
+                                                slot?.status === "booked" ||
+                                                isPastTime(slot?.time)
                                                 ? "#000000"
                                                 : isSelected
                                                   ? "white"
@@ -1460,7 +1437,7 @@ const Booking = ({ className = "" }) => {
 
                                           }}
                                           onMouseEnter={(e) => {
-                                            if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
+                                            if (!isDisabled && slot?.availabilityStatus === "available" && !isSelected) {
                                               e.currentTarget.style.borderTop = "1px solid #0034E4";
                                               e.currentTarget.style.borderRight = "1px solid #0034E4";
                                               e.currentTarget.style.borderBottom = "1px solid #0034E4";
@@ -1468,7 +1445,7 @@ const Booking = ({ className = "" }) => {
                                             }
                                           }}
                                           onMouseLeave={(e) => {
-                                            if (!isDisabled && slot.availabilityStatus === "available") {
+                                            if (!isDisabled && slot?.availabilityStatus === "available") {
                                               e.currentTarget.style.borderTop = isSelected ? "1px solid transparent" : "1px solid #4949491A";
                                               e.currentTarget.style.borderRight = isSelected ? "1px solid transparent" : "1px solid #4949491A";
                                               e.currentTarget.style.borderBottom = isSelected ? "1px solid transparent" : "1px solid #4949491A";
@@ -1493,9 +1470,9 @@ const Booking = ({ className = "" }) => {
                       const hasAvailableSlots = court?.slots?.some((slot) => {
                         const basicFilter =
                           showUnavailable ||
-                          (slot.availabilityStatus === "available" &&
-                            slot.status !== "booked" &&
-                            !isPastTime(slot.time));
+                          (slot?.availabilityStatus === "available" &&
+                            slot?.status !== "booked" &&
+                            !isPastTime(slot?.time));
 
                         const tabKey = tabs[activeTab]?.key;
                         return basicFilter && filterSlotsByTab(slot, tabKey);
@@ -1911,7 +1888,7 @@ const Booking = ({ className = "" }) => {
                       }}
                     >
                       {clubData?.clubName
-                        ? clubData.clubName.charAt(0).toUpperCase()
+                        ? clubData?.clubName.charAt(0).toUpperCase()
                         : "C"}
                     </div>
                   )}
@@ -1970,9 +1947,9 @@ const Booking = ({ className = "" }) => {
                   className="div d-none d-lg-block"
                   style={{ height: "18vh" }}
                 >
-                  {selectedCourts.length > 0 ? (
-                    selectedCourts.map((court, index) =>
-                      court.time.map((timeSlot, timeIndex) => (
+                  {selectedCourts?.length > 0 ? (
+                    selectedCourts?.map((court, index) =>
+                      court?.time?.map((timeSlot, timeIndex) => (
                         <div key={`${index}-${timeIndex}`} className="row mb-2">
                           <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                             <div className="d-flex text-white">
@@ -1983,13 +1960,13 @@ const Booking = ({ className = "" }) => {
                                   fontSize: "14px",
                                 }}
                               >
-                                {court.date
-                                  ? `${new Date(court.date).toLocaleString(
+                                {court?.date
+                                  ? `${new Date(court?.date).toLocaleString(
                                     "en-US",
                                     {
                                       day: "2-digit",
                                     }
-                                  )}, ${new Date(court.date).toLocaleString(
+                                  )}, ${new Date(court?.date).toLocaleString(
                                     "en-US",
                                     {
                                       month: "short",
@@ -2005,7 +1982,7 @@ const Booking = ({ className = "" }) => {
                                   fontSize: "14px",
                                 }}
                               >
-                                {formatTime(timeSlot.time)}
+                                {formatTime(timeSlot?.time)}
                               </span>
                               <span
                                 className="ps-2"
@@ -2015,7 +1992,7 @@ const Booking = ({ className = "" }) => {
                                   fontSize: "14px",
                                 }}
                               >
-                                {court.courtName}
+                                {court?.courtName}
                               </span>
                             </div>
                             <div className="text-white align-items-center">
@@ -2087,7 +2064,7 @@ const Booking = ({ className = "" }) => {
                         className="mb-0 pb-1 text-white fw-semibold pt-2"
                         style={{ fontSize: "15px" }}
                       >
-                        Booking Summary 
+                        Booking Summary
                       </h6>
                     )}
 

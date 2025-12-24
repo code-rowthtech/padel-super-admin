@@ -46,7 +46,6 @@ import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
 import { PiSunHorizonFill } from "react-icons/pi";
 import { IoIosArrowForward } from "react-icons/io";
-import { registerClub } from "../../../redux/thunks";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { showError, showSuccess } from "../../../helpers/Toast";
 import { copyMatchCardWithScreenshot } from "../../../utils/matchCopy";
@@ -94,12 +93,12 @@ const Openmatches = () => {
   const { state } = useLocation();
 
   const initialDate = state?.selectedDate ? {
-    fullDate: typeof state.selectedDate === 'string'
-      ? state.selectedDate.includes('T') ? state.selectedDate.split("T")[0] : state.selectedDate
-      : state.selectedDate.fullDate || new Date().toISOString().split("T")[0],
-    day: typeof state.selectedDate === 'string'
-      ? new Date(state.selectedDate.includes('T') ? state.selectedDate.split("T")[0] : state.selectedDate).toLocaleDateString("en-US", { weekday: "long" })
-      : state.selectedDate.day || new Date().toLocaleDateString("en-US", { weekday: "long" }),
+    fullDate: typeof state?.selectedDate === 'string'
+      ? state?.selectedDate.includes('T') ? state?.selectedDate.split("T")[0] : state?.selectedDate
+      : state?.selectedDate?.fullDate || new Date().toISOString().split("T")[0],
+    day: typeof state?.selectedDate === 'string'
+      ? new Date(state?.selectedDate.includes('T') ? state?.selectedDate.split("T")[0] : state?.selectedDate).toLocaleDateString("en-US", { weekday: "long" })
+      : state?.selectedDate?.day || new Date().toLocaleDateString("en-US", { weekday: "long" }),
   } : {
     fullDate: new Date().toISOString().split("T")[0],
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
@@ -107,15 +106,14 @@ const Openmatches = () => {
 
   const [startDate, setStartDate] = useState(() => {
     if (state?.selectedDate) {
-      const dateStr = typeof state.selectedDate === 'string'
-        ? state.selectedDate.includes('T') ? state.selectedDate.split("T")[0] : state.selectedDate
-        : state.selectedDate.fullDate;
+      const dateStr = typeof state?.selectedDate === 'string'
+        ? state?.selectedDate.includes('T') ? state?.selectedDate.split("T")[0] : state?.selectedDate
+        : state?.selectedDate?.fullDate;
       return new Date(dateStr);
     }
     return new Date();
   });
   const [isOpen, setIsOpen] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [showUnavailableOnly, setShowUnavailableOnly] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -127,13 +125,11 @@ const Openmatches = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = getUserFromSession();
-  const matchesData = useSelector((state) => state.userMatches?.usersData);
-  const matchLoading = useSelector((state) => state.userMatches?.usersLoading);
-  const reviewData = useSelector(
-    (state) => state.userClub?.getReviewData?.data
-  );
+  const matchesData = useSelector((state) => state?.userMatches?.usersData);
+  const matchLoading = useSelector((state) => state?.userMatches?.usersLoading);
+  const reviewData = useSelector((state) => state?.userClub?.getReviewData?.data);
 
-  const reviewLoading = useSelector((state) => state.userClub?.reviewLoading);
+  const reviewLoading = useSelector((state) => state?.userClub?.reviewLoading);
   const [showModal, setShowModal] = useState(false);
   const [matchId, setMatchId] = useState(null);
   const [teamName, setTeamName] = useState("");
@@ -166,7 +162,7 @@ const Openmatches = () => {
   // Handle matchId from notification navigation
   useEffect(() => {
     if (state?.matchId && matchesData?.data) {
-      const targetMatch = matchesData.data.find(match => match._id === state.matchId);
+      const targetMatch = matchesData?.data.find(match => match?._id === state?.matchId);
       if (targetMatch) {
         setSelectedMatch(targetMatch);
         setShowViewMatch(true);
@@ -196,8 +192,8 @@ const Openmatches = () => {
         .unwrap()
         .then((res) => {
           const levels = (res?.data[0]?.levelIds || []).map((l) => ({
-            code: l.code,
-            title: l.question,
+            code: l?.code,
+            title: l?.question,
           }));
           setPlayerLevels(levels);
         })
@@ -249,28 +245,28 @@ const Openmatches = () => {
       ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
       ...(selectedLevel && selectedLevel !== "All" && { skillLevel: selectedLevel }),
       clubId,
-      userId: user?._id ? user._id : "",
+      userId: user?._id ? user?._id : "",
       type: matchFilter === "my" ? "myMatches" : "",
     };
     debouncedFetchMatches(payload);
   }, [selectedTime, selectedLevel, debouncedFetchMatches, matchFilter]);
 
   useEffect(() => {
-    if (matchesData?.data && matchesData.data.length > 0 && !state?.selectedDate) {
-      const matchDates = matchesData.data.map(match => match.matchDate?.split("T")[0] || match.matchDate);
+    if (matchesData?.data && matchesData?.data?.length > 0 && !state?.selectedDate) {
+      const matchDates = matchesData?.data.map(match => match?.matchDate?.split("T")[0] || match?.matchDate);
       const latestDateStr = matchDates.sort().reverse()[0];
       const latestDate = {
         fullDate: latestDateStr,
         day: new Date(latestDateStr).toLocaleDateString("en-US", { weekday: "long" }),
       };
 
-      if (selectedDate.fullDate !== latestDate.fullDate) {
+      if (selectedDate.fullDate !== latestDate?.fullDate) {
         setSelectedDate(latestDate);
-        setStartDate(new Date(latestDate.fullDate));
+        setStartDate(new Date(latestDate?.fullDate));
 
         setTimeout(() => {
-          if (dateRefs.current[latestDate.fullDate]) {
-            dateRefs.current[latestDate.fullDate].scrollIntoView({
+          if (dateRefs.current[latestDate?.fullDate]) {
+            dateRefs.current[latestDate?.fullDate].scrollIntoView({
               behavior: "smooth",
               inline: "center",
               block: "nearest",
@@ -302,9 +298,9 @@ const Openmatches = () => {
 
   const getMatchesForTab = (tabLabel, matches) => {
     return matches.filter((match) => {
-      return match.slot?.some((slot) => {
-        return slot.slotTimes?.some((slotTime) => {
-          const category = getTimeCategory(slotTime.time);
+      return match?.slot?.some((slot) => {
+        return slot?.slotTimes?.some((slotTime) => {
+          const category = getTimeCategory(slotTime?.time);
           return category === tabLabel;
         });
       });
@@ -337,12 +333,12 @@ const Openmatches = () => {
       matchesData?.data?.length > 0
     ) {
       const tabLabels = ["morning", "noon", "night"];
-      for (let i = 0; i < tabLabels.length; i++) {
+      for (let i = 0; i < tabLabels?.length; i++) {
         const matchesForTab = getMatchesForTab(
           tabLabels[i],
           matchesData?.data || []
         );
-        if (matchesForTab.length > 0) {
+        if (matchesForTab?.length > 0) {
           setActiveTab(i);
           break;
         }
@@ -350,31 +346,27 @@ const Openmatches = () => {
     }
   }, [filteredMatches, matchesData, activeTab, matchLoading]);
 
-  // Handle selectedTimeSlot from navigation state
   useEffect(() => {
     if (state?.selectedTimeSlot) {
-      const tabLabels = ["morning", "noon", "night"];
       const timeSlotMap = {
         'morning': 0,
-        'afternoon': 1, // maps to noon
-        'evening': 2    // maps to night
+        'afternoon': 1, 
+        'evening': 2    
       };
-      const tabIndex = timeSlotMap[state.selectedTimeSlot];
+      const tabIndex = timeSlotMap[state?.selectedTimeSlot];
       if (tabIndex !== undefined) {
         setActiveTab(tabIndex);
       }
     }
   }, [state?.selectedTimeSlot]);
 
-  // Set default tab based on available data
   useEffect(() => {
     if (!matchLoading && matchesData?.data?.length > 0 && !state?.selectedTimeSlot) {
       const tabLabels = ["morning", "noon", "night"];
 
-      // Find first tab with data
-      let defaultTabIndex = 0; // Default to morning
-      for (let i = 0; i < tabLabels.length; i++) {
-        const hasData = getMatchesForTab(tabLabels[i], matchesData.data).length > 0;
+      let defaultTabIndex = 0; 
+      for (let i = 0; i < tabLabels?.length; i++) {
+        const hasData = getMatchesForTab(tabLabels[i], matchesData?.data)?.length > 0;
         if (hasData) {
           defaultTabIndex = i;
           break;
@@ -383,17 +375,10 @@ const Openmatches = () => {
 
       setActiveTab(defaultTabIndex);
     }
-  }, [matchesData?.data, matchLoading, selectedDate.fullDate, state?.selectedTimeSlot]);
-
-  const toggleTime = (time) => {
-    setSelectedTime(selectedTime === time ? null : time);
-  };
+  }, [matchesData?.data, matchLoading, selectedDate?.fullDate, state?.selectedTimeSlot]);
 
   const maxSelectableDate = new Date();
   maxSelectableDate.setDate(maxSelectableDate.getDate() + 15);
-
-  const [startIndex, setStartIndex] = useState(0);
-  const visibleDays = 7;
 
   const handleSelect = (level) => {
     setSelectedLevel(level);
@@ -423,8 +408,8 @@ const Openmatches = () => {
       ?.reduce((total, court) => {
         return (
           total +
-          court.slotTimes.reduce(
-            (sum, slotTime) => sum + Number(slotTime.amount || 0),
+          court?.slotTimes.reduce(
+            (sum, slotTime) => sum + Number(slotTime?.amount || 0),
             0
           )
         );
@@ -439,9 +424,9 @@ const Openmatches = () => {
   ];
 
   const formatTimes = (slots) => {
-    if (!slots || slots.length === 0) return "N/A";
+    if (!slots || slots?.length === 0) return "N/A";
     const times = slots
-      .map((slot) => {
+      ?.map((slot) => {
         const time = slot?.slotTimes?.[0]?.time;
         if (!time) return null;
 
@@ -465,10 +450,10 @@ const Openmatches = () => {
       })
       .filter(Boolean);
 
-    if (times.length === 0) return "N/A";
-    if (times.length === 1) return `${times[0].hour}${times[0].period}`;
+    if (times?.length === 0) return "N/A";
+    if (times?.length === 1) return `${times[0]?.hour}${times[0]?.period}`;
 
-    return `${times[0].hour}-${times[times.length - 1].hour}${times[times.length - 1].period}`;
+    return `${times[0]?.hour}-${times[times?.length - 1]?.hour}${times[times?.length - 1].period}`;
   };
 
   const TagWrapper = ({ children }) => (
@@ -563,9 +548,9 @@ const Openmatches = () => {
           }}
         >
           {player?.name
-            ? player.name.length > 6
-              ? `${player.name.slice(0, 6)}...`
-              : player.name
+            ? player?.name?.length > 6
+              ? `${player?.name.slice(0, 6)}...`
+              : player?.name
             : "Player"}
         </p>
         {/* <p
@@ -628,8 +613,8 @@ const Openmatches = () => {
   };
 
   const getCurrentMonth = (selectedDate) => {
-    if (!selectedDate || !selectedDate.fullDate) return "MONTH";
-    const dateObj = new Date(selectedDate.fullDate);
+    if (!selectedDate || !selectedDate?.fullDate) return "MONTH";
+    const dateObj = new Date(selectedDate?.fullDate);
     const month = dateObj
       .toLocaleDateString("en-US", { month: "short" })
       .toUpperCase();
@@ -786,12 +771,12 @@ const Openmatches = () => {
                       return date.toISOString().split("T")[0];
                     };
                     const selectedDateObj = new Date(selectedDate?.fullDate);
-                    const isSelected = formatDate(selectedDateObj) === d.fullDate;
+                    const isSelected = formatDate(selectedDateObj) === d?.fullDate;
 
                     return (
                       <button
                         key={i}
-                        ref={(el) => (dateRefs.current[d.fullDate] = el)}
+                        ref={(el) => (dateRefs.current[d?.fullDate] = el)}
                         className={`calendar-day-btn mb-md-3 mb-2 me-1 position-relative ${isSelected ? "text-white border-0" : "bg-white"
                           }`}
                         style={{
@@ -805,13 +790,13 @@ const Openmatches = () => {
                           color: isSelected ? "#FFFFFF" : "#374151",
                         }}
                         onClick={() => {
-                          setSelectedDate({ fullDate: d.fullDate, day: d.day });
-                          setStartDate(new Date(d.fullDate));
+                          setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
+                          setStartDate(new Date(d?.fullDate));
                           dispatch(
                             getMatchesUser({
-                              matchDate: d.fullDate?.split("T")[0] || d.fullDate,
+                              matchDate: d?.fullDate?.split("T")[0] || d?.fullDate,
                               clubId: localStorage.getItem("register_club_id") || "",
-                              userId: user?._id ? user._id : "",
+                              userId: user?._id ? user?._id : "",
                               type: matchFilter === "my" ? "myMatches" : "",
                             })
                           );
@@ -827,9 +812,9 @@ const Openmatches = () => {
                         }
                       >
                         <div className="text-center">
-                          <div className="date-center-date">{d.date}</div>
+                          <div className="date-center-date">{d?.date}</div>
                           <div className="date-center-day">
-                            {dayShortMap[d.day]}
+                            {dayShortMap[d?.day]}
                           </div>
                         </div>
                       </button>
@@ -859,7 +844,7 @@ const Openmatches = () => {
             <div className="col-12 d-flex justify-content-center align-items-center px-0">
               <div className="weather-tabs-wrapper w-100">
                 <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                  {tabs.map((tab, index) => {
+                  {tabs?.map((tab, index) => {
                     const Icon = tab.Icon;
                     return (
                       <div
@@ -880,7 +865,7 @@ const Openmatches = () => {
                 </div>
 
                 <div className="tab-labels d-flex justify-content-between">
-                  {tabs.map((tab, index) => (
+                  {tabs?.map((tab, index) => (
                     <p
                       key={index}
                       className={`tab-label ${activeTab === index
@@ -888,7 +873,7 @@ const Openmatches = () => {
                         : "text-muted"
                         }`}
                     >
-                      {tab.label}
+                      {tab?.label}
                     </p>
                   ))}
                 </div>
@@ -1031,10 +1016,10 @@ const Openmatches = () => {
 
             <div
               style={{
-                minHeight: window.innerWidth <= 768 ? (filteredMatches.length <= 2 ? "auto" : "500px") : "400px",
-                height: window.innerWidth <= 768 ? (filteredMatches.length <= 2 ? "auto" : "500px") : "400px",
-                maxHeight: window.innerWidth <= 768 ? (filteredMatches.length > 2 ? "500px" : "auto") : (filteredMatches.length > 4 ? "380px" : "auto"),
-                overflowY: window.innerWidth <= 768 ? (filteredMatches.length > 2 ? "auto" : "visible") : (filteredMatches.length > 4 ? "auto" : "auto"),
+                minHeight: window.innerWidth <= 768 ? (filteredMatches?.length <= 2 ? "auto" : "500px") : "400px",
+                height: window.innerWidth <= 768 ? (filteredMatches?.length <= 2 ? "auto" : "500px") : "400px",
+                maxHeight: window.innerWidth <= 768 ? (filteredMatches?.length > 2 ? "500px" : "auto") : (filteredMatches?.length > 4 ? "380px" : "auto"),
+                overflowY: window.innerWidth <= 768 ? (filteredMatches?.length > 2 ? "auto" : "visible") : (filteredMatches?.length > 4 ? "auto" : "auto"),
                 scrollBehavior: "smooth",
                 paddingBottom: window.innerWidth <= 768 ? "400px" : "0px",
               }}
@@ -1042,7 +1027,7 @@ const Openmatches = () => {
             >
               {matchLoading ? (
                 <DataLoading height={380} />
-              ) : filteredMatches.length > 0 ? (
+              ) : filteredMatches?.length > 0 ? (
                 <div className="row mx-auto">
                   {filteredMatches?.map((match, index) => (
                     <div
@@ -1123,20 +1108,20 @@ const Openmatches = () => {
                                   className="mb-0 all-match-time text-nowrap"
                                   style={{ fontWeight: "600" }}
                                 >
-                                  {formatMatchDate(match.matchDate)} |{" "}
-                                  {match?.formattedMatchTime || formatTimes(match.slot)}
+                                  {formatMatchDate(match?.matchDate)} |{" "}
+                                  {match?.formattedMatchTime || formatTimes(match?.slot)}
                                   <i className="bi bi-share ms-2" onClick={(e) => { e.stopPropagation(); setShowShareDropdown(showShareDropdown === `desktop-${index}` ? null : `desktop-${index}`); }} style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }} />
                                 </p>
                                 <span className="text-muted all-match-name-level ms-0 d-none d-md-inline">
                                   {match?.skillLevel
-                                    ? match.skillLevel.charAt(0).toUpperCase() +
-                                    match.skillLevel.slice(1)
+                                    ? match?.skillLevel.charAt(0).toUpperCase() +
+                                    match?.skillLevel.slice(1)
                                     : "N/A"} | {match?.gender}
                                 </span>
                                 <p className="all-match-time   mb-0 d-md-none d-lg-none">
                                   {match?.skillLevel
-                                    ? match.skillLevel.charAt(0).toUpperCase() +
-                                    match.skillLevel.slice(1)
+                                    ? match?.skillLevel.charAt(0).toUpperCase() +
+                                    match?.skillLevel.slice(1)
                                     : "N/A"} | {match?.gender}
                                 </p>
 
@@ -1217,7 +1202,7 @@ const Openmatches = () => {
                                           key={`player-${idx}`}
                                           player={player}
                                           idx={idx}
-                                          total={arr.length}
+                                          total={arr?.length}
                                         />
                                       ))}
                                     </div>
@@ -1323,29 +1308,29 @@ const Openmatches = () => {
                               className="mb-1 all-match-time text-nowrap"
                               style={{ fontWeight: "600" }}
                             >
-                              {formatMatchDate(match.matchDate)} |{" "}
-                              {formatTimes(match.slot)}
+                              {formatMatchDate(match?.matchDate)} |{" "}
+                              {formatTimes(match?.slot)}
                             </p>
                           </div>
                           <div className="col-12">
                             <span className="text-muted all-match-name-level ms-3 d-none d-md-inline">
                               {match?.skillLevel
-                                ? match.skillLevel.charAt(0).toUpperCase() +
-                                match.skillLevel.slice(1)
+                                ? match?.skillLevel.charAt(0).toUpperCase() +
+                                match?.skillLevel.slice(1)
                                 : "N/A"}
                             </span>
                           </div>
                           <div className="col-12 mb-2">
                             <p className="all-match-time mb-0 d-md-none d-lg-none">
                               {match?.skillLevel
-                                ? match.skillLevel.charAt(0).toUpperCase() +
-                                match.skillLevel.slice(1)
+                                ? match?.skillLevel.charAt(0).toUpperCase() +
+                                match?.skillLevel.slice(1)
                                 : "N/A"}
                             </p>
                           </div>
                           <div className="row mx-auto">
                             <div className="col-6 px-0 d-flex justify-content-between align-items-start flex-wrap d-md-flex d-md-align-items-center">
-                              {[0, 1].map((playerIndex) => {
+                              {[0, 1]?.map((playerIndex) => {
                                 const player = match?.teamA?.[playerIndex];
                                 const isAvailable = !player;
                                 return (
@@ -1386,8 +1371,8 @@ const Openmatches = () => {
                                         </span>
                                       ) : player?.userId?.profilePic ? (
                                         <img
-                                          src={player.userId.profilePic}
-                                          alt={player.userId.name}
+                                          src={player?.userId?.profilePic}
+                                          alt={player?.userId?.name}
                                           style={{
                                             width: "100%",
                                             height: "100%",
@@ -1473,8 +1458,8 @@ const Openmatches = () => {
                                         </span>
                                       ) : player?.userId?.profilePic ? (
                                         <img
-                                          src={player.userId.profilePic}
-                                          alt={player.userId.name}
+                                          src={player?.userId?.profilePic}
+                                          alt={player?.userId?.name}
                                           style={{
                                             width: "100%",
                                             height: "100%",
@@ -1589,7 +1574,7 @@ const Openmatches = () => {
                                     }
                                   }}
                                   aria-label={`View match on ${formatMatchDate(
-                                    match.matchDate
+                                    match?.matchDate
                                   )}`}
                                 >
                                   <IoIosArrowForward />
