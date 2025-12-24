@@ -140,11 +140,11 @@ const BookingHistory = () => {
 
     const filterStatus = React.useMemo(() => {
         try {
-            if (!getBookingData?.bookingData?.data || !Array.isArray(getBookingData.bookingData.data)) {
+            if (!getBookingData?.bookingData?.data || !Array.isArray(getBookingData?.bookingData?.data)) {
                 return [];
             }
 
-            return getBookingData.bookingData.data.filter((booking) => {
+            return getBookingData?.bookingData?.data?.filter((booking) => {
                 if (!booking) return false;
 
                 const status = booking?.bookingStatus?.toLowerCase() || '';
@@ -174,9 +174,9 @@ const BookingHistory = () => {
                 let dateMatch = true;
                 if (searchDate && booking?.slot) {
                     try {
-                        dateMatch = booking.slot.some((slotItem) => {
+                        dateMatch = booking?.slot.some((slotItem) => {
                             if (!slotItem?.bookingDate) return false;
-                            const bookingDate = new Date(slotItem.bookingDate);
+                            const bookingDate = new Date(slotItem?.bookingDate);
                             return bookingDate.toDateString() === searchDate.toDateString();
                         });
                     } catch (error) {
@@ -188,7 +188,7 @@ const BookingHistory = () => {
                 let courtMatch = true;
                 if (searchText.trim() !== "" && booking?.slot) {
                     try {
-                        courtMatch = booking.slot.some((slotItem) =>
+                        courtMatch = booking?.slot.some((slotItem) =>
                             slotItem?.courtName?.toLowerCase()?.includes(searchText.toLowerCase())
                         );
                     } catch (error) {
@@ -243,10 +243,8 @@ const BookingHistory = () => {
         }
     }, [isOpen]);
 
-    // Outside click handlers for modals
     useEffect(() => {
         const handleOutsideClick = (event) => {
-            // Close dropdown if clicking outside
             if (isOpen && headerRef.current && !headerRef.current.contains(event.target)) {
                 const dropdownElement = document.querySelector('.dropdown-list');
                 if (dropdownElement && !dropdownElement.contains(event.target)) {
@@ -263,9 +261,7 @@ const BookingHistory = () => {
 
     useEffect(() => {
         const handleModalOutsideClick = (event) => {
-            // Check if click is on modal backdrop
             if (event.target.classList.contains('modal') || event.target.classList.contains('modal-backdrop')) {
-                // Close all modals
                 if (modalCancel) setModalCancel(false);
                 if (showRatingModal) setShowRatingModal(false);
                 if (acceptedRejected) setAcceptedRejected(false);
@@ -347,7 +343,7 @@ const BookingHistory = () => {
                             },
                         }}
                     >
-                        {["all", "upcoming", "cancelled", "completed"].map((tab, i) => (
+                        {["all", "upcoming", "cancelled", "completed"]?.map((tab, i) => (
                             <Tab
                                 key={tab}
                                 label={tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -383,7 +379,7 @@ const BookingHistory = () => {
             <Row className="mb-3">
                 <Col xs={12} md={9} className="mb-3 mb-md-0">
                     <h2 className="step-heading mt-md-2 mt-0">
-                        {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Booking
+                        {activeTab.charAt(0).toUpperCase() + activeTab?.slice(1)} Booking
                     </h2>
                 </Col>
 
@@ -542,7 +538,7 @@ const BookingHistory = () => {
                                                     {slotItem?.courtName || "N/A"}
                                                 </td>
                                                 <td className="table-data pt-2 py-1 d-flex align-items-center justify-content-center">
-                                                    <span className="px-2 rounded-pill d-flex align-items-center justify-content-center text-white  " style={{ width: "7rem", background: booking?.bookingType === 'regular' ? 'linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)' : "linear-gradient(rgba(0, 228, 76, 1) 0%, rgba(174, 190, 25, 1) 100%)" }} >{booking?.bookingType ? (booking.bookingType.charAt(0).toUpperCase() + booking.bookingType.slice(1)) : "N/A"}</span>
+                                                    <span className="px-2 rounded-pill d-flex align-items-center justify-content-center text-white  " style={{ width: "7rem", background: booking?.bookingType === 'regular' ? 'linear-gradient(rgb(0, 52, 228) 0%, rgb(0, 27, 118) 100%)' : "linear-gradient(rgba(0, 228, 76, 1) 0%, rgba(174, 190, 25, 1) 100%)" }} >{booking?.bookingType ? (booking?.bookingType.charAt(0).toUpperCase() + booking?.bookingType.slice(1)) : "N/A"}</span>
                                                 </td>
 
                                                 {activeTab === "cancelled" && (
@@ -621,7 +617,7 @@ const BookingHistory = () => {
                                                         color: "#1A237E",
                                                     }}
                                                 >
-                                                    <span style={{ fontFamily: "italic", }}>  ₹ </span>{booking?.totalAmount ? Number(booking.totalAmount).toLocaleString('en-IN') : "N/A"}
+                                                    <span style={{ fontFamily: "italic", }}>  ₹ </span>{booking?.totalAmount ? Number(booking?.totalAmount).toLocaleString('en-IN') : "N/A"}
                                                 </td>
                                                 {activeTab === "cancelled" && (
                                                     <td className="py-1 pt-2"

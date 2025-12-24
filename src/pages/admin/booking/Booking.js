@@ -59,16 +59,15 @@ const Booking = () => {
   const totalItems = getBookingData?.totalItems || 0;
   const sendDate = startDate && endDate;
 
-  // Store counts in state to persist across tab changes
   const [counts, setCounts] = useState({
     allCount: 0,
     upcomingCount: 0,
     completedCount: 0,
   });
 
-  const allCount = sendDate && tab === 0 ? totalItems : counts.allCount;
-  const upcomingCount = sendDate && tab === 1 ? totalItems : counts.upcomingCount;
-  const completedCount = sendDate && tab === 2 ? totalItems : counts.completedCount;
+  const allCount = sendDate && tab === 0 ? totalItems : counts?.allCount;
+  const upcomingCount = sendDate && tab === 1 ? totalItems : counts?.upcomingCount;
+  const completedCount = sendDate && tab === 2 ? totalItems : counts?.completedCount;
 
   const defaultLimit = 20;
 
@@ -336,7 +335,7 @@ const Booking = () => {
 
             {getBookingLoading ? (
               <DataLoading height="60vh" />
-            ) : bookings.length > 0 ? (
+            ) : bookings?.length > 0 ? (
               <>
                 <div
                   className=" flex-grow-1"
@@ -367,7 +366,7 @@ const Booking = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {bookings.map((item, idx) => (
+                      {bookings?.map((item, idx) => (
                         <tr
                           key={item?._id}
                           className="table-data border-bottom align-middle text-center"
@@ -383,8 +382,8 @@ const Booking = () => {
                             style={{ maxWidth: "120px" }}
                           >
                             {item?.userId?.name
-                              ? item.userId.name.charAt(0).toUpperCase() +
-                              item.userId.name.slice(1)
+                              ? item?.userId?.name.charAt(0).toUpperCase() +
+                              item?.userId?.name?.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
@@ -417,8 +416,8 @@ const Booking = () => {
                             ) : item?.bookingStatus === "rejected" ? (
                               <span style={{ color: "red" }}>Rejected</span>
                             ) : item?.bookingStatus ? (
-                              item.bookingStatus.charAt(0).toUpperCase() +
-                              item.bookingStatus.slice(1)
+                              item?.bookingStatus.charAt(0).toUpperCase() +
+                              item?.bookingStatus?.slice(1)
                             ) : (
                               ""
                             )}
@@ -474,15 +473,15 @@ const Booking = () => {
                 </div>
 
                 <div className="mobile-card-table d-block d-md-none">
-                  {bookings.map((item) => (
+                  {bookings?.map((item) => (
                     <div key={item?._id} className="card mb-2">
                       <div className="card-body">
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">User:</span>
                           <span className="mobile-card-value">
                             {item?.userId?.name
-                              ? item.userId.name.charAt(0).toUpperCase() +
-                              item.userId.name.slice(1)
+                              ? item?.userId?.name.charAt(0).toUpperCase() +
+                                item?.userId?.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>

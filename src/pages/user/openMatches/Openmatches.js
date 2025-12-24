@@ -10,6 +10,7 @@ import {
   FaArrowRight,
   FaChevronDown,
   FaMapMarkerAlt,
+  FaSun,
 } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
@@ -91,7 +92,6 @@ const getTimeCategory = (time) => {
 
 const Openmatches = () => {
   const { state } = useLocation();
-
   const initialDate = state?.selectedDate ? {
     fullDate: typeof state?.selectedDate === 'string'
       ? state?.selectedDate.includes('T') ? state?.selectedDate.split("T")[0] : state?.selectedDate
@@ -239,7 +239,7 @@ const Openmatches = () => {
   useEffect(() => {
     const clubId = localStorage.getItem("register_club_id");
     if (!clubId) return;
-    
+
     const payload = {
       matchDate: selectedDate?.fullDate?.split("T")[0] || selectedDate?.fullDate,
       ...(selectedTime && { matchTime: normalizeTime(selectedTime) }),
@@ -350,8 +350,8 @@ const Openmatches = () => {
     if (state?.selectedTimeSlot) {
       const timeSlotMap = {
         'morning': 0,
-        'afternoon': 1, 
-        'evening': 2    
+        'afternoon': 1,
+        'evening': 2
       };
       const tabIndex = timeSlotMap[state?.selectedTimeSlot];
       if (tabIndex !== undefined) {
@@ -364,7 +364,7 @@ const Openmatches = () => {
     if (!matchLoading && matchesData?.data?.length > 0 && !state?.selectedTimeSlot) {
       const tabLabels = ["morning", "noon", "night"];
 
-      let defaultTabIndex = 0; 
+      let defaultTabIndex = 0;
       for (let i = 0; i < tabLabels?.length; i++) {
         const hasData = getMatchesForTab(tabLabels[i], matchesData?.data)?.length > 0;
         if (hasData) {
@@ -418,7 +418,7 @@ const Openmatches = () => {
   };
 
   const tabs = [
-    { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
+    { Icon: FaSun, label: "Morning", key: "morning" },
     { Icon: BsSunFill, label: "Noon", key: "noon" },
     { Icon: HiMoon, label: "Evening", key: "night" },
   ];

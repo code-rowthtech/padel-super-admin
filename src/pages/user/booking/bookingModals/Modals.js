@@ -191,7 +191,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
                   as="textarea"
                   rows={3}
                   defaultValue={tableData?.booking?.cancellationReason
-                    ? tableData.booking.cancellationReason.charAt(0).toUpperCase() + tableData.booking.cancellationReason.slice(1)
+                    ? tableData?.booking?.cancellationReason.charAt(0).toUpperCase() + tableData?.booking?.cancellationReason?.slice(1)
                     : "N/A" || "N/A"}
                   disabled
                 />
@@ -252,7 +252,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
                         fontSize: "12px",
                       }}
                     >
-                      {otherReason.length}/150
+                      {otherReason?.length}/150
                     </small>
                   </div>
                 </div>
@@ -555,7 +555,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               rows={2}
               defaultValue={
                 booking?.booking?.cancellationReason
-                  ? booking.booking.cancellationReason.charAt(0).toUpperCase() + booking.booking.cancellationReason.slice(1)
+                  ? booking?.booking?.cancellationReason.charAt(0).toUpperCase() + booking?.booking?.cancellationReason?.slice(1)
                   : "N/A"
               }
               disabled
@@ -572,7 +572,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               as="textarea"
               rows={2}
               defaultValue={booking?.booking?.cancellationReasonForOwner
-                ? booking.booking.cancellationReasonForOwner.charAt(0).toUpperCase() + booking.booking.cancellationReasonForOwner.slice(1)
+                ? booking?.booking?.cancellationReasonForOwner.charAt(0).toUpperCase() + booking?.booking?.cancellationReasonForOwner?.slice(1)
                 : "N/A" || "N/A"}
               disabled
             />
@@ -590,7 +590,7 @@ export const AcceptedRejectedModal = ({ show, onHide, tableData, booking, select
               as="textarea"
               rows={4}
               defaultValue={booking?.booking?.refundDescription
-                ? booking.booking.refundDescription.charAt(0).toUpperCase() + booking.booking.refundDescription.slice(1)
+                ? booking?.booking?.refundDescription.charAt(0).toUpperCase() + booking?.booking?.refundDescription?.slice(1)
                 : "N/A" || "N/A"}
               disabled
             />

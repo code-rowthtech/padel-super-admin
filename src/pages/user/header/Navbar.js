@@ -45,7 +45,7 @@ const Navbar = () => {
     const dropdownRef = useRef(null);
     const mobileDropdownRef = useRef(null);
     const [notifications, setNotifications] = useState([]);
-    console.log({notifications});
+    console.log({ notifications });
     const userId = getUserFromSession()?._id;
     const [notificationCount, setNotificationCount] = useState();
     dayjs.extend(relativeTime);
@@ -125,7 +125,7 @@ const Navbar = () => {
         };
 
         const handleMatchNotification = (notification) => {
-            console.log(notification,'notificationnotification');
+            console.log(notification, 'notificationnotification');
             if (!isMounted) return;
             playNotificationSound();
             setNotifications((prev) => [notification, ...prev.slice(0, 49)]);
@@ -277,7 +277,8 @@ const Navbar = () => {
                                 fullDate: formattedDate,
                                 day: dateObj.toLocaleDateString("en-US", { weekday: "long" })
                             },
-                            selectedTimeSlot: timeSlot
+                            selectedTimeSlot: timeSlot,
+                            type: note?.notificationType || note?.type
                         }
                     });
                     setOpen(false)

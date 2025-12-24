@@ -79,7 +79,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
             socketRef.current.on('newMessage', (data) => {
                 console.log(data,'data2');
                 setMessages((prev) => [...prev, data]);
-                if (data.senderId?._id !== User._id) {
+                if (data.senderId?._id !== User._id && !showChat) {
                     playNotificationSound();
                 }
                 socketRef.current.emit('markMessageRead', { matchId });
