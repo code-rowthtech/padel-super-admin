@@ -462,7 +462,6 @@ const Navbar = () => {
                                                 </button>
                                             )}
                                         </div>
-
                                         <div style={{ maxHeight: "320px", overflowY: "auto" }} className="hide-notification-scrollbar">
                                             {notificationLoading ? <ButtonLoading /> :
                                                 notifications?.length > 0 ? (
