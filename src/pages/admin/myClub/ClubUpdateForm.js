@@ -127,29 +127,26 @@ const validateForm = (data) => {
   return { errors, isValid: !Object.values(errors).some(Boolean) };
 };
 
-const formatAmPm = (hour, meridian) =>
-  `${String(hour).padStart(2, "0")}:00 ${meridian}`;
-
 const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
-  const { hour, meridian } = useMemo(() => {
+  const { hour: currentHour, meridian: currentMeridian } = useMemo(() => {
     if (!value) return { hour: 6, meridian: "AM" };
-    const trimmedValue = String(value).trim();
-    const parts = trimmedValue.split(" ").filter(p => p);
-    const time = parts[0] || "06:00";
-    const mod = parts[1] || "AM";
-    const h = Number(time.split(":")[0]) || 6;
-    return { hour: h, meridian: mod.toUpperCase() };
+    const parts = String(value).trim().split(" ");
+    const timePart = parts[0] || "06:00";
+    const merPart = (parts[1] || "AM").toUpperCase();
+    const h = Number(timePart.split(":")[0]) || 6;
+    return { hour: h, meridian: merPart };
   }, [value]);
+
+  const formatAmPm = (h, mer) => `${String(h).padStart(2, "0")}:00 ${mer}`;
 
   const hours = useMemo(() => {
     if (!isEndTime) {
-      // For start time: 5 AM to 5 AM (next day)
-      const allHours = [];
-      for (let i = 5; i <= 12; i++) allHours.push(i);
-      for (let i = 1; i <= 4; i++) allHours.push(i);
-      return allHours;
+      if (currentMeridian === "AM") {
+        return [5, 6, 7, 8, 9, 10, 11];
+      } else {
+        return [12, 1, 2, 3, 4];
+      }
     } else {
-      // For end time: filter based on start time
       if (!startTime) return [];
 
       const startParts = startTime.split(" ");
@@ -159,17 +156,13 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
       const allHours = [];
 
       if (startMeridian === "AM") {
-        // If start is AM, end can be from (start+1) AM to 11 PM
-        // Add remaining AM hours
         for (let i = startHour + 1; i <= 12; i++) {
           allHours.push({ hour: i, period: "AM" });
         }
-        // Add all PM hours from 1 to 11
         for (let i = 1; i <= 11; i++) {
           allHours.push({ hour: i, period: "PM" });
         }
       } else {
-        // If start is PM, end can be from (start+1) PM to 11 PM
         for (let i = startHour + 1; i <= 11; i++) {
           allHours.push({ hour: i, period: "PM" });
         }
@@ -177,7 +170,7 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
 
       return allHours.map(item => item.hour);
     }
-  }, [isEndTime, startTime]);
+  }, [isEndTime, startTime, currentMeridian]); 
 
   const meridianOptions = useMemo(() => {
     if (!isEndTime) {
@@ -197,25 +190,43 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
     }
   }, [isEndTime, startTime]);
 
+  const handleMeridianChange = useCallback((e) => {
+    if (isEndTime) {
+      onChange(formatAmPm(currentHour, e.target.value));
+      return;
+    }
+
+    const newMeridian = e.target.value;
+    let newHour = currentHour;
+
+    if (newMeridian === "AM" && (currentHour < 5 || currentHour > 11)) {
+      newHour = 5; 
+    }
+    if (newMeridian === "PM" && (currentHour >= 5 && currentHour <= 11)) {
+      newHour = 12; 
+    }
+
+    onChange(formatAmPm(newHour, newMeridian));
+  }, [currentHour, isEndTime, onChange]);
+
   return (
     <div className="d-flex gap-2">
       <Form.Select
         aria-label="Select hour"
         id={`${idPrefix}-hour`}
-        value={hour}
-        onChange={(e) => onChange(formatAmPm(Number(e.target.value), meridian))}
-       style={{
-  height: "32px",
-  borderRadius: "8px",
-  fontSize: "11px",        // ✔ correct
-  textAlign: "center",
-  boxShadow: "none",
-  fontWeight: 500,
-  fontFamily: "Poppins",
-  maxWidth: "110px",
-}}
+        value={currentHour}
+        onChange={(e) => onChange(formatAmPm(Number(e.target.value), currentMeridian))}
+        style={{
+          height: "32px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          textAlign: "center",
+          boxShadow: "none",
+          fontWeight: 500,
+          fontFamily: "Poppins",
+          maxWidth: "110px",
+        }}
         className="custom_small_font_admin"
-
       >
         {hours.map((h, index) => (
           <option key={`${h}-${index}`} value={h}>
@@ -226,8 +237,8 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
       <Form.Select
         aria-label="Select AM/PM"
         id={`${idPrefix}-ampm`}
-        value={meridian}
-        onChange={(e) => onChange(formatAmPm(hour, e.target.value))}
+        value={currentMeridian}
+        onChange={handleMeridianChange}
         style={{
           height: "32px",
           borderRadius: "8px",
