@@ -154,6 +154,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
     const navigate = useNavigate();
     const user = getUserFromSession();
     const { state } = useLocation();
+    console.log({ state });
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const RequestData = useSelector((state) => state.requestData?.requestData?.requests);
@@ -203,6 +204,12 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    useEffect(() => {
+        if (state?.matchId && state?.type === 'match_message') {
+            setShowChat(true);
+        }
+    }, [state?.matchId, state?.type === 'match_message'])
 
     useEffect(() => {
         const handleClickOutside = (event) => {
