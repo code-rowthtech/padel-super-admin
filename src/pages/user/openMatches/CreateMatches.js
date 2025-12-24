@@ -732,16 +732,16 @@ const CreateMatches = () => {
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
   const renderSlotButton = (slot, index, courtId) => {
-    const isSelected = selectedTimes[courtId]?.some((s) => s._id === slot._id) || false;
+    const isSelected = selectedTimes[courtId]?.some((s) => s?._id === slot?._id) || false;
     const allSelectedTimes = Object.values(selectedTimes).flat();
     const currentCourtTimes = selectedTimes[courtId] || [];
-    const totalSlots = allSelectedTimes.length;
-    const slotMinutes = timeToMinutes(slot.time);
+    const totalSlots = allSelectedTimes?.length;
+    const slotMinutes = timeToMinutes(slot?.time);
 
-    let isDisabled = slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
+    let isDisabled = slot?.status === "booked" || slot?.availabilityStatus !== "available" || isPastTime(slot?.time) || slot?.amount <= 0;
 
     // Check if this time is already used in another court
-    const isTimeAlreadyUsed = allSelectedTimes.some(t => t.time === slot.time && !currentCourtTimes.some(ct => ct._id === t._id));
+    const isTimeAlreadyUsed = allSelectedTimes.some(t => t?.time === slot?.time && !currentCourtTimes?.some(ct => ct?._id === t?._id));
 
     if (!isSelected) {
       // Disable if maximum total slots reached
@@ -821,7 +821,7 @@ const CreateMatches = () => {
   };
 
   const renderCurrentQuestion = () => {
-    if (!dynamicSteps || dynamicSteps.length === 0) {
+    if (!dynamicSteps || dynamicSteps?.length === 0) {
       return <div>Loading questions...</div>;
     }
 
@@ -830,21 +830,21 @@ const CreateMatches = () => {
       return <div>Loading questions...</div>;
     }
 
-    const isLastStep = currentStep === dynamicSteps.length - 1;
-    const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
-    const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step.options || []);
+    const isLastStep = currentStep === dynamicSteps?.length - 1;
+    const currentAnswer = selectedAnswers[currentStep] || (step?.isMultiSelect ? [] : "");
+    const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step?.options || []);
 
     return (
       <Form>
         {optionsToShow.map((opt, i) => {
-          const isSelected = step.isMultiSelect
-            ? currentAnswer.includes(opt.value)
-            : currentAnswer === opt.value;
+          const isSelected = step?.isMultiSelect
+            ? currentAnswer.includes(opt?.value)
+            : currentAnswer === opt?.value;
 
           return (
             <div
-              key={opt._id}
-              onClick={() => handleAnswerSelect(currentStep, opt.value)}
+              key={opt?._id}
+              onClick={() => handleAnswerSelect(currentStep, opt?.value)}
               className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
               style={{
                 backgroundColor: isSelected ? "#eef2ff" : "#fff",
@@ -856,7 +856,7 @@ const CreateMatches = () => {
               }}
             >
               <Form.Check
-                type={step.isMultiSelect ? "checkbox" : "radio"}
+                type={step?.isMultiSelect ? "checkbox" : "radio"}
                 checked={isSelected}
                 onChange={() => { }}
                 style={{ flexShrink: 0 }}
@@ -869,7 +869,7 @@ const CreateMatches = () => {
                   color: "#1f2937",
                 }}
               >
-                {opt.value}
+                {opt?.value}
               </span>
             </div>
           );
@@ -1070,10 +1070,10 @@ const CreateMatches = () => {
                 >
                   {dates.map((d, i) => {
                     const formatDate = (date) => date.toISOString().split("T")[0];
-                    const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                    const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d?.fullDate;
                     const slotCount = selectedCourts
-                      .filter(court => court.date === d.fullDate)
-                      .reduce((acc, court) => acc + court.time.length, 0);
+                      .filter(court => court?.date === d?.fullDate)
+                      .reduce((acc, court) => acc + court?.time?.length, 0);
                     return (
                       <button
                         key={i}
@@ -1086,17 +1086,17 @@ const CreateMatches = () => {
                             : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151"
                         }}
                         onClick={() => {
-                          setSelectedDate({ fullDate: d.fullDate, day: d.day });
-                          const [year, month, dayNum] = d.fullDate.split('-').map(Number);
+                          setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
+                          const [year, month, dayNum] = d?.fullDate?.split('-').map(Number);
                           setStartDate(new Date(year, month - 1, dayNum));
-                          dispatch(getUserSlotBooking({ day: d.day, date: d.fullDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
+                          dispatch(getUserSlotBooking({ day: d?.day, date: d?.fullDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
                         onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
                       >
                         <div className="text-center">
-                          <div className="date-center-date">{d.date}</div>
-                          <div className="date-center-day">{dayShortMap[d.day]}</div>
+                          <div className="date-center-date">{d?.date}</div>
+                          <div className="date-center-day">{dayShortMap[d?.day]}</div>
                         </div>
                         {slotCount > 0 && (
                           <span
@@ -1140,10 +1140,10 @@ const CreateMatches = () => {
                       {slotData?.data?.some((court) =>
                         court?.slots?.some((slot) =>
                           showUnavailable ||
-                          (slot.availabilityStatus === "available" &&
-                            slot.status !== "booked" &&
-                            !isPastTime(slot.time) &&
-                            slot.amount > 0)
+                          (slot?.availabilityStatus === "available" &&
+                            slot?.status !== "booked" &&
+                            !isPastTime(slot?.time) &&
+                            slot?.amount > 0)
                         )
                       ) && (
                           <>
@@ -1210,18 +1210,18 @@ const CreateMatches = () => {
                             }
                           }
                         `}</style>
-                        {slotData?.data.map((court, courtIndex) => {
+                        {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) =>
                             showUnavailable
                               ? true
-                              : slot.availabilityStatus === "available" &&
-                              slot.status !== "booked" &&
-                              !isPastTime(slot.time) &&
-                              slot.amount > 0
+                              : slot?.availabilityStatus === "available" &&
+                              slot?.status !== "booked" &&
+                              !isPastTime(slot?.time) &&
+                              slot?.amount > 0
                           );
                           if (filteredSlots?.length === 0) return null;
                           return (
-                            <div key={court._id} className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0">
+                            <div key={court?._id} className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0">
                               <div className="col-md-3 col-12 border-end mb-0 d-flex d-md-block align-items-center justify-content-start">
                                 <div
                                   className="court-item p-1 ps-0 ps-md-1 text-center text-lg-start h-100 d-flex d-md-block align-items-center justify-content-center"
@@ -1253,7 +1253,7 @@ const CreateMatches = () => {
 
                               <div className="col-md-9 col-12">
                                 <div className="row g-1">
-                                  {filteredSlots.map((slot, i) => renderSlotButton(slot, i, court._id))}
+                                  {filteredSlots?.map((slot, i) => renderSlotButton(slot, i, court?._id))}
                                 </div>
                               </div>
                             </div>
@@ -1264,9 +1264,9 @@ const CreateMatches = () => {
                       {slotData?.data?.some((court) =>
                         court?.slots?.some((slot) =>
                           showUnavailable ||
-                          (slot.availabilityStatus === "available" &&
-                            slot.status !== "booked" &&
-                            !isPastTime(slot.time))
+                          (slot?.availabilityStatus === "available" &&
+                            slot?.status !== "booked" &&
+                            !isPastTime(slot?.time))
                         )
                       ) && (
                           <div className="d-flex justify-content-end pt-2 pb-2 d-lg-none">
@@ -1278,7 +1278,7 @@ const CreateMatches = () => {
                                 fontWeight: "600",
                                 fontSize: "13px",
                               }}
-                              disabled={selectedCourts.length === 0}
+                              disabled={selectedCourts?.length === 0}
                               onClick={() => {
                                 if (existsOpenMatchData) {
                                   setMatchPlayer(true);
@@ -1298,16 +1298,16 @@ const CreateMatches = () => {
                         !court?.slots?.some(
                           (slot) =>
                             showUnavailable ||
-                            (slot.availabilityStatus === "available" &&
-                              slot.status !== "booked" &&
-                              !isPastTime(slot.time))
+                            (slot?.availabilityStatus === "available" &&
+                              slot?.status !== "booked" &&
+                              !isPastTime(slot?.time))
                         )
                     ) && (
                         <div
                           className="text-center py-4 d-flex flex-column justify-content-center align-items-center mt-5"
                           style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280", }}
                         >
-                          <p className="mb-1 label_font text-danger">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
+                          <p className="mb-1 label_font text-danger">No slots are available for this date and {tabData.find(t => t?.key === key)?.label || 'time'}.</p>
                           <p className="mb-0 label_font text-danger">Please choose another date</p>
                         </div>
                       )}
@@ -1315,7 +1315,7 @@ const CreateMatches = () => {
                 )
               ) : (
                 <div className="text-center py-4 d-flex flex-column justify-content-center align-items-center mt-5" style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" }}>
-                  <p className="mb-1 label_font text-danger">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
+                  <p className="mb-1 label_font text-danger">No slots are available for this date and {tabData.find(t => t?.key === key)?.label || 'time'}.</p>
                   <p className="mb-0 label_font text-danger">Please choose another date</p>
                 </div>
               )}
@@ -1337,18 +1337,18 @@ const CreateMatches = () => {
               padding: "0px 15px",
             }}
           >
-            {selectedCourts.length > 0 && (
+            {selectedCourts?.length > 0 && (
               <>
                 <div
                   className="mobile-expanded-slots"
                   style={{
                     maxHeight: isExpanded
-                      ? selectedCourts.reduce((s, c) => s + c.time.length, 0) > 2
+                      ? selectedCourts.reduce((s, c) => s + c?.time?.length, 0) > 2
                         ? "120px"
                         : "auto"
                       : "0px",
                     overflowY:
-                      selectedCourts.reduce((s, c) => s + c.time.length, 0) > 2 && isExpanded
+                      selectedCourts.reduce((s, c) => s + c?.time?.length, 0) > 2 && isExpanded
                         ? "auto"
                         : "hidden",
                     overflowX: "hidden",
@@ -1379,8 +1379,8 @@ const CreateMatches = () => {
                     }
                   `}</style>
 
-                  {selectedCourts.map((court, idx) =>
-                    court.time.map((timeSlot, tIdx) => (
+                  {selectedCourts?.map((court, idx) =>
+                    court?.time?.map((timeSlot, tIdx) => (
                       <div key={`${idx}-${tIdx}`} className="row mb-1">
                         <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
                           <div className="d-flex text-white">
@@ -1391,10 +1391,10 @@ const CreateMatches = () => {
                                 fontSize: "11px",
                               }}
                             >
-                              {court.date
-                                ? `${new Date(court.date).toLocaleString("en-US", {
+                              {court?.date
+                                ? `${new Date(court?.date).toLocaleString("en-US", {
                                   day: "2-digit",
-                                })}, ${new Date(court.date).toLocaleString("en-US", {
+                                })}, ${new Date(court?.date).toLocaleString("en-US", {
                                   month: "short",
                                 })}`
                                 : ""}
@@ -1407,7 +1407,7 @@ const CreateMatches = () => {
                                 fontSize: "11px",
                               }}
                             >
-                              {formatTimeForDisplay(timeSlot.time)}
+                              {formatTimeForDisplay(timeSlot?.time)}
                             </span>
                             <span
                               className="ps-1"
@@ -1417,7 +1417,7 @@ const CreateMatches = () => {
                                 fontSize: "10px",
                               }}
                             >
-                              {court.courtName}
+                              {court?.courtName}
                             </span>
                           </div>
 
@@ -1430,31 +1430,31 @@ const CreateMatches = () => {
                                 fontSize: "11px",
                               }}
                             >
-                              ₹ {timeSlot.amount || "N/A"}
+                              ₹ {timeSlot?.amount || "N/A"}
                             </span>
                             <MdOutlineDeleteOutline
                               className="ms-1 text-white"
                               style={{ cursor: "pointer", fontSize: "14px" }}
                               onClick={() => {
                                 const updatedCourts = selectedCourts
-                                  .map((c) =>
+                                  ?.map((c) =>
                                     c._id === court._id
                                       ? {
                                         ...c,
-                                        time: c.time.filter((t) => t._id !== timeSlot._id),
+                                        time: c?.time.filter((t) => t?._id !== timeSlot?._id),
                                       }
                                       : c
                                   )
-                                  .filter((c) => c.time.length > 0);
+                                  .filter((c) => c?.time?.length > 0);
                                 setSelectedCourts(updatedCourts);
 
                                 const updatedTimes = { ...selectedTimes };
-                                if (updatedTimes[court._id]) {
-                                  updatedTimes[court._id] = updatedTimes[court._id].filter(
-                                    (t) => t._id !== timeSlot._id
+                                if (updatedTimes[court?._id]) {
+                                  updatedTimes[court?._id] = updatedTimes[court?._id].filter(
+                                    (t) => t?._id !== timeSlot?._id
                                   );
-                                  if (updatedTimes[court._id].length === 0)
-                                    delete updatedTimes[court._id];
+                                  if (updatedTimes[court?._id]?.length === 0)
+                                    delete updatedTimes[court?._id];
                                 }
                                 setSelectedTimes(updatedTimes);
                               }}
@@ -1465,8 +1465,6 @@ const CreateMatches = () => {
                     ))
                   )}
                 </div>
-
-
               </>
             )}
           </div>
@@ -1545,40 +1543,40 @@ const CreateMatches = () => {
 
                     <Form>
                       {(() => {
-                        if (!dynamicSteps || dynamicSteps.length === 0 || !dynamicSteps[currentStep]) {
+                        if (!dynamicSteps || dynamicSteps?.length === 0 || !dynamicSteps[currentStep]) {
                           return <div>Loading options...</div>;
                         }
 
                         const step = dynamicSteps[currentStep];
-                        if (!step || !step.options) {
+                        if (!step || !step?.options) {
                           return <div>Loading options...</div>;
                         }
 
-                        const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
-                        const isLastStep = currentStep === dynamicSteps.length - 1;
-                        const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step.options || []);
+                        const currentAnswer = selectedAnswers[currentStep] || (step?.isMultiSelect ? [] : "");
+                        const isLastStep = currentStep === dynamicSteps?.length - 1;
+                        const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step?.options || []);
 
-                        return optionsToShow.map((opt, i) => {
-                          const optValue = opt.value || opt.code || opt;
-                          const isSelected = step.isMultiSelect
+                        return optionsToShow?.map((opt, i) => {
+                          const optValue = opt?.value || opt?.code || opt;
+                          const isSelected = step?.isMultiSelect
                             ? Array.isArray(currentAnswer) && currentAnswer.includes(optValue)
                             : currentAnswer === optValue;
 
                           return (
                             <div
-                              key={opt._id || i}
+                              key={opt?._id || i}
                               onClick={() => handleAnswerSelect(currentStep, optValue)}
                               className="d-flex align-items-center mb-0 border-0 px-3 py-2  shadow-sm  step-option"
                               style={{
                                 backgroundColor: isSelected ? "#eef2ff" : "#fff",
                                 borderColor: isSelected ? "#4f46e5" : "#e5e7eb",
-                                cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                                cursor: selectedCourts?.length === 0 ? "not-allowed" : "pointer",
                                 gap: "12px",
                                 transition: "all 0.2s ease",
                               }}
                             >
                               <Form.Check
-                                type={step.isMultiSelect ? "checkbox" : "radio"}
+                                type={step?.isMultiSelect ? "checkbox" : "radio"}
                                 checked={isSelected}
                                 onChange={() => { }}
                                 style={{ flexShrink: 0 }}
@@ -1591,7 +1589,7 @@ const CreateMatches = () => {
                                   color: "#1f2937",
                                 }}
                               >
-                                {opt.value || `${opt.code} - ${opt.title || opt.question}`}
+                                {opt?.value || `${opt?.code} - ${opt?.title || opt?.question}`}
                               </span>
                             </div>
                           );
@@ -1633,12 +1631,12 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 mb-0 py-1 ms-auto"
-                    disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
+                    disabled={selectedCourts?.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
                       <ButtonLoading color="#fff" />
-                    ) : currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded ? (
+                    ) : currentStep === dynamicSteps?.length - 1 && isFinalLevelStepLoaded ? (
                       "Submit"
                     ) : (
                       "Next"
@@ -1651,7 +1649,7 @@ const CreateMatches = () => {
 
           {profileLoading ? (
             <></>
-          ) : !matchPlayer && !existsOpenMatchData && dynamicSteps.length > 0 && (
+          ) : !matchPlayer && !existsOpenMatchData && dynamicSteps?.length > 0 && (
             <div className="d-none d-lg-block">
               <div style={{ backgroundColor: "#F1F4FF", borderRadius: "12px" }}>
                 <div className="d-flex pt-4 align-items-center" style={{ position: "relative" }}>
@@ -1667,7 +1665,7 @@ const CreateMatches = () => {
                   </div>
 
                   <div className="d-flex justify-content-center w-100 gap-2">
-                    {dynamicSteps.map((_, i) => (
+                    {dynamicSteps?.map((_, i) => (
                       <div
                         key={i}
                         style={{
@@ -1697,8 +1695,8 @@ const CreateMatches = () => {
 
                   <div
                     style={{
-                      opacity: selectedCourts.length === 0 ? 0.5 : 1,
-                      pointerEvents: selectedCourts.length === 0 ? "none" : "auto",
+                      opacity: selectedCourts?.length === 0 ? 0.5 : 1,
+                      pointerEvents: selectedCourts?.length === 0 ? "none" : "auto",
                     }}
                   >
                     {renderCurrentQuestion()}
@@ -1725,12 +1723,12 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 py-2 pt-1 d-flex align-items-center justify-content-center"
-                    disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
+                    disabled={selectedCourts?.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
                       <ButtonLoading color={'white'} />
-                    ) : currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded ? (
+                    ) : currentStep === dynamicSteps?.length - 1 && isFinalLevelStepLoaded ? (
                       "Submit"
                     ) : (
                       "Next"
@@ -1749,8 +1747,8 @@ const CreateMatches = () => {
               setAddedPlayers={setAddedPlayers}
               selectedCourts={selectedCourts}
               selectedDate={selectedDate}
-              finalSkillDetails={existsOpenMatchData ? [] : (selectedAnswers && Object.keys(selectedAnswers).length > 0 ? selectedAnswers : {})}
-              totalAmount={selectedCourts.reduce((sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0), 0)}
+              finalSkillDetails={existsOpenMatchData ? [] : (selectedAnswers && Object.keys(selectedAnswers)?.length > 0 ? selectedAnswers : {})}
+              totalAmount={selectedCourts.reduce((sum, c) => sum + c?.time.reduce((s, t) => s + Number(t?.amount || 0), 0), 0)}
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
               userGender={userGender}
