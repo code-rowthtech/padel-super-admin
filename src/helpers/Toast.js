@@ -1,6 +1,5 @@
 import { toast, Bounce } from "react-toastify";
 
-// Store active toasts to prevent duplicates
 const activeToasts = new Map();
 
 const createToastWithCount = (message, type, options) => {
@@ -10,13 +9,11 @@ const createToastWithCount = (message, type, options) => {
     const toastData = activeToasts.get(key);
     toastData.count += 1;
     
-    // Update existing toast with count
     toast.update(toastData.id, {
       render: `${message} (${toastData.count})`,
       ...options
     });
   } else {
-    // Create new toast
     const toastId = toast[type](message, {
       ...options,
       onClose: () => {

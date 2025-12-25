@@ -45,10 +45,6 @@ export const formatDate = (dateString) => {
   hours = hours % 12;
   hours = hours ? hours : 12;
 
-  const formattedTime = `${hours}:${minutes
-    .toString()
-    .padStart(2, "0")}${ampm}`;
-
   return `${dayWithSuffix} ${monthName} ${year} `;
 };
 
