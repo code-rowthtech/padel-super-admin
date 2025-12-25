@@ -587,7 +587,7 @@ const OpenmatchPayment = () => {
                             </div>
                             <div
                                 className="position-absolute"
-                                style={{ top: "11px", left: "17.5%" }}
+                                style={{ top: "11.5px", left: "17.8%" }}
                             >
                                 {logo ? (
                                     <div

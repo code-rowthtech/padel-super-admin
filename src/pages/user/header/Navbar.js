@@ -43,7 +43,6 @@ const Navbar = () => {
     const { user, } = useSelector((state) => state?.userAuth);
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
-    const mobileDropdownRef = useRef(null);
     const [notifications, setNotifications] = useState([]);
     console.log({ notifications });
     const userId = getUserFromSession()?._id;
@@ -69,8 +68,6 @@ const Navbar = () => {
         },
     });
 
-
-
     const playNotificationSound = () => {
         const audio = new Audio(sendSound);
         audio.volume = 0.5;
@@ -78,7 +75,6 @@ const Navbar = () => {
     };
     useEffect(() => {
         if (!userId) return;
-
         let isMounted = true;
         const socket = io(SOCKET_URL, {
             transports: ["websocket", "polling"],
@@ -119,7 +115,7 @@ const Navbar = () => {
 
         const handleUserRequest = (data) => {
             if (!isMounted) return;
-            setNotifications((prev) => [data, ...prev.slice(0, 49)]); // Limit to 50 notifications
+            setNotifications((prev) => [data, ...prev.slice(0, 49)]); 
             setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
             playNotificationSound();
         };
@@ -204,8 +200,8 @@ const Navbar = () => {
             window.removeEventListener('storage', updateUserData);
         };
     }, [store?.user?.status, store?.user?.response?.user,]);
-    const updateName = JSON.parse(localStorage.getItem("updateprofile"));
-    const initialFormData = {
+        const updateName = JSON.parse(localStorage.getItem("updateprofile"));
+        const initialFormData = {
         fullName: user?.response?.name || updateName?.fullName || User?.name || "",
         phone: user?.response?.phoneNumber || updateName?.phone || User?.phoneNumber || "",
         profileImage: updateName?.profile || user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic,
@@ -222,15 +218,14 @@ const Navbar = () => {
     }, [dispatch]);
 
     useEffect(() => {
-        if (clubData && clubData._id) {
-            localStorage.setItem("register_club_id", clubData._id);
+        if (clubData && clubData?._id) {
+            localStorage.setItem("register_club_id", clubData?._id);
             localStorage.setItem("owner_id", clubData?.ownerId?._id);
         }
     }, [clubData]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            // Only close on desktop, not mobile
             if (window.innerWidth >= 992 && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpen(false);
             }
