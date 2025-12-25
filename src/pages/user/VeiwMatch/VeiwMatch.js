@@ -190,12 +190,19 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
 
-    // Ensure matchId is always a string
     const getMatchIdString = (id) => {
         if (typeof id === 'string') return id;
         if (typeof id === 'object' && id?._id) return id._id;
         return id?.toString() || null;
     };
+
+    const isMatchFull = () => {
+        const teamAPlayers = teamAData?.filter(p => p).length || 0;
+        const teamBPlayers = teamBData?.filter(p => p).length || 0;
+        return (teamAPlayers + teamBPlayers) >= 4 ||
+            (teamAPlayers === 2 && teamBPlayers === 2);
+    };
+
     const shareDropdownRef = useRef(null);
     const matchDetailsRef = useRef(null);
     const socketRef = useRef(null);
@@ -656,7 +663,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                         <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
                             Players
                         </h6>
-
+                        {console.log({ slots })}
                         <div className="row mx-auto">
                             <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 d-md-flex d-md-align-items-center">
                                 {slots?.slice(0, 2)?.map((s) => (
@@ -915,8 +922,9 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                             <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
                         </div>
                         <div className="d-flex flex-column ">
+                            {console.log({ RequestData })}
                             {RequestDataLoading ? <DataLoading /> : RequestData?.length > 0 ? (
-                                RequestData.map((player, index) => (
+                                RequestData?.map((player, index) => (
                                     <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
                                         <div className="d-flex align-items-center gap-3">
                                             <div
@@ -949,22 +957,51 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                             </div>
                                         </div>
                                         <div className="d-flex gap-2">
-                                            <i className="bi bi-check-circle-fill"
-                                                style={{ color: "#28a745", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
-                                                onClick={() => {
-                                                    if (player?.status === 'pending') {
-                                                        setSelectedPlayerForAction(player);
-                                                        setShowConfirmModal(true);
-                                                    }
-                                                }}></i>
-                                            <i className="bi bi-x-circle-fill"
-                                                style={{ color: "#dc3545", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
-                                                onClick={() => {
-                                                    if (player?.status === 'pending') {
-                                                        setSelectedPlayerForAction(player);
-                                                        setShowRejectModal(true);
-                                                    }
-                                                }}></i>
+                                            <div className="position-relative d-inline-block" data-tooltip-id={isMatchFull() ? `tooltip-disabled-${index}` : undefined}>
+                                                <i
+                                                    className="bi bi-check-circle-fill"
+                                                    style={{
+                                                        color: "#28a745",
+                                                        fontSize: "20px",
+                                                        cursor: (player?.status === 'pending' && !isMatchFull()) ? "pointer" : "not-allowed",
+                                                        opacity: (player?.status === 'pending' && !isMatchFull()) ? 1 : 0.5
+                                                    }}
+                                                    onClick={() => {
+                                                        if (player?.status === 'pending' && !isMatchFull()) {
+                                                            setSelectedPlayerForAction(player);
+                                                            setShowConfirmModal(true);
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <div className="position-relative d-inline-block ms-2" data-tooltip-id={isMatchFull() ? `tooltip-disabled-${index}` : undefined}>
+                                                <i
+                                                    className="bi bi-x-circle-fill"
+                                                    style={{
+                                                        color: "#dc3545",
+                                                        fontSize: "20px",
+                                                        cursor: (player?.status === 'pending' && !isMatchFull()) ? "pointer" : "not-allowed",
+                                                        opacity: (player?.status === 'pending' && !isMatchFull()) ? 1 : 0.5
+                                                    }}
+                                                    onClick={() => {
+                                                        if (player?.status === 'pending' && !isMatchFull()) {
+                                                            setSelectedPlayerForAction(player);
+                                                            setShowRejectModal(true);
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* Tooltip for disabled buttons */}
+                                            {isMatchFull() && (
+                                                <Tooltip
+                                                    id={`tooltip-disabled-${index}`}
+                                                    place="top"
+                                                    content="Match is already full"
+                                                    style={{ fontSize: "12px", backgroundColor: "#333", color: "#fff" }}
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                 ))
