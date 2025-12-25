@@ -14,19 +14,15 @@ import {
 } from "../../../assets/files";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {  DataLoading } from "../../../helpers/loading/Loaders";
+import { DataLoading } from "../../../helpers/loading/Loaders";
 import { format } from "date-fns";
 import TokenExpire from "../../../helpers/TokenExpire";
 import {
-  MdKeyboardArrowDown,
-  MdKeyboardArrowUp,
   MdOutlineDateRange,
-  MdOutlineDeleteOutline,
 } from "react-icons/md";
 import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
-import { Button, Dropdown } from "react-bootstrap";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import {
@@ -95,7 +91,6 @@ const Booking = ({ className = "" }) => {
   const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
-  const bookingStatus = useSelector((state) => state?.userBooking);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorShow, setErrorShow] = useState(false);
   const logo = clubData?.logo;
@@ -322,9 +317,9 @@ const Booking = ({ className = "" }) => {
       width,
       height,
       circleRadius,
-      arrowX,        
-      arrowY,        
-      arrowSize,    
+      arrowX,
+      arrowY,
+      arrowSize,
       buttonStyle: {
         position: "relative",
         width: `${width}px`,
@@ -402,7 +397,7 @@ const Booking = ({ className = "" }) => {
 
     const handleSlotUpdate = (data) => {
       const currentDate = format(new Date(selectedDate?.fullDate), "yyyy-MM-dd");
-      if (data.clubId === clubId && data.date === currentDate) {
+      if (data?.clubId === clubId && data?.date === currentDate) {
         fetchSlots(bookingSocket);
       }
     };
@@ -447,7 +442,7 @@ const Booking = ({ className = "" }) => {
   // Clean up selected slots only for current date when slots are no longer available
   useEffect(() => {
     if (slotData?.data && (Object.keys(selectedTimes)?.length > 0 || selectedCourts?.length > 0)) {
-      const currentDate = selectedDate.fullDate;
+      const currentDate = selectedDate?.fullDate;
       const updatedSelectedTimes = { ...selectedTimes };
       const updatedSelectedCourts = [...selectedCourts];
       const updatedSelectedBusiness = [...selectedBuisness];
@@ -552,7 +547,7 @@ const Booking = ({ className = "" }) => {
               date: selectedDate?.fullDate,
               time: selectedBuisness,
               courtId: courtIds,
-              court: selectedCourts.map((c) => ({ _id: c?._id || c?.id, ...c })),
+              court: selectedCourts?.map((c) => ({ _id: c?._id || c?.id, ...c })),
               slot: slotData?.data?.[0]?.slots,
             },
             clubData,
@@ -565,7 +560,7 @@ const Booking = ({ className = "" }) => {
       });
     } else {
       const courtIds = selectedCourts
-        .map((court) => court?._id)
+        ?.map((court) => court?._id)
         .filter((id) => id)
         .join(",");
       navigate("/payment", {
@@ -575,7 +570,7 @@ const Booking = ({ className = "" }) => {
             date: selectedDate?.fullDate,
             time: selectedBuisness,
             courtId: courtIds,
-            court: selectedCourts.map((c) => ({ _id: c._id || c.id, ...c })),
+            court: selectedCourts?.map((c) => ({ _id: c._id || c.id, ...c })),
             slot: slotData?.data?.[0]?.slots,
           },
           clubData,
@@ -676,10 +671,8 @@ const Booking = ({ className = "" }) => {
     };
 
     const handleMouseMove = (e) => {
-      // Don't show tooltip on mobile devices
       if (window.innerWidth <= 768) return;
 
-      // Calculate current total slots for tooltip movement
       const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
         return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
           return dateTotal + timeSlots?.length;
@@ -806,22 +799,10 @@ const Booking = ({ className = "" }) => {
                 backgroundBlendMode: "multiply",
               }}
             >
-              {/* <img
-                                src={twoball}
-                                alt="Paddle"
-                                className="img-fluid w-100 h-100 object-fit-cover sharp-image"
-                                style={{
-                                    borderRadius: "13px",
-                                    imageRendering: "auto",
-                                    imageRendering: "-webkit-optimize-contrast",
-                                    filter: "none"
-                                }}
-                            /> */}
               <img
                 src={bannerimg}
                 alt="Paddle"
                 className="img-fluid w-100 object-fit-cover rounded-3 d-block d-md-none"
-              // style={{ height: "24vh" }}
               />
 
               <div
@@ -898,7 +879,7 @@ const Booking = ({ className = "" }) => {
                               getUserSlotBooking({
                                 day,
                                 date: formattedDate,
-                                register_club_id:localStorage.getItem("register_club_id") || "",
+                                register_club_id: localStorage.getItem("register_club_id") || "",
                               })
                             );
                           }}
@@ -933,112 +914,6 @@ const Booking = ({ className = "" }) => {
               </div>
             </div>
             <div className="d-flex align-items-center mb-md-3 mb-2 gap-2 border-bottom">
-              {/* <div className="position-relative mt-md-0 mt-2">
-                  <div
-                    className="d-flex justify-content-start border align-items-center gap-0 rounded p-2 pe-3 ps-0 mb-md-3 mb-2"
-                    style={{
-                      backgroundColor: "transparent",
-                      width: "52px",
-                      height: "58px",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setShowDropdown(!showDropdown)}
-                  >
-                    <div className="d-flex align-items-center gap-0 p-0">
-                      <img
-                        src={booking_dropdown_img}
-                        style={{ width: "34px", height: "34px" }}
-                        alt=""
-                      />
-                      <MdKeyboardArrowDown
-                        size={16}
-                        style={{
-                          transform: showDropdown
-                            ? "rotate(180deg)"
-                            : "rotate(0deg)",
-                          transition: "transform 0.3s",
-                        }}
-                        className="d-md-flex d-none"
-                      />
-                    </div>
-                  </div>
-                  {showDropdown && (
-                    <div
-                      className="position-absolute bg-white  rounded shadow"
-                      style={{
-                        top: "100%",
-                        left: "-10px",
-                        width: "105px",
-                        zIndex: 1000,
-                        marginTop: "-15px",
-                      }}
-                    >
-                      <div
-                        className="d-flex align-items-center p-2 border-bottom"
-                        style={{ cursor: "pointer" }}
-                      >
-                        <div className="flex-grow-1">
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              fontWeight: "400",
-                              fontFamily: "Poppins",
-                            }}
-                          >
-                            Paddle
-                          </div>
-                        </div>
-                        <img
-                          src={booking_dropdown_img2}
-                          style={{ width: "23px", height: "23px" }}
-                          alt=""
-                        />
-                      </div>
-                      <div
-                        className="d-flex align-items-center p-2 border-bottom"
-                        style={{ cursor: "pointer" }}
-                      >
-                        <div className="flex-grow-1">
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              fontWeight: "400",
-                              fontFamily: "Poppins",
-                            }}
-                          >
-                            Tennis
-                          </div>
-                        </div>
-                        <img
-                          src={booking_dropdown_img3}
-                          style={{ width: "23px", height: "23px" }}
-                          alt=""
-                        />
-                      </div>
-                      <div
-                        className="d-flex align-items-center p-2"
-                        style={{ cursor: "pointer" }}
-                      >
-                        <div className="flex-grow-1">
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              fontWeight: "400",
-                              fontFamily: "Poppins",
-                            }}
-                          >
-                            Pickle Ball
-                          </div>
-                        </div>
-                        <img
-                          src={booking_dropdown_img4}
-                          style={{ width: "23px", height: "23px" }}
-                          alt=""
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div> */}
               <div
                 className="d-flex calendar-day-btn-mobile justify-content-center align-items-center rounded-1  mb-md-3 mb-2 mt-2 mt-md-2"
                 style={{
@@ -1130,7 +1005,7 @@ const Booking = ({ className = "" }) => {
                             getUserSlotBooking({
                               day: d?.day,
                               date: d?.fullDate,
-                              register_club_id:localStorage.getItem("register_club_id") || "",
+                              register_club_id: localStorage.getItem("register_club_id") || "",
                             })
                           );
                         }}
@@ -1303,18 +1178,14 @@ const Booking = ({ className = "" }) => {
                       </div>
                       <div
                         style={{
-                          // maxHeight: "39vh",
                           overflowY: "auto",
                           overflowX: "hidden",
                           paddingRight: "8px",
-                          // WebKit: Hide scrollbar visually but keep functionality
-                          msOverflowStyle: "none", // IE and Edge
-                          scrollbarWidth: "none", // Firefox
+                          msOverflowStyle: "none",
+                          scrollbarWidth: "none",
                         }}
                         className="hide-scrollbar mention_height_court"
                       >
-                        {/* Your content here */}
-
                         <style>{`
                             .hide-scrollbar::-webkit-scrollbar {
                               display: none; /* Safari and Chrome */
@@ -1333,7 +1204,6 @@ const Booking = ({ className = "" }) => {
                               !isPastTime(slot?.time) &&
                               slot?.amount > 0;
 
-                            // Apply tab filter for both mobile and desktop
                             const tabKey = tabs[activeTab]?.key;
                             return basicFilter && filterSlotsByTab(slot, tabKey);
                           });
@@ -1398,8 +1268,6 @@ const Booking = ({ className = "" }) => {
                                             toggleTime(slot, court?._id, selectedDate?.fullDate)
                                           }
                                           disabled={isDisabled}
-                                          // title={totalSlots >= MAX_SLOTS && !isSelected ? `You can select up to ${MAX_SLOTS} slots only` : ''}
-
                                           style={{
                                             background:
                                               isDisabled ||
@@ -1518,7 +1386,7 @@ const Booking = ({ className = "" }) => {
             className={className}
             handleBookNow={handleBookNow}
           />
-         
+
         </div>
       </div>
       <TokenExpire isTokenExpired={expireModal} />

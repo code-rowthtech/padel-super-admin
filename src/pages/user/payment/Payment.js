@@ -185,8 +185,7 @@ const Payment = ({ className = "" }) => {
         paymentMethod: 'razorpay',
       };
 
-      // First: Login if needed
-      if (!user?.name && !user?.phoneNumber) {
+      if (user?.phoneNumber) {
         await dispatch(
           updateUser({
             phoneNumber: rawPhoneNumber,
