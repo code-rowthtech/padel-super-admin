@@ -11,10 +11,10 @@ import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thunk";
-import ChatPopup from "./ChatPopup";
 import io from 'socket.io-client';
 import config from "../../../config";
 import { ViewmatchShimmer } from "../../../helpers/loading/ShimmerLoading";
+import ChatPopup from "./ChatPopup";
 
 const SOCKET_URL = `${config.API_URL}/match`;;
 
@@ -609,10 +609,10 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                 </span>
                             </div>
                             <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
-                                {matchDate.day}, {matchDate.formattedDate} | {matchTime}
+                                {matchDate?.day}, {matchDate?.formattedDate} | {matchTime}
                             </small>
                             <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
-                                {matchDate.day}, {matchDate.formattedDate} {matchTime}
+                                {matchDate?.day}, {matchDate?.formattedDate} {matchTime}
                             </small>
                         </div>
                         <div className="row text-center border-top">
@@ -630,7 +630,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                     ₹{" "}
                                     {Math.round(
                                         (matchesData?.data?.slot?.reduce((total, court) => {
-                                            return total + court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0);
+                                            return total + court?.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime?.amount), 0);
                                         }, 0) || 0) / 4
                                     ).toLocaleString("en-IN")}
                                 </p>
@@ -663,7 +663,6 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                         <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
                             Players
                         </h6>
-                        {console.log({ slots })}
                         <div className="row mx-auto">
                             <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 d-md-flex d-md-align-items-center">
                                 {slots?.slice(0, 2)?.map((s) => (
@@ -723,8 +722,8 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                 </p>
                                 <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
                                     {matchesData?.data?.courtType
-                                        ? matchesData.data.courtType.charAt(0).toUpperCase() +
-                                        matchesData.data.courtType.slice(1)
+                                        ? matchesData?.data?.courtType.charAt(0).toUpperCase() +
+                                        matchesData?.data?.courtType.slice(1)
                                         : "Unknown"}
                                 </p>
                             </div>
@@ -813,13 +812,13 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                     style={{
                                         width: 80,
                                         height: 80,
-                                        backgroundColor: selectedPlayer.profilePic ? "transparent" : "#1F41BB",
+                                        backgroundColor: selectedPlayer?.profilePic ? "transparent" : "#1F41BB",
                                         overflow: "hidden",
                                     }}
                                 >
-                                    {selectedPlayer.profilePic ? (
+                                    {selectedPlayer?.profilePic ? (
                                         <img
-                                            src={selectedPlayer.profilePic}
+                                            src={selectedPlayer?.profilePic}
                                             alt="player"
                                             style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                         />
@@ -835,42 +834,43 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                 <div className="mb-2 d-flex gap-2 align-items-center    ">
                                     <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Name:</strong>
                                     <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                        {selectedPlayer.name || "Unknown"}
+                                        {selectedPlayer?.name || "Unknown"}
                                     </p>
                                 </div>
 
-                                {selectedPlayer.email && (
+                                {selectedPlayer?.email && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Email:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            {selectedPlayer.email}
+                                            {selectedPlayer?.email}
                                         </p>
                                     </div>
                                 )}
 
-                                {selectedPlayer.phoneNumber && (
+                                {selectedPlayer?.phoneNumber && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Phone:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            +91 {selectedPlayer.phoneNumber}
+                                            +91 {selectedPlayer?.phoneNumber}
                                         </p>
                                     </div>
                                 )}
 
-                                {selectedPlayer.level && (
+                                {(selectedPlayer?.level || matchesData?.data?.skillDetails) && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Level:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            {selectedPlayer?.level}
+                                            {selectedPlayer?.level || matchesData?.data?.skillDetails}
                                         </p>
                                     </div>
                                 )}
+                                {console.log(matchesData?.data,selectedPlayer,'matchesData?.data')}
 
-                                {selectedPlayer.skillLevel && (
+                                {(selectedPlayer?.skillLevel || matchesData?.data?.skillLevel) && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Skill Level:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            {matchesData?.data?.skillLevel || "Unknown"}
+                                            {matchesData?.data?.skillLevel || selectedPlayer?.skillLevel || "Unknown"}
                                         </p>
                                     </div>
                                 )}
@@ -897,7 +897,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                 show={showRequestModal}
                 onHide={() => setShowRequestModal(false)}
                 placement={windowWidth >= 992 ? "end" : "bottom"}
-                backdrop={true}  // click outside close
+                backdrop={true}  
                 keyboard={true}
                 enforceFocus={false}
                 style={{
@@ -938,7 +938,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                                     fontSize: "12px"
                                                 }}
                                             >
-                                                {player?.requesterId?.name ? player.requesterId.name.split(' ').map(n => n?.[0] || '').join('').toUpperCase() : 'U'}
+                                                {player?.requesterId?.name ? player?.requesterId?.name.split(' ').map(n => n?.[0] || '').join('').toUpperCase() : 'U'}
                                             </div>
                                             <div style={{ maxWidth: "200px" }}>
                                                 <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", wordBreak: "break-word" }}>
@@ -1171,20 +1171,20 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                 playerNames={(() => {
                     const allPlayers = [...teamAData, ...teamBData]
                         .filter(p => p)
-                        .map(p => {
+                        ?.map(p => {
                             const playerId = p?.userId?._id || p?._id;
                             const playerName = p?.userId?.name || p?.name;
                             return { id: playerId, name: playerName };
                         })
-                        .filter(p => p.name);
+                        .filter(p => p?.name);
 
-                    const currentUserIndex = allPlayers.findIndex(p => p.id === user?._id);
+                    const currentUserIndex = allPlayers.findIndex(p => p?.id === user?._id);
                     if (currentUserIndex > -1) {
                         const currentUser = allPlayers.splice(currentUserIndex, 1)[0];
                         allPlayers.unshift({ ...currentUser, name: 'You' });
                     }
 
-                    return allPlayers.map(p => p.name).slice(0, 4).join(', ');
+                    return allPlayers?.map(p => p?.name).slice(0, 4).join(', ');
                 })()}
             />
 

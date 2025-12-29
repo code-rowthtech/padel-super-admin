@@ -32,16 +32,16 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
     };
 
     useEffect(() => {
-        if (showChat && messages.length > 0) {
+        if (showChat && messages?.length > 0) {
             scrollToBottom();
         }
     }, [showChat]);
 
     useEffect(() => {
-        if (showChat && messages.length > 0) {
+        if (showChat && messages?.length > 0) {
             scrollToBottom();
         }
-    }, [messages.length, showChat]);
+    }, [messages?.length, showChat]);
 
     useEffect(() => {
         if (showChat && User?._id && matchId) {
@@ -51,7 +51,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
             }, 2000);
 
             socketRef.current = io(SOCKET_URL, {
-                auth: { userId: User._id },
+                auth: { userId: User?._id },
                 transports: ['websocket'],
                 reconnection: true
             });
@@ -70,7 +70,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
             });
             socketRef.current.on('messagesReceived', (data) => {
                 console.log(data,'data1');
-                setMessages(data.messages || []);
+                setMessages(data?.messages || []);
                 clearTimeout(loadingTimeout);
                 setLoading(false);
                 socketRef.current.emit('markMessageRead', { matchId });
@@ -79,7 +79,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
             socketRef.current.on('newMessage', (data) => {
                 console.log(data,'data2');
                 setMessages((prev) => [...prev, data]);
-                if (data.senderId?._id !== User._id && !showChat) {
+                if (data?.senderId?._id !== User?._id && !showChat) {
                     playNotificationSound();
                 }
                 socketRef.current.emit('markMessageRead', { matchId });
@@ -167,7 +167,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
             }}
         >
             {/* Header */}
-            <div className="d-flex align-items-center justify-content-between p-3 border-bottom" style={{ backgroundColor: '#F5F5F5', flexShrink: 0 }}>
+            <div className="d-flex  justify-content-between p-3 border-bottom" style={{ backgroundColor: '#F5F5F5', flexShrink: 0 }}>
                 <div className="d-flex align-items-center gap-2">
                     <button
                         className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center d-md-none"
@@ -261,7 +261,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                 ) : messages?.map((msg, index) => {
                     if (msg?.isSystemMessage) {
                         return (
-                            <div key={msg._id || index} className="d-flex justify-content-center mb-2">
+                            <div key={msg?._id || index} className="d-flex justify-content-center mb-2">
                                 <span style={{
                                     backgroundColor: '#E8F4FD',
                                     color: '#1F41BB',
@@ -323,7 +323,7 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                                             }}
                                         >
                                             {msg?.senderId?.profilePic ? (
-                                                <img src={msg.senderId.profilePic} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                <img src={msg?.senderId?.profilePic} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                             ) : (
                                                 initials.toUpperCase()
                                             )}

@@ -331,7 +331,7 @@ const Openmatches = () => {
   useEffect(() => {
     if (
       !matchLoading &&
-      filteredMatches.length === 0 &&
+      filteredMatches?.length === 0 &&
       matchesData?.data?.length > 0
     ) {
       const tabLabels = ["morning", "noon", "night"];

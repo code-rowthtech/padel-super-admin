@@ -9,7 +9,7 @@ import {
   updateUser,
   getStates,
 } from "../../../redux/user/auth/authThunk";
-import { showError } from "../../../helpers/Toast";
+import { showError, showSuccess } from "../../../helpers/Toast";
 
 const Profile = () => {
   const User = getUserFromSession();
@@ -197,6 +197,7 @@ const Profile = () => {
       dispatch(updateUser(payload))
         .then(() => {
           dispatch(getUserProfile());
+          showSuccess('Update Successfully')
         })
         .catch((err) => {
         });
