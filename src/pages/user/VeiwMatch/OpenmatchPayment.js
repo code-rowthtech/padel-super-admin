@@ -218,13 +218,13 @@ const OpenmatchPayment = () => {
                 paymentMethod: 'razorpay',
                 bookingType: "open Match",
                 bookingStatus: "upcoming",
-                slot: selectedCourts.flatMap(court => court.time.map(timeSlot => ({
-                    slotId: timeSlot._id,
-                    businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
-                    slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
-                    courtName: court.courtName || "Court",
-                    courtId: court._id,
-                    bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
+                slot: selectedCourts.flatMap(court => court?.time?.map(timeSlot => ({
+                    slotId: timeSlot?._id,
+                    businessHours: slotData?.data?.[0]?.slot?.[0]?.businessHours?.map(t => ({ time: t?.time, day: t?.day })) || [],
+                    slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount || 1000 }],
+                    courtName: court?.courtName || "Court",
+                    courtId: court?._id,
+                    bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
                 }))),
             };
 
@@ -248,17 +248,17 @@ const OpenmatchPayment = () => {
                     handler: async function (response) {
                         try {
                             const formattedMatch = {
-                                slot: localSelectedCourts.flatMap(court => court.time.map(timeSlot => ({
-                                    slotId: timeSlot._id,
-                                    businessHours: clubData?.businessHours?.map(t => ({ time: t.time, day: t.day })) || [],
-                                    slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount || 1000 }],
-                                    courtName: court.courtName,
-                                    courtId: court._id,
-                                    bookingDate: new Date(court.date || selectedDate.fullDate).toISOString(),
+                                slot: localSelectedCourts.flatMap(court => court?.time?.map(timeSlot => ({
+                                    slotId: timeSlot?._id,
+                                    businessHours: clubData?.businessHours?.map(t => ({ time: t?.time, day: t?.day })) || [],
+                                    slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount || 1000 }],
+                                    courtName: court?.courtName,
+                                    courtId: court?._id,
+                                    bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
                                 }))),
                                 clubId: savedClubId,
                                 gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
-                                matchDate: new Date(selectedDate.fullDate).toISOString().split("T")[0],
+                                matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
                                 ...(answersArray?.length > 0 && {
                                     skillLevel: answersArray[0] || "Open Match",
                                     skillDetails: answersArray?.slice(1)?.map((answer, i) => {
@@ -267,7 +267,7 @@ const OpenmatchPayment = () => {
                                     })
                                 }),
                                 matchStatus: "open",
-                                matchTime: localSelectedCourts.flatMap(c => c.time.map(t => t.time)).join(","),
+                                matchTime: localSelectedCourts.flatMap(c => c?.time.map(t => t?.time)).join(","),
                                 teamA,
                                 teamB,
                             };
@@ -280,9 +280,9 @@ const OpenmatchPayment = () => {
                                 ...baseBookingPayload,
                                 initiatePayment: false,
                                 openMatchId: matchId,
-                                razorpayOrderId: response.razorpay_order_id,
-                                razorpayPaymentId: response.razorpay_payment_id,
-                                razorpaySignature: response.razorpay_signature
+                                razorpayOrderId: response?.razorpay_order_id,
+                                razorpayPaymentId: response?.razorpay_payment_id,
+                                razorpaySignature: response?.razorpay_signature
                             })).unwrap();
 
                             if (finalBookingResponse?.success || finalBookingResponse?.message?.includes("created")) {
@@ -309,7 +309,7 @@ const OpenmatchPayment = () => {
                             setIsLoading(false);
                             // Don't clear slots on payment cancellation, just navigate back
                             navigate("/create-matches", {
-                                state: { 
+                                state: {
                                     selectedDate,
                                     selectedCourts: localSelectedCourts,
                                     addedPlayers: finalAddedPlayers,
@@ -327,7 +327,7 @@ const OpenmatchPayment = () => {
                     setIsLoading(false);
                     // Don't clear slots on payment failure, navigate back with slots preserved
                     navigate("/create-matches", {
-                        state: { 
+                        state: {
                             selectedDate,
                             selectedCourts: localSelectedCourts,
                             addedPlayers: finalAddedPlayers,
@@ -347,7 +347,7 @@ const OpenmatchPayment = () => {
             setIsLoading(false);
             // On any error, preserve slots and navigate back
             navigate("/create-matches", {
-                state: { 
+                state: {
                     selectedDate,
                     selectedCourts: localSelectedCourts,
                     addedPlayers: finalAddedPlayers,
@@ -361,26 +361,26 @@ const OpenmatchPayment = () => {
     // Local state for mobile summary
     const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
     const localTotalSlots = localSelectedCourts.reduce(
-        (sum, c) => sum + (c.time?.length || 0),
+        (sum, c) => sum + (c?.time?.length || 0),
         0
     );
     const localGrandTotal = localSelectedCourts.reduce(
-        (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0),
+        (sum, c) => sum + c?.time.reduce((s, t) => s + Number(t?.amount || 0), 0),
         0
     );
 
     const handleDeleteSlot = (courtId, slotId) => {
         setLocalSelectedCourts(prev => {
             const updated = prev
-                .map((c) =>
-                    c._id === courtId
-                        ? { ...c, time: c.time.filter((s) => s._id !== slotId) }
+                ?.map((c) =>
+                    c?._id === courtId
+                        ? { ...c, time: c?.time.filter((s) => s?._id !== slotId) }
                         : c
                 )
-                .filter((c) => c.time.length > 0);
+                .filter((c) => c?.time?.length > 0);
 
             // If no slots remain, navigate back to create matches
-            if (updated.length === 0) {
+            if (updated?.length === 0) {
                 setTimeout(() => {
                     navigate("/create-matches", {
                         state: { selectedDate },
@@ -422,7 +422,7 @@ const OpenmatchPayment = () => {
                 <div
                     className="col-lg-5 col-12 py-md-3 pt-0 pb-3  rounded-3 mobile-payment-content px-0"
                     style={{
-                        paddingBottom: localSelectedCourts.length > 0 ? "120px" : "20px",
+                        paddingBottom: localSelectedCourts?.length > 0 ? "120px" : "20px",
                     }}
                 >
                     {/* Information Section */}
@@ -431,7 +431,7 @@ const OpenmatchPayment = () => {
                         style={{
                             // backgroundColor: "#F5F5F566",
                             border:
-                                error.name || error.email || error.phoneNumber
+                                error?.name || error?.email || error?.phoneNumber
                                     ? "2px solid red"
                                     : "none",
                         }}
@@ -455,7 +455,7 @@ const OpenmatchPayment = () => {
                                     onChange={(e) => {
                                         const value = e.target.value;
                                         if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
-                                            if (value.length === 0 && value.trim() === "") {
+                                            if (value?.length === 0 && value.trim() === "") {
                                                 setName("");
                                                 return;
                                             }
@@ -471,12 +471,12 @@ const OpenmatchPayment = () => {
                                     placeholder="Enter your name"
                                     aria-label="Name"
                                 />
-                                {error.name && (
+                                {error?.name && (
                                     <div
                                         className="text-danger position-absolute mt-3"
                                         style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
-                                        {error.name}
+                                        {error?.name}
                                     </div>
                                 )}
                             </div>
@@ -512,12 +512,12 @@ const OpenmatchPayment = () => {
                                         placeholder="+91"
                                     />
                                 </div>
-                                {error.phoneNumber && (
+                                {error?.phoneNumber && (
                                     <div
                                         className="text-danger position-absolute"
                                         style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
-                                        {error.phoneNumber}
+                                        {error?.phoneNumber}
                                     </div>
                                 )}
                             </div>
@@ -542,12 +542,12 @@ const OpenmatchPayment = () => {
                                     className="form-control p-2"
                                     placeholder="Enter your email"
                                 />
-                                {error.email && (
+                                {error?.email && (
                                     <div
                                         className="text-danger position-absolute"
                                         style={{ fontSize: "12px", marginTop: "4px" }}
                                     >
-                                        {error.email}
+                                        {error?.email}
                                     </div>
                                 )}
                             </div>
@@ -663,16 +663,16 @@ const OpenmatchPayment = () => {
                                                     <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                         <div className="d-flex text-white">
                                                             <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "15px" }}>
-                                                                {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                                {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court?.date).toLocaleString("en-US", { month: "short" })}` : ""}
                                                             </span>
                                                             <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "15px" }}>
-                                                                {formatTime(timeSlot.time)}
+                                                                {formatTime(timeSlot?.time)}
                                                             </span>
-                                                            <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court.courtName}</span>
+                                                            <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court?.courtName}</span>
                                                         </div>
                                                         <div className="text-white">
                                                             ₹<span className="ps-0 pt-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}</span>
-                                                            <MdOutlineDeleteOutline className="mt-1 ms-1 mb-1 text-white" style={{ cursor: "pointer" }} size={15} onClick={() => handleDeleteSlot(court._id, timeSlot._id)} />
+                                                            <MdOutlineDeleteOutline className="mt-1 ms-1 mb-1 text-white" style={{ cursor: "pointer" }} size={15} onClick={() => handleDeleteSlot(court?._id, timeSlot?._id)} />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -813,11 +813,11 @@ const OpenmatchPayment = () => {
                                                                         fontSize: "11px",
                                                                     }}
                                                                 >
-                                                                    {court.date
-                                                                        ? `${new Date(court.date).toLocaleString(
+                                                                    {court?.date
+                                                                        ? `${new Date(court?.date).toLocaleString(
                                                                             "en-US",
                                                                             { day: "2-digit" }
-                                                                        )}, ${new Date(court.date).toLocaleString(
+                                                                        )}, ${new Date(court?.date).toLocaleString(
                                                                             "en-US",
                                                                             { month: "short" }
                                                                         )}`
@@ -831,7 +831,7 @@ const OpenmatchPayment = () => {
                                                                         fontSize: "11px",
                                                                     }}
                                                                 >
-                                                                    {formatTime(timeSlot.time)}
+                                                                    {formatTime(timeSlot?.time)}
                                                                 </span>
                                                                 <span
                                                                     className="ps-1"
@@ -841,7 +841,7 @@ const OpenmatchPayment = () => {
                                                                         fontSize: "10px",
                                                                     }}
                                                                 >
-                                                                    {court.courtName}
+                                                                    {court?.courtName}
                                                                 </span>
                                                             </div>
 
@@ -854,7 +854,7 @@ const OpenmatchPayment = () => {
                                                                         fontSize: "11px",
                                                                     }}
                                                                 >
-                                                                    ₹ {timeSlot.amount ? Number(timeSlot.amount).toLocaleString("en-IN") : "N/A"}
+                                                                    ₹ {timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}
                                                                 </span>
                                                                 <MdOutlineDeleteOutline
                                                                     className="ms-1 text-white"
@@ -863,7 +863,7 @@ const OpenmatchPayment = () => {
                                                                         fontSize: "14px",
                                                                     }}
                                                                     onClick={() =>
-                                                                        handleDeleteSlot(court._id, timeSlot._id)
+                                                                        handleDeleteSlot(court?._id, timeSlot?._id)
                                                                     }
                                                                 />
                                                             </div>
@@ -1007,9 +1007,7 @@ const OpenmatchPayment = () => {
                                     style={{ fontSize: "16px", fontWeight: "600" }}
                                 >
                                     Total to Pay{" "}
-                                    {/* <span style={{ fontSize: "13px", fontWeight: "500" }}>
-                                        Total slots {localTotalSlots}
-                                    </span> */}
+
                                 </p>
                                 <p
                                     className="mb-0"

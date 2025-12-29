@@ -260,7 +260,7 @@ const MatchCard = ({
                                                                         }
                                                                     }}
                                                                     aria-label={`View match on ${formatMatchDate(
-                                                                        match.matchDate
+                                                                        match?.matchDate
                                                                     )}`}
                                                                 >
                                                                     <IoIosArrowForward />
