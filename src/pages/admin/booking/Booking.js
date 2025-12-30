@@ -481,7 +481,7 @@ const Booking = () => {
                           <span className="mobile-card-value">
                             {item?.userId?.name
                               ? item?.userId?.name.charAt(0).toUpperCase() +
-                                item?.userId?.name.slice(1)
+                                item?.userId?.name?.slice(1)
                               : "N/A"}
                           </span>
                         </div>

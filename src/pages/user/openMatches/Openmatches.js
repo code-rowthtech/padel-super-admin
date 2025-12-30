@@ -6,36 +6,18 @@ import React, {
   useCallback,
 } from "react";
 import {
-  FaArrowLeft,
-  FaArrowRight,
   FaChevronDown,
   FaMapMarkerAlt,
   FaSun,
 } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
-import DatePicker from "react-datepicker";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { useDispatch, useSelector } from "react-redux";
-import { DataLoading } from "../../../helpers/loading/Loaders";
-import StarIcon from "@mui/icons-material/Star";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
-import StarHalfIcon from "@mui/icons-material/StarHalf";
-import { MdKeyboardArrowDown, MdOutlineArrowBackIosNew } from "react-icons/md";
+import {  MdOutlineArrowBackIosNew } from "react-icons/md";
 import { getMatchesUser } from "../../../redux/user/matches/thunk";
 import { getReviewClub } from "../../../redux/user/club/thunk";
 import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import "react-datepicker/dist/react-datepicker.css";
-import {
-  booking_dropdown_img,
-  booking_dropdown_img2,
-  booking_dropdown_img3,
-  booking_dropdown_img4,
-  morningTab,
-  nighttab,
-  player,
-  player2,
-  sun,
-} from "../../../assets/files";
 import UpdatePlayers from "../VeiwMatch/UpdatePlayers";
 import { MdOutlineArrowForwardIos } from "react-icons/md";
 import { MdOutlineDateRange } from "react-icons/md";
@@ -45,7 +27,6 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import ViewMatch from "../VeiwMatch/VeiwMatch";
 import { HiMoon } from "react-icons/hi";
 import { BsSunFill } from "react-icons/bs";
-import { PiSunHorizonFill } from "react-icons/pi";
 import { IoIosArrowForward } from "react-icons/io";
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { showError, showSuccess } from "../../../helpers/Toast";

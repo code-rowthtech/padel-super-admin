@@ -1,40 +1,32 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   FaTachometerAlt,
   FaCalendarAlt,
   FaChevronDown,
   FaChevronUp,
-  FaEdit,
   FaUsersCog,
   FaBuilding,
   FaUser,
 } from "react-icons/fa";
-import { logout } from "../../../redux/admin/auth/slice";
 import { useDispatch, useSelector } from "react-redux";
-import { RiLogoutCircleLine, RiWallet3Line } from "react-icons/ri";
+import {  RiWallet3Line } from "react-icons/ri";
 import { LuSwords } from "react-icons/lu";
 import { FaRankingStar } from "react-icons/fa6";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import { IoTennisballOutline } from "react-icons/io5";
 import { getOwnerRegisteredClub } from "../../../redux/thunks";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
-import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
 const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const Owner = getOwnerFromSession();
-
   const ownerId = Owner?._id || Owner?.generatedBy;
-  const { getClubData, ownerClubLoading } = useSelector(
-    (state) => state?.manualBooking
-  );
-  const statedate = useSelector(
-    (state) => state.manualBooking?.ownerClubData?.[0]?.logo
-  );
-
+  const {  ownerClubLoading } = useSelector((state) => state?.manualBooking);
+  const statedate = useSelector((state) => state.manualBooking?.ownerClubData?.[0]?.logo);
   const [isBookingOpen, setBookingOpen] = useState(false);
   const [clubLogo, setClubLogo] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);

@@ -7,7 +7,6 @@ import {
   Row,
   Tooltip,
 } from "react-bootstrap";
-import DatePicker from "react-datepicker";
 import { FaArrowLeft, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { BookingSuccessModal } from "./BookingModal";
@@ -42,12 +41,12 @@ const ManualBooking = () => {
     ownerClubData,
     activeCourtsLoading,
     activeCourtsData,
-  } = useSelector((state) => state.manualBooking);
+  } = useSelector((state) => state?.manualBooking);
   const searchUserData = useSelector(
-    (state) => state.searchUserByNumber.getSearchData
+    (state) => state?.searchUserByNumber?.getSearchData
   );
   const searchUserDataLoading = useSelector(
-    (state) => state.searchUserByNumber.getSearchLoading
+    (state) => state?.searchUserByNumber?.getSearchLoading
   );
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
@@ -72,7 +71,7 @@ const ManualBooking = () => {
   }, []);
 
   const today = new Date();
-  const dates = Array.from({ length: 41 }).map((_, i) => {
+  const dates = Array.from({ length: 41 })?.map((_, i) => {
     const date = new Date(today);
     date.setDate(date.getDate() + i);
     return {
@@ -118,12 +117,12 @@ const ManualBooking = () => {
     const courtId = selectedCourts[0];
     const dateSlots = selectedSlots[selectedDate] || {};
     const courtData = dateSlots[courtId] || { slots: [], businessHours: [] };
-    const courtSlots = courtData.slots;
-    const exists = courtSlots.some((t) => t._id === slot?._id);
+    const courtSlots = courtData?.slots;
+    const exists = courtSlots.some((t) => t?._id === slot?._id);
 
     const totalSlots = Object.values(selectedSlots).reduce(
       (acc, ds) =>
-        acc + Object.values(ds).reduce((acc2, cd) => acc2 + cd.slots.length, 0),
+        acc + Object.values(ds).reduce((acc2, cd) => acc2 + cd?.slots?.length, 0),
       0
     );
 
@@ -136,13 +135,13 @@ const ManualBooking = () => {
 
     let newCourtSlots;
     if (exists) {
-      newCourtSlots = courtSlots.filter((t) => t._id !== slot?._id);
+      newCourtSlots = courtSlots.filter((t) => t?._id !== slot?._id);
     } else {
       newCourtSlots = [...courtSlots, slot];
     }
 
     const selectedCourtData = activeCourtsData?.data?.find(
-      (c) => c._id === courtId
+      (c) => c?._id === courtId
     );
     const slotData = selectedCourtData?.slot?.[0];
     const formattedBusinessHours =
@@ -157,7 +156,7 @@ const ManualBooking = () => {
     };
 
     let newDateSlots;
-    if (newCourtSlots.length === 0) {
+    if (newCourtSlots?.length === 0) {
       const { [courtId]: _, ...rest } = dateSlots;
       newDateSlots = rest;
     } else {
@@ -178,12 +177,12 @@ const ManualBooking = () => {
   const removeSlot = (date, courtId, slotId) => {
     const dateSlots = selectedSlots[date] || {};
     const courtData = dateSlots[courtId] || { slots: [] };
-    const newCourtSlots = courtData.slots.filter((t) => t._id !== slotId);
+    const newCourtSlots = courtData?.slots.filter((t) => t?._id !== slotId);
 
     const newCourtData = { ...courtData, slots: newCourtSlots };
 
     let newDateSlots;
-    if (newCourtSlots.length === 0) {
+    if (newCourtSlots?.length === 0) {
       const { [courtId]: _, ...rest } = dateSlots;
       newDateSlots = rest;
     } else {
@@ -259,15 +258,15 @@ const ManualBooking = () => {
 
   useEffect(() => {
     if (activeCourtsData?.allCourts?.[0]?.court) {
-      setAllCourtsList(activeCourtsData.allCourts[0].court);
-    } else if (activeCourtsData?.data && allCourtsList.length === 0) {
-      setAllCourtsList(activeCourtsData.data);
+      setAllCourtsList(activeCourtsData?.allCourts[0]?.court);
+    } else if (activeCourtsData?.data && allCourtsList?.length === 0) {
+      setAllCourtsList(activeCourtsData?.data);
     }
   }, [activeCourtsData]);
 
   useEffect(() => {
-    if (allCourtsList?.length > 0 && selectedCourts.length === 0) {
-      setSelectedCourts([allCourtsList[0]._id]);
+    if (allCourtsList?.length > 0 && selectedCourts?.length === 0) {
+      setSelectedCourts([allCourtsList[0]?._id]);
     }
   }, [allCourtsList?.length]);
 
@@ -302,7 +301,7 @@ const ManualBooking = () => {
     Object.entries(selectedSlots).forEach(([date, dateSlots]) => {
       Object.entries(dateSlots).forEach(([courtId, courtData]) => {
         const { slots, businessHours } = courtData;
-        const court = allCourtsList.find((c) => c._id === courtId) || {
+        const court = allCourtsList.find((c) => c?._id === courtId) || {
           courtName: "Unknown",
         };
 
@@ -324,7 +323,7 @@ const ManualBooking = () => {
       });
     });
 
-    if (slotsPayload.length === 0) {
+    if (slotsPayload?.length === 0) {
       showInfo("Please select at least one time slot for a court.");
       return;
     }
@@ -390,22 +389,22 @@ const ManualBooking = () => {
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
   useEffect(() => {
-    if (phone.length === 10) {
+    if (phone?.length === 10) {
       dispatch(searchUserByNumber({ phoneNumber: phone, type: '' }));
     }
   }, [phone, dispatch]);
   useEffect(() => {
-    if (searchUserData?.result?.[0]?.name && phone.length === 10) {
+    if (searchUserData?.result?.[0]?.name && phone?.length === 10) {
       if (!name || name.trim() === "") {
-        setName(searchUserData.result?.[0]?.name);
+        setName(searchUserData?.result?.[0]?.name);
       }
     }
   }, [searchUserData, phone]);
 
   useEffect(() => {
-    if (phone.length === 10 && searchUserData?.result?.[0]?.name) {
-      setName(searchUserData.result?.[0]?.name);
-    } else if (phone.length === 9 || phone.length === 9 || phone.length === 0) {
+    if (phone?.length === 10 && searchUserData?.result?.[0]?.name) {
+      setName(searchUserData?.result?.[0]?.name);
+    } else if (phone?.length === 9 || phone?.length === 9 || phone?.length === 0) {
       dispatch(resetSearchData());
     }
   }, [searchUserData, phone]);
