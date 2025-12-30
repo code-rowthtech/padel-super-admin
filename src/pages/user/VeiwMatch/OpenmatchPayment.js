@@ -19,7 +19,6 @@ import {
     updateUser,
 } from "../../../redux/user/auth/authThunk";
 import { booking_logo_img } from "../../../assets/files";
-import { showError } from "../../../helpers/Toast";
 import config from "../../../config";
 
 const formatTime = (timeStr) =>

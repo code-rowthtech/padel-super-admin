@@ -54,21 +54,6 @@ const timeToMinutes = (timeStr) => {
   return hour !== null ? hour * 60 : null;
 };
 
-const filterSlotsByTab = (slot, eventKey) => {
-  const slotHour = parseTimeToHour(slot?.time);
-  if (slotHour === null) return false;
-  switch (eventKey) {
-    case "morning":
-      return slotHour >= 0 && slotHour < 12;
-    case "noon":
-      return slotHour >= 12 && slotHour < 17;
-    case "night":
-      return slotHour >= 17 && slotHour <= 23;
-    default:
-      return true;
-  }
-};
-
 const CreateMatches = () => {
   const location = useLocation();
 
@@ -101,7 +86,6 @@ const CreateMatches = () => {
   const [errorMessage, setErrorMessage] = useState(location?.state?.paymentError || "");
   const [selectedBuisness, setSelectedBuisness] = useState([]);
   const [showUnavailable, setShowUnavailable] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState([]);
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
@@ -110,18 +94,15 @@ const CreateMatches = () => {
   const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
   const [dynamicSteps, setDynamicSteps] = useState([]);
   const [selectedAnswers, setSelectedAnswers] = useState(location?.state?.finalSkillDetails || {});
-  const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
   const [slotError, setSlotError] = useState("");
   const [key, setKey] = useState("morning");
   const [matchPlayer, setMatchPlayer] = useState(false);
   const [isFinalLevelStepLoaded, setIsFinalLevelStepLoaded] = useState(false);
   const [finalLevelStep, setFinalLevelStep] = useState(null);
   const [addedPlayers, setAddedPlayers] = useState(() => {
-    // First check if players are passed from navigation state (payment failure)
     if (location?.state?.addedPlayers) {
       return location.state.addedPlayers;
     }
-    // Then check localStorage
     const saved = localStorage.getItem("addedPlayers");
     return saved ? JSON.parse(saved) : {};
   });
@@ -134,12 +115,10 @@ const CreateMatches = () => {
     localStorage.setItem("addedPlayers", JSON.stringify(addedPlayers));
   }, [addedPlayers]);
 
-  // Handle payment error from navigation state
   useEffect(() => {
     if (location?.state?.paymentError) {
       setErrorMessage(location.state.paymentError);
       setErrorShow(true);
-      // Clear the error after 5 seconds
       const timer = setTimeout(() => {
         setErrorShow(false);
         setErrorMessage("");
@@ -148,7 +127,6 @@ const CreateMatches = () => {
     }
   }, [location?.state?.paymentError]);
 
-  // Restore selectedTimes state from selectedCourts when navigating back from payment
   useEffect(() => {
     if (location?.state?.selectedCourts && location.state.selectedCourts.length > 0) {
       const restoredTimes = {};

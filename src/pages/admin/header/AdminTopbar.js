@@ -13,7 +13,6 @@ import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../../redux/admin/auth/slice";
 import { NavLink, useNavigate } from "react-router-dom";
-import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { io } from "socket.io-client";
@@ -113,7 +112,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     socket.on("adminNotification", (data) => {
       if (data?._id) {
         setNotifications((prev) => {
-          const exists = prev.some((n) => n._id === data._id);
+          const exists = prev.some((n) => n?._id === data?._id);
           if (exists) return prev;
           playNotificationSound();
           return [data, ...prev];
@@ -124,7 +123,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     socket.on("cancellationRequest", (data) => {
       if (data?._id) {
         setNotifications((prev) => {
-          const exists = prev.some((n) => n._id === data._id);
+          const exists = prev.some((n) => n?._id === data?._id);
           if (exists) return prev;
           playNotificationSound();
           return [data, ...prev];
@@ -165,10 +164,10 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     if (!note?._id) return;
     
     try {
-      await dispatch(getNotificationView({ noteId: note._id })).unwrap();
+      await dispatch(getNotificationView({ noteId: note?._id })).unwrap();
       
       if (note?.notificationUrl) {
-        navigate(note.notificationUrl);
+        navigate(note?.notificationUrl);
       }
       
       await loadNotifications();
@@ -283,7 +282,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             >
               <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
                 <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
-                {notifications.length > 0 && (
+                {notifications?.length > 0 && (
                   <button
                     className="btn btn-link p-0"
                     style={{
@@ -343,21 +342,21 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
 
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 500, fontSize: "13px" }}>
-                            {note?.userId?.name?.trim() || "User"} – {note.title}
+                            {note?.userId?.name?.trim() || "User"} – {note?.title}
                           </div>
                           {note?.message && (
                             <p
                               className="text-muted mb-1"
                               style={{ fontSize: "12px", fontFamily: "Poppins" }}
                             >
-                              {note.message}
+                              {note?.message}
                             </p>
                           )}
                           <p
                             className="text-muted text-nowrap mb-0"
                             style={{ fontSize: "12px", fontFamily: "Poppins" }}
                           >
-                            {dayjs(note.createdAt).fromNow()} <b>.</b>{" "}
+                            {dayjs(note?.createdAt).fromNow()} <b>.</b>{" "}
                             <OverlayTrigger
                               placement="top"
                               overlay={
@@ -368,7 +367,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                             >
                               <span style={{ cursor: "pointer" }}>
                                 {note?.notificationType?.length > 12
-                                  ? note?.notificationType.slice(0, 12) + "..."
+                                  ? note?.notificationType?.slice(0, 12) + "..."
                                   : note?.notificationType}
                               </span>
                             </OverlayTrigger>
@@ -403,9 +402,9 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
               </div>
               <div className="text-muted small">
                 {user?.role
-                  .slice(0, 1)
+                  ?.slice(0, 1)
                   .toUpperCase()
-                  .concat(user?.role.slice(1)) || "Owner"}
+                  .concat(user?.role?.slice(1)) || "Owner"}
               </div>
             </div>
             {user?.profilePic ? (

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Modal, Button, Row, Col, Form } from "react-bootstrap";
-import { modalSuccess } from "../../../../assets/files";
 import { formatDate, formatSlotTime } from "../../../../helpers/Formatting";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 
@@ -293,7 +292,7 @@ export const BookingRefundModal = ({
 
   useEffect(() => {
     if (bookingDetails?.totalAmount != null && !hasChangedAmount) {
-      setRefundAmount(bookingDetails.totalAmount);
+      setRefundAmount(bookingDetails?.totalAmount);
     }
   }, [bookingDetails?.totalAmount, hasChangedAmount]);
 

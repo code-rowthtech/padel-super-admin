@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { padal, club, player } from "../../../assets/files";
+import { padal } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
 import { DataLoading, ButtonLoading } from "../../../helpers/loading/Loaders";
-import { Avatar, Modal, Box, Button } from "@mui/material";
+import {  Modal, Box, Button } from "@mui/material";
 import { Tooltip } from 'react-tooltip';
 import { Offcanvas } from "react-bootstrap";
 import UpdatePlayers from "./UpdatePlayers";
@@ -149,7 +149,7 @@ const PlayerSlot = memo(function PlayerSlot({
     );
 });
 
-const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatches, isFromBookingHistory = false }) => {
+const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingHistory = false }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
@@ -164,13 +164,11 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
     const getPlayerLevelsData = useSelector(
         (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
     );
-    const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
     const totalPlayers = [...teamAData, ...teamBData].filter(p => p).length;
     const isUserInMatch = [...teamAData, ...teamBData].some(p => (p?.userId?._id || p?._id) === user?._id);
     const isChatEnabled = totalPlayers >= 2 && isUserInMatch;
-    const clubData = matchesData?.data?.clubId || {};
     const [showModal, setShowModal] = useState(false);
     const [teamName, setTeamName] = useState('teamA');
     const [showShareDropdown, setShowShareDropdown] = useState(false);
