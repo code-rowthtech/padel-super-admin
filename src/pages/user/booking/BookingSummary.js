@@ -10,7 +10,6 @@ const BookingSummary = ({
     clubData,
     logo,
     selectedCourts,
-    formatTime,
     handleDeleteSlot,
     handleClearAll,
     grandTotal,
@@ -20,6 +19,29 @@ const BookingSummary = ({
     className,
     handleBookNow
 }) => {
+    const formatTime = (timeStr) => {
+        if (!timeStr) return "";
+        let cleaned = timeStr.toString().toLowerCase().trim();
+        let hour, minute = "00", period = "";
+        if (cleaned.includes("am") || cleaned.includes("pm")) {
+            period = cleaned.endsWith("am") ? "am" : "pm";
+            cleaned = cleaned.replace(/am|pm/gi, "").trim();
+        }
+
+        if (cleaned.includes(":")) {
+            [hour, minute] = cleaned.split(":");
+        } else {
+            hour = cleaned;
+        }
+
+        let hourNum = parseInt(hour);
+        if (isNaN(hourNum)) return timeStr;
+
+        let formattedHour = hourNum.toString().padStart(2, "0");
+        minute = minute ? minute.padStart(2, "0") : "00";
+
+        return `${formattedHour}:${minute} ${period}`.trim();
+    };
     return (
         <>
             <div

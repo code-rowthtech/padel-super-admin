@@ -32,7 +32,6 @@ const Home = () => {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [reviewSlide, setReviewSlide] = useState(0);
-  const [selectedSport, setSelectedSport] = useState(0);
   const [loadedImages, setLoadedImages] = useState({});
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const dispatch = useDispatch();
@@ -40,7 +39,7 @@ const Home = () => {
   const store = useSelector((state) => state);
   const clubData = store?.userClub?.clubData?.data?.courts[0] || [];
   const clubDataLoading = store?.userClub?.clubLoading || [];
-  const User = useSelector((state) => state?.userAuth)
+  const User = useSelector((state) => state?.userAuth);
   const getReviewData = store?.userClub?.getReviewData?.data;
   const mapApiData = store?.userClub?.mapData?.data;
   const logo = clubData?.logo;
@@ -49,8 +48,8 @@ const Home = () => {
   const fakeReviews = [
     {
       _id: 'fake1',
-      reviewRating: 5,
-      reviewComment: 'Amazing facilities and great atmosphere! The courts are well-maintained and the staff is very professional.',
+      reviewRating: 3.5,
+      reviewComment: 'Amazing facilities and great atmosphere! The courts are well-maintained and the staff is very professional Amazing facilities and great atmosphere! The courts are well-maintained and the staff is very professional.',
       userId: { name: 'Rajesh Kumar' },
       register_club_id: clubData?._id || '692f4431e3230ac71d22bdd1',
       createdAt: new Date().toISOString()
@@ -86,7 +85,7 @@ const Home = () => {
   const enhancedReviewData = {
     ...getReviewData,
     reviews: allReviews,
-    totalReviews: allReviews.length,
+    totalReviews: allReviews?.length,
     averageRating: getReviewData?.averageRating || 0
   };
 
@@ -104,7 +103,7 @@ const Home = () => {
   }, []);
 
   const mapSrc = useMemo(() =>
-    mapApiData?.address ? createEmbedUrl(mapApiData.address) : defaultMapSrc,
+    mapApiData?.address ? createEmbedUrl(mapApiData?.address) : defaultMapSrc,
     [mapApiData?.address, createEmbedUrl]
   );
 
@@ -139,8 +138,7 @@ const Home = () => {
   const circleRadius = height * 0.3;
   const curvedSectionStart = width * 0.76;
   const curvedSectionEnd = width * 0.996;
-  const circleX =
-    curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.7 + 1;
+  const circleX = curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.7 + 1;
   const circleY = height * 0.5;
   const arrowSize = circleRadius * 0.6;
   const arrowX = circleX;
@@ -182,7 +180,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const id = clubData._id || "";
+    const id = clubData?._id || "";
     if (id) {
       dispatch(getReviewClub(id));
     }
@@ -191,7 +189,7 @@ const Home = () => {
   // Fetch map data when club address is available
   useEffect(() => {
     if (clubData?.address && clubData?.city) {
-      const fullAddress = `${clubData.address}, ${clubData.city}`;
+      const fullAddress = `${clubData?.address}, ${clubData?.city}`;
       dispatch(getMapData(fullAddress));
     }
   }, [clubData?.address, clubData?.city]);
@@ -418,7 +416,7 @@ const Home = () => {
                       }}>
                         <img
                           src={logo}
-                          alt="User Profile"
+                          alt="Swoot"
                           style={{
                             width: "100%",
                             height: "auto",
@@ -497,7 +495,7 @@ const Home = () => {
                     >
                       <img
                         src={logo}
-                        alt="User Profile"
+                        alt="Swoot"
                         style={{
                           width: "100%",
                           height: "auto",
@@ -821,7 +819,7 @@ const Home = () => {
             >
               {/* Desktop Images */}
               {(clubData?.courtImage?.length > 4
-                ? [...clubData.courtImage, ...clubData.courtImage.slice(0, 4)]
+                ? [...clubData?.courtImage, ...clubData?.courtImage?.slice(0, 4)]
                 : clubData?.courtImage
               )?.map((image, index) => (
                 <div
@@ -869,7 +867,7 @@ const Home = () => {
 
               {/* Mobile Images */}
               {(clubData?.courtImage?.length > 1
-                ? [...clubData.courtImage, clubData.courtImage[0]]
+                ? [...clubData?.courtImage, clubData?.courtImage[0]]
                 : clubData?.courtImage
               )?.map((image, index) => (
                 <div
@@ -1075,11 +1073,11 @@ const Home = () => {
             >
               {windowWidth >= 992
                 ? (enhancedReviewData?.reviews?.length > 3
-                  ? [...enhancedReviewData.reviews, ...enhancedReviewData.reviews.slice(0, 3)]
+                  ? [...enhancedReviewData?.reviews, ...enhancedReviewData?.reviews?.slice(0, 3)]
                   : enhancedReviewData?.reviews
                 )?.map((review, index) => (
                   <div
-                    key={`${review._id}-${index}`}
+                    key={`${review?._id}-${index}`}
                     className="flex-shrink-0 d-lg-block d-none"
                     style={{ width: "33.333%" }}
                   >
@@ -1087,7 +1085,7 @@ const Home = () => {
                   </div>
                 ))
                 : (enhancedReviewData?.reviews?.length > 1
-                  ? [...enhancedReviewData.reviews, enhancedReviewData.reviews[0]]
+                  ? [...enhancedReviewData?.reviews, enhancedReviewData?.reviews[0]]
                   : enhancedReviewData?.reviews
                 )?.map((review, index) => (
                   <div

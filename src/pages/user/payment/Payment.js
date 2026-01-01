@@ -9,7 +9,6 @@ import { booking_logo_img, success2 } from "../../../assets/files";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdOutlineDeleteOutline } from "react-icons/md";
 import config from "../../../config";
-import { showSuccess } from "../../../helpers/Toast";
 
 const RAZORPAY_KEY = `${config.RAZORPAY_KEY}`;
 
@@ -26,7 +25,7 @@ const Payment = ({ className = "" }) => {
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
   const [name, setName] = useState(user?.name || updateName?.fullName || store?.user?.response?.name || "");
   const [phoneNumber, setPhoneNumber] = useState(
-    updateName?.phone || user?.phoneNumber || updateName?.phone ? `+91 ${user.phoneNumber}` : ""
+    updateName?.phone || user?.phoneNumber || updateName?.phone ? `+91 ${user?.phoneNumber}` : ""
   );
   const [email, setEmail] = useState(updateName?.email || user?.email || store?.user?.response?.email || "");
   const [errors, setErrors] = useState({
@@ -46,9 +45,9 @@ const Payment = ({ className = "" }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c.time.length, 0);
+    const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c?.time?.length, 0);
     const newGrandTotal = localSelectedCourts.reduce(
-      (sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 2000), 0),
+      (sum, c) => sum + c?.time?.reduce((s, t) => s + Number(t?.amount || 2000), 0),
       0
     );
     setLocalTotalSlots(newTotalSlots);
@@ -88,16 +87,16 @@ const Payment = ({ className = "" }) => {
     e.stopPropagation();
     setLocalSelectedCourts((prev) =>
       prev
-        .map((court) =>
-          court._id === courtId && court.date === date
-            ? { ...court, time: court.time.filter((t) => t._id !== timeId) }
+        ?.map((court) =>
+          court?._id === courtId && court?.date === date
+            ? { ...court, time: court?.time.filter((t) => t?._id !== timeId) }
             : court
         )
-        .filter((court) => court.time.length > 0)
+        .filter((court) => court?.time?.length > 0)
     );
 
     // If no courts remain, navigate back to booking
-    if (localSelectedCourts.length === 1 && localSelectedCourts[0].time.length === 1) {
+    if (localSelectedCourts?.length === 1 && localSelectedCourts[0]?.time?.length === 1) {
       setTimeout(() => navigate("/booking"), 100);
     }
   };
@@ -161,16 +160,16 @@ const Payment = ({ className = "" }) => {
 
       // Prepare slot array
       const slotArray = localSelectedCourts.flatMap((court) =>
-        court.time.map((timeSlot) => ({
-          slotId: timeSlot._id,
+        court?.time?.map((timeSlot) => ({
+          slotId: timeSlot?._id,
           businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
             time: t?.time,
             day: t?.day,
           })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
-          slotTimes: [{ time: timeSlot.time, amount: timeSlot.amount ?? 2000 }],
-          courtName: court.courtName,
-          courtId: court._id,
-          bookingDate: court.date,
+          slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount ?? 2000 }],
+          courtName: court?.courtName,
+          courtId: court?._id,
+          bookingDate: court?.date,
         }))
       );
 
@@ -207,7 +206,7 @@ const Payment = ({ className = "" }) => {
           order_id: initialBookingResponse?.paymentDetails?.orderId,
           amount: localGrandTotal * 100,
           currency: "INR",
-          name: clubData?.clubName || "Court Booking",
+          name: clubData?.clubName || "Courtline",
           description: localTotalSlots > 1 ? `${localTotalSlots} Slots` : "1 Slot",
           image: logo || undefined,
           prefill: { name: name.trim(), email: email.trim(), contact: rawPhoneNumber },
@@ -366,7 +365,7 @@ const Payment = ({ className = "" }) => {
                   />
                   {errors.name && (
                     <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
-                      {errors.name}
+                      {errors?.name}
                     </div>
                   )}
                 </div>
@@ -396,9 +395,9 @@ const Payment = ({ className = "" }) => {
                       placeholder="+91"
                     />
                   </div>
-                  {errors.phoneNumber && (
+                  {errors?.phoneNumber && (
                     <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
-                      {errors.phoneNumber}
+                      {errors?.phoneNumber}
                     </div>
                   )}
                 </div>
@@ -431,7 +430,7 @@ const Payment = ({ className = "" }) => {
                   />
                   {errors.email && (
                     <div className="text-danger" style={{ fontSize: "12px", marginTop: "4px" }}>
-                      {errors.email}
+                      {errors?.email}
                     </div>
                   )}
                 </div>

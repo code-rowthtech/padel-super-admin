@@ -22,6 +22,7 @@ import { showInfo, showWarning } from "../../../helpers/Toast";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import Pricing from "./Pricing";
+import PriceSlotUpdate from "./PriceSlotUpdate";
 
 const mdParser = new MarkdownIt();
 mdParser.use(markdownItIns);
@@ -170,7 +171,7 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
 
       return allHours.map(item => item.hour);
     }
-  }, [isEndTime, startTime, currentMeridian]); 
+  }, [isEndTime, startTime, currentMeridian]);
 
   const meridianOptions = useMemo(() => {
     if (!isEndTime) {
@@ -200,10 +201,10 @@ const TimeSelect = ({ value, onChange, idPrefix, startTime, isEndTime }) => {
     let newHour = currentHour;
 
     if (newMeridian === "AM" && (currentHour < 5 || currentHour > 11)) {
-      newHour = 5; 
+      newHour = 5;
     }
     if (newMeridian === "PM" && (currentHour >= 5 && currentHour <= 11)) {
-      newHour = 12; 
+      newHour = 12;
     }
 
     onChange(formatAmPm(newHour, newMeridian));
@@ -408,6 +409,7 @@ const ClubUpdateForm = () => {
   const startYRef = useRef(0);
   const startHeightRef = useRef(130);
   const [pricingData, setPricingData] = useState(0);
+  const [openPrice, setOpenPrice] = useState(false);
   const [initialFormData, setInitialFormData] = useState(() =>
     getInitialFormState(clubDetails)
   );
@@ -1162,121 +1164,153 @@ const ClubUpdateForm = () => {
           <hr className="my-2" />
 
           <Row>
-            <Col md={7}>
-              <div className="d-flex align-items-center justify-content-between mb-md-3 mb-1 ">
-                <h6
-                  className=" mb-0 add_font_small_admin"
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "600",
-                    color: "#374151",
-                    fontFamily: "Poppins",
-                  }}
-                >
-                  Business Hours
-                </h6>
-                {hasChanged && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={hasChanged ? "success" : "secondary"}
-                    disabled={!hasChanged}
-                    onClick={applyToAll}
-                    className="py-1"
-                  >
-                    Apply last change to all days
-                  </Button>
-                )}
-              </div>
-              {Object.keys(formData.businessHours).map((day) => {
-                const val = formData.businessHours[day] || {
-                  start: "06:00 AM",
-                  end: "11:00 PM",
-                };
-                return (
-                  <Row key={day} className="align-items-center g-2 mb-2">
-                    <Col md={3} className="text-secondary small fw-semibold">
-                      <span
-                        style={{
-                          fontSize: "12px",
-                          fontFamily: "Poppins",
-                          fontWeight: "500",
-                          color: "#374151",
-                        }}
-                      >
-                        {day}
-                      </span>
-                    </Col>
-                    <Col xs sm={4} md={4}>
-                      <TimeSelect
-                        idPrefix={`${day}-start`}
-                        value={val.start}
-                        onChange={(v) => handleHoursChange(day, "start", v)}
-                        isEndTime={false}
-                      />
-                    </Col>
-                    <Col xs="auto" md={1}
+            {openPrice ? (
+              <Col md={12} className="mb-2 d-flex justify-content-center align-items-center">
+                <div className="div w-75">
+                  <PriceSlotUpdate
+                    hitApi={hitUpdateApi}
+                    setHitUpdateApi={setHitUpdateApi}
+                    selectAllDays={selectAllDays}
+                    onSelectAllChange={setSelectAllDays}
+                    setSelectAllDays={setSelectAllDays}
+                    onPriceDataChange={handlePriceDataFromChild}
+                    show={openPrice} onHide={() => { setOpenPrice(false) }} pricingData={pricingData} setPricingData={setPricingData} />
+                </div>
+              </Col>
+            ) : (
+              <>
+                <Col md={12} className="d-flex justify-content-center align-items-center">
+                 <div className="div w-75 ">
+                  <div className="d-flex align-items-center justify-content-between pe-lg-5 mb-md-3 mb-1 ">
+                    <h6
+                      className=" mb-0 add_font_small_admin"
                       style={{
-                        textAlign: "center",
-                        fontSize: "12px",
-                        fontFamily: "Poppins",
+                        fontSize: "20px",
+                        fontWeight: "600",
                         color: "#374151",
-                        fontWeight: "500",
+                        fontFamily: "Poppins",
                       }}
                     >
-                      To
-                    </Col>
-                    <Col xs sm={4} md={4}>
-                      <TimeSelect
-                        idPrefix={`${day}-end`}
-                        value={val.end}
-                        onChange={(v) => handleHoursChange(day, "end", v)}
-                        startTime={val.start}
-                        isEndTime={true}
-                      />
-                    </Col>
-                  </Row>
-                );
-              })}
-            </Col>
-            <Col md={5}>
-              <Pricing
-                hitApi={hitUpdateApi}
-                setHitUpdateApi={setHitUpdateApi}
-                selectAllDays={selectAllDays}
-                onSelectAllChange={setSelectAllDays}
-                setSelectAllDays={setSelectAllDays}
-                onPriceDataChange={handlePriceDataFromChild}
-              />
-            </Col>
+                      Business Hours
+                    </h6>
+                    <div className="d-flex gap-2">
+                      {hasChanged && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={hasChanged ? "success" : "secondary"}
+                          disabled={!hasChanged}
+                          onClick={applyToAll}
+                          className="py-1"
+                        >
+                          Apply last change to all days
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={"success"}
+                        onClick={() => { setOpenPrice(true) }}
+                        className="py-1"
+                      >
+                        Price Update
+                      </Button>
+                    </div>
+                  </div>
+                  {Object.keys(formData.businessHours).map((day) => {
+                    const val = formData.businessHours[day] || {
+                      start: "06:00 AM",
+                      end: "11:00 PM",
+                    };
+                    return (
+                      <Row key={day} className="align-items-center g-2 mb-2">
+                        <Col md={3} className="text-secondary small fw-semibold">
+                          <span
+                            style={{
+                              fontSize: "12px",
+                              fontFamily: "Poppins",
+                              fontWeight: "500",
+                              color: "#374151",
+                            }}
+                          >
+                            {day}
+                          </span>
+                        </Col>
+                        <Col xs sm={4} md={3}>
+                          <TimeSelect
+                            idPrefix={`${day}-start`}
+                            value={val.start}
+                            onChange={(v) => handleHoursChange(day, "start", v)}
+                            isEndTime={false}
+                          />
+                        </Col>
+                        <Col xs sm={1} md={2}
+                          style={{
+                            textAlign: "center",
+                            fontSize: "12px",
+                            fontFamily: "Poppins",
+                            color: "#374151",
+                            fontWeight: "500",
+                          }}
+                        >
+                          To
+                        </Col>
+                        <Col xs sm={4} md={4}>
+                          <TimeSelect
+                            idPrefix={`${day}-end`}
+                            value={val.end}
+                            onChange={(v) => handleHoursChange(day, "end", v)}
+                            startTime={val.start}
+                            isEndTime={true}
+                          />
+                        </Col>
+                      </Row>
+                    );
+                  })}
+                  <div className="d-flex justify-content-end gap-2 pe-lg-5 my-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => navigate("/admin/dashboard")}
+                      className="rounded-pill px-4 py-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="success"
+                      className="rounded-pill px-4 py-1"
+                      disabled={!isSubmitEnabled}
+                      style={{
+                        backgroundColor: "#22c55e",
+                        border: "none",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {updateClubLoading ? (
+                        <ButtonLoading color="#fff" size={13} />
+                      ) : (
+                        "Update"
+                      )}
+                    </Button>
+                  </div>
+                  </div>
+
+                </Col>
+                {/* <Col md={5}>
+                  <Pricing
+                    hitApi={hitUpdateApi}
+                    setHitUpdateApi={setHitUpdateApi}
+                    selectAllDays={selectAllDays}
+                    onSelectAllChange={setSelectAllDays}
+                    setSelectAllDays={setSelectAllDays}
+                    onPriceDataChange={handlePriceDataFromChild}
+                  />
+                </Col> */}
+              </>)}
           </Row>
-          <div className="d-flex justify-content-end gap-2 my-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => navigate("/admin/dashboard")}
-              className="rounded-pill px-4 py-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="success"
-              className="rounded-pill px-4 py-1"
-              disabled={!isSubmitEnabled}
-              style={{
-                backgroundColor: "#22c55e",
-                border: "none",
-                fontWeight: 600,
-              }}
-            >
-              {updateClubLoading ? (
-                <ButtonLoading color="#fff" size={13} />
-              ) : (
-                "Update"
-              )}
-            </Button>
-          </div>
+
+
 
           {ownerClubError && (
             <Alert variant="danger" className="mt-3">
@@ -1284,8 +1318,9 @@ const ClubUpdateForm = () => {
             </Alert>
           )}
         </Form>
-      )}
-    </Card>
+      )
+      }
+    </Card >
   );
 };
 

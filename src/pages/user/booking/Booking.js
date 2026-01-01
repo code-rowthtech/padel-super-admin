@@ -35,6 +35,7 @@ import { PiSunHorizonFill } from "react-icons/pi";
 import io from 'socket.io-client';
 import config from '../../../config';
 import BookingSummary from "./BookingSummary";
+import { duration } from "@mui/material/styles";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -95,7 +96,7 @@ const Booking = ({ className = "" }) => {
   const [errorShow, setErrorShow] = useState(false);
   const logo = clubData?.logo;
   const dateRefs = useRef({});
-
+  const [selectedDuration, setSelectedDuration] = useState(60);
   const [expireModal, setExpireModal] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedBuisness, setSelectedBuisness] = useState([]);
@@ -106,7 +107,7 @@ const Booking = ({ className = "" }) => {
     day: new Date().toLocaleDateString("en-US", { weekday: "long" }),
   });
   const [showBanner, setShowBanner] = useState(true);
-
+  const [halfSelectedSlots, setHalfSelectedSlots] = useState(new Set());
   const [isExpanded, setIsExpanded] = useState(false);
 
   const dayShortMap = {
@@ -130,6 +131,30 @@ const Booking = ({ className = "" }) => {
     };
   });
 
+  const getSortedSlots = (court) => {
+    return [...(court?.slots || [])].sort((a, b) => {
+      const hourA = parseTimeToHour(a.time);
+      const hourB = parseTimeToHour(b.time);
+      return hourA - hourB;
+    });
+  };
+
+  const findNextConsecutiveSlots = (sortedSlots, currentSlot, count) => {
+    const currentIndex = sortedSlots.findIndex(s => s._id === currentSlot._id);
+    if (currentIndex === -1) return [];
+
+    const nextSlots = [];
+    for (let i = 1; i <= count; i++) {
+      const nextSlot = sortedSlots[currentIndex + i];
+      if (nextSlot && parseTimeToHour(nextSlot.time) === parseTimeToHour(currentSlot.time) + i) {
+        nextSlots.push(nextSlot);
+      } else {
+        break; // Not consecutive
+      }
+    }
+    return nextSlots;
+  };
+
   const getCurrentMonth = (selectedDate) => {
     if (!selectedDate || !selectedDate?.fullDate) return "MONTH";
     const dateObj = new Date(selectedDate?.fullDate);
@@ -147,23 +172,61 @@ const Booking = ({ className = "" }) => {
       setIsOpen(false);
   };
 
+  const updateSelectedBusinessAndCourts = (times, courtId, dateKey) => {
+    const newBusiness = times.map(t => ({ ...t, date: dateKey }));
+
+    setSelectedBuisness(prev => {
+      const filtered = prev.filter(t => !(t.date === dateKey && times.some(st => st._id === t._id)));
+      return [...filtered, ...newBusiness];
+    });
+
+    const currentCourt = slotData?.data?.find((c) => c?._id === courtId);
+    if (currentCourt) {
+      setSelectedCourts(prev => {
+        const existing = prev.find(c => c._id === courtId && c.date === dateKey);
+        const timeEntries = times.map(t => ({
+          _id: t._id,
+          time: t.time,
+          amount: t.amount,
+        }));
+
+        if (existing) {
+          return prev.map(c =>
+            c._id === courtId && c.date === dateKey
+              ? { ...c, time: timeEntries }
+              : c
+          );
+        } else {
+          return [...prev, {
+            _id: currentCourt._id,
+            courtName: currentCourt.courtName,
+            date: dateKey,
+            day: selectedDate?.day,
+            time: timeEntries,
+          }];
+        }
+      });
+    }
+  };
+
   const MAX_SLOTS = 15;
 
   const toggleTime = (time, courtId, date) => {
-    // Calculate total slots across all dates and courts
-    const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
-      return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
-        return dateTotal + timeSlots?.length;
-      }, 0);
-    }, 0);
-
     const dateKey = date || selectedDate?.fullDate;
     const uniqueKey = `${courtId}-${time?._id}-${dateKey}`;
 
     const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
     const isAlreadySelected = currentCourtTimes.some((t) => t?._id === time?._id);
 
+    // First: Clear any half-selections related to this court & date
+    setHalfSelectedSlots(prev => {
+      const newSet = new Set(prev);
+      currentCourtTimes.forEach(t => newSet.delete(`${courtId}-${t._id}-${dateKey}`));
+      return newSet;
+    });
+
     if (isAlreadySelected) {
+      // Deselect logic (same as before)
       const filteredTimes = currentCourtTimes.filter((t) => t?._id !== time?._id);
       setSelectedTimes((prev) => ({
         ...prev,
@@ -172,71 +235,73 @@ const Booking = ({ className = "" }) => {
           [dateKey]: filteredTimes,
         },
       }));
-      setSelectedBuisness((prev) =>
-        prev.filter((t) => t?._id !== time?._id || t?.date !== dateKey)
-      );
-      setSelectedCourts((prev) =>
-        prev
-          .map((court) =>
-            court?._id === courtId && court?.date === dateKey
-              ? { ...court, time: court?.time.filter((t) => t?._id !== time?._id) }
-              : court
-          )
-          .filter((court) => court?.time?.length > 0)
-      );
-    } else {
-      if (currentTotalSlots >= MAX_SLOTS) {
-        setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
+      updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+      return;
+    }
+
+    // Selection logic based on duration
+    const currentTotalSlots = totalSlots;
+    if (currentTotalSlots >= MAX_SLOTS) {
+      setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
+      setErrorShow(true);
+      return;
+    }
+
+    const court = slotData?.data?.find(c => c?._id === courtId);
+    if (!court) return;
+
+    const sortedSlots = getSortedSlots(court);
+    let slotsToSelect = [time];
+
+    if (selectedDuration === 90) {
+      const nextSlot = findNextConsecutiveSlots(sortedSlots, time, 1)[0];
+      if (nextSlot) {
+        // Add half-selection visual for next slot
+        setHalfSelectedSlots(prev => new Set(prev).add(`${courtId}-${nextSlot._id}-${dateKey}`));
+      }
+    } else if (selectedDuration === 120) {
+      const nextThree = findNextConsecutiveSlots(sortedSlots, time, 3);
+      if (nextThree.length === 3) {
+        slotsToSelect = [time, ...nextThree];
+      } else {
+        setErrorMessage("Not enough consecutive slots for 120 minutes");
         setErrorShow(true);
         return;
       }
-
-      const newTimes = [...currentCourtTimes, { ...time, date: dateKey }];
-      setSelectedTimes((prev) => ({
-        ...prev,
-        [courtId]: {
-          ...prev[courtId],
-          [dateKey]: newTimes,
-        },
-      }));
-      setSelectedBuisness((prev) => [...prev, { ...time, date: dateKey }]);
-
-      const currentCourt = slotData?.data?.find((c) => c?._id === courtId);
-      if (currentCourt) {
-        setSelectedCourts((prev) => {
-          const existingCourt = prev.find(
-            (c) => c?._id === courtId && c?.date === dateKey
-          );
-          const newTimeEntry = {
-            _id: time?._id,
-            time: time?.time,
-            amount: time?.amount,
-          };
-          return existingCourt
-            ? prev?.map((court) =>
-              court?._id === courtId && court?.date === dateKey
-                ? { ...court, time: [...court?.time, newTimeEntry] }
-                : court
-            )
-            : [
-              ...prev,
-              {
-                _id: currentCourt?._id,
-                courtName: currentCourt?.courtName,
-                date: dateKey,
-                day: selectedDate?.day,
-                time: [newTimeEntry],
-              },
-            ];
-        });
-      }
     }
+    // For 30 & 60 min: only current slot
+
+    // Check total after adding
+    if (currentTotalSlots + slotsToSelect.length > MAX_SLOTS) {
+      setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
+      setErrorShow(true);
+      return;
+    }
+
+    const newTimes = [...currentCourtTimes];
+    slotsToSelect.forEach(slot => {
+      if (!newTimes.some(t => t._id === slot._id)) {
+        newTimes.push({ ...slot, date: dateKey });
+      }
+    });
+
+    setSelectedTimes((prev) => ({
+      ...prev,
+      [courtId]: {
+        ...prev[courtId],
+        [dateKey]: newTimes,
+      },
+    }));
+
+    updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
   };
-  const tabs = [
-    { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
-    { Icon: BsSunFill, label: "Noon", key: "noon" },
-    { Icon: HiMoon, label: "Evening", key: "night" },
+  const durationOptions = [
+    { label: "30min", value: 30 },
+    { label: "60min", value: 60 },
+    { label: "90min", value: 90 },
+    { label: "120min", value: 120 },
   ];
+
 
   const handleDeleteSlot = (courtId, date, timeId) => {
     setSelectedTimes((prev) => {
@@ -294,6 +359,7 @@ const Booking = ({ className = "" }) => {
         day: selectedDate?.day,
         date: format(new Date(selectedDate?.fullDate), "yyyy-MM-dd"),
         register_club_id: localStorage.getItem("register_club_id") || "",
+        duration: selectedDuration
       })
     );
   };
@@ -361,6 +427,40 @@ const Booking = ({ className = "" }) => {
     return date;
   }, []);
 
+  const totalSlots = useMemo(() => {
+    return Object.values(selectedTimes).reduce((total, courtDates) => {
+      return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+        return dateTotal + timeSlots?.length;
+      }, 0);
+    }, 0);
+  }, [selectedTimes]);
+
+  const displayedSlotCount = useMemo(() => {
+    if (totalSlots === 0) return 0;
+
+    const minutesSelected = totalSlots * 30;
+
+    let displayCount;
+    switch (selectedDuration) {
+      case 30:
+        displayCount = totalSlots * 0.5;
+        break;
+      case 60:
+        displayCount = totalSlots;
+        break;
+      case 90:
+        displayCount = (totalSlots / 3) * 1.5;
+        break;
+      case 120:
+        displayCount = totalSlots / 2;
+        break;
+      default:
+        displayCount = totalSlots;
+    }
+
+    return Number(displayCount.toFixed(1));
+  }, [totalSlots, selectedDuration]);
+
   const clubId = useMemo(() => localStorage.getItem("register_club_id"), []);
 
   const fetchSlots = useCallback((socket = null) => {
@@ -372,9 +472,18 @@ const Booking = ({ className = "" }) => {
         date: format(new Date(selectedDate?.fullDate), "yyyy-MM-dd"),
         register_club_id: clubId,
         socket: socket,
+        duration: selectedDuration
       })
     );
-  }, [dispatch, selectedDate?.day, selectedDate?.fullDate, clubId]);
+  }, [dispatch, selectedDuration, selectedDate?.day, selectedDate?.fullDate, clubId]);
+
+  useEffect(() => {
+    setSelectedTimes({});
+    setSelectedBuisness([]);
+    setSelectedCourts([]);
+    setHalfSelectedSlots(new Set());
+    setIsExpanded(false);
+  }, [selectedDuration]);
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
@@ -425,13 +534,7 @@ const Booking = ({ className = "" }) => {
     );
   }, [selectedCourts]);
 
-  const totalSlots = useMemo(() => {
-    return Object.values(selectedTimes).reduce((total, courtDates) => {
-      return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
-        return dateTotal + timeSlots?.length;
-      }, 0);
-    }, 0);
-  }, [selectedTimes]);
+
 
   useEffect(() => {
     if (totalSlots === 0) {
@@ -735,9 +838,7 @@ const Booking = ({ className = "" }) => {
     setActiveTab(defaultTabIndex);
   }, [slotData, showUnavailable]);
 
-  const formatTime = (timeStr) => {
-    return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
-  };
+ 
 
   return (
     <>
@@ -880,6 +981,7 @@ const Booking = ({ className = "" }) => {
                                 day,
                                 date: formattedDate,
                                 register_club_id: localStorage.getItem("register_club_id") || "",
+                                duration: selectedDuration
                               })
                             );
                           }}
@@ -1006,6 +1108,7 @@ const Booking = ({ className = "" }) => {
                               day: d?.day,
                               date: d?.fullDate,
                               register_club_id: localStorage.getItem("register_club_id") || "",
+                              duration: selectedDuration
                             })
                           );
                         }}
@@ -1062,34 +1165,29 @@ const Booking = ({ className = "" }) => {
             </div>
 
             {/* Unified Tabs for both mobile and desktop */}
-            <div className="row mb-2 mx-xs-auto d-none d-md-block">
-              <div className="col-12 d-flex p-0 justify-content-center align-items-center">
-                <div className="weather-tabs-wrapper w-100">
-                  <div className="weather-tabs-wrapper w-100">
-                    <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                      {tabs?.map((tab, index) => {
-                        const Icon = tab.Icon;
-                        return (
-                          <div
-                            key={index}
-                            className={`tab-item rounded-3 ${activeTab === index ? 'active' : ''}`}
-                            onClick={() => setActiveTab(index)}
-                          >
-                            <Icon
-                              size={24}
-                              className={activeTab === index ? 'text-primary' : 'text-dark'}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="tab-labels d-flex justify-content-between">
-                      {tabs?.map((tab, index) => (
-                        <p key={index} className={`tab-label ${activeTab === index ? 'active text-primary' : 'text-muted'}`}>
-                          {tab?.label}
-                        </p>
-                      ))}
-                    </div>
+            {/* Duration Filter Buttons - Replace the old tabs */}
+            <div className="row mb-3 mx-auto">
+              <div className="col-12 d-flex justify-content-center align-items-center px-0">
+                <div className="duration-tabs-wrapper w-100">
+                  <div className="duration-tabs rounded-3 d-flex justify-content-center align-items-center ">
+                    {durationOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        className={`btn rounded-3  flex-fill mx-1 `}
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          minWidth: "80px",
+                          transition: "all 0.2s",
+                          color: selectedDuration === option.value ? "white" : "black",
+                          border: selectedDuration === option.value ? "0px solid white" : "1px solid #928f8fff",
+                          background: selectedDuration === option.value ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF",
+                        }}
+                        onClick={() => setSelectedDuration(option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1097,16 +1195,17 @@ const Booking = ({ className = "" }) => {
             <div
               className={`mb-md-0 mb-3 overflow-slot border-0 rounded-3 ${slotData?.data?.some((court) => {
                 const filteredSlots = court?.slots?.filter((slot) => {
-                  const basicFilter = showUnavailable
-                    ? true
-                    : slot?.availabilityStatus === "available" &&
-                    slot?.status !== "booked" &&
-                    !isPastTime(slot?.time) &&
-                    slot?.amount > 0;
+                  const basicFilter =
+                    showUnavailable ||
+                    (slot?.availabilityStatus === "available" &&
+                      slot?.status !== "booked" &&
+                      !isPastTime(slot?.time) &&
+                      slot?.amount > 0);
 
-                  // Apply tab filter for both mobile and desktop
-                  const tabKey = tabs[activeTab]?.key;
-                  return basicFilter && filterSlotsByTab(slot, tabKey);
+                  // Filter by selected duration
+                  const durationMatch = slot?.duration === selectedDuration;
+
+                  return basicFilter && durationMatch;
                 });
                 return filteredSlots?.length > 0;
               })
@@ -1135,47 +1234,7 @@ const Booking = ({ className = "" }) => {
                             </div>
                           </div>
                         )}
-                      <div className="row mt-2 mb-0 mx-auto d-block d-md-none">
-                        <div className="col-12 d-flex justify-content-center align-items-center px-0">
-                          <div className="weather-tabs-wrapper w-100">
-                            <div className="weather-tabs rounded-3 d-flex justify-content-center align-items-center">
-                              {tabs.map((tab, index) => {
-                                const Icon = tab.Icon;
-                                return (
-                                  <div
-                                    key={index}
-                                    className={`tab-item rounded-3 ${activeTab === index ? "active" : ""
-                                      }`}
-                                    onClick={() => setActiveTab(index)}
-                                  >
-                                    <Icon
-                                      size={20}
-                                      className={
-                                        activeTab === index
-                                          ? "text-primary"
-                                          : "text-dark"
-                                      } // dark when inactive
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <div className="tab-labels d-flex justify-content-between">
-                              {tabs?.map((tab, index) => (
-                                <p
-                                  key={index}
-                                  className={`tab-label ${activeTab === index
-                                    ? "active text-primary mb-0"
-                                    : "text-muted mb-0"
-                                    }`}
-                                >
-                                  {tab?.label}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+
                       <div
                         style={{
                           overflowY: "auto",
@@ -1204,7 +1263,7 @@ const Booking = ({ className = "" }) => {
                               !isPastTime(slot?.time) &&
                               slot?.amount > 0;
 
-                            const tabKey = tabs[activeTab]?.key;
+                            const tabKey = duration[activeTab]?.key;
                             return basicFilter && filterSlotsByTab(slot, tabKey);
                           });
 
@@ -1245,82 +1304,101 @@ const Booking = ({ className = "" }) => {
                               <div className="col-md-9 col-12">
                                 <div className="row g-1">
                                   {filteredSlots?.map((slot, i) => {
-                                    const isSelected = selectedTimes[
-                                      court?._id
-                                    ]?.[selectedDate?.fullDate]?.some(
+                                    const dateKey = selectedDate?.fullDate;
+                                    const courtId = court?._id;
+
+                                    // Check if this slot is fully selected
+                                    const isSelected = selectedTimes[courtId]?.[dateKey]?.some(
                                       (t) => t?._id === slot?._id
                                     );
+
+                                    // Check if this slot is visually half-selected (for 90min preview)
+                                    const halfKey = `${courtId}-${slot?._id}-${dateKey}`;
+                                    const isHalfSelected = halfSelectedSlots.has(halfKey);
+
+                                    // Disabled conditions
                                     const isDisabled =
                                       slot?.status === "booked" ||
                                       slot?.availabilityStatus !== "available" ||
                                       isPastTime(slot?.time) ||
                                       slot?.amount <= 0;
 
+                                    // Determine background based on duration and selection state
+                                    const getBackground = () => {
+                                      if (isDisabled) return "#c9cfcfff";
+
+                                      if (isSelected) {
+                                        if (selectedDuration === 30) {
+                                          // Left half blue for 30min selection
+                                          return "linear-gradient(to right, #0034E4 50%, #d8d5d5ff 50%)";
+                                        }
+                                        // Full blue for 60, 90, 120 min
+                                        return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)";
+                                      }
+
+                                      if (isHalfSelected) {
+                                        // Right half blue (preview for next slot in 90min)
+                                        return "linear-gradient(to left, #0034E4 50%, #001B76 50%, #d8d5d5ff 50%)";
+                                      }
+
+                                      return "#FFFFFF";
+                                    };
+                                    const getTextColor = () => {
+                                      if (isDisabled) return "#666666";
+                                      if (isSelected || isHalfSelected) return "white";
+                                      return "#000000";
+                                    };
+                                    // Hover border effect
+                                    const handleMouseEnter = (e) => {
+                                      if (!isDisabled && !isSelected && !isHalfSelected) {
+                                        e.currentTarget.style.borderTop = "1px solid #0034E4";
+                                        e.currentTarget.style.borderRight = "1px solid #0034E4";
+                                        e.currentTarget.style.borderBottom = "1px solid #0034E4";
+                                        e.currentTarget.style.borderLeft = "3px solid #0034E4";
+                                      }
+                                    };
+
+                                    const handleMouseLeave = (e) => {
+                                      if (!isDisabled) {
+                                        const isActive = isSelected || isHalfSelected;
+                                        e.currentTarget.style.borderTop = isActive ? "1px solid transparent" : "1px solid #4949491A";
+                                        e.currentTarget.style.borderRight = isActive ? "1px solid transparent" : "1px solid #4949491A";
+                                        e.currentTarget.style.borderBottom = isActive ? "1px solid transparent" : "1px solid #4949491A";
+                                        e.currentTarget.style.borderLeft = "3px solid #0034E4";
+                                      }
+                                    };
+
                                     return (
                                       <div
-                                        key={i}
+                                        key={slot?._id} // Better key than index
                                         className="col-3 col-sm-3 col-md-3 col-lg-2 mb-md-1 mb-0 mt-md-0 mt-1"
                                       >
                                         <button
-                                          className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""
-                                            } slot-time-btn`}
-                                          onClick={() =>
-                                            toggleTime(slot, court?._id, selectedDate?.fullDate)
-                                          }
+                                          className="btn  rounded-1 w-100 slot-time-btn"
+                                          onClick={() => toggleTime(slot, court?._id, dateKey)}
                                           disabled={isDisabled}
                                           style={{
-                                            background:
-                                              isDisabled ||
-                                                slot?.status === "booked" ||
-                                                isPastTime(slot?.time) ||
-                                                slot?.amount <= 0
-                                                ? "#c9cfcfff"
-                                                : isSelected
-                                                  ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"
-                                                  : "#FFFFFF",
-                                            color:
-                                              isDisabled ||
-                                                slot?.status === "booked" ||
-                                                isPastTime(slot?.time)
-                                                ? "#000000"
-                                                : isSelected
-                                                  ? "white"
-                                                  : "#000000",
-                                            cursor: isDisabled
-                                              ? "not-allowed"
-                                              : "pointer",
+                                            background: getBackground(),
+                                            color: getTextColor(),
+                                            cursor: isDisabled ? "not-allowed" : "pointer",
                                             opacity: isDisabled ? 0.6 : 1,
-                                            borderTop: isSelected
-                                              ? "1px solid transparent"
-                                              : "1px solid #4949491A",
-                                            borderRight: isSelected
-                                              ? "1px solid transparent"
-                                              : "1px solid #4949491A",
-                                            borderBottom: isSelected
-                                              ? "1px solid transparent"
-                                              : "1px solid #4949491A",
-                                            borderLeft: "3px solid #0034E4",
+                                            // borderTop: (isSelected || isHalfSelected) ? "1px solid transparent" : "1px solid #4949491A",
+                                            borderRight: (isSelected || isHalfSelected) ? "0px solid transparent" : "1px solid #4949491A",
+                                            borderBottom: (isSelected || isHalfSelected) ? "0px solid transparent" : "1px solid #4949491A",
+                                            borderLeft: (isSelected || isHalfSelected) ? "0px solid transparent" : "3px solid #0034E4",
                                             fontSize: "11px",
                                             padding: "4px 2px",
                                             height: "32px",
-
+                                            transition: "all 0.2s ease",
+                                            fontWeight: isSelected || isHalfSelected ? "600" : "500",
+                                            backgroundClip: "padding-box",
+                                            position: "relative",
+                                            backgroundSize: "200% 100%",
+                                            backgroundPosition: isSelected && selectedDuration === 30 ? "left center" :
+                                              isHalfSelected ? "right center" : "center",
                                           }}
-                                          onMouseEnter={(e) => {
-                                            if (!isDisabled && slot?.availabilityStatus === "available" && !isSelected) {
-                                              e.currentTarget.style.borderTop = "1px solid #0034E4";
-                                              e.currentTarget.style.borderRight = "1px solid #0034E4";
-                                              e.currentTarget.style.borderBottom = "1px solid #0034E4";
-                                              e.currentTarget.style.borderLeft = "3px solid #0034E4";
-                                            }
-                                          }}
-                                          onMouseLeave={(e) => {
-                                            if (!isDisabled && slot?.availabilityStatus === "available") {
-                                              e.currentTarget.style.borderTop = isSelected ? "1px solid transparent" : "1px solid #4949491A";
-                                              e.currentTarget.style.borderRight = isSelected ? "1px solid transparent" : "1px solid #4949491A";
-                                              e.currentTarget.style.borderBottom = isSelected ? "1px solid transparent" : "1px solid #4949491A";
-                                              e.currentTarget.style.borderLeft = "3px solid #0034E4";
-                                            }
-                                          }}
+                                          onMouseEnter={handleMouseEnter}
+                                          onMouseLeave={handleMouseLeave}
                                         >
                                           {formatTimeForDisplay(slot?.time)}
                                         </button>
@@ -1343,7 +1421,7 @@ const Booking = ({ className = "" }) => {
                             slot?.status !== "booked" &&
                             !isPastTime(slot?.time));
 
-                        const tabKey = tabs[activeTab]?.key;
+                        const tabKey = duration[activeTab]?.key;
                         return basicFilter && filterSlotsByTab(slot, tabKey);
                       });
                       return !hasAvailableSlots;
@@ -1370,13 +1448,12 @@ const Booking = ({ className = "" }) => {
 
           </div>
           <BookingSummary
-            totalSlots={totalSlots}
+            totalSlots={displayedSlotCount}
             isExpanded={isExpanded}
             setIsExpanded={setIsExpanded}
             clubData={clubData}
             logo={logo}
             selectedCourts={selectedCourts}
-            formatTime={formatTime}
             handleDeleteSlot={handleDeleteSlot}
             handleClearAll={handleClearAll}
             grandTotal={grandTotal}
