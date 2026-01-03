@@ -8,7 +8,8 @@ export const registerClub = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await ownerApi.post(Url.REGISTER_CLUB, data);
-      if (res?.data?.status === 200) {
+      console.log({ res });
+      if (res?.data?.status === 200 || res?.data?.message === 'res') {
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to register club");
@@ -25,9 +26,8 @@ export const getSlots = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await ownerApi.get(
-        `${Url.GET_SLOT}?register_club_id=${data?.register_club_id}&day=${
-          data?.day
-        }&time=${data?.time || ""}`
+        `${Url.GET_SLOT}?register_club_id=${data?.register_club_id}&day=${data?.day
+        }&time=${data?.time || ""}&duration=${data?.duration || ""}`
       );
       if (res?.status === 200) {
         return res?.data;
@@ -82,6 +82,60 @@ export const updateCourt = createAsyncThunk(
     try {
       const res = await ownerApi.put(Url.UPDATE_COURT, data);
       if (res?.status === 200) {
+        return res?.data;
+      } else {
+        showError(res?.data?.message || "Failed to create slot");
+        return rejectWithValue(res?.data?.message || "Failed to create slot");
+      }
+    } catch (error) {
+      showError(error);
+    }
+  }
+);
+
+export const updateSlotPrice = createAsyncThunk(
+  "club/updateSlotPrice",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.put(Url.UPDATE_SLOT_PRICE, data);
+      if (res?.status === 200) {
+        showSuccess(res?.data?.message);
+        return res?.data;
+      } else {
+        showError(res?.data?.message || "Failed to create slot");
+        return rejectWithValue(res?.data?.message || "Failed to create slot");
+      }
+    } catch (error) {
+      showError(error);
+    }
+  }
+);
+
+export const createSlotPrice = createAsyncThunk(
+  "club/createSlotPrice",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.post(Url.CREATE_SLOT_PRICE, data);
+      if (res?.status === 201 || res?.data?.success === true) {
+        showSuccess(res?.data?.message);
+        return res?.data;
+      } else {
+        showError(res?.data?.message || "Failed to create slot");
+        return rejectWithValue(res?.data?.message || "Failed to create slot");
+      }
+    } catch (error) {
+      showError(error);
+    }
+  }
+);
+
+export const updateSlotBulkPrice = createAsyncThunk(
+  "club/updateSlotBulkPrice",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.put(Url.UPDATE_SLOT_BULK_PRICE, data);
+      if (res?.status === 200) {
+        showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to create slot");

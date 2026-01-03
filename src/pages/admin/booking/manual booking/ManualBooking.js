@@ -14,6 +14,7 @@ import {
   getOwnerRegisteredClub,
   getActiveCourts,
   manualBookingByOwner,
+  getUserSlotPrice,
 } from "../../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -30,6 +31,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { searchUserByNumber } from "../../../../redux/admin/searchUserbynumber/thunk";
 import { resetSearchData } from "../../../../redux/admin/searchUserbynumber/slice";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { duration } from "@mui/material/styles";
 
 const ManualBooking = () => {
   const dispatch = useDispatch();
@@ -48,6 +50,40 @@ const ManualBooking = () => {
   const searchUserDataLoading = useSelector(
     (state) => state?.searchUserByNumber?.getSearchLoading
   );
+  const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
+  console.log({ slotPrice });
+  
+  // Add price calculation function
+  const getPriceForSlot = (slotTime, day = selectedDay) => {
+    if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return 1000;
+
+    // Parse hour from time string
+    const parseTimeToHour = (timeStr) => {
+      if (!timeStr) return null;
+      const [hourStr, period] = timeStr.toLowerCase().split(" ");
+      let hour = parseInt(hourStr);
+      if (isNaN(hour)) return null;
+      if (period === "pm" && hour !== 12) hour += 12;
+      if (period === "am" && hour === 12) hour = 0;
+      return hour;
+    };
+
+    const slotHour = parseTimeToHour(slotTime);
+    if (slotHour === null) return 1000;
+
+    let period = "morning";
+    if (slotHour >= 17) period = "evening";
+    else if (slotHour >= 12) period = "afternoon";
+
+    // Find matching price entry (60min duration for manual booking)
+    const entry = slotPrice.find(p =>
+      p.day === day &&
+      p.duration === 60 &&
+      p.timePeriod === period
+    );
+
+    return entry?.price || 1000;
+  };
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -137,7 +173,12 @@ const ManualBooking = () => {
     if (exists) {
       newCourtSlots = courtSlots.filter((t) => t?._id !== slot?._id);
     } else {
-      newCourtSlots = [...courtSlots, slot];
+      // Add price to the slot when selecting
+      const slotWithPrice = {
+        ...slot,
+        amount: getPriceForSlot(slot.time, selectedDay)
+      };
+      newCourtSlots = [...courtSlots, slotWithPrice];
     }
 
     const selectedCourtData = activeCourtsData?.data?.find(
@@ -240,6 +281,13 @@ const ManualBooking = () => {
           courtId: "",
         })
       );
+      dispatch(
+        getUserSlotPrice({
+          day: selectedDay,
+          register_club_id: ownerClubData?.[0]?._id,
+          duration:''
+        })
+      );
     }
   }, [ownerClubData?.[0]?._id, selectedDay, selectedDate]);
 
@@ -251,6 +299,13 @@ const ManualBooking = () => {
           day: selectedDay,
           date: selectedDate,
           courtId: selectedCourts[0],
+        })
+      );
+      dispatch(
+        getUserSlotPrice({
+          day: selectedDay,
+          register_club_id: ownerClubData?.[0]?._id,
+          duration:''
         })
       );
     }
@@ -312,7 +367,7 @@ const ManualBooking = () => {
             slotTimes: [
               {
                 time: timeSlot?.time,
-                amount: timeSlot?.amount || 0,
+                amount: timeSlot?.amount || getPriceForSlot(timeSlot?.time, selectedDay),
               },
             ],
             courtName: court?.courtName,
@@ -471,7 +526,7 @@ const ManualBooking = () => {
                           : "1px solid #ccd2d9ff",
                         fontFamily: "Poppins",
                         fontSize: "11px",
-                        height:"30px"
+                        height: "30px"
                       }}
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.border = "1px solid #3DBE64")
@@ -770,15 +825,12 @@ const ManualBooking = () => {
                               const isBooked = slot?.status === "booked";
                               const isAvailable =
                                 slot?.availabilityStatus === "available";
-                              const hasAmount =
-                                slot?.amount && slot?.amount !== 0;
                               return {
                                 slot,
                                 isPast,
                                 isSelected,
                                 isBooked,
                                 isAvailable,
-                                hasAmount,
                               };
                             })
                             .filter(
@@ -786,12 +838,10 @@ const ManualBooking = () => {
                                 isPast,
                                 isBooked,
                                 isAvailable,
-                                hasAmount,
                               }) => {
                                 return (
                                   showUnavailable ||
                                   (isAvailable &&
-                                    hasAmount &&
                                     !isBooked &&
                                     !isPast)
                                 );
@@ -820,14 +870,11 @@ const ManualBooking = () => {
                                 isSelected,
                                 isBooked,
                                 isAvailable,
-                                hasAmount,
                               },
                               i
                             ) => {
                               let tooltipText = "";
-                              if (!hasAmount)
-                                tooltipText = "Amount not available";
-                              else if (isBooked) tooltipText = "Booked";
+                              if (isBooked) tooltipText = "Booked";
                               else if (isPast)
                                 tooltipText = "Cannot book slot in past hours";
                               else if (!isAvailable)
@@ -843,7 +890,6 @@ const ManualBooking = () => {
                                     disabled={
                                       isPast ||
                                       isBooked ||
-                                      !hasAmount ||
                                       !isAvailable
                                     }
                                     style={{
@@ -858,8 +904,7 @@ const ManualBooking = () => {
                                               : "#FFFFFF",
                                       border: "2px solid #4949491A",
                                       cursor:
-                                        !hasAmount ||
-                                          !isAvailable ||
+                                        !isAvailable ||
                                           isBooked ||
                                           isPast
                                           ? "not-allowed"
@@ -873,8 +918,8 @@ const ManualBooking = () => {
                                           : isSelected
                                             ? "white"
                                             : "#000000",
-                                            width:"72px",
-                                            height:"30px",
+                                      width: "72px",
+                                      height: "30px",
                                     }}
                                     onMouseEnter={(e) =>
                                     (e.currentTarget.style.border =
@@ -1272,6 +1317,13 @@ const ManualBooking = () => {
                   day: selectedDay,
                   date: selectedDate,
                   courtId: selectedCourts[0],
+                })
+              );
+              dispatch(
+                getUserSlotPrice({
+                  day: selectedDay,
+                  register_club_id: ownerClubData?.[0]?._id,
+                  duration:''
                 })
               );
             }}

@@ -103,6 +103,7 @@ const Pricing = ({
   const { updateClubLoading, clubLoading, clubData } = useSelector(
     (state) => state.club
   );
+  console.log({clubData});
   const PricingData = clubData?.data || [];
   const [formData, setFormData] = useState({
     selectedSlots: "Morning",
@@ -332,15 +333,15 @@ const Pricing = ({
 
   const renderTimeSlots = () => {
     if (selectAllChecked) return renderAllSlots();
-    const slotType = formData.selectedSlots;
+    const slotType = formData?.selectedSlots;
     const allSlotData = PricingData?.[0]?.slot?.[0]?.slotTimes || [];
     const slotData = filterSlotsByPeriod(allSlotData, slotType);
-    if (!slotData.length)
+    if (!slotData?.length)
       return <div>No {slotType.toLowerCase()} slots available</div>;
     return slotData.map((slot) => {
       const display = formatTo12HourDisplay(slot?.time);
       const key = slot?._id || `${display}-${slot?.time}`;
-      const value = formData.prices[slotType]?.[display] ?? (slot?.amount ? String(slot.amount) : "");
+      const value = formData?.prices[slotType]?.[display] ?? (slot?.amount ? String(slot.amount) : "");
       const invalid =
         !value || parseFloat(value) <= 0 || isNaN(parseFloat(value));
       return (

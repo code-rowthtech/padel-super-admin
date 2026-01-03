@@ -4,6 +4,7 @@ import ClubRegistrationLayout from "./RegistrationLayout";
 import VenueDetails from "./steps/VenueDetails";
 import Images from "./steps/Images";
 import Pricing from "./steps/Pricing";
+import PriceSlotUpdate from "../myClub/PriceSlotUpdate";
 
 const defaultFormData = {
   courtName: "",
@@ -117,7 +118,20 @@ const RegisterClub = () => {
         );
       case 3:
         return (
-          <Pricing
+          // <Pricing
+          //   formData={formData}
+          //   updateFormData={updateFormData}
+          //   onBack={goBack}
+          //   setUpdateImage={setUpdateImage}
+          //   onFinalSuccess={() => {
+          //     localStorage.removeItem("clubFormData");
+          //     localStorage.removeItem("clubRegistrationStep");
+          //     localStorage.removeItem("clubImages");
+          //     localStorage.removeItem("clubLogo");
+          //     sessionStorage.removeItem("registerId");
+          //   }}
+          // />
+           <PriceSlotUpdate
             formData={formData}
             updateFormData={updateFormData}
             onBack={goBack}

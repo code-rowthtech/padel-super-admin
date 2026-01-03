@@ -494,10 +494,10 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
             }}
           >
             {selectedTimes.length > 0
-              ? `Set Price for ${selectedTimes.length} slot${
+              ? `Set Pricepp for ${selectedTimes.length} slot${
                   selectedTimes.length > 1 ? "s" : ""
                 }`
-              : "Set Price (select slots first)"}
+              : "Set Pricepp (select slots first)"}
           </h5>
           <InputGroup>
             <FormControl
@@ -659,7 +659,7 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
                   marginBottom: "10px",
                 }}
               >
-                Set Price
+                Set Priceppp
               </h5>
               <Form.Check
                 type="checkbox"

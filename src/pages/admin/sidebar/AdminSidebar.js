@@ -93,8 +93,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               {clubLogo ? (
                 <div
                   style={{
-                    width: "100px",
-                    height: "100px",
+                    width: "80px",
+                    height: "80px",
                     borderRadius: "50%",
                     overflow: "hidden",
                     display: "flex",

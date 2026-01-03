@@ -10,7 +10,6 @@ const BookingSummary = ({
     clubData,
     logo,
     selectedCourts,
-    formatTime,
     handleDeleteSlot,
     handleClearAll,
     grandTotal,
@@ -18,8 +17,31 @@ const BookingSummary = ({
     errorMessage,
     buttonConfig,
     className,
-    handleBookNow
+    handleBookNow, displayedSlotCount
 }) => {
+    const formatTime = (timeStr) => {
+        if (!timeStr) return "";
+        let cleaned = timeStr.toString().toLowerCase().trim();
+        let hour, minute = "00", period = "";
+        if (cleaned.includes("am") || cleaned.includes("pm")) {
+            period = cleaned.endsWith("am") ? "am" : "pm";
+            cleaned = cleaned.replace(/am|pm/gi, "").trim();
+        }
+
+        if (cleaned.includes(":")) {
+            [hour, minute] = cleaned.split(":");
+        } else {
+            hour = cleaned;
+        }
+
+        let hourNum = parseInt(hour);
+        if (isNaN(hourNum)) return timeStr;
+
+        let formattedHour = hourNum.toString().padStart(2, "0");
+        minute = minute ? minute.padStart(2, "0") : "00";
+
+        return `${formattedHour}:${minute} ${period}`.trim();
+    };
     return (
         <>
             <div
@@ -165,9 +187,9 @@ const BookingSummary = ({
 
                     <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
                         <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
-                            Booking Summary{totalSlots > 0 ? ` (${totalSlots} Slot selected)` : ''}
+                            Booking Summary ({displayedSlotCount} Slot{displayedSlotCount !== 1 ? 's' : ''} selected)
                         </h6>
-                        {totalSlots >= 10 && (
+                        {displayedSlotCount >= 10 && (
                             <Button
                                 className="float-end me-3 btn border-0 shadow rounded-pill"
                                 style={{
@@ -446,66 +468,28 @@ const BookingSummary = ({
                     {totalSlots > 0 && (
                         <>
                             <div className="d-lg-none py-0 pt-1">
-                                <div
-                                    className="d-flex justify-content-between align-items-center px-3"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsExpanded(!isExpanded);
-                                    }}
-                                    style={{ cursor: "pointer" }}
-                                >
+                                <div className="d-flex justify-content-between align-items-center px-3">
                                     <div className="d-flex flex-column">
-                                        <span
-                                            className="text-white"
-                                            style={{
-                                                fontSize: "14px",
-                                                fontWeight: "500",
-                                                fontFamily: "Poppins",
-                                            }}
-                                        >
+                                        <span className="text-white" style={{ fontSize: "14px", fontWeight: "500" }}>
                                             Total to Pay
                                         </span>
-                                        <span
-                                            className="text-white"
-                                            style={{
-                                                fontSize: "12px",
-                                                color: "#e5e7eb",
-                                                fontFamily: "Poppins",
-                                            }}
-                                        >
-                                            Total Slot: {totalSlots}
+                                        <span className="text-white" style={{ fontSize: "12px", color: "#e5e7eb" }}>
+                                            Total Slot: {displayedSlotCount}
                                         </span>
                                     </div>
-
                                     <div>
-                                        <span
-                                            className="text-white"
-                                            style={{
-                                                fontSize: "20px",
-                                                fontWeight: "600",
-                                                fontFamily: "Poppins",
-                                            }}
-                                        >
-                                            ₹{grandTotal}
+                                        <span className="text-white" style={{ fontSize: "20px", fontWeight: "600" }}>
+                                            ₹{Number(grandTotal).toLocaleString('en-IN')}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-lg-flex">
-                                <p
-                                    className="d-flex flex-column mb-0"
-                                    style={{ fontSize: "16px", fontWeight: "600" }}
-                                >
-                                    Total to Pay{" "}
-                                    {/* <span style={{ fontSize: "13px", fontWeight: "500" }}>
-                              Total slots {totalSlots}
-                            </span> */}
+                            <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold d-none d-lg-flex">
+                                <p className="d-flex flex-column mb-0" style={{ fontSize: "16px", fontWeight: "600" }}>
+                                    Total to Pay
                                 </p>
-                                <p
-                                    className="mb-0"
-                                    style={{ fontSize: "25px", fontWeight: "600" }}
-                                >
+                                <p className="mb-0" style={{ fontSize: "25px", fontWeight: "600" }}>
                                     ₹{Number(grandTotal).toLocaleString('en-IN')}
                                 </p>
                             </div>

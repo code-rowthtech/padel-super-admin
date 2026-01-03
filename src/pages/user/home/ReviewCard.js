@@ -11,9 +11,9 @@ export const ReviewCard = ({ review, reviews = [] }) => {
     const staticReviews = [
         {
             _id: 'static1',
-            reviewRating: 5,
-            reviewComment: 'Amazing padel experience! The courts are well-maintained and the booking system is super easy to use.',
-            userId: { name: 'Rajesh Kumar' },
+            reviewRating: 3.5,
+            reviewComment: 'Amazing padel experience! The courts are well-maintained and the booking system is super easy to use Amazing padel experience! The courts are well-maintained and the booking system is super easy to use Amazing padel experience! The courts are well-maintained and the booking system is super easy to use.',
+            userId: { name: 'Rajesh Kumari' },
             avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
         },
         {
@@ -47,7 +47,6 @@ export const ReviewCard = ({ review, reviews = [] }) => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-    const [showFullText, setShowFullText] = useState(false);
 
     const truncateText = (text, charLimit = 120) => {
         if (!text) return "";
@@ -56,7 +55,7 @@ export const ReviewCard = ({ review, reviews = [] }) => {
     };
 
     const reviewText = currentReview?.reviewComment || "";
-    const isLongText = reviewText.length > 120;
+    const isLongText = reviewText?.length > 120;
     const displayText = truncateText(reviewText, 120);
 
     return (
@@ -168,37 +167,3 @@ export const ReviewCard = ({ review, reviews = [] }) => {
 };
 
 // Export function to get all reviews (API + static)
-export const getAllReviews = (apiReviews = []) => {
-    const staticReviews = [
-        {
-            _id: 'static1',
-            reviewRating: 5,
-            reviewComment: 'Amazing padel experience! The courts are well-maintained and the booking system is super easy to use.',
-            userId: { name: 'Rajesh Kumar' },
-            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
-        },
-        {
-            _id: 'static2',
-            reviewRating: 4.5,
-            reviewComment: 'Great facilities and friendly staff. Love playing here with my friends every weekend.',
-            userId: { name: 'Priya Sharma' },
-            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
-        },
-        {
-            _id: 'static3',
-            reviewRating: 4,
-            reviewComment: 'Good courts and equipment. The online booking makes it very convenient to reserve slots.',
-            userId: { name: 'Amit Patel' },
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-        },
-        {
-            _id: 'static4',
-            reviewRating: 5,
-            reviewComment: 'Excellent padel club! Clean facilities, professional courts, and great community of players.',
-            userId: { name: 'Sneha Gupta' },
-            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
-        }
-    ];
-
-    return [...apiReviews, ...staticReviews];
-};
