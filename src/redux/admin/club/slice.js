@@ -1,11 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   createSlot,
+  createSlotPrice,
   getClubRegister,
   getSlots,
   registerClub,
   updateCourt,
   updateRegisteredClub,
+  updateSlotBulkPrice,
+  updateSlotPrice,
 } from "./thunk";
 
 const initialState = {
@@ -72,6 +75,48 @@ const clubSlice = createSlice({
       state.clubLoading = false;
       state.clubError = action.payload;
     });
+
+    builder.addCase(updateSlotPrice.pending, (state) => {
+      state.updateClubLoading = true;
+      state.updateClubError = null;
+    });
+    builder.addCase(updateSlotPrice.fulfilled, (state, action) => {
+      state.updateClubLoading = false;
+      state.updateSlotPriceData = action.payload;
+    });
+    builder.addCase(updateSlotPrice.rejected, (state, action) => {
+      state.updateClubLoading = false;
+      state.updateClubError = action.payload;
+    });
+
+     builder.addCase(createSlotPrice.pending, (state) => {
+      state.updateClubLoading = true;
+      state.updateClubError = null;
+    });
+    builder.addCase(createSlotPrice.fulfilled, (state, action) => {
+      state.updateClubLoading = false;
+      state.updateSlotPriceData = action.payload;
+    });
+    builder.addCase(createSlotPrice.rejected, (state, action) => {
+      state.updateClubLoading = false;
+      state.updateClubError = action.payload;
+    });
+
+
+    builder.addCase(updateSlotBulkPrice.pending, (state) => {
+      state.updateClubLoading = true;
+      state.updateClubError = null;
+    });
+    builder.addCase(updateSlotBulkPrice.fulfilled, (state, action) => {
+      state.updateClubLoading = false;
+      state.updateSlotBulkPriceData = action.payload;
+    });
+    builder.addCase(updateSlotBulkPrice.rejected, (state, action) => {
+      state.updateClubLoading = false;
+      state.updateClubError = action.payload;
+    });
+
+
     builder.addCase(updateCourt.pending, (state) => {
       state.updateClubLoading = true;
       state.updateClubError = null;
@@ -97,7 +142,7 @@ const clubSlice = createSlice({
       state.updateClubError = action.payload;
     });
 
-     builder.addCase(getClubRegister.pending, (state) => {
+    builder.addCase(getClubRegister.pending, (state) => {
       state.updateClubLoading = true;
       state.updateClubError = null;
     });

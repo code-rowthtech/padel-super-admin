@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from 'react-bootstrap';
 import { IoArrowBackOutline } from 'react-icons/io5';
-import { getSlots, updateCourt } from '../../../redux/thunks';
+import {
+    getUserSlotPrice,
+    createSlotPrice,
+    updateSlotPrice,
+    updateSlotBulkPrice,
+    getOwnerRegisteredClub
+} from '../../../redux/thunks';
 import { resetClub } from '../../../redux/admin/club/slice';
 import { useDispatch, useSelector } from 'react-redux';
 import { ButtonLoading } from '../../../helpers/loading/Loaders';
-import { showError } from '../../../helpers/Toast';
-import { duration } from '@mui/material/styles';
+import { showError, showSuccess } from '../../../helpers/Toast';
 import { useNavigate } from 'react-router-dom';
+import { getOwnerFromSession } from '../../../helpers/api/apiCore';
 
 const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => {
     const [selectedDuration, setSelectedDuration] = useState(60);
@@ -16,23 +22,29 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
     const [applyAllLoading, setApplyAllLoading] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { clubData, clubLoading } = useSelector((state) => state.club);
-    console.log({ clubData });
+    const owner = getOwnerFromSession();
+    const ownerId = owner?.generatedBy || owner?._id;
+    const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
+    const slotPriceLoading = useSelector((state) => state?.userSlot?.slotPriceLoading || false);
     const { ownerClubData } = useSelector((state) => state.manualBooking);
     const registerId = ownerClubData?.[0]?._id || sessionStorage.getItem("registerId") || "";
-    const PricingData = clubData?.data || [];
+    console.log({ slotPrice });
+    // CREATE MODE जब onBack है → पहली बार prices create कर रहे हैं
+    const isCreateMode = !!onBack;
+console.log({slotPriceLoading});
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const [periods, setPeriods] = useState([
-        { name: 'Morning', value: 'morning', minHour: 5, maxHour: 12 },
-        { name: 'Afternoon', value: 'afternoon', minHour: 12, maxHour: 17 },
-        { name: 'Evening', value: 'evening', minHour: 17, maxHour: 23 },
-    ]);
 
-    const [periodRanges, setPeriodRanges] = useState({
-        morning: '05:00 AM - 11:00 AM',
-        afternoon: '12:00 PM - 05:00 PM',
-        evening: '06:00 PM - 10:00 PM'
-    });
+    const periods = [
+        { name: 'Morning', value: 'morning', slotTime: '5:00 AM - 11:00 AM' },
+        { name: 'Afternoon', value: 'afternoon', slotTime: '12:00 PM - 4:00 PM' },
+        { name: 'Evening', value: 'evening', slotTime: '5:00 PM - 11:00 PM' },
+    ];
+
+    const periodRanges = {
+        morning: '5:00 AM - 11:00 AM',
+        afternoon: '12:00 PM - 4:00 PM',
+        evening: '5:00 PM - 11:00 PM',
+    };
 
     const [prices, setPrices] = useState(() => {
         const initial = {};
@@ -42,114 +54,56 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
         return initial;
     });
 
+    const [selectedPeriodByDay, setSelectedPeriodByDay] = useState({});
     useEffect(() => {
-        if (registerId) {
-            dispatch(getSlots({
-                register_club_id: registerId,
-                day: "",
-                time: "",
-                duration: selectedDuration
-            }));
-        }
-    }, [dispatch, onBack, registerId, selectedDuration]);
+        if (slotPrice.length === 0) return;
 
-    const timeTo24Hour = (timeStr) => {
-        if (!timeStr) return 0;
-        const match = String(timeStr).trim().toLowerCase().match(/(\d{1,2}):?(\d\d)?\s*(am|pm)/i);
-        if (!match) return 0;
-        let hour = parseInt(match[1], 10);
-        const period = match[3];
-        if (period === 'pm' && hour !== 12) hour += 12;
-        if (period === 'am' && hour === 12) hour = 0;
-        return hour;
-    };
+        const updatedPrices = {};
+        days.forEach(day => {
+            updatedPrices[day] = { morning: '', afternoon: '', evening: '' };
+        });
 
-    const formatTime = (timeStr) => {
-        const match = String(timeStr).trim().toLowerCase().match(/(\d{1,2}):?(\d\d)?\s*(am|pm)/i);
-        if (!match) return timeStr;
-        let h = parseInt(match[1], 10);
-        const m = match[2] ? match[2] : '00';
-        const p = match[3].toUpperCase();
-        h = h % 12 || 12;
-        return `${String(h).padStart(2, "0")}:${m} ${p}`;
-    };
-
-    const getSlotTimesForDay = (dayName) => {
-        if (PricingData.length === 0) return [];
-        const dayIndex = days.indexOf(dayName);
-        if (dayIndex === -1) return [];
-        return PricingData[0]?.slot?.[dayIndex]?.slotTimes || [];
-    };
-
-    useEffect(() => {
-        if (PricingData.length === 0) return;
-
-        const sampleSlots = getSlotTimesForDay('Monday');
-        if (sampleSlots.length === 0) return;
-
-        const allHours = sampleSlots.map(slot => timeTo24Hour(slot.time));
-
-        const dynamicPeriods = [
-            { name: 'Morning', value: 'morning', minHour: 5, maxHour: 12 },
-            { name: 'Afternoon', value: 'afternoon', minHour: 12, maxHour: 17 },
-            { name: 'Evening', value: 'evening', minHour: 17, maxHour: 23 },
-        ].filter(p => allHours.some(h => h >= p.minHour && h < p.maxHour));
-
-        setPeriods(dynamicPeriods);
-
-        const newRanges = {};
-        dynamicPeriods.forEach(p => {
-            const times = sampleSlots.filter(s => {
-                const h = timeTo24Hour(s.time);
-                return h >= p.minHour && h < p.maxHour;
-            });
-            if (times.length > 0) {
-                const sorted = times.map(t => timeTo24Hour(t.time)).sort((a, b) => a - b);
-                const start = times.find(t => timeTo24Hour(t.time) === sorted[0]);
-                const end = times.find(t => timeTo24Hour(t.time) === sorted[sorted.length - 1]);
-                newRanges[p.value] = `${formatTime(start?.time)} - ${formatTime(end?.time)}`;
-            } else {
-                newRanges[p.value] = '-';
+        slotPrice.forEach(entry => {
+            if (entry.duration === selectedDuration) {  // ← यह जरूरी check
+                const periodKey = entry.timePeriod;
+                if (updatedPrices[entry.day] && periodKey) {
+                    updatedPrices[entry.day][periodKey] = String(entry.price);
+                }
             }
         });
-        setPeriodRanges(newRanges);
 
-        setPrices(prevPrices => {
-            const updated = { ...prevPrices };
-            days.forEach(day => {
-                const slots = getSlotTimesForDay(day);
-                dynamicPeriods.forEach(p => {
-                    const periodSlots = slots.filter(s => {
-                        const h = timeTo24Hour(s.time);
-                        return h >= p.minHour && h < p.maxHour;
-                    });
-                    if (periodSlots.length === 0) {
-                        updated[day][p.value] = '';
-                        return;
-                    }
-                    const amounts = periodSlots.map(s => s.amount).filter(a => a > 0);
-                    if (amounts.length === 0) {
-                        updated[day][p.value] = '';
-                        return;
-                    }
-                    if (amounts.every(a => a === amounts[0])) {
-                        updated[day][p.value] = String(amounts[0]);
-                    } else {
-                        const frequency = {};
-                        amounts.forEach(a => frequency[a] = (frequency[a] || 0) + 1);
-                        const mostCommon = Object.keys(frequency).reduce((a, b) => frequency[a] > frequency[b] ? a : b);
-                        if (frequency[mostCommon] > amounts.length / 2) {
-                            updated[day][p.value] = mostCommon;
-                        } else {
-                            updated[day][p.value] = prevPrices[day]?.[p.value] || '';
-                        }
-                    }
-                });
-            });
-            return updated;
-        });
-    }, [PricingData]);
-    const [selectedPeriodByDay, setSelectedPeriodByDay] = useState({});
+        setPrices(updatedPrices);
+    }, [slotPrice, selectedDuration]);
+
+
+    const ownerApiCalledRef = useRef(false);
+    const slotPriceInitCalledRef = useRef(false);
+
+    useEffect(() => {
+        if (!registerId) return;
+
+        // first time page open
+        if (!slotPriceInitCalledRef.current) {
+            slotPriceInitCalledRef.current = true;
+        }
+
+        dispatch(getUserSlotPrice({
+            register_club_id: registerId,
+            day: "",
+            duration: selectedDuration
+        }));
+    }, [registerId, selectedDuration]);
+
+
+    useEffect(() => {
+        if (!onBack) return;              // ✅ only create mode
+        if (!ownerId) return;
+        if (ownerApiCalledRef.current) return;
+
+        ownerApiCalledRef.current = true;
+        dispatch(getOwnerRegisteredClub({ ownerId }));
+    }, [onBack, ownerId]);
+
 
     const handlePriceChange = (day, period, value) => {
         const numeric = value.replace(/[^0-9]/g, '');
@@ -163,163 +117,162 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
         }));
     };
 
-    // Apply to All
+    // Helper: Full create payload बनाओ (entered prices के साथ)
+    const generateCreatePayload = () => {
+        const payload = [];
+
+        days.forEach(day => {
+            periods.forEach(period => {
+                const priceStr = prices[day][period.value];
+                const price = parseInt(priceStr, 10);
+                if (price > 0) {
+                    payload.push({
+                        duration: selectedDuration,
+                        day: day,
+                        price: price,
+                        slotTime: period.slotTime,
+                        timePeriod: period.value,
+                        register_club_id: registerId
+                    });
+                }
+            });
+        });
+
+        return payload;
+    };
+
+    // Apply to All — दोनों modes में दिखेगा, create mode में create API call
     const applyAllPrice = async () => {
-        if (!allPrice.trim()) return;
+        if (!allPrice.trim()) {
+            showError("Please enter a price");
+            return;
+        }
+
         const numericPrice = parseInt(allPrice.replace(/[^0-9]/g, ''), 10);
-        if (isNaN(numericPrice) || numericPrice <= 0) return;
+        if (numericPrice <= 0) {
+            showError("Invalid price");
+            return;
+        }
 
         setApplyAllLoading(true);
 
+        // Fill all input fields with this price
         setPrices(prev => {
             const updated = { ...prev };
             days.forEach(day => {
-                periods.forEach(p => {
-                    updated[day][p.value] = String(numericPrice);
+                periods.forEach(period => {
+                    updated[day][period.value] = String(numericPrice);
                 });
             });
             return updated;
         });
 
-        const slotUpdates = [];
-        const businessHoursUpdates = [];
+        if (isCreateMode) {
+            // Create mode: call createSlotPrice with full payload (all fields filled)
+            const payload = days.flatMap(day =>
+                periods.map(period => ({
+                    duration: selectedDuration,
+                    day: day,
+                    price: numericPrice,
+                    slotTime: period.slotTime,
+                    timePeriod: period.value,
+                    register_club_id: registerId
+                }))
+            );
 
-        days.forEach(dayName => {
-            const dayIndex = days.indexOf(dayName);
-            const daySlotData = PricingData[0]?.slot?.[dayIndex];
-            if (!daySlotData) return;
+            console.log("Create Mode - Apply All Payload:", payload);
 
-            if (daySlotData.businessHours?.length > 0) {
-                daySlotData.businessHours.forEach(bh => {
-                    businessHoursUpdates.push({
-                        _id: bh._id,
-                        day: bh.day,
-                        time: bh.time
-                    });
-                });
+            try {
+                await dispatch(createSlotPrice(payload)).unwrap();
+            } catch (err) {
+                showError("Failed to create prices");
             }
+        } else {
+            // Update mode: bulk update
+            const payload = {
+                updateMultiple: true,
+                register_club_id: registerId,
+                duration: selectedDuration,
+                price: numericPrice
+            };
 
-            if (daySlotData?.slotTimes?.length > 0) {
-                daySlotData.slotTimes.forEach(slot => {
-                    slotUpdates.push({
-                        _id: slot?._id,
-                        amount: numericPrice,
-                        duration: selectedDuration
-                    });
-                });
-            } else {
-                // No slotTimes - just send amount and duration
-                slotUpdates.push({
-                    amount: numericPrice,
-                    duration: selectedDuration
-                });
+            try {
+                await dispatch(updateSlotBulkPrice(payload)).unwrap();
+                dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: selectedDuration }));
+            } catch (err) {
+                showError("Bulk update failed");
             }
-        });
-
-        const courtId = PricingData[0]?._id;
-
-        const payload = {
-            _id: courtId,
-            timePeriod: "all",
-            businessHoursUpdates,
-            slotTimesUpdates: slotUpdates
-        };
-
-        try {
-            await dispatch(updateCourt(payload)).unwrap();
-            setAllPrice('');
-            dispatch(resetClub());
-            dispatch(getSlots({ register_club_id: registerId, day: '', time: '', duration: selectedDuration }));
-        } catch (err) {
-            showError("Update failed");
-        } finally {
-            setApplyAllLoading(false);
         }
+
+        setAllPrice('');
+        setApplyAllLoading(false);
     };
 
+    // Single Row Update — works in both modes
     const handleRowUpdate = async (dayName) => {
         setRowLoading(prev => ({ ...prev, [dayName]: true }));
 
         const periodValue = selectedPeriodByDay[dayName];
-
         if (!periodValue) {
             setRowLoading(prev => ({ ...prev, [dayName]: false }));
-            return showError("Please enter price first");
+            return showError("Please select a period");
         }
 
-        const period = periods.find(p => p.value === periodValue);
-        if (!period) {
-            setRowLoading(prev => ({ ...prev, [dayName]: false }));
-            return showError("Invalid time period");
-        }
-
-        const amount = parseInt(prices[dayName]?.[periodValue], 10);
+        const amount = parseInt(prices[dayName][periodValue], 10);
         if (!amount || amount <= 0) {
             setRowLoading(prev => ({ ...prev, [dayName]: false }));
             return showError("Invalid price");
         }
 
-        const dayIndex = days.indexOf(dayName);
-        const daySlotData = PricingData[0]?.slot?.[dayIndex];
-        const slotUpdates = [];
-        const businessHoursUpdates = [];
+        if (isCreateMode) {
+            // Create mode: send all currently entered prices
+            const payload = generateCreatePayload();
 
-        if (daySlotData?.businessHours?.length > 0) {
-            daySlotData.businessHours.forEach(bh => {
-                businessHoursUpdates.push({
-                    _id: bh._id,
-                    day: bh.day,
-                    time: bh.time
-                });
-            });
-        }
+            if (payload.length === 0) {
+                setRowLoading(prev => ({ ...prev, [dayName]: false }));
+                return showError("No prices entered");
+            }
 
-        if (daySlotData?.slotTimes?.length > 0) {
-            daySlotData.slotTimes.forEach(slot => {
-                const hour24 = timeTo24Hour(slot.time);
-                if (hour24 >= period.minHour && hour24 < period.maxHour) {
-                    slotUpdates.push({
-                        _id: slot._id,
-                        amount,
-                        duration: selectedDuration
-                    });
-                }
-            });
+            console.log("Create Mode - Row Update Payload:", payload);
+
+            try {
+                await dispatch(createSlotPrice(payload)).unwrap();
+            } catch (err) {
+                showError("Failed to create prices");
+            }
         } else {
-            // No slotTimes - just send amount and duration
-            slotUpdates.push({
-                amount,
-                duration: selectedDuration
-            });
+            // Update mode: single period update
+            const matchingEntries = slotPrice.filter(entry =>
+                entry.day === dayName &&
+                entry.duration === selectedDuration &&
+                entry.timePeriod === periodValue
+            );
+
+            if (matchingEntries.length === 0) {
+                setRowLoading(prev => ({ ...prev, [dayName]: false }));
+                return showError("No slots found");
+            }
+
+            const updates = matchingEntries.map(entry => ({
+                id: entry._id,
+                price: amount
+            }));
+
+            const payload = { updates };
+
+            try {
+                await dispatch(updateSlotPrice(payload)).unwrap();
+                dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: selectedDuration }));
+            } catch (err) {
+                showError("Update failed");
+            }
         }
 
-        const courtId = PricingData[0]?._id;
-
-        const timePeriodMap = {
-            morning: "morning",
-            afternoon: "afternoon",
-            evening: "night"
-        };
-
-        const payload = {
-            _id: courtId,
-            timePeriod: timePeriodMap[periodValue],
-            businessHoursUpdates,
-            slotTimesUpdates: slotUpdates
-        };
-
-        try {
-            await dispatch(updateCourt(payload)).unwrap();
-            dispatch(resetClub());
-            dispatch(getSlots({ register_club_id: registerId, day: '', time: '', duration: selectedDuration }));
-        } catch (err) {
-            showError("Update failed");
-        } finally {
-            setRowLoading(prev => ({ ...prev, [dayName]: false }));
-        }
+        setRowLoading(prev => ({ ...prev, [dayName]: false }));
     };
+
     const handleFinish = () => {
-        onFinalSuccess();
+        onFinalSuccess?.();
         navigate("/admin/dashboard");
         sessionStorage.removeItem("registerId");
         localStorage.removeItem("clubFormData");
@@ -329,21 +282,20 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
 
     return (
         <>
-            {/* UI same as before */}
             <div className="d-flex align-items-center justify-content-between mb-3">
-                <h6 onClick={() => {
-                    if (onHide) onHide();
-
-                }} style={{
-                    fontSize: '15px',
-                    fontWeight: '600',
-                    color: '#374151',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontFamily: 'Poppins',
-                    gap: '8px'
-                }}>
+                <h6
+                    onClick={() => onHide?.()}
+                    style={{
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        color: '#374151',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontFamily: 'Poppins',
+                        gap: '8px'
+                    }}
+                >
                     {!onFinalSuccess && (
                         <>
                             <IoArrowBackOutline size={24} /> Back
@@ -357,29 +309,34 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                         placeholder="Enter price for all"
                         value={allPrice}
                         onChange={(e) => setAllPrice(e.target.value.replace(/[^0-9]/g, ''))}
-                        className='form-control py-1'
-                        style={{ boxShadow: "none", width: '140px', padding: '8px 5px', borderRadius: '6px', textAlign: 'center' }}
+                        className="form-control py-1"
+                        style={{
+                            boxShadow: "none",
+                            width: '140px',
+                            padding: '8px 5px',
+                            borderRadius: '6px',
+                            textAlign: 'center'
+                        }}
                         disabled={applyAllLoading}
                     />
 
                     <Button
                         variant="success"
                         size="sm"
-                        disabled={!allPrice.trim() || applyAllLoading}
+                        disabled={applyAllLoading || !allPrice.trim()}
                         onClick={applyAllPrice}
                     >
-                        {applyAllLoading ? <ButtonLoading color={'white'} /> : 'Apply to all'}
+                        {applyAllLoading ? <ButtonLoading color="white" /> : 'Apply to all'}
                     </Button>
 
-                    <div className="d-flex border " style={{ borderRadius: '6px', overflow: 'hidden' }}>
+                    <div className="d-flex border" style={{ borderRadius: '6px', overflow: 'hidden' }}>
                         {[30, 60].map((dur) => (
                             <Button
                                 key={dur}
                                 variant={selectedDuration === dur ? 'success' : 'outline-success'}
                                 size="sm"
                                 onClick={() => setSelectedDuration(dur)}
-                                disabled={applyAllLoading}
-                                className='rounded-0 border-0'
+                                className="rounded-0 border-0"
                                 style={{
                                     minWidth: '60px',
                                     fontWeight: selectedDuration === dur ? 'bold' : 'normal',
@@ -432,8 +389,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                         </tr>
                     </thead>
                     <tbody>
-                        {clubLoading ? (
-                            // Shimmer Loader Rows
+                        {slotPriceLoading ? (
                             [...Array(7)].map((_, index) => (
                                 <tr key={`skeleton-${index}`}>
                                     <td style={{
@@ -446,8 +402,8 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                                             borderRadius: '4px'
                                         }} />
                                     </td>
-                                    {[1, 2, 3].map(col => (
-                                        <td key={col} style={{
+                                    {periods.map(() => (
+                                        <td style={{
                                             padding: '10px',
                                             textAlign: 'center',
                                             borderBottom: '1px solid #dee2e6',
@@ -477,7 +433,6 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                                 </tr>
                             ))
                         ) : (
-                            // Real Data Rows
                             days?.map(day => (
                                 <tr key={day}>
                                     <td style={{
@@ -488,7 +443,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                                     }}>
                                         {day}
                                     </td>
-                                    {periods?.map(period => (
+                                    {periods.map(period => (
                                         <td key={period.value} style={{
                                             padding: '10px',
                                             textAlign: 'center',
@@ -496,7 +451,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                                         }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
                                                 <div style={{ fontSize: '11px', fontWeight: '600', color: '#495057' }}>
-                                                    {periodRanges[period.value] || '-'}
+                                                    {periodRanges[period.value]}
                                                 </div>
                                                 <input
                                                     type="text"
@@ -526,7 +481,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                                             disabled={rowLoading[day] || applyAllLoading}
                                             onClick={() => handleRowUpdate(day)}
                                         >
-                                            {rowLoading[day] ? <ButtonLoading color={'white'} /> : 'Update'}
+                                            {rowLoading[day] ? <ButtonLoading color="white" /> : 'Update'}
                                         </Button>
                                     </td>
                                 </tr>
@@ -534,21 +489,13 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                         )}
                     </tbody>
                 </table>
+
                 {onFinalSuccess && (
                     <div className="d-flex justify-content-end gap-3 pt-3">
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                onBack();
-                                setUpdateImage(true);
-                            }}
-                        >
+                        <Button variant="secondary" onClick={() => { onBack(); setUpdateImage(true); }}>
                             Back
                         </Button>
-                        <Button
-                            variant="success"
-                            onClick={handleFinish}
-                        >
+                        <Button variant="success" onClick={handleFinish}>
                             Finish
                         </Button>
                     </div>

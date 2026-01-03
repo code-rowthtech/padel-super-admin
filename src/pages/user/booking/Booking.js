@@ -20,7 +20,7 @@ import TokenExpire from "../../../helpers/TokenExpire";
 import {
   MdOutlineDateRange,
 } from "react-icons/md";
-import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
+import { getUserSlotBooking, getUserSlotPrice } from "../../../redux/user/slot/thunk";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
@@ -65,6 +65,33 @@ const parseTimeToHour = (timeStr) => {
   return hour;
 };
 
+// Helper function to check if slot has bookingTime (already booked for 30 min)
+const hasBookingTime = (slot) => {
+  return slot?.bookingTime && slot?.bookingTime.trim() !== "";
+};
+
+// Helper function to check if slot is 7 PM
+const is7PMSlot = (slot) => {
+  const slotHour = parseTimeToHour(slot?.time);
+  return slotHour === 19; // 7 PM = 19:00
+};
+
+// Helper function to check if slot is 9 PM
+const is9PMSlot = (slot) => {
+  const slotHour = parseTimeToHour(slot?.time);
+  return slotHour === 21; // 9 PM = 21:00
+};
+
+// For 7 PM slot with bookingTime: Disable LEFT side, enable RIGHT side only
+// For 9 PM slot with bookingTime: Disable RIGHT side, enable LEFT side only
+const shouldDisableLeftSide = (slot) => {
+  return hasBookingTime(slot) && is7PMSlot(slot);
+};
+
+const shouldDisableRightSide = (slot) => {
+  return hasBookingTime(slot) && is9PMSlot(slot);
+};
+
 const filterSlotsByTab = (slot, eventKey) => {
   const slotHour = parseTimeToHour(slot?.time);
   if (slotHour === null) return false;
@@ -92,6 +119,8 @@ const Booking = ({ className = "" }) => {
   const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+  const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
+  console.log({ slotPrice });
   const [errorMessage, setErrorMessage] = useState("");
   const [errorShow, setErrorShow] = useState(false);
   const logo = clubData?.logo;
@@ -109,7 +138,7 @@ const Booking = ({ className = "" }) => {
   const [showBanner, setShowBanner] = useState(true);
   const [halfSelectedSlots, setHalfSelectedSlots] = useState(new Set());
   const [isExpanded, setIsExpanded] = useState(false);
-
+  console.log({ selectedDuration });
   const dayShortMap = {
     Monday: "Mon",
     Tuesday: "Tue",
@@ -130,6 +159,26 @@ const Booking = ({ className = "" }) => {
       fullDate: date.toISOString().split("T")[0],
     };
   });
+
+  // Add this function inside Booking component
+  const getPriceForSlot = useCallback((slotTime, day = selectedDate?.day) => {
+    if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return 2000;
+
+    const slotHour = parseTimeToHour(slotTime);
+    if (slotHour === null) return 2000;
+
+    let period = "morning";
+    if (slotHour >= 17) period = "evening";
+    else if (slotHour >= 12) period = "afternoon";
+
+    const entry = slotPrice.find(p =>
+      p.day === day &&
+      p.duration === selectedDuration &&
+      p.timePeriod === period
+    );
+
+    return entry?.price || 2000;
+  }, [slotPrice, selectedDuration, selectedDate?.day]);
 
   const getSortedSlots = (court) => {
     return [...(court?.slots || [])].sort((a, b) => {
@@ -173,10 +222,50 @@ const Booking = ({ className = "" }) => {
   };
 
   const updateSelectedBusinessAndCourts = (times, courtId, dateKey) => {
-    const newBusiness = times.map(t => ({ ...t, date: dateKey }));
+    // For 30min and 90min duration, add half-selected slots to the times array
+    let allTimes = [...times];
+    
+    if (selectedDuration === 30 || selectedDuration === 90) {
+      const court = slotData?.data?.find(c => c?._id === courtId);
+      if (court) {
+        // Find all half-selected slots for this court/date
+        Array.from(halfSelectedSlots).forEach(key => {
+          if (key.startsWith(`${courtId}-`) && key.includes(`-${dateKey}-`)) {
+            const parts = key.split('-');
+            const slotId = parts[1];
+            const side = parts[3]; // 'left' or 'right'
+            
+            const slot = court.slots.find(s => s._id === slotId);
+            if (slot && !allTimes.some(t => t._id === slotId || t._id === `${slotId}-${side}`)) {
+              // Create a modified slot with adjusted time for left/right
+              let displayTime = slot.time;
+              if (side === 'right') {
+                // Convert time like "6:00 AM" to "6:30 AM"
+                displayTime = slot.time.replace(':00', ':30');
+              }
+              
+              const modifiedSlot = {
+                ...slot,
+                time: displayTime,
+                _id: `${slotId}-${side}`, // Unique ID for half slots
+                originalId: slotId,
+                side: side
+              };
+              allTimes.push(modifiedSlot);
+            }
+          }
+        });
+      }
+    }
+
+    const newBusiness = allTimes.map(t => ({
+      ...t,
+      date: dateKey,
+      amount: getPriceForSlot(t.time)
+    }));
 
     setSelectedBuisness(prev => {
-      const filtered = prev.filter(t => !(t.date === dateKey && times.some(st => st._id === t._id)));
+      const filtered = prev.filter(t => !(t.date === dateKey && allTimes.some(st => st._id === t._id || st.originalId === t.originalId)));
       return [...filtered, ...newBusiness];
     });
 
@@ -184,10 +273,12 @@ const Booking = ({ className = "" }) => {
     if (currentCourt) {
       setSelectedCourts(prev => {
         const existing = prev.find(c => c._id === courtId && c.date === dateKey);
-        const timeEntries = times.map(t => ({
+        const timeEntries = allTimes.map(t => ({
           _id: t._id,
           time: t.time,
-          amount: t.amount,
+          amount: getPriceForSlot(t.time),
+          originalId: t.originalId,
+          side: t.side
         }));
 
         if (existing) {
@@ -211,89 +302,340 @@ const Booking = ({ className = "" }) => {
 
   const MAX_SLOTS = 15;
 
-  const toggleTime = (time, courtId, date) => {
-    const dateKey = date || selectedDate?.fullDate;
-    const uniqueKey = `${courtId}-${time?._id}-${dateKey}`;
 
+
+  const toggleTime = (time, courtId, date, clickSide = null) => {
+    const dateKey = date || selectedDate?.fullDate;
+    const sortedSlots = getSortedSlots(slotData?.data?.find(c => c?._id === courtId));
+    const currentIndex = sortedSlots.findIndex(s => s._id === time._id);
+    const nextSlot = sortedSlots[currentIndex + 1];
     const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
     const isAlreadySelected = currentCourtTimes.some((t) => t?._id === time?._id);
 
-    // First: Clear any half-selections related to this court & date
-    setHalfSelectedSlots(prev => {
-      const newSet = new Set(prev);
-      currentCourtTimes.forEach(t => newSet.delete(`${courtId}-${t._id}-${dateKey}`));
-      return newSet;
-    });
+    // ========== 30MIN DURATION LOGIC ==========
+    if (selectedDuration === 30) {
+      if (!clickSide) return;
+      
+      const leftKey = `${courtId}-${time._id}-${dateKey}-left`;
+      const rightKey = `${courtId}-${time._id}-${dateKey}-right`;
+      const targetKey = clickSide === "left" ? leftKey : rightKey;
+      const oppositeKey = clickSide === "left" ? rightKey : leftKey;
+      const isTargetSelected = halfSelectedSlots.has(targetKey);
+      const isOppositeSelected = halfSelectedSlots.has(oppositeKey);
 
-    if (isAlreadySelected) {
-      // Deselect logic (same as before)
-      const filteredTimes = currentCourtTimes.filter((t) => t?._id !== time?._id);
-      setSelectedTimes((prev) => ({
+      // If clicking same side that's already selected - unselect
+      if (isTargetSelected) {
+        setHalfSelectedSlots(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(targetKey);
+          return newSet;
+        });
+        
+        // Remove from selected times if no half selections remain
+        const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+        setSelectedTimes(prev => ({
+          ...prev,
+          [courtId]: {
+            ...prev[courtId],
+            [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
+          },
+        }));
+        updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+        return;
+      }
+
+      // If opposite side is selected, switch to target side
+      if (isOppositeSelected) {
+        setHalfSelectedSlots(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(oppositeKey); // Remove opposite side first
+          newSet.add(targetKey);      // Add target side
+          return newSet;
+        });
+        
+        // Update booking summary immediately for the switch
+        const newTimes = [...currentCourtTimes.filter(t => t._id !== time._id), time];
+        const newTimesWithAmount = newTimes.map(s => ({
+          ...s,
+          amount: getPriceForSlot(s.time)
+        }));
+
+        setSelectedTimes(prev => ({
+          ...prev,
+          [courtId]: {
+            ...prev[courtId],
+            [dateKey]: newTimesWithAmount,
+          },
+        }));
+        updateSelectedBusinessAndCourts(newTimesWithAmount, courtId, dateKey);
+        return;
+      }
+
+      // New selection - check slot limit
+      if (totalSlots >= MAX_SLOTS) {
+        setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
+        setErrorShow(true);
+        return;
+      }
+
+      // Select target side
+      setHalfSelectedSlots(prev => {
+        const newSet = new Set(prev);
+        newSet.add(targetKey);
+        return newSet;
+      });
+
+      const newTimes = [...currentCourtTimes.filter(t => t._id !== time._id), time];
+      const newTimesWithAmount = newTimes.map(s => ({
+        ...s,
+        amount: getPriceForSlot(s.time)
+      }));
+
+      setSelectedTimes(prev => ({
         ...prev,
         [courtId]: {
           ...prev[courtId],
-          [dateKey]: filteredTimes,
+          [dateKey]: newTimesWithAmount,
         },
       }));
-      updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+      updateSelectedBusinessAndCourts(newTimesWithAmount, courtId, dateKey);
       return;
     }
 
-    // Selection logic based on duration
-    const currentTotalSlots = totalSlots;
-    if (currentTotalSlots >= MAX_SLOTS) {
-      setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
-      setErrorShow(true);
-      return;
-    }
-
-    const court = slotData?.data?.find(c => c?._id === courtId);
-    if (!court) return;
-
-    const sortedSlots = getSortedSlots(court);
-    let slotsToSelect = [time];
-
-    if (selectedDuration === 90) {
-      const nextSlot = findNextConsecutiveSlots(sortedSlots, time, 1)[0];
-      if (nextSlot) {
-        // Add half-selection visual for next slot
-        setHalfSelectedSlots(prev => new Set(prev).add(`${courtId}-${nextSlot._id}-${dateKey}`));
+    // ========== 60MIN DURATION LOGIC ==========
+    if (selectedDuration === 60) {
+      // If already selected, unselect
+      if (isAlreadySelected) {
+        const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+        setSelectedTimes(prev => ({
+          ...prev,
+          [courtId]: {
+            ...prev[courtId],
+            [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
+          },
+        }));
+        updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+        return;
       }
-    } else if (selectedDuration === 120) {
-      const nextThree = findNextConsecutiveSlots(sortedSlots, time, 3);
-      if (nextThree.length === 3) {
-        slotsToSelect = [time, ...nextThree];
-      } else {
+
+      // Check slot limit
+      if (totalSlots >= MAX_SLOTS) {
+        setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
+        setErrorShow(true);
+        return;
+      }
+
+      // Select slot
+      const newTimes = [...currentCourtTimes, time];
+      const newTimesWithAmount = newTimes.map(s => ({
+        ...s,
+        amount: getPriceForSlot(s.time)
+      }));
+
+      setSelectedTimes(prev => ({
+        ...prev,
+        [courtId]: {
+          ...prev[courtId],
+          [dateKey]: newTimesWithAmount,
+        },
+      }));
+      updateSelectedBusinessAndCourts(newTimesWithAmount, courtId, dateKey);
+      return;
+    }
+
+    // ========== 90MIN DURATION LOGIC ==========
+    if (selectedDuration === 90) {
+      if (!nextSlot || parseTimeToHour(nextSlot.time) !== parseTimeToHour(time.time) + 1) {
+        setErrorMessage("Not enough consecutive slots for 90 minutes");
+        setErrorShow(true);
+        return;
+      }
+
+      const leftKey = `${courtId}-${nextSlot._id}-${dateKey}-left`;
+      const rightKey = `${courtId}-${nextSlot._id}-${dateKey}-right`;
+      const isLeftSelected = halfSelectedSlots.has(leftKey);
+      const isRightSelected = halfSelectedSlots.has(rightKey);
+      const isFirstSlotSelected = isAlreadySelected;
+      const isSecondSlotHalfSelected = isLeftSelected || isRightSelected;
+
+      // Case 1: First slot is selected and second slot has half selection - unselect this pair
+      if (isFirstSlotSelected && isSecondSlotHalfSelected) {
+        // If clicking first slot - unselect this pair only
+        if (time._id === currentCourtTimes.find(t => t._id === time._id)?._id) {
+          setHalfSelectedSlots(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(leftKey);
+            newSet.delete(rightKey);
+            return newSet;
+          });
+          
+          const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+          setSelectedTimes(prev => ({
+            ...prev,
+            [courtId]: {
+              ...prev[courtId],
+              [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
+            },
+          }));
+          updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+          return;
+        }
+
+        // If clicking second slot with clickSide
+        if (clickSide && time._id === nextSlot._id) {
+          if (clickSide === "left") {
+            if (isLeftSelected) {
+              // Unselect this pair
+              setHalfSelectedSlots(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(leftKey);
+                return newSet;
+              });
+              const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id && t._id !== nextSlot._id);
+              const firstSlot = sortedSlots.find(s => s._id === time._id);
+              const prevSlot = sortedSlots[sortedSlots.findIndex(s => s._id === time._id) - 1];
+              if (prevSlot && currentCourtTimes.some(t => t._id === prevSlot._id)) {
+                filteredTimes.push(...currentCourtTimes.filter(t => t._id === prevSlot._id));
+              }
+              setSelectedTimes(prev => ({
+                ...prev,
+                [courtId]: {
+                  ...prev[courtId],
+                  [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
+                },
+              }));
+              updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+            } else {
+              // Switch to left
+              setHalfSelectedSlots(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(rightKey);
+                newSet.add(leftKey);
+                return newSet;
+              });
+            }
+          } else if (clickSide === "right") {
+            if (isRightSelected) {
+              // Unselect this pair
+              setHalfSelectedSlots(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(rightKey);
+                return newSet;
+              });
+              const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id && t._id !== nextSlot._id);
+              const prevSlot = sortedSlots[sortedSlots.findIndex(s => s._id === time._id) - 1];
+              if (prevSlot && currentCourtTimes.some(t => t._id === prevSlot._id)) {
+                filteredTimes.push(...currentCourtTimes.filter(t => t._id === prevSlot._id));
+              }
+              setSelectedTimes(prev => ({
+                ...prev,
+                [courtId]: {
+                  ...prev[courtId],
+                  [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
+                },
+              }));
+              updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+            } else {
+              // Switch to right
+              setHalfSelectedSlots(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(leftKey);
+                newSet.add(rightKey);
+                return newSet;
+              });
+            }
+          }
+          return;
+        }
+      }
+
+      // Case 2: New selection - check slot limit
+      if (totalSlots >= MAX_SLOTS) {
+        setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
+        setErrorShow(true);
+        return;
+      }
+
+      // Select first slot and auto half-select second slot (left side)
+      setHalfSelectedSlots(prev => {
+        const newSet = new Set(prev);
+        // Only clear conflicting selections for this specific pair
+        newSet.delete(leftKey);
+        newSet.delete(rightKey);
+        newSet.add(leftKey);
+        return newSet;
+      });
+
+      const newTimes = [...currentCourtTimes, time];
+      const newTimesWithAmount = newTimes.map(s => ({
+        ...s,
+        amount: getPriceForSlot(s.time)
+      }));
+
+      setSelectedTimes(prev => ({
+        ...prev,
+        [courtId]: {
+          ...prev[courtId],
+          [dateKey]: newTimesWithAmount,
+        },
+      }));
+      updateSelectedBusinessAndCourts(newTimesWithAmount, courtId, dateKey);
+      return;
+    }
+
+    // ========== 120MIN DURATION LOGIC ==========
+    if (selectedDuration === 120) {
+      if (!nextSlot || parseTimeToHour(nextSlot.time) !== parseTimeToHour(time.time) + 1) {
         setErrorMessage("Not enough consecutive slots for 120 minutes");
         setErrorShow(true);
         return;
       }
-    }
-    // For 30 & 60 min: only current slot
 
-    // Check total after adding
-    if (currentTotalSlots + slotsToSelect.length > MAX_SLOTS) {
-      setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
-      setErrorShow(true);
+      // Check if this specific pair is already selected
+      const isPairSelected = currentCourtTimes.some(t => t._id === time._id) &&
+                            currentCourtTimes.some(t => t._id === nextSlot._id);
+
+      // If this pair is selected, unselect both
+      if (isPairSelected) {
+        const filteredTimes = currentCourtTimes.filter(t => 
+          t._id !== time._id && t._id !== nextSlot._id
+        );
+        setSelectedTimes(prev => ({
+          ...prev,
+          [courtId]: {
+            ...prev[courtId],
+            [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
+          },
+        }));
+        updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+        return;
+      }
+
+      // Check slot limit (need 2 slots)
+      if (totalSlots >= MAX_SLOTS - 1) {
+        setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
+        setErrorShow(true);
+        return;
+      }
+
+      // Auto select both consecutive slots
+      const slotsToAdd = [time, nextSlot];
+      const newTimes = [...currentCourtTimes, ...slotsToAdd];
+      const newTimesWithAmount = newTimes.map(s => ({
+        ...s,
+        amount: getPriceForSlot(s.time)
+      }));
+
+      setSelectedTimes(prev => ({
+        ...prev,
+        [courtId]: {
+          ...prev[courtId],
+          [dateKey]: newTimesWithAmount,
+        },
+      }));
+      updateSelectedBusinessAndCourts(newTimesWithAmount, courtId, dateKey);
       return;
     }
-
-    const newTimes = [...currentCourtTimes];
-    slotsToSelect.forEach(slot => {
-      if (!newTimes.some(t => t._id === slot._id)) {
-        newTimes.push({ ...slot, date: dateKey });
-      }
-    });
-
-    setSelectedTimes((prev) => ({
-      ...prev,
-      [courtId]: {
-        ...prev[courtId],
-        [dateKey]: newTimes,
-      },
-    }));
-
-    updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
   };
   const durationOptions = [
     { label: "30min", value: 30 },
@@ -304,36 +646,85 @@ const Booking = ({ className = "" }) => {
 
 
   const handleDeleteSlot = (courtId, date, timeId) => {
-    setSelectedTimes((prev) => {
-      if (!prev[courtId] || !prev[courtId][date]) return prev;
+    // Check if this is a half-selected slot (for 90min duration)
+    const isHalfSlot = timeId.includes('-left') || timeId.includes('-right');
+    
+    if (isHalfSlot) {
+      const parts = timeId.split('-');
+      const originalId = parts[0];
+      const side = parts[parts.length - 1];
+      const key = `${courtId}-${originalId}-${date}-${side}`;
+      
+      // Remove from half-selected slots
+      setHalfSelectedSlots(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(key);
+        return newSet;
+      });
+      
+      // Also remove the corresponding first slot if it exists
+      setSelectedTimes((prev) => {
+        if (!prev[courtId] || !prev[courtId][date]) return prev;
+        
+        const courtTimes = prev[courtId][date];
+        const filtered = courtTimes.filter((t) => t?._id !== originalId);
+        
+        if (filtered.length === 0) {
+          const { [date]: _, ...restDates } = prev[courtId];
+          const newCourt = Object.keys(restDates).length > 0 ? restDates : undefined;
+          
+          if (!newCourt) {
+            const { [courtId]: __, ...restCourts } = prev;
+            return restCourts;
+          }
+          
+          return {
+            ...prev,
+            [courtId]: newCourt,
+          };
+        }
+        
+        return {
+          ...prev,
+          [courtId]: {
+            ...prev[courtId],
+            [date]: filtered,
+          },
+        };
+      });
+    } else {
+      // Regular slot deletion
+      setSelectedTimes((prev) => {
+        if (!prev[courtId] || !prev[courtId][date]) return prev;
 
-      const courtTimes = prev[courtId][date];
-      const filtered = courtTimes.filter((t) => t?._id !== timeId);
+        const courtTimes = prev[courtId][date];
+        const filtered = courtTimes.filter((t) => t?._id !== timeId);
 
-      if (filtered.length === 0) {
-        const { [date]: _, ...restDates } = prev[courtId];
-        const newCourt =
-          Object.keys(restDates).length > 0 ? restDates : undefined;
+        if (filtered.length === 0) {
+          const { [date]: _, ...restDates } = prev[courtId];
+          const newCourt =
+            Object.keys(restDates).length > 0 ? restDates : undefined;
 
-        if (!newCourt) {
-          const { [courtId]: __, ...restCourts } = prev;
-          return restCourts;
+          if (!newCourt) {
+            const { [courtId]: __, ...restCourts } = prev;
+            return restCourts;
+          }
+
+          return {
+            ...prev,
+            [courtId]: newCourt,
+          };
         }
 
         return {
           ...prev,
-          [courtId]: newCourt,
+          [courtId]: {
+            ...prev[courtId],
+            [date]: filtered,
+          },
         };
-      }
-
-      return {
-        ...prev,
-        [courtId]: {
-          ...prev[courtId],
-          [date]: filtered,
-        },
-      };
-    });
+      });
+    }
 
     setSelectedBuisness((prev) =>
       prev.filter((t) => !(t?._id === timeId && t?.date === date))
@@ -358,6 +749,13 @@ const Booking = ({ className = "" }) => {
       getUserSlotBooking({
         day: selectedDate?.day,
         date: format(new Date(selectedDate?.fullDate), "yyyy-MM-dd"),
+        register_club_id: localStorage.getItem("register_club_id") || "",
+        duration: selectedDuration
+      })
+    );
+    dispatch(
+      getUserSlotPrice({
+        day: selectedDate?.day,
         register_club_id: localStorage.getItem("register_club_id") || "",
         duration: selectedDuration
       })
@@ -438,27 +836,18 @@ const Booking = ({ className = "" }) => {
   const displayedSlotCount = useMemo(() => {
     if (totalSlots === 0) return 0;
 
-    const minutesSelected = totalSlots * 30;
-
-    let displayCount;
     switch (selectedDuration) {
       case 30:
-        displayCount = totalSlots * 0.5;
-        break;
+        return Number((totalSlots * 0.5).toFixed(1)); // 1 slot = 0.5
       case 60:
-        displayCount = totalSlots;
-        break;
+        return totalSlots;                            // 1 slot = 1 hour
       case 90:
-        displayCount = (totalSlots / 3) * 1.5;
-        break;
+        return Number((totalSlots * 0.75).toFixed(1)); // 2 slots = 1.5
       case 120:
-        displayCount = totalSlots / 2;
-        break;
+        return totalSlots;                            // 2 slots = 2 hours
       default:
-        displayCount = totalSlots;
+        return totalSlots;
     }
-
-    return Number(displayCount.toFixed(1));
   }, [totalSlots, selectedDuration]);
 
   const clubId = useMemo(() => localStorage.getItem("register_club_id"), []);
@@ -475,6 +864,13 @@ const Booking = ({ className = "" }) => {
         duration: selectedDuration
       })
     );
+    dispatch(
+      getUserSlotPrice({
+        day: selectedDate?.day,
+        register_club_id: localStorage.getItem("register_club_id") || "",
+        duration: selectedDuration
+      })
+    );
   }, [dispatch, selectedDuration, selectedDate?.day, selectedDate?.fullDate, clubId]);
 
   useEffect(() => {
@@ -484,6 +880,20 @@ const Booking = ({ className = "" }) => {
     setHalfSelectedSlots(new Set());
     setIsExpanded(false);
   }, [selectedDuration]);
+
+  // Update booking summary whenever halfSelectedSlots changes
+  useEffect(() => {
+    if (selectedDuration === 30 || selectedDuration === 90) {
+      Object.keys(selectedTimes).forEach(courtId => {
+        Object.keys(selectedTimes[courtId] || {}).forEach(dateKey => {
+          const times = selectedTimes[courtId][dateKey] || [];
+          if (times.length > 0) {
+            updateSelectedBusinessAndCourts(times, courtId, dateKey);
+          }
+        });
+      });
+    }
+  }, [halfSelectedSlots]);
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
@@ -636,57 +1046,43 @@ const Booking = ({ className = "" }) => {
       setErrorShow(true);
       return;
     }
+
+    const courtIds = selectedCourts
+      ?.map((court) => court?._id)
+      .filter((id) => id)
+      .join(",");
+
+    const paymentStateData = {
+      courtData: {
+        day: selectedDate?.day,
+        date: selectedDate?.fullDate,
+        time: selectedBuisness,
+        courtId: courtIds,
+        court: selectedCourts?.map((c) => ({ _id: c?._id || c?.id, ...c })),
+        slot: slotData?.data?.[0]?.slots,
+      },
+      clubData,
+      selectedCourts,
+      selectedDate,
+      grandTotal,
+      totalSlots: displayedSlotCount,
+      duration: selectedDuration,               // 30, 60, 90, 120
+      halfSelectedSlots: halfSelectedSlots,     // ← जरूर add करो
+    };
+
     if (!user?.token) {
-      const courtIds = selectedCourts
-        ?.map((court) => court?._id)
-        .filter((id) => id)
-        .join(",");
       navigate("/login", {
         state: {
           redirectTo: "/payment",
-          paymentState: {
-            courtData: {
-              day: selectedDate?.day,
-              date: selectedDate?.fullDate,
-              time: selectedBuisness,
-              courtId: courtIds,
-              court: selectedCourts?.map((c) => ({ _id: c?._id || c?.id, ...c })),
-              slot: slotData?.data?.[0]?.slots,
-            },
-            clubData,
-            selectedCourts,
-            selectedDate,
-            grandTotal,
-            totalSlots,
-          },
+          paymentState: paymentStateData,
         },
       });
     } else {
-      const courtIds = selectedCourts
-        ?.map((court) => court?._id)
-        .filter((id) => id)
-        .join(",");
       navigate("/payment", {
-        state: {
-          courtData: {
-            day: selectedDate?.day,
-            date: selectedDate?.fullDate,
-            time: selectedBuisness,
-            courtId: courtIds,
-            court: selectedCourts?.map((c) => ({ _id: c._id || c.id, ...c })),
-            slot: slotData?.data?.[0]?.slots,
-          },
-          clubData,
-          selectedCourts,
-          selectedDate,
-          grandTotal,
-          totalSlots,
-        },
+        state: paymentStateData,
       });
     }
-
   };
-
   const handleSwitchChange = () => setShowUnavailable(!showUnavailable);
 
   const formatTimeForDisplay = (time) => {
@@ -838,7 +1234,7 @@ const Booking = ({ className = "" }) => {
     setActiveTab(defaultTabIndex);
   }, [slotData, showUnavailable]);
 
- 
+
 
   return (
     <>
@@ -984,6 +1380,13 @@ const Booking = ({ className = "" }) => {
                                 duration: selectedDuration
                               })
                             );
+                            dispatch(
+                              getUserSlotPrice({
+                                day: day,
+                                register_club_id: localStorage.getItem("register_club_id") || "",
+                                duration: selectedDuration
+                              })
+                            );
                           }}
                           minDate={new Date()}
                           maxDate={maxSelectableDate}
@@ -1107,6 +1510,13 @@ const Booking = ({ className = "" }) => {
                             getUserSlotBooking({
                               day: d?.day,
                               date: d?.fullDate,
+                              register_club_id: localStorage.getItem("register_club_id") || "",
+                              duration: selectedDuration
+                            })
+                          );
+                          dispatch(
+                            getUserSlotPrice({
+                              day: d?.day,
                               register_club_id: localStorage.getItem("register_club_id") || "",
                               duration: selectedDuration
                             })
@@ -1260,8 +1670,7 @@ const Booking = ({ className = "" }) => {
                               ? true
                               : slot?.availabilityStatus === "available" &&
                               slot?.status !== "booked" &&
-                              !isPastTime(slot?.time) &&
-                              slot?.amount > 0;
+                              !isPastTime(slot?.time);
 
                             const tabKey = duration[activeTab]?.key;
                             return basicFilter && filterSlotsByTab(slot, tabKey);
@@ -1302,110 +1711,234 @@ const Booking = ({ className = "" }) => {
                                 </div>
                               </div>
                               <div className="col-md-9 col-12">
-                                <div className="row g-1">
-                                  {filteredSlots?.map((slot, i) => {
-                                    const dateKey = selectedDate?.fullDate;
-                                    const courtId = court?._id;
+                              <div className="row g-1">
+  {filteredSlots?.map((slot) => {
+    const dateKey = selectedDate?.fullDate;
+    const courtId = court?._id;
 
-                                    // Check if this slot is fully selected
-                                    const isSelected = selectedTimes[courtId]?.[dateKey]?.some(
-                                      (t) => t?._id === slot?._id
-                                    );
+    const leftKey = `${courtId}-${slot._id}-${dateKey}-left`;
+    const rightKey = `${courtId}-${slot._id}-${dateKey}-right`;
 
-                                    // Check if this slot is visually half-selected (for 90min preview)
-                                    const halfKey = `${courtId}-${slot?._id}-${dateKey}`;
-                                    const isHalfSelected = halfSelectedSlots.has(halfKey);
+    const leftHalf = halfSelectedSlots.has(leftKey);
+    const rightHalf = halfSelectedSlots.has(rightKey);
 
-                                    // Disabled conditions
-                                    const isDisabled =
-                                      slot?.status === "booked" ||
-                                      slot?.availabilityStatus !== "available" ||
-                                      isPastTime(slot?.time) ||
-                                      slot?.amount <= 0;
+    const isSlotDisabled =
+      slot?.status === "booked" ||
+      slot?.availabilityStatus !== "available" ||
+      isPastTime(slot?.time);
 
-                                    // Determine background based on duration and selection state
-                                    const getBackground = () => {
-                                      if (isDisabled) return "#c9cfcfff";
+    // booking info
+    const bookingTime = slot?.bookingTime?.trim();
+    const isLeftBooked = bookingTime && /:00\s*(AM|PM)?$/i.test(bookingTime);
+    const isRightBooked = bookingTime && /:30\s*(AM|PM)?$/i.test(bookingTime);
+    const isHalfBooked = isLeftBooked || isRightBooked;
 
-                                      if (isSelected) {
-                                        if (selectedDuration === 30) {
-                                          // Left half blue for 30min selection
-                                          return "linear-gradient(to right, #0034E4 50%, #d8d5d5ff 50%)";
-                                        }
-                                        // Full blue for 60, 90, 120 min
-                                        return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)";
-                                      }
+    const price = getPriceForSlot(slot.time);
 
-                                      if (isHalfSelected) {
-                                        // Right half blue (preview for next slot in 90min)
-                                        return "linear-gradient(to left, #0034E4 50%, #001B76 50%, #d8d5d5ff 50%)";
-                                      }
+    // hide for 60 / 120
+    if ((selectedDuration === 60 || selectedDuration === 120) && isHalfBooked) {
+      return null;
+    }
 
-                                      return "#FFFFFF";
-                                    };
-                                    const getTextColor = () => {
-                                      if (isDisabled) return "#666666";
-                                      if (isSelected || isHalfSelected) return "white";
-                                      return "#000000";
-                                    };
-                                    // Hover border effect
-                                    const handleMouseEnter = (e) => {
-                                      if (!isDisabled && !isSelected && !isHalfSelected) {
-                                        e.currentTarget.style.borderTop = "1px solid #0034E4";
-                                        e.currentTarget.style.borderRight = "1px solid #0034E4";
-                                        e.currentTarget.style.borderBottom = "1px solid #0034E4";
-                                        e.currentTarget.style.borderLeft = "3px solid #0034E4";
-                                      }
-                                    };
+    // Check if slot is selected for 60min and 120min
+    const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
+    const isSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
+    
+    // For 90min: Check if this is the first slot of a 90min selection
+    const sortedSlots = getSortedSlots(slotData?.data?.find(c => c?._id === courtId));
+    const currentIndex = sortedSlots.findIndex(s => s._id === slot._id);
+    const nextSlotFor90 = sortedSlots[currentIndex + 1];
+    const isFirstSlotOf90 = selectedDuration === 90 && isSlotSelected && nextSlotFor90 && 
+      (halfSelectedSlots.has(`${courtId}-${nextSlotFor90._id}-${dateKey}-left`) || 
+       halfSelectedSlots.has(`${courtId}-${nextSlotFor90._id}-${dateKey}-right`));
 
-                                    const handleMouseLeave = (e) => {
-                                      if (!isDisabled) {
-                                        const isActive = isSelected || isHalfSelected;
-                                        e.currentTarget.style.borderTop = isActive ? "1px solid transparent" : "1px solid #4949491A";
-                                        e.currentTarget.style.borderRight = isActive ? "1px solid transparent" : "1px solid #4949491A";
-                                        e.currentTarget.style.borderBottom = isActive ? "1px solid transparent" : "1px solid #4949491A";
-                                        e.currentTarget.style.borderLeft = "3px solid #0034E4";
-                                      }
-                                    };
+    // 🎨 BACKGROUND (FIXED)
+    const getBackground = () => {
+      // For 90min - first slot should show full blue background
+      if (selectedDuration === 90 && isFirstSlotOf90) {
+        return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"; // Full blue background for first slot
+      }
+      
+      // For 60min and 120min - full slot selection
+      if (selectedDuration === 60 || selectedDuration === 120) {
+        if (isSlotSelected) {
+          return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"; // Full blue background
+        }
+        return "#FFFFFF"; // White background
+      }
+      
+      // For 30min and 90min (second slot) - half slot selection
+      if (selectedDuration === 30 || selectedDuration === 90) {
+        // Only one side should be selected at a time - fixed logic
+        if (leftHalf && !rightHalf) {
+          if (isRightBooked) {
+            return "linear-gradient(to right, #0034E4 50%, #5a6883ff 50%)";
+          }
+          return "linear-gradient(to right, #0034E4 50%, #FFFFFF 50%)";
+        }
+        
+        if (rightHalf && !leftHalf) {
+          if (isLeftBooked) {
+            return "linear-gradient(to left, #0034E4 50%, #a1b1cfff 50%)";
+          }
+          return "linear-gradient(to left, #0034E4 50%, #FFFFFF 50%)";
+        }
+        
+        // If neither side is selected, show booking status
+        if (isLeftBooked && !isRightBooked) {
+          return "linear-gradient(to right, #a1b1cfff 50%, #FFFFFF 50%)";
+        }
+        
+        if (isRightBooked && !isLeftBooked) {
+          return "linear-gradient(to left, #5a6883ff 50%, #FFFFFF 50%)";
+        }
+        
+        return "#FFFFFF";
+      }
+      return "#FFFFFF";
+    };
 
-                                    return (
-                                      <div
-                                        key={slot?._id} // Better key than index
-                                        className="col-3 col-sm-3 col-md-3 col-lg-2 mb-md-1 mb-0 mt-md-0 mt-1"
-                                      >
-                                        <button
-                                          className="btn  rounded-1 w-100 slot-time-btn"
-                                          onClick={() => toggleTime(slot, court?._id, dateKey)}
-                                          disabled={isDisabled}
-                                          style={{
-                                            background: getBackground(),
-                                            color: getTextColor(),
-                                            cursor: isDisabled ? "not-allowed" : "pointer",
-                                            opacity: isDisabled ? 0.6 : 1,
-                                            // borderTop: (isSelected || isHalfSelected) ? "1px solid transparent" : "1px solid #4949491A",
-                                            borderRight: (isSelected || isHalfSelected) ? "0px solid transparent" : "1px solid #4949491A",
-                                            borderBottom: (isSelected || isHalfSelected) ? "0px solid transparent" : "1px solid #4949491A",
-                                            borderLeft: (isSelected || isHalfSelected) ? "0px solid transparent" : "3px solid #0034E4",
-                                            fontSize: "11px",
-                                            padding: "4px 2px",
-                                            height: "32px",
-                                            transition: "all 0.2s ease",
-                                            fontWeight: isSelected || isHalfSelected ? "600" : "500",
-                                            backgroundClip: "padding-box",
-                                            position: "relative",
-                                            backgroundSize: "200% 100%",
-                                            backgroundPosition: isSelected && selectedDuration === 30 ? "left center" :
-                                              isHalfSelected ? "right center" : "center",
-                                          }}
-                                          onMouseEnter={handleMouseEnter}
-                                          onMouseLeave={handleMouseLeave}
-                                        >
-                                          {formatTimeForDisplay(slot?.time)}
-                                        </button>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
+    // 🖱️ CLICK HANDLER (FIXED)
+    const handleClick = (e) => {
+      if (isSlotDisabled) return;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const clickSide = x < rect.width / 2 ? "left" : "right";
+
+      // For 30min and 90min, pass clickSide
+      if (selectedDuration === 30 || selectedDuration === 90) {
+        // For 90min, only allow left side clicks on second slot (half-selected slot)
+        if (selectedDuration === 90) {
+          const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
+          const isFirstSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
+          
+          // If this is the first slot, allow any click
+          if (isFirstSlotSelected) {
+            toggleTime(slot, courtId, dateKey);
+            return;
+          }
+          
+          // If this is the second slot (half-selected), only allow left side
+          if (leftHalf || rightHalf) {
+            if (clickSide === "right") return; // Block right side clicks
+            toggleTime(slot, courtId, dateKey, "left");
+            return;
+          }
+        }
+        
+        // For 30min, allow both sides
+        if (selectedDuration === 30) {
+          // booked side block
+          if (
+            (clickSide === "left" && isLeftBooked) ||
+            (clickSide === "right" && isRightBooked)
+          ) {
+            return;
+          }
+          toggleTime(slot, courtId, dateKey, clickSide);
+          return;
+        }
+      }
+
+      // For 60min and 120min, no clickSide needed
+      toggleTime(slot, courtId, dateKey);
+    };
+
+    return (
+      <div key={slot._id} className="col-3 col-sm-3 col-md-3 col-lg-2 mb-2">
+        <button
+          className="btn rounded-2 w-100 text-nowrap slot-time-btn position-relative overflow-hidden"
+          disabled={isSlotDisabled}
+          onClick={handleClick}
+          style={{
+            background: getBackground(),
+            cursor: isSlotDisabled ? "not-allowed" : "pointer",
+            opacity: isSlotDisabled ? 0.6 : 1,
+            border: "1px solid #dee2e6",
+            borderRadius: "12px",
+            height: "68px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            position: "relative"
+          }}
+        >
+          {/* For 30min and 90min half-selected slots, show split text colors */}
+          {(selectedDuration === 30 || selectedDuration === 90) && (leftHalf || rightHalf) ? (
+            <>
+              <span
+                style={{
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  background: leftHalf 
+                    ? "linear-gradient(to right, white 50%, #111827 50%)"
+                    : "linear-gradient(to right, #111827 50%, white 50%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text"
+                }}
+              >
+                {formatTimeForDisplay(slot?.time)}
+              </span>
+              <span
+                style={{
+                  fontSize: "12px",
+                  background: leftHalf 
+                    ? "linear-gradient(to right, white 50%, #6b7280 50%)"
+                    : "linear-gradient(to right, #6b7280 50%, white 50%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text"
+                }}
+              >
+                ₹{price}
+              </span>
+            </>
+          ) : (
+            /* Normal single text display for full selections */
+            <>
+              <span
+                style={{
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  color:
+                    (selectedDuration === 60 || selectedDuration === 120) && isSlotSelected
+                      ? "white"
+                      : (selectedDuration === 90 && isFirstSlotOf90)
+                      ? "white"
+                      : leftHalf || rightHalf || isLeftBooked || isRightBooked
+                      ? "white"
+                      : "#111827",
+                }}
+              >
+                {formatTimeForDisplay(slot?.time)}
+              </span>
+
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: 
+                    (selectedDuration === 60 || selectedDuration === 120) && isSlotSelected
+                      ? "white"
+                      : (selectedDuration === 90 && isFirstSlotOf90)
+                      ? "white"
+                      : leftHalf || rightHalf 
+                      ? "white" 
+                      : "#6b7280",
+                }}
+              >
+                ₹{price}
+              </span>
+            </>
+          )}
+        </button>
+      </div>
+    );
+  })}
+</div>
+
                               </div>
                             </div>
                           );
@@ -1462,6 +1995,7 @@ const Booking = ({ className = "" }) => {
             buttonConfig={buttonConfig}
             className={className}
             handleBookNow={handleBookNow}
+            displayedSlotCount={displayedSlotCount}
           />
 
         </div>

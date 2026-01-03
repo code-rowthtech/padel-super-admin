@@ -61,6 +61,31 @@ export const getUserSlot = createAsyncThunk(
   }
 );
 
+export const getUserSlotPrice = createAsyncThunk(
+  "club/getUserSlotPrice",
+  async ({ register_club_id, day, duration}, { rejectWithValue }) => {
+    try {
+      if (!register_club_id ) {
+        throw new Error("Missing required parameters: register_club_id, day, or duration");
+      }
+
+      const queryParams = new URLSearchParams({
+        register_club_id,
+        day,
+        duration,
+      });
+
+      const response = await userApi.get(`${Url.GET_SLOT_PRICES}?${queryParams.toString()}`);
+
+      return response?.data;
+    } catch (error) {
+      showError(error?.message || "Something went wrong while fetching slots");
+      return rejectWithValue(error?.response?.data || error.message);
+    }
+  }
+);
+
+  
 
 
 export const getMatchesSlot = createAsyncThunk(

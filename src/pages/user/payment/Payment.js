@@ -15,10 +15,9 @@ const RAZORPAY_KEY = `${config.RAZORPAY_KEY}`;
 const Payment = ({ className = "" }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { courtData, clubData, selectedCourts, grandTotal, totalSlots } = location.state || {};
+  const { courtData, clubData, selectedCourts, grandTotal, totalSlots, duration, halfSelectedSlots } = location.state || {};
   const user = getUserFromSession();
   const store = useSelector((state) => state?.userAuth);
-
   const bookingStatus = useSelector((state) => state?.userBooking);
   const userLoading = useSelector((state) => state?.userAuth);
   const logo = clubData?.logo;
@@ -113,6 +112,35 @@ const Payment = ({ className = "" }) => {
     };
   }, []);
 
+  const parseTimeToHour = (timeStr) => {
+    if (!timeStr) return null;
+    let hour;
+    let period = "am";
+
+    if (typeof timeStr === "string") {
+      const timeStrLower = timeStr.toLowerCase();
+      if (timeStrLower.endsWith("am") || timeStrLower.endsWith("pm")) {
+        period = timeStrLower.slice(-2);
+        hour = timeStrLower.slice(0, -2).trim();
+      } else {
+        const timeParts = timeStrLower.split(" ");
+        if (timeParts?.length > 1) {
+          hour = timeParts[0];
+          period = timeParts[1];
+        } else {
+          hour = timeStrLower;
+        }
+      }
+      hour = parseInt(hour.split(":")[0]);
+      if (isNaN(hour)) return null;
+
+      if (period === "pm" && hour !== 12) hour += 12;
+      if (period === "am" && hour === 12) hour = 0;
+    }
+    return hour;
+  };
+
+
   // Payment handle function with comprehensive error handling
   const handlePayment = async () => {
     try {
@@ -120,10 +148,10 @@ const Payment = ({ className = "" }) => {
 
       // Enhanced validation
       const newErrors = {
-        name: !name.trim() 
-          ? "Name is required" 
-          : name.trim().length < 2 
-            ? "Name must be at least 2 characters" 
+        name: !name.trim()
+          ? "Name is required"
+          : name.trim().length < 2
+            ? "Name must be at least 2 characters"
             : "",
         phoneNumber: !rawPhoneNumber
           ? "Phone number is required"
@@ -137,7 +165,7 @@ const Payment = ({ className = "" }) => {
 
       setErrors(newErrors);
       if (Object.values(newErrors).some((e) => e)) return;
-      
+
       if (localTotalSlots === 0) {
         setErrors((prev) => ({ ...prev, general: "Please select at least one slot" }));
         return;
@@ -158,20 +186,91 @@ const Payment = ({ className = "" }) => {
         throw new Error("Club information missing.");
       }
 
-      // Prepare slot array
-      const slotArray = localSelectedCourts.flatMap((court) =>
-        court?.time?.map((timeSlot) => ({
-          slotId: timeSlot?._id,
-          businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
-            time: t?.time,
-            day: t?.day,
-          })) || [{ time: "6:00 AM To 11:00 PM", day: "Monday" }],
-          slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount ?? 2000 }],
-          courtName: court?.courtName,
-          courtId: court?._id,
-          bookingDate: court?.date,
-        }))
-      );
+      const slotArray = localSelectedCourts.flatMap((court) => {
+        const courtId = court?._id;
+        const dateKey = court?.date;
+
+        return court?.time?.map((timeSlot) => {
+          const slotTimeStr = timeSlot?.time; // e.g. "5:00 AM"
+          const slotHour = parseTimeToHour(slotTimeStr);
+
+          let bookingTime = slotTimeStr; // default
+
+          if (duration === 30) {
+            const leftKey = `${courtId}-${timeSlot._id}-${dateKey}-left`;
+            const rightKey = `${courtId}-${timeSlot._id}-${dateKey}-right`;
+            const isLeftHalf = halfSelectedSlots.has(leftKey);
+            const isRightHalf = halfSelectedSlots.has(rightKey);
+
+            if (isLeftHalf && !isRightHalf) {
+              // Only left → start time
+              bookingTime = slotTimeStr;
+            } else if (isRightHalf && !isLeftHalf) {
+              // Only right → +30 minutes
+              const nextHour = (slotHour + 0.5);
+              const isPM = slotTimeStr.toLowerCase().includes("pm");
+              const baseHour = slotHour % 12 || 12;
+              const newHour = Math.floor(nextHour);
+              const minutes = nextHour % 1 === 0.5 ? "30" : "00";
+              const displayHour = newHour % 12 || 12;
+              const period = (nextHour >= 12 && nextHour < 24) || nextHour >= 24 ? "PM" : "AM";
+              bookingTime = `${displayHour}:${minutes} ${period}`;
+            } else if (isLeftHalf && isRightHalf) {
+              // Both → full hour
+              bookingTime = slotTimeStr;
+            }
+          } else if (duration === 90) {
+            const leftKey = `${courtId}-${timeSlot._id}-${dateKey}-left`;
+            const rightKey = `${courtId}-${timeSlot._id}-${dateKey}-right`;
+            const isLeftHalf = halfSelectedSlots.has(leftKey);
+            const isRightHalf = halfSelectedSlots.has(rightKey);
+
+            if (isLeftHalf) {
+              // Left half of second slot → same time
+              bookingTime = slotTimeStr;
+            } else if (isRightHalf) {
+              // Right half → +30 min
+              const nextHour = (slotHour + 0.5);
+              const displayHour = nextHour % 12 || 12;
+              const period = nextHour >= 12 ? "PM" : "AM";
+              bookingTime = `${displayHour}:30 ${period}`;
+            } else {
+              // First slot (full)
+              bookingTime = slotTimeStr;
+            }
+          }
+
+          // Calculate amount (existing logic)
+          const isHalfAutoSlot = duration === 90 && halfSelectedSlots?.has?.(`${courtId}-${timeSlot._id}-${dateKey}`);
+          let actualTotalTime = duration;
+          if (duration === 90) {
+            actualTotalTime = isHalfAutoSlot ? 30 : 60;
+          }
+
+          const baseAmount = timeSlot?.amount || 300;
+          const adjustedAmount = isHalfAutoSlot
+            ? Math.round(baseAmount * (30 / 90))
+            : baseAmount;
+
+          return {
+            slotId: timeSlot?._id,
+            businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
+              time: t?.time,
+              day: t?.day,
+            })) || [{ time: "06:00 AM - 11:00 PM", day: "Friday" }],
+            slotTimes: [{
+              time: timeSlot?.time,
+              amount: adjustedAmount,
+            }],
+            courtName: court?.courtName,
+            courtId: court?._id,
+            bookingDate: court?.date,
+            duration: duration,
+            totalTime: actualTotalTime,
+            bookingTime: bookingTime // ← यही नया field
+          };
+        });
+      });
 
       const basePayload = {
         name: name.trim(),
@@ -262,9 +361,9 @@ const Payment = ({ className = "" }) => {
 
     } catch (err) {
       console.error('Payment error:', err);
-      const errorMessage = err?.response?.data?.message || 
-                          err?.message || 
-                          "Payment failed. Please try again.";
+      const errorMessage = err?.response?.data?.message ||
+        err?.message ||
+        "Payment failed. Please try again.";
       setErrors((prev) => ({ ...prev, general: errorMessage }));
     } finally {
       setIsLoading(false);
